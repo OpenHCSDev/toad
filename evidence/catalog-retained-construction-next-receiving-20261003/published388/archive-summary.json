@@ -1,0 +1,90 @@
+{
+  "state": "Published388; original default saved-history startup/display accepted",
+  "ready_head": "964138a61658084fe636401cf35ef76cdfe28274",
+  "merged_head": "f3493b85ec9025d084399c46f6671a17d9498c25",
+  "raw_publication_sha256": "b56a921c90eaa8d0e3da29e4d38974a9a6ddbbe7bbbf2ea282e945a7899c5099",
+  "raw_phase_unchanged": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "publisher_duration_seconds": 40.799957513809204,
+  "owners_preserved": 19,
+  "target": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "pins": {
+    "agent_comms": "5e1575269bd20e87f6c03365619feeb0178a215d",
+    "toad": "bc156346400a2e277f9e5284ca2855d6810059a5",
+    "textual": "69954eb3809ab7abbd564efdf3d70fa9ad985d6e"
+  },
+  "native_manifest": "51bff517be67ae98213760beebd2c070591e5df61cb2c9ebbf87cacbf9f039ab",
+  "native_tree": "e74115621526343102e3f7074a1ddfda406c2db4d1fe94029030cdc09f47e68d",
+  "physical_duration_seconds": 23.738038416020572,
+  "physical_terminal_exit": {
+    "pid": 3642603,
+    "start_ticks": 50160989,
+    "returncode": 0
+  },
+  "physical_identity_relation": "Recorded helper PID/birth equals publication readback target helper; capture runtime unchanged and activation hash matches published cohort",
+  "inspection_timing": "After cleanup; observe-only journey, not during-motion acceptance",
+  "scope": "Ordinary installed default saved-history startup/display, not fresh delivery, compaction, latency or smoothness",
+  "provider_inputs": 0,
+  "cleanup_remaining": [],
+  "cleanup_errors": [],
+  "current_target_protected": true,
+  "prior485_disposition": "Preserved through publication/acceptance; subsequently explicitly released by parent and Bohr for next candidate code only, originals archived",
+  "native583_disposition": "Immutable successor artifact separately built; actual replacement acceptance unqualified, not installed",
+  "catalog_gate_warning_scope": "Existing ten shell_read OSError5 PTY EOF warnings retained in original387 proof; no zero-log-error claim",
+  "files": [
+    {
+      "source": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/catalog-retained-construction388-receiving-20261003/new-publication581582386387/publication-receipt.json",
+      "archive": "publication-receipt.json",
+      "sha256": "b56a921c90eaa8d0e3da29e4d38974a9a6ddbbe7bbbf2ea282e945a7899c5099",
+      "bytes": 39886
+    },
+    {
+      "source": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/catalog-retained-construction388-receiving-20261003/new-publication581582386387/publication-identity-closure.json",
+      "archive": "publication-identity-closure.json",
+      "sha256": "87501a0a31b195ed6a99b9501ae6387bf570300ae8cf87d7014bdadffe019900",
+      "bytes": 18507
+    },
+    {
+      "source": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published581387-20261003/parent-review.json",
+      "archive": "parent-review.json",
+      "sha256": "83ecbc3e623460f4b17e0b262acb12477cce2dd1febac147324e43a15ec8d59c",
+      "bytes": 1384
+    },
+    {
+      "source": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published581387-20261003/physical-assessment.json",
+      "archive": "physical-assessment.json",
+      "sha256": "1301637c38b40e559f2fbb720f5d961e48425a228122dea29efcde47733667a1",
+      "bytes": 1676
+    },
+    {
+      "source": "/home/ts/.cache/agent-scratch/published581387-helper-default-20261003/capture/receipt.json",
+      "archive": "default-visible/receipt.json",
+      "sha256": "66eec24ace78c6712249479814417a44fdcab5aa4356db513671e86454adc02e",
+      "bytes": 30377
+    },
+    {
+      "source": "/home/ts/.cache/agent-scratch/published581387-helper-default-20261003/capture/before-state.json",
+      "archive": "default-visible/before-state.json",
+      "sha256": "d82621c9f56e8c01dc3748da0e09cea3835eb02dcff83d86fd63b6a497f1a3ba",
+      "bytes": 1021769
+    },
+    {
+      "source": "/home/ts/.cache/agent-scratch/published581387-helper-default-20261003/capture/after-state.json",
+      "archive": "default-visible/after-state.json",
+      "sha256": "84e3d8f8c706d34539a62c7ad0c848e626e1d8795fdfb790b1ffab22535191c7",
+      "bytes": 1021769
+    },
+    {
+      "source": "/home/ts/.cache/agent-scratch/published581387-helper-default-20261003/capture/before.png",
+      "archive": "default-visible/before.png",
+      "sha256": "ab970f3127a568f5f0078c92fd75858c674c10bf75411b3ddd208a5c4fdd309f",
+      "bytes": 94925
+    },
+    {
+      "source": "/home/ts/.cache/agent-scratch/published581387-helper-default-20261003/capture/after.png",
+      "archive": "default-visible/after.png",
+      "sha256": "a1ca2159dbd36291ffe62ab22777132268344d071fb665207e7b32133df8eec5",
+      "bytes": 94188
+    }
+  ],
+  "archived_bytes": 2324481
+}
