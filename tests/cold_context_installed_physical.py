@@ -61,7 +61,7 @@ def load_recorder():
                     click("phase-export-path-state.pickle", "widget", "Button#context-export"),
                     "sleep 1", mark + "exported",
                     click("phase-exported-state.pickle", "widget", "Input#context-search"),
-                    "key ctrl+a", "type --clearmodifiers configured-source", "key Return",
+                    "key ctrl+shift+a", "type --clearmodifiers configured-source", "key Return",
                     "sleep 2", mark + "core-matches",
                     select("phase-core-matches-state.pickle", "core"),
                     "sleep 1", mark + "core-instructions", mark + "core-expanded",

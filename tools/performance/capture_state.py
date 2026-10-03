@@ -203,7 +203,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
 
         def navigation_target(node, region, name):
             cell = Offset(*(int(value) for value in region.center))
-            hit = screen.get_widget_at(*cell)[0]
+            hit = app.screen.get_widget_at(*cell)[0]
             if hit is None or node not in hit.ancestors_with_self:
                 return None
             return {**node_identity(node), "name": name, "region": tuple(region),
