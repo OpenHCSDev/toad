@@ -1,0 +1,403 @@
+{
+  "modules": [
+    289,
+    249
+  ],
+  "omissions": [],
+  "declarations": [
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "class": "ViewportBody",
+      "bases": [],
+      "members": [
+        "body_dormant",
+        "body_ready",
+        "retire_body",
+        "restore_body",
+        "prepare_body",
+        "retained_source_bytes",
+        "retained_paint_bytes",
+        "release_paint",
+        "measured_rows",
+        "retained_widget_count",
+        "materialized_widget_count"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "class": "BodyMeasurement",
+      "bases": [
+        "ABC"
+      ],
+      "members": [
+        "width",
+        "rows",
+        "widgets",
+        "dormant",
+        "ready",
+        "cost",
+        "paint_bytes",
+        "height",
+        "render",
+        "restore",
+        "invalidated",
+        "materialize",
+        "before_publication",
+        "prepare_publication",
+        "paint_ready",
+        "publication_prepared",
+        "measured",
+        "get_selection",
+        "publication_finished",
+        "publication_failed",
+        "released",
+        "style_updated",
+        "resized",
+        "retire"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "class": "MeasuredBody",
+      "bases": [
+        "BodyMeasurement"
+      ],
+      "members": [
+        "dormant",
+        "ready",
+        "cost",
+        "height",
+        "render",
+        "restore"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "class": "LiveBody",
+      "bases": [
+        "MeasuredBody"
+      ],
+      "members": [
+        "prepare_publication",
+        "invalidated",
+        "dormant",
+        "ready",
+        "cost",
+        "height",
+        "measured",
+        "render",
+        "restore",
+        "materialize",
+        "retire"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "class": "MaterializingBody",
+      "bases": [
+        "BodyMeasurement"
+      ],
+      "members": [
+        "width",
+        "rows",
+        "widgets",
+        "dormant",
+        "ready",
+        "paint_ready",
+        "publication_prepared",
+        "cost",
+        "paint_bytes",
+        "height",
+        "render",
+        "get_selection",
+        "_updated",
+        "measured",
+        "invalidated",
+        "released",
+        "style_updated",
+        "resized",
+        "restore",
+        "materialize",
+        "before_publication",
+        "publication_finished",
+        "publication_failed"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "class": "RenderedBody",
+      "bases": [
+        "MeasuredBody"
+      ],
+      "members": [
+        "dormant",
+        "ready",
+        "paint_ready",
+        "style_updated",
+        "resized",
+        "cost",
+        "paint_bytes",
+        "height",
+        "render",
+        "get_selection",
+        "released",
+        "restore"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "class": "MeasuredViewportBody",
+      "bases": [
+        "ViewportBody"
+      ],
+      "members": [
+        "__init__",
+        "body_dormant",
+        "body_ready",
+        "is_container",
+        "_render_widget",
+        "native_body_ready",
+        "measured_rows",
+        "retained_widget_count",
+        "retained_paint_bytes",
+        "release_paint",
+        "invalidate_body",
+        "_update_body_measurement",
+        "notify_style_update",
+        "_size_updated",
+        "selection_style",
+        "render_lines",
+        "get_selection",
+        "prepare_input",
+        "materialize_body",
+        "publish_body",
+        "start_materialization",
+        "materialize_native_body",
+        "reconstructible_children",
+        "retire_body_resources",
+        "retire_body",
+        "retirement_custody",
+        "retire_native_body",
+        "capture_native_paint",
+        "finish_native_retirement",
+        "restore_body",
+        "get_content_height",
+        "get_content_width",
+        "on_unmount",
+        "on_mount"
+      ]
+    }
+  ],
+  "consumers": [
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 194,
+      "expression": "self.viewport_presentation.geometry_targets"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 128,
+      "expression": "anchor.geometry_targets"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 326,
+      "expression": "code.is_container"
+    },
+    {
+      "path": "src/toad/widgets/streaming_markdown.py",
+      "line": 135,
+      "expression": "self.body_dormant"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 487,
+      "expression": "self.body_dormant"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 645,
+      "expression": "self.body_dormant"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 261,
+      "expression": "self.paint_ready"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 264,
+      "expression": "self.previous.paint_ready"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 424,
+      "expression": "super().is_container"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 970,
+      "expression": "self.geometry_targets"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 304,
+      "expression": "self.paint_ready"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 353,
+      "expression": "self.paint_ready"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 388,
+      "expression": "self.paint_ready"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 428,
+      "expression": "self._body_measurement.paint_ready"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 496,
+      "expression": "self.body_dormant"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 424,
+      "expression": "self._body_measurement.paint_ready"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 860,
+      "expression": "owner.body_dormant"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1040,
+      "expression": "owner.body_dormant"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1087,
+      "expression": "owner.body_dormant"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1109,
+      "expression": "owner.body_dormant"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 717,
+      "expression": "window.document_viewport.geometry_targets"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1050,
+      "expression": "owner.body_dormant"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 910,
+      "expression": "widget.is_container"
+    },
+    {
+      "path": "src/textual/_measurement.py",
+      "line": 47,
+      "expression": "widget.is_container"
+    },
+    {
+      "path": "src/textual/_measurement.py",
+      "line": 55,
+      "expression": "widget.is_container"
+    },
+    {
+      "path": "src/textual/_measurement.py",
+      "line": 62,
+      "expression": "widget.is_container"
+    },
+    {
+      "path": "src/textual/_measurement.py",
+      "line": 79,
+      "expression": "widget.is_container"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1370,
+      "expression": "self._layout_geometry_targets"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 830,
+      "expression": "node.is_container"
+    },
+    {
+      "path": "src/textual/selection.py",
+      "line": 577,
+      "expression": "child.is_container"
+    },
+    {
+      "path": "src/textual/selection.py",
+      "line": 547,
+      "expression": "descendant.is_container"
+    },
+    {
+      "path": "src/textual/selection.py",
+      "line": 346,
+      "expression": "widget.is_container"
+    },
+    {
+      "path": "src/textual/visual.py",
+      "line": 240,
+      "expression": "widget.is_container"
+    },
+    {
+      "path": "src/textual/walk.py",
+      "line": 220,
+      "expression": "node.is_container"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 2088,
+      "expression": "self.is_container"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 2122,
+      "expression": "self.is_container"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 4677,
+      "expression": "self.is_container"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 2610,
+      "expression": "self.is_container"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 2631,
+      "expression": "self.is_container"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 4105,
+      "expression": "cls.is_container"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 4105,
+      "expression": "Widget.is_container"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 4341,
+      "expression": "self.is_container"
+    }
+  ]
+}

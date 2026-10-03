@@ -43,3 +43,21 @@ no CPU or smoothness gain claim. Final source/caller checks and real changed
 saved-history motion join with frozen Text48 after406 CODE handback. Existing
 source sanity covers cache/shared execution/cancellation/budget/delivery/scope,
 plus actual reusable Markdown task warmup without unused materialization.
+
+## Native geometry demand
+
+BodyMeasurement now owns requires_geometry. Settled Live retains its native
+box; settled Measured/Rendered owns only extent/rows. Materializing derives
+native demand from its preceding captured paint: without those rows its
+native children still need placement even though interaction remains dormant.
+MeasuredViewportBody exposes that answer, and DocumentViewport no longer
+uses dormancy to decide geometry retention. Original native container/cover,
+paint readiness and transition invalidation stay with the same measurement.
+No native map/key change, new flag, or persisted geometry copy.
+
+Before source coverage: 289 Toad +249 native modules, zero parse omissions;
+seven body declarations and 42 related consumer expressions. AST syntax and
+semantic reads do not prove external dynamic overrides (IMPL-4/IMPL-6).
+Existing three-body native resource sanity now also checks pending-before-
+capture, captured pending, and pending-after-paint-release placement. That
+check addresses the concrete omitted offscreen writer path, not a CPU claim.

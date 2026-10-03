@@ -249,6 +249,10 @@ async def main():
                     await member.materialize_native_body()
                 publication = member.publish_body(publish_controls)
                 try:
+                    # Before capture commits, the pending original Live tree
+                    # still needs retained placement, despite being dormant.
+                    assert member.body_dormant and member.body_requires_geometry
+                    assert member in viewport.geometry_targets()
                     await asyncio.wait_for(entered.wait(), 5)
                     resource = member._body_measurement.previous
                     writer = member._body_measurement.worker
@@ -262,6 +266,8 @@ async def main():
                     assert member.measured_rows == resource.rows
                     assert tuple(line.text for line in member.render_lines(member.outer_size.region)) == captured_rows
                     assert not member.is_container and member._render_widget is member
+                    assert not member.body_requires_geometry
+                    assert member not in viewport.geometry_targets()
                     scene.reflow(app.screen, app.size)
                     assert not any(member in child.ancestors for child in scene.visible_widgets)
                     member.get_content_height(member.container_size, member.size, resource.width)
@@ -277,6 +283,10 @@ async def main():
                     member.release_paint()
                     assert not member.retained_paint_bytes
                     assert member._body_measurement.worker is writer
+                    assert member.body_requires_geometry and member.is_container
+                    scene.reflow(app.screen, app.size,
+                                 retain_geometry=viewport.geometry_targets())
+                    assert member in scene._visible_map
                 finally:
                     release.set()
                     await publication
