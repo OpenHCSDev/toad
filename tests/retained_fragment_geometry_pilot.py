@@ -300,6 +300,49 @@ async def main():
                 await pilot.pause()
                 assert member.body_ready and member.retained_paint_bytes
                 family_receipts[-1]['real_style_change_rebuilt_once'] = True
+                # Source publications share the original body and its real
+                # worker chain. Settling a preceding writer must release that
+                # worker while the next one retains its pixels and custody.
+                first_started = asyncio.Event()
+                first_release = asyncio.Event()
+                second_started = asyncio.Event()
+                second_release = asyncio.Event()
+
+                async def first_source():
+                    first_started.set()
+                    await first_release.wait()
+                    await member.materialize_native_body()
+
+                async def second_source():
+                    second_started.set()
+                    await second_release.wait()
+                    await member.materialize_native_body()
+
+                first = member.publish_body(first_source)
+                await first_started.wait()
+                first_worker = member._body_measurement.worker
+                second = member.publish_body(second_source)
+                second_worker = member._body_measurement.worker
+                try:
+                    first_release.set()
+                    await first
+                    await second_started.wait()
+                    from toad.widgets.viewport_body import MaterializingBody
+                    current = member._body_measurement
+                    assert current.worker is second_worker
+                    assert not isinstance(current.previous, MaterializingBody)
+                    assert first_worker.is_finished
+                    assert member.body_ready and member.retained_paint_bytes
+                    assert tuple(line.text for line in member.render_lines(member.outer_size.region)) == captured_rows
+                finally:
+                    first_release.set()
+                    second_release.set()
+                    await second
+                assert member.body_ready and not member.body_dormant
+                scene.reflow(app.screen, app.size)
+                assert await member.retire_body()
+                await pilot.pause()
+                family_receipts[-1]['settled_preceding_writer_released_without_replacing_current_paint'] = True
             receipt['rendered_family_reentry'] = family_receipts
             print(json.dumps(family_receipts), flush=True)
             streaming = family[-1]

@@ -1,0 +1,111 @@
+{
+  "revision": "5bdf56ccd0035f3bb3ac24077fb6bf19fc66ab53",
+  "root": "src/toad",
+  "parsed": 289,
+  "omitted": [],
+  "sites": [
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 231,
+      "kind": "ClassDef",
+      "name": "MaterializingBody"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 133,
+      "kind": "FunctionDef",
+      "name": "publication_prepared"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 142,
+      "kind": "FunctionDef",
+      "name": "publication_finished"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 145,
+      "kind": "FunctionDef",
+      "name": "publication_failed"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 263,
+      "kind": "FunctionDef",
+      "name": "publication_prepared"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 317,
+      "kind": "FunctionDef",
+      "name": "publication_finished"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 321,
+      "kind": "FunctionDef",
+      "name": "publication_failed"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 450,
+      "kind": "FunctionDef",
+      "name": "native_body_committed"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 498,
+      "kind": "FunctionDef",
+      "name": "start_materialization"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 495,
+      "kind": "Attribute",
+      "name": "start_materialization"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 527,
+      "kind": "Name",
+      "name": "MaterializingBody"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 267,
+      "kind": "Attribute",
+      "name": "publication_prepared"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 319,
+      "kind": "Attribute",
+      "name": "native_body_committed"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 121,
+      "kind": "Attribute",
+      "name": "start_materialization"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 521,
+      "kind": "Attribute",
+      "name": "publication_finished"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 523,
+      "kind": "Attribute",
+      "name": "publication_failed"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 518,
+      "kind": "Attribute",
+      "name": "publication_prepared"
+    }
+  ],
+  "ambiguity": "AST attribute references do not prove dynamic dispatch. Existing BodyMeasurement implementations/worker execution and capture chain read semantically; no other production callers."
+}

@@ -1,0 +1,116 @@
+{
+  "basis": "Current working source plus unchanged Git HEAD roots",
+  "roots": {
+    "src/toad": {
+      "parsed": 289,
+      "omitted": []
+    },
+    "tests/tools": {
+      "parsed": 8,
+      "omitted": []
+    },
+    "tools/performance": {
+      "parsed": 39,
+      "omitted": []
+    }
+  },
+  "sites": [
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 65,
+      "kind": "ClassDef",
+      "name": "ReviewTiming"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 77,
+      "kind": "ClassDef",
+      "name": "InlineReviewTiming"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 95,
+      "kind": "ClassDef",
+      "name": "DeferredReviewTiming"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1457,
+      "kind": "FunctionDef",
+      "name": "live_review"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 77,
+      "kind": "Name",
+      "name": "ReviewTiming"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 95,
+      "kind": "Name",
+      "name": "ReviewTiming"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 443,
+      "kind": "FunctionDef",
+      "name": "review_intervals"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1475,
+      "kind": "Attribute",
+      "name": "review_intervals"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 80,
+      "kind": "Name",
+      "name": "live_review"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1522,
+      "kind": "Attribute",
+      "name": "review_intervals"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2136,
+      "kind": "Name",
+      "name": "InlineReviewTiming"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1441,
+      "kind": "Attribute",
+      "name": "review_intervals"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1545,
+      "kind": "Name",
+      "name": "InlineReviewTiming"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1892,
+      "kind": "Attribute",
+      "name": "review_intervals"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2136,
+      "kind": "Name",
+      "name": "ReviewTiming"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2137,
+      "kind": "Name",
+      "name": "ReviewTiming"
+    }
+  ],
+  "ambiguity": "AST resolves declarations and references, not callback execution or dynamic receiver. ReviewTiming implementations and all recorder call sites read semantically."
+}

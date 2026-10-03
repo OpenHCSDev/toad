@@ -1,0 +1,111 @@
+{
+  "basis": "Current changed module plus unchanged HEAD production roots",
+  "root": "src/toad",
+  "parsed": 289,
+  "omitted": [],
+  "sites": [
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 233,
+      "kind": "ClassDef",
+      "name": "MaterializingBody"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 133,
+      "kind": "FunctionDef",
+      "name": "publication_prepared"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 142,
+      "kind": "FunctionDef",
+      "name": "publication_finished"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 146,
+      "kind": "FunctionDef",
+      "name": "publication_failed"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 265,
+      "kind": "FunctionDef",
+      "name": "publication_prepared"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 319,
+      "kind": "FunctionDef",
+      "name": "publication_finished"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 329,
+      "kind": "FunctionDef",
+      "name": "publication_failed"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 504,
+      "kind": "FunctionDef",
+      "name": "start_materialization"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 501,
+      "kind": "Attribute",
+      "name": "start_materialization"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 535,
+      "kind": "Name",
+      "name": "MaterializingBody"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 269,
+      "kind": "Attribute",
+      "name": "publication_prepared"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 327,
+      "kind": "Attribute",
+      "name": "publication_finished"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 334,
+      "kind": "Attribute",
+      "name": "publication_failed"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 121,
+      "kind": "Attribute",
+      "name": "start_materialization"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 524,
+      "kind": "Attribute",
+      "name": "publication_prepared"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 528,
+      "kind": "Attribute",
+      "name": "publication_finished"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 531,
+      "kind": "Attribute",
+      "name": "publication_failed"
+    }
+  ],
+  "ambiguity": "Attribute references are not dynamic dispatch proof; original worker/capture chain and all completion consumers read semantically."
+}
