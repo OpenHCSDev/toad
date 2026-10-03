@@ -1,0 +1,100 @@
+{
+  "scope": "Native writer completion; not changed pixels or terminal presentation FPS. Zero stationary motion is legitimate, not a stall classification.",
+  "trace": "after-state-frames.json",
+  "flushed_frames": 1114,
+  "unmatched_enqueues": 0,
+  "exact_key_windows": [
+    {
+      "action": "Prior-0",
+      "start_ns": 473531504409894,
+      "end_ns": 473533641091295,
+      "start_seconds": 22.2561385279987,
+      "end_seconds": 24.392819928994868
+    },
+    {
+      "action": "Next-1",
+      "start_ns": 473554187211438,
+      "end_ns": 473556341689828,
+      "start_seconds": 44.93894007202471,
+      "end_seconds": 47.09341846202733
+    },
+    {
+      "action": "Prior-2",
+      "start_ns": 473563875255308,
+      "end_ns": 473566015859077,
+      "start_seconds": 54.62698394199833,
+      "end_seconds": 56.767587710986845
+    },
+    {
+      "action": "Next-3",
+      "start_ns": 473569615814349,
+      "end_ns": 473571764285873,
+      "start_seconds": 60.367542982974555,
+      "end_seconds": 62.516014506982174
+    },
+    {
+      "action": "Prior-4",
+      "start_ns": 473575262280107,
+      "end_ns": 473577416730726,
+      "start_seconds": 66.01400874101091,
+      "end_seconds": 68.1684593600221
+    }
+  ],
+  "writer": [
+    {
+      "action": "Prior-0",
+      "intervals": {
+        "count": 88,
+        "median_ms": 18.11,
+        "p95_ms": 40.76,
+        "p99_ms": 161.99,
+        "max_ms": 185.72
+      },
+      "writer_receipts": 89
+    },
+    {
+      "action": "Next-1",
+      "intervals": {
+        "count": 111,
+        "median_ms": 17.27,
+        "p95_ms": 31.14,
+        "p99_ms": 60.59,
+        "max_ms": 101.88
+      },
+      "writer_receipts": 112
+    },
+    {
+      "action": "Prior-2",
+      "intervals": {
+        "count": 123,
+        "median_ms": 16.35,
+        "p95_ms": 24.55,
+        "p99_ms": 30.31,
+        "max_ms": 137.35
+      },
+      "writer_receipts": 124
+    },
+    {
+      "action": "Next-3",
+      "intervals": {
+        "count": 118,
+        "median_ms": 17.01,
+        "p95_ms": 31.39,
+        "p99_ms": 38.0,
+        "max_ms": 79.27
+      },
+      "writer_receipts": 119
+    },
+    {
+      "action": "Prior-4",
+      "intervals": {
+        "count": 122,
+        "median_ms": 16.63,
+        "p95_ms": 26.4,
+        "p99_ms": 33.94,
+        "max_ms": 121.89
+      },
+      "writer_receipts": 123
+    }
+  ]
+}

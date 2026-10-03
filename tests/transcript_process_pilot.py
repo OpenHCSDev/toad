@@ -38,6 +38,7 @@ from toad.widgets.transcript_fragments import (
     transcript_fragments,
 )
 from toad.widgets.transcript_history import TranscriptHistory, TranscriptPageView
+from toad.transcript_state import LatestViewportRequest
 
 
 def observed_parse(function, events):
@@ -277,7 +278,8 @@ async def main():
 
                 history.loader = load_latest
                 pool.hold()
-                jump = asyncio.create_task(history._jump_latest(history.window.scroll_revision))
+                jump = asyncio.create_task(history._jump_latest(
+                    LatestViewportRequest(history.window.scroll_revision)))
                 await until(pool.entered.is_set)
                 conversation.window.release_anchor()
                 pool.release.set()

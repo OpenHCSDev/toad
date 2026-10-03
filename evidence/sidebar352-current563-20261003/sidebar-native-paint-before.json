@@ -1,0 +1,114 @@
+{
+  "production_modules": 286,
+  "production_files": 286,
+  "sites": [
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 53,
+      "source": "class PreparedThreadRow:"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 166,
+      "source": "row.apply_thread_preparation"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 9,
+      "source": "class ThreadStatusRow(HoverSelection):"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 59,
+      "source": "def thread_preparation(self, source: ThreadRowPresentation) -> PreparedThreadRow | None:"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 66,
+      "source": "def apply_thread_preparation(self, prepared: PreparedThreadRow) -> None:"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 85,
+      "source": "def paint_thread_frame(self, prepared: PreparedThreadRow) -> None:"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 47,
+      "source": "self._thread_signature"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 83,
+      "source": "self._thread_signature"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 90,
+      "source": "self._thread_signature"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 75,
+      "source": "self.paint_thread_frame"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 87,
+      "source": "prepared.signature"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 88,
+      "source": "self._thread_signature"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 57,
+      "source": "self.paint_thread_frame"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 110,
+      "source": "row.thread_preparation"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 183,
+      "source": "row.apply_thread_preparation"
+    }
+  ],
+  "native_dependency_sites": [
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/content.py",
+      "line": 524,
+      "method": "__eq__"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/content.py",
+      "line": 539,
+      "method": "is_same"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_static.py",
+      "line": 85,
+      "method": "update"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 900,
+      "method": "tooltip"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 905,
+      "method": "tooltip"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/dom.py",
+      "line": 1839,
+      "method": "update_classes"
+    }
+  ],
+  "limits": "Selected AST member spellings; all sites read, sole ThreadStatusRow subclass CommsRow plus inherited RelationshipRow read. Native dependency checkout Content/Static/DOM contracts read; names do not prove dynamic dispatch."
+}
