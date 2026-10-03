@@ -90,33 +90,31 @@ class LocalDecisionPTY:
                     decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
                     read_bytes = 0
 
-                    async def relay() -> DecisionOutcome:
-                        nonlocal read_bytes
-                        while self._controller_visible():
-                            try:
-                                data = await acquired.reader.read(4096)
-                            except OSError as error:
-                                if error.errno != errno.EIO:
-                                    raise
-                                data = b""  # POSIX EOF on the original master.
-                            if not data:
-                                break
-                            read_bytes += len(data)
-                            if read_bytes > MAX_DECISION_OUTPUT_BYTES:
-                                acquired.kill()
-                                return OutputLimitOutcome()
-                            if rendered := decoder.decode(data):
-                                await show(rendered)
-                        if not self._controller_visible():
-                            return ControllerLostOutcome()
-                        await show(decoder.decode(b"", final=True))
-                        original = await asyncio.wait_for(acquired.child.wait(), 2.0)
-                        return ExitedZeroOutcome() if original.successful else ExitedErrorOutcome()
-
                     try:
-                        return await asyncio.wait_for(relay(), DECISION_TIMEOUT_SECONDS)
+                        async with asyncio.timeout(DECISION_TIMEOUT_SECONDS):
+                            while self._controller_visible():
+                                try:
+                                    data = await acquired.reader.read(4096)
+                                except OSError as error:
+                                    if error.errno != errno.EIO:
+                                        raise
+                                    data = b""  # POSIX EOF on the original master.
+                                if not data:
+                                    break
+                                read_bytes += len(data)
+                                if read_bytes > MAX_DECISION_OUTPUT_BYTES:
+                                    acquired.kill()
+                                    return OutputLimitOutcome()
+                                if rendered := decoder.decode(data):
+                                    await show(rendered)
+                            if not self._controller_visible():
+                                return ControllerLostOutcome()
+                            await show(decoder.decode(b"", final=True))
                     except TimeoutError:
                         return TimeoutOutcome()
+                    original = await asyncio.wait_for(acquired.child.wait(), 2.0)
+                    return ExitedZeroOutcome() if original.successful else ExitedErrorOutcome()
+
             except OSError, TimeoutError:
                 return (UnknownOutcome() if self._custody.done() and not self._custody.cancelled()
                         else UnavailableOutcome())

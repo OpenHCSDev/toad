@@ -91,7 +91,8 @@ async def main():
             shell = second.conversation._shell
             assert shell.surface.target is second_surface
             assert len(shell.events.subscriptions) == 1
-            shell_task, shell_process = shell._task, shell._process
+            shell_operation = shell._operation
+            shell_custody = await shell_operation.custody()
             command_view = second_surface.query_one(ShellResult)
             terminal_view = shell.output.terminal
             async with asyncio.timeout(5):
@@ -102,8 +103,9 @@ async def main():
             third = (await app.session_navigation.new(app.session_navigation.default_source)).mode_name
             assert second.query_one(Conversation) is second_surface
             assert second.presentation.sources.shell is shell
-            assert shell._task is shell_task and not shell_task.done()
-            assert shell._process is shell_process and shell_process.returncode is None
+            assert shell._operation is shell_operation and not shell_operation.task.done()
+            assert await shell._operation.custody() is shell_custody
+            assert shell_custody.child.alive()
             assert shell.surface.target is None and not shell.events.subscriptions
             async with asyncio.timeout(5):
                 while not any("owned-shell-marker" in "\n".join(line.content.plain for line in output.state.buffer.lines)
@@ -178,8 +180,8 @@ async def main():
             assert app.selected_session.conversation.project_path == root
             assert app.selected_session.conversation._directory_watcher._path == root
             assert app._exception is None
-        assert shell._process.returncode is not None, "Logical session close leaked its shell process"
-        assert shell._task.done(), "Logical session close leaked its reader"
+        assert shell_custody.child.retired, "Logical session close leaked its shell process"
+        assert shell_operation.task.done(), "Logical session close leaked its reader"
         await asyncio.get_running_loop().shutdown_default_executor()
     print("RETAINED_PHYSICAL_ABA_DRAFT_UNDO_SHELL_OWNER_CLOSE_PASS")
 
