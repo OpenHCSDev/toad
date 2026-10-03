@@ -1,0 +1,483 @@
+{
+  "revision": "9b92dac09fd878f91488017f1456b655e10bfc88",
+  "parser": "refactor-audit audit.findings.Package",
+  "modules": 286,
+  "parse_omissions": [],
+  "resolution_limits": "Lexical AST sites; dynamic highlighter overrides and pickle imports require semantic reading. Dependency DiffView methods read separately, not claimed as parsed root.",
+  "sites": [
+    {
+      "path": "src/toad/acp/sdk_boundary.py",
+      "line": 7,
+      "kind": "ImportFrom",
+      "source": "from toad.render_backend import RenderTask"
+    },
+    {
+      "path": "src/toad/acp/sdk_boundary.py",
+      "line": 63,
+      "kind": "Name",
+      "source": "RenderTask"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 57,
+      "kind": "ImportFrom",
+      "source": "from toad.render_backend import RenderTask"
+    },
+    {
+      "path": "src/toad/application_actions.py",
+      "line": 181,
+      "kind": "Attribute",
+      "source": "matcher.highlight"
+    },
+    {
+      "path": "src/toad/danger.py",
+      "line": 197,
+      "kind": "FunctionDef",
+      "source": "@abstractmethod"
+    },
+    {
+      "path": "src/toad/danger.py",
+      "line": 204,
+      "kind": "FunctionDef",
+      "source": "def highlight(self, styles: DangerStyles) -> str:"
+    },
+    {
+      "path": "src/toad/danger.py",
+      "line": 217,
+      "kind": "FunctionDef",
+      "source": "def highlight(self, styles: DangerStyles) -> str:"
+    },
+    {
+      "path": "src/toad/danger.py",
+      "line": 225,
+      "kind": "FunctionDef",
+      "source": "def highlight(self, styles: DangerStyles) -> str:"
+    },
+    {
+      "path": "src/toad/danger.py",
+      "line": 320,
+      "kind": "Attribute",
+      "source": "atom.level.highlight"
+    },
+    {
+      "path": "src/toad/markdown_preparation.py",
+      "line": 32,
+      "kind": "Attribute",
+      "source": "MarkdownFence.highlight"
+    },
+    {
+      "path": "src/toad/prompt_cursor.py",
+      "line": 52,
+      "kind": "FunctionDef",
+      "source": "def highlight(self) -> Content:"
+    },
+    {
+      "path": "src/toad/prompt_cursor.py",
+      "line": 73,
+      "kind": "FunctionDef",
+      "source": "def highlight(self):"
+    },
+    {
+      "path": "src/toad/render_backend.py",
+      "line": 32,
+      "kind": "ClassDef",
+      "source": "class RenderTask(RenderExecution[ResultT], DeclaredFamily, affix='RenderTask'):"
+    },
+    {
+      "path": "src/toad/render_backend.py",
+      "line": 47,
+      "kind": "Name",
+      "source": "RenderTask"
+    },
+    {
+      "path": "src/toad/render_backend.py",
+      "line": 83,
+      "kind": "Name",
+      "source": "RenderTask"
+    },
+    {
+      "path": "src/toad/render_processes.py",
+      "line": 19,
+      "kind": "ImportFrom",
+      "source": "from toad.render_backend import RenderTask"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 14,
+      "kind": "ImportFrom",
+      "source": "from toad.render_backend import RenderTask"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 16,
+      "kind": "Import",
+      "source": "import toad.render_tasks"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 17,
+      "kind": "Import",
+      "source": "import toad.acp.sdk_boundary"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 43,
+      "kind": "ClassDef",
+      "source": "class RendererCapture(FieldRepresentation):"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 65,
+      "kind": "ClassDef",
+      "source": "class TaskCapture(RendererCapture):"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 65,
+      "kind": "Name",
+      "source": "RendererCapture"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 77,
+      "kind": "Name",
+      "source": "RendererCapture"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 133,
+      "kind": "Name",
+      "source": "RenderTask"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 133,
+      "kind": "Name",
+      "source": "TaskCapture"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 72,
+      "kind": "Name",
+      "source": "RenderTask"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 72,
+      "kind": "Name",
+      "source": "RenderTask"
+    },
+    {
+      "path": "src/toad/render_runtime.py",
+      "line": 10,
+      "kind": "ImportFrom",
+      "source": "from toad.render_backend import RenderTask"
+    },
+    {
+      "path": "src/toad/render_runtime.py",
+      "line": 86,
+      "kind": "Name",
+      "source": "RenderTask"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 19,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.patch_diff import PreparedPatch, prepare_patch"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 32,
+      "kind": "Name",
+      "source": "PreparedPatch"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 37,
+      "kind": "Name",
+      "source": "PreparedPatch"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 40,
+      "kind": "Name",
+      "source": "PreparedPatch"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 38,
+      "kind": "Name",
+      "source": "prepare_patch"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 41,
+      "kind": "Name",
+      "source": "PreparedPatch"
+    },
+    {
+      "path": "src/toad/render_zmq.py",
+      "line": 35,
+      "kind": "ImportFrom",
+      "source": "from toad.render_protocol import AcknowledgeRender, ReleaseRender, RenderReply, RenderCommand, RequestCommand, ShutdownRender, SubmitRender, TaskCapture"
+    },
+    {
+      "path": "src/toad/render_zmq.py",
+      "line": 46,
+      "kind": "ImportFrom",
+      "source": "from toad.render_backend import RenderTask"
+    },
+    {
+      "path": "src/toad/render_zmq.py",
+      "line": 205,
+      "kind": "Name",
+      "source": "RenderTask"
+    },
+    {
+      "path": "src/toad/render_zmq.py",
+      "line": 260,
+      "kind": "Name",
+      "source": "RenderTask"
+    },
+    {
+      "path": "src/toad/render_zmq.py",
+      "line": 262,
+      "kind": "Name",
+      "source": "TaskCapture"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 101,
+      "kind": "Attribute",
+      "source": "matcher.highlight"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 72,
+      "kind": "Attribute",
+      "source": "matcher.highlight"
+    },
+    {
+      "path": "src/toad/widgets/highlighted_textarea.py",
+      "line": 10,
+      "kind": "ImportFrom",
+      "source": "from textual.highlight import highlight, HighlightTheme, TokenType"
+    },
+    {
+      "path": "src/toad/widgets/highlighted_textarea.py",
+      "line": 94,
+      "kind": "FunctionDef",
+      "source": "@property"
+    },
+    {
+      "path": "src/toad/widgets/highlighted_textarea.py",
+      "line": 127,
+      "kind": "Name",
+      "source": "highlight"
+    },
+    {
+      "path": "src/toad/widgets/highlighted_textarea.py",
+      "line": 144,
+      "kind": "Name",
+      "source": "highlight"
+    },
+    {
+      "path": "src/toad/widgets/highlighted_textarea.py",
+      "line": 156,
+      "kind": "Attribute",
+      "source": "self.highlight_lines"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 22,
+      "kind": "ClassDef",
+      "source": "@dataclass"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 136,
+      "kind": "ClassDef",
+      "source": "@dataclass(frozen=True)"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 143,
+      "kind": "FunctionDef",
+      "source": "def prepare_patch(text: str, ansi: bool, dark: bool) -> PreparedPatch:"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 30,
+      "kind": "Name",
+      "source": "Patch"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 157,
+      "kind": "FunctionDef",
+      "source": "def highlight_lines(lines: dict[int, str], path: str) -> dict[int, Content]:"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 143,
+      "kind": "Name",
+      "source": "PreparedPatch"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 472,
+      "kind": "FunctionDef",
+      "source": "@property"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 34,
+      "kind": "Name",
+      "source": "Patch"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 138,
+      "kind": "Name",
+      "source": "Patch"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 163,
+      "kind": "Name",
+      "source": "highlight_lines"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 164,
+      "kind": "Name",
+      "source": "highlight_lines"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 174,
+      "kind": "Name",
+      "source": "PreparedPatch"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 483,
+      "kind": "FunctionDef",
+      "source": "def highlight_lines(lines, path):"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 159,
+      "kind": "Attribute",
+      "source": "DiffView.highlight"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 436,
+      "kind": "Name",
+      "source": "Patch"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 150,
+      "kind": "Attribute",
+      "source": "Syntax(text, 'diff', theme='ansi_dark', background_color='default').highlight"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 155,
+      "kind": "Name",
+      "source": "PreparedPatch"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 436,
+      "kind": "Name",
+      "source": "PreparedPatch"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 493,
+      "kind": "Name",
+      "source": "highlight_lines"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 494,
+      "kind": "Name",
+      "source": "highlight_lines"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 168,
+      "kind": "Attribute",
+      "source": "DiffView._highlight_diff_lines"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 485,
+      "kind": "Attribute",
+      "source": "self.highlight"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 498,
+      "kind": "Attribute",
+      "source": "self._highlight_diff_lines"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 208,
+      "kind": "Attribute",
+      "source": "CommandText.decode_input(text, self.slash_commands).highlight"
+    },
+    {
+      "path": "src/toad/widgets/shell_result.py",
+      "line": 6,
+      "kind": "ImportFrom",
+      "source": "from textual.highlight import highlight"
+    },
+    {
+      "path": "src/toad/widgets/shell_result.py",
+      "line": 29,
+      "kind": "Name",
+      "source": "highlight"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 23,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.patch_diff import PreparedPatch"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 21,
+      "kind": "ImportFrom",
+      "source": "from toad.render_backend import RenderTask"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 159,
+      "kind": "Name",
+      "source": "RenderTask"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 168,
+      "kind": "Name",
+      "source": "RenderTask"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 179,
+      "kind": "Name",
+      "source": "RenderTask"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 356,
+      "kind": "Name",
+      "source": "RenderTask"
+    }
+  ]
+}
