@@ -1,0 +1,6 @@
+{
+  "scope": "privileged proc cwd/exe/argv/environment/FD/maps",
+  "prefix": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002",
+  "references": [],
+  "permission_gaps": []
+}

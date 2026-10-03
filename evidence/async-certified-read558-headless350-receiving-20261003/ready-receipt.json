@@ -1,0 +1,14 @@
+{
+  "operation": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/async-certified-read558-headless350-receiving-20261003/new-publication558350",
+  "ready": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/async-certified-read558-headless350-receiving-20261003/new-publication558350/ready-receipt.json",
+  "ready_sha256": "5c48879373fbc78617b177b9e777dd1b9878b60554f6738e889c2ef67289907a",
+  "source_proof": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/async-certified-read558-headless350-receiving-20261003/source-proof.json",
+  "source_proof_sha256": "da1e4a3fbeecd6ff21132344bb7e11bc4ce5848dc40753a65329ded82c5b2382",
+  "pins": {
+    "core": "db94c06cfc2174864ab32211ce1bf403bb413440",
+    "toad": "6350c3466e477d507ca2410af3b9e035d4347e8b",
+    "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
+  },
+  "command": "env -u PYTHONPATH -u PYTHONHOME /home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/python -I /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/async-certified-read558-headless350-receiving-20261003/new-publication558350/execute-preserve-publication.py --execute",
+  "state": "Parent review/execution pending; original guards authoritative"
+}
