@@ -123,6 +123,16 @@ class BodyMeasurement(ABC):
     async def before_publication(self) -> None:
         """Settled resources have no outstanding native writer to join."""
 
+    async def prepare_publication(self, body):
+        return self
+
+    def paint_ready(self, body) -> bool:
+        """A measured extent or mutable native tree is not captured paint."""
+        return False
+
+    def publication_prepared(self, worker, paint):
+        return self
+
     def measured(self, width, rows):
         return self
 
@@ -178,6 +188,11 @@ class MeasuredBody(BodyMeasurement):
 
 @dataclass(frozen=True)
 class LiveBody(MeasuredBody):
+    def prepare_publication(self, body):
+        # Borrow the original published scene synchronously, before a writer
+        # or its byte measurement can change the native tree.
+        return body.capture_native_paint(self)
+
     def invalidated(self):
         # The original native tree still carries its pixels. Replace the
         # captured lifetime so an in-flight retirement cannot publish old rows.
@@ -240,10 +255,17 @@ class MaterializingBody(BodyMeasurement):
         return True
 
     def ready(self, body):
-        # Retained rows remain paint while preparation runs. A live tree may
-        # have intermediate writes from an earlier joined publication; it is
-        # not a committed snapshot for this pending writer.
-        return self.previous.dormant and self.previous.ready(body)
+        return self.paint_ready(body)
+
+    def paint_ready(self, body):
+        return self.previous.paint_ready(body)
+
+    def publication_prepared(self, worker, paint):
+        # A later writer may already own this body while joining our worker.
+        # Update the resource in that original chain, never its writer identity.
+        previous = (paint if self.worker is worker
+                    else self.previous.publication_prepared(worker, paint))
+        return self._updated(previous)
 
     def cost(self, body):
         return max(self.previous.cost(body), body.materialized_widget_count)
@@ -274,7 +296,9 @@ class MaterializingBody(BodyMeasurement):
         return self._updated(self.previous.released())
 
     def style_updated(self, body):
-        return self._updated(self.previous.style_updated(body))
+        # Descendant writes belong to the new source, not the old captured
+        # rows. Actual inherited paint/width changes still retire those rows.
+        return self if self.paint_ready(body) else self.invalidated()
 
     def resized(self, size):
         return self._updated(self.previous.resized(size))
@@ -296,7 +320,7 @@ class MaterializingBody(BodyMeasurement):
 
     def publication_failed(self, body, worker):
         if self.worker is worker:
-            body._body_measurement = MeasuredBody(self.width, self.rows, self.widgets)
+            body._update_body_measurement(MeasuredBody(self.width, self.rows, self.widgets))
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -314,7 +338,14 @@ class RenderedBody(MeasuredBody):
         # Screen commits sizes only for its current layout/exposed widgets.
         # An offscreen widget's last committed size is not a new width demand.
         # Measurement and actual size commits invalidate this resource below.
-        return (body.native_body_ready() and self.style_revision == body._subtree_style_revision
+        return (self.paint_ready(body) and body.native_body_ready()
+                and self.style_revision == body._subtree_style_revision)
+
+    def paint_ready(self, body):
+        # Captured strips are immutable. Loading and changes to the new native
+        # descendants do not change them; inherited effective paint does.
+        return (body.is_mounted and not body._closing
+                and self.paint_state.style_key == body.styles._cache_key
                 and self.paint_state.same_paint(body._resolved_paint_state()))
 
     def style_updated(self, body):
@@ -342,7 +373,7 @@ class RenderedBody(MeasuredBody):
             selection_style=body.selection_style if selection is not None else None)
 
     def get_selection(self, body, selection, select_live):
-        return (selection.extract(self.content.text), '\n') if self.ready(body) else None
+        return (selection.extract(self.content.text), '\n') if self.paint_ready(body) else None
 
     def released(self):
         return MeasuredBody(self.width, self.rows, self.widgets)
@@ -373,6 +404,17 @@ class MeasuredViewportBody(ViewportBody):
     def body_ready(self):
         return self._body_measurement.ready(self)
 
+    @property
+    def is_container(self):
+        # Rendered and pending resources paint their whole original subtree.
+        # Native children remain in custody for the worker and interaction,
+        # but must not overpaint the preceding rows while it is reconstructing.
+        return not self._body_measurement.paint_ready(self) and super().is_container
+
+    @property
+    def _render_widget(self):
+        return self if self._body_measurement.paint_ready(self) else super()._render_widget
+
     def native_body_ready(self):
         return self.is_mounted and not self._closing
 
@@ -389,23 +431,25 @@ class MeasuredViewportBody(ViewportBody):
         return self._body_measurement.paint_bytes
 
     def release_paint(self):
-        self._body_measurement = self._body_measurement.released()
+        self._update_body_measurement(self._body_measurement.released())
 
     def invalidate_body(self):
-        self._body_measurement = self._body_measurement.invalidated()
-        if self._body_viewport is not None:
-            self._body_viewport.request()
+        self._update_body_measurement(self._body_measurement.invalidated())
 
     def _update_body_measurement(self, measurement):
         if measurement is self._body_measurement:
             return
         self._body_measurement = measurement
+        # The resource owns descendant participation and cover selection as
+        # well as extent. Publish that change before any native prune awaits;
+        # NodeList removal happens later and cannot invalidate it for us.
+        self._invalidate_subtree_geometry()
         if self._body_viewport is not None:
             self._body_viewport.request()
 
     def native_body_committed(self):
         previous = self._body_measurement
-        self._body_measurement = LiveBody(previous.width, previous.rows, previous.widgets)
+        self._update_body_measurement(LiveBody(previous.width, previous.rows, previous.widgets))
         self.refresh(layout=True)
 
     def notify_style_update(self):
@@ -453,12 +497,25 @@ class MeasuredViewportBody(ViewportBody):
 
     def start_materialization(self, previous, work=None):
         publication = AwaitComplete(previous.before_publication())
+        paint = AwaitComplete(previous.prepare_publication(self))
 
         async def materialize():
             try:
                 # Identity guards prevent an old commit; joining its actual
                 # worker also prevents old native writes after the new commit.
                 await publication
+                [prepared] = await paint
+                if prepared is not previous:
+                    # A pending predecessor's unchanged resource is already
+                    # in this chain, including capture/width/style updates
+                    # made while we joined it. Only a new capture replaces it.
+                    # Width is the body's content measurement. An offscreen
+                    # widget's last committed outer size is not a new demand.
+                    # Genuine measurement/resize hooks have already updated
+                    # this original resource while byte preparation awaited.
+                    if prepared.width != self._body_measurement.width:
+                        prepared = prepared.invalidated()
+                    self._update_body_measurement(self._body_measurement.publication_prepared(worker, prepared))
                 await (self.materialize_native_body() if work is None else work())
                 if self.is_attached:
                     self._body_measurement.publication_finished(self, worker)
@@ -468,7 +525,8 @@ class MeasuredViewportBody(ViewportBody):
 
         worker = self.run_worker(materialize(), group="body-materialization", exit_on_error=False)
         current = MaterializingBody(previous=previous, worker=worker)
-        self._body_measurement = current
+        self._update_body_measurement(current)
+        self.refresh(layout=True)
         return current
 
     async def materialize_native_body(self):
@@ -498,34 +556,52 @@ class MeasuredViewportBody(ViewportBody):
         if self in self._body_viewport.protected():
             return BodyMeasurement.retire(current, self)
         children = self.reconstructible_children()
-        if not children or any(not child.body_ready for child in self.walk_children()
-                               if isinstance(child, ViewportBody)):
+        if not children:
             return BodyMeasurement.retire(current, self)
+        paint = self.capture_native_paint(current)
+        return self.finish_native_retirement(current, children, paint)
+
+    def capture_native_paint(self, current):
+        """Capture once for retirement and preceding-source publication."""
+        if (not current.ready(self) or not self.is_attached or self.lock.is_locked
+                or (self.screen.focused is not None
+                    and self in self.screen.focused.ancestors_with_self)
+                or any(self is endpoint or self in endpoint.ancestors
+                       for endpoint in self.screen.selections)
+                or any(not child.body_ready for child in self.walk_children()
+                       if isinstance(child, ViewportBody))):
+            return BodyMeasurement.prepare_publication(
+                MeasuredBody(current.width, current.rows, current.widgets), self)
         compositor = self.screen._compositor
         style_revision = self._subtree_style_revision
         paint_state = self._resolved_paint_state()
         captured = tuple(compositor.published_geometry((self,)))
         if not captured:
-            return BodyMeasurement.retire(current, self)
+            return BodyMeasurement.prepare_publication(
+                MeasuredBody(current.width, current.rows, current.widgets), self)
         _body, placement = captured[0]
         size, rows = compositor.render_subtree_strips(self, placement)
         # Native capture already owns final styled terminal rows. Retain those
         # rows directly; rendering them again in Rich workers duplicates work
         # and serializes a resource that never leaves this process.
         content = PreparedRichContent(size.width, tuple(rows))
-        return self.finish_native_retirement(current, children, content, style_revision, paint_state)
+        widgets = self.materialized_widget_count
 
-    async def finish_native_retirement(self, current, children, content, style_revision, paint_state):
-        size_bytes = await self.app.preparation.run_thread(retained_bytes, content)
+        async def measured():
+            size_bytes = await self.app.preparation.run_thread(retained_bytes, content)
+            return RenderedBody(
+                current.width, current.rows, widgets, content=content,
+                resource_bytes=size_bytes, style_revision=style_revision, paint_state=paint_state,
+            )
+
+        return measured()
+
+    async def finish_native_retirement(self, current, children, paint):
+        rendered = await paint
         # The original state is the captured source/width/style lifetime. An
         # asynchronous change invalidates it rather than copying a revision.
         if self._body_measurement is not current or not self.is_attached or self._closing:
             return False
-        rendered = RenderedBody(
-            current.width, current.rows, self.materialized_widget_count,
-            content=content, resource_bytes=size_bytes,
-            style_revision=style_revision, paint_state=paint_state,
-        )
         if not rendered.ready(self):
             return False
         async with self.retirement_custody() as can_commit:
@@ -534,7 +610,7 @@ class MeasuredViewportBody(ViewportBody):
                     or self._body_viewport is None
                     or self in self._body_viewport.protected()):
                 return False
-            self._body_measurement = rendered
+            self._update_body_measurement(rendered)
             self.retire_body_resources()
             await self.remove_children(children)
             self.refresh(layout=True)
@@ -553,7 +629,7 @@ class MeasuredViewportBody(ViewportBody):
         if self._body_measurement is measurement:
             # Extent measurement updates its current resource; it cannot
             # replace a pending worker or overwrite width invalidation.
-            self._body_measurement = measurement.measured(width, height)
+            self._update_body_measurement(measurement.measured(width, height))
         return height
 
     def get_content_width(self, container, viewport):
@@ -565,7 +641,7 @@ class MeasuredViewportBody(ViewportBody):
         if self._body_viewport is not None:
             self._body_viewport.discard(self)
             self._body_viewport = None
-        self._body_measurement = LiveBody()
+        self._update_body_measurement(LiveBody())
 
     def on_mount(self):
         from toad.screens.workspace import WorkspaceScreen

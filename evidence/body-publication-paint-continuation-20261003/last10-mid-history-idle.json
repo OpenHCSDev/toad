@@ -1,0 +1,9 @@
+{
+  "start": 29.764275894965976,
+  "end": 39.76427589496598,
+  "event_counts": {
+    "sidebar_publication_start": 10,
+    "sidebar_publication_done": 10
+  },
+  "scope": "raw native observer events, not CPU or absent-uninstrumented-work proof"
+}

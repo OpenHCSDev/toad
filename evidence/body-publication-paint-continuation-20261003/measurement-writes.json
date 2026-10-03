@@ -1,0 +1,71 @@
+{
+  "source": "existing audit.Package whole production root; no dynamic setter guarantee",
+  "before_after": [
+    {
+      "head": "06d5d60a43cc06a185e6e0dafecceb51a8c9604c",
+      "parsed": 289,
+      "omitted": [],
+      "writes": [
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 395
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 434
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 437
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 444
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 450
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 527
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 644
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 323
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 613
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 632
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 517
+        }
+      ]
+    },
+    {
+      "head": "37dec22c6505eeb50a35a1bf8f709ae350e986ee",
+      "parsed": 289,
+      "omitted": [],
+      "writes": [
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 395
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 442
+        }
+      ]
+    }
+  ]
+}
