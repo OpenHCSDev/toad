@@ -2,7 +2,8 @@
 
 Main-based receiving draft in the same Heisenberg checkout. No new worktree,
 environment or native copy. Frozen scoped391 e3c2bea5 and fullNative40 0ab are
-published separately; normal merge them after accepted main publication. Their
+published separately; Both source branches were preserved; 391 is now normally merged into this
+main-based continuation after accepted main publication. Their
 actual113.418s recording and all original failed/negative evidence stay protected.
 
 One fact. One owner. Derive the rest. Existing BodyMeasurement owns resources,
@@ -69,7 +70,10 @@ the independent all-ancestor membership question and per-window scene rescans.
 Nested bodies still contribute readiness; nested windows own their own work.
 Native mutation and source/body readiness fences are retained. No new registry,
 cache, timer, readiness flag or model state. Existing AST production289/tests391/
-tools41 parsed without omissions; all readiness consumers use the original
-DocumentViewport property or the frame owner. Dynamic resolution remains a
+tools41 parsed without omissions. Production consumers are App read acknowledgement,
+TranscriptHistory page admission, and ViewportPresentation frame admission; all
+derive the same selection through the original DocumentViewport property or frame
+owner. Bodies outside a HistoryWindow do not acquire a viewport, and a nested
+HistoryWindow owns its own bodies even if an enclosing window is selected. Dynamic resolution remains a
 semantic read, not a zero-by-omission proof. Final affected validation waits for
 the complete changed batch and release of the parent588 borrowed holder.

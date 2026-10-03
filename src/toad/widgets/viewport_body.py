@@ -644,9 +644,11 @@ class ViewportPresentation:
         windows = set(windows)
         for body in self.screen._compositor.visible_widgets:
             if isinstance(body, ViewportBody):
-                window = body.query_ancestor(HistoryWindow)
-                if window in windows:
-                    yield window, body
+                for ancestor in body.ancestors:
+                    if isinstance(ancestor, HistoryWindow):
+                        if ancestor in windows:
+                            yield ancestor, body
+                        break
 
     def has_pending_mutations(self, windows) -> bool:
         return any(window.history_mutating() for window in windows)
