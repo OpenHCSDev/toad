@@ -10,6 +10,7 @@ import json
 import shlex
 import sys
 import time
+import traceback
 import os
 from pathlib import Path
 from threading import Event
@@ -146,7 +147,8 @@ async def exercise_with_evidence(app, pilot, root):
     try:
         history = await exercise(app, pilot, root)
     except BaseException as error:
-        outcome = {'status': 'failed', 'error': repr(error)}
+        outcome = {'status': 'failed', 'error': repr(error),
+                   'traceback': traceback.format_exc()}
         exporter = Path(__file__).resolve().parents[1] / 'tools/performance/capture_state.py'
         spec = importlib.util.spec_from_file_location('history_failure_capture', exporter)
         module = importlib.util.module_from_spec(spec)
