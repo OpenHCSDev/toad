@@ -1,0 +1,99 @@
+{
+  "state": "Published370; original19 identity readback and parent actual ordinary default saved-helper startup/display accepted",
+  "original_receipt_phase": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "publication_receipt_sha256": "dff266cd773dbc711ac3da3412d4a75ca516ed2c456238fde2b7db298abd6f40",
+  "publisher_duration_seconds": 44.75770092010498,
+  "owner_count": 19,
+  "all_same_thread_births": true,
+  "all_new_process_identities_alive": true,
+  "all_settings_equal_except_process": true,
+  "target_prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "five_links": {
+    "agent-comms": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/agent-comms-agent",
+    "agent-comms-nk-foreground": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/agent-comms-nk-foreground",
+    "toad": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/toad"
+  },
+  "route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-044646789787e3d3/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "no_carry_reset_or_original_input_replay": true,
+  "readback_repeated": false,
+  "publication_repeated": false,
+  "original_receipt_rewritten": false,
+  "public_changes_by_archive": 0,
+  "current485_and_previous520_protected": true,
+  "physical_acceptance": {
+    "reviewed_at": 1791006920.7848084,
+    "scope": "Actual ordinary default saved-history launch in plain st on isolated display; personally inspected after.png",
+    "command": [
+      "/home/ts/bin/toad-comms",
+      "openhcs-helper"
+    ],
+    "display": ":2138",
+    "capture_duration_seconds": 23.848564163956326,
+    "recorder_tool_terminal": 0,
+    "terminal_exit": {
+      "pid": 2508054,
+      "start_ticks": 48240166,
+      "returncode": 0
+    },
+    "ffmpeg_capture_returncode": 255,
+    "saved_history_visible": true,
+    "chat_and_sidebar_ready": true,
+    "activity_bar_absent": true,
+    "original_owner_unchanged": true,
+    "published_runtime_unchanged": true,
+    "no_new_native_input_or_provider_request": true,
+    "remaining_owned_pids": [],
+    "cleanup_errors": [],
+    "actual_affected_installed_gates": "Original568 native currentness/commit/appended-prefix/refusal and42MB reader;368 native prepared/fallback patch worker/App gates qualified in exact receiving union",
+    "does_not_prove": "fresh whole compaction speed; interactive queue; channel-wide timing; scrolling motion or144Hz",
+    "assessment_correction": "First parent postprocessing assertion wrongly required ffmpeg capture_returncode0; raw receipt255 is recorder stop, distinct from actual st0/recorder0. No application failure or repeated capture; raw receipt unchanged.",
+    "receipt_sha256": "c653aa01bea6d5de76938fbbb3cb28ce7614e679fc3145a7a2e3d7cb017f8ffe",
+    "after_png_sha256": "1d1ab36761692b1926376a39aa9b8acd1e1ad230d8c86035caace36de847ccfb",
+    "capture": "/home/ts/.cache/agent-scratch/published568368-helper-default-20261003/capture"
+  },
+  "files": [
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-evidence568-patch368-receiving-20261003/new-publication568368/parent-review.json",
+      "archive": "parent-review.json",
+      "sha256": "49b6abff23ceb0545e212b0a035f5649288e23ba7a39df9e1855fa2a2a27cc29",
+      "bytes": 6573
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-evidence568-patch368-receiving-20261003/new-publication568368/publication-receipt.json",
+      "archive": "publication-receipt.json",
+      "sha256": "dff266cd773dbc711ac3da3412d4a75ca516ed2c456238fde2b7db298abd6f40",
+      "bytes": 37901
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-evidence568-patch368-receiving-20261003/new-publication568368/publication-identity-closure.json",
+      "archive": "publication-identity-closure.json",
+      "sha256": "41f282d438dd658f0f34e0c2bd49fdb5d8ff4ac536338534ec24588cc09ce7a5",
+      "bytes": 18439
+    }
+  ],
+  "physical_files": [
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published568368-20261003/physical-assessment.json",
+      "archive": "physical-assessment.json",
+      "sha256": "fe56a4f906576aae38d58b1db53560fa3228c50c4aadcdd6e6afce5f9743a573",
+      "bytes": 1590
+    },
+    {
+      "original": "/home/ts/.cache/agent-scratch/published568368-helper-default-20261003/capture/receipt.json",
+      "archive": "default-capture-receipt.json",
+      "sha256": "c653aa01bea6d5de76938fbbb3cb28ce7614e679fc3145a7a2e3d7cb017f8ffe",
+      "bytes": 30003
+    }
+  ],
+  "raw_capture_assessment_unchanged": "unreviewed",
+  "capture_scope": "Actual ordinary default saved-helper history/Ready visible, sameowner/runtime, st0/23.8486s, cleanup empty; no new input/provider. Changed native568 and patch368 evidence remains originalqualification, not repeated here.",
+  "postprocessing_correction": "Parent first postprocessing assertion used stoppedFFmpeg255 as UI0 requirement. Corrected from original terminal st0 without a rerun; rawreceipt unchanged.",
+  "remaining": "No speed/provider/compaction/fullscroll/S2/S4 claim."
+}
