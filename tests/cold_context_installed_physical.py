@@ -51,7 +51,7 @@ def load_recorder():
                     "sleep 2", mark + "core-matches",
                     select("phase-core-matches-state.pickle", "core"),
                     "sleep 1", mark + "core-instructions", mark + "core-expanded",
-                    select("phase-core-expanded-state.pickle", "source"),
+                    select("phase-core-expanded-state.pickle", "file"),
                     "sleep 3", mark + "authenticated-source", "",
                 ))
             if query:
@@ -79,7 +79,7 @@ def load_recorder():
                     "sleep 2", mark + "core-matches",
                     select("phase-core-matches-state.pickle", "core"),
                     "sleep 1", mark + "core-instructions", mark + "core-expanded",
-                    select("phase-core-expanded-state.pickle", "source"),
+                    select("phase-core-expanded-state.pickle", "file"),
                     "sleep 3", mark + "authenticated-source", "",
                 ))
             return "\n".join((
@@ -293,9 +293,10 @@ if __name__ == "__main__":
         state, kind = sys.argv[2:]
         snapshot = click.read_snapshot(Path(state))
         context = click.NativeFocusTarget.selected_view(snapshot)["context"]
-        if kind == "source":
+        if kind == "file":
             nodes = (node for node in context["nodes"]
-                     if node["key"].startswith(context["selected"] + "/source/"))
+                     if node["key"].startswith(context["selected"] + "/source/")
+                     and node["label"].startswith("Source · File "))
         else:
             nodes = (node for node in context["nodes"] if node["key"].startswith(kind + "/"))
         selected = next(node for node in nodes if node["target"] is not None)
