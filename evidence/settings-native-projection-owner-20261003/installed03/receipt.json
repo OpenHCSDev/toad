@@ -1,0 +1,16 @@
+{
+  "result": "pass-installed-settings-app",
+  "installed_toad": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/toad/__init__.py",
+  "source_settings": "/home/ts/.config/toad/toad.json",
+  "source_sha256": "dc7757bf1a59dc9df0b20a575d6453def6b0283742bced0aa3d910edec2b79a2",
+  "original_document_roundtrip": true,
+  "all_original_field_kinds_and_bounds": true,
+  "model_values_unchanged_on_form_initialization": true,
+  "boolean_theme_native_effects": true,
+  "numeric_focus_blur_success_and_refusal": true,
+  "inherited_uppercase_descriptor_native_editor": true,
+  "save_reopen_same_original_values": true,
+  "providers": 0,
+  "native_pi_inputs": 0,
+  "scope": "Installed original App/Pilot/settings/edit/effects/save/reopen, not physical st/ACP/Pi/performance"
+}

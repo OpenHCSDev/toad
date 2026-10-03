@@ -1,0 +1,12 @@
+{
+  "source_assets_after": 928,
+  "source_mismatches": [],
+  "installed_source_unchanged": true,
+  "owned_driver_processes_remaining": [],
+  "owned_temporary_settings_roots_remaining": [],
+  "original_settings_sha256": "aecf1f1c7d28aeb2bd61b63a971293d9baeb9309dcb85bff9fb5e053b3bddd4a",
+  "source_original_unchanged_assertion": "Driver after-App assertion and terminal exit0",
+  "native_pi_inputs": 0,
+  "provider_calls": 0,
+  "scope": "App/Pilot private settings only; no physical st/ACP/Pi/performance claim"
+}

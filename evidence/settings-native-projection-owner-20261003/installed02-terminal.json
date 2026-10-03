@@ -1,0 +1,8 @@
+{
+  "exit_code": 0,
+  "elapsed_seconds": 5.675828820967581,
+  "inner_app_deadline_seconds": 45,
+  "source_head": "f205071bb7e58777517b4655b69dcd71fe352221",
+  "driver": "tests/settings_tree_pilot.py",
+  "log": "evidence/settings-native-projection-owner-20261003/installed02.log"
+}
