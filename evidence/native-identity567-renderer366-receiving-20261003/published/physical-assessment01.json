@@ -1,0 +1,12 @@
+{
+  "scope": "First distinct499 delivery passed; actual after image has Finishing turn. Settlement not demonstrated",
+  "input_sequence": 499,
+  "reply_seconds": [
+    17.181482315063477
+  ],
+  "after_capture_epoch": 1791004989.1848493,
+  "reply_timestamp": 1791004988.1220005,
+  "post_reply_seconds": 1.0628488063812256,
+  "replay": false,
+  "next_action": "Second distinct input sent automatically immediately after before/observer capture; same bounded recorder parameters"
+}
