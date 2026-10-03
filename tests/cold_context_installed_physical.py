@@ -40,6 +40,20 @@ def load_recorder():
                 return "exec --sync " + shlex.join((sys.executable, str(Path(__file__).resolve()),
                     "--select-context", state, kind))
             query = os.environ.get("TOAD_CONTEXT_AUDIT_QUERY", "")
+            if os.environ.get("TOAD_CONTEXT_AUDIT_SOURCE_ONLY") == "1":
+                return "\n".join((
+                    mark + "saved --wait-history-seconds 12 --wait-history-thread configured-source",
+                    "key ctrl+b", "sleep 1", mark + "roster",
+                    click("phase-roster-state.pickle", "right_sidebar"),
+                    "sleep 7", mark + "context-open",
+                    click("phase-context-open-state.pickle", "widget", "Input#context-search"),
+                    "type --clearmodifiers configured-source", "key Return",
+                    "sleep 2", mark + "core-matches",
+                    select("phase-core-matches-state.pickle", "core"),
+                    "sleep 1", mark + "core-instructions", mark + "core-expanded",
+                    select("phase-core-expanded-state.pickle", "source"),
+                    "sleep 3", mark + "authenticated-source", "",
+                ))
             if query:
                 export = os.environ["TOAD_CONTEXT_AUDIT_EXPORT"]
                 return "\n".join((
@@ -61,7 +75,7 @@ def load_recorder():
                     click("phase-export-path-state.pickle", "widget", "Button#context-export"),
                     "sleep 1", mark + "exported",
                     click("phase-exported-state.pickle", "widget", "Input#context-search"),
-                    "key ctrl+shift+a", "type --clearmodifiers configured-source", "key Return",
+                    "key Home shift+End BackSpace", "type --clearmodifiers configured-source", "key Return",
                     "sleep 2", mark + "core-matches",
                     select("phase-core-matches-state.pickle", "core"),
                     "sleep 1", mark + "core-instructions", mark + "core-expanded",
@@ -140,6 +154,8 @@ async def run(options):
         if options.instruction_query:
             environment.update(TOAD_CONTEXT_AUDIT_QUERY=options.instruction_query,
                                TOAD_CONTEXT_AUDIT_EXPORT=str(base / "selected-public-context.txt"))
+        if options.source_only:
+            environment["TOAD_CONTEXT_AUDIT_SOURCE_ONLY"] = "1"
         for name in ("PYTHONPATH", "AGENT_COMMS_THREAD", "AGENT_COMMS_STARTUP_INPUT_KEY",
                      "PI_PROMPT", "PI_PARENT_ID", "PI_TASK", "PI_AGENT_ID", "NO_COLOR"):
             environment.pop(name, None)
@@ -190,7 +206,18 @@ async def run(options):
             snapshot = phase(label)
             return next(view for view in snapshot["views"]
                         if view["mode"] == snapshot["metadata"]["current_mode"])["context"]
-        if options.instruction_query:
+        if options.source_only:
+            context = context_phase("core-instructions")
+            assert context["native_present"] and "configured-source" in context["detail"]
+            reference = context_phase("authenticated-source")
+            assert reference["selected"].startswith("core/") and "/source/" in reference["selected"]
+            assert "Selected context detail unavailable" not in reference["detail"]
+            assert "Preparing selected" not in reference["detail"]
+            assert len(reference["detail"]) > 100
+            receipt.update(core_instructions=context["detail"],authenticated_source=reference,
+                           prior_instruction_scope="physical03 original native full reader/copy/export retained; not repeated")
+            returned = context
+        elif options.instruction_query:
             context = context_phase("instruction")
             text = context["detail"]
             assert options.instruction_query.casefold() in text.casefold()
@@ -288,4 +315,5 @@ if __name__ == "__main__":
     parser.add_argument("--public-root", type=Path, required=True)
     parser.add_argument("--original-python", type=Path, required=True)
     parser.add_argument("--instruction-query", default="", help="Search the original public instructions in the same cold journey")
+    parser.add_argument("--source-only", action="store_true", help="Finish only Core instruction search and authenticated reading; retain earlier native reader proof")
     asyncio.run(run(parser.parse_args()))
