@@ -1,0 +1,30 @@
+{
+  "source_head": "7a2f9503da3a09a18c9750e3259b884839873ee5",
+  "toad_assets": 319,
+  "toad_mismatches": [],
+  "installed": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/toad",
+  "headless_ui_modules": [],
+  "core_text_wheel_source": {
+    "agent_comms": {
+      "wheel": "/home/ts/.cache/uv/sdists-v9/git/20cd241ef3f9b3a1/d3ed99d5773528a2/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "07d86a026a1ab2b8ad1095bd71bc71bfa11c0ba9f33b3ccb0ff4ea64aff9c16f",
+      "assets": 342,
+      "mismatches": []
+    },
+    "textual": {
+      "wheel": "/home/ts/.cache/uv/sdists-v9/git/68d6e789c8fc6b24/4d2388f12d2d5aa4/textual-8.2.8-py3-none-any.whl",
+      "sha256": "d2b8437f7a12c03994cca9d6020df2c5731ed301c82ada51f10963a063468a9c",
+      "assets": 266,
+      "mismatches": []
+    }
+  },
+  "distributions": 69,
+  "sdk": "0.12.1",
+  "failure_risks": [
+    "transitive native imports through shell model/source",
+    "retired controller surface exports",
+    "installed source differs from owner closure",
+    "Core/Text ABI operands differ from qualified cached wheels"
+  ],
+  "native": "Historical485native044 preserved and not acquired; no Pi/native/provider claim"
+}
