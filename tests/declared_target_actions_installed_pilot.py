@@ -7,22 +7,22 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import hashlib
-import importlib.metadata
 import json
 import os
 from pathlib import Path
 import sys
 import time
+import threading
 
 from agent_comms.channels import SavedView, ViewKind, ViewPredicate, AnyOfMatch
-from agent_comms.comms import wire
+from agent_comms.cli_commands import CliCommand
 from agent_comms.field_codec import FieldCodec
 from agent_comms.thread_status import StoppedThreadStatus
 from agent_comms.threads import Thread
 from textual.widgets import Input, TextArea
 from toad.app import ToadApp
-from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
+from toad.screens.comms import CommsScreen
+from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_menu import ContextMenu, ContextMenuItem
 from toad.widgets.comms_command_dialog import CommandDialog
 from runtime_fixture import private_native_wire, wait_channel_roster
@@ -71,6 +71,32 @@ async def choose(app, pilot, row, operation, fields, evidence):
     await until(pilot, lambda: not isinstance(app.screen, CommandDialog) and not app.thread_actions.pending)
 
 
+async def open_channel(app, pilot, name):
+    sidebar = await wait_channel_roster(app, pilot, name)
+    row = sidebar.projection.channels[name]
+    row.scroll_visible(animate=False, immediate=True)
+    await pilot.pause()
+    assert await pilot.click(row)
+    await until(pilot, lambda: isinstance(app.selected_session, CommsScreen)
+                and app.selected_session.target == name)
+    await app.selected_session.wait_content_ready()
+    chat = app.selected_session.query_one(CommsChatView)
+    await until(pilot, lambda: chat.agent_ready)
+    return chat
+
+
+async def slash(chat, pilot, text):
+    editor = chat.prompt.prompt_text_area
+    editor.scroll_visible(animate=False, immediate=True)
+    await pilot.pause()
+    assert await pilot.click(editor)
+    editor.insert(text)
+    await pilot.pause()
+    await pilot.press('escape')
+    editor.focus()
+    await pilot.press('enter')
+
+
 async def journey(args):
     start = time.monotonic()
     base = args.output.resolve()
@@ -91,9 +117,20 @@ async def journey(args):
     before = {'root_id': comms.bus.log.read_metadata().root_id,
               'incarnation': FieldCodec.encode(original), 'inputs': 0}
     checks = []
+    # Observe the original installed implementation without replacing queries,
+    # application state or protocol. This catches a catalog consumer returning
+    # to synchronous UI-loop I/O in the same affected workflow.
+    ui_thread = threading.get_ident()
+    catalog_reads = []
+    code = CliCommand.target_catalog.__func__.__code__
+    def observe(frame, event, _argument):
+        if event == 'call' and frame.f_code is code:
+            catalog_reads.append({'thread': threading.get_ident(),
+                                  'target': frame.f_locals['target']})
+    threading.setprofile_all_threads(observe)
     app = ToadApp(project_dir=str(project))
     async with app.run_test(size=(125, 48), headless=not args.physical) as pilot:
-        sidebar = await wait_channel_roster(app, pilot, ('#first', '#all'))
+        sidebar = await wait_channel_roster(app, pilot, '#first', '#all')
         row = await reveal_thread_row(app, pilot, 'tagged', '#first')
         await choose(app, pilot, row, 'thread-tags', {'tags': 'first,second'}, base)
         assert comms.registry.require('tagged').tags == frozenset({'first','second'})
@@ -119,31 +156,61 @@ async def journey(args):
         await choose(app, pilot, view, 'delete-view', {}, base)
         assert 'projection' not in comms.channels.catalog.read().saved_views
         checks.append('native-saved-view-delete-original-catalog')
+        chat = await open_channel(app, pilot, '#first')
+        await until(pilot, lambda: any(item.command == '/pin-channel'
+                                      for item in chat.prompt.slash_commands))
+        before_reads = len(catalog_reads)
+        catalog = await chat.read_command_catalog()
+        assert len(catalog_reads) == before_reads + 1
+        assert any(item.command == '/pin-channel' for item in catalog.commands)
+        # Both existing native consumers execute a freshly acquired projection;
+        # the actual prompt/Enter drives the channel submission consumer here.
+        await slash(chat, pilot, '/pin-channel')
+        await until(pilot, lambda: comms.channels.catalog.read().resolve('#first').pinned)
+        await until(pilot, lambda: not app.thread_actions.pending)
+        checks.append('slash-single-acquisition-refresh-and-native-enter-execution')
         # CLI uses the same original typed operation; already-mounted UI derives
         # the new canonical revision without a local tag/status assignment.
         response = await command(comms.root, 'thread-tags', '--name', 'tagged', '--tags', 'first,cli-tag')
         assert response['tags'] == ['cli-tag','first']
         await until(pilot, lambda: '#cli-tag' in sidebar.projection.channels)
         checks.append('same-private-bus-cli-change-visible-in-open-native-app')
+        original_view = app.selected_session
+        await open_channel(app, pilot, '#all')
+        await command(comms.root, 'thread-tags', '--name', 'tagged', '--tags', 'first,cli-tag,hidden-tag')
+        sidebar = await wait_channel_roster(app, pilot, '#hidden-tag')
+        returned = await open_channel(app, pilot, '#first')
+        assert returned is chat and app.selected_session is original_view
+        await until(pilot, lambda: any(item.command == '/pin-channel'
+                                      for item in returned.prompt.slash_commands))
+        await slash(returned, pilot, '/pin-channel')
+        await until(pilot, lambda: not comms.channels.catalog.read().resolve('#first').pinned)
+        await until(pilot, lambda: not app.thread_actions.pending)
+        app.save_screenshot(str(base / 'slash-hidden-return.svg'))
+        checks.append('hidden-backend-change-original-tab-return-fresh-slash-execution')
         assert comms.registry.require('tagged').incarnation == original
         assert app._exception is None
     reopened = ToadApp(project_dir=str(project))
     async with reopened.run_test(size=(125,48), headless=not args.physical) as pilot:
-        sidebar = await wait_channel_roster(reopened, pilot, ('#first','#cli-tag'))
+        sidebar = await wait_channel_roster(reopened, pilot, '#first', '#cli-tag', '#hidden-tag')
         row = await reveal_thread_row(reopened, pilot, 'tagged', '#cli-tag')
         menu = await open_menu(reopened, pilot, row)
         assert await pilot.click(menu['thread-tags'])
         await until(pilot, lambda: isinstance(reopened.screen, CommandDialog))
-        assert reopened.screen.query_one('#command-field-tags', Input).value == 'cli-tag, first'
+        assert reopened.screen.query_one('#command-field-tags', Input).value == 'cli-tag, first, hidden-tag'
         reopened.save_screenshot(str(base / 'saved-reopen-tags.svg'))
         await pilot.press('escape')
         assert reopened._exception is None
     checks.append('save-reopen-original-registry-tags-no-frontend-copy')
+    assert catalog_reads and all(read['thread'] != ui_thread for read in catalog_reads)
+    checks.append('all-observed-catalog-reads-off-ui-loop')
+    threading.setprofile_all_threads(None)
     await asyncio.get_running_loop().shutdown_default_executor()
     receipt = {'result':'PASS','scope':'installed App native widget + same-root CLI; no provider/native input/public writes',
                'physical_linux_driver':args.physical,'seconds':time.monotonic()-start,'checks':checks,
                'before':before,'after':{'incarnation':FieldCodec.encode(comms.registry.require('tagged').incarnation),
                                      'tags':sorted(comms.registry.require('tagged').tags)},
+               'catalog_reads':catalog_reads,'ui_thread':ui_thread,
                'source':{'toad':str(Path(__import__('toad').__file__).resolve()),
                          'core':str(Path(__import__('agent_comms').__file__).resolve()),
                          'python':sys.executable},'provider_calls':0,'native_inputs':0}
