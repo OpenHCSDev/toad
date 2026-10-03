@@ -131,3 +131,18 @@ three-body nativeApp and real saved-history affected path. Full remaining scope
 above continues in followup after useful checkpoint shipment. No unchanged
 recording or final-target hold. Current working source bytes equal installede02;
 latest test/docs corrections do not alter installed production.
+
+## Ready after normal main408 integration
+
+Normal main408 merge preserves every qualified Toad production byte. Pins
+select accepted Core599 3e5c97f9 and actual merged Text48 7ccfcf6a; Text48
+production and dependency declarations equal the recorded 3efcc038 source.
+The lock graph changes only the Textual source and its Toad requirement from
+main408. MAIN-JOIN.json records determining source trees and pins.
+
+Original READY.json, installed proof, film and all raw keeper hashes stay
+unchanged. The film ran Core dbcf3ae4; choosing accepted Core599 for receiving
+does not relabel that historical qualification. This integration adds no
+UI production change and repeats no installed journey or provider operation.
+Scoped Ready remains the qualified warm-copy/native-demand/strip-resource
+checkpoint; whole foreground performance and stepped motion remain open.
