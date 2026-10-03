@@ -42,8 +42,19 @@ remaining column terms are original UiSettings descriptors or unrelated ANSI/gri
 operations. Native CSS/max_width resources are projections, not semantic stores.
 Wheel contains 320 assets byte-identical to source.
 
-Final installed App check is pending fresh style22 loan from Heis after393
-archive and borrower closure. Bohr confirmed485 was serving19 live processes;
-no mutation occurred. Parent subsequently published395 to334, which remains
-protected. Neither old receipt names nor a default switch grants a donor loan.
-No new environment, native copy, provider call or public input was started.
+Final installed App and settings editor checks both passed on exactly matching
+normal69/Core5cf/Toad aa9/Text0ab/SDK12.1/native2b. Bohr granted485 after395
+publication and a fresh zero-borrower census; original439 files archived/hash
+checked. Current334 untouched. No new environment/native/provider/public input.
+
+Original App/Pilot with real settings modal edits proved parked and visible
+chat updates, initial/new-default/spawn layout, actual native scrollbar CSS,
+physical Pilot tab-click return with retained draft, and save/reopen. Settings
+form also passed all original editor kinds/effects/saved-value checks. These
+are native App/Pilot positives, not physical st/ACP socket/provider/full
+headless or performance readiness. See READY.json for exact source and receipts.
+
+Two proof metadata construction failures are retained: extra local fields,
+then Python tuple pairs instead of wire arrays. Existing FieldCodec corrected
+artifact encoding only; no production change or application rerun. Owned394
+children zero; affected installed source unchanged afterward.

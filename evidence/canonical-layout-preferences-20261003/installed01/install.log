@@ -1,0 +1,13 @@
+Using Python 3.14.2 environment at: /home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001
+   Updating https://github.com/OpenHCSDev/toad.git (aa9ca8ca0c789b1095af57355d26e7559205ad15)
+    Updated https://github.com/OpenHCSDev/toad.git (aa9ca8ca0c789b1095af57355d26e7559205ad15)
+Resolved 69 packages in 1.41s
+   Building batrachian-toad @ git+https://github.com/OpenHCSDev/toad.git@aa9ca8ca0c789b1095af57355d26e7559205ad15
+      Built batrachian-toad @ git+https://github.com/OpenHCSDev/toad.git@aa9ca8ca0c789b1095af57355d26e7559205ad15
+Prepared 1 package in 487ms
+Uninstalled 2 packages in 48ms
+Installed 2 packages in 9ms
+ - agent-comms==0.1.0 (from git+https://github.com/OpenHCSDev/agent-comms.git@5025c4ba84c5623f475706475fb7743ce0e8f156)
+ + agent-comms==0.1.0 (from git+https://github.com/OpenHCSDev/agent-comms.git@5cf5d0d880678bbcc7fc9591e6bd24397683ab91)
+ - batrachian-toad==0.6.20 (from git+https://github.com/OpenHCSDev/toad.git@bb1ed2316e2a0bf956553b589b4b2be10b3d6806)
+ + batrachian-toad==0.6.20 (from git+https://github.com/OpenHCSDev/toad.git@aa9ca8ca0c789b1095af57355d26e7559205ad15)

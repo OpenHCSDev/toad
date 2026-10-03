@@ -1,0 +1,56 @@
+{
+  "owned_children": [],
+  "same_uid_visibility_gaps": [
+    68488,
+    216738,
+    312355,
+    312358,
+    312359,
+    312365,
+    312379,
+    312386,
+    312395,
+    312404,
+    312412,
+    312418,
+    312431,
+    1561676,
+    1786010,
+    1786012,
+    1953373,
+    3699396
+  ],
+  "affected_installed_source_unchanged_after": [
+    {
+      "file": "app.py",
+      "sha256": "5d7d844b50ca78e4a906be632ecf3f9ee5f878c07ee0a976bbbdb55a2e1eaab1"
+    },
+    {
+      "file": "preferences.py",
+      "sha256": "3457dcc3b21cd5f7a30298859307fc990b707d5259d35d62d44ebbab993c8d3d"
+    },
+    {
+      "file": "screens/main.py",
+      "sha256": "4a5f666f534b2e6287a1fa6f31c2dd94e834de7eb686f3ef7dcf8d3eeca06b5e"
+    },
+    {
+      "file": "session_navigation.py",
+      "sha256": "f9374da93b34d246ee4c621135c82ac7748f3d9688e89d926fd47fc2e24c5d4b"
+    },
+    {
+      "file": "setting_effects.py",
+      "sha256": "48d29f84279447205c18ebe7bc69a5b85a78dd2b61a93035bb6b5e7d909aecb2"
+    },
+    {
+      "file": "widgets/conversation.py",
+      "sha256": "6cdaa7ff32f6677d76874168eb465d05e493d9f1801eb6e872c8839384ff2975"
+    }
+  ],
+  "fixture_tmp_entries": [],
+  "cleanup_scope": "Original runtime_fixture run_test owns App/child/fixture retirement; no public/user processes signalled",
+  "borrower_release": "Bohr exact485 release archived439 matching files, current334 protected",
+  "new_env": false,
+  "new_native": false,
+  "public_defaults_changed": false,
+  "providers": 0
+}
