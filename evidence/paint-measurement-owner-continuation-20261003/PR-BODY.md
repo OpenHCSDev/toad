@@ -22,6 +22,16 @@ Delete PreparedConversationMarkdown._preparation_closed and its constructor/moun
 
 This batch REQUIRES the paired native Widget._message_loop_exit change in native-widget-exit-custody.patch. It invokes original_close_messages(wait=False) before children/Unmount and cancels this node's workers in finally, removing cancellation from lateWidget._on_unmount. ExistingTimer/error/cancellation release must remain correct. NativeMessagePump sets_closing before itsclose API awaits; App._prune sets_pruning beforeUnmount; App._register resets theseoriginalfields on remount. Unexpectedmessage-loop exit uses sameclose API, not a newflag. Native eventdispatcher invokes C3 class handlers, so shared nativecancellation precedes allasync leafhooks. Widget._on_unmount keeps_uncover. No geometry/App/rate fields altered by this contribution.
 
+## Joined source and preserved check failures
+
+Native39 now carries early teardown and descriptor-owned geometry invalidation. The original Throbber visual measures available width and one row; its measurement hook therefore excludes paint rules, while custom render/visual implementations retain native conservative behavior. RenderedBody still validates its actual retained pixels through the paint owner.
+
+Two bounded Markdown lifecycle checks timed out; both original logs remain in the staging directory. The first patched the shared renderer before native Mount had completed its initial empty Markdown update. The second failed at the five-second update wait, before the removal phase. Its controlled renderer held every task family, including unrelated sidebar preparation, so ordinal requests did not reliably identify Markdown work. The existing check now acquires Mount first, holds only MarkdownRenderTask and delegates other tasks to the original renderer. No assertion or deadline was relaxed.
+
+The second failure also exposed an independent worker contract problem: an awaiting worker classified a child's WorkerCancelled as ERROR. Kepler owns the native correction on existing WorkerCancelled through its asynchronous cancellation ancestry, and deletes the duplicate cancel-request boolean in favor of the original threading Event. Request and terminal outcome remain distinct. No local viewport exception workaround or new cancellation type is introduced.
+
+The joined source is not Ready yet. The reused holder has normal 69-package source/assets/import/native-tree verification; final affected lifecycle/body/spinner checks and one changed installed motion/profile journey follow the complete cancellation family. No physical run has started, and the prior38 film does not qualify these bytes. Full CPU/smoothness/144Hz scope remains open.
+
 Kepler owns integration into the current native Styles/geometry branch; his worktree was not edited. This source is WIP/notReady and must NOT be installed/run against oldText38 without the earlyexit change. Finalsanity+one actualchangedmotion run are batched after the whole sourcepair is coherent. Prior38 actualgate is NOT qualification for these bytes.
 
 ## Current checkpoint
