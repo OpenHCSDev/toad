@@ -455,7 +455,17 @@ class StoreScreen(CoreEventReceiver, Screen):
 
         from toad.agent_schema import AgentKind
         for section in dict.fromkeys(kind.section() for kind in AgentKind.members_with(AgentKind)):
-            yield from section.compose([agent for agent in ordered_agents if agent.kind.section() is section])
+            section_agents = [agent for agent in ordered_agents if agent.kind.section() is section]
+            if not section_agents:
+                continue
+            yield widgets.Static(
+                f'[$text-warning u]{section.heading}[/] [$text-secondary i]{section.description}',
+                classes='heading',
+            )
+            with containers.VerticalGroup():
+                with AgentGridSelect(classes='agents-picker', min_column_width=40):
+                    for agent in section_agents:
+                        yield AgentItem(agent)
 
     def move_focus(self, direction: Literal[-1] | Literal[+1]) -> None:
         if isinstance(self.focused, GridSelect):
