@@ -1,0 +1,121 @@
+{
+  "state": "scoped-ready",
+  "head": "a6c81e46c52636ef453eed03fb5b18b7b182e3c3",
+  "tested_production_head": "41c5ea6b5",
+  "production": {
+    "files": 4,
+    "added": 16,
+    "deleted": 8,
+    "new_types": 0
+  },
+  "owner": "Existing TerminalState/Buffer/TerminalMode own model damage; TerminalExecution owns one model and acquired operation with replaceable weak view; AttachedSurfaceBinding reuses/reconnects that original resource.",
+  "deleted_decisions": [
+    "Discarding TerminalState.write damage in tool execution",
+    "Full-paint substitution on every tool output chunk",
+    "Same-widget return without restoring original execution projection"
+  ],
+  "before_ast": "before-owner-consumers.json",
+  "after_ast": "after-owner-consumers.json",
+  "parse_omissions": [],
+  "ast_limits": "Lexical references require semantic receiver reading; no dynamic or full dependency-package resolution claim.",
+  "installed_source": {
+    "head": "a6c81e46c52636ef453eed03fb5b18b7b182e3c3",
+    "tracked_assets": 318,
+    "mismatches": [],
+    "installed": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad",
+    "pins": {
+      "agent-comms": {
+        "version": "0.1.0",
+        "direct_url": {
+          "url": "https://github.com/OpenHCSDev/agent-comms.git",
+          "vcs_info": {
+            "vcs": "git",
+            "commit_id": "12c1758ee4336c1b15732f166e55f333e329a4d0",
+            "requested_revision": "12c1758ee4336c1b15732f166e55f333e329a4d0"
+          }
+        }
+      },
+      "textual": {
+        "version": "8.2.8",
+        "direct_url": {
+          "url": "https://github.com/OpenHCSDev/textual.git",
+          "vcs_info": {
+            "vcs": "git",
+            "commit_id": "b1a22548e2fe3c01f319f22b5318ac78d893e9f9",
+            "requested_revision": "b1a22548e2fe3c01f319f22b5318ac78d893e9f9"
+          }
+        }
+      },
+      "agent-client-protocol": {
+        "version": "0.12.1",
+        "direct_url": null
+      },
+      "batrachian-toad": {
+        "version": "0.6.20",
+        "direct_url": {
+          "url": "file:///home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/terminal-model-damage-379/batrachian_toad-0.6.20-py3-none-any.whl",
+          "archive_info": {}
+        }
+      }
+    },
+    "distributions": 69,
+    "headless_modules_textual": [],
+    "qualification": "Installed shared model/execution and real App/ACP/PTY on retained normal69 Core12c/Textb1/SDK0.12.1 baseline; native9f12 not acquired. Normal main376 metadata union introduces no Toad production delta; no new Core/native compatibility claim from this fixture."
+  },
+  "sanity": "sanity.json",
+  "installed": {
+    "script": "tests/native_terminal_retention_pilot.py --damage-only",
+    "log": "installed02.log",
+    "result": "pass",
+    "projections": "installed02/projections.json",
+    "projection_count": 10,
+    "frames": [
+      "installed02/stream.svg",
+      "installed02/reattached-completed.svg"
+    ],
+    "path": "Actual installed App/Pilot, registered ACP callbacks, real PTY/child; recording observer invokes original native projection. No provider/native-Pi substitution claimed.",
+    "verified": [
+      "original per-buffer line damage reaches native projection",
+      "stream overwrite preserves unrelated visible line",
+      "cursor and alternate-screen mode damage",
+      "detached output parses same original model without retained damage copy",
+      "actual tab click returns same widget/model and restores original callback",
+      "new output after return actually paints",
+      "exit7 original completion/error border",
+      "original PTY master closed and child retired, address released"
+    ],
+    "provider_calls": 0,
+    "pty_masters_before": [],
+    "pty_masters_after": []
+  },
+  "negative": {
+    "log": "installed01.log",
+    "frame": "installed01/stream.svg",
+    "failure": "Final line did not paint after tab return. No per-chunk projection callback after reuse because existing binding returned without original execution.attach. Source gap fixed in same family; failed raw preserved. No original public/native input involved."
+  },
+  "normal_main_integration": {
+    "main": "c009b8070",
+    "production_delta_from_tested_source": 0,
+    "dependency_metadata": "Core/Textual pins belong to accepted main376; installed fixture explicitly remains normal69 Core12c/Textb1 baseline. No repeated native gate for metadata union."
+  },
+  "cleanup": {
+    "owned_attempt_processes": [],
+    "same_uid_processes_checked": 203,
+    "environment_access_gaps": [
+      68488,
+      216738,
+      1561676,
+      1786010,
+      1786012,
+      1953373,
+      3699396
+    ],
+    "private_fixture": "TemporaryDirectory under owned .artifacts removed after App/Agent cleanup; both runs completed. No native-Pi/provider acquisition; successful original PTY master/child retired once, ACP address released. Retained334 code holder stays until explicit receiving handoff."
+  },
+  "limits": [
+    "No physical st/FPS/latency claim",
+    "No native-Pi/provider or full headless frontend qualification",
+    "Full original U2/U4/U5 plan remains wider scope"
+  ],
+  "next": "Parent review/merge; Sch receiving owns final cohort and default publication."
+}

@@ -1,5 +1,5 @@
 {
-  "head": "7266e2aa0",
+  "head": "41c5ea6b5f5148f0a18c8e115d32d4803d3ab748",
   "parser": "existing refactor-audit Package",
   "limits": "Lexical references; generic write/project/state/attach names include other receiver types. Receiver/import semantics were read, no dynamic-resolution proof. State buffers and TerminalMode own damage, execution owns original acquired operation and borrowed weak view, binding owns same-widget reuse. No new semantic authority or damage list retained on view. Textual/Core dependency APIs unchanged; full external package AST not claimed.",
   "src/toad": {
@@ -130,7 +130,7 @@
         "path": "src/toad/agent_surface.py",
         "line": 11,
         "kind": "ClassDef",
-        "source": "class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):\n\n    def __init__(self, target, events):\n        self._target = ref(target)\n        self.subscription = target.subscribe_core(events)\n\n    def prepare(self, controller) -> None:\n        app = self.target.app\n        controller.transcripts = controller.transcripts.with_runtime(app.preparation, app.coordination_access)\n        controller.validation = ApplicationValidationOwner(app.render_processes)\n\n    def prepare_terminal(self, state) -> None:\n        target = self.target\n        if target is not None:\n            state.update_size(*target.get_terminal_dimensions())\n\n    async def present_failure(self, failure, view) -> None:\n        if self.owns(view):\n            await self.dispatch(failure, view)\n\n    @handles(HelpAgentFail)\n    async def show_failure_help(self, failure, view):\n        from toad.widgets.markdown_note import MarkdownNote\n        await view.post(MarkdownNote(failure.help_text))\n\n    @handles(LogAgentFail)\n    async def show_failure_log(self, failure, view):\n        from urllib.parse import quote\n        from toad.widgets.agent_response import AgentResponse\n        from toad.widgets.message_filter import OtherCategory\n        link = AgentResponse(f'[Open ACP log]({quote(str(failure.log_path))})', show_divider=False, category=OtherCategory)\n        link.add_class('-error-log-link')\n        await view.post(link)\n\n    async def present_permission(self, request, view) -> None:\n        await self.dispatch(request.presentation, view, request)\n\n    def permission_changed(self, view) -> None:\n        view.refresh_bindings()\n\n    @handles(DiffPermissionPresentation)\n    async def show_file_permission(self, presentation, view, request):\n        from toad.screens.permissions import PermissionReview\n        screen = PermissionReview(request, view, presentation.diffs, self)\n        app = view.app\n        if not request.watch(self, screen.retire):\n            return\n        try:\n            app.terminal_attention.require(screen)\n            app.terminal_attention.notify(f'{view.agent_title} would like to write files', title='Permissions request', sound='question')\n            result = await app.push_screen_wait(screen, mode=view.screen.id)\n            request.answer(self, result)\n        finally:\n            app.terminal_attention.release(screen)\n\n    @handles(InlinePermissionPresentation)\n    async def show_inline_permission(self, presentation, view, request):\n        from toad.widgets.acp_content import ACPToolCallContent\n        from toad.tool_output import decode_content\n        parts = tuple((preview for item in presentation.parts if (preview := decode_content(item).permission_preview()) is not None))\n\n        def answer(answer):\n            request.answer(self, answer)\n        ask = view.ask(request.options, presentation.title, partial(ACPToolCallContent, parts) if parts else None, answer)\n\n        def retire():\n            if view.is_attached:\n                view.prompt.remove_ask(ask)\n                if view.prompt._ask is None:\n                    view.refresh_bindings()\n        request.watch(self, retire)\n\n    def schedule_terminal_presentation(self, controller):\n        if (target := self.target) is not None:\n            target.call_later(controller.start_terminal_presentation, target)\n\n    def close(self) -> None:\n        if (target := self.target) is not None:\n            target.retire_core(self.subscription)\n        else:\n            self.subscription.close()\n\n    @property\n    def target(self):\n        return self._target()\n\n    def post(self, message):\n        target = self.target\n        return target.post_message(message) if target is not None else False\n\n    def publish_terminal(self, controller, terminal_id, execution):\n        from toad.widgets.terminal_tool import TerminalTool\n        return self.post(TerminalTool.Projection(self, controller, terminal_id, execution))\n\n    def owns_terminal(self, projection, target):\n        \"\"\"Same original surface, controller lifetime and acquired address.\"\"\"\n        if not self.owns(target):\n            return False\n        return projection.controller.owner.owns_terminal_projection(self, projection)\n\n    async def present_terminal(self, projection, target):\n        if not self.owns_terminal(projection, target):\n            return\n        from toad.widgets.terminal_tool import TerminalTool\n        if (existing := target.query_one_optional(f'#{projection.terminal_id}', TerminalTool)):\n            if existing.execution is projection.execution:\n                return\n            await existing.remove()\n            if not self.owns_terminal(projection, target):\n                return\n        terminal = TerminalTool(projection.execution, id=projection.terminal_id)\n        await target.post(terminal)\n        if not self.owns_terminal(projection, target):\n            await terminal.remove()"
+        "source": "class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):\n\n    def __init__(self, target, events):\n        self._target = ref(target)\n        self.subscription = target.subscribe_core(events)\n\n    def prepare(self, controller) -> None:\n        app = self.target.app\n        controller.transcripts = controller.transcripts.with_runtime(app.preparation, app.coordination_access)\n        controller.validation = ApplicationValidationOwner(app.render_processes)\n\n    def prepare_terminal(self, state) -> None:\n        target = self.target\n        if target is not None:\n            state.update_size(*target.get_terminal_dimensions())\n\n    async def present_failure(self, failure, view) -> None:\n        if self.owns(view):\n            await self.dispatch(failure, view)\n\n    @handles(HelpAgentFail)\n    async def show_failure_help(self, failure, view):\n        from toad.widgets.markdown_note import MarkdownNote\n        await view.post(MarkdownNote(failure.help_text))\n\n    @handles(LogAgentFail)\n    async def show_failure_log(self, failure, view):\n        from urllib.parse import quote\n        from toad.widgets.agent_response import AgentResponse\n        from toad.widgets.message_filter import OtherCategory\n        link = AgentResponse(f'[Open ACP log]({quote(str(failure.log_path))})', show_divider=False, category=OtherCategory)\n        link.add_class('-error-log-link')\n        await view.post(link)\n\n    async def present_permission(self, request, view) -> None:\n        await self.dispatch(request.presentation, view, request)\n\n    def permission_changed(self, view) -> None:\n        view.refresh_bindings()\n\n    @handles(DiffPermissionPresentation)\n    async def show_file_permission(self, presentation, view, request):\n        from toad.screens.permissions import PermissionReview\n        screen = PermissionReview(request, view, presentation.diffs, self)\n        app = view.app\n        if not request.watch(self, screen.retire):\n            return\n        try:\n            app.terminal_attention.require(screen)\n            app.terminal_attention.notify(f'{view.agent_title} would like to write files', title='Permissions request', sound='question')\n            result = await app.push_screen_wait(screen, mode=view.screen.id)\n            request.answer(self, result)\n        finally:\n            app.terminal_attention.release(screen)\n\n    @handles(InlinePermissionPresentation)\n    async def show_inline_permission(self, presentation, view, request):\n        from toad.widgets.acp_content import ACPToolCallContent\n        from toad.tool_output import decode_content\n        parts = tuple((preview for item in presentation.parts if (preview := decode_content(item).permission_preview()) is not None))\n\n        def answer(answer):\n            request.answer(self, answer)\n        ask = view.ask(request.options, presentation.title, partial(ACPToolCallContent, parts) if parts else None, answer)\n\n        def retire():\n            if view.is_attached:\n                view.prompt.remove_ask(ask)\n                if view.prompt._ask is None:\n                    view.refresh_bindings()\n        request.watch(self, retire)\n\n    def schedule_terminal_presentation(self, controller):\n        if (target := self.target) is not None:\n            target.call_later(controller.start_terminal_presentation, target)\n\n    def close(self) -> None:\n        if (target := self.target) is not None:\n            target.retire_core(self.subscription)\n        else:\n            self.subscription.close()\n\n    @property\n    def target(self):\n        return self._target()\n\n    def post(self, message):\n        target = self.target\n        return target.post_message(message) if target is not None else False\n\n    def publish_terminal(self, controller, terminal_id, execution):\n        from toad.widgets.terminal_tool import TerminalTool\n        return self.post(TerminalTool.Projection(self, controller, terminal_id, execution))\n\n    def owns_terminal(self, projection, target):\n        \"\"\"Same original surface, controller lifetime and acquired address.\"\"\"\n        if not self.owns(target):\n            return False\n        return projection.controller.owner.owns_terminal_projection(self, projection)\n\n    async def present_terminal(self, projection, target):\n        if not self.owns_terminal(projection, target):\n            return\n        from toad.widgets.terminal_tool import TerminalTool\n        if (existing := target.query_one_optional(f'#{projection.terminal_id}', TerminalTool)):\n            if existing.execution is projection.execution:\n                projection.execution.attach(existing)\n                return\n            await existing.remove()\n            if not self.owns_terminal(projection, target):\n                return\n        terminal = TerminalTool(projection.execution, id=projection.terminal_id)\n        await target.post(terminal)\n        if not self.owns_terminal(projection, target):\n            await terminal.remove()"
       },
       {
         "path": "src/toad/agent_surface.py",
@@ -146,7 +146,7 @@
       },
       {
         "path": "src/toad/agent_surface.py",
-        "line": 134,
+        "line": 135,
         "kind": "Name",
         "source": "TerminalTool"
       },
@@ -169,6 +169,12 @@
         "source": "TerminalTool"
       },
       {
+        "path": "src/toad/agent_surface.py",
+        "line": 130,
+        "kind": "Attribute",
+        "source": "projection.execution.attach"
+      },
+      {
         "path": "src/toad/ansi/__init__.py",
         "line": 1,
         "kind": "ImportFrom",
@@ -184,23 +190,23 @@
         "path": "src/toad/ansi/_ansi.py",
         "line": 669,
         "kind": "ClassDef",
-        "source": "class ShowCursorMode(TerminalMode, declared_name='25'):\n\n    @classmethod\n    def change(cls, state: TerminalState, enabled: bool) -> None:\n        state.show_cursor = enabled"
+        "source": "class ShowCursorMode(TerminalMode, declared_name='25'):\n\n    @classmethod\n    def change(cls, state: TerminalState, enabled: bool) -> None:\n        if state.show_cursor != enabled:\n            state.buffer.update_line(state.buffer.cursor_line)\n        state.show_cursor = enabled"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 675,
+        "line": 677,
         "kind": "ClassDef",
-        "source": "class AlternateScreenMode(TerminalMode, declared_name='1049'):\n\n    @classmethod\n    def change(cls, state: TerminalState, enabled: bool) -> None:\n        state.alternate_screen = enabled"
+        "source": "class AlternateScreenMode(TerminalMode, declared_name='1049'):\n\n    @classmethod\n    def change(cls, state: TerminalState, enabled: bool) -> None:\n        if state.alternate_screen != enabled:\n            state.scrollback_buffer._updated_lines = None\n            state.alternate_buffer._updated_lines = None\n        state.alternate_screen = enabled"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1090,
+        "line": 1095,
         "kind": "ClassDef",
         "source": "@dataclass\nclass Buffer:\n    \"\"\"A terminal buffer (scrollback or alternate)\"\"\"\n    name: str = 'buffer'\n    'Name of the buffer (debugging aid).'\n    lines: list[LineRecord] = field(default_factory=list)\n    'unfolded lines.'\n    line_to_fold: list[int] = field(default_factory=list)\n    'An index from folded lines on to unfolded lines.'\n    folded_lines: list[LineFold] = field(default_factory=list)\n    'Folded lines.'\n    scroll_margin: ScrollMargin = ScrollMargin(None, None)\n    'Scroll margins'\n    cursor_line: int = 0\n    'Folded line index.'\n    cursor_offset: int = 0\n    'Folded line offset.'\n    max_line_width: int = 0\n    'The longest line in the buffer.'\n    updates: int = 0\n    'Updates count (used in caching).'\n    _updated_lines: set[int] | None = None\n\n    @property\n    def line_count(self) -> int:\n        \"\"\"Total number of lines.\"\"\"\n        return len(self.lines)\n\n    @property\n    def height(self) -> int:\n        \"\"\"Height of the buffer (number of folded lines).\"\"\"\n        height = len(self.folded_lines)\n        if height == 1 and (not self.lines[-1].content.plain) and (self.name == 'scrollback'):\n            height -= 1\n        return height\n\n    @property\n    def last_line_no(self) -> int:\n        \"\"\"Index of last lines.\"\"\"\n        return len(self.lines) - 1\n\n    @property\n    def cursor(self) -> tuple[int, int]:\n        \"\"\"The cursor offset within the un-folded lines.\"\"\"\n        if self.cursor_line >= len(self.folded_lines):\n            return (len(self.folded_lines), 0)\n        cursor_folded_line = self.folded_lines[self.cursor_line]\n        cursor_line_offset = cursor_folded_line.line_offset\n        line_no = cursor_folded_line.line_no\n        line = self.lines[line_no]\n        position = 0\n        for folded_line_offset, folded_line in enumerate(line.folds):\n            if folded_line_offset == cursor_line_offset:\n                position += self.cursor_offset\n                break\n            position += len(folded_line.content)\n        return (line_no, position)\n\n    @property\n    def is_blank(self) -> bool:\n        \"\"\"Is this buffer blank (spaces in all lines)?\"\"\"\n        return not any((line.content.plain.strip() or line.content.spans for line in self.lines))\n\n    def update_cursor(self, line_no: int, cursor_line_offset: int) -> None:\n        \"\"\"Move the cursor to the given unfolded line and offset.\n\n        Sets `cursor_line` and `cursor_offset`.\n\n        Args:\n            line_no: Unfolded line number.\n            cursor_line_offset: Offset within the line.\n        \"\"\"\n        line = self.lines[line_no]\n        fold_line_start = self.line_to_fold[line_no]\n        position = 0\n        fold_offset = 0\n        for fold_offset, fold in enumerate(line.folds):\n            line_length = len(fold.content)\n            if cursor_line_offset >= position and cursor_line_offset < position + line_length:\n                self.cursor_line = fold_line_start + fold_offset\n                self.cursor_offset = cursor_line_offset - position\n                break\n            position += line_length\n        else:\n            self.cursor_line = fold_line_start + len(line.folds) - 1\n            self.cursor_offset = len(line.folds[-1].content)\n\n    def update_line(self, line_no: int) -> None:\n        \"\"\"Record an updated line.\n\n        Args:\n            line_no: Line number to update.\n        \"\"\"\n        if self._updated_lines is not None:\n            self._updated_lines.add(line_no)\n\n    def clear(self, updates: int) -> None:\n        \"\"\"Clear the buffer to its initial state.\n\n        Args:\n            updates: the initial updates index.\n\n        \"\"\"\n        del self.lines[:]\n        del self.line_to_fold[:]\n        del self.folded_lines[:]\n        self.cursor_line = 0\n        self.cursor_offset = 0\n        self.max_line_width = 0\n        self.updates = updates\n\n    def remove_last_line(self) -> None:\n        if not self.lines:\n            return\n        last_line_index = len(self.lines) - 1\n        del self.lines[-1]\n        del self.folded_lines[self.line_to_fold[last_line_index]:]\n        del self.line_to_fold[last_line_index]\n        self.updates += 1"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1278,
+        "line": 1283,
         "kind": "ClassDef",
         "source": "@rich.repr.auto\nclass TerminalState:\n    \"\"\"ANSI buffers, modes and geometry, independent of their frontend.\"\"\"\n    DEFAULT_WIDTH: ClassVar[int] = 80\n    DEFAULT_HEIGHT: ClassVar[int] = 24\n\n    def __init__(self, write_stdin: Callable[[str], Awaitable], *, width: int=DEFAULT_WIDTH, height: int=DEFAULT_HEIGHT) -> None:\n        \"\"\"\n        Args:\n            width: Initial width.\n            height: Initial height.\n        \"\"\"\n        self._write_stdin = write_stdin\n        self._ansi_stream = ANSIStream()\n        'ANSI stream processor.'\n        self.width = width\n        'Width of the terminal.'\n        self.height = height\n        'Height of the terminal.'\n        self.style = Style.null()\n        'The current style.'\n        self.show_cursor = True\n        'Is the cursor visible?'\n        self.alternate_screen = False\n        'Is the terminal in the alternate buffer state?'\n        self.bracketed_paste = False\n        'Is bracketed pase enabled?'\n        self.cursor_blink = False\n        'Should the cursor blink?'\n        self.cursor_keys = False\n        'Is cursor keys application mode enabled?'\n        self.replace_mode = True\n        'Should content replaces characters (`True`) or insert (`False`)?'\n        self.auto_wrap = True\n        'Should content wrap?'\n        self.current_directory: str = ''\n        'Current working directory.'\n        self.scrollback_buffer = Buffer('scrollback')\n        'Scrollbar buffer lines.'\n        self.alternate_buffer = Buffer('alternate')\n        'Alternate buffer lines.'\n        self.dec_state = DECState()\n        'The DEC (character set) state.'\n        self.mouse_tracking: MouseTracking | None = None\n        'The mouse tracking state.'\n        self._updates: int = 0\n        'Incrementing integer used in caching.'\n\n    def __rich_repr__(self) -> rich.repr.Result:\n        yield ('width', self.width)\n        yield ('height', self.height)\n        yield ('style', self.style, Style.null())\n        yield ('show_cursor', self.show_cursor, True)\n        yield ('alternate_screen', self.alternate_screen, False)\n        yield ('bracketed_paste', self.bracketed_paste, False)\n        yield ('cursor_blink', self.cursor_blink, False)\n        yield ('replace_mode', self.replace_mode, True)\n        yield ('auto_wrap', self.auto_wrap, True)\n        yield ('dec_state', self.dec_state)\n        yield ('mouse_tracking', self.mouse_tracking, None)\n\n    async def write_stdin(self, text: str) -> bool:\n        if self._write_stdin is not None:\n            return await self._write_stdin(text)\n        return True\n\n    @property\n    def screen_start_line_no(self) -> int:\n        return max(0, self.scrollback_buffer.height - self.height)\n\n    @property\n    def screen_end_line_no(self) -> int:\n        return self.buffer.height\n\n    @property\n    def updates(self) -> int:\n        \"\"\"An integer that advanvces when the state is changed.\"\"\"\n        return self._updates\n\n    @property\n    def buffer(self) -> Buffer:\n        \"\"\"The buffer (scrollack or alternate)\"\"\"\n        if self.alternate_screen:\n            return self.alternate_buffer\n        return self.scrollback_buffer\n\n    @property\n    def max_line_width(self) -> int | None:\n        return self.scrollback_buffer.max_line_width\n\n    def advance_updates(self) -> int:\n        \"\"\"Advance the `updates` integer and return it.\n\n        Returns:\n            int: Updates.\n        \"\"\"\n        self._updates += 1\n        return self._updates\n\n    def update_size(self, width: int | None=None, height: int | None=None) -> None:\n        \"\"\"Update the dimensions of the terminal.\n\n        Args:\n            width: New width, or `None` for no change.\n            height: New height, or `None` for no change.\n        \"\"\"\n        previous_width = self.width\n        if width is not None and width > 0:\n            self.width = width\n        if height is not None and height > 0:\n            self.height = height\n        if previous_width != self.width:\n            self._reflow()\n\n    def key_to_stdin(self, key: str, character: str | None) -> str | None:\n        \"\"\"Encode a decoded key using this terminal's current modes.\n\n        This will depend on the terminal state.\n\n        Args:\n            key: The decoded key name.\n            character: Its printable character, when supplied by the frontend.\n\n        Returns:\n            A string to be sent to stdin, or `None` if no key was produced.\n        \"\"\"\n        if self.cursor_keys and (sequence := CURSOR_KEYS_APPLICATION.get(key)) is not None:\n            return sequence\n        if (mapped_key := TERMINAL_KEY_MAP.get(key)) is not None:\n            return mapped_key\n        if character:\n            return character\n        return None\n\n    def key_escape(self) -> str:\n        \"\"\"Generate the escape sequence for the escape key.\n\n        Returns:\n            str: ANSI escape sequences.\n        \"\"\"\n        return '\\x1b'\n\n    def remove_trailing_blank_lines_from_scrollback(self) -> None:\n        \"\"\"Remove blank lines at the end of the scrollback buffer.\n\n        A line is blank if it is whitespace with no color or style applied.\n\n        \"\"\"\n        buffer = self.scrollback_buffer\n        while buffer.lines:\n            last_line_content = buffer.lines[-1].content\n            if last_line_content.spans or last_line_content.plain.rstrip():\n                break\n            buffer.remove_last_line()\n\n    def _reflow(self) -> None:\n        buffer = self.buffer\n        if not buffer.lines:\n            return\n        buffer._updated_lines = None\n        cursor_line, cursor_offset = buffer.cursor\n        buffer.folded_lines.clear()\n        buffer.line_to_fold.clear()\n        width = self.width\n        for line_no, line_record in enumerate(buffer.lines):\n            line_expanded_tabs = line_record.content.copy()\n            line_expanded_tabs.expand_tabs(8)\n            line_record.folds[:] = self._fold_line(line_no, line_expanded_tabs, width)\n            line_record.updates = self.advance_updates()\n            buffer.line_to_fold.append(len(buffer.folded_lines))\n            buffer.folded_lines.extend(line_record.folds)\n        if cursor_line >= len(buffer.lines):\n            buffer.cursor_line = len(buffer.lines)\n            buffer.cursor_offset = 0\n        else:\n            line = buffer.lines[cursor_line]\n            fold_cursor_line = buffer.line_to_fold[cursor_line]\n            fold_cursor_offset = 0\n            for fold in reversed(line.folds):\n                if cursor_offset >= fold.offset:\n                    fold_cursor_line += fold.line_offset\n                    fold_cursor_offset = cursor_offset - fold.offset\n                    break\n            buffer.cursor_line = fold_cursor_line\n            buffer.cursor_offset = fold_cursor_offset\n\n    async def write(self, text: str, *, hide_output: bool=False) -> tuple[set[int] | None, set[int] | None]:\n        \"\"\"Write to the terminal.\n\n        Args:\n            text: Text to write.\n            hide_output: Hide visible output from buffers.\n\n        Returns:\n            A pair of deltas, or `None` for full refresh, for the two buffers.\n        \"\"\"\n        alternate_buffer = self.alternate_buffer\n        scrollback_buffer = self.scrollback_buffer\n        alternate_buffer._updated_lines = set()\n        scrollback_buffer._updated_lines = set()\n        if hide_output:\n            for ansi_command in self._ansi_stream.feed(text):\n                if not ansi_command.visible_output:\n                    await ansi_command.apply(self)\n        else:\n            for ansi_command in self._ansi_stream.feed(text):\n                await ansi_command.apply(self)\n        scrollback_updates = None if scrollback_buffer._updated_lines is None else scrollback_buffer._updated_lines.copy()\n        alternate_updates = None if alternate_buffer._updated_lines is None else alternate_buffer._updated_lines.copy()\n        self.alternate_buffer._updated_lines = set()\n        self.scrollback_buffer._updated_lines = set()\n        return (scrollback_updates, alternate_updates)\n\n    def get_cursor_line_offset(self, buffer: Buffer) -> int:\n        \"\"\"The cursor offset within the un-folded lines.\"\"\"\n        cursor_folded_line = buffer.folded_lines[buffer.cursor_line]\n        cursor_line_offset = cursor_folded_line.line_offset\n        line_no = cursor_folded_line.line_no\n        line = buffer.lines[line_no]\n        position = 0\n        for folded_line_offset, folded_line in enumerate(line.folds):\n            if folded_line_offset == cursor_line_offset:\n                position += buffer.cursor_offset\n                break\n            position += len(folded_line.content)\n        return position\n\n    def clear_buffer(self, clear: ClearType) -> None:\n        buffer = self.buffer\n        if clear == 'screen':\n            buffer.clear(self.advance_updates())\n        elif clear == 'cursor_to_end':\n            buffer._updated_lines = None\n            folded_cursor_line = buffer.cursor_line\n            cursor_line, cursor_line_offset = buffer.cursor\n            while buffer.cursor_line >= len(buffer.folded_lines):\n                self.add_line(buffer, Text())\n            line = buffer.lines[cursor_line]\n            del buffer.lines[cursor_line + 1:]\n            del buffer.line_to_fold[cursor_line + 1:]\n            del buffer.folded_lines[folded_cursor_line + 1:]\n            self.update_line(buffer, cursor_line, line.content[:cursor_line_offset])\n        else:\n            buffer.clear(self.advance_updates())\n\n    def scroll_buffer(self, direction: int, lines: int) -> None:\n        \"\"\"Scroll the buffer.\n\n        Args:\n            direction: +1 for down, -1 for up.\n            lines: Number of lines.\n        \"\"\"\n        buffer = self.buffer\n        margin_top, margin_bottom = buffer.scroll_margin.get_line_range(self.height)\n        gutter_lines = max(0, buffer.height - self.height)\n        if direction == -1:\n            for line_no in range(margin_top, margin_bottom + 1):\n                copy_line_no = line_no + lines\n                copy_content = Text()\n                copy_style = Style.null()\n                if copy_line_no <= margin_bottom:\n                    try:\n                        copy_line = buffer.lines[copy_line_no + gutter_lines]\n                    except IndexError:\n                        pass\n                    else:\n                        copy_content = copy_line.content\n                        copy_style = copy_line.style\n                self.update_line(buffer, line_no + gutter_lines, copy_content, copy_style)\n        else:\n            for line_no in reversed(range(margin_top, margin_bottom + 1)):\n                copy_line_no = line_no - lines\n                copy_content = Text()\n                copy_style = Style.null()\n                if copy_line_no >= margin_top:\n                    try:\n                        copy_line = buffer.lines[copy_line_no + gutter_lines]\n                    except IndexError:\n                        pass\n                    else:\n                        copy_content = copy_line.content\n                        copy_style = copy_line.style\n                self.update_line(buffer, line_no + gutter_lines, copy_content, copy_style)\n\n    @classmethod\n    def _expand_content(cls, content: Text, offset: int, style: Style) -> Text:\n        \"\"\"Expand content to be at least as long as a given offset.\n\n        Args:\n            content: Text to expand.\n            offset: Offset within the content.\n            style: Style of padding.\n\n        Returns:\n            Styled terminal text.\n        \"\"\"\n        if offset > len(content):\n            content += Text.styled(' ' * (offset - len(content)), style)\n        return content\n\n    def _line_updated(self, buffer: Buffer, line_no: int) -> None:\n        \"\"\"Mark a line has having been udpated.\n\n        Args:\n            buffer: Buffer to use.\n            line_no: Line number to mark as updated.\n        \"\"\"\n        try:\n            buffer.lines[line_no].updates = self.advance_updates()\n            if buffer._updated_lines is not None:\n                buffer._updated_lines.add(line_no)\n        except IndexError:\n            pass\n\n    def _fold_line(self, line_no: int, line: Text, width: int) -> list[LineFold]:\n        updates = self._updates\n        if not self.auto_wrap:\n            return [LineFold(line_no, 0, 0, line, updates)]\n        if not width:\n            return [LineFold(0, 0, 0, line, updates)]\n        line_length = line.cell_len\n        if line_length <= width:\n            return [LineFold(line_no, 0, 0, line, updates)]\n        offsets = list(accumulate((len(part) for part in chop_cells(line.plain, max(2, width)))))\n        folded_lines = line.divide(offsets[:-1])\n        offsets = [0, *accumulate((len(line) for line in folded_lines))][:-1]\n        folds = [LineFold(line_no, line_offset, offset, folded_line, updates) for line_offset, (offset, folded_line) in enumerate(zip(offsets, folded_lines))]\n        assert len(folds)\n        return folds\n\n    def add_line(self, buffer: Buffer, content: Text, style: Style=Style.null()) -> None:\n        updates = self.advance_updates()\n        line_no = buffer.line_count\n        width = self.width\n        line_record = LineRecord(content, style, updates=updates)\n        line_record.folds[:] = self._fold_line(line_no, line_record.content, width)\n        buffer.lines.append(line_record)\n        folds = line_record.folds\n        buffer.line_to_fold.append(len(buffer.folded_lines))\n        fold_count = len(buffer.folded_lines)\n        if buffer._updated_lines is not None:\n            buffer._updated_lines.update(range(fold_count, fold_count + len(folds)))\n        buffer.folded_lines.extend(folds)\n        buffer.updates = updates\n\n    def update_line(self, buffer: Buffer, line_index: int, line: Text, style: Style | None=None) -> None:\n        \"\"\"Update a line (potentially refolding and moving subsequencte lines down).\n\n        Args:\n            buffer: Buffer.\n            line_index: Line index (unfolded).\n            line: New line content.\n            style: New background style, or `None` not to update.\n        \"\"\"\n        while line_index >= len(buffer.lines):\n            self.add_line(buffer, Text())\n        line_record = buffer.lines[line_index]\n        line_record.replace_content(line)\n        line_expanded_tabs = line_record.content.copy()\n        line_expanded_tabs.expand_tabs(8)\n        buffer.max_line_width = max(line_expanded_tabs.cell_len, buffer.max_line_width)\n        if style is not None:\n            line_record.style = style\n        line_record.folds[:] = self._fold_line(line_index, line_expanded_tabs, self.width)\n        line_record.updates = self.advance_updates()\n        if buffer._updated_lines is not None:\n            fold_start = buffer.line_to_fold[line_index]\n            buffer._updated_lines.update(range(fold_start, fold_start + len(line_record.folds)))\n        fold_line = buffer.line_to_fold[line_index]\n        del buffer.line_to_fold[line_index:]\n        del buffer.folded_lines[fold_line:]\n        for line_no in range(line_index, buffer.line_count):\n            line_record = buffer.lines[line_no]\n            buffer.line_to_fold.append(len(buffer.folded_lines))\n            for fold in line_record.folds:\n                buffer.folded_lines.append(fold)"
       },
@@ -212,55 +218,55 @@
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 675,
+        "line": 677,
         "kind": "Name",
         "source": "TerminalMode"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 681,
+        "line": 686,
         "kind": "Name",
         "source": "TerminalMode"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 687,
+        "line": 692,
         "kind": "Name",
         "source": "TerminalMode"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 693,
+        "line": 698,
         "kind": "Name",
         "source": "TerminalMode"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 699,
+        "line": 704,
         "kind": "Name",
         "source": "TerminalMode"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 705,
+        "line": 710,
         "kind": "Name",
         "source": "TerminalMode"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 713,
+        "line": 718,
         "kind": "Name",
         "source": "TerminalMode"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 726,
+        "line": 731,
         "kind": "Name",
         "source": "TerminalMode"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1367,
+        "line": 1372,
         "kind": "Name",
         "source": "Buffer"
       },
@@ -272,61 +278,61 @@
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 672,
+        "line": 674,
         "kind": "Attribute",
         "source": "state.show_cursor"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 678,
+        "line": 683,
         "kind": "Attribute",
         "source": "state.alternate_screen"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1307,
+        "line": 1312,
         "kind": "Attribute",
         "source": "self.show_cursor"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1309,
+        "line": 1314,
         "kind": "Attribute",
         "source": "self.alternate_screen"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1369,
+        "line": 1374,
         "kind": "Attribute",
         "source": "self.alternate_screen"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1452,
+        "line": 1457,
         "kind": "Attribute",
         "source": "buffer._updated_lines"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1503,
+        "line": 1508,
         "kind": "Attribute",
         "source": "alternate_buffer._updated_lines"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1504,
+        "line": 1509,
         "kind": "Attribute",
         "source": "scrollback_buffer._updated_lines"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1526,
+        "line": 1531,
         "kind": "Attribute",
         "source": "self.alternate_buffer._updated_lines"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1527,
+        "line": 1532,
         "kind": "Attribute",
         "source": "self.scrollback_buffer._updated_lines"
       },
@@ -446,103 +452,127 @@
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 677,
+        "line": 672,
+        "kind": "Attribute",
+        "source": "state.show_cursor"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 679,
         "kind": "Name",
         "source": "TerminalState"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 683,
+        "line": 680,
+        "kind": "Attribute",
+        "source": "state.alternate_screen"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 681,
+        "kind": "Attribute",
+        "source": "state.scrollback_buffer._updated_lines"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 682,
+        "kind": "Attribute",
+        "source": "state.alternate_buffer._updated_lines"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 688,
         "kind": "Name",
         "source": "TerminalState"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 689,
+        "line": 694,
         "kind": "Name",
         "source": "TerminalState"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 695,
+        "line": 700,
         "kind": "Name",
         "source": "TerminalState"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 701,
+        "line": 706,
         "kind": "Name",
         "source": "TerminalState"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 709,
+        "line": 714,
         "kind": "Name",
         "source": "TerminalState"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 715,
+        "line": 720,
         "kind": "Name",
         "source": "TerminalState"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 733,
+        "line": 738,
         "kind": "Name",
         "source": "TerminalState"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1194,
+        "line": 1199,
         "kind": "Attribute",
         "source": "self._updated_lines"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1323,
+        "line": 1328,
         "kind": "Name",
         "source": "Buffer"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1325,
+        "line": 1330,
         "kind": "Name",
         "source": "Buffer"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1531,
+        "line": 1536,
         "kind": "Name",
         "source": "Buffer"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1627,
+        "line": 1632,
         "kind": "Name",
         "source": "Buffer"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1664,
+        "line": 1669,
         "kind": "Name",
         "source": "Buffer"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1679,
+        "line": 1684,
         "kind": "Attribute",
         "source": "buffer._updated_lines"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1685,
+        "line": 1690,
         "kind": "Name",
         "source": "Buffer"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1712,
+        "line": 1717,
         "kind": "Attribute",
         "source": "buffer._updated_lines"
       },
@@ -554,37 +584,37 @@
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1339,
+        "line": 1344,
         "kind": "Attribute",
         "source": "self.show_cursor"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1340,
+        "line": 1345,
         "kind": "Attribute",
         "source": "self.alternate_screen"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1517,
+        "line": 1522,
         "kind": "Attribute",
         "source": "scrollback_buffer._updated_lines"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1522,
+        "line": 1527,
         "kind": "Attribute",
         "source": "alternate_buffer._updated_lines"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1550,
+        "line": 1555,
         "kind": "Attribute",
         "source": "buffer._updated_lines"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1636,
+        "line": 1641,
         "kind": "Attribute",
         "source": "buffer._updated_lines"
       },
@@ -602,43 +632,43 @@
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1195,
+        "line": 1200,
         "kind": "Attribute",
         "source": "self._updated_lines"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1518,
+        "line": 1523,
         "kind": "Attribute",
         "source": "scrollback_buffer._updated_lines"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1523,
+        "line": 1528,
         "kind": "Attribute",
         "source": "alternate_buffer._updated_lines"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1680,
+        "line": 1685,
         "kind": "Attribute",
         "source": "buffer._updated_lines"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1714,
+        "line": 1719,
         "kind": "Attribute",
         "source": "buffer._updated_lines"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 1637,
+        "line": 1642,
         "kind": "Attribute",
         "source": "buffer._updated_lines"
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "line": 976,
+        "line": 981,
         "kind": "Name",
         "source": "TerminalMode"
       },
@@ -826,7 +856,7 @@
         "path": "src/toad/terminal_execution.py",
         "line": 311,
         "kind": "ClassDef",
-        "source": "class TerminalExecution:\n    \"\"\"One ANSI/output owner and one acquired operation, independent of views.\"\"\"\n\n    def __init__(self, command: Command, output_byte_limit: int | None=None, *, width: int=ansi.TerminalState.DEFAULT_WIDTH, height: int=ansi.TerminalState.DEFAULT_HEIGHT):\n        self._command = command\n        self._output_byte_limit = output_byte_limit\n        self._output: deque[bytes] = deque()\n        self._bytes_read = 0\n        self._output_bytes_count = 0\n        self._operation: TerminalOperation = NewTerminalOperation()\n        self.state = ansi.TerminalState(self.write_stdin, width=width, height=height)\n        self._view = lambda: None\n\n    @property\n    def command(self):\n        return self._command\n\n    @property\n    def outcome(self):\n        return self._operation.outcome()\n\n    @property\n    def tool_state(self):\n        output, truncated = self.get_output()\n        return ToolState(output, truncated, self.outcome)\n\n    def attach(self, terminal):\n        self._view = ref(terminal)\n        terminal.set_state(self.state)\n        terminal.set_write_to_stdin(self.write_stdin)\n        self.project()\n\n    def detach(self, terminal=None):\n        if terminal is None or self._view() is terminal:\n            self._view = lambda: None\n\n    def project(self):\n        if (terminal := self._view()) is not None and terminal.is_attached:\n            terminal.present_execution()\n\n    def update_size(self, width, height):\n        self.state.update_size(width, height)\n        self._operation.resize(width, height)\n\n    async def close(self):\n        self.detach()\n        self._operation = self._operation.retire()\n        await self._operation.close()\n\n    def kill(self) -> None:\n        self._operation.kill()\n\n    async def wait_for_exit(self):\n        return await self._operation.wait()\n\n    async def custody(self) -> PtyProcess:\n        \"\"\"Observe the SAME original acquired resource, never a copied PID/status.\"\"\"\n        return await self._operation.custody()\n\n    async def start(self):\n        operation = self._operation.start(self)\n        self._operation = operation\n        await asyncio.shield(operation.ready)\n\n    async def run(self, ready):\n        try:\n            async with AsyncExitStack() as custody:\n                master, slave = pty.openpty()\n                master_file = custody.enter_context(os.fdopen(master, 'rb', 0))\n                slave_file = custody.enter_context(os.fdopen(slave, 'wb', 0))\n                flags = fcntl.fcntl(master, fcntl.F_GETFL)\n                fcntl.fcntl(master, fcntl.F_SETFL, flags | os.O_NONBLOCK)\n                command = self.command\n                run_command = command.command if ' ' in command.command else f'{command.command} {shlex.join(command.args)}'\n                shell_command = (os.environ.get('SHELL', 'sh'), '-c', run_command)\n                spawn = asyncio.create_task(PtyProcess.acquire(command, shell_command, master_file, slave_file, custody, self.state))\n                try:\n                    acquired = await asyncio.shield(spawn)\n                except asyncio.CancelledError:\n                    await join_retirement(spawn)\n                    raise\n                slave_file.close()\n                reader = asyncio.StreamReader(128 * 1024)\n                protocol = asyncio.StreamReaderProtocol(reader)\n                transport, _ = await asyncio.get_running_loop().connect_read_pipe(lambda: protocol, master_file)\n                custody.callback(transport.close)\n                ready.set_result(acquired)\n                decoder = codecs.getincrementaldecoder('utf-8')(errors='replace')\n                while True:\n                    data = await shell_read(reader, 128 * 1024)\n                    self._record_output(data)\n                    if (decoded := decoder.decode(data, final=not data)):\n                        await self.state.write(decoded)\n                        self.project()\n                    if not data:\n                        break\n                return TerminalCompletion.capture(await acquired.child.wait())\n        except BaseException as error:\n            if not ready.done():\n                ready.set_exception(error)\n            raise\n        finally:\n            self.state.show_cursor = False\n            asyncio.get_running_loop().call_soon(self.project)\n\n    async def write_stdin(self, text: str | bytes, hide_echo=False):\n        data = text.encode('utf-8', 'ignore') if isinstance(text, str) else text\n        return await self._operation.write(data)\n\n    def _record_output(self, data: bytes) -> None:\n        \"\"\"Keep a record of the bytes left.\n\n        Store at most the limit set in self._output_byte_limit (if set).\n\n        \"\"\"\n        self._output.append(data)\n        self._output_bytes_count += len(data)\n        self._bytes_read += len(data)\n        if self._output_byte_limit is None:\n            return\n        while self._output_bytes_count > self._output_byte_limit and self._output:\n            oldest_bytes = self._output[0]\n            oldest_bytes_count = len(oldest_bytes)\n            if self._output_bytes_count - oldest_bytes_count < self._output_byte_limit:\n                break\n            self._output.popleft()\n            self._output_bytes_count -= oldest_bytes_count\n\n    def get_output(self) -> tuple[str, bool]:\n        \"\"\"Get the output.\n\n        Returns:\n            A tuple of the output and a bool to indicate if the output was truncated.\n        \"\"\"\n        output_bytes = b''.join(self._output)\n\n        def is_continuation(byte_value: int) -> bool:\n            \"\"\"Check if the given byte is a utf-8 continuation byte.\n\n            Args:\n                byte_value: Ordinal of the byte.\n\n            Returns:\n                `True` if the byte is a continuation, or `False` if it is the start of a character.\n            \"\"\"\n            return byte_value & 192 == 128\n        truncated = self._bytes_read > len(output_bytes)\n        if self._output_byte_limit is not None and len(output_bytes) > self._output_byte_limit:\n            truncated = True\n            output_bytes = output_bytes[len(output_bytes) - self._output_byte_limit:]\n            for offset, byte_value in enumerate(output_bytes):\n                if not is_continuation(byte_value):\n                    if offset:\n                        output_bytes = output_bytes[offset:]\n                    break\n            else:\n                output_bytes = b''\n        output = output_bytes.decode('utf-8', 'replace')\n        return (output, truncated)"
+        "source": "class TerminalExecution:\n    \"\"\"One ANSI/output owner and one acquired operation, independent of views.\"\"\"\n\n    def __init__(self, command: Command, output_byte_limit: int | None=None, *, width: int=ansi.TerminalState.DEFAULT_WIDTH, height: int=ansi.TerminalState.DEFAULT_HEIGHT):\n        self._command = command\n        self._output_byte_limit = output_byte_limit\n        self._output: deque[bytes] = deque()\n        self._bytes_read = 0\n        self._output_bytes_count = 0\n        self._operation: TerminalOperation = NewTerminalOperation()\n        self.state = ansi.TerminalState(self.write_stdin, width=width, height=height)\n        self._view = lambda: None\n\n    @property\n    def command(self):\n        return self._command\n\n    @property\n    def outcome(self):\n        return self._operation.outcome()\n\n    @property\n    def tool_state(self):\n        output, truncated = self.get_output()\n        return ToolState(output, truncated, self.outcome)\n\n    def attach(self, terminal):\n        self._view = ref(terminal)\n        terminal.set_state(self.state)\n        terminal.set_write_to_stdin(self.write_stdin)\n        self.project(None, None)\n\n    def detach(self, terminal=None):\n        if terminal is None or self._view() is terminal:\n            self._view = lambda: None\n\n    def project(self, scrollback: set[int] | None, alternate: set[int] | None):\n        if (terminal := self._view()) is not None and terminal.is_attached:\n            terminal.present_execution(scrollback, alternate)\n\n    def update_size(self, width, height):\n        self.state.update_size(width, height)\n        self._operation.resize(width, height)\n\n    async def close(self):\n        self.detach()\n        self._operation = self._operation.retire()\n        await self._operation.close()\n\n    def kill(self) -> None:\n        self._operation.kill()\n\n    async def wait_for_exit(self):\n        return await self._operation.wait()\n\n    async def custody(self) -> PtyProcess:\n        \"\"\"Observe the SAME original acquired resource, never a copied PID/status.\"\"\"\n        return await self._operation.custody()\n\n    async def start(self):\n        operation = self._operation.start(self)\n        self._operation = operation\n        await asyncio.shield(operation.ready)\n\n    async def run(self, ready):\n        try:\n            async with AsyncExitStack() as custody:\n                master, slave = pty.openpty()\n                master_file = custody.enter_context(os.fdopen(master, 'rb', 0))\n                slave_file = custody.enter_context(os.fdopen(slave, 'wb', 0))\n                flags = fcntl.fcntl(master, fcntl.F_GETFL)\n                fcntl.fcntl(master, fcntl.F_SETFL, flags | os.O_NONBLOCK)\n                command = self.command\n                run_command = command.command if ' ' in command.command else f'{command.command} {shlex.join(command.args)}'\n                shell_command = (os.environ.get('SHELL', 'sh'), '-c', run_command)\n                spawn = asyncio.create_task(PtyProcess.acquire(command, shell_command, master_file, slave_file, custody, self.state))\n                try:\n                    acquired = await asyncio.shield(spawn)\n                except asyncio.CancelledError:\n                    await join_retirement(spawn)\n                    raise\n                slave_file.close()\n                reader = asyncio.StreamReader(128 * 1024)\n                protocol = asyncio.StreamReaderProtocol(reader)\n                transport, _ = await asyncio.get_running_loop().connect_read_pipe(lambda: protocol, master_file)\n                custody.callback(transport.close)\n                ready.set_result(acquired)\n                decoder = codecs.getincrementaldecoder('utf-8')(errors='replace')\n                while True:\n                    data = await shell_read(reader, 128 * 1024)\n                    self._record_output(data)\n                    if (decoded := decoder.decode(data, final=not data)):\n                        scrollback, alternate = await self.state.write(decoded)\n                        self.project(scrollback, alternate)\n                    if not data:\n                        break\n                return TerminalCompletion.capture(await acquired.child.wait())\n        except BaseException as error:\n            if not ready.done():\n                ready.set_exception(error)\n            raise\n        finally:\n            self.state.show_cursor = False\n            asyncio.get_running_loop().call_soon(self.project, None, None)\n\n    async def write_stdin(self, text: str | bytes, hide_echo=False):\n        data = text.encode('utf-8', 'ignore') if isinstance(text, str) else text\n        return await self._operation.write(data)\n\n    def _record_output(self, data: bytes) -> None:\n        \"\"\"Keep a record of the bytes left.\n\n        Store at most the limit set in self._output_byte_limit (if set).\n\n        \"\"\"\n        self._output.append(data)\n        self._output_bytes_count += len(data)\n        self._bytes_read += len(data)\n        if self._output_byte_limit is None:\n            return\n        while self._output_bytes_count > self._output_byte_limit and self._output:\n            oldest_bytes = self._output[0]\n            oldest_bytes_count = len(oldest_bytes)\n            if self._output_bytes_count - oldest_bytes_count < self._output_byte_limit:\n                break\n            self._output.popleft()\n            self._output_bytes_count -= oldest_bytes_count\n\n    def get_output(self) -> tuple[str, bool]:\n        \"\"\"Get the output.\n\n        Returns:\n            A tuple of the output and a bool to indicate if the output was truncated.\n        \"\"\"\n        output_bytes = b''.join(self._output)\n\n        def is_continuation(byte_value: int) -> bool:\n            \"\"\"Check if the given byte is a utf-8 continuation byte.\n\n            Args:\n                byte_value: Ordinal of the byte.\n\n            Returns:\n                `True` if the byte is a continuation, or `False` if it is the start of a character.\n            \"\"\"\n            return byte_value & 192 == 128\n        truncated = self._bytes_read > len(output_bytes)\n        if self._output_byte_limit is not None and len(output_bytes) > self._output_byte_limit:\n            truncated = True\n            output_bytes = output_bytes[len(output_bytes) - self._output_byte_limit:]\n            for offset, byte_value in enumerate(output_bytes):\n                if not is_continuation(byte_value):\n                    if offset:\n                        output_bytes = output_bytes[offset:]\n                    break\n            else:\n                output_bytes = b''\n        output = output_bytes.decode('utf-8', 'replace')\n        return (output, truncated)"
       },
       {
         "path": "src/toad/terminal_execution.py",
@@ -1336,7 +1366,7 @@
         "path": "src/toad/widgets/terminal_tool.py",
         "line": 21,
         "kind": "ClassDef",
-        "source": "class TerminalTool(Terminal, MroDispatch):\n\n    @dataclass\n    class Projection(Message):\n        \"\"\"A native render request borrows its original acquired resources.\"\"\"\n        binding: AttachedSurfaceBinding\n        controller: TerminalController\n        terminal_id: str\n        execution: TerminalExecution\n    DEFAULT_CSS = '\\n    TerminalTool {\\n        height: auto;\\n        border: panel $text-primary;\\n    }\\n    '\n\n    def __init__(self, execution: TerminalExecution, *, id: str) -> None:\n        self.execution = execution\n        super().__init__(id=id, size=(execution.state.width, execution.state.height))\n        self.border_title = Content(str(execution.command))\n\n    def on_mount(self) -> None:\n        super().on_mount()\n        self.execution.attach(self)\n\n    def on_unmount(self) -> None:\n        self.execution.detach(self)\n\n    def resize_process(self, width: int, height: int) -> None:\n        self.execution.update_size(width, height)\n\n    def present_execution(self) -> None:\n        self.project_state(None, None)\n        self.dispatch_sync(self.execution.outcome)\n\n    @handles(RunningTerminalOutcome, UnstartedTerminalOutcome, RetiredTerminalOutcome)\n    def present_pending(self, outcome) -> None:\n        \"\"\"These original outcomes have no completion border to draw.\"\"\"\n\n    @handles(TerminalCompletion)\n    def present_completion(self, outcome) -> None:\n        self.finalize()\n        self.set_class(outcome.successful, '-success')\n        self.set_class(not outcome.successful, '-error')\n        if not outcome.successful:\n            self.border_title = Content(f'{self.execution.command} [{outcome.label}]')\n\n    @handles(FailedTerminalOutcome)\n    def present_failure(self, outcome) -> None:\n        self.finalize()\n        self.set_class(True, '-error')\n        self.border_title = Content(f'{self.execution.command} [{outcome.error}]')"
+        "source": "class TerminalTool(Terminal, MroDispatch):\n\n    @dataclass\n    class Projection(Message):\n        \"\"\"A native render request borrows its original acquired resources.\"\"\"\n        binding: AttachedSurfaceBinding\n        controller: TerminalController\n        terminal_id: str\n        execution: TerminalExecution\n    DEFAULT_CSS = '\\n    TerminalTool {\\n        height: auto;\\n        border: panel $text-primary;\\n    }\\n    '\n\n    def __init__(self, execution: TerminalExecution, *, id: str) -> None:\n        self.execution = execution\n        super().__init__(id=id, size=(execution.state.width, execution.state.height))\n        self.border_title = Content(str(execution.command))\n\n    def on_mount(self) -> None:\n        super().on_mount()\n        self.execution.attach(self)\n\n    def on_unmount(self) -> None:\n        self.execution.detach(self)\n\n    def resize_process(self, width: int, height: int) -> None:\n        self.execution.update_size(width, height)\n\n    def present_execution(self, scrollback: set[int] | None, alternate: set[int] | None) -> None:\n        self.project_state(scrollback, alternate)\n        self.dispatch_sync(self.execution.outcome)\n\n    @handles(RunningTerminalOutcome, UnstartedTerminalOutcome, RetiredTerminalOutcome)\n    def present_pending(self, outcome) -> None:\n        \"\"\"These original outcomes have no completion border to draw.\"\"\"\n\n    @handles(TerminalCompletion)\n    def present_completion(self, outcome) -> None:\n        self.finalize()\n        self.set_class(outcome.successful, '-success')\n        self.set_class(not outcome.successful, '-error')\n        if not outcome.successful:\n            self.border_title = Content(f'{self.execution.command} [{outcome.label}]')\n\n    @handles(FailedTerminalOutcome)\n    def present_failure(self, outcome) -> None:\n        self.finalize()\n        self.set_class(True, '-error')\n        self.border_title = Content(f'{self.execution.command} [{outcome.error}]')"
       },
       {
         "path": "src/toad/widgets/terminal_tool.py",
@@ -1394,7 +1424,7 @@
       },
       {
         "path": "src/toad/widgets/terminal_tool.py",
-        "line": 54,
+        "line": 56,
         "kind": "Attribute",
         "source": "self.project_state"
       },
@@ -1490,19 +1520,43 @@
       },
       {
         "path": "tests/native_terminal_retention_pilot.py",
-        "line": 14,
+        "line": 17,
         "kind": "ImportFrom",
         "source": "from toad.widgets.terminal_tool import TerminalTool"
       },
       {
         "path": "tests/native_terminal_retention_pilot.py",
-        "line": 79,
+        "line": 264,
+        "kind": "Attribute",
+        "source": "TerminalTool.present_execution"
+      },
+      {
+        "path": "tests/native_terminal_retention_pilot.py",
+        "line": 264,
         "kind": "Name",
         "source": "TerminalTool"
       },
       {
         "path": "tests/native_terminal_retention_pilot.py",
-        "line": 77,
+        "line": 82,
+        "kind": "Name",
+        "source": "TerminalTool"
+      },
+      {
+        "path": "tests/native_terminal_retention_pilot.py",
+        "line": 327,
+        "kind": "Name",
+        "source": "TerminalTool"
+      },
+      {
+        "path": "tests/native_terminal_retention_pilot.py",
+        "line": 364,
+        "kind": "Name",
+        "source": "TerminalTool"
+      },
+      {
+        "path": "tests/native_terminal_retention_pilot.py",
+        "line": 80,
         "kind": "Name",
         "source": "TerminalTool"
       },

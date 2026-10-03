@@ -1,0 +1,13 @@
+{
+  "state": "pass",
+  "failure_risks": [
+    "hidden cursor needs original cursor-line repaint",
+    "screen switch needs full model damage",
+    "unchanged modes must not request full repaint",
+    "shared model/execution import must remain UI-independent",
+    "all318 installed tracked assets must match qualified source"
+  ],
+  "model_damage": true,
+  "headless_import": true,
+  "source_mismatches": []
+}
