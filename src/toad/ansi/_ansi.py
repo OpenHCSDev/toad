@@ -678,8 +678,8 @@ class AlternateScreenMode(TerminalMode, declared_name="1049"):
     @classmethod
     def change(cls, state: TerminalState, enabled: bool) -> None:
         if state.alternate_screen != enabled:
-            state.scrollback_buffer._updated_lines = None
-            state.alternate_buffer._updated_lines = None
+            state.scrollback_buffer.update_all()
+            state.alternate_buffer.update_all()
         state.alternate_screen = enabled
 
 
@@ -1191,13 +1191,31 @@ class Buffer:
             self.cursor_offset = len(line.folds[-1].content)
 
     def update_line(self, line_no: int) -> None:
-        """Record an updated line.
+        """Record an updated folded line.
 
         Args:
-            line_no: Line number to update.
+            line_no: Folded line number to update.
         """
+        self.update_lines((line_no,))
+
+    def update_lines(self, line_numbers: Iterable[int]) -> None:
+        """Accumulate folded damage; full damage absorbs later line updates."""
         if self._updated_lines is not None:
-            self._updated_lines.add(line_no)
+            self._updated_lines.update(line_numbers)
+
+    def update_all(self) -> None:
+        """Invalidate the complete buffer using the existing full repaint value."""
+        self._updated_lines = None
+
+    def begin_updates(self) -> None:
+        """Acquire this buffer's damage collection for one parser write."""
+        self._updated_lines = set()
+
+    def consume_updates(self) -> set[int] | None:
+        """Transfer the collected damage; subsequent writes own a fresh set."""
+        updates = self._updated_lines
+        self._updated_lines = set()
+        return updates
 
     def clear(self, updates: int) -> None:
         """Clear the buffer to its initial state.
@@ -1213,6 +1231,7 @@ class Buffer:
         self.cursor_offset = 0
         self.max_line_width = 0
         self.updates = updates
+        self.update_all()
 
     def remove_last_line(self) -> None:
         if not self.lines:
@@ -1222,6 +1241,7 @@ class Buffer:
         del self.folded_lines[self.line_to_fold[last_line_index] :]
         del self.line_to_fold[last_line_index]
         self.updates += 1
+        self.update_all()
 
 
 @dataclass
@@ -1454,7 +1474,7 @@ class TerminalState:
         if not buffer.lines:
             return
 
-        buffer._updated_lines = None
+        buffer.update_all()
         # Unfolded cursor position
         cursor_line, cursor_offset = buffer.cursor
 
@@ -1504,9 +1524,8 @@ class TerminalState:
         alternate_buffer = self.alternate_buffer
         scrollback_buffer = self.scrollback_buffer
 
-        # Reset updated lines delta
-        alternate_buffer._updated_lines = set()
-        scrollback_buffer._updated_lines = set()
+        alternate_buffer.begin_updates()
+        scrollback_buffer.begin_updates()
         # Write sequences and update
         if hide_output:
             for ansi_command in self._ansi_stream.feed(text):
@@ -1516,22 +1535,7 @@ class TerminalState:
             for ansi_command in self._ansi_stream.feed(text):
                 await ansi_command.apply(self)
 
-        # Get deltas
-        scrollback_updates = (
-            None
-            if scrollback_buffer._updated_lines is None
-            else scrollback_buffer._updated_lines.copy()
-        )
-        alternate_updates = (
-            None
-            if alternate_buffer._updated_lines is None
-            else alternate_buffer._updated_lines.copy()
-        )
-        # Reset deltas
-        self.alternate_buffer._updated_lines = set()
-        self.scrollback_buffer._updated_lines = set()
-        # Return deltas accumulated during write
-        return (scrollback_updates, alternate_updates)
+        return (scrollback_buffer.consume_updates(), alternate_buffer.consume_updates())
 
     def get_cursor_line_offset(self, buffer: Buffer) -> int:
         """The cursor offset within the un-folded lines."""
@@ -1552,7 +1556,7 @@ class TerminalState:
         if clear == "screen":
             buffer.clear(self.advance_updates())
         elif clear == "cursor_to_end":
-            buffer._updated_lines = None
+            buffer.update_all()
             folded_cursor_line = buffer.cursor_line
             cursor_line, cursor_line_offset = buffer.cursor
             while buffer.cursor_line >= len(buffer.folded_lines):
@@ -1638,8 +1642,7 @@ class TerminalState:
         """
         try:
             buffer.lines[line_no].updates = self.advance_updates()
-            if buffer._updated_lines is not None:
-                buffer._updated_lines.add(line_no)
+            buffer.update_line(line_no)
         except IndexError:
             pass
 
@@ -1681,8 +1684,7 @@ class TerminalState:
         folds = line_record.folds
         buffer.line_to_fold.append(len(buffer.folded_lines))
         fold_count = len(buffer.folded_lines)
-        if buffer._updated_lines is not None:
-            buffer._updated_lines.update(range(fold_count, fold_count + len(folds)))
+        buffer.update_lines(range(fold_count, fold_count + len(folds)))
         buffer.folded_lines.extend(folds)
         buffer.updates = updates
 
@@ -1714,11 +1716,8 @@ class TerminalState:
         )
         line_record.updates = self.advance_updates()
 
-        if buffer._updated_lines is not None:
-            fold_start = buffer.line_to_fold[line_index]
-            buffer._updated_lines.update(
-                range(fold_start, fold_start + len(line_record.folds))
-            )
+        fold_start = buffer.line_to_fold[line_index]
+        buffer.update_lines(range(fold_start, fold_start + len(line_record.folds)))
 
         fold_line = buffer.line_to_fold[line_index]
         del buffer.line_to_fold[line_index:]
