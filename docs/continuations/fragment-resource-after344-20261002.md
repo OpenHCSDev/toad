@@ -182,5 +182,23 @@ ThreadView.roster producer because it needs thread presentations rather than
 wire delivery/unread traversal. No private bus admission guard was weakened.
 
 PR352 remains draft pending its affected installed UI journey. Original04 motion
-and its specialized tail failure are unchanged. Kepler retains the same holder
-for the targeted338 tail completion; main350 integration follows that release.
+and its specialized tail failure are unchanged. Kepler released the holder after
+targeted05/06: both original receipt updates and typing passed while the actual
+read and worker remained unfinished, but05's final End compound assertion failed
+and06 ended custody without a final outcome. No full End claim follows from
+those recordings.
+
+Merged350/351 main8b81122 was normally integrated in34782863c19d and35257d0db14b.
+The task family now belongs to render_backend and SDK validation to sdk_boundary;
+no aliases restore the deleted imports. The App, CommsChat and history imports
+and original task inheritance resolve. The row resource check passes on that
+union too (worker delivery median1.42ms/max3.56ms). The347 fragment/stream/history
+files are unchanged by350; its task implementation retains the algorithm under
+the moved base. This source union is not the installed04 byte snapshot.
+
+NRA's after-map parses286/286 production modules. Within the selected row family
+there is one presentation call, in ThreadRowsWork.capture; native row reuse,
+content identity and render-task construction consume its captured rows. Both
+SidebarGroup consumers remain in that shared algorithm. This is source evidence,
+not dynamic dispatch or physical UI proof. The before/after maps remain in
+`.artifacts/fragment-resource-after344/sidebar-inputs-{before,after}.json`.
