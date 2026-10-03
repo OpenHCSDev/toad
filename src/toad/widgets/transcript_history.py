@@ -29,7 +29,7 @@ from textual.widget import Widget
 from textual.widgets import Static
 
 from toad.transcript_filter import TranscriptFilter
-from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTranscript
+from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTranscript, LatestViewportRequest
 from toad.transcript_source_preparation import TranscriptSourcePreparation
 from acp import schema as protocol
 from toad.acp.status import ToolCallStatus
@@ -774,12 +774,10 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         elif self.has_older and self.state.accepts_source_work:
             self._request_page(True)
 
-    async def _jump_latest(self) -> None:
-        self._generation += 1
-        generation = self._generation
-        window, loader = self.window, self.loader
+    async def _publish_latest(self, request: LatestViewportRequest) -> bool:
+        snapshot = self.source_snapshot()
+        window, loader = snapshot.window, self.loader
         destination_admission = window.document_viewport.lookahead.admission(self.budget, window.size.height)
-        scroll_revision = window.scroll_revision
         if loader is None:
             page, fragments = self.pages[-1].page, self.pages[-1].fragments
         else:
@@ -787,13 +785,11 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             page, fragments = prepared.page, prepared.fragments
         selected = TranscriptPageView.initial_slice(fragments, destination_admission, True)
         await self.prepare_fragments(
-            fragments[selected], lambda: self.is_attached and generation == self._generation
-            and window.scroll_revision == scroll_revision,
+            fragments[selected], lambda: snapshot.current(self) and request.current(window),
         )
         async with window.history_lock:
-            if (not self.is_attached or self.window is not window or self.loader is not loader
-                    or generation != self._generation or window.scroll_revision != scroll_revision):
-                return
+            if not snapshot.current(self) or not request.current(window):
+                return False
             async with window.preserve_history(None):
                 view = self.pages[-1]
                 if view.capture_admission().interval == CommittedInterval(page.before, page.after):
@@ -813,12 +809,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                     await self.mount(view, before=self.newer)
                 self.pages = deque([view])
                 self._update_edges()
-                self.call_after_refresh(self._anchor_latest, generation, scroll_revision)
-
-    def _anchor_latest(self, generation: int, scroll_revision: int) -> None:
-        if (self.is_attached and generation == self._generation
-                and self.window.scroll_revision == scroll_revision):
-            self.window.anchor()
+            return True
 
     async def _load_page(self, older: bool) -> None:
         snapshot = self.source_snapshot()
