@@ -1,6 +1,7 @@
 """Process parsing discards obsolete documents and cannot hold widget teardown."""
 
 import asyncio
+from contextlib import aclosing
 import os
 from pathlib import Path
 import tempfile
@@ -34,7 +35,11 @@ class ControlledPool(Renderer):
         future.set_result(function(*args))
 
     async def aclose(self):
-        pass
+        # This controller borrows the application's renderer; it owns only
+        # its deliberately held executions, including a failed check's tail.
+        for _, _, future in self.requests:
+            if not future.done():
+                future.cancel()
 
 
 async def wait_requests(pool, count, pilot):
@@ -67,56 +72,57 @@ async def main():
             # original resource before holding the updates exercised below.
             # Hold pure execution, preserving the original shared preparation,
             # independent delivery and cancellation custody above that boundary.
-            with patch.object(app.preparation, "renderer", pool):
-                source = "```python\nvalue = 123\n```\n"
-                pending = asyncio.create_task(update(response, source))
-                await wait_requests(pool, 1, pilot)
-                app.theme = "ansi-light"
-                await asyncio.sleep(0)
-                pool.complete(0)
-                await wait_requests(pool, 2, pilot)
-                assert not response.query(MarkdownFence)
-                pool.complete(1)
-                await asyncio.wait_for(pending, 5)
-                await pilot.pause()
-                assert response.query_one(MarkdownFence)._highlighted_key[-2:] == (True, False)
+            async with aclosing(pool):
+                with patch.object(app.preparation, "renderer", pool):
+                    source = "```python\nvalue = 123\n```\n"
+                    pending = asyncio.create_task(update(response, source))
+                    await wait_requests(pool, 1, pilot)
+                    app.theme = "ansi-light"
+                    await asyncio.sleep(0)
+                    pool.complete(0)
+                    await wait_requests(pool, 2, pilot)
+                    assert not response.query(MarkdownFence)
+                    pool.complete(1)
+                    await asyncio.wait_for(pending, 5)
+                    await pilot.pause()
+                    assert response.query_one(MarkdownFence)._highlighted_key[-2:] == (True, False)
 
-                obsolete = asyncio.create_task(update(response, "```python\nobsolete = 1\n```"))
-                await wait_requests(pool, 3, pilot)
-                latest_source = "```python\nlatest = 2\n```"
-                latest = asyncio.create_task(update(response, latest_source))
-                await asyncio.sleep(0)
-                pool.complete(2)
-                await wait_requests(pool, 4, pilot)
-                assert response.query_one(MarkdownFence).code == "value = 123"
-                pool.complete(3)
-                await asyncio.wait_for(asyncio.gather(obsolete, latest), 5)
-                await pilot.pause()
-                assert response.query_one(MarkdownFence).code == "latest = 2"
+                    obsolete = asyncio.create_task(update(response, "```python\nobsolete = 1\n```"))
+                    await wait_requests(pool, 3, pilot)
+                    latest_source = "```python\nlatest = 2\n```"
+                    latest = asyncio.create_task(update(response, latest_source))
+                    await asyncio.sleep(0)
+                    pool.complete(2)
+                    await wait_requests(pool, 4, pilot)
+                    assert response.query_one(MarkdownFence).code == "value = 123"
+                    pool.complete(3)
+                    await asyncio.wait_for(asyncio.gather(obsolete, latest), 5)
+                    await pilot.pause()
+                    assert response.query_one(MarkdownFence).code == "latest = 2"
 
-                # A superseded full update followed by append must not reuse
-                # parse offsets from the previously rendered document.
-                partial = "```python\ncomplete = "
-                first = asyncio.create_task(update(response, partial))
-                await wait_requests(pool, 5, pilot)
-                second = asyncio.create_task(append(response, "3\n```"))
-                await asyncio.sleep(0)
-                pool.complete(4)
-                await wait_requests(pool, 6, pilot)
-                pool.complete(5)
-                await asyncio.wait_for(asyncio.gather(first, second), 5)
-                await pilot.pause()
-                assert response.source == partial + "3\n```"
-                assert response.query_one(MarkdownFence).code == "complete = 3"
+                    # A superseded full update followed by append must not reuse
+                    # parse offsets from the previously rendered document.
+                    partial = "```python\ncomplete = "
+                    first = asyncio.create_task(update(response, partial))
+                    await wait_requests(pool, 5, pilot)
+                    second = asyncio.create_task(append(response, "3\n```"))
+                    await asyncio.sleep(0)
+                    pool.complete(4)
+                    await wait_requests(pool, 6, pilot)
+                    pool.complete(5)
+                    await asyncio.wait_for(asyncio.gather(first, second), 5)
+                    await pilot.pause()
+                    assert response.source == partial + "3\n```"
+                    assert response.query_one(MarkdownFence).code == "complete = 3"
 
-                retiring = asyncio.create_task(update(response, "```python\nretired = 4\n```"))
-                await wait_requests(pool, 7, pilot)
-                await asyncio.wait_for(response.remove(), 2)
-                await asyncio.wait_for(retiring, 2)
-                pool.complete(6)
-                await pilot.pause()
-                assert not response.is_attached and not response._prepared_fences
-                assert app._exception is None
+                    retiring = asyncio.create_task(update(response, "```python\nretired = 4\n```"))
+                    await wait_requests(pool, 7, pilot)
+                    await asyncio.wait_for(response.remove(), 2)
+                    await asyncio.wait_for(retiring, 2)
+                    pool.complete(6)
+                    await pilot.pause()
+                    assert not response.is_attached and not response._prepared_fences
+                    assert app._exception is None
     print("Markdown process lifecycle: theme, latest-source, append-after-supersession and cancellation-safe removal")
 
 
