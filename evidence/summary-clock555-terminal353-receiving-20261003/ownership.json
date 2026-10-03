@@ -1,0 +1,16 @@
+{
+  "owner": "Schrodinger merged555/353 receiving",
+  "core": "52f29173347f9fdce21c1dd4bbc886763a9e550f",
+  "toad": "78f0c17a0843916bdd018520080630029833af34",
+  "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-de16647979cbad28/node_modules/@earendil-works/pi-coding-agent",
+  "prefix": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001",
+  "new_environment": false,
+  "new_native_build": false,
+  "provider_calls": 0,
+  "public_writes": 0,
+  "gate_files": [
+    "555-installed-receipt.json",
+    "353-RECEIPT.json"
+  ]
+}
