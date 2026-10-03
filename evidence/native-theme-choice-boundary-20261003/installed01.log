@@ -1,0 +1,2 @@
+shared Choice/settings/budget/local renderer: no native toolkit import
+{"result": "passed", "native_theme_members": 21, "actual_app_route": "F2 \u2192 ChoiceEditor keyboard selection \u2192 native theme effect \u2192 Escape \u2192 saved preference", "theme": "ansi-light", "cleanup": []}

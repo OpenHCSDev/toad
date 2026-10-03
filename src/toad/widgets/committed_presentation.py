@@ -243,7 +243,7 @@ class FollowTailCheckpoint(CheckpointPlan):
         return window.follows_tail and window.scroll_revision == self.revision
 
     async def prepare(self, view, history, page, captured, is_current):
-        from toad.render_tasks import TranscriptRenderTask
+        from toad.widgets.transcript_fragments import TranscriptRenderTask
         from toad.work_preparation import RenderPreparation
 
         # An in-place advance admits bounded pages before its final paint.

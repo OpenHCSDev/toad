@@ -171,7 +171,7 @@ class SnapshotPublication(TranscriptPublication):
 
     async def publish_page(self) -> None:
         """Admit this operation's known cut and original applied resource cohort."""
-        from toad.render_tasks import TranscriptRenderTask
+        from toad.widgets.transcript_fragments import TranscriptRenderTask
         from toad.work_preparation import RenderPreparation
         from toad.widgets.transcript_history import TranscriptHistory
         from toad.widgets.committed_presentation import (

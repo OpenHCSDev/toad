@@ -7,7 +7,8 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
-    from toad.setting_choices import Scrollbar, SessionBar, ThemeChoice
+    from toad.setting_choices import Scrollbar, SessionBar
+    from toad.native_themes import ThemeChoice
 
 
 def history_buffer_viewports(app: ToadApp, value: int) -> None:
