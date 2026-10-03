@@ -1,0 +1,35 @@
+{
+  "state": "FULL_CODE_RETURN_TO_HEIS; original assets and versions restored",
+  "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "original_toad": "e02f76c67ef7d931a1ab3df3c76e152794bd09bf",
+  "core": "dbcf3ae4a47b629c85027c0def993a9614fadc6c",
+  "textual": "3efcc03803400c10ee60199331869d899a0fcc71",
+  "native": "89b56aea0bb128c4bf3e2c979de8a5afa79ac88b1f51a74c49cc1cab46da60d2",
+  "sdk": "0.12.1",
+  "package_count": 69,
+  "original_assets_restored": 928,
+  "original_versions_restored": 69,
+  "actual_toad_archive_direct_url": {
+    "url": "file:///home/ts/.cache/uv/sdists-v9/git/70bc7a1fe96282a3/e02f76c67ef7d931/batrachian_toad-0.6.20-py3-none-any.whl",
+    "archive_info": {}
+  },
+  "retained_restore_wheel_verified": true,
+  "non_toad_package_metadata_unchanged": true,
+  "retired_gate_pid": 2714090,
+  "retired_birth": "54223069",
+  "owned_session_remaining": [],
+  "command_borrowers": [],
+  "readable_processes": 487,
+  "unreadable_processes": [],
+  "excluded_owned_verifier_and_launching_ancestry": [
+    2221730,
+    2717339,
+    3826415
+  ],
+  "owned_processes_alive": false,
+  "inputs": 0,
+  "providers": 0,
+  "public_packages_changed": false,
+  "new_environments": false,
+  "future_package_read_write_claim": false
+}
