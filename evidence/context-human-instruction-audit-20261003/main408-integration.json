@@ -1,0 +1,35 @@
+{
+  "state": "normal-main408-joined-current-preview-scoped-ready",
+  "old_ready_head": "ad1c40afde2e735b03eefb330d1a9b95e50c27f9",
+  "integrated_main": "8840d35ce8364f2b1c2cbbeac3c90ef6aa76be76",
+  "normal_merge": true,
+  "frontend_src_tests_tools_delta_from_qualified_head": [],
+  "core_pin": "b0e5b57be2b3d78bc3b2fb2f960c78aabfa84a5c",
+  "core_installed_qualification": "dbcf3ae4a47b629c85027c0def993a9614fadc6c",
+  "core_current_api_delta": "None: ContextInspection/ContextExplorer consumed context, context_source and public-text methods unchanged dbcf\u2192b0",
+  "full_core_delta_files": [
+    "src/agent_comms/cli_commands.py",
+    "src/agent_comms/turn_context.py",
+    "stack/native-turn-context.mjs"
+  ],
+  "full_core_delta_numstat": "2\t1\tsrc/agent_comms/cli_commands.py\n10\t0\tsrc/agent_comms/turn_context.py\n3\t2\tstack/native-turn-context.mjs",
+  "correction": "Earlier CLI-only summary omitted stack transformed-input captured_text change; future native source not compiled/qualified by native89 current-preview journey. Original physical evidence unchanged.",
+  "textual_pin": "688d06b12dc893b290422fa5d6924529e7689ac9",
+  "textual_delta_from_tested_c264_src_metadata": [],
+  "uv_lock": "uv lock --offline --python 3.14: resolved99 packages14ms; no environment/build/install",
+  "sdk": "0.12.1",
+  "remaining_prod_diff_vs_main": "137\t60\tsrc/toad/core/context_inspection.py\n161\t32\tsrc/toad/widgets/context_explorer.py",
+  "preserved_original_receipt_pixel_sha256": {
+    "evidence/context-human-instruction-audit-20261003/installed-current/physical03/capture-receipt.json": "121e6185807b9ea06cc3e52fa2d70106c19ee20a17bcf3383e58b3c84e850d02",
+    "evidence/context-human-instruction-audit-20261003/installed-current/physical03/phase-full-read.png": "7c5672af947b328a10ad0b5fb3db7a486a5a9c149310af9277956b0c5200d4eb",
+    "evidence/context-human-instruction-audit-20261003/installed-current/physical03/phase-instruction.png": "095868096eebc93c8187eb9a0a4a1edb2dc681f77070ef0f8cbec9821a91e73b",
+    "evidence/context-human-instruction-audit-20261003/installed-current/physical03/terminal-receipt.json": "ca4ae427195deb554b0d9d89ae45585ffb95cfc0c41236a3cc52891d03471975",
+    "evidence/context-human-instruction-audit-20261003/installed-current/physical05/capture-receipt.json": "5750f62ef72758aedbe34be719ff563b6d829a2baec78fda16a4be0cf5eb3ba7",
+    "evidence/context-human-instruction-audit-20261003/installed-current/physical05/phase-authenticated-source.png": "92c5dc3b266e095f9357c9626c0787bc83123cbdb983b5a38e48df60be3c48de",
+    "evidence/context-human-instruction-audit-20261003/installed-current/physical05/terminal-receipt.json": "cbdb4841dbdbfd6e9bad47a95967c9b86fea8a22d4fe2f4937a787502348d3f9"
+  },
+  "new_runs": 0,
+  "public_package_borrow_or_mutation": false,
+  "future_recorded_producer": "Matching f3dd/2121 qualification independent; no current-preview substitution",
+  "footer": "606 separate canonical status owner; not blocking current instructions"
+}

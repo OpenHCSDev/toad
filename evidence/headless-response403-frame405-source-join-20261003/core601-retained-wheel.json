@@ -1,0 +1,11 @@
+{
+  "source_head": "eb3778d6a00e14f396a0b0d37c7c6aeea4583853",
+  "wheel": "/home/ts/.cache/uv/sdists-v9/git/189d75c3a15e8f43/eb3778d6a00e14f3/agent_comms-0.1.0-py3-none-any.whl",
+  "wheel_sha256": "53ef7556a128492c5d46bbc37b20ac6d5b0ea7a81fb1fdb9195af629b2f9bed3",
+  "already_qualified_inventory": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/fieldcodec601-bodyframe402-receiving-20261003/agent_comms-inventory.json",
+  "matched_source_members": 339,
+  "next_install_source": "agent-comms @ file:///home/ts/.cache/uv/sdists-v9/git/189d75c3a15e8f43/eb3778d6a00e14f3/agent_comms-0.1.0-py3-none-any.whl",
+  "provenance": "Normal uv file-wheel install emits actual direct_url file/archive_info. No inventedGitURL; explicit sourcehead established by byteequality to retained original404 inventory/sourceGit.",
+  "constraints": "No unchangedCoreGitclone/build in nextpackage; currentfrozen404 prefix/operands unchanged; existingnormaldependencyinstaller only.",
+  "public_effects": 0
+}
