@@ -111,6 +111,24 @@ class WidgetTarget(NativeFocusTarget):
         return candidates[0]
 
 
+class RightSidebarTarget(NativeFocusTarget):
+    """The rightmost original sidebar disclosure in this terminal snapshot."""
+
+    @classmethod
+    def locate(cls, snapshot, args):
+        controls = (node for node in snapshot["metadata"]["navigation_targets"]["widgets"]
+                    if node["class"] == "SideBarToggle")
+        return max(controls, key=lambda node: node["region"][0])
+
+
+class ContextTreeTarget(NativeFocusTarget):
+    @classmethod
+    def locate(cls, snapshot, args):
+        tree, = (node for node in snapshot["metadata"]["navigation_targets"]["widgets"]
+                 if node["class"] == "Tree" and node["id"] == "context-tree")
+        return tree
+
+
 def read_snapshot(path):
     output = Path(os.environ["TOAD_VIDEO_OUTPUT"]).resolve()
     state = (path if path.is_absolute() else output / path).resolve()
