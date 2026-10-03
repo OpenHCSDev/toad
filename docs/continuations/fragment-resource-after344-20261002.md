@@ -275,3 +275,40 @@ disclosure portion and whole App exit are not claimed passed. The e55 installed
 package and Kepler's joint355 gate remain frozen and exclude this follow-on
 source. PR352 stays draft until the affected installed sidebar workflow is
 qualified; original04 and all broader performance scope remain unchanged.
+
+## Normal main356 union and destination04 source adjudication
+
+Normally merged main356 and355 sourceabc in this same checkout, preserving the
+frozen e55/abc installed artifacts and original04 film. The accepted six-line
+native paging deletion is included: page admission no longer calls
+release_anchor on an already offset reader. HistoryWindow owns the reader
+revision; protect_history/preserve_history own that page's compensation. No
+Window, frame or native geometry implementation was replaced for this finding.
+
+The affected source App disclosure check now exits0. Channel member paint,
+collapse during outstanding preparation, collapse/reopen and the canonical
+relationship child all pass; unchanged metadata/relationship preparation
+submissions are both empty and the original row resources remain attached.
+This is source App sanity with the existing db94 donor dependencies, not a
+new installed byte snapshot for main356's Core85abe pin or a CPU comparison.
+
+Destination355's original04 did not complete its prerequisite: the private
+bus contains exactly106 initial writes, History0 through105, out of the required
+140. retained_app awaits seed_channel before exercise_retained, so the native
+End journey was not reached. Its existing profile records seed_channel through
+publish_initial_cohort/private_guard at15.824117s; those changed-stack observations
+are not CPU durations. The native load reply around9s establishes neither an End
+request nor a blocked destination. Pilot independently waits for global animation
+completion and every child message pump, which is inappropriate as a source-read
+completion witness; it is not established as the cause of04.
+
+Window/frame source custody was read through both native and wire publication,
+body restoration and retirement. preserve_history releases the native tree lock
+before preserve_reader's compensated-layout wait. Workspace completes that
+layout waiter after native reflow even when the visible-body gate rejects paint;
+the gate does not suppress the layout signal. The raw04 record therefore does
+not establish a new Window/frame deadlock. Kepler owns moving the existing seed
+prerequisite into the original fixture callback before App launch and correcting
+held-input release custody through the existing physical key owner. No timeout
+padding, new recorder, replay, environment, Window guard or readiness mirror.
+Whole End acceptance and the installed sidebar journey remain unqualified.
