@@ -1,0 +1,59 @@
+{
+  "state": "Source merge-ready with scoped installed wiring; fresh while-open configured reply acceptance pending",
+  "pr": 362,
+  "tested_source": "3e1bdeaa7017da9a4c03dce7049b51683f3bc67f",
+  "runtime_prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "source_proof": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/published-turn-status362-install-20261003/import-fix03/source-proof.json",
+  "source_proof_sha256": "556c3a05e8339914e3697b863ea1a4b28b27d25504cce8044e7b4cff6194080a",
+  "installed_receipt": "installed03/receipt.json",
+  "installed_receipt_sha256": "1e3c6d77a37acdeebf14427fae25eb1bebb947cf39eef94196242678319d8e0d",
+  "elapsed": 8.439566368993837,
+  "production_added": 93,
+  "production_deleted": 57,
+  "obsolete_test_deleted": 3,
+  "removed": [
+    "OrderedManagedTurn",
+    "TurnOwner.accepts_snapshot",
+    "AgentTurn.accepts_snapshot",
+    "CommsUpdateConsumer.turn_class",
+    "nullable turn_token policy",
+    "Agent._receive_comms_metadata"
+  ],
+  "original_custody_callers": [
+    "submit",
+    "submit_blocks",
+    "send_now",
+    "compact_context"
+  ],
+  "canonical_consumers": [
+    "ordered notification",
+    "new/load metadata",
+    "goal snapshot",
+    "original ThreadPresentation read identity"
+  ],
+  "preserved_fences": [
+    "original process/session binding",
+    "wire root",
+    "thread incarnation",
+    "publication sequence",
+    "matching finished turn",
+    "local ordered operation lifetime"
+  ],
+  "new_semantic_authorities": 0,
+  "new_classes": 0,
+  "prompt_requests": 0,
+  "provider_calls": 0,
+  "source_and_original_owner_unchanged": true,
+  "original_cursor_proof_unchanged": true,
+  "waiting_phase_and_activity_cleared": true,
+  "automatic_post_operation_settlement": true,
+  "remaining_warning": "Original cursor unavailable and seven historical notices remain; no proof synthesized from Responded.",
+  "remaining_acceptance": "Parent one fresh configured owner reply while ordinary default chat remains open after source review/publication. Recorded original SDK notification is not a new provider turn.",
+  "negative_attempts": [
+    "installed01",
+    "installed02"
+  ],
+  "owned_client_cleanup": true,
+  "scope": "Real installed App/ACP with actual retained configured native owner and Pilot strips. No physical pixel, new provider turn or default-live fix claim.",
+  "ci": "deferred"
+}

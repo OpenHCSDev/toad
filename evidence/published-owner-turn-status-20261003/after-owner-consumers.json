@@ -1,0 +1,3267 @@
+{
+  "packages": [
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "revision": "HEAD",
+      "root": "src/toad",
+      "parsed": 286,
+      "unparsed": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "revision": "HEAD",
+      "root": "tests",
+      "parsed": 390,
+      "unparsed": []
+    },
+    {
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "revision": "6a1dad1db068aeb65c6feb2a11d75d4923c942eb",
+      "root": "src/agent_comms",
+      "parsed": 311,
+      "unparsed": []
+    }
+  ],
+  "sites": [
+    {
+      "path": "src/toad/acp/agent.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 37,
+      "node": "alias",
+      "source": "CommsUpdateConsumer"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 38,
+      "node": "alias",
+      "source": "ProjectionAttachment"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 39,
+      "node": "alias",
+      "source": "QueueAttachment"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 219,
+      "node": "FunctionDef",
+      "source": "current_turn"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 275,
+      "node": "AsyncFunctionDef",
+      "source": "get_goal_snapshot"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 72,
+      "node": "Name",
+      "source": "CommsUpdateConsumer"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 276,
+      "node": "alias",
+      "source": "OwnerSnapshotConsumer"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 322,
+      "node": "alias",
+      "source": "OwnerSnapshotConsumer"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 104,
+      "node": "Name",
+      "source": "ProjectionAttachment"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 106,
+      "node": "Name",
+      "source": "QueueAttachment"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 282,
+      "node": "Name",
+      "source": "turn_token"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 331,
+      "node": "Name",
+      "source": "OwnerSnapshotConsumer"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 357,
+      "node": "Attribute",
+      "source": "self.session.observe_owner"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 273,
+      "node": "Attribute",
+      "source": "self.get_goal_snapshot"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 284,
+      "node": "Name",
+      "source": "OwnerSnapshotConsumer"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 300,
+      "node": "Attribute",
+      "source": "self.get_goal_snapshot"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 409,
+      "node": "Attribute",
+      "source": "self.get_goal_snapshot"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 284,
+      "node": "Name",
+      "source": "turn_token"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 247,
+      "node": "AsyncFunctionDef",
+      "source": "_prompt_operation"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 258,
+      "node": "AsyncFunctionDef",
+      "source": "reconcile_turn"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 273,
+      "node": "AsyncFunctionDef",
+      "source": "_submit"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 297,
+      "node": "AsyncFunctionDef",
+      "source": "submit_blocks"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 303,
+      "node": "AsyncFunctionDef",
+      "source": "_prompt"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 105,
+      "node": "Attribute",
+      "source": "self.prompt_in_flight"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 250,
+      "node": "Attribute",
+      "source": "self.prompt_in_flight"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 254,
+      "node": "Attribute",
+      "source": "self.prompt_in_flight"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 270,
+      "node": "Attribute",
+      "source": "self.prompt_in_flight"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 341,
+      "node": "Attribute",
+      "source": "self.submit_blocks"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 243,
+      "node": "Attribute",
+      "source": "self._prompt_operation"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 255,
+      "node": "Attribute",
+      "source": "self.prompt_in_flight"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 292,
+      "node": "Attribute",
+      "source": "self._prompt"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 300,
+      "node": "Attribute",
+      "source": "self._prompt_operation"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 353,
+      "node": "Attribute",
+      "source": "self._prompt_operation"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 243,
+      "node": "Attribute",
+      "source": "self._submit"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 256,
+      "node": "Attribute",
+      "source": "self.reconcile_turn"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 300,
+      "node": "Attribute",
+      "source": "self._prompt"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 348,
+      "node": "Attribute",
+      "source": "self._prompt_operation"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 348,
+      "node": "Attribute",
+      "source": "self._prompt"
+    },
+    {
+      "path": "src/toad/acp/agent_session.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 106,
+      "node": "AsyncFunctionDef",
+      "source": "observe_owner"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 35,
+      "node": "ClassDef",
+      "source": "CommsUpdateConsumer"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 196,
+      "node": "ClassDef",
+      "source": "OwnerSnapshotConsumer"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 12,
+      "node": "alias",
+      "source": "CursorAdvancedUpdate"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 25,
+      "node": "alias",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 29,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 55,
+      "node": "FunctionDef",
+      "source": "accepts_turn"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 76,
+      "node": "FunctionDef",
+      "source": "turn_changed"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 196,
+      "node": "Name",
+      "source": "CommsUpdateConsumer"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 203,
+      "node": "FunctionDef",
+      "source": "accepts_turn"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 75,
+      "node": "Name",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 85,
+      "node": "Name",
+      "source": "CursorAdvancedUpdate"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 201,
+      "node": "Attribute",
+      "source": "self.turn_token"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 201,
+      "node": "Name",
+      "source": "turn_token"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 207,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 76,
+      "node": "Name",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 86,
+      "node": "Name",
+      "source": "CursorAdvancedUpdate"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 218,
+      "node": "Attribute",
+      "source": "self.turn_changed"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 77,
+      "node": "Attribute",
+      "source": "self.accepts_turn"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 204,
+      "node": "Attribute",
+      "source": "super().accepts_turn"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 205,
+      "node": "Attribute",
+      "source": "self.turn_token"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 218,
+      "node": "Name",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 170,
+      "node": "Attribute",
+      "source": "self.agent.current_turn"
+    },
+    {
+      "path": "src/toad/acp/projection_attachment.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 13,
+      "node": "ClassDef",
+      "source": "ProjectionAttachment"
+    },
+    {
+      "path": "src/toad/acp/queue_attachment.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 15,
+      "node": "ClassDef",
+      "source": "QueueAttachment"
+    },
+    {
+      "path": "src/toad/acp/queue_attachment.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 12,
+      "node": "alias",
+      "source": "ProjectionAttachment"
+    },
+    {
+      "path": "src/toad/acp/queue_attachment.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 15,
+      "node": "Name",
+      "source": "ProjectionAttachment"
+    },
+    {
+      "path": "src/toad/agent.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 6,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/toad/agent.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 24,
+      "node": "FunctionDef",
+      "source": "current_turn"
+    },
+    {
+      "path": "src/toad/agent.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 33,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/toad/agent.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 41,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/toad/agent_presentation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 8,
+      "node": "alias",
+      "source": "ManagedTurnBinding"
+    },
+    {
+      "path": "src/toad/agent_presentation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 39,
+      "node": "FunctionDef",
+      "source": "prompt_in_flight"
+    },
+    {
+      "path": "src/toad/agent_presentation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 99,
+      "node": "FunctionDef",
+      "source": "prompt_in_flight"
+    },
+    {
+      "path": "src/toad/agent_presentation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 100,
+      "node": "Attribute",
+      "source": "self.agent.controller.prompt_in_flight"
+    },
+    {
+      "path": "src/toad/agent_presentation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 95,
+      "node": "Name",
+      "source": "ManagedTurnBinding"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 20,
+      "node": "ClassDef",
+      "source": "InputSubmission"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 161,
+      "node": "ClassDef",
+      "source": "SubmissionExecution"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 43,
+      "node": "Name",
+      "source": "InputSubmission"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 52,
+      "node": "Name",
+      "source": "InputSubmission"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 65,
+      "node": "Name",
+      "source": "InputSubmission"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 83,
+      "node": "Name",
+      "source": "InputSubmission"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 215,
+      "node": "Name",
+      "source": "SubmissionExecution"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 221,
+      "node": "Name",
+      "source": "SubmissionExecution"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 187,
+      "node": "Attribute",
+      "source": "view.turns.start_client"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 197,
+      "node": "Attribute",
+      "source": "view.turns.finish_client"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 37,
+      "node": "Name",
+      "source": "InputSubmission"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 226,
+      "node": "Name",
+      "source": "InputSubmission"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 10,
+      "node": "ClassDef",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 77,
+      "node": "ClassDef",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 97,
+      "node": "ClassDef",
+      "source": "ManagedTurn"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 204,
+      "node": "ClassDef",
+      "source": "ManagedTurnBinding"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 238,
+      "node": "ClassDef",
+      "source": "ConversationTurn"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 6,
+      "node": "alias",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 55,
+      "node": "Name",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 61,
+      "node": "Name",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 67,
+      "node": "Name",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 77,
+      "node": "Name",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 97,
+      "node": "Name",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 168,
+      "node": "FunctionDef",
+      "source": "start_client"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 171,
+      "node": "FunctionDef",
+      "source": "finish_client"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 197,
+      "node": "FunctionDef",
+      "source": "start_client"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 200,
+      "node": "FunctionDef",
+      "source": "finish_client"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 270,
+      "node": "FunctionDef",
+      "source": "start_client"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 274,
+      "node": "FunctionDef",
+      "source": "finish_client"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 72,
+      "node": "Name",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 88,
+      "node": "Name",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 99,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 154,
+      "node": "Name",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 99,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 198,
+      "node": "Name",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 209,
+      "node": "Name",
+      "source": "ManagedTurn"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 220,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 223,
+      "node": "Name",
+      "source": "ManagedTurn"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 234,
+      "node": "Name",
+      "source": "ManagedTurn"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 271,
+      "node": "Attribute",
+      "source": "self.binding.start_client"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 275,
+      "node": "Attribute",
+      "source": "self.binding.finish_client"
+    },
+    {
+      "path": "src/toad/owner_preparation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 6,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/toad/owner_preparation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 21,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/toad/session_observation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 95,
+      "node": "Attribute",
+      "source": "agent.get_goal_snapshot"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 223,
+      "node": "ClassDef",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 39,
+      "node": "alias",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 95,
+      "node": "alias",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 95,
+      "node": "alias",
+      "source": "ConversationTurn"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 2208,
+      "node": "AsyncFunctionDef",
+      "source": "turn_changed"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 231,
+      "node": "Name",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 2207,
+      "node": "Name",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 226,
+      "node": "Name",
+      "source": "ConversationTurn"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 383,
+      "node": "Name",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 457,
+      "node": "Name",
+      "source": "ConversationTurn"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 800,
+      "node": "Name",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 1085,
+      "node": "Attribute",
+      "source": "self.turns.finish_client"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 1262,
+      "node": "Attribute",
+      "source": "self.turns.finish_client"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 802,
+      "node": "Name",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 834,
+      "node": "Name",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 1177,
+      "node": "Attribute",
+      "source": "agent.presentation.prompt_in_flight"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 1386,
+      "node": "Attribute",
+      "source": "self.agent.current_turn"
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 79,
+      "node": "Name",
+      "source": "_prompt"
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 102,
+      "node": "Attribute",
+      "source": "self._prompt"
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 126,
+      "node": "Attribute",
+      "source": "self._prompt"
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 125,
+      "node": "Attribute",
+      "source": "self._prompt"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 10,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 28,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 24,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 32,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 43,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 3,
+      "node": "alias",
+      "source": "ConversationTurn"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 288,
+      "node": "FunctionDef",
+      "source": "_submit"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 126,
+      "node": "Attribute",
+      "source": "self._submit"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 180,
+      "node": "Name",
+      "source": "ConversationTurn"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 472,
+      "node": "Name",
+      "source": "ConversationTurn"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 8,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 16,
+      "node": "alias",
+      "source": "ConversationTurn"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 49,
+      "node": "Name",
+      "source": "ConversationTurn"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 46,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "tests/admission_scope_installed_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 45,
+      "node": "Attribute",
+      "source": "agent.get_goal_snapshot"
+    },
+    {
+      "path": "tests/backend_failure_feedback_installed_journey.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 19,
+      "node": "Attribute",
+      "source": "agent.presentation.prompt_in_flight"
+    },
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 25,
+      "node": "alias",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 201,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "tests/committed_history_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 1,
+      "node": "alias",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "tests/committed_history_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 47,
+      "node": "AsyncFunctionDef",
+      "source": "get_goal_snapshot"
+    },
+    {
+      "path": "tests/committed_history_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 105,
+      "node": "Name",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "tests/comms_boundary_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 27,
+      "node": "alias",
+      "source": "CommsUpdateConsumer"
+    },
+    {
+      "path": "tests/comms_boundary_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 36,
+      "node": "Name",
+      "source": "CommsUpdateConsumer"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 560,
+      "node": "Attribute",
+      "source": "conversation.turns.finish_client"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 566,
+      "node": "Attribute",
+      "source": "conversation.turns.start_client"
+    },
+    {
+      "path": "tests/compaction_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 11,
+      "node": "alias",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/compaction_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 57,
+      "node": "Name",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/cursor_request_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 12,
+      "node": "alias",
+      "source": "CursorAdvancedUpdate"
+    },
+    {
+      "path": "tests/cursor_request_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 50,
+      "node": "Name",
+      "source": "CursorAdvancedUpdate"
+    },
+    {
+      "path": "tests/first_fork_native_installed_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 288,
+      "node": "Attribute",
+      "source": "view.agent.presentation.prompt_in_flight"
+    },
+    {
+      "path": "tests/goal_edit_owner_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 78,
+      "node": "Attribute",
+      "source": "agent.get_goal_snapshot"
+    },
+    {
+      "path": "tests/goal_objective_edit_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 138,
+      "node": "Attribute",
+      "source": "agent.get_goal_snapshot"
+    },
+    {
+      "path": "tests/goal_objective_edit_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 150,
+      "node": "Attribute",
+      "source": "agent.get_goal_snapshot"
+    },
+    {
+      "path": "tests/goal_resize_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 1,
+      "node": "alias",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "tests/goal_resize_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 71,
+      "node": "Name",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "tests/goal_retry_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 26,
+      "node": "AsyncFunctionDef",
+      "source": "get_goal_snapshot"
+    },
+    {
+      "path": "tests/goal_server_poll_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 201,
+      "node": "Attribute",
+      "source": "comms.goals.goal_snapshot"
+    },
+    {
+      "path": "tests/goal_server_poll_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 206,
+      "node": "Attribute",
+      "source": "comms.goals.goal_snapshot"
+    },
+    {
+      "path": "tests/goal_server_poll_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 220,
+      "node": "Attribute",
+      "source": "comms.goals.goal_snapshot"
+    },
+    {
+      "path": "tests/goal_server_poll_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 232,
+      "node": "Attribute",
+      "source": "agent.get_goal_snapshot"
+    },
+    {
+      "path": "tests/goal_standby_history_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 44,
+      "node": "AsyncFunctionDef",
+      "source": "get_goal_snapshot"
+    },
+    {
+      "path": "tests/guards/test_agent_controller.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 43,
+      "node": "alias",
+      "source": "QueueAttachment"
+    },
+    {
+      "path": "tests/guards/test_agent_controller.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 50,
+      "node": "Name",
+      "source": "QueueAttachment"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 71,
+      "node": "Attribute",
+      "source": "view.turns.start_client"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 74,
+      "node": "Attribute",
+      "source": "view.turns.finish_client"
+    },
+    {
+      "path": "tests/input_failure_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 81,
+      "node": "Attribute",
+      "source": "receiver.controller.submit_blocks"
+    },
+    {
+      "path": "tests/input_visibility_native_installed_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 263,
+      "node": "Attribute",
+      "source": "agent.presentation.prompt_in_flight"
+    },
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 411,
+      "node": "Attribute",
+      "source": "agent.presentation.prompt_in_flight"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 14,
+      "node": "alias",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 17,
+      "node": "alias",
+      "source": "TurnState"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 80,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 111,
+      "node": "Name",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 111,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 14,
+      "node": "alias",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 17,
+      "node": "alias",
+      "source": "TurnState"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 80,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 100,
+      "node": "Name",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 100,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "tests/manual_live_turn_status.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 12,
+      "node": "alias",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/manual_live_turn_status.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 55,
+      "node": "Name",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/manual_live_turn_status.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 65,
+      "node": "Attribute",
+      "source": "view.agent.current_turn"
+    },
+    {
+      "path": "tests/manual_live_turn_status.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 66,
+      "node": "Name",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/manual_live_turn_status.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 56,
+      "node": "Attribute",
+      "source": "view.agent.current_turn"
+    },
+    {
+      "path": "tests/manual_live_turn_status.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 68,
+      "node": "Attribute",
+      "source": "view.agent.current_turn"
+    },
+    {
+      "path": "tests/manual_live_turn_status.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 126,
+      "node": "Attribute",
+      "source": "first_view.agent.current_turn"
+    },
+    {
+      "path": "tests/manual_live_turn_status.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 138,
+      "node": "Attribute",
+      "source": "first_view.agent.current_turn"
+    },
+    {
+      "path": "tests/message_notifications_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 15,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "tests/message_notifications_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 66,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "tests/message_notifications_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 77,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "tests/midturn_compaction_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 11,
+      "node": "alias",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/midturn_compaction_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 40,
+      "node": "Name",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/native_goal_read_first_paint_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 52,
+      "node": "Attribute",
+      "source": "agent.current_turn"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 20,
+      "node": "alias",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 434,
+      "node": "Name",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 465,
+      "node": "Name",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 470,
+      "node": "Name",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 431,
+      "node": "Attribute",
+      "source": "agents[1].current_turn"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 462,
+      "node": "Attribute",
+      "source": "agents[1].current_turn"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 74,
+      "node": "Attribute",
+      "source": "agent.current_turn"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 221,
+      "node": "Attribute",
+      "source": "agent.current_turn"
+    },
+    {
+      "path": "tests/original_turn_resource_real_installed_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 166,
+      "node": "Attribute",
+      "source": "view.agent.presentation.prompt_in_flight"
+    },
+    {
+      "path": "tests/original_turn_resource_real_installed_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 178,
+      "node": "Attribute",
+      "source": "view.agent.presentation.prompt_in_flight"
+    },
+    {
+      "path": "tests/post_cancel_session_installed_journey.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 58,
+      "node": "Attribute",
+      "source": "agent.presentation.prompt_in_flight"
+    },
+    {
+      "path": "tests/post_cancel_session_installed_journey.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 69,
+      "node": "Attribute",
+      "source": "agent.presentation.prompt_in_flight"
+    },
+    {
+      "path": "tests/post_cancel_session_installed_journey.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 78,
+      "node": "Attribute",
+      "source": "agent.presentation.prompt_in_flight"
+    },
+    {
+      "path": "tests/post_cancel_session_installed_journey.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 42,
+      "node": "Attribute",
+      "source": "agent.presentation.prompt_in_flight"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 10,
+      "node": "alias",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 13,
+      "node": "alias",
+      "source": "TurnState"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 65,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 117,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 144,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 118,
+      "node": "Name",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 603,
+      "node": "Attribute",
+      "source": "gamma.conversation.agent.current_turn"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 613,
+      "node": "Attribute",
+      "source": "gamma.conversation.agent.current_turn"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 1,
+      "node": "alias",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 11,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 16,
+      "node": "alias",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 27,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 85,
+      "node": "Name",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 88,
+      "node": "Name",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "tests/submission_native_installed_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 117,
+      "node": "Attribute",
+      "source": "agent.controller.prompt_in_flight"
+    },
+    {
+      "path": "tests/submission_native_installed_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 116,
+      "node": "Attribute",
+      "source": "agent.get_goal_snapshot"
+    },
+    {
+      "path": "tests/test_conversation_submission.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 6,
+      "node": "alias",
+      "source": "InputSubmission"
+    },
+    {
+      "path": "tests/test_conversation_submission.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 17,
+      "node": "Name",
+      "source": "InputSubmission"
+    },
+    {
+      "path": "tests/test_conversation_submission.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 19,
+      "node": "Name",
+      "source": "InputSubmission"
+    },
+    {
+      "path": "tests/test_input_custody.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 27,
+      "node": "Attribute",
+      "source": "agent.controller.prompt_in_flight"
+    },
+    {
+      "path": "tests/test_input_custody.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 38,
+      "node": "Attribute",
+      "source": "agent.controller.prompt_in_flight"
+    },
+    {
+      "path": "tests/test_t4_turn_navigation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 8,
+      "node": "alias",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "tests/test_t4_turn_navigation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 8,
+      "node": "alias",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "tests/test_t4_turn_navigation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 18,
+      "node": "Name",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "tests/test_t4_turn_navigation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 22,
+      "node": "Name",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "tests/test_t4_turn_navigation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 24,
+      "node": "Name",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "tests/test_t4_turn_navigation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 27,
+      "node": "Name",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "tests/test_t4_turn_navigation.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 28,
+      "node": "Name",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 22,
+      "node": "alias",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 91,
+      "node": "Name",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 95,
+      "node": "Name",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/view_switch_latency.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 1,
+      "node": "alias",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "tests/view_switch_latency.py",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "line": 115,
+      "node": "Name",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "src/agent_comms/acp_extension.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 48,
+      "node": "ClassDef",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "src/agent_comms/acp_extension.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 271,
+      "node": "ClassDef",
+      "source": "CursorAdvancedUpdate"
+    },
+    {
+      "path": "src/agent_comms/acp_extension.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 19,
+      "node": "alias",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/acp_extension.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 28,
+      "node": "alias",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/acp_extension.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 49,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/acp_extension.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 275,
+      "node": "Name",
+      "source": "CursorAdvancedUpdate"
+    },
+    {
+      "path": "src/agent_comms/acp_extension.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 510,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/acp_extension.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 520,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/acp_extension.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 524,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/acp_extension.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 594,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/acp_extension.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 598,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/acp_failure.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 16,
+      "node": "alias",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/acp_failure.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 367,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/acp_failure.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 53,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/acp_failure.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 279,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/acp_failure.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 283,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/acp_failure.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 283,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/activity.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 26,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/activity.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 41,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/activity.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 96,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/activity.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 144,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/activity.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 47,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/activity.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 96,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/activity.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 126,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/activity.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 43,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/agent_activity.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 30,
+      "node": "alias",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/agent_activity.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 180,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/agent_activity.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 184,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/agent_events.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 338,
+      "node": "ClassDef",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/agent_events.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 16,
+      "node": "alias",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/agent_events.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 79,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/attempt_recovery.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 30,
+      "node": "alias",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/attempt_recovery.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 41,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/attempt_recovery.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 76,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/backend.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 686,
+      "node": "Attribute",
+      "source": "events.TurnState"
+    },
+    {
+      "path": "src/agent_comms/channel_coding_tools.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 85,
+      "node": "alias",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/channel_coding_tools.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 88,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/compaction_operations.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 20,
+      "node": "alias",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/compaction_operations.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 31,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/compaction_private_inputs.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 30,
+      "node": "alias",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/compaction_private_inputs.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 274,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/compaction_private_inputs.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 82,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/compaction_private_inputs.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 260,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/compaction_records.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 29,
+      "node": "alias",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/compaction_records.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 72,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/compaction_records.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 268,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/compaction_records.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 303,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/compaction_states.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 26,
+      "node": "alias",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/compaction_states.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 115,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/continued_private_session.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 14,
+      "node": "alias",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/continued_private_session.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 17,
+      "node": "alias",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/continued_private_session.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 30,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/continued_private_session.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 113,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/cursor_owner.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 18,
+      "node": "alias",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/cursor_owner.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 64,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/cursor_owner.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 110,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/cursor_owner.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 145,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/cursor_owner.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 74,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/cursor_publication.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 17,
+      "node": "alias",
+      "source": "CursorAdvancedUpdate"
+    },
+    {
+      "path": "src/agent_comms/cursor_publication.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 124,
+      "node": "Name",
+      "source": "CursorAdvancedUpdate"
+    },
+    {
+      "path": "src/agent_comms/cursor_publication.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 148,
+      "node": "Name",
+      "source": "CursorAdvancedUpdate"
+    },
+    {
+      "path": "src/agent_comms/goal_management.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 311,
+      "node": "FunctionDef",
+      "source": "goal_snapshot"
+    },
+    {
+      "path": "src/agent_comms/goal_management.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 308,
+      "node": "Attribute",
+      "source": "self.goal_snapshot"
+    },
+    {
+      "path": "src/agent_comms/goal_presentation.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 20,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/goal_presentation.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 94,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/goal_presentation.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 96,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/goal_waits.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 13,
+      "node": "alias",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/goal_waits.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 80,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/goal_waits.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 214,
+      "node": "Name",
+      "source": "current_turn"
+    },
+    {
+      "path": "src/agent_comms/goal_waits.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 217,
+      "node": "Name",
+      "source": "current_turn"
+    },
+    {
+      "path": "src/agent_comms/goal_waits.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 218,
+      "node": "Name",
+      "source": "current_turn"
+    },
+    {
+      "path": "src/agent_comms/goal_waits.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 219,
+      "node": "Name",
+      "source": "current_turn"
+    },
+    {
+      "path": "src/agent_comms/historical_native_inputs.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 27,
+      "node": "alias",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/historical_native_inputs.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 145,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/historical_native_inputs.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 129,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/history_views.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 48,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/history_views.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 299,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/input_attempt.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 49,
+      "node": "ClassDef",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/input_attempt.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 127,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/input_attempt.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 386,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/input_attempt.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 97,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/input_attempt.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 100,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/input_attempt.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 103,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/input_attempt.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 257,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/input_disposition.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 61,
+      "node": "ClassDef",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/input_disposition.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 13,
+      "node": "alias",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/input_disposition.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 37,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/input_disposition.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 69,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/input_disposition.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 207,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/input_disposition.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 215,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/input_disposition.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 213,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/input_disposition.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 212,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/input_disposition.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 231,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/input_disposition.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 253,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/input_disposition.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 275,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/input_disposition.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 299,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/input_disposition.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 324,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/input_disposition.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 350,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/input_disposition.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 36,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/input_disposition.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 57,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/input_disposition.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 157,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/input_disposition.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 167,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/input_disposition.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 216,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/input_disposition.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 231,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/input_disposition.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 253,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/input_disposition.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 275,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/input_disposition.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 299,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/input_disposition.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 324,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/input_disposition.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 350,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/input_disposition.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 320,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/input_drain.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 42,
+      "node": "alias",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/input_drain.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 189,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/input_drain.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 444,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/native_admission_rules.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 18,
+      "node": "alias",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/native_admission_rules.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 135,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/native_input_record.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 171,
+      "node": "alias",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/native_input_record.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 174,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/native_prompt_binding.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 32,
+      "node": "alias",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/native_prompt_binding.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 155,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/native_runtime_input.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 76,
+      "node": "ClassDef",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/native_runtime_input.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 375,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/notification_assignment.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 91,
+      "node": "alias",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/notification_assignment.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 108,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/notification_assignment.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 109,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/presentation.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 28,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/presentation.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 508,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/presentation.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 516,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/private_send_stage.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 34,
+      "node": "alias",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/private_send_stage.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 96,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/private_send_stage.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 161,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/private_send_stage.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 101,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/private_send_stage.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 162,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/private_send_stage.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 339,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/private_send_stage.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 77,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/queued_input.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 17,
+      "node": "alias",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/queued_input.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 230,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/queued_input.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 202,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/queued_input.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 243,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/queued_input.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 139,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/queued_input.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 187,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/registration.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 25,
+      "node": "alias",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/registration.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 191,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/registration.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 197,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/registry_document.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 31,
+      "node": "alias",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/registry_document.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 340,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/registry_document.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 351,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/registry_document.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 354,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/registry_document.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 339,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/registry_document.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 339,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/reservation_rules.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 11,
+      "node": "alias",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/reservation_rules.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 43,
+      "node": "Name",
+      "source": "InputAttempt"
+    },
+    {
+      "path": "src/agent_comms/retained_task_facts.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 27,
+      "node": "alias",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/retained_task_facts.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 246,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/runtime_requests.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 259,
+      "node": "alias",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "src/agent_comms/runtime_requests.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 261,
+      "node": "Attribute",
+      "source": "ctx.server.agent._comms.goals.goal_snapshot"
+    },
+    {
+      "path": "src/agent_comms/runtime_requests.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 265,
+      "node": "Name",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "src/agent_comms/selected_source.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 19,
+      "node": "alias",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/selected_source.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 127,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/selected_source.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 143,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/selected_source.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 234,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/selected_tool_broker.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 32,
+      "node": "alias",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/selected_tool_broker.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 288,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/session_lifecycle.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 283,
+      "node": "Attribute",
+      "source": "self.comms.goals.goal_snapshot"
+    },
+    {
+      "path": "src/agent_comms/task_sources.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 19,
+      "node": "alias",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/task_sources.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 208,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/task_sources.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 538,
+      "node": "Name",
+      "source": "InputDocument"
+    },
+    {
+      "path": "src/agent_comms/thread_execution.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 15,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/thread_execution.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 52,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/thread_execution.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 93,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/thread_execution.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 106,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/thread_execution.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 52,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/thread_execution.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 93,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/thread_execution.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 106,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/thread_presentation.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 62,
+      "node": "ClassDef",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/thread_status.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 13,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/thread_status.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 68,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/thread_status.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 94,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/thread_status.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 69,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/thread_status.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 71,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/threads.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 27,
+      "node": "alias",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/threads.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 81,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/threads.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 82,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/tools.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 498,
+      "node": "Attribute",
+      "source": "comms.goals.goal_snapshot"
+    },
+    {
+      "path": "src/agent_comms/transcript_receipts.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 254,
+      "node": "alias",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/transcript_receipts.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 258,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/transcript_receipts.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 260,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/transcript_updates.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 13,
+      "node": "alias",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "src/agent_comms/transcript_updates.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 20,
+      "node": "alias",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/transcript_updates.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 31,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/transcript_updates.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 39,
+      "node": "Name",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "src/agent_comms/transcripts.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 20,
+      "node": "alias",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/transcripts.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 313,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/triage_native_sources.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 10,
+      "node": "alias",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/triage_native_sources.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 16,
+      "node": "Name",
+      "source": "NativeRuntimeInput"
+    },
+    {
+      "path": "src/agent_comms/turn_lease.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 50,
+      "node": "ClassDef",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/turn_lease.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 60,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/turn_lease.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 65,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/turn_progress.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 28,
+      "node": "alias",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/turn_progress.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 248,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/turn_runner.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 47,
+      "node": "alias",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/turn_runner.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 146,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/turn_runner.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 148,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/turn_watchdog.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 116,
+      "node": "Attribute",
+      "source": "events.TurnState"
+    },
+    {
+      "path": "src/agent_comms/turn_watchdog.py",
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "line": 117,
+      "node": "Attribute",
+      "source": "events.TurnState"
+    }
+  ],
+  "ambiguity": "Lexical receiver names do not prove dynamic resolution. Semantic source reads resolve this selected family; no zero-by-omission claim.",
+  "removed_definitions": [
+    "OrderedManagedTurn",
+    "accepts_snapshot",
+    "_receive_comms_metadata"
+  ]
+}

@@ -1,0 +1,184 @@
+{
+  "rows": [
+    {
+      "path": "src/toad/acp/agent.py",
+      "bindings": {
+        "ClientSessionRequest": [
+          {
+            "line": 3,
+            "module": "toad.acp.client_session",
+            "imported": "ClientSessionRequest"
+          }
+        ],
+        "ClientRequestOwner": [
+          {
+            "line": 3,
+            "module": "toad.acp.client_session",
+            "imported": "ClientRequestOwner"
+          }
+        ],
+        "OwnerSnapshotConsumer": [
+          {
+            "line": 276,
+            "module": "comms_updates",
+            "imported": "OwnerSnapshotConsumer"
+          },
+          {
+            "line": 322,
+            "module": "comms_updates",
+            "imported": "OwnerSnapshotConsumer"
+          }
+        ],
+        "FieldCodec": [
+          {
+            "line": 26,
+            "module": "agent_comms.field_codec",
+            "imported": "FieldCodec"
+          }
+        ],
+        "Goal": [
+          {
+            "line": 29,
+            "module": "agent_comms.goals",
+            "imported": "Goal"
+          }
+        ],
+        "GoalExecution": [
+          {
+            "line": 28,
+            "module": "agent_comms.goal_presentation",
+            "imported": "GoalExecution"
+          }
+        ]
+      }
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "bindings": {
+        "partial": [
+          {
+            "line": 9,
+            "module": "functools",
+            "imported": "partial"
+          }
+        ],
+        "ClientSessionRequest": [
+          {
+            "line": 16,
+            "module": "client_session",
+            "imported": "ClientSessionRequest"
+          }
+        ],
+        "CoordinationReadUnavailable": [
+          {
+            "line": 27,
+            "module": "agent_comms.coordination_errors",
+            "imported": "CoordinationReadUnavailable"
+          }
+        ],
+        "core_events": [
+          {
+            "line": 18,
+            "module": "toad.core",
+            "imported": "events"
+          }
+        ],
+        "api": [
+          {
+            "line": 19,
+            "module": null,
+            "imported": "api"
+          }
+        ],
+        "QueuePromptRequest": [
+          {
+            "line": 22,
+            "module": "agent_comms.acp_extension",
+            "imported": "QueuePromptRequest"
+          }
+        ],
+        "SendNowRequest": [
+          {
+            "line": 22,
+            "module": "agent_comms.acp_extension",
+            "imported": "SendNowRequest"
+          }
+        ],
+        "CompactRequest": [
+          {
+            "line": 22,
+            "module": "agent_comms.acp_extension",
+            "imported": "CompactRequest"
+          }
+        ]
+      }
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "bindings": {
+        "decode_updates": [
+          {
+            "line": 7,
+            "module": "agent_comms.acp_extension",
+            "imported": "decode_updates"
+          }
+        ],
+        "ThreadPresentation": [
+          {
+            "line": 29,
+            "module": "agent_comms.thread_presentation",
+            "imported": "ThreadPresentation"
+          }
+        ],
+        "ClientSessionRequest": [
+          {
+            "line": 30,
+            "module": "toad.acp.client_session",
+            "imported": "ClientSessionRequest"
+          }
+        ],
+        "TurnChangedUpdate": [
+          {
+            "line": 7,
+            "module": "agent_comms.acp_extension",
+            "imported": "TurnChangedUpdate"
+          }
+        ],
+        "MroDispatch": [
+          {
+            "line": 28,
+            "module": "agent_comms.mro_dispatch",
+            "imported": "MroDispatch"
+          }
+        ],
+        "handles": [
+          {
+            "line": 28,
+            "module": "agent_comms.mro_dispatch",
+            "imported": "handles"
+          }
+        ],
+        "core_events": [
+          {
+            "line": 32,
+            "module": "toad.core",
+            "imported": "events"
+          }
+        ]
+      }
+    },
+    {
+      "path": "src/toad/acp/agent_session.py",
+      "bindings": {
+        "ClientSessionRequest": [
+          {
+            "line": 11,
+            "module": "toad.acp.client_session",
+            "imported": "ClientSessionRequest"
+          }
+        ]
+      }
+    }
+  ],
+  "scope": "Original import declarations plus function-local import sites. Semantic reads checked call signatures and owner relationships; lexical sites do not resolve dynamic receivers."
+}
