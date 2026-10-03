@@ -1,11 +1,14 @@
 """Installed ACP callback dispatch and real PTYs with a detached native session."""
 import asyncio
+import argparse
 from importlib.resources import files
 import json
 import os
 from pathlib import Path
 import signal
 import sys
+import tempfile
+from unittest.mock import patch
 
 from l0a_native_installed_pilot import main as native_fixture, until
 from native_session_retention_pilot import conversation_paint
@@ -249,8 +252,144 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     print("NATIVE_ACP_TERMINALS_RETAINED_AND_PAINTED", flush=True)
 
 
+async def damage_journey():
+    """Registered ACP, real streaming PTY and native App; no model provider."""
+    from agent_comms.comms import Comms
+    from toad.acp.agent import Agent
+    from toad.agent_schema import AgentDefinition
+
+    evidence = Path(os.environ["L0A_EVIDENCE"]).resolve()
+    evidence.mkdir(parents=True, exist_ok=True)
+    projections = []
+    present = TerminalTool.present_execution
+
+    def observe(terminal, scrollback, alternate):
+        projections.append({
+            "scrollback": None if scrollback is None else sorted(scrollback),
+            "alternate": None if alternate is None else sorted(alternate),
+            "screen": terminal.state.alternate_screen,
+            "cursor": terminal.state.show_cursor,
+            "finished": terminal.execution.outcome.finished,
+        })
+        present(terminal, scrollback, alternate)
+
+    # The child blocks on actual PTY input between independently painted chunks.
+    program = """
+import sys, termios
+settings = termios.tcgetattr(0)
+settings[3] &= ~termios.ECHO
+termios.tcsetattr(0, termios.TCSANOW, settings)
+for output in ('INITIAL_BODY\\r\\nUNCHANGED_BODY',
+               '\\x1b[1;1HREPLACED_BODY\\x1b[K',
+               '\\x1b[?25l',
+               '\\x1b[?1049h\\x1b[2J\\x1b[HALT_ACTIVE',
+               '\\x1b[?1049l',
+               '\\r\\nDETACHED_BODY',
+               '\\r\\nFINAL_BODY'):
+    sys.stdout.write(output)
+    sys.stdout.flush()
+    sys.stdin.readline()
+sys.exit(7)
+"""
+    initial_descriptors = pty_masters()
+    with tempfile.TemporaryDirectory(prefix="terminal-damage-", dir=".artifacts") as directory:
+        root = Path(directory).resolve()
+        os.environ.update(XDG_CONFIG_HOME=str(root / "config"),
+                          XDG_STATE_HOME=str(root / "state"),
+                          XDG_DATA_HOME=str(root / "data"),
+                          AGENT_COMMS_ROOT=str(root / "wire"))
+        Comms(root / "wire").messaging.initialize_private_initial_protocol()
+        app = InstalledApp(project_dir=str(root))
+        async with app.run_test(size=(100, 35)) as pilot:
+            await app.selected_session.wait_content_ready()
+            mode = app.selected_session.id
+            agent = Agent(root, AgentDefinition.decode({
+                "name": "Fixture", "identity": "fixture", "short_name": "fixture",
+                "run_command": {"*": "true"}, "protocol": "acp",
+            }), "fixture")
+            app.selected_session.conversation.agent = agent
+            request_id = 0
+
+            async def rpc(method, **params):
+                nonlocal request_id
+                request_id += 1
+                response = await agent.server.call({
+                    "jsonrpc": "2.0", "id": request_id, "method": method,
+                    "params": {"sessionId": agent.session_id, **params},
+                })
+                assert "error" not in response, response
+                return response["result"]
+
+            try:
+                with patch.object(TerminalTool, "present_execution", observe):
+                    terminal_id = (await rpc("terminal/create", command=sys.executable,
+                                             args=["-u", "-c", program]))["terminalId"]
+                    execution = agent.controller.terminals.require(terminal_id)
+                    original_state = execution.state
+                    custody = await execution.custody()
+                    child = custody.child.identity
+                    await until(pilot, lambda: "UNCHANGED_BODY" in conversation_paint(app.screen))
+                    assert projections[0]["scrollback"] is projections[0]["alternate"] is None
+                    await execution.write_stdin("\n")
+                    await until(pilot, lambda: "REPLACED_BODY" in conversation_paint(app.screen))
+                    assert "UNCHANGED_BODY" in conversation_paint(app.screen)
+                    assert any(p["scrollback"] and p["alternate"] == [] for p in projections)
+                    await execution.write_stdin("\n")
+                    await until(pilot, lambda: not original_state.show_cursor)
+                    await pilot.pause()
+                    assert any(p["cursor"] is False and p["scrollback"] for p in projections)
+                    await execution.write_stdin("\n")
+                    await until(pilot, lambda: "ALT_ACTIVE" in conversation_paint(app.screen))
+                    assert any(p["screen"] and p["scrollback"] is p["alternate"] is None
+                               for p in projections)
+                    await execution.write_stdin("\n")
+                    await until(pilot, lambda: not original_state.alternate_screen)
+                    await pilot.pause()
+                    assert "REPLACED_BODY" in conversation_paint(app.screen)
+                    app.save_screenshot("stream.svg", path=str(evidence))
+
+                    await app.session_navigation.new(app.session_navigation.default_source)
+                    assert agent.controller.surface.target is None
+                    projected_before = len(projections)
+                    await execution.write_stdin("\n")
+                    await until(pilot, lambda: "DETACHED_BODY" in "\n".join(
+                        line.content.plain for line in original_state.buffer.lines))
+                    assert len(projections) == projected_before
+                    assert child.alive() and await execution.custody() is custody
+                    await click_tab(app, pilot, mode)
+                    await until(pilot, lambda: "DETACHED_BODY" in conversation_paint(app.screen))
+                    terminal = app.screen.query_one(f"#{terminal_id}", TerminalTool)
+                    assert terminal.state is original_state
+                    assert projections[-1]["scrollback"] is projections[-1]["alternate"] is None
+                    assert await execution.custody() is custody
+                    await execution.write_stdin("\n")
+                    await until(pilot, lambda: "FINAL_BODY" in conversation_paint(app.screen))
+                    await execution.write_stdin("\n")
+                    assert (await rpc("terminal/wait_for_exit", terminalId=terminal_id))["exitCode"] == 7
+                    await until(pilot, lambda: terminal.is_finalized)
+                    assert projections[-1]["finished"]
+                    assert projections[-1]["scrollback"] is projections[-1]["alternate"] is None
+                    assert terminal.has_class("-error") and "exit 7" in str(terminal.border_title)
+                    assert custody.master.closed and custody.child.retired and not child.alive()
+                    app.save_screenshot("reattached-completed.svg", path=str(evidence))
+                    await rpc("terminal/release", terminalId=terminal_id)
+                    assert not agent.controller.terminals.executions
+                    assert pty_masters() == initial_descriptors
+                    assert app._exception is None
+            finally:
+                await agent.stop()
+        await asyncio.get_running_loop().shutdown_default_executor()
+    (evidence / "projections.json").write_text(json.dumps(projections, indent=2) + "\n")
+    print(json.dumps({"result": "pass", "projections": len(projections),
+                      "provider_calls": 0, "remaining_pty_masters": sorted(pty_masters()),
+                      "initial_pty_masters": sorted(initial_descriptors)}), flush=True)
+
+
 if __name__ == "__main__":
-    asyncio.run(native_fixture(
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--damage-only", action="store_true")
+    args = parser.parse_args()
+    asyncio.run(damage_journey() if args.damage_only else native_fixture(
         app_type=InstalledApp, acceptance=acceptance, headless=False,
         provider_request_budget=0,
         fixture_stage=Path(os.environ["TOAD_TERMINAL_FIXTURE_ROOT"]),
