@@ -12,6 +12,7 @@ from toad import atomic, paths
 
 from toad import setting_effects as effects
 from toad.render_choices import RendererChoice, LocalRenderer
+from toad.native_themes import ThemeChoice
 from toad.setting_choices import (
     AlwaysSessionBar,
     AutoDiff,
@@ -26,7 +27,6 @@ from toad.setting_choices import (
     PulseLoading,
     Scrollbar,
     SessionBar,
-    ThemeChoice,
     WrapMode,
 )
 from toad.settings import (

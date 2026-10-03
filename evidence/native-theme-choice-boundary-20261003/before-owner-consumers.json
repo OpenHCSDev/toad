@@ -1,0 +1,369 @@
+{
+  "head": "f9ab6dd6da7876173ca79f1d271e7bd4aac2cafe",
+  "parser": "refactor-audit Package",
+  "modules": 286,
+  "parse_omissions": [],
+  "sites": [
+    {
+      "path": "src/toad/cli.py",
+      "line": 14,
+      "kind": "ImportFrom",
+      "source": "from toad.render_choices import RendererChoice"
+    },
+    {
+      "path": "src/toad/cli.py",
+      "line": 177,
+      "kind": "Name",
+      "source": "RendererChoice"
+    },
+    {
+      "path": "src/toad/cli.py",
+      "line": 266,
+      "kind": "Name",
+      "source": "RendererChoice"
+    },
+    {
+      "path": "src/toad/cli.py",
+      "line": 51,
+      "kind": "Name",
+      "source": "RendererChoice"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 14,
+      "kind": "ImportFrom",
+      "source": "from toad.render_choices import RendererChoice, LocalRenderer"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 15,
+      "kind": "ImportFrom",
+      "source": "from toad.setting_choices import AlwaysSessionBar, AutoDiff, BlurNotification, DiffMode, Expansion, FailExpansion, LoadingStyle, NormalScrollbar, NotificationPolicy, NoWrapMode, PulseLoading, Scrollbar, SessionBar, ThemeChoice, WrapMode"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 43,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.presentation_window import PresentationBudget"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 55,
+      "kind": "Name",
+      "source": "RendererChoice"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 71,
+      "kind": "Name",
+      "source": "ThemeChoice"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 65,
+      "kind": "Name",
+      "source": "PresentationBudget"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 73,
+      "kind": "Name",
+      "source": "ThemeChoice"
+    },
+    {
+      "path": "src/toad/render_choices.py",
+      "line": 11,
+      "kind": "ImportFrom",
+      "source": "from toad.setting_choices import Choice"
+    },
+    {
+      "path": "src/toad/render_choices.py",
+      "line": 15,
+      "kind": "ClassDef",
+      "source": "class RendererChoice(Choice, DeclaredFamily, affix='Renderer'):\n\n    @classmethod\n    @abstractmethod\n    def start(cls, *, directory: Path | None=None) -> Renderer:\n        ..."
+    },
+    {
+      "path": "src/toad/render_choices.py",
+      "line": 15,
+      "kind": "Name",
+      "source": "Choice"
+    },
+    {
+      "path": "src/toad/render_choices.py",
+      "line": 21,
+      "kind": "Name",
+      "source": "RendererChoice"
+    },
+    {
+      "path": "src/toad/render_choices.py",
+      "line": 29,
+      "kind": "Name",
+      "source": "RendererChoice"
+    },
+    {
+      "path": "src/toad/setting_choices.py",
+      "line": 11,
+      "kind": "ClassDef",
+      "source": "class Choice(ABC):\n    title: ClassVar[str | None] = None\n\n    @classmethod\n    def label(cls) -> str:\n        return cls.title or cls.declared_name.replace('-', ' ').replace('_', ' ').title()"
+    },
+    {
+      "path": "src/toad/setting_choices.py",
+      "line": 215,
+      "kind": "ClassDef",
+      "source": "class ThemeChoice(Choice, DeclaredFamily, affix='Theme'):\n    \"\"\"Members derive from Textual's authoritative theme declarations.\"\"\"\n\n    @classmethod\n    def label(cls) -> str:\n        return cls.theme.name"
+    },
+    {
+      "path": "src/toad/setting_choices.py",
+      "line": 223,
+      "kind": "ImportFrom",
+      "source": "from textual.theme import BUILTIN_THEMES"
+    },
+    {
+      "path": "src/toad/setting_choices.py",
+      "line": 21,
+      "kind": "Name",
+      "source": "Choice"
+    },
+    {
+      "path": "src/toad/setting_choices.py",
+      "line": 69,
+      "kind": "Name",
+      "source": "Choice"
+    },
+    {
+      "path": "src/toad/setting_choices.py",
+      "line": 95,
+      "kind": "Name",
+      "source": "Choice"
+    },
+    {
+      "path": "src/toad/setting_choices.py",
+      "line": 139,
+      "kind": "Name",
+      "source": "Choice"
+    },
+    {
+      "path": "src/toad/setting_choices.py",
+      "line": 157,
+      "kind": "Name",
+      "source": "Choice"
+    },
+    {
+      "path": "src/toad/setting_choices.py",
+      "line": 170,
+      "kind": "Name",
+      "source": "Choice"
+    },
+    {
+      "path": "src/toad/setting_choices.py",
+      "line": 186,
+      "kind": "Name",
+      "source": "Choice"
+    },
+    {
+      "path": "src/toad/setting_choices.py",
+      "line": 215,
+      "kind": "Name",
+      "source": "Choice"
+    },
+    {
+      "path": "src/toad/setting_choices.py",
+      "line": 225,
+      "kind": "Name",
+      "source": "BUILTIN_THEMES"
+    },
+    {
+      "path": "src/toad/setting_choices.py",
+      "line": 226,
+      "kind": "Name",
+      "source": "ThemeChoice"
+    },
+    {
+      "path": "src/toad/setting_choices.py",
+      "line": 228,
+      "kind": "Name",
+      "source": "ThemeChoice"
+    },
+    {
+      "path": "src/toad/setting_effects.py",
+      "line": 10,
+      "kind": "ImportFrom",
+      "source": "from toad.setting_choices import Scrollbar, SessionBar, ThemeChoice"
+    },
+    {
+      "path": "src/toad/setting_effects.py",
+      "line": 37,
+      "kind": "Name",
+      "source": "ThemeChoice"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 18,
+      "kind": "ImportFrom",
+      "source": "from toad.setting_choices import Choice"
+    },
+    {
+      "path": "src/toad/widgets/committed_presentation.py",
+      "line": 17,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.presentation_window import protected_presentations"
+    },
+    {
+      "path": "src/toad/widgets/committed_presentation.py",
+      "line": 194,
+      "kind": "Name",
+      "source": "protected_presentations"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 16,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.presentation_window import protected_presentations"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 249,
+      "kind": "Name",
+      "source": "protected_presentations"
+    },
+    {
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 13,
+      "kind": "FunctionDef",
+      "source": "def protected_presentations(items: Iterable[Widget], endpoints: Iterable[Widget]) -> set[Widget]:\n    \"\"\"Resolve native selection/focus to its owning presentation, without geometry.\"\"\"\n    candidates = set(items)\n    protected = set()\n    for endpoint in endpoints:\n        node = endpoint\n        while isinstance(node, Widget):\n            if node in candidates:\n                protected.add(node)\n                break\n            node = node.parent\n    return protected"
+    },
+    {
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 28,
+      "kind": "ClassDef",
+      "source": "@dataclass(frozen=True)\nclass PresentationBudget:\n    \"\"\"Tunable working-set policy, not transport-page or source-size limits.\n\n    Visible and explicitly protected items may exceed the nominal item budget.\n    Admission remains bounded independently; source data is never discarded to\n    satisfy a widget budget.\n    \"\"\"\n    max_items: int = 24\n    admission_items: int = 4\n    reserve_batches: int = 4\n    minimum_widgets: int = 300\n    widgets_per_row: int = 10\n    buffer_viewports: int = 3\n    lookahead_seconds: float = 0.3\n    scroll_idle_seconds: float = 0.2\n\n    def __post_init__(self) -> None:\n        for name in ('max_items', 'admission_items', 'minimum_widgets', 'buffer_viewports'):\n            value = getattr(self, name)\n            if type(value) is not int or value < 1:\n                raise ValueError(f'{name} must be a positive integer')\n        for name in ('reserve_batches', 'widgets_per_row'):\n            value = getattr(self, name)\n            if type(value) is not int or value < 0:\n                raise ValueError(f'{name} must be a non-negative integer')\n        if self.lookahead_seconds <= 0 or self.scroll_idle_seconds <= 0:\n            raise ValueError('Preparation timing must be positive')\n\n    def item_limit(self, protected_items: int) -> int:\n        return max(self.max_items, protected_items + self.reserve_batches * self.admission_items)\n\n    def widget_limit(self, viewport_rows: int) -> int:\n        return max(self.minimum_widgets, viewport_rows * self.widgets_per_row)\n\n    def runway_rows(self, viewport_rows: int) -> int:\n        return max(1, viewport_rows) * self.buffer_viewports\n\n    def admit(self, candidates, required, viewport_rows: int, max_bytes: int):\n        \"\"\"Visible/protected native bodies first, then ordered bounded resources.\"\"\"\n        admitted = set(required)\n        widgets = source_bytes = 0\n        for owner in candidates:\n            count = owner.retained_widget_count\n            size = owner.retained_source_bytes + owner.retained_paint_bytes\n            if owner not in admitted:\n                if widgets + count > self.widget_limit(viewport_rows) or source_bytes + size > max_bytes:\n                    continue\n                admitted.add(owner)\n            widgets += count\n            source_bytes += size\n        return admitted\n\n    def runway(self, sequence, first: int, last: int, viewport_rows: int):\n        \"\"\"Native measured bodies on both sides, including stationary reversal.\"\"\"\n        before, after = ([], [])\n        for candidates, selected in ((reversed(sequence[:first]), before), (iter(sequence[last:]), after)):\n            rows = 0\n            for owner in candidates:\n                selected.append(owner)\n                rows += max(1, owner.measured_rows)\n                if rows >= self.runway_rows(viewport_rows):\n                    break\n        return [owner for pair in zip_longest(before, after) for owner in pair if owner is not None]"
+    },
+    {
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 192,
+      "kind": "Name",
+      "source": "PresentationBudget"
+    },
+    {
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 241,
+      "kind": "Name",
+      "source": "PresentationBudget"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 48,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.presentation_window import PresentationBudget"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 388,
+      "kind": "Name",
+      "source": "PresentationBudget"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 391,
+      "kind": "Name",
+      "source": "PresentationBudget"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 20,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.presentation_window import DirectionalPreparation, PreparationDemand, PresentationBudget"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 605,
+      "kind": "Name",
+      "source": "PresentationBudget"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 606,
+      "kind": "Name",
+      "source": "PresentationBudget"
+    }
+  ],
+  "limits": "Lexical evidence; inherited/dynamic resolution read separately.",
+  "tests": {
+    "modules": 391,
+    "parse_omissions": [],
+    "sites": [
+      {
+        "path": "tests/catalog_actions_native_installed_pilot.py",
+        "line": 18,
+        "kind": "ImportFrom",
+        "source": "from toad.setting_choices import ThemeChoice"
+      },
+      {
+        "path": "tests/catalog_actions_native_installed_pilot.py",
+        "line": 77,
+        "kind": "Name",
+        "source": "ThemeChoice"
+      },
+      {
+        "path": "tests/native_widget_actions_installed_pilot.py",
+        "line": 25,
+        "kind": "ImportFrom",
+        "source": "from toad.setting_choices import ThemeChoice"
+      },
+      {
+        "path": "tests/native_widget_actions_installed_pilot.py",
+        "line": 26,
+        "kind": "Name",
+        "source": "ThemeChoice"
+      },
+      {
+        "path": "tests/navigation_terminal_fixture.py",
+        "line": 43,
+        "kind": "ImportFrom",
+        "source": "from toad.render_choices import RendererChoice, LocalRenderer, PersistentRenderer"
+      },
+      {
+        "path": "tests/projected_history_budget_pilot.py",
+        "line": 19,
+        "kind": "ImportFrom",
+        "source": "from toad.widgets.presentation_window import PresentationBudget"
+      },
+      {
+        "path": "tests/projected_history_budget_pilot.py",
+        "line": 43,
+        "kind": "Name",
+        "source": "PresentationBudget"
+      },
+      {
+        "path": "tests/projected_history_budget_pilot.py",
+        "line": 116,
+        "kind": "Name",
+        "source": "PresentationBudget"
+      },
+      {
+        "path": "tests/reconnect_source_native_installed_pilot.py",
+        "line": 23,
+        "kind": "ImportFrom",
+        "source": "from toad.setting_choices import ThemeChoice"
+      },
+      {
+        "path": "tests/reconnect_source_native_installed_pilot.py",
+        "line": 24,
+        "kind": "Name",
+        "source": "ThemeChoice"
+      },
+      {
+        "path": "tests/settings_tree_pilot.py",
+        "line": 17,
+        "kind": "ImportFrom",
+        "source": "from toad.setting_choices import BothExpansion, Expansion, FailExpansion, ThemeChoice"
+      },
+      {
+        "path": "tests/settings_tree_pilot.py",
+        "line": 170,
+        "kind": "Name",
+        "source": "ThemeChoice"
+      }
+    ]
+  }
+}
