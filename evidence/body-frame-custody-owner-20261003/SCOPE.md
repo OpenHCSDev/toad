@@ -20,3 +20,22 @@ registration, repeated frame-window selection and geometry/style acquisitions.
 Nested bodies need their own readiness, nested windows own their custody; outer
 admission registration must not be substituted for full visible-body readiness.
 Actual snapshots and async-boundary revalidation are legitimate, not mirrors.
+
+## Working source checkpoint
+
+Workspace changed-source matching now consumes original RuleSet.check instead of
+Stylesheet._check_rule. Deleted the separate whole-scene CSS type inventory and
+manual selector-type prefilter: declared rule matching now decides applicable
+types/compound/relational selectors. Custom CSS paths are read only by native
+relational matching; component owner retention and subtree/ancestor order remain.
+Kepler owns native47 RuleSet/SelectorSet/match/stylesheet whole-family migration.
+One Toad production file3+/14-; no new cache/flags/type/traversal/matching algorithm.
+Published working source, not installed/Ready and no gain claim; current style22
+is still qualified405/46. Final checks and real configured UI path after joined
+native source/pins. No new package writes or recording for this source checkpoint.
+
+Frame-readiness source finding: generic Screen after-refresh callbacks may be
+invoked by native idle/timer scheduling, and FramePresentation Presented state
+does not begin a new receipt on ordinary scroll paints. Therefore pager exposed
+body readiness cannot safely be replaced by frame.ready today. The nested-body
+check remains; no speculative guard deletion or new readiness copy.
