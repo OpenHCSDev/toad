@@ -312,3 +312,32 @@ prerequisite into the original fixture callback before App launch and correcting
 held-input release custody through the existing physical key owner. No timeout
 padding, new recorder, replay, environment, Window guard or readiness mirror.
 Whole End acceptance and the installed sidebar journey remain unqualified.
+
+## Prepared row publication and native damage closure
+
+Removed PreparedThreadRow.signature, its stored derived busy field, and
+ThreadStatusRow._thread_signature (two production files, 13 added/12 deleted).
+Static.content owns the actual displayed resource; Content.is_same compares text
+and spans. Tooltip-only/model changes now publish their tooltip without
+repainting identical text. Busy derives from the original captured row source.
+Both channel and relationship rows inherit the same consumer. Native class
+updates and unchanged prepared-resource reuse already guard their own changes.
+
+NRA parsed286/286 production modules; selected declaration/member sites fall15
+to10, sole ThreadStatusRow subclass CommsRow and inherited RelationshipRow read.
+Content/Static/DOM dependency semantics were read; AST spellings are not dynamic
+dispatch proof. Before/after source maps remain in owned sidebar-native-paint
+JSON artifacts. No new authority/store/timer/pool.
+
+Batched source checks:60rows/16requests/15hits/1miss,12910retained bytes,
+worker-delivery median0.96ms/max3.63ms (not frame timing). Original App
+disclosure/collapse/reopen/relationship resource checks passed, with zero
+unchanged-row submissions and zero native updates for tooltip-only changes.
+These are source App checks against existing db94 dependencies, not installed
+main360/Core563 qualification or a CPU improvement.
+
+Kepler35505 completed native End/Home/revoke/finalEnd; its combined channel
+tail failed later while awaiting mount_page. Original negative retained. Its
+released style22 holder is reused for one changed352 row/motion/CPU pair; that
+qualification is the next step, not another End run. Full performance scope
+remains active and this checkpoint is not Ready.

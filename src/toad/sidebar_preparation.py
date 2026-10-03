@@ -54,8 +54,10 @@ class PreparedThreadRow:
     source: ThreadRowPresentation
     frames: tuple[Content, ...]
     tooltip: Content
-    busy: bool
-    signature: tuple[str, str, bool]
+
+    @property
+    def busy(self) -> bool:
+        return self.source.action_status is not None or self.source.busy
 
     def content(self, phase: int) -> Content:
         return self.frames[phase % len(self.frames)]
@@ -63,7 +65,6 @@ class PreparedThreadRow:
 
 def prepare_thread_presentation(source: ThreadRowPresentation) -> PreparedThreadRow:
     summary = source.action_status if source.action_status is not None else source.summary
-    busy = source.action_status is not None or source.busy
     badge = f"{source.unread.label} " if source.unread.label else ""
     frames = tuple(Content.assemble(
         (badge, "bold $accent"),
@@ -74,8 +75,7 @@ def prepare_thread_presentation(source: ThreadRowPresentation) -> PreparedThread
     tooltip = "\n".join(str(value) for value in (
         source.name, summary, source.unread.detail, "Pinned in this channel" if source.pinned else None, source.model,
     ) if value)
-    return PreparedThreadRow(source, frames, Content(tooltip), busy,
-                             (frames[0].plain, tooltip, busy))
+    return PreparedThreadRow(source, frames, Content(tooltip))
 
 
 @dataclass(frozen=True)

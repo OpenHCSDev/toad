@@ -137,6 +137,17 @@ async def main():
                 await sidebar.projection.publish(metadata_only)
             assert requests == [], requests
             assert group.member_container.children[0]._thread_presentation is reused
+            # A changed tooltip is published, but it does not damage identical
+            # native row text. Both sidebars inherit this same row consumer.
+            retained_row = group.member_container.children[0]
+            tooltip_source = replace(reused.source, model='tooltip-only-source-change')
+            tooltip_row, = await submit(ThreadRowsWork((tooltip_source,)))
+            with patch.object(retained_row, 'update', wraps=retained_row.update) as paints:
+                retained_row.apply_thread_preparation(tooltip_row)
+                assert retained_row.tooltip.plain == tooltip_row.tooltip.plain
+                assert paints.call_count == 0
+                retained_row.apply_thread_preparation(reused)
+                assert paints.call_count == 0
             # Real disclosure clicks may change reader intent while preparation
             # is held. Publication must use the current disclosure, then reverse.
             preparing, deliver = asyncio.Event(), asyncio.Event()
