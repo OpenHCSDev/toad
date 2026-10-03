@@ -48,3 +48,23 @@ correctness. This is a source relationship, not a measured dominant-CPU or
 causal-gain claim. Read all style/ancestry publication consumers with Kepler
 before choosing an owner change. Do not bypass inherited style validity or
 install another revision/paint cache.
+
+## Original body writer completion
+
+A settled predecessor previously stayed Materializing inside the current writer
+chain: the completion hook only acted when its worker was the latest owner.
+Every readiness/render/cost query kept traversing the settled worker links. The
+existing BodyMeasurement completion/failure hooks now return the remaining owned
+resource, and MaterializingBody releases exactly the completed writer. A current
+success becomes Live with the original measured extent; an older success/failure
+keeps its preceding paint under the newer worker. The latest failure preserves
+the existing measured fallback. The original awaited Worker still delivers errors
+and cancellation to later writers; no source retry or independent done flag.
+
+Both completion callers use the sole existing measurement transition, preserving
+immediate geometry publication. Only latest native completion requests layout;
+settling an older worker doesn't publish its native tree through a newer writer.
+Deleted native_body_committed forwarding/decision path; all production consumers
+migrated. AST289 modules/no omissions, before/after exact sites retained. Source
+checkpoint only: final joined resource and changed installed motion checks remain.
+No demonstrated CPU benefit yet. Native44 is the coordinated changed native pair.
