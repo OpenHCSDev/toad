@@ -9,8 +9,11 @@ from textual import on, work
 from textual.containers import Vertical
 from textual.widgets import Static, TextArea, Tree
 from textual.worker import Worker, WorkerState, get_current_worker
+from agent_comms.mro_dispatch import handles
 
 from toad.core.context_inspection import ContextInspection, ContextNode
+from toad.core.events import CoordinationObserved, SessionSelected
+from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 from toad.screens.session_view import SessionView
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 
@@ -22,7 +25,7 @@ class ContextTreeIntent:
     selected: str | None = None
 
 
-class ContextExplorer(SidebarVisibilityObserver, Vertical):
+class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
     DEFAULT_CSS = """
     ContextExplorer { height: auto; }
     ContextExplorer > .context-status { height: auto; color: $text-muted; }
@@ -54,9 +57,13 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
                        show_line_numbers=False, id="context-detail")
 
     def on_mount(self):
-        self.app.coordination_observed.subscribe(self, self._observed)
-        self.app.session_selected_signal.subscribe(self, self._observed)
+        self.observe_core(self.app.coordination_access.events)
+        self.observe_core(self.app.events)
         self.call_after_refresh(self.action_refresh)
+
+    @handles(CoordinationObserved, SessionSelected)
+    def context_changed(self, message: CoreEventMessage):
+        self._observed()
 
     def presentation_visible(self):
         return (self.is_attached and self.query_ancestor(SessionView).is_current

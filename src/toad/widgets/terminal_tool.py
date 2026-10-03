@@ -6,7 +6,11 @@ from typing import TYPE_CHECKING
 from textual.content import Content
 from textual.message import Message
 
-from toad.terminal_execution import TerminalExecution
+from agent_comms.mro_dispatch import MroDispatch, handles
+from toad.terminal_execution import (
+    TerminalExecution, TerminalCompletion, FailedTerminalOutcome,
+    RunningTerminalOutcome, UnstartedTerminalOutcome, RetiredTerminalOutcome,
+)
 from toad.widgets.terminal import Terminal
 
 if TYPE_CHECKING:
@@ -14,7 +18,7 @@ if TYPE_CHECKING:
     from toad.acp.terminal_controller import TerminalController
 
 
-class TerminalTool(Terminal):
+class TerminalTool(Terminal, MroDispatch):
     @dataclass
     class Projection(Message):
         """A native render request borrows its original acquired resources."""
@@ -48,4 +52,22 @@ class TerminalTool(Terminal):
 
     def present_execution(self) -> None:
         self.project_state(None, None)
-        self.execution.outcome.present(self, self.execution.command)
+        self.dispatch_sync(self.execution.outcome)
+
+    @handles(RunningTerminalOutcome, UnstartedTerminalOutcome, RetiredTerminalOutcome)
+    def present_pending(self, outcome) -> None:
+        """These original outcomes have no completion border to draw."""
+
+    @handles(TerminalCompletion)
+    def present_completion(self, outcome) -> None:
+        self.finalize()
+        self.set_class(outcome.successful, "-success")
+        self.set_class(not outcome.successful, "-error")
+        if not outcome.successful:
+            self.border_title = Content(f"{self.execution.command} [{outcome.label}]")
+
+    @handles(FailedTerminalOutcome)
+    def present_failure(self, outcome) -> None:
+        self.finalize()
+        self.set_class(True, "-error")
+        self.border_title = Content(f"{self.execution.command} [{outcome.error}]")

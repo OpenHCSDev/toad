@@ -15,18 +15,17 @@ def test_deleted_dispatch():
 
 
 async def new_case():
+    from acp.schema import ToolCallUpdate
     from toad.permission_presentation import PermissionPresentation
     class ProbePermissionPresentation(PermissionPresentation):
         priority=1
         @classmethod
         def admit(cls, kind, title, content):
-            return cls(title) if kind=='probe' else None
-        async def show(self, view, request, binding):
-            view.prompt.text=self.title
-    selected=PermissionPresentation.from_acp({'kind':'probe','title':'Declaration-owned permission'})
+            return cls(title) if kind=='read' else None
+    selected=PermissionPresentation.from_acp(ToolCallUpdate(
+        tool_call_id='permission-probe',kind='read',title='Declaration-owned permission'))
     assert isinstance(selected,ProbePermissionPresentation)
-    # All production callers share the inherited eligibility/lifetime contract.
-    assert ProbePermissionPresentation.present is PermissionPresentation.present
+    assert selected.title=='Declaration-owned permission'
 
 
 def test_new_case():
