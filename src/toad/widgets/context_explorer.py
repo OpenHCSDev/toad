@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
+from functools import partial
 from pathlib import Path
 
 from acp.exceptions import RequestError
@@ -11,6 +12,7 @@ from textual.containers import Horizontal, Vertical
 from textual.widgets import Button, Input, Static, TextArea, Tree
 from textual.worker import Worker, WorkerCancelled, WorkerState, get_current_worker
 from agent_comms.mro_dispatch import handles
+from agent_comms.coordinator import Coordination
 
 from toad.core.context_inspection import ContextInspection, ContextNode
 from toad.core.events import CoordinationObserved, SessionSelected
@@ -138,7 +140,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             if str(service.root.resolve()) != str(root):
                 status.update("Selected context belongs to another wire root")
                 return
-            inspection = await asyncio.to_thread(ContextInspection.read, service, owner)
+            inspection = await Coordination.run_worker(partial(ContextInspection.read, service, owner))
             if not self._reading(owner, root):
                 return
             previous = self._inspection
@@ -149,8 +151,8 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             changed_contributors = False
             if same_source and self._native is not None:
                 original = self._native
-                refreshed = await asyncio.to_thread(
-                    original.with_current_contributors, service, inspection.owner)
+                refreshed = await Coordination.run_worker(partial(
+                    original.with_current_contributors, service, inspection.owner))
                 if not self._reading(owner, root):
                     return
                 if self._native is original:
@@ -263,7 +265,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         status = self.query_one(".context-status", Static)
         status.update("Searching original public context…")
         try:
-            matches = await asyncio.to_thread(inspection.find, native, query)
+            matches = await Coordination.run_worker(partial(inspection.find, native, query))
         except (OSError, ValueError, RuntimeError, RequestError) as error:
             if self._searching(inspection, native, query):
                 status.update(f"Context search unavailable: {error}")

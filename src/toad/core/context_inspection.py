@@ -1,7 +1,6 @@
 """Read-only context references. The SDK owns selection and token estimates."""
 from __future__ import annotations
 
-import asyncio
 import json
 from pathlib import Path
 from abc import ABC
@@ -10,6 +9,7 @@ from functools import partial
 from typing import TYPE_CHECKING, Awaitable, Callable
 
 from agent_comms.field_codec import FieldCodec
+from agent_comms.coordinator import Coordination
 from agent_comms.mro_dispatch import handles
 from toad.core.projection import MroProjection
 from agent_comms.native_turn_context import NativeContextData
@@ -53,12 +53,12 @@ class ContextNode(ABC):
             yield from child.find(query)
 
     async def read(self):
-        return await asyncio.to_thread(self.detail)
+        return await Coordination.run_worker(self.detail)
 
     async def export(self, destination: Path):
         """Export this original observation; never overwrite a session/source file."""
         detail = await self.read()
-        await asyncio.to_thread(self._write_export, destination, detail)
+        await Coordination.run_worker(partial(self._write_export, destination, detail))
 
     @staticmethod
     def _write_export(destination, detail):
@@ -296,7 +296,7 @@ class ContextInspection:
         return tuple(islice((match for node in nodes for match in node.find(normalized)), limit))
 
     async def _request(self, action, **parameters):
-        owner = await asyncio.to_thread(self.service.registry.require, self.owner.name)
+        owner = await Coordination.run_worker(partial(self.service.registry.require, self.owner.name))
         if owner.incarnation != self.owner.incarnation:
             raise ValueError("Selected context thread incarnation changed")
         process = owner.require_process()
@@ -308,7 +308,7 @@ class ContextInspection:
 
     async def native(self):
         payload = await self._request("context")
-        context = await asyncio.to_thread(FieldCodec.decode, NativeContextData, payload)
+        context = await Coordination.run_worker(partial(FieldCodec.decode, NativeContextData, payload))
         return context.require_session_file(self.owner.require_saved_session())
 
     async def current_source(self, context, position, source):
