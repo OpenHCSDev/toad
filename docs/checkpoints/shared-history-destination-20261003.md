@@ -85,3 +85,19 @@ acceptance. Source files were loaded from this checkout; dependencies were reuse
 from the existing matching holder without modifying it. Resources warned about
 6.5 GiB home / 7.6 GiB root / 12.7 GiB swap; this one bounded component case
 reused installed dependencies and did not spawn a native Agent/provider.
+
+## Current main integration and durable source evidence
+
+Normal integration of `main` at `4f67accf7` preserves merged338/347/353. The final
+source census counts every matching Name/Attribute, including callbacks supplied
+through `partial` and annotations, rather than calls alone. Before/after source
+output and the original component receipt are retained under
+`evidence/shared-history-destination355-20261003/`. After integration, the source
+root has 286 modules (main added `agent_surface`), performance39 and tests390;
+zero parse omissions. No new End consumer was hidden by that main union.
+The component receipt remains source sanity, not installed End acceptance.
+
+Heisenberg has the exact source for normal integration with352 and one changed
+installed IRC/DM End/receipt qualification using the existing holder. No second
+motion capture is running; no native/provider test process remains from the
+bounded source sanity. PR remains Draft until that affected installed journey.
