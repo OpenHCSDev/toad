@@ -45,7 +45,7 @@ uncaptured pending resources still need native child layout before they can
 finish reconstruction. Pending native children stay mounted for the worker but are excluded
 from scene paint; loading covers cannot replace valid old strips. Original native
 geometry is invalidated at pending/live transitions; width validation uses the
-same actual committed body size. Rendered paint validates effective inherited
+original content measurement width. Rendered paint validates effective inherited
 PaintState independently of new-source descendant writes. Retired readiness
 retains its subtree revision fence; materializing readiness derives preceding
 pixels. Selection extracts original captured text, interaction joins the actual
@@ -67,8 +67,8 @@ semantic counterexamples. Parent diagnostic capture_state additions stay disjoin
 
 Source review closed the overlapping-writer resource case: unchanged preparation
 results must not replace a chain updated while joining its preceding worker.
-Only an actual new capture is installed, then validated against original committed
-size. The original PaintState already owns the root Styles cache key; captured
+Only an actual new capture is installed, then validated against original content
+measurement width. The original PaintState already owns the root Styles cache key; captured
 pixels additionally validate that key for border/gutter/local rules, while inherited
 paint uses its existing same_paint relation. No new revision counter.
 
@@ -81,3 +81,27 @@ First final native resource batch exposed misuse of AwaitComplete's gather resul
 /home/ts/.cache/agent-scratch/body-publication399-resource-20261003/native-resource.log.
 The owning call now unpacks its declared single result; no fallback result codec,
 extra wait, class or readiness guard. This is not an acceptance receipt.
+
+## Final source/native resource batch
+
+Source35c8bb73a passed the existing retained_fragment_geometry_pilot on all three
+body implementations: preceding Live paint, pending writer custody, selection,
+actual style/resize invalidation, stream-safe retirement, native interaction and
+final disposal. Capture uses original published geometry with zero whole-scene
+arrangements. The unchanged-width reentry rebuilt no body widgets. These small
+source timings are not installed firstpaint or performance measurements.
+
+The second preserved batch exposed a different width meaning: an offscreen
+widget's stale outer size cannot validate its content measurement. Original
+BodyMeasurement width now validates the captured content resource. Both failed
+logs are retained with hashes; final native-resource03 command exited0.
+
+After AST: complete289 Toad/249 native modules, no parse omissions. Native43
+uses the same capture contract; dynamic receivers/MRO/source callback order were
+read semantically and are not proven by AST counts. Production112 lines changed
+in one existing owner file (see exact numstat in qualification). One capture
+algorithm serves publication and retirement; no new class or semantic authority.
+
+Draft399 is not Ready: one normally installed joined399/43 saved-history
+motion/profile run remains. Kepler owns native43 sanity; Heisenberg alone records
+the joined pair. Parent's595/397 diagnostic exporter fields remain untouched.
