@@ -1,0 +1,15 @@
+Using Python 3.14.2 environment at: /home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002
+   Updating https://github.com/OpenHCSDev/toad.git (5124100544146ba25593ab0dc329af258039c2ab)
+    Updated https://github.com/OpenHCSDev/toad.git (5124100544146ba25593ab0dc329af258039c2ab)
+Resolved 69 packages in 1.43s
+   Building batrachian-toad @ git+https://github.com/OpenHCSDev/toad.git@5124100544146ba25593ab0dc329af258039c2ab
+   Building agent-comms @ git+https://github.com/OpenHCSDev/agent-comms.git@5cf5d0d880678bbcc7fc9591e6bd24397683ab91
+      Built agent-comms @ git+https://github.com/OpenHCSDev/agent-comms.git@5cf5d0d880678bbcc7fc9591e6bd24397683ab91
+      Built batrachian-toad @ git+https://github.com/OpenHCSDev/toad.git@5124100544146ba25593ab0dc329af258039c2ab
+Prepared 2 packages in 459ms
+Uninstalled 2 packages in 32ms
+Installed 2 packages in 12ms
+ - agent-comms==0.1.0 (from git+https://github.com/OpenHCSDev/agent-comms.git@a3a1b8f69f61acb0b01e92a0ac5a9ed161b28f9f)
+ + agent-comms==0.1.0 (from git+https://github.com/OpenHCSDev/agent-comms.git@5cf5d0d880678bbcc7fc9591e6bd24397683ab91)
+ - batrachian-toad==0.6.20 (from git+https://github.com/OpenHCSDev/toad.git@742083719237dd61ecf3b404678e4a7b6d832e3e)
+ + batrachian-toad==0.6.20 (from git+https://github.com/OpenHCSDev/toad.git@5124100544146ba25593ab0dc329af258039c2ab)

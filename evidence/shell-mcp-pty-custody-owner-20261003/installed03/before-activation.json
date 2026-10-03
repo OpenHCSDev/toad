@@ -1,0 +1,25 @@
+{
+  "stage": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "pins": {
+    "agent_comms": "a3a1b8f69f61acb0b01e92a0ac5a9ed161b28f9f",
+    "toad": "742083719237dd61ecf3b404678e4a7b6d832e3e",
+    "textual": "0ab687e007fca311ce9f786634d8f5fc991ff808"
+  },
+  "sdk": "0.12.1",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-2bfb6ba8fd3b3b3b/node_modules/@earendil-works/pi-coding-agent",
+  "state": "Private392 matched CoreCTTY/Toad source; shell and MCP actual AppPTY checks pending",
+  "staging_receipt": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/shell-mcp-pty-custody-owner-20261003/installed01/source-proof.json",
+  "bins": {
+    "python": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "toad": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/toad",
+    "agent-comms": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/agent-comms-agent",
+    "pi-comms-native": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/pi-comms-native"
+  },
+  "native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-2bfb6ba8fd3b3b3b/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+  "native_manifest": "2bfb6ba8fd3b3b3bc03dd122e0a67cb69fdc7cef86704a706396024b1561c292",
+  "native_tree": "419453f846ef43a7e847508475685ddd0075a42792f6731d6d5f65f3c60cf74c",
+  "native_configuration_note": "Sch explicit style22 release after588App05; original391/588 archives retained. NormalCore590/Toad392 wheel refresh in same69 environment; native2b unchanged, no provider/public/default changes."
+}

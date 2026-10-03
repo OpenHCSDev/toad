@@ -100,3 +100,19 @@ Arendt owns the original decoder/argv closure in Core590; no stderr filter.
 Pair final readiness awaits that concrete producer correction and its affected
 installed shell check, not a repeat of the unchanged MCP or ACP journeys.
 No physical-st/native-owner/provider/public-default/full-headless claim.
+
+## Final ready pair
+
+Normal-main joined Toad5124100544146ba25593ab0dc329af258039c2ab +
+Core5cf5d0d880678bbcc7fc9591e6bd24397683ab91, Text40/SDK/native2b
+unchanged. Existing ChildCommand owns canonical import/decode/argv once across
+all3members. Core contribution20+/6deleted; Toad five production223+/369deleted.
+Final affected installed ShellApp/PTY03 passed, original terminal paint has no
+double-initialization warning, child/task/model/editor/tab-return/directory/
+retirement assertions retained. Unchanged MCP and registeredACP checks retained
+without repetition. Same69 holder;928sourceassets unchanged after App, cleanup0.
+
+READY.json is scoped source+three affected installed consumer acceptance.
+No physicalst/fullUI/nativeowner/provider/performance/fullheadless claim. Raw
+shell01 failure and MCP100s diagnostic retained. Borrow released to Sch/Heis
+after final metadata/source receipt; public/default/native originals untouched.
