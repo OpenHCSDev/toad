@@ -300,7 +300,8 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                         context_nodes = []
                         for model in node._context_nodes.values():
                             target = None
-                            label_region = tree.get_label_region(model)
+                            label_region = (tree._get_label_region(model._line)
+                                            if tree._get_node(model._line) is model else None)
                             geometry = visible_regions.get(tree)
                             if label_region is not None and geometry is not None:
                                 region = label_region.translate(

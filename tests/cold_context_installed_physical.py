@@ -64,7 +64,7 @@ def load_recorder():
                     "key ctrl+a", "type --clearmodifiers configured-source", "key Return",
                     "sleep 2", mark + "core-matches",
                     select("phase-core-matches-state.pickle", "core"),
-                    "sleep 1", mark + "core-instructions", "key space", "sleep 1", mark + "core-expanded",
+                    "sleep 1", mark + "core-instructions", mark + "core-expanded",
                     select("phase-core-expanded-state.pickle", "source"),
                     "sleep 3", mark + "authenticated-source", "",
                 ))
@@ -236,9 +236,21 @@ async def run(options):
         raise
     finally:
         if owner is not None:
+            # Capture the original retained resource even if recorder/control
+            # failure occurred before the success assertions.
+            for backend in owner.turns.persistent_backends.values():
+                if backend.custody.retained:
+                    child = backend.custody.idle().child
+                    receipt["native_process"] = FieldCodec.encode(child.proc.identity)
             await owner.shutdown()
         if "child" in locals():
             receipt["native_child_retired"] = child.proc.retired and not child.proc.alive()
+        receipt["selected_sha256_after"] = hashlib.sha256(selected.read_bytes()).hexdigest()
+        receipt["selected_source_unchanged"] = selected.read_bytes() == before
+        receipt["public_sha256_after"] = hashlib.sha256(public_file.read_bytes()).hexdigest()
+        receipt["public_source_unchanged"] = receipt["public_sha256_after"] == public_before
+        receipt["native_input_rows_after"] = len(InputDispositions(
+            service.root / InputDispositions.filename).read().rows)
         receipt["elapsed_seconds"] = time.monotonic() - started
         (base / "terminal-receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
         print(json.dumps(receipt), flush=True)
