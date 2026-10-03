@@ -38,3 +38,11 @@ Source checkpoint depends on Kepler's native lazy-ancestry family, not installed
 oldText44. No final check/physical acceptance yet; do not launch old holder with
 this new API until the normal joined native dependency is pinned/installed.
 Native45 capture-placement source remains frozen and joins that ancestry batch.
+
+Two read-only descendant consumers now use existing native walk_depth_first: body
+capture readiness and retained source cost. They do not mount/remove/await while
+reading; the original native generator preserves depth-first/self-exclusion, and
+readiness can stop at its first unmet body. Deleted full-descendant snapshot
+allocations; mutation/full-snapshot callers elsewhere keep their list contract.
+No new traversal implementation or readiness/cost field. All current body hooks
+were read for topology-changing side effects before selecting this change.

@@ -22,6 +22,7 @@ from toad.widgets.presentation_window import (
 )
 
 from textual.widget import Widget
+from textual.walk import walk_depth_first
 from textual._measurement import NATIVE_WIDGET_HEIGHT, height_dependency
 from textual.geometry import Size
 from textual._paint_state import PaintState
@@ -576,7 +577,7 @@ class MeasuredViewportBody(ViewportBody):
                     and self in self.screen.focused.walk_ancestors(with_self=True))
                 or any(self in endpoint.walk_ancestors(with_self=True)
                        for endpoint in self.screen.selections)
-                or any(not child.body_ready for child in self.walk_children()
+                or any(not child.body_ready for child in walk_depth_first(self, with_root=False)
                        if isinstance(child, ViewportBody))):
             return BodyMeasurement.prepare_publication(
                 MeasuredBody(current.width, current.rows, current.widgets), self)
