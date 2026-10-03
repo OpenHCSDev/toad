@@ -4,9 +4,11 @@ from weakref import ref
 from functools import partial
 
 from agent_comms.mro_dispatch import MroDispatch, handles
-from toad.acp.agent_controller import SurfaceBinding, ApplicationValidationOwner
+from toad.surface_binding import SurfaceBinding
+from toad.acp.agent_controller import ApplicationValidationOwner
 from toad.permission_presentation import DiffPermissionPresentation, InlinePermissionPresentation
 from toad.core.events import HelpAgentFail, LogAgentFail
+from toad.shell_output import ShellCommandOutput, ShellTerminalOutput
 
 class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
     def __init__(self, target, events):
@@ -23,6 +25,38 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
         target = self.target
         if target is not None:
             state.update_size(*target.get_terminal_dimensions())
+
+    def prepare_shell(self, source) -> None:
+        if (target := self.target) is not None:
+            target.working_directory = source.working_directory
+            source.update_size(*target.get_terminal_dimensions())
+
+    async def present_shell(self, output) -> None:
+        if (target := self.target) is not None:
+            await self.dispatch(output, target)
+
+    @handles(ShellCommandOutput)
+    async def show_shell_command(self, output, target):
+        from toad.widgets.shell_result import ShellResult
+
+        if not any(result.source is output for result in target.query(ShellResult)):
+            await target.post(ShellResult(output))
+
+    @handles(ShellTerminalOutput)
+    async def show_shell_terminal(self, output, target):
+        if output.terminal is None:
+            from toad.widgets.shell_terminal import ShellTerminal
+
+            terminal = next((terminal for terminal in target.query(ShellTerminal)
+                             if terminal.state is output.state), None)
+            if terminal is None:
+                terminal = await target.new_terminal()
+            output.attach(terminal)
+
+    def shell_failed(self, error) -> None:
+        if (target := self.target) is not None:
+            target.app.notify(f"Unable to start shell: {error}\n\nCheck your settings.",
+                              title="Shell", severity="error")
 
     async def present_failure(self, failure, view) -> None:
         if self.owns(view):

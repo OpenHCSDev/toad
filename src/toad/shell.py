@@ -9,9 +9,8 @@ import pty
 import struct
 import termios
 from contextlib import suppress
-from typing import TYPE_CHECKING
-
-from textual import log
+import logging
+from toad.surface_binding import SurfaceBinding
 from toad.core.source_events import CurrentWorkingDirectoryChanged
 
 from toad.shell_read import shell_read
@@ -19,9 +18,6 @@ from toad.terminal_environment import TerminalEnvironment
 from toad import ansi
 from toad.shell_output import ShellCommandOutput, ShellTerminalOutput
 from toad.shell_source import ShellOperationalSource
-
-if TYPE_CHECKING:
-    from toad.widgets.conversation import Conversation
 
 IS_MACOS = platform.system() == "Darwin"
 
@@ -38,17 +34,18 @@ def resize_pty(fd, cols, rows):
 
 
 class Shell(ShellOperationalSource):
-    """Responsible for shell interactions in Conversation."""
+    """Own one retained shell process and its original terminal output."""
 
     def __init__(
         self,
-        conversation: Conversation,
         working_directory: str,
+        *,
+        terminal_size: tuple[int, int],
         shell="",
         start="",
         hide_start: bool = True,
     ) -> None:
-        super().__init__(conversation)
+        super().__init__(terminal_size)
         self.working_directory = working_directory
 
         self.new_log: bool = False
@@ -158,10 +155,12 @@ class Shell(ShellOperationalSource):
             text = f"\x1b[200~{text}\x1b[201~"
         await self.write(f"{text}\n", hide_echo=True)
 
-    def start(self) -> None:
+    def start(self, binding: SurfaceBinding) -> None:
         assert self._task is None
+        self.surface = binding
+        binding.prepare_shell(self)
         self._task = asyncio.create_task(self.run(), name=repr(self))
-        log("shell starting")
+        logging.getLogger(__name__).debug("shell starting")
 
     async def interrupt(self) -> None:
         """Interrupt the running command."""
@@ -229,11 +228,7 @@ class Shell(ShellOperationalSource):
             )
         except Exception as error:
             os.close(slave)
-            self._app.notify(
-                f"Unable to start shell: {error}\n\nCheck your settings.",
-                title="Shell",
-                severity="error",
-            )
+            self.surface.shell_failed(error)
             return
         self._process = _process
         self._pid = _process.pid
@@ -294,8 +289,7 @@ class Shell(ShellOperationalSource):
                     self._pending_directory = None
                 if new_directory and new_directory != current_directory:
                     current_directory = self.working_directory = new_directory
-                    if (conversation := self._conversation()) is not None:
-                        conversation.publish_core(CurrentWorkingDirectoryChanged(new_directory))
+                    self.events.publish(CurrentWorkingDirectoryChanged(new_directory))
                 if output.finalized and output.state.scrollback_buffer.is_blank:
                     output.finalize()
                     self.outputs.remove(output)
@@ -303,7 +297,3 @@ class Shell(ShellOperationalSource):
 
             if not data:
                 break
-
-        self.master = None
-        self._finished = True
-        transport.close()

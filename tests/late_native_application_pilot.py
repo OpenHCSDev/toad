@@ -17,7 +17,7 @@ from agent_comms.threads import Thread
 from agent_comms.turn_lease import ActiveTurn, TurnState
 from agent_comms.turn_phase import PublishingPhase
 from toad.acp.agent import Agent
-from toad.acp.agent_controller import AttachedSurfaceBinding
+from toad.agent_surface import AttachedSurfaceBinding
 from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
 from toad.transcript_publication import CheckpointPublication

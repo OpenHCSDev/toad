@@ -10,6 +10,7 @@ from textual.widget import Widget
 from textual.widgets.text_area import TextAreaState
 
 from toad.input_history import InputHistories
+from toad.agent_surface import AttachedSurfaceBinding
 from toad.widgets.conversation import Conversation
 from toad.widgets.history_anchor import ReaderPosition
 from toad.widgets.message_filter import MessageCategory
@@ -103,7 +104,7 @@ class OperationalSessionSources:
             conversation.call_after_refresh(self.directory_watcher.notify_if_visible)
         if self.shell is not None:
             conversation._shell = self.shell
-            await self.shell.attach(conversation)
+            await self.shell.attach(AttachedSurfaceBinding(conversation, self.shell.events))
         if self.agent is not None:
             conversation.agent = self.agent
             conversation.bind_agent(self.agent)

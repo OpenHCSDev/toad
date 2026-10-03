@@ -2,20 +2,10 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
-
 from toad import ansi
-from toad.widgets.shell_result import ShellResult
-
-if TYPE_CHECKING:
-    from toad.widgets.conversation import Conversation
-    from toad.widgets.terminal import Terminal
 
 
 class ShellOutput(ABC):
-    @abstractmethod
-    async def present(self, conversation: "Conversation") -> None: ...
-
     @abstractmethod
     def detach(self) -> None: ...
 
@@ -23,9 +13,6 @@ class ShellOutput(ABC):
 @dataclass
 class ShellCommandOutput(ShellOutput):
     command: str
-
-    async def present(self, conversation: "Conversation") -> None:
-        await conversation.post(ShellResult(self.command))
 
     def detach(self) -> None:
         pass
@@ -37,12 +24,10 @@ class ShellTerminalOutput(ShellOutput):
     def __init__(self, state: ansi.TerminalState) -> None:
         self.state = state
         self.finalized = False
-        self.terminal: "Terminal | None" = None
+        self.terminal = None
 
-    async def present(self, conversation: "Conversation") -> None:
-        if self.terminal is not None:
-            return
-        terminal = await conversation.new_terminal()
+    def attach(self, terminal) -> None:
+        """Borrow a native terminal; the output retains its original model."""
         self.terminal = terminal
         terminal.set_state(self.state)
         terminal.update_size(terminal.width, terminal.height)
