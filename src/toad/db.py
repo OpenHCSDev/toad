@@ -11,8 +11,8 @@ from time import time_ns
 from typing import Annotated, Any
 
 import aiosqlite
-from agent_comms.field_codec import FieldCodec, PathText, TimestampText
-from agent_comms.typed_table import Column, JsonStorage, SqlStorage, TypedTable
+from agent_comms.field_codec import PathText, TimestampText
+from agent_comms.typed_table import Column, JsonStorage, TextStorage, TypedTable
 
 from toad import paths
 from toad.agent_schema import AgentDefinition
@@ -28,18 +28,6 @@ MODEL_HISTORY_SCHEMA = """
 
 
 SessionTimestamp = Annotated[datetime, TimestampText]
-
-
-class SessionTimestampStorage(SqlStorage):
-    sql_type = "TEXT"
-
-    @classmethod
-    def to_sql(cls, value):
-        return FieldCodec.encode(value, SessionTimestamp)
-
-    @classmethod
-    def accepts(cls, annotation):
-        return annotation is datetime
 
 
 @dataclass(frozen=True)
@@ -68,11 +56,11 @@ class Session(TypedTable, declared_name="sessions"):
     prompt_count: int = 0
     created_at: SessionTimestamp = field(
         default_factory=lambda: datetime.now(UTC),
-        metadata={"sql": Column(storage=SessionTimestampStorage)},
+        metadata={"sql": Column(storage=TextStorage)},
     )
     last_used: SessionTimestamp = field(
         default_factory=lambda: datetime.now(UTC),
-        metadata={"sql": Column(storage=SessionTimestampStorage)},
+        metadata={"sql": Column(storage=TextStorage)},
     )
     # The column keeps the durable file name; its value is always typed metadata.
     meta_json: SessionMeta = field(

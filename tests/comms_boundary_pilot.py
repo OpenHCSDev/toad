@@ -97,7 +97,7 @@ async def main():
                     },
                     "pilot",
                 )
-                agent.attach_surface(view)
+                view.bind_agent(agent)
                 view.agent = agent
                 view.prompt.text = "preserved draft"
                 cursor_token = agent._private_cursor.begin("pilot")

@@ -44,7 +44,7 @@ async def main():
         comms.registry.declare(Thread("peer", frozenset(), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
 
         async def start(agent, target):
-            agent.attach_surface(target)
+            target.bind_agent(agent)
             agent.process.session_task = asyncio.create_task(asyncio.sleep(0))
             agent.events.publish(AgentReady())
 

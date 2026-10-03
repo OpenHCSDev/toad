@@ -54,7 +54,7 @@ async def main(title: str | None = None, *, cold_metadata: bool = False) -> None
         observations = []
 
         async def start(agent: Agent, target) -> None:
-            agent.attach_surface(target)
+            target.bind_agent(agent)
 
             async def attach() -> None:
                 started.set()

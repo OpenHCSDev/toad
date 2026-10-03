@@ -96,7 +96,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     agent.detach_surface(returned)
     await until(pilot, lambda: not isinstance(app.screen, PermissionReview))
     assert owned_request.pending and not agent.controller.surface.owns(returned)
-    agent.attach_surface(returned)
+    returned.bind_agent(agent)
     await until(pilot, lambda: isinstance(app.screen, PermissionReview))
     await until(pilot, lambda: 'CLIENT_NEW_VALUE' in '\n'.join(
         strip.text for strip in app.screen._compositor.render_strips()))

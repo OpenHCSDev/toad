@@ -95,7 +95,7 @@ class PermissionController(ClientRequestOwner):
         self.agent.events.publish(RequestPermission())
         return request
 
-    def present(self, surface):
+    def present(self):
         from toad.core.events import RequestPermission
         if self.pending:
             self.agent.events.publish(RequestPermission())

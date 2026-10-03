@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING, Any, TypeVar
 from toad.render_backend import Renderer
 
 if TYPE_CHECKING:
-    from toad.render_tasks import RenderTask
+    from toad.render_backend import RenderTask
 
 
 Result = TypeVar("Result")
@@ -100,9 +100,7 @@ class RenderProcessPool(Renderer):
 
     async def submit(self, task: "RenderTask[Result]") -> Result:
         """Submit a typed rendering operation to the persistent app-owned pool."""
-        from toad.render_tasks import execute_render_task
-
-        return await self.run(execute_render_task, task)
+        return await self.run(task.execute)
 
     async def aclose(self) -> None:
         """Asynchronously join this pool; safe to call concurrently or repeatedly."""

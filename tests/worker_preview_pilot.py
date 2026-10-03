@@ -18,7 +18,8 @@ from textual.widget import _Styled
 from runtime_fixture import ToadApp
 from toad.render_backend import Renderer
 from toad.render_processes import RenderProcessPool
-from toad.render_tasks import RenderTask, RichRenderTask
+from toad.render_tasks import RichRenderTask
+from toad.render_backend import RenderTask
 from toad.rich_preparation import SyntaxSource
 from toad.widgets.project_panel import FilePreview
 from toad.widgets.worker_static import WorkerStatic

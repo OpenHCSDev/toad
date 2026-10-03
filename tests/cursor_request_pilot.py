@@ -84,7 +84,7 @@ async def main():
                 for successor in ("new", "stop"):
                     initial_session = "old-session" if first_kind == "load" else None
                     agent = Agent(root, DATA, initial_session)
-                    agent.attach_surface(view)
+                    view.bind_agent(agent)
                     view.agent = agent
                     await pilot.pause()
                     first, second = Response(), Response()

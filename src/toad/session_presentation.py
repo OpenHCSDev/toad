@@ -106,7 +106,7 @@ class OperationalSessionSources:
             await self.shell.attach(conversation)
         if self.agent is not None:
             conversation.agent = self.agent
-            self.agent.attach_surface(conversation)
+            conversation.bind_agent(self.agent)
 
     async def detach(self, conversation: Conversation, screen: "MainScreen") -> None:
         self.agent = conversation.agent

@@ -96,7 +96,6 @@ async def main() -> None:
                     agent = Agent(
                         sandbox, {"name": "fixture", "run_command": {"*": "true"}}, None
                     )
-                    agent.post_message = lambda _event: None
                     agent.process.process = process
                     agent.process.session_task = None
                     agent.process.runner = None

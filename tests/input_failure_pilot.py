@@ -45,7 +45,7 @@ async def main():
             receiver = Agent(
                 root, {"name": "Fixture", "run_command": {"*": "true"}}, "fixture"
             )
-            receiver.attach_surface(conversation)
+            conversation.bind_agent(receiver)
             conversation.set_reactive(Conversation.agent, receiver)
             conversation.prompt.text = "new draft"
             # Current public ACP metadata: a remote failure is evidence, never

@@ -26,7 +26,7 @@ async def main():
             await pilot.pause()
             view = app.selected_session.conversation
             agent = Agent(root, {'name': 'Fixture', 'identity': 'fixture', 'short_name': 'fixture', 'run_command': {'*': 'true'}, 'protocol': 'acp'}, 'fixture')
-            agent.attach_surface(view)
+            view.bind_agent(agent)
             view.agent = agent
             agent.updates.accept('fixture', {'sessionUpdate': 'agent_message_chunk', 'content': {'type': 'text', 'text': ''}, '_meta': encode_updates(TurnStartedUpdate('active-turn', time.time(), 'working', 'Thinking'))})
             agent.updates.accept('fixture', {'sessionUpdate': 'usage_update', 'used': 120000, 'size': 272000})

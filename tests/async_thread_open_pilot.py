@@ -61,7 +61,7 @@ async def main():
         }
 
         async def start(agent, target):
-            agent.attach_surface(target)
+            target.bind_agent(agent)
 
             async def attach():
                 started.set()

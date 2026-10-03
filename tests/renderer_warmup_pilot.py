@@ -8,7 +8,7 @@ from typing import TypeVar
 
 from runtime_fixture import ToadApp
 from toad.render_backend import Renderer
-from toad.render_tasks import RenderTask
+from toad.render_backend import RenderTask
 
 ResultT = TypeVar("ResultT")
 

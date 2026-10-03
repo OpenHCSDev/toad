@@ -99,7 +99,7 @@ async def main():
         async with app.run_test() as pilot:
             await pilot.pause()
             shared = app.coordination_access.service
-            agent.attach_surface(app.selected_session.conversation)
+            app.selected_session.conversation.bind_agent(agent)
             with patch(
                 "toad.acp.transcript_reader.wire",
                 side_effect=AssertionError("Shared reader reconstructed"),

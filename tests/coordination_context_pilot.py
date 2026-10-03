@@ -55,7 +55,7 @@ async def main():
             agent = Agent(root, {"name": "Fixture", "identity": "fixture",
                                  "short_name": "fixture", "run_command": {"*": "true"},
                                  "protocol": "acp"}, "fixture")
-            agent.attach_surface(view)
+            view.bind_agent(agent)
             view.agent = agent
             await view.transcript.snapshot(TranscriptPage(
                 (ContextTranscript(CONTEXT), UserTranscript(CONTEXT)),

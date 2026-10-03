@@ -6,7 +6,8 @@ from typing import TypeVar
 
 from toad.render_backend import Renderer
 from toad.render_service import RenderServiceConfig
-from toad.render_tasks import MarkdownRenderTask, PatchRenderTask, RenderTask
+from toad.render_tasks import MarkdownRenderTask, PatchRenderTask
+from toad.render_backend import RenderTask
 from toad.render_zmq import PersistentRendererPool, RendererEndpoint, RendererSessionFailed
 
 ResultT = TypeVar("ResultT")

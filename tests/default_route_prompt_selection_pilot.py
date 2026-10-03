@@ -17,7 +17,6 @@ from toad.agent_schema import AgentDefinition
 
 async def make_agent(project: Path) -> Agent:
     agent = Agent(project, AgentDefinition("fake", "fake", {"*": "true"}), None)
-    agent.post_message = lambda _message: None
     await agent.start()
     assert agent.process.runner is not None
     await agent.process.runner

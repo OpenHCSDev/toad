@@ -24,7 +24,7 @@ class OperationalTerminalOwner(ClientRequestOwner, ABC):
 
     def start_terminal_presentation(self, target):
         if self.surface.owns(target):
-            self.start_operation(self.terminals.attach(target))
+            self.start_operation(self.terminals.attach(self.surface))
 
     def owns_terminal_projection(self, binding, projection):
         if self.surface is not binding or self.terminals is not projection.controller:

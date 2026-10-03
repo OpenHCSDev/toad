@@ -29,9 +29,6 @@ from agent_comms.goal_actions import RetryGoalAction
 from agent_comms.goal_presentation import GoalExecution
 from agent_comms.goals import Goal
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage, TranscriptReadIdentity
-from textual.content import Content
-from textual.message import Message
-from textual.message_pump import MessagePump
 
 import toad
 from toad import jsonrpc, paths
@@ -160,14 +157,11 @@ class Agent(AgentBase):
 
         await asyncio.to_thread(write_log, self.presentation.log_path, line)
 
-    def get_info(self) -> Content:
-        agent_name = self.definition.name
-        return Content(agent_name)
+    def get_info(self) -> str:
+        return self.definition.name
 
-    async def start(self, message_target: MessagePump | None = None) -> None:
-        """Start the agent."""
-        if message_target is not None:
-            self.attach_surface(message_target)
+    async def start(self) -> None:
+        """Start the operational agent; attachment resources are acquired separately."""
         try:
             await asyncio.to_thread(
                 self.presentation.log_path.parent.mkdir, parents=True, exist_ok=True
@@ -190,17 +184,6 @@ class Agent(AgentBase):
     def request(self) -> jsonrpc.Request:
         """Create a request object."""
         return API.request(self.send)
-
-    def post_message(self, message: Message) -> bool:
-        """Post a message to the message target (the Conversation).
-
-        Args:
-            message: Message object.
-
-        Returns:
-            `True` if the message was posted successfully, or `False` if it wasn't.
-        """
-        return self.controller.surface.post(message)
 
     def update_status_line(self) -> None:
         """The measurement owns availability and source-specific presentation."""

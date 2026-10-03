@@ -78,7 +78,7 @@ async def main():
                 AgentDefinition("fixture", "Observed fixture", {"*": "true"}),
                 "fixture",
             )
-            agent.attach_surface(native)
+            native.bind_agent(agent)
             attach_coordination(agent, str(comms.root), "peer")
             native.set_reactive(type(native).agent, agent)
             owner = app.selected_mode

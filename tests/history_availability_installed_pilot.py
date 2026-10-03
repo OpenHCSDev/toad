@@ -39,7 +39,7 @@ async def main():
             view = app.selected_session.conversation
             agent = Agent(root, {'identity': 'saved-page-proof', 'name': 'Saved page proof', 'run_command': {'*': ''}}, None, None)
             view.agent = agent
-            agent.attach_surface(view)
+            view.bind_agent(agent)
             details = view.query_one(SessionDetails)
             view.native_history_status = 'unavailable'
             await pilot.pause()

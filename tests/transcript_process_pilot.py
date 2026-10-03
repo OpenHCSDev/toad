@@ -61,11 +61,10 @@ class ObservedPool(RenderProcessPool):
         self.release.clear()
 
     async def run(self, function, *args):
-        from toad.render_tasks import TranscriptRenderTask, execute_render_task
+        from toad.render_tasks import TranscriptRenderTask
 
-        assert function is execute_render_task
-        assert len(args) == 1 and isinstance(args[0], TranscriptRenderTask)
-        events = args[0].events
+        assert not args and isinstance(function.__self__, TranscriptRenderTask)
+        events = function.__self__.events
         if self.app is not None:
             window = self.app.selected_session.conversation.window
             assert not self.app._batch_count

@@ -74,7 +74,7 @@ async def main():
                     agent = Agent(
                         root, DATA, "old-session" if first_kind == "load" else None
                     )
-                    agent.attach_surface(view)
+                    view.bind_agent(agent)
                     view.agent = agent
                     await pilot.pause()
                     view.prompt.text = "untouched local draft"
@@ -130,7 +130,7 @@ async def main():
             # composer, even with identical text or the same receiving Agent.
             for successor in ("agent", "owner", "unavailable"):
                 agent = Agent(root, DATA, "beta")
-                agent.attach_surface(view)
+                view.bind_agent(agent)
                 view.agent = agent
                 loaded = Response()
                 loaded.result.set_result(response("beta"))
@@ -151,7 +151,7 @@ async def main():
                     await entered.wait()
                     if successor == "agent":
                         replacement = Agent(root, DATA, "beta")
-                        replacement.attach_surface(view)
+                        view.bind_agent(replacement)
                         view.agent = replacement
                     elif successor == "owner":
                         loaded = Response()

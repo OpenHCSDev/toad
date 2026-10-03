@@ -66,7 +66,7 @@ async def declaration_case():
             from toad.core_event_carrier import CoreEventMessage
             agent = Agent(root, AgentDefinition('local-output-proof', 'Local output proof', {'*': ''}), None)
             view.agent = agent
-            agent.attach_surface(view)
+            view.bind_agent(agent)
             subscription = agent.controller.surface.subscription
             view.turns.start_client()
             first = view.turns.owner.response_stream(UnroutedResponse())

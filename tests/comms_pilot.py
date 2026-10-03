@@ -395,7 +395,7 @@ async def main() -> None:
                 },
                 managed_thread,
             )
-            startup_agent.attach_surface(created_conversation)
+            created_conversation.bind_agent(startup_agent)
             startup_agent.session.pending_name = None
             startup_agent.process.process = SimpleNamespace(pid=os.getpid())
             startup_agent.session.pk = None
@@ -579,7 +579,7 @@ async def main() -> None:
                 },
                 "pilot-session",
             )
-            protocol_agent.attach_surface(conversation)
+            conversation.bind_agent(protocol_agent)
             previous_agent = conversation.agent
             conversation.set_reactive(type(conversation).agent, protocol_agent)
             protocol_agent.updates.accept(
