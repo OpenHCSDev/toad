@@ -1,0 +1,324 @@
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-4 │
+│ 85-488-278-20261001/lib/python3.14/site-packages/toad/app.py:598 in on_mount │
+│                                                                              │
+│   595 │                                                                      │
+│   596 │   async def on_mount(self) -> None:                                  │
+│   597 │   │   self.coordination_access.start(self)                           │
+│ ❱ 598 │   │   await self.application.start()                                 │
+│   599 │                                                                      │
+│   600 │   @handles(session_requests.WorkspaceSessionRequest)                 │
+│   601 │   async def on_workspace_session_request(self, event: CoreEventMessa │
+│                                                                              │
+│ ╭──────────────────────────── locals ────────────────────────────╮           │
+│ │ self = ToadApp(                                                │           │
+│ │        │   title='ToadApp',                                    │           │
+│ │        │   classes={                                           │           │
+│ │        │   │   '-theme-ansi-dark',                             │           │
+│ │        │   │   '-dark-mode',                                   │           │
+│ │        │   │   '-show-sessions-bar'                            │           │
+│ │        │   },                                                  │           │
+│ │        │   pseudo_classes={                                    │           │
+│ │        │   │   'nocolor',                                      │           │
+│ │        │   │   'dark',                                         │           │
+│ │        │   │   'ansi',                                         │           │
+│ │        │   │   'focus'                                         │           │
+│ │        │   }                                                   │           │
+│ │        )                                                       │           │
+│ ╰────────────────────────────────────────────────────────────────╯           │
+│                                                                              │
+│ /home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-4 │
+│ 85-488-278-20261001/lib/python3.14/site-packages/toad/application_lifetime.p │
+│ y:69 in start                                                                │
+│                                                                              │
+│   66 │   │   if self.initial_mode:                                           │
+│   67 │   │   │   await app.select_session(self.initial_mode)                 │
+│   68 │   │   else:                                                           │
+│ ❱ 69 │   │   │   await app.session_navigation.new(app.session_navigation.def │
+│   70 │   │   app.terminal_attention.attach()                                 │
+│   71 │   │   app.set_timer(1, self.check_version)                            │
+│   72 │   │   from toad.cli import set_process_title                          │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │  app = ToadApp(                                                          │ │
+│ │        │   title='ToadApp',                                              │ │
+│ │        │   classes={                                                     │ │
+│ │        │   │   '-theme-ansi-dark',                                       │ │
+│ │        │   │   '-dark-mode',                                             │ │
+│ │        │   │   '-show-sessions-bar'                                      │ │
+│ │        │   },                                                            │ │
+│ │        │   pseudo_classes={'nocolor', 'dark', 'ansi', 'focus'}           │ │
+│ │        )                                                                 │ │
+│ │ self = <toad.application_lifetime.ApplicationLifetime object at          │ │
+│ │        0x7f28a33e5940>                                                   │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-4 │
+│ 85-488-278-20261001/lib/python3.14/site-packages/toad/session_navigation.py: │
+│ 87 in new                                                                    │
+│                                                                              │
+│    84 │                                                                      │
+│    85 │   async def new(self, factory: Callable[[], MainScreen], *, title: s │
+│    86 │   │   details = self.app.session_tracker.new_session(title=title)    │
+│ ❱  87 │   │   await self.admit(NativeSessionAdmission(details, factory))     │
+│    88 │   │   return details                                                 │
+│    89 │                                                                      │
+│    90 │   async def create_from(self, owner_mode: str) -> None:              │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ details = SessionDetails(                                                │ │
+│ │           │   index=1,                                                   │ │
+│ │           │   mode_name='session-1',                                     │ │
+│ │           │   title='New Session',                                       │ │
+│ │           │   subtitle='',                                               │ │
+│ │           │   path='',                                                   │ │
+│ │           │   updates=0,                                                 │ │
+│ │           │   created_at=1791000782.9579363                              │ │
+│ │           )                                                              │ │
+│ │ factory = <bound method SessionAdmissions.default_source of              │ │
+│ │           <toad.session_navigation.SessionAdmissions object at           │ │
+│ │           0x7f28a33e63c0>>                                               │ │
+│ │    self = <toad.session_navigation.SessionAdmissions object at           │ │
+│ │           0x7f28a33e63c0>                                                │ │
+│ │   title = 'New Session'                                                  │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-4 │
+│ 85-488-278-20261001/lib/python3.14/site-packages/toad/session_navigation.py: │
+│ 81 in admit                                                                  │
+│                                                                              │
+│    78 │   │   app.workspace_sessions.register(admission.mode, admission)     │
+│    79 │   │   app.tab_order.open(admission.mode, after=after)                │
+│    80 │   │   self.publish()                                                 │
+│ ❱  81 │   │   await app.select_session(admission.mode)                       │
+│    82 │   │   await admission.ready(self)                                    │
+│    83 │   │   return admission.mode                                          │
+│    84                                                                        │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ admission = <toad.session_admission.NativeSessionAdmission object at     │ │
+│ │             0x7f28a323bcb0>                                              │ │
+│ │     after = None                                                         │ │
+│ │       app = ToadApp(                                                     │ │
+│ │             │   title='ToadApp',                                         │ │
+│ │             │   classes={                                                │ │
+│ │             │   │   '-theme-ansi-dark',                                  │ │
+│ │             │   │   '-dark-mode',                                        │ │
+│ │             │   │   '-show-sessions-bar'                                 │ │
+│ │             │   },                                                       │ │
+│ │             │   pseudo_classes={'nocolor', 'dark', 'ansi', 'focus'}      │ │
+│ │             )                                                            │ │
+│ │      self = <toad.session_navigation.SessionAdmissions object at         │ │
+│ │             0x7f28a33e63c0>                                              │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-4 │
+│ 85-488-278-20261001/lib/python3.14/site-packages/toad/app.py:498 in          │
+│ _switch_mode_ready                                                           │
+│                                                                              │
+│   495 │   │   │   │   │   else:                                              │
+│   496 │   │   │   │   │   │   if self.current_mode != "workspace":           │
+│   497 │   │   │   │   │   │   │   await super().switch_mode("workspace")     │
+│ ❱ 498 │   │   │   │   │   │   view = await self.workspace_sessions.select(mo │
+│   499 │   │   │   │   │   │   await self.workspace_screen.prepare_navigation │
+│   500 │   │   │   │   │   │   await self.workspace_screen.layout_navigation( │
+│   501 │   │   │   │   │   if mode != previous:                               │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ history_index = None                                                     │ │
+│ │          mode = 'session-1'                                              │ │
+│ │      previous = '_default'                                               │ │
+│ │          self = ToadApp(                                                 │ │
+│ │                 │   title='ToadApp',                                     │ │
+│ │                 │   classes={                                            │ │
+│ │                 │   │   '-theme-ansi-dark',                              │ │
+│ │                 │   │   '-dark-mode',                                    │ │
+│ │                 │   │   '-show-sessions-bar'                             │ │
+│ │                 │   },                                                   │ │
+│ │                 │   pseudo_classes={                                     │ │
+│ │                 │   │   'nocolor',                                       │ │
+│ │                 │   │   'dark',                                          │ │
+│ │                 │   │   'ansi',                                          │ │
+│ │                 │   │   'focus'                                          │ │
+│ │                 │   }                                                    │ │
+│ │                 )                                                        │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-4 │
+│ 85-488-278-20261001/lib/python3.14/site-packages/toad/workspace_sessions.py: │
+│ 135 in select                                                                │
+│                                                                              │
+│   132 │   │   return view                                                    │
+│   133 │                                                                      │
+│   134 │   async def select(self, identity: str) -> "SessionView":            │
+│ ❱ 135 │   │   destination = await self.prepare(identity)                     │
+│   136 │   │   if self.source.shown(destination):                             │
+│   137 │   │   │   return destination                                         │
+│   138 │   │   await self.retire()                                            │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ identity = 'session-1'                                                   │ │
+│ │     self = <toad.workspace_sessions.WorkspaceSessions object at          │ │
+│ │            0x7f28a33e6f90>                                               │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-4 │
+│ 85-488-278-20261001/lib/python3.14/site-packages/toad/workspace_sessions.py: │
+│ 126 in prepare                                                               │
+│                                                                              │
+│   123 │   async def prepare(self, identity: str) -> "SessionView":           │
+│   124 │   │   if view := self.views.get(identity):                           │
+│   125 │   │   │   return view                                                │
+│ ❱ 126 │   │   view = self.factories[identity]()                              │
+│   127 │   │   view.id = identity                                             │
+│   128 │   │   view.display = False                                           │
+│   129 │   │   self.views[identity] = view                                    │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ identity = 'session-1'                                                   │ │
+│ │     self = <toad.workspace_sessions.WorkspaceSessions object at          │ │
+│ │            0x7f28a33e6f90>                                               │ │
+│ │     view = None                                                          │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-4 │
+│ 85-488-278-20261001/lib/python3.14/site-packages/toad/session_admission.py:7 │
+│ 8 in __call__                                                                │
+│                                                                              │
+│    75 │   │   self.factory = factory                                         │
+│    76 │                                                                      │
+│    77 │   def __call__(self) -> MainScreen:                                  │
+│ ❱  78 │   │   source = self.factory()                                        │
+│    79 │   │   self.details.bind_initial_identity(source._agent_session_id)   │
+│    80 │   │   return source                                                  │
+│    81                                                                        │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ self = <toad.session_admission.NativeSessionAdmission object at          │ │
+│ │        0x7f28a323bcb0>                                                   │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-4 │
+│ 85-488-278-20261001/lib/python3.14/site-packages/toad/session_navigation.py: │
+│ 37 in default_source                                                         │
+│                                                                              │
+│    34 │   │   app = self.app                                                 │
+│    35 │   │   session_id = self.initial_session_id                           │
+│    36 │   │   self.initial_session_id = None                                 │
+│ ❱  37 │   │   return MainScreen(app.project_dir, app.agent_data, agent_sessi │
+│    38 │   │   │   │   column_width=type(app).column_width, scrollbar=type(ap │
+│    39                                                                        │
+│    40                                                                        │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │        app = ToadApp(                                                    │ │
+│ │              │   title='ToadApp',                                        │ │
+│ │              │   classes={                                               │ │
+│ │              │   │   '-theme-ansi-dark',                                 │ │
+│ │              │   │   '-dark-mode',                                       │ │
+│ │              │   │   '-show-sessions-bar'                                │ │
+│ │              │   },                                                      │ │
+│ │              │   pseudo_classes={'nocolor', 'dark', 'ansi', 'focus'}     │ │
+│ │              )                                                           │ │
+│ │       self = <toad.session_navigation.SessionAdmissions object at        │ │
+│ │              0x7f28a33e63c0>                                             │ │
+│ │ session_id = 'openhcs-helper'                                            │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-4 │
+│ 85-488-278-20261001/lib/python3.14/site-packages/toad/screens/main.py:173 in │
+│ __init__                                                                     │
+│                                                                              │
+│   170 │   │   self._identity_wire: Comms | None = None                       │
+│   171 │   │   self._comms_thread = (                                         │
+│   172 │   │   │   ""                                                         │
+│ ❱ 173 │   │   │   if agent is not None and agent.identity == "agent-comms.op │
+│   174 │   │   │   else session_thread_name(project_path)                     │
+│   175 │   │   )                                                              │
+│   176 │   │   self._session_pk = session_pk                                  │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │            agent = {                                                     │ │
+│ │                    │   'identity':                                       │ │
+│ │                    'agent-comms-live-check.custom.batrachian.ai',        │ │
+│ │                    │   'name': 'Agent Comms',                            │ │
+│ │                    │   'short_name': 'agent',                            │ │
+│ │                    │   'url': 'https://github.com/batrachianai/toad',    │ │
+│ │                    │   'protocol': 'acp',                                │ │
+│ │                    │   'type': 'coding',                                 │ │
+│ │                    │   'author_name': 'Will McGugan',                    │ │
+│ │                    │   'author_url': 'https://willmcgugan.github.io/',   │ │
+│ │                    │   'publisher_name': 'Will McGugan',                 │ │
+│ │                    │   'publisher_url':                                  │ │
+│ │                    'https://willmcgugan.github.io/',                     │ │
+│ │                    │   ... +5                                            │ │
+│ │                    }                                                     │ │
+│ │ agent_session_id = 'openhcs-helper'                                      │ │
+│ │   initial_prompt = None                                                  │ │
+│ │     project_path = PosixPath('/home/ts/code/projects/openhcs')           │ │
+│ │             self = MainScreen()                                          │ │
+│ │       session_pk = None                                                  │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+╰──────────────────────────────────────────────────────────────────────────────╯
+AttributeError: 'dict' object has no attribute 'identity'
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/published-owner-turn-status-20261003/installed_settlement.py", line 154, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/published-owner-turn-status-20261003/installed_settlement.py", line 73, in main
+    view = await ready(pilot, app, source)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/manual_live_turn_status.py", line 45, in ready
+    raise app._exception
+  File "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/textual/app.py", line 3495, in _process_messages
+    await run_process_messages()
+  File "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/textual/app.py", line 3440, in run_process_messages
+    await self._dispatch_message(events.Mount())
+  File "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/textual/message_pump.py", line 774, in _dispatch_message
+    await self.on_event(message)
+  File "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/textual/app.py", line 4152, in on_event
+    await super().on_event(event)
+  File "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/textual/message_pump.py", line 855, in on_event
+    await self._on_message(event)
+  File "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/textual/message_pump.py", line 876, in _on_message
+    await invoke(method, message)
+  File "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/textual/_callback.py", line 96, in invoke
+    return await _invoke(callback, *params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/textual/_callback.py", line 58, in _invoke
+    result = await result
+             ^^^^^^^^^^^^
+  File "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/toad/app.py", line 598, in on_mount
+    await self.application.start()
+  File "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/toad/application_lifetime.py", line 69, in start
+    await app.session_navigation.new(app.session_navigation.default_source)
+  File "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/toad/session_navigation.py", line 87, in new
+    await self.admit(NativeSessionAdmission(details, factory))
+  File "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/toad/session_navigation.py", line 81, in admit
+    await app.select_session(admission.mode)
+  File "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/toad/app.py", line 498, in _switch_mode_ready
+    view = await self.workspace_sessions.select(mode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/toad/workspace_sessions.py", line 135, in select
+    destination = await self.prepare(identity)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/toad/workspace_sessions.py", line 126, in prepare
+    view = self.factories[identity]()
+  File "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/toad/session_admission.py", line 78, in __call__
+    source = self.factory()
+  File "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/toad/session_navigation.py", line 37, in default_source
+    return MainScreen(app.project_dir, app.agent_data, agent_session_id=session_id).data_bind(column=type(app).column,
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/toad/screens/main.py", line 173, in __init__
+    if agent is not None and agent.identity == "agent-comms.openhcs.dev"
+                             ^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'identity'

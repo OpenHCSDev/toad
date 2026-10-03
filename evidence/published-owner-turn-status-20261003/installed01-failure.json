@@ -1,0 +1,7 @@
+{
+  "result": "FAIL",
+  "cause": "Fixture supplied obsolete raw AgentDefinition dict; failed before ACP attachment. Fixture now uses original AgentDefinition.decode.",
+  "terminal": "evidence/published-owner-turn-status-20261003/installed01-terminal.txt",
+  "retained": true,
+  "input_replayed": false
+}

@@ -1,0 +1,81 @@
+{
+  "result": "PASS",
+  "elapsed": 8.439566368993837,
+  "imports": {
+    "toad": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/toad/__init__.py",
+    "core": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/agent_comms/__init__.py",
+    "textual": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/textual/__init__.py"
+  },
+  "original_notification_log": "/home/ts/.local/state/toad/logs/Agent_Comms_2026-10-02T23_33_32_389243.txt",
+  "original_turn": "05d3c93ed7920eab91b71b87fdb46826",
+  "stages": [
+    {
+      "stage": "actual_retained_startup",
+      "busy": false,
+      "phase": "",
+      "activity_visible": false,
+      "prompt_busy": false,
+      "throbber_busy": false,
+      "view_work": 0,
+      "details": "Session details \u00b7 Needs attention \u00b7 Ready \u00b7 Latest inbound openhcs-helper from @user: Responded \u00b7 3 recent \u00b7 Saved history available \u00b7 Bus input verification unavailable \u00b7 7 notices",
+      "local_requests": 0,
+      "cursor_status": "unavailable"
+    },
+    {
+      "stage": "captured_remote_active",
+      "busy": true,
+      "phase": "Waiting for input start",
+      "activity_visible": true,
+      "prompt_busy": true,
+      "throbber_busy": true,
+      "view_work": 0,
+      "details": "Session details \u00b7 Needs attention \u00b7 Waiting for input start \u00b7 Saved history available \u00b7 Bus input verification unavailable \u00b7 7 notices",
+      "local_requests": 0,
+      "cursor_status": "unavailable"
+    },
+    {
+      "stage": "canonical_remote_settlement",
+      "busy": false,
+      "phase": "",
+      "activity_visible": false,
+      "prompt_busy": false,
+      "throbber_busy": false,
+      "view_work": 0,
+      "details": "Session details \u00b7 Needs attention \u00b7 Ready \u00b7 Latest inbound openhcs-helper from @user: Responded \u00b7 3 recent \u00b7 Saved history available \u00b7 Bus input verification unavailable \u00b7 7 notices",
+      "local_requests": 0,
+      "cursor_status": "unavailable"
+    },
+    {
+      "stage": "read_fenced_by_local_operation",
+      "busy": true,
+      "phase": "Waiting for input start",
+      "activity_visible": true,
+      "prompt_busy": true,
+      "throbber_busy": true,
+      "view_work": 0,
+      "details": "Session details \u00b7 Needs attention \u00b7 Waiting for input start \u00b7 Saved history available \u00b7 Bus input verification unavailable \u00b7 7 notices",
+      "local_requests": 1,
+      "cursor_status": "unavailable"
+    },
+    {
+      "stage": "owned_completion_automatic_settlement",
+      "busy": false,
+      "phase": "",
+      "activity_visible": false,
+      "prompt_busy": false,
+      "throbber_busy": false,
+      "view_work": 0,
+      "details": "Session details \u00b7 Needs attention \u00b7 Ready \u00b7 Latest inbound openhcs-helper from @user: Responded \u00b7 3 recent \u00b7 Saved history available \u00b7 Bus input verification unavailable \u00b7 7 notices",
+      "local_requests": 0,
+      "cursor_status": "unavailable"
+    }
+  ],
+  "source_hash_before": "2c5141c66a47f30340376949f10a611da4ed52381ac1b122ec6393dd3dcda845",
+  "source_hash_after": "2c5141c66a47f30340376949f10a611da4ed52381ac1b122ec6393dd3dcda845",
+  "original_native_owner_unchanged": true,
+  "owned_acp_client_absent": true,
+  "cursor_proof_object_unchanged": true,
+  "prompt_requests": 0,
+  "provider_calls": 0,
+  "scope": "Installed App/ACP with actual configured retained native owner. Recorded original active notification only; no input replay. Local callable proves owned-operation ordering/re-read, not native send. Pilot paint, no physical pixel claim."
+}

@@ -1,0 +1,1900 @@
+{
+  "packages": [
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "revision": "HEAD",
+      "root": "src/toad",
+      "parsed": 286,
+      "unparsed": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "revision": "HEAD",
+      "root": "tests",
+      "parsed": 390,
+      "unparsed": []
+    },
+    {
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "revision": "6a1dad1db068aeb65c6feb2a11d75d4923c942eb",
+      "root": "src/agent_comms",
+      "parsed": 311,
+      "unparsed": []
+    }
+  ],
+  "sites": [
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 38,
+      "node": "alias",
+      "source": "CommsUpdateConsumer"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 220,
+      "node": "FunctionDef",
+      "source": "current_turn"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 242,
+      "node": "FunctionDef",
+      "source": "_receive_comms_metadata"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 287,
+      "node": "AsyncFunctionDef",
+      "source": "get_goal_snapshot"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 73,
+      "node": "Name",
+      "source": "CommsUpdateConsumer"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 288,
+      "node": "alias",
+      "source": "OwnerSnapshotConsumer"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 294,
+      "node": "Name",
+      "source": "turn_token"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 296,
+      "node": "Attribute",
+      "source": "self._receive_comms_metadata"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 297,
+      "node": "Name",
+      "source": "turn_token"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 248,
+      "node": "Name",
+      "source": "turn_token"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 298,
+      "node": "Name",
+      "source": "OwnerSnapshotConsumer"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 363,
+      "node": "Attribute",
+      "source": "self.session.observe_owner"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 285,
+      "node": "Attribute",
+      "source": "self.get_goal_snapshot"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 313,
+      "node": "Attribute",
+      "source": "self.get_goal_snapshot"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 415,
+      "node": "Attribute",
+      "source": "self.get_goal_snapshot"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 244,
+      "node": "AsyncFunctionDef",
+      "source": "_submit"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 270,
+      "node": "AsyncFunctionDef",
+      "source": "submit_blocks"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 275,
+      "node": "AsyncFunctionDef",
+      "source": "_prompt"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 103,
+      "node": "Attribute",
+      "source": "self.prompt_in_flight"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 245,
+      "node": "Attribute",
+      "source": "self.prompt_in_flight"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 266,
+      "node": "Attribute",
+      "source": "self.prompt_in_flight"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 313,
+      "node": "Attribute",
+      "source": "self.submit_blocks"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 240,
+      "node": "Attribute",
+      "source": "self._submit"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 264,
+      "node": "Attribute",
+      "source": "self._prompt"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 272,
+      "node": "Attribute",
+      "source": "self._prompt"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 320,
+      "node": "Attribute",
+      "source": "self._prompt"
+    },
+    {
+      "path": "src/toad/acp/agent_session.py",
+      "line": 106,
+      "node": "AsyncFunctionDef",
+      "source": "observe_owner"
+    },
+    {
+      "path": "src/toad/acp/agent_session.py",
+      "line": 205,
+      "node": "Attribute",
+      "source": "self.agent._receive_comms_metadata"
+    },
+    {
+      "path": "src/toad/acp/agent_session.py",
+      "line": 280,
+      "node": "Attribute",
+      "source": "self.agent._receive_comms_metadata"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 33,
+      "node": "ClassDef",
+      "source": "CommsUpdateConsumer"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 200,
+      "node": "ClassDef",
+      "source": "OwnerSnapshotConsumer"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 12,
+      "node": "alias",
+      "source": "CursorAdvancedUpdate"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 25,
+      "node": "alias",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 28,
+      "node": "alias",
+      "source": "OrderedManagedTurn"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 28,
+      "node": "alias",
+      "source": "ManagedTurn"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 52,
+      "node": "FunctionDef",
+      "source": "accepts_turn"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 80,
+      "node": "FunctionDef",
+      "source": "turn_changed"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 200,
+      "node": "Name",
+      "source": "CommsUpdateConsumer"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 34,
+      "node": "Name",
+      "source": "OrderedManagedTurn"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 202,
+      "node": "Name",
+      "source": "ManagedTurn"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 50,
+      "node": "Attribute",
+      "source": "self.turn_token"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 50,
+      "node": "Name",
+      "source": "turn_token"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 79,
+      "node": "Name",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 89,
+      "node": "Name",
+      "source": "CursorAdvancedUpdate"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 80,
+      "node": "Name",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 90,
+      "node": "Name",
+      "source": "CursorAdvancedUpdate"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 81,
+      "node": "Attribute",
+      "source": "self.accepts_turn"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 54,
+      "node": "Attribute",
+      "source": "self.turn_token"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 59,
+      "node": "Attribute",
+      "source": "self.agent.current_turn.accepts_snapshot"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 174,
+      "node": "Attribute",
+      "source": "self.agent.current_turn"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 55,
+      "node": "Attribute",
+      "source": "self.turn_token"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 59,
+      "node": "Attribute",
+      "source": "self.agent.current_turn"
+    },
+    {
+      "path": "src/toad/agent.py",
+      "line": 6,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/toad/agent.py",
+      "line": 24,
+      "node": "FunctionDef",
+      "source": "current_turn"
+    },
+    {
+      "path": "src/toad/agent.py",
+      "line": 33,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/toad/agent.py",
+      "line": 41,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/toad/agent_presentation.py",
+      "line": 8,
+      "node": "alias",
+      "source": "ManagedTurnBinding"
+    },
+    {
+      "path": "src/toad/agent_presentation.py",
+      "line": 39,
+      "node": "FunctionDef",
+      "source": "prompt_in_flight"
+    },
+    {
+      "path": "src/toad/agent_presentation.py",
+      "line": 99,
+      "node": "FunctionDef",
+      "source": "prompt_in_flight"
+    },
+    {
+      "path": "src/toad/agent_presentation.py",
+      "line": 100,
+      "node": "Attribute",
+      "source": "self.agent.controller.prompt_in_flight"
+    },
+    {
+      "path": "src/toad/agent_presentation.py",
+      "line": 95,
+      "node": "Name",
+      "source": "ManagedTurnBinding"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "line": 187,
+      "node": "Attribute",
+      "source": "view.turns.start_client"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "line": 197,
+      "node": "Attribute",
+      "source": "view.turns.finish_client"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 10,
+      "node": "ClassDef",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 78,
+      "node": "ClassDef",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 99,
+      "node": "ClassDef",
+      "source": "ManagedTurn"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 150,
+      "node": "ClassDef",
+      "source": "OrderedManagedTurn"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 212,
+      "node": "ClassDef",
+      "source": "ManagedTurnBinding"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 246,
+      "node": "ClassDef",
+      "source": "ConversationTurn"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 6,
+      "node": "alias",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 56,
+      "node": "Name",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 62,
+      "node": "Name",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 68,
+      "node": "Name",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 78,
+      "node": "Name",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 99,
+      "node": "Name",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 150,
+      "node": "Name",
+      "source": "ManagedTurn"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 152,
+      "node": "FunctionDef",
+      "source": "accepts_snapshot"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 176,
+      "node": "FunctionDef",
+      "source": "start_client"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 179,
+      "node": "FunctionDef",
+      "source": "finish_client"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 205,
+      "node": "FunctionDef",
+      "source": "start_client"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 208,
+      "node": "FunctionDef",
+      "source": "finish_client"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 278,
+      "node": "FunctionDef",
+      "source": "start_client"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 282,
+      "node": "FunctionDef",
+      "source": "finish_client"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 14,
+      "node": "Name",
+      "source": "accepts_snapshot"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 73,
+      "node": "Name",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 85,
+      "node": "Name",
+      "source": "accepts_snapshot"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 90,
+      "node": "Name",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 101,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 162,
+      "node": "Name",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 101,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 228,
+      "node": "Name",
+      "source": "OrderedManagedTurn"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 206,
+      "node": "Name",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 217,
+      "node": "Name",
+      "source": "ManagedTurn"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 228,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 242,
+      "node": "Name",
+      "source": "ManagedTurn"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 279,
+      "node": "Attribute",
+      "source": "self.binding.start_client"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 283,
+      "node": "Attribute",
+      "source": "self.binding.finish_client"
+    },
+    {
+      "path": "src/toad/owner_preparation.py",
+      "line": 6,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/toad/owner_preparation.py",
+      "line": 21,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/toad/session_observation.py",
+      "line": 95,
+      "node": "Attribute",
+      "source": "agent.get_goal_snapshot"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 223,
+      "node": "ClassDef",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 39,
+      "node": "alias",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 95,
+      "node": "alias",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 95,
+      "node": "alias",
+      "source": "ConversationTurn"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 2208,
+      "node": "AsyncFunctionDef",
+      "source": "turn_changed"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 231,
+      "node": "Name",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 2207,
+      "node": "Name",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 226,
+      "node": "Name",
+      "source": "ConversationTurn"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 383,
+      "node": "Name",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 457,
+      "node": "Name",
+      "source": "ConversationTurn"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 800,
+      "node": "Name",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1085,
+      "node": "Attribute",
+      "source": "self.turns.finish_client"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1262,
+      "node": "Attribute",
+      "source": "self.turns.finish_client"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 802,
+      "node": "Name",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 834,
+      "node": "Name",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1177,
+      "node": "Attribute",
+      "source": "agent.presentation.prompt_in_flight"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1386,
+      "node": "Attribute",
+      "source": "self.agent.current_turn"
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "line": 79,
+      "node": "Name",
+      "source": "_prompt"
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "line": 102,
+      "node": "Attribute",
+      "source": "self._prompt"
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "line": 126,
+      "node": "Attribute",
+      "source": "self._prompt"
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "line": 125,
+      "node": "Attribute",
+      "source": "self._prompt"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 10,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 28,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 24,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 32,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 43,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 3,
+      "node": "alias",
+      "source": "ConversationTurn"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 288,
+      "node": "FunctionDef",
+      "source": "_submit"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 126,
+      "node": "Attribute",
+      "source": "self._submit"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 180,
+      "node": "Name",
+      "source": "ConversationTurn"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 472,
+      "node": "Name",
+      "source": "ConversationTurn"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 8,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 16,
+      "node": "alias",
+      "source": "ConversationTurn"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 49,
+      "node": "Name",
+      "source": "ConversationTurn"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 46,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "tests/admission_scope_installed_pilot.py",
+      "line": 45,
+      "node": "Attribute",
+      "source": "agent.get_goal_snapshot"
+    },
+    {
+      "path": "tests/backend_failure_feedback_installed_journey.py",
+      "line": 19,
+      "node": "Attribute",
+      "source": "agent.presentation.prompt_in_flight"
+    },
+    {
+      "path": "tests/committed_history_pilot.py",
+      "line": 1,
+      "node": "alias",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "tests/committed_history_pilot.py",
+      "line": 47,
+      "node": "AsyncFunctionDef",
+      "source": "get_goal_snapshot"
+    },
+    {
+      "path": "tests/committed_history_pilot.py",
+      "line": 105,
+      "node": "Name",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "tests/comms_boundary_pilot.py",
+      "line": 27,
+      "node": "alias",
+      "source": "CommsUpdateConsumer"
+    },
+    {
+      "path": "tests/comms_boundary_pilot.py",
+      "line": 36,
+      "node": "Name",
+      "source": "CommsUpdateConsumer"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 560,
+      "node": "Attribute",
+      "source": "conversation.turns.finish_client"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 566,
+      "node": "Attribute",
+      "source": "conversation.turns.start_client"
+    },
+    {
+      "path": "tests/compaction_pilot.py",
+      "line": 11,
+      "node": "alias",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/compaction_pilot.py",
+      "line": 57,
+      "node": "Name",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/cursor_request_pilot.py",
+      "line": 12,
+      "node": "alias",
+      "source": "CursorAdvancedUpdate"
+    },
+    {
+      "path": "tests/cursor_request_pilot.py",
+      "line": 50,
+      "node": "Name",
+      "source": "CursorAdvancedUpdate"
+    },
+    {
+      "path": "tests/first_fork_native_installed_pilot.py",
+      "line": 288,
+      "node": "Attribute",
+      "source": "view.agent.presentation.prompt_in_flight"
+    },
+    {
+      "path": "tests/goal_edit_owner_pilot.py",
+      "line": 78,
+      "node": "Attribute",
+      "source": "agent.get_goal_snapshot"
+    },
+    {
+      "path": "tests/goal_objective_edit_pilot.py",
+      "line": 138,
+      "node": "Attribute",
+      "source": "agent.get_goal_snapshot"
+    },
+    {
+      "path": "tests/goal_objective_edit_pilot.py",
+      "line": 150,
+      "node": "Attribute",
+      "source": "agent.get_goal_snapshot"
+    },
+    {
+      "path": "tests/goal_resize_pilot.py",
+      "line": 1,
+      "node": "alias",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "tests/goal_resize_pilot.py",
+      "line": 71,
+      "node": "Name",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "tests/goal_retry_pilot.py",
+      "line": 26,
+      "node": "AsyncFunctionDef",
+      "source": "get_goal_snapshot"
+    },
+    {
+      "path": "tests/goal_server_poll_pilot.py",
+      "line": 201,
+      "node": "Attribute",
+      "source": "comms.goals.goal_snapshot"
+    },
+    {
+      "path": "tests/goal_server_poll_pilot.py",
+      "line": 206,
+      "node": "Attribute",
+      "source": "comms.goals.goal_snapshot"
+    },
+    {
+      "path": "tests/goal_server_poll_pilot.py",
+      "line": 220,
+      "node": "Attribute",
+      "source": "comms.goals.goal_snapshot"
+    },
+    {
+      "path": "tests/goal_server_poll_pilot.py",
+      "line": 232,
+      "node": "Attribute",
+      "source": "agent.get_goal_snapshot"
+    },
+    {
+      "path": "tests/goal_standby_history_pilot.py",
+      "line": 44,
+      "node": "AsyncFunctionDef",
+      "source": "get_goal_snapshot"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 71,
+      "node": "Attribute",
+      "source": "view.turns.start_client"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 74,
+      "node": "Attribute",
+      "source": "view.turns.finish_client"
+    },
+    {
+      "path": "tests/input_failure_pilot.py",
+      "line": 81,
+      "node": "Attribute",
+      "source": "receiver.controller.submit_blocks"
+    },
+    {
+      "path": "tests/input_visibility_native_installed_pilot.py",
+      "line": 263,
+      "node": "Attribute",
+      "source": "agent.presentation.prompt_in_flight"
+    },
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "line": 411,
+      "node": "Attribute",
+      "source": "agent.presentation.prompt_in_flight"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "line": 14,
+      "node": "alias",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "line": 17,
+      "node": "alias",
+      "source": "TurnState"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "line": 80,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "line": 111,
+      "node": "Name",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "line": 111,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "line": 14,
+      "node": "alias",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "line": 17,
+      "node": "alias",
+      "source": "TurnState"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "line": 80,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "line": 100,
+      "node": "Name",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "line": 100,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "tests/manual_live_turn_status.py",
+      "line": 12,
+      "node": "alias",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/manual_live_turn_status.py",
+      "line": 55,
+      "node": "Name",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/manual_live_turn_status.py",
+      "line": 65,
+      "node": "Attribute",
+      "source": "view.agent.current_turn"
+    },
+    {
+      "path": "tests/manual_live_turn_status.py",
+      "line": 66,
+      "node": "Name",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/manual_live_turn_status.py",
+      "line": 56,
+      "node": "Attribute",
+      "source": "view.agent.current_turn"
+    },
+    {
+      "path": "tests/manual_live_turn_status.py",
+      "line": 68,
+      "node": "Attribute",
+      "source": "view.agent.current_turn"
+    },
+    {
+      "path": "tests/manual_live_turn_status.py",
+      "line": 126,
+      "node": "Attribute",
+      "source": "first_view.agent.current_turn"
+    },
+    {
+      "path": "tests/manual_live_turn_status.py",
+      "line": 138,
+      "node": "Attribute",
+      "source": "first_view.agent.current_turn"
+    },
+    {
+      "path": "tests/message_notifications_pilot.py",
+      "line": 15,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "tests/message_notifications_pilot.py",
+      "line": 66,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "tests/message_notifications_pilot.py",
+      "line": 77,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "tests/midturn_compaction_pilot.py",
+      "line": 11,
+      "node": "alias",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/midturn_compaction_pilot.py",
+      "line": 40,
+      "node": "Name",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/native_goal_read_first_paint_pilot.py",
+      "line": 52,
+      "node": "Attribute",
+      "source": "agent.current_turn"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 20,
+      "node": "alias",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 434,
+      "node": "Name",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 465,
+      "node": "Name",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 470,
+      "node": "Name",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 431,
+      "node": "Attribute",
+      "source": "agents[1].current_turn"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 462,
+      "node": "Attribute",
+      "source": "agents[1].current_turn"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 74,
+      "node": "Attribute",
+      "source": "agent.current_turn"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 221,
+      "node": "Attribute",
+      "source": "agent.current_turn"
+    },
+    {
+      "path": "tests/original_turn_resource_real_installed_pilot.py",
+      "line": 166,
+      "node": "Attribute",
+      "source": "view.agent.presentation.prompt_in_flight"
+    },
+    {
+      "path": "tests/original_turn_resource_real_installed_pilot.py",
+      "line": 178,
+      "node": "Attribute",
+      "source": "view.agent.presentation.prompt_in_flight"
+    },
+    {
+      "path": "tests/post_cancel_session_installed_journey.py",
+      "line": 58,
+      "node": "Attribute",
+      "source": "agent.presentation.prompt_in_flight"
+    },
+    {
+      "path": "tests/post_cancel_session_installed_journey.py",
+      "line": 69,
+      "node": "Attribute",
+      "source": "agent.presentation.prompt_in_flight"
+    },
+    {
+      "path": "tests/post_cancel_session_installed_journey.py",
+      "line": 78,
+      "node": "Attribute",
+      "source": "agent.presentation.prompt_in_flight"
+    },
+    {
+      "path": "tests/post_cancel_session_installed_journey.py",
+      "line": 42,
+      "node": "Attribute",
+      "source": "agent.presentation.prompt_in_flight"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 10,
+      "node": "alias",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 13,
+      "node": "alias",
+      "source": "TurnState"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 65,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 117,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 144,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 118,
+      "node": "Name",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 603,
+      "node": "Attribute",
+      "source": "gamma.conversation.agent.current_turn"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 613,
+      "node": "Attribute",
+      "source": "gamma.conversation.agent.current_turn"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "line": 1,
+      "node": "alias",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "line": 11,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "line": 16,
+      "node": "alias",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "line": 27,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "line": 85,
+      "node": "Name",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "line": 88,
+      "node": "Name",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "tests/submission_native_installed_pilot.py",
+      "line": 117,
+      "node": "Attribute",
+      "source": "agent.controller.prompt_in_flight"
+    },
+    {
+      "path": "tests/submission_native_installed_pilot.py",
+      "line": 116,
+      "node": "Attribute",
+      "source": "agent.get_goal_snapshot"
+    },
+    {
+      "path": "tests/test_input_custody.py",
+      "line": 27,
+      "node": "Attribute",
+      "source": "agent.controller.prompt_in_flight"
+    },
+    {
+      "path": "tests/test_input_custody.py",
+      "line": 38,
+      "node": "Attribute",
+      "source": "agent.controller.prompt_in_flight"
+    },
+    {
+      "path": "tests/test_t4_turn_navigation.py",
+      "line": 8,
+      "node": "alias",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "tests/test_t4_turn_navigation.py",
+      "line": 8,
+      "node": "alias",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "tests/test_t4_turn_navigation.py",
+      "line": 18,
+      "node": "Name",
+      "source": "TurnOwner"
+    },
+    {
+      "path": "tests/test_t4_turn_navigation.py",
+      "line": 22,
+      "node": "Name",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "tests/test_t4_turn_navigation.py",
+      "line": 24,
+      "node": "Name",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "tests/test_t4_turn_navigation.py",
+      "line": 27,
+      "node": "Name",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "tests/test_t4_turn_navigation.py",
+      "line": 28,
+      "node": "Name",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 22,
+      "node": "alias",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 91,
+      "node": "Name",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 95,
+      "node": "Name",
+      "source": "TurnActivity"
+    },
+    {
+      "path": "tests/view_switch_latency.py",
+      "line": 1,
+      "node": "alias",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "tests/view_switch_latency.py",
+      "line": 115,
+      "node": "Name",
+      "source": "AgentTurn"
+    },
+    {
+      "path": "src/agent_comms/acp_extension.py",
+      "line": 48,
+      "node": "ClassDef",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "src/agent_comms/acp_extension.py",
+      "line": 271,
+      "node": "ClassDef",
+      "source": "CursorAdvancedUpdate"
+    },
+    {
+      "path": "src/agent_comms/acp_extension.py",
+      "line": 28,
+      "node": "alias",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/acp_extension.py",
+      "line": 49,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/acp_extension.py",
+      "line": 275,
+      "node": "Name",
+      "source": "CursorAdvancedUpdate"
+    },
+    {
+      "path": "src/agent_comms/activity.py",
+      "line": 26,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/activity.py",
+      "line": 41,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/activity.py",
+      "line": 96,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/activity.py",
+      "line": 144,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/activity.py",
+      "line": 47,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/activity.py",
+      "line": 96,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/activity.py",
+      "line": 126,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/activity.py",
+      "line": 43,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/agent_activity.py",
+      "line": 30,
+      "node": "alias",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/agent_activity.py",
+      "line": 180,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/agent_activity.py",
+      "line": 184,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/agent_events.py",
+      "line": 338,
+      "node": "ClassDef",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/backend.py",
+      "line": 686,
+      "node": "Attribute",
+      "source": "events.TurnState"
+    },
+    {
+      "path": "src/agent_comms/cursor_publication.py",
+      "line": 17,
+      "node": "alias",
+      "source": "CursorAdvancedUpdate"
+    },
+    {
+      "path": "src/agent_comms/cursor_publication.py",
+      "line": 124,
+      "node": "Name",
+      "source": "CursorAdvancedUpdate"
+    },
+    {
+      "path": "src/agent_comms/cursor_publication.py",
+      "line": 148,
+      "node": "Name",
+      "source": "CursorAdvancedUpdate"
+    },
+    {
+      "path": "src/agent_comms/goal_management.py",
+      "line": 311,
+      "node": "FunctionDef",
+      "source": "goal_snapshot"
+    },
+    {
+      "path": "src/agent_comms/goal_management.py",
+      "line": 308,
+      "node": "Attribute",
+      "source": "self.goal_snapshot"
+    },
+    {
+      "path": "src/agent_comms/goal_presentation.py",
+      "line": 20,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/goal_presentation.py",
+      "line": 94,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/goal_presentation.py",
+      "line": 96,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/goal_waits.py",
+      "line": 214,
+      "node": "Name",
+      "source": "current_turn"
+    },
+    {
+      "path": "src/agent_comms/goal_waits.py",
+      "line": 217,
+      "node": "Name",
+      "source": "current_turn"
+    },
+    {
+      "path": "src/agent_comms/goal_waits.py",
+      "line": 218,
+      "node": "Name",
+      "source": "current_turn"
+    },
+    {
+      "path": "src/agent_comms/goal_waits.py",
+      "line": 219,
+      "node": "Name",
+      "source": "current_turn"
+    },
+    {
+      "path": "src/agent_comms/history_views.py",
+      "line": 48,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/history_views.py",
+      "line": 299,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/presentation.py",
+      "line": 28,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/presentation.py",
+      "line": 508,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/presentation.py",
+      "line": 516,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/registration.py",
+      "line": 25,
+      "node": "alias",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/registration.py",
+      "line": 191,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/registration.py",
+      "line": 197,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/registry_document.py",
+      "line": 31,
+      "node": "alias",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/registry_document.py",
+      "line": 340,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/registry_document.py",
+      "line": 351,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/registry_document.py",
+      "line": 354,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/registry_document.py",
+      "line": 339,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/registry_document.py",
+      "line": 339,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/runtime_requests.py",
+      "line": 259,
+      "node": "alias",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "src/agent_comms/runtime_requests.py",
+      "line": 261,
+      "node": "Attribute",
+      "source": "ctx.server.agent._comms.goals.goal_snapshot"
+    },
+    {
+      "path": "src/agent_comms/runtime_requests.py",
+      "line": 265,
+      "node": "Name",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "src/agent_comms/session_lifecycle.py",
+      "line": 283,
+      "node": "Attribute",
+      "source": "self.comms.goals.goal_snapshot"
+    },
+    {
+      "path": "src/agent_comms/thread_execution.py",
+      "line": 15,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/thread_execution.py",
+      "line": 52,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/thread_execution.py",
+      "line": 93,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/thread_execution.py",
+      "line": 106,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/thread_execution.py",
+      "line": 52,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/thread_execution.py",
+      "line": 93,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/thread_execution.py",
+      "line": 106,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/thread_presentation.py",
+      "line": 62,
+      "node": "ClassDef",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/thread_status.py",
+      "line": 13,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/thread_status.py",
+      "line": 68,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/thread_status.py",
+      "line": 94,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/thread_status.py",
+      "line": 69,
+      "node": "alias",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/thread_status.py",
+      "line": 71,
+      "node": "Name",
+      "source": "ThreadPresentation"
+    },
+    {
+      "path": "src/agent_comms/threads.py",
+      "line": 27,
+      "node": "alias",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/threads.py",
+      "line": 81,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/threads.py",
+      "line": 82,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/tools.py",
+      "line": 498,
+      "node": "Attribute",
+      "source": "comms.goals.goal_snapshot"
+    },
+    {
+      "path": "src/agent_comms/transcript_updates.py",
+      "line": 13,
+      "node": "alias",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "src/agent_comms/transcript_updates.py",
+      "line": 20,
+      "node": "alias",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/transcript_updates.py",
+      "line": 31,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/transcript_updates.py",
+      "line": 39,
+      "node": "Name",
+      "source": "TurnChangedUpdate"
+    },
+    {
+      "path": "src/agent_comms/turn_lease.py",
+      "line": 50,
+      "node": "ClassDef",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/turn_lease.py",
+      "line": 60,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/turn_lease.py",
+      "line": 65,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/turn_progress.py",
+      "line": 28,
+      "node": "alias",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/turn_progress.py",
+      "line": 248,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/turn_runner.py",
+      "line": 47,
+      "node": "alias",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/turn_runner.py",
+      "line": 146,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/turn_runner.py",
+      "line": 148,
+      "node": "Name",
+      "source": "TurnState"
+    },
+    {
+      "path": "src/agent_comms/turn_watchdog.py",
+      "line": 116,
+      "node": "Attribute",
+      "source": "events.TurnState"
+    },
+    {
+      "path": "src/agent_comms/turn_watchdog.py",
+      "line": 117,
+      "node": "Attribute",
+      "source": "events.TurnState"
+    }
+  ],
+  "ambiguity": "Lexical attributes do not prove dynamic receiver resolution; all source-bearing receiver sites are read semantically. No roots omitted."
+}
