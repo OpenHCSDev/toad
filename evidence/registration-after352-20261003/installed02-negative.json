@@ -1,0 +1,38 @@
+{
+  "raw": "/home/ts/.cache/agent-scratch/registration364-text33-public-channel-20261003-02/capture/receipt.json",
+  "capture_completed": true,
+  "completed": false,
+  "duration_seconds": 50.666091894963756,
+  "error": "RuntimeError: Installed journey failed: channel_messages_published",
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2245357,
+      "start_time": 47826907
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2245357,
+      "start_time": 47826907
+    },
+    "original_owner_alive": true
+  },
+  "source_heads": {
+    "toad": "1617e50d2956fc7b8e124af580cdea4ec234fbf3",
+    "textual": "809c967c44c2640aca05f920cf7e79ca6ae172e3",
+    "core": "cc56dbee09aa062b3a89c644c94360b21efcc668"
+  },
+  "physical_assessment": "Warm-start and A-return PNGs viewed while recorder2274594/UI2274619 active. A-return PNG still #openhcs, later Undo/native-return PNG paints native A. At A-return state export all26 Rendered bodies are ready, frame Presented, reconciliation finished. Screenshot precedes metadata and writer; cannot infer simultaneous stale Presented frame. Real delayed replacement remains unqualified. No motion/smoothness/CPU gain claim.",
+  "timing_boundary": "Kepler source/profile trace: original click command finish478679.794 to next writer478681.583 about1.789s. Marker32.4765s precedes frame events32.575/32.727/32.808s and export32.868s. Sampled mount/register/Stylesheet.apply activity in that gap; observations are not CPU duration."
+}

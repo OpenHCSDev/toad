@@ -184,3 +184,227 @@ The complete source path identified two concrete corrections in one batch:
 
 The movie/owner budgets remain44/60 seconds. Existing holder is reused only after
 verified cleanup; no new environment, native package, full motion or provider run.
+
+## Changed installed attempt04: acceptance still open
+
+The coherent source/driver batch is `abc22e4e1f5612c009e6919508187fc1c9d54ead`.
+NRA Package.load parses286 production modules before/after with zero omissions;
+`paging-intent-owners.json` records the original Window ownership and consumer
+deletions. All four installed source/assets/directURL inventories and normal69
+pip check passed after updating only the Toad wheel in the released holder.
+Coredb94/Textual940/native960 and the approved558 decoder stayed unchanged.
+
+ONE changed actual run04 retained the original44/60-second budgets. The recorder
+terminated its completion command at the deadline without a journey-result or
+native-end receipt. Neither final native End nor IRC receipt/End is qualified.
+ACP session/load returned normally; the source-start DTO at4.45s still showed
+the initial project view with no history pager. Later live exports contain only
+frame observations. The retained original journal and profile identify the
+unfinished prerequisite: only106 of140 seed publications completed. Native End
+was never reached. This recording cannot establish a Window, End or Pilot defect.
+The existing ProfileTrace parser retains its original clock limitations; do not
+turn stack transitions into CPU/call-count claims.
+
+Original04 video/profile/recorder evidence:
+`/home/ts/.cache/agent-scratch/kepler355-shared-destination-20261003-04`.
+Structured fixture and exact source/cleanup receipts are retained in
+`evidence/shared-history-destination355-20261003/installed04/`. No native inputs
+were sent; original source hash unchanged; both cleanups report no remaining
+owned processes and zero errors. No public owner restart, provider call,
+application/protocol replacement, deadline padding or further capture.
+
+Heisenberg owns the Window/frame boundary. His source adjudication finds that
+Window custody closes before reader layout waits, native reflow signals layout
+completion even when frame paint is declined, and synchronous preparation invokes
+the original viewport directly. No Window edit is justified by04. The independent
+held-key driver custody correction is described below; this PR remains Draft. Archive559 and the accepted worker/receipt
+installation are independent and must not wait for the unfinished End proof.
+
+## Original04 prerequisite custody resolved from source
+
+Heisenberg traced the original private journal and retained profile: only106 of
+the required140 seed envelopes were committed (History0 through105).
+`retained_app` awaited that original producer before entering the destination
+journey. Native End was therefore **not reached** in04. The original profile
+shows seed_channel -> publish_initial_cohort -> registry.private_guard; it does
+not establish a Window/frame failure. This supersedes the earlier unmeasured-step
+classification above; the negative recording and incomplete journal stay intact.
+
+The first correction moved fixture creation before recorder/App admission.
+The completed source-prerequisite correction below replaces repeated creation
+with the existing immutable history attachment owner. The external seed sender retains its actual fixture
+process identity; the operator remains alive throughout recording. No source
+clone, registration mirror, new root, provider input or replay of04 was added.
+The read, receipt and cancellation checks still operate on the original bus.
+
+Independently, the held-read control had a source-visible lifetime defect: its
+first `await pilot.press(End)` was outside the release finally. Textual's Pilot
+waits for global idle and animator completion, then every mounted child's queued
+callback. A physical key makes no such completion promise while original I/O is
+held. The existing HistorySourceLifetimeJourney now injects native End/Home keys
+through xdotool on the recorder-owned isolated display, using ProcessOwner for
+child custody and cleanup. Release finally covers the first End injection; focus
+is acknowledged by the original App, rather than waiting for unrelated child
+queues. This is a separate confirmed driver contract risk, **not** the cause of04.
+No key codec/map or product event bypass is introduced.
+
+Source cancellation/publication was read through the complete existing family:
+WorkingTranscript settles only its exact admission; pending latest intent uses
+the original revision; native HistorySourceSnapshot fences publication; the
+wire reader owns immutable read-request identity and follow intent. Native
+PreparationRuntime shields admitted producer work and validates its original
+scope at delivery; ChannelHistoryReader keeps actual threaded reads in its
+pending set until completion. Revoking a waiter does not pretend physical I/O
+was killed or transfer its custody. These owners are retained, not replaced by
+a second cancellation registry or an optimistic source-completed flag.
+
+No new recording, package update, environment or timeout increase was made for
+this driver batch. Heisenberg completed the original Window/frame source review without finding a
+justified product change from04. The final paint check remains after source work
+settles; current installed End qualification remains open.
+
+## Retained channel prerequisite: existing source owner, no reseeding
+
+`HistoryViews.attach_history` delegates snapshot/provenance/cursors and archived
+access to `HistoryArchive.attach`. It writes only the destination snapshot and
+restores the canonical channel catalog; it never starts a source Comms owner,
+allocates source sequences, reconstructs delivery audiences or wakes original
+recipients. The publisher has no bulk-send declaration. Adding another fixture
+bus algorithm would repeat the existing publication owner.
+
+The source driver now requires an explicit retained channel source and attaches
+it before constructing the App or recorder. The selected source is the protected
+completed338 `physical-installed07/wire`:140 original History envelopes and two
+original receipts,166639 bytes. These remain retained display originals, not new
+input or delivery authority. Its prior failed End evidence remains protected.
+The current fixture declares its own external reader and sends fresh receipts
+through the ordinary live bus. Fresh receipt bodies include the current fixture
+path, so a retained prior receipt cannot satisfy the new-send paint assertion.
+
+Deleted: the driver140-message publication loop and both reseeding callers.
+Standalone setup uses the existing private-native route initializer; the joint
+retained callback consumes its already-initialized root. Both require the source
+before UI admission. No new publisher method, bulk guard, archive decoder, bus
+store, environment, provider call or capture was introduced. Final native End
+and IRC current-receipt/retained-history End acceptance remain open.
+
+Before ownership evidence uses NRA `Package.load`:390 test modules,39 recorder
+modules,311 installed-Core production modules; zero parse omissions. Static
+references identify the declaration/callers but do not prove dynamic receiver
+resolution. The archive/current page traversal, source provenance, display read
+acknowledgement and publisher contracts were read semantically.
+
+Installed source-prerequisite sanity completed once in1.020s. The original142
+rows retained their IDs/order/source bytes, the current bus stayed at sequence0,
+and one fresh ordinary receipt became current sequence1 while the original
+source hashes stayed unchanged. No App/native process or provider call started.
+This detects accidental resequencing/republication and retained-receipt false
+acceptance; it is not an End/frame qualification. Before/after NRA output and
+`retained-prerequisite01.json` are durable alongside the original04 negative.
+After: no seed_channel declaration/callers, one inherited archive attachment
+call in prepare_channel and its two preparation callers. Zero parser omissions.
+Resource warning:6.0GiB home/9.0GiB available RAM/13.6GiB swap; the small167KB
+source snapshot reused the installed dependencies without a new environment.
+
+## Installed05: scoped native destination and receipt acceptance
+
+The original combined recording exited1 after39.111 seconds. Native End/Home
+revocation/final End passed: the revoked original revision10 remained protected,
+final revision11 follows tail with no newer page, and the native boundary reported
+no application exception. No native input/provider request or original replay was
+sent. The first channel pending-read receipt and typing assertions also returned;
+the actual21-second frame shows the fresh current-fixture receipt once alongside
+retained History rows. The later channel older-page publication did not finish,
+so second receipt/restart/final IRC End and the whole journey remain unqualified.
+
+Original receipts, failure, native destination result, cleanup,16/21-second
+physical frames and scoped assessment are retained in `evidence/shared-history-
+destination355-20261003/installed05/`. The original movie/profile stay at
+`/home/ts/.cache/agent-scratch/kepler355-shared-destination-20261003-05`.
+Both recorder/callback cleanup report no remaining owned processes/errors. The
+original wrapper's `children_retired:false` remains unchanged: its external
+edge-reader is the running operator itself at that observation. Actual operator,
+UI and native worker were verified gone after exit. There is no final App
+exception export and no global End, speed or smoothness claim.
+
+## Shared block admission: registration owns initial CSS
+
+The original ProfileTrace observation at28.290799 seconds is not an AwaitMount
+wait: `exercise:121 -> mount_page -> insert_page:218 -> CategorizedMount.mount:259
+-> set_class -> add_class -> update_node_styles -> App.update_styles ->
+Stylesheet.update_nodes/apply/replace_rules`. This locates synchronous CSS work
+before native registration; it does not quantify its duration or prove the entire
+timeout is caused by this work.
+
+The existing CategorizedMount owns admission for both Contents and
+MountedMessageHistory. The admitted blocks are nominal ConversationBlocks;
+category/filter behavior remains on the existing category owners. Native
+App._register applies initial styles to each newly registered widget with its
+existing batch rule cache. Updating detached class markers before registration
+therefore asks for premature extra CSS matching through the active App.
+
+Heisenberg granted only CategorizedMount.mount. It now gives both admission
+markers to native DOM.update_classes in one batch, deriving style publication
+from the block's actual attachment. New detached blocks receive their classes
+without CSS publication, and native registration does the first match. Already
+attached blocks retain immediate, atomic style invalidation. The separate
+apply_block_filter continues to own authored descendant-CSS/display-constraint
+semantics. No Window/frame/sidebar edit, new state/cache/type or source bypass.
+Two independent immediate class-update calls are replaced by the existing native
+batch owner across both history consumers. Pattern BOUND-2: use the original
+registration/style owner instead of redundant pre-registration publication.
+
+Existing NRA Package.load covered286 Toad and249 native Textual modules with
+zero parse omissions before editing. Evidence includes class declarations,
+imports, admission/filter consumers and native registration/class-update APIs.
+AST names are not dynamic method resolution; MRO and attachment/registration
+behavior were read directly. Exact installed changed-source IRC final destination
+qualification remains pending with the same integration owner after the current
+352 capture releases its holder; no unchanged capture, timeout increase or second
+App was started for this change.
+
+## Changed installed06: redundant admission removed; IRC End still open
+
+Normally integrated qualified352 at62786249 and current main359 at37ac2634,
+without conflicts. The combined published source is9d0d150fa. Reused the released
+same holder after zero borrower/default-link checks and archived its previous
+source/activation proofs. Normal69 updated only the Toad wheel; Core6a/Textual940/
+native-de166 remain unchanged. All four production/assets inventories, direct
+URLs, native full-tree trust and pip check passed. No new environment/native
+copy/build, source overlay, public mutation or provider/native input.
+
+One changed installed recording exited1 after39.038 seconds with the original
+44-second movie and60-second fixture budgets. Native End/Home revocation/final
+End passed again at original revision10/final11, tail true/no newer, no App
+exception at that boundary. First pending-read receipt and typing returned;
+the actual26-second physical frame shows the fresh current-fixture receipt once
+and typed `hi`. The14-second native frame shows retained native body readability,
+not independent final-End timing. Later IRC restart/second receipt/final End
+remain unqualified; there is no final App exception export or global End claim.
+
+The original ProfileTrace28.173091/28.198340 now shows `exercise:121 ->
+insert_page:218 -> CategorizedMount:266 -> Widget.mount:1561 ->
+App._register:3673 -> Stylesheet.apply`. The premature CSS path is removed in the
+actual installed execution. The remaining observation is native initial
+registration, with other worker page registrations visible at18.209524 and
+27.400622. These changed stack observations do not prove a deadlock, a duration,
+CPU attribution or that all remaining time belongs to CSS. Native registration
+already uses one batch rule cache; Stylesheet retains its declared path-rule
+cache and Styles.batch_update. Bypassing initial matching or inventing another
+cache is not justified. Remaining initial body materialization/frame work stays
+with the existing integration owner; no unchanged repeat or deadline padding.
+
+Evidence: `evidence/shared-history-destination355-20261003/installed06/`, raw
+movie/profile `/home/ts/.cache/agent-scratch/kepler355-shared-destination-
+20261003-06`. Original05 negative and originals/UNKNOWN remain unchanged.
+Recorder/callback cleanup both show zero remaining processes/errors. Actual
+UI/st/operator processes were verified gone; the original wrapper's external
+operator `children_retired:false` is preserved with its stated scope. The same
+holder is released. Current home5.4GiB/root7.6GiB/swap13.5 warning was addressed
+proportionally by reusing the holder/cached wheel and a single bounded journey,
+not allocating another environment or native package.
+
+After the normal main359 union, the earlier shared destination implementation
+is already present in main. Current PR355 production delta is one shared
+admission method: five added/two deleted lines. Its initial native/IRC admission
+is exercised; the whole later IRC End journey stays open in this context.

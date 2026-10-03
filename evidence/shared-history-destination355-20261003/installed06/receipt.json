@@ -1,0 +1,68 @@
+{
+  "provider": "openai-codex/gpt-6.1-sol",
+  "thinking": "off",
+  "original_bytes": 41294021,
+  "original_inputs_replayed": 0,
+  "completed_phases": [],
+  "core": "6a1dad1db068aeb65c6feb2a11d75d4923c942eb",
+  "toad": "9d0d150fa959abb663d2cfed520e52b175ebdb3a",
+  "launch_source": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+  "saved_source": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+  "saved_source_sha256": "1f7ade9e9d00eceb1eec18fb7879efa5d6681a7ffc433bf7884c5bfc2f924852",
+  "physical_sources": [
+    {
+      "name": "resource436",
+      "tags": [],
+      "worktree": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/history-lifetime338/installed-destination355-06/private/project",
+      "created_at": 1790999002.4628592,
+      "session_file": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/history-lifetime338/installed-destination355-06/private/native-forks/sessions/--home-ts-wt-toad-command-source-closure-20261002-.artifacts-history-lifetime338-installed-destination355-06-private-project--/2026-10-03T03-43-21-093Z_01a0ffdb-f805-77e4-9984-ce3b9fede3c3.jsonl",
+      "title": null,
+      "parent": null,
+      "task": "Isolated bounded lifecycle acceptance only. Never resume inherited work. Use only explicitly requested acceptance tools and fixture goal. All paths and goals belong to this private fixture.",
+      "process_identity": null,
+      "model": "openai-codex/gpt-6.1-sol",
+      "thinking_level": "off",
+      "goal": null,
+      "previous_worktrees": [],
+      "auto_title_pending": false,
+      "role": "agent",
+      "active_turn": null,
+      "channel_scope_generation": 0,
+      "turn_generation": 0,
+      "last_finished_turn_id": null
+    },
+    {
+      "name": "resource236b",
+      "tags": [],
+      "worktree": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/history-lifetime338/installed-destination355-06/private/project",
+      "created_at": 1790999004.5566876,
+      "session_file": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/history-lifetime338/installed-destination355-06/private/native-forks/sessions/--home-ts-wt-toad-command-source-closure-20261002-.artifacts-history-lifetime338-installed-destination355-06-private-project--/2026-10-03T03-43-23-340Z_01a0ffdc-00cc-75ff-a112-763b5be8ec30.jsonl",
+      "title": null,
+      "parent": null,
+      "task": "Read-only saved history capture. Never resume inherited work or send inputs.",
+      "process_identity": null,
+      "model": "openai-codex/gpt-6.1-sol",
+      "thinking_level": "off",
+      "goal": null,
+      "previous_worktrees": [],
+      "auto_title_pending": false,
+      "role": "agent",
+      "active_turn": null,
+      "channel_scope_generation": 0,
+      "turn_generation": 0,
+      "last_finished_turn_id": null
+    }
+  ],
+  "original_source_custody": {
+    "sha256": "1f7ade9e9d00eceb1eec18fb7879efa5d6681a7ffc433bf7884c5bfc2f924852",
+    "owner": {
+      "pid": 1920566,
+      "start_time": 47380046
+    },
+    "unchanged": true
+  },
+  "original_process_witness_released": true,
+  "inputs": [],
+  "elapsed_seconds": 39.038,
+  "children_retired": false
+}

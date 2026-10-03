@@ -1,0 +1,1244 @@
+{
+  "roots": [
+    {
+      "root": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual",
+      "parsed": 249,
+      "python_files": 249
+    },
+    {
+      "root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad",
+      "parsed": 287,
+      "python_files": 287
+    }
+  ],
+  "sites": [
+    {
+      "file": "textual/_compositor.py",
+      "name": "_subtree_style_revision",
+      "line": 90,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/app.py",
+      "name": "publish",
+      "line": 1523,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/app.py",
+      "name": "publish",
+      "line": 2667,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/app.py",
+      "name": "publish",
+      "line": 2668,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/app.py",
+      "name": "publish",
+      "line": 2959,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/app.py",
+      "name": "publish",
+      "line": 3027,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/app.py",
+      "name": "publish",
+      "line": 3116,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/app.py",
+      "name": "publish",
+      "line": 4729,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/app.py",
+      "name": "publish",
+      "line": 4734,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/dom.py",
+      "name": "_subtree_style_revision",
+      "line": 152,
+      "kind": "write"
+    },
+    {
+      "file": "textual/dom.py",
+      "name": "_revision",
+      "line": 1158,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/message_pump.py",
+      "name": "publish",
+      "line": 716,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/screen.py",
+      "name": "publish",
+      "line": 413,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/screen.py",
+      "name": "publish",
+      "line": 1447,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/widget.py",
+      "name": "_subtree_style_revision",
+      "line": 1875,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/widget.py",
+      "name": "_subtree_style_revision",
+      "line": 1407,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/widget.py",
+      "name": "_subtree_style_revision",
+      "line": 1914,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "StyleProperty",
+      "method": "__get__",
+      "line": 79,
+      "kind": "declaration",
+      "type_overload": true
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "StyleProperty",
+      "method": "__get__",
+      "line": 82,
+      "kind": "declaration",
+      "type_overload": true
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "StyleProperty",
+      "method": "__get__",
+      "line": 84,
+      "kind": "declaration",
+      "type_overload": false
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "StyleProperty",
+      "method": "get_value",
+      "line": 88,
+      "kind": "declaration",
+      "type_overload": false
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "StyleProperty",
+      "method": "publish",
+      "line": 92,
+      "kind": "declaration",
+      "type_overload": false
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "GenericProperty",
+      "method": "get_value",
+      "line": 130,
+      "kind": "declaration",
+      "type_overload": false
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "ScalarProperty",
+      "method": "get_value",
+      "line": 178,
+      "kind": "declaration",
+      "type_overload": false
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "ScalarListProperty",
+      "method": "get_value",
+      "line": 267,
+      "kind": "declaration",
+      "type_overload": false
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "BoxProperty",
+      "method": "get_value",
+      "line": 313,
+      "kind": "declaration",
+      "type_overload": false
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "BorderProperty",
+      "method": "get_value",
+      "line": 436,
+      "kind": "declaration",
+      "type_overload": false
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "KeylineProperty",
+      "method": "get_value",
+      "line": 547,
+      "kind": "declaration",
+      "type_overload": false
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "SpacingProperty",
+      "method": "get_value",
+      "line": 567,
+      "kind": "declaration",
+      "type_overload": false
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "DockProperty",
+      "method": "get_value",
+      "line": 620,
+      "kind": "declaration",
+      "type_overload": false
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "SplitProperty",
+      "method": "get_value",
+      "line": 651,
+      "kind": "declaration",
+      "type_overload": false
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "LayoutProperty",
+      "method": "get_value",
+      "line": 683,
+      "kind": "declaration",
+      "type_overload": false
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "OffsetProperty",
+      "method": "get_value",
+      "line": 739,
+      "kind": "declaration",
+      "type_overload": false
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "StringEnumProperty",
+      "method": "get_value",
+      "line": 835,
+      "kind": "declaration",
+      "type_overload": false
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "StringEnumProperty",
+      "method": "publish",
+      "line": 849,
+      "kind": "declaration",
+      "type_overload": false
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "OverflowProperty",
+      "method": "publish",
+      "line": 887,
+      "kind": "declaration",
+      "type_overload": false
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "NameProperty",
+      "method": "get_value",
+      "line": 901,
+      "kind": "declaration",
+      "type_overload": false
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "NameListProperty",
+      "method": "get_value",
+      "line": 938,
+      "kind": "declaration",
+      "type_overload": false
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "ColorProperty",
+      "method": "get_value",
+      "line": 967,
+      "kind": "declaration",
+      "type_overload": false
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "ScrollbarColorProperty",
+      "method": "publish",
+      "line": 1036,
+      "kind": "declaration",
+      "type_overload": false
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "StyleFlagsProperty",
+      "method": "get_value",
+      "line": 1053,
+      "kind": "declaration",
+      "type_overload": false
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "TransitionsProperty",
+      "method": "get_value",
+      "line": 1114,
+      "kind": "declaration",
+      "type_overload": false
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "FractionalProperty",
+      "method": "get_value",
+      "line": 1158,
+      "kind": "declaration",
+      "type_overload": false
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "AlignProperty",
+      "method": "get_value",
+      "line": 1205,
+      "kind": "declaration",
+      "type_overload": false
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "class": "HatchProperty",
+      "method": "get_value",
+      "line": 1223,
+      "kind": "declaration",
+      "type_overload": false
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "name": "publish",
+      "line": 888,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "name": "get_value",
+      "line": 86,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "name": "publish",
+      "line": 876,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/css/_style_properties.py",
+      "name": "publish",
+      "line": 1034,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/css/styles.py",
+      "name": "_revision",
+      "line": 969,
+      "kind": "write"
+    },
+    {
+      "file": "textual/css/styles.py",
+      "name": "_mark_updated",
+      "line": 959,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/css/styles.py",
+      "name": "_style_rules_updated",
+      "line": 970,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/css/styles.py",
+      "name": "_revision",
+      "line": 970,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/css/styles.py",
+      "name": "_mark_updated",
+      "line": 983,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/css/styles.py",
+      "name": "_mark_updated",
+      "line": 1008,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/css/styles.py",
+      "name": "_mark_updated",
+      "line": 1068,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/css/styles.py",
+      "name": "_mark_updated",
+      "line": 1085,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/css/styles.py",
+      "name": "_mark_updated",
+      "line": 1002,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/css/styles.py",
+      "name": "publish",
+      "line": 963,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/css/stylesheet.py",
+      "name": "replace_rules",
+      "line": 757,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/css/stylesheet.py",
+      "name": "replace_rules",
+      "line": 907,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/css/stylesheet.py",
+      "name": "replace_rules",
+      "line": 909,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/css/stylesheet.py",
+      "name": "replace_rules",
+      "line": 659,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "textual/css/stylesheet.py",
+      "name": "replace_rules",
+      "line": 680,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/app.py",
+      "name": "publish",
+      "line": 503,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/application_lifetime.py",
+      "name": "publish",
+      "line": 65,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/application_lifetime.py",
+      "name": "publish",
+      "line": 64,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/clipboard.py",
+      "name": "publish",
+      "line": 25,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/clipboard.py",
+      "name": "publish",
+      "line": 51,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/comms_root.py",
+      "name": "publish",
+      "line": 162,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/core_event_carrier.py",
+      "name": "publish",
+      "line": 57,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/directory_watcher.py",
+      "name": "publish",
+      "line": 295,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/mounted_message_history.py",
+      "name": "publish",
+      "line": 289,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/preferences.py",
+      "name": "publish",
+      "line": 336,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/session_navigation.py",
+      "name": "publish",
+      "line": 73,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/session_navigation.py",
+      "name": "publish",
+      "line": 80,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/session_navigation.py",
+      "name": "publish",
+      "line": 207,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/session_observation.py",
+      "name": "publish",
+      "line": 60,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/session_observation.py",
+      "name": "publish",
+      "line": 80,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/session_tracker.py",
+      "name": "publish",
+      "line": 150,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/session_tracker.py",
+      "name": "publish",
+      "line": 156,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/session_tracker.py",
+      "name": "publish",
+      "line": 187,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/sidebar_observation.py",
+      "name": "publish",
+      "line": 107,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/sidebar_observation.py",
+      "name": "publish",
+      "line": 125,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/sidebar_observation.py",
+      "name": "publish",
+      "line": 137,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/sidebar_observation.py",
+      "name": "publish",
+      "line": 284,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/sidebar_observation.py",
+      "name": "publish",
+      "line": 289,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/sidebar_observation.py",
+      "name": "publish",
+      "line": 116,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/sidebar_observation.py",
+      "name": "publish",
+      "line": 245,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/slash_command.py",
+      "name": "publish",
+      "line": 309,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/slash_command.py",
+      "name": "publish",
+      "line": 327,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/tab_order.py",
+      "name": "publish",
+      "line": 88,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/tab_order.py",
+      "name": "publish",
+      "line": 101,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/target_commands.py",
+      "name": "publish",
+      "line": 271,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/terminal_attention.py",
+      "name": "publish",
+      "line": 134,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/thread_actions.py",
+      "name": "publish",
+      "line": 65,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/thread_actions.py",
+      "name": "publish",
+      "line": 70,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/thread_actions.py",
+      "name": "publish",
+      "line": 170,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/transcript_publication.py",
+      "name": "publish",
+      "line": 294,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/transcript_publication.py",
+      "name": "publish",
+      "line": 351,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/transcript_publication.py",
+      "name": "publish",
+      "line": 598,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/transcript_publication.py",
+      "name": "publish",
+      "line": 649,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/transcript_publication.py",
+      "name": "publish",
+      "line": 594,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/transcript_publication.py",
+      "name": "publish",
+      "line": 656,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/transcript_publication.py",
+      "name": "publish",
+      "line": 357,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/transcript_publication.py",
+      "name": "publish",
+      "line": 560,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/transcript_publication.py",
+      "name": "publish",
+      "line": 742,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/transcript_state.py",
+      "name": "publish",
+      "line": 109,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent.py",
+      "name": "publish",
+      "line": 190,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent.py",
+      "name": "publish",
+      "line": 242,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent.py",
+      "name": "publish",
+      "line": 246,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent.py",
+      "name": "publish",
+      "line": 402,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent_configuration.py",
+      "name": "publish",
+      "line": 141,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent_configuration.py",
+      "name": "publish",
+      "line": 145,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent_controller.py",
+      "name": "publish",
+      "line": 155,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent_controller.py",
+      "name": "publish",
+      "line": 156,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent_controller.py",
+      "name": "publish",
+      "line": 184,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent_controller.py",
+      "name": "publish",
+      "line": 193,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent_controller.py",
+      "name": "publish",
+      "line": 198,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent_controller.py",
+      "name": "publish",
+      "line": 215,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent_controller.py",
+      "name": "publish",
+      "line": 226,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent_controller.py",
+      "name": "publish",
+      "line": 231,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent_controller.py",
+      "name": "publish",
+      "line": 159,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent_controller.py",
+      "name": "publish",
+      "line": 165,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent_controller.py",
+      "name": "publish",
+      "line": 173,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent_controller.py",
+      "name": "publish",
+      "line": 336,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent_controller.py",
+      "name": "publish",
+      "line": 338,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent_process.py",
+      "name": "publish",
+      "line": 177,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent_process.py",
+      "name": "publish",
+      "line": 182,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent_process.py",
+      "name": "publish",
+      "line": 191,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent_process.py",
+      "name": "publish",
+      "line": 245,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent_process.py",
+      "name": "publish",
+      "line": 208,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent_process.py",
+      "name": "publish",
+      "line": 70,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent_session.py",
+      "name": "publish",
+      "line": 65,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent_session.py",
+      "name": "publish",
+      "line": 99,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent_session.py",
+      "name": "publish",
+      "line": 311,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/agent_session.py",
+      "name": "publish",
+      "line": 78,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/comms_updates.py",
+      "name": "publish",
+      "line": 69,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/comms_updates.py",
+      "name": "publish",
+      "line": 73,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/comms_updates.py",
+      "name": "publish",
+      "line": 83,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/comms_updates.py",
+      "name": "publish",
+      "line": 133,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/comms_updates.py",
+      "name": "publish",
+      "line": 138,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/comms_updates.py",
+      "name": "publish",
+      "line": 145,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/comms_updates.py",
+      "name": "publish",
+      "line": 160,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/comms_updates.py",
+      "name": "publish",
+      "line": 164,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/comms_updates.py",
+      "name": "publish",
+      "line": 176,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/comms_updates.py",
+      "name": "publish",
+      "line": 187,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/comms_updates.py",
+      "name": "publish",
+      "line": 193,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/comms_updates.py",
+      "name": "publish",
+      "line": 110,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/permission_controller.py",
+      "name": "publish",
+      "line": 95,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/permission_controller.py",
+      "name": "publish",
+      "line": 101,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/sdk_boundary.py",
+      "name": "publish",
+      "line": 51,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/session_updates.py",
+      "name": "publish",
+      "line": 94,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/session_updates.py",
+      "name": "publish",
+      "line": 99,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/session_updates.py",
+      "name": "publish",
+      "line": 109,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/session_updates.py",
+      "name": "publish",
+      "line": 142,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/session_updates.py",
+      "name": "publish",
+      "line": 148,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/session_updates.py",
+      "name": "publish",
+      "line": 71,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/session_updates.py",
+      "name": "publish",
+      "line": 86,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/session_updates.py",
+      "name": "publish",
+      "line": 130,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/tool_calls.py",
+      "name": "publish",
+      "line": 20,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/acp/tool_calls.py",
+      "name": "publish",
+      "line": 33,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/core/events.py",
+      "name": "publish",
+      "line": 287,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/screens/action_modal.py",
+      "name": "publish",
+      "line": 93,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/screens/comms.py",
+      "name": "publish",
+      "line": 292,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/screens/comms.py",
+      "name": "publish",
+      "line": 295,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/screens/main.py",
+      "name": "publish",
+      "line": 448,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/screens/main.py",
+      "name": "publish",
+      "line": 452,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/screens/store.py",
+      "name": "publish",
+      "line": 210,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/screens/store.py",
+      "name": "publish",
+      "line": 316,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/screens/store.py",
+      "name": "publish",
+      "line": 514,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/screens/store.py",
+      "name": "publish",
+      "line": 581,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/widgets/comms_chat.py",
+      "name": "publish",
+      "line": 326,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/widgets/comms_sidebar.py",
+      "name": "publish",
+      "line": 362,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/widgets/comms_transfer.py",
+      "name": "publish",
+      "line": 97,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/widgets/conversation.py",
+      "name": "publish",
+      "line": 1429,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/widgets/conversation.py",
+      "name": "publish",
+      "line": 1095,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/widgets/conversation.py",
+      "name": "publish",
+      "line": 1014,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/widgets/conversation.py",
+      "name": "publish",
+      "line": 1075,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/widgets/session_tabs.py",
+      "name": "publish",
+      "line": 70,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/widgets/session_tabs.py",
+      "name": "publish",
+      "line": 37,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/widgets/side_bar.py",
+      "name": "publish",
+      "line": 872,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/widgets/side_bar.py",
+      "name": "publish",
+      "line": 540,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/widgets/side_bar.py",
+      "name": "publish",
+      "line": 855,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/widgets/side_bar.py",
+      "name": "publish",
+      "line": 929,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/widgets/side_bar.py",
+      "name": "publish",
+      "line": 863,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/widgets/thread_comms.py",
+      "name": "_revision",
+      "line": 220,
+      "kind": "write"
+    },
+    {
+      "file": "toad/widgets/thread_comms.py",
+      "name": "_revision",
+      "line": 316,
+      "kind": "write"
+    },
+    {
+      "file": "toad/widgets/thread_comms.py",
+      "name": "_revision",
+      "line": 371,
+      "kind": "write"
+    },
+    {
+      "file": "toad/widgets/thread_comms.py",
+      "name": "_revision",
+      "line": 389,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/widgets/thread_comms.py",
+      "name": "_revision",
+      "line": 448,
+      "kind": "write"
+    },
+    {
+      "file": "toad/widgets/tool_content.py",
+      "name": "publish",
+      "line": 219,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/widgets/transcript_history.py",
+      "name": "publish",
+      "line": 481,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/widgets/viewport_body.py",
+      "name": "_subtree_style_revision",
+      "line": 418,
+      "kind": "read_or_call"
+    },
+    {
+      "file": "toad/widgets/viewport_body.py",
+      "name": "_subtree_style_revision",
+      "line": 226,
+      "kind": "read_or_call"
+    }
+  ],
+  "ambiguity": "Static attribute sites do not prove runtime dispatch. Generated CSS field names bind via native Python MRO; one descriptor class-access implementation plus two typing overloads,20 value hooks, no parallel property registry.",
+  "owner": "Styles stores/writes original rule dictionary and mutation epoch; DOM propagates subtree dependency. StyleProperty owns class/bound descriptor binding and node effects, no state. Stylesheet both replacement branches delegate Styles.replace_rules."
+}

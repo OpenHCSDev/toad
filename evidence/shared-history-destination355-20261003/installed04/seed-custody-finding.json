@@ -1,0 +1,8 @@
+{
+  "source": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/history-lifetime338/installed-destination355-04/private/wire/bus.jsonl",
+  "rows": 106,
+  "last_sequence": 106,
+  "required_fixture_messages": 140,
+  "observation": "Fixture seeding did not finish before recorder deadline; native destination journey was never entered.",
+  "changed_source": "seed_channel is acquired by the existing callback before recorder/App admission; no new inputs replayed."
+}

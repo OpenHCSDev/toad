@@ -1,0 +1,464 @@
+{
+  "owner": "Kepler355-352-shared-destination",
+  "purpose": "source Toad physical interaction video review",
+  "output": "/home/ts/.cache/agent-scratch/kepler355-shared-destination-20261003-06",
+  "command": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "/home/ts/wt/toad-command-source-closure-20261002/tests/history_edge_scheduling_pilot.py",
+    "--retained-app",
+    "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/history-lifetime338/installed-destination355-06/private/project"
+  ],
+  "terminal_command": [
+    "st",
+    "-e",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "/home/ts/wt/toad-command-source-closure-20261002/tests/history_edge_scheduling_pilot.py",
+    "--retained-app",
+    "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/history-lifetime338/installed-destination355-06/private/project"
+  ],
+  "fps": 60,
+  "screen": [
+    1280,
+    900
+  ],
+  "profiling_requested": true,
+  "state_capture_requested": true,
+  "ui_config": {
+    "source": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/history-lifetime338/installed-destination355-06/private/config/toad/toad.json",
+    "home": "/home/ts/.cache/agent-scratch/kepler355-shared-destination-20261003-06/ui-config",
+    "initial_sha256": null
+  },
+  "private_root": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/history-lifetime338/installed-destination355-06/private/wire",
+  "capture_target": "source",
+  "physical_journey": "history_source_lifetime",
+  "original_owner_before": {
+    "root": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/history-lifetime338/installed-destination355-06/private/wire",
+    "mode": "source",
+    "source": "/home/ts/wt/toad-command-source-closure-20261002/tests/history_edge_scheduling_pilot.py",
+    "source_sha256": "58ffb0440e77800fd2b5d66c2226a501d354c6bfafd68a4164fa43bc10d38e3c",
+    "boundary": "source application journey; not installed readiness"
+  },
+  "recorder_argv": [
+    "/home/ts/wt/toad-command-source-closure-20261002/tests/history_edge_scheduling_pilot.py",
+    "--owner",
+    "Kepler355-352-shared-destination",
+    "--fps",
+    "60",
+    "--fit-window",
+    "--width",
+    "1280",
+    "--height",
+    "900",
+    "--startup-wait",
+    "2",
+    "--tail-seconds",
+    "1",
+    "--max-duration",
+    "44",
+    "--finalize-seconds",
+    "14",
+    "--capture-state",
+    "--profile",
+    "--profile-threads",
+    "gil",
+    "--profile-rate",
+    "25",
+    "--review-timing",
+    "deferred",
+    "--live-review-interval",
+    "8",
+    "--capture-target",
+    "source",
+    "--private-root",
+    "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/history-lifetime338/installed-destination355-06/private/wire",
+    "--journey",
+    "history_source_lifetime",
+    "--peer-thread",
+    "resource236b",
+    "--capture-state",
+    "--scroll-travel",
+    "--output",
+    "/home/ts/.cache/agent-scratch/kepler355-shared-destination-20261003-06",
+    "--",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "/home/ts/wt/toad-command-source-closure-20261002/tests/history_edge_scheduling_pilot.py",
+    "--retained-app",
+    "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/history-lifetime338/installed-destination355-06/private/project"
+  ],
+  "recorder_source_sha256": "2dfe898d5e184b67afb2be0377e7a6c63df564bce97ab819f54e655a656547bf",
+  "started_utc": "2026-10-03T03:43:27.136031+00:00",
+  "assessment": "unreviewed",
+  "capture_completed": false,
+  "completed": false,
+  "review_timing": "deferred",
+  "review": {
+    "start_seconds": 0,
+    "seconds": 3,
+    "fps": 8,
+    "frames_limit": 24,
+    "slowdown": 8,
+    "timestamp_basis": "source video seconds"
+  },
+  "runtime_before": {
+    "selection": "AGENT_COMMS_RUNTIME_ROOT",
+    "bin_directory": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin",
+    "launcher": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+    "launcher_sha256": "99f55c5b2b4dc4879ce8109aa2c9c1749e4f99c4f191792ca6ffd13ef12627b7",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+        "resolved_path": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+        "sha256": "99f55c5b2b4dc4879ce8109aa2c9c1749e4f99c4f191792ca6ffd13ef12627b7"
+      },
+      "acp": {
+        "selected_path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/agent-comms-acp",
+        "sha256": "5e09b6233ec9d76ffb14593d11145bf36b28794fb7db6953b3b84849e408e741"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/toad",
+        "sha256": "f5f7c41f9195e7353bb3376df52ead90159200c25f1033def081beb128dc765b"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/agent-comms-acp",
+        "sha256": "5e09b6233ec9d76ffb14593d11145bf36b28794fb7db6953b3b84849e408e741"
+      }
+    },
+    "activation_path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/activation.json",
+    "activation_sha256": "e45513a3140f8001ba57cb2ccdff2e2934d3d4bccfb5473e9734d3027dcf72d4",
+    "activation": {
+      "stage": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+      "pins": {
+        "agent_comms": "6a1dad1db068aeb65c6feb2a11d75d4923c942eb",
+        "toad": "9d0d150fa959abb663d2cfed520e52b175ebdb3a",
+        "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
+      },
+      "sdk": "0.12.1",
+      "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-de16647979cbad28/node_modules/@earendil-works/pi-coding-agent",
+      "state": "normal69 joined352/355 currentCore6a private candidate; changed End/revoke/receipt pending; no full347 motion repeat",
+      "staging_receipt": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/staging-shared-admission355-06/source-proof.json",
+      "bins": {
+        "python": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+        "toad": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/toad",
+        "agent-comms": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/agent-comms",
+        "agent-comms-acp": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/agent-comms-acp",
+        "agent-comms-agent": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/agent-comms-agent",
+        "pi-comms-native": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/pi-comms-native"
+      },
+      "native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-de16647979cbad28/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+      "native_manifest": "de16647979cbad28be4f60349d39a420e83aaffb1d678941609449d306109968",
+      "native_tree": "7bf47002b579908fc556548c19451b925afd688606954ad485180a49da5c133d",
+      "native_configuration_note": "PRIVATE candidate Core6a/native-de166 +352/355. Public558 donor is read-only and untouched; candidate never binds public route. Existing typed-original private saved-history ownership and one physical motion/receipt/End gate; no provider input/replay/global package mutation/newenv/nativecopy."
+    },
+    "observed": {
+      "python": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+      "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "be2b3ec8f34847c9525197244ea485f67685406768611aa22d1c85c5f295119a",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/toad.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "9d0d150fa959abb663d2cfed520e52b175ebdb3a",
+              "requested_revision": "9d0d150fa959abb663d2cfed520e52b175ebdb3a"
+            }
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "88911b4e2b3555c3f09979cf3492b24373a05637d3f2a04e66cb56d7d037f818",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0",
+              "requested_revision": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
+            }
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "5cf9bda351ef2f6553cd125a20e24ed4f7c6019b836a5ba8977016780c7b3c12",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "6a1dad1db068aeb65c6feb2a11d75d4923c942eb",
+              "requested_revision": "6a1dad1db068aeb65c6feb2a11d75d4923c942eb"
+            }
+          }
+        }
+      },
+      "route": {
+        "root": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/history-lifetime338/installed-destination355-06/private/wire",
+        "wire_root_id": "cbf2804074d54841aaf9ed8d889d9c4e",
+        "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-de16647979cbad28/node_modules/@earendil-works/pi-coding-agent"
+      },
+      "native_launch": {
+        "root": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/history-lifetime338/installed-destination355-06/private/wire",
+        "wire_root_id": "cbf2804074d54841aaf9ed8d889d9c4e",
+        "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-de16647979cbad28/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "display": ":2318",
+  "profiler": {
+    "command": [
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+      "/home/ts/wt/toad-command-source-closure-20261002/tests/tools/record_installed_tui.py",
+      "--profile-launch",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+      "/home/ts/wt/toad-command-source-closure-20261002/tests/history_edge_scheduling_pilot.py",
+      "--retained-app",
+      "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/history-lifetime338/installed-destination355-06/private/project"
+    ],
+    "executable_sha256": "9b4d1f39b2a47ae44f4c6a46f615dcc0287d7755beba5065f32391951e07d594",
+    "launch_monotonic": 474648.572509806,
+    "launch": {
+      "terminal_pid": 2012568,
+      "terminal_start_ticks": 47464914,
+      "ui_pid": 2012580,
+      "ui_start_ticks": 47464922,
+      "profiler_command": [
+        "/home/ts/.local/bin/py-spy",
+        "record",
+        "--pid",
+        "2012580",
+        "--format",
+        "chrometrace",
+        "--subprocesses",
+        "--full-filenames",
+        "--gil",
+        "--rate",
+        "25",
+        "--duration",
+        "44",
+        "--output",
+        "/home/ts/.cache/agent-scratch/kepler355-shared-destination-20261003-06/cpu-profile.json"
+      ],
+      "sampling": "consistent",
+      "threads": "gil",
+      "profiler_exec_monotonic": 474649.266269928
+    },
+    "sampling_ready_observed_monotonic": 474649.342723268
+  },
+  "ui_identity": {
+    "pid": 2012580,
+    "start_ticks": 47464922
+  },
+  "window": "2097158",
+  "capture_launch_monotonic": 474649.756357212,
+  "interaction_deadline_monotonic": 474679.756357212,
+  "finish_deadline_monotonic": 474693.756357212,
+  "finalize_seconds": 14.0,
+  "terminal_pid": 2012568,
+  "state_captures": {
+    "before": {
+      "started_seconds": 2.289641468960326,
+      "manifest": {
+        "pid": 2012580,
+        "created": 1790999009.22,
+        "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+        "rss_before": 134561792,
+        "started_ns": 1790999012948585248,
+        "profile_seconds": 0,
+        "gil_only": false,
+        "native": false,
+        "receipts": {
+          "/home/ts/.cache/agent-scratch/kepler355-shared-destination-20261003-06/before-state": "complete",
+          "/home/ts/.cache/agent-scratch/kepler355-shared-destination-20261003-06/before-screen": "complete"
+        },
+        "finished_ns": 1790999014014777909
+      },
+      "finished_seconds": 3.6017458989517763
+    },
+    "observers": {
+      "started_seconds": 3.601874522981234,
+      "manifest": {
+        "pid": 2012580,
+        "created": 1790999009.22,
+        "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+        "rss_before": 142200832,
+        "started_ns": 1790999014256106359,
+        "profile_seconds": 0,
+        "gil_only": false,
+        "native": false,
+        "receipts": {
+          "/home/ts/.cache/agent-scratch/kepler355-shared-destination-20261003-06/observers-state": "complete"
+        },
+        "finished_ns": 1790999014320897762
+      },
+      "finished_seconds": 3.8912663749651983
+    }
+  },
+  "terminal_processes": {
+    "2012568": {
+      "start_ticks": 47464914,
+      "command": "st -e /home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python /home/ts/wt/toad-command-source-closure-20261002/tests/history_edge_scheduling_pilot.py --retained-app /home/ts/wt/toad-command-source-closure-20261002/.artifacts/history-lifetime338/installed-destination355-06/private/project "
+    },
+    "2012580": {
+      "start_ticks": 47464922,
+      "command": "toad                                                                                                                                                                                                                                                                                                                                                "
+    },
+    "2012829": {
+      "start_ticks": 47465069,
+      "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -c from multiprocessing.resource_tracker import main;main(8) "
+    },
+    "2012907": {
+      "start_ticks": 47465148,
+      "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=9, pipe_handle=13) --multiprocessing-fork "
+    },
+    "2012909": {
+      "start_ticks": 47465148,
+      "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=9, pipe_handle=16) --multiprocessing-fork "
+    }
+  },
+  "driver_started_seconds": 3.938702307001222,
+  "live_reviews": [
+    {
+      "label": "live-1-0",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-1-1",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    }
+  ],
+  "live_frame_delivery": {
+    "available": true,
+    "trace": "live-1-1-state-frames.json",
+    "artifacts": [
+      "frame-delivery.json",
+      "frame-delivery.svg"
+    ],
+    "intervals": {
+      "count": 461,
+      "median_ms": 18.54,
+      "p95_ms": 85.74,
+      "p99_ms": 195.33,
+      "max_ms": 527.2
+    },
+    "scope": "Native writer completion; not changed pixels or terminal presentation FPS. Zero stationary motion is legitimate, not a stall classification."
+  },
+  "error": "TimeoutExpired: Command '('/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python', '-c', \"import os,sys\\nfd=int(sys.argv[1]); error_fd=int(sys.argv[2]); go=os.read(fd,1); os.close(fd)\\nif go != b'G': sys.exit(126)\\nos.set_inheritable(error_fd, False)\\ntry: os.execvpe(sys.argv[3], sys.argv[3:], os.environ)\\nexcept OSError as error:\\n    os.write(error_fd, str(error.errno).encode()); os._exit(126)\\n\", '10', '13', 'xdotool', 'exec', '--sync', '/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python', '/home/ts/wt/toad-command-source-closure-20261002/tests/history_edge_scheduling_pilot.py', '--await-completion', '/home/ts/wt/toad-command-source-closure-20261002/.artifacts/history-lifetime338/installed-destination355-06/private/project')' timed out after 5.7869386689853854 seconds",
+  "profile_export": {
+    "started_monotonic": 474677.881668772,
+    "finished_monotonic": 474678.040209623,
+    "returncode": 0,
+    "remaining_owned_pids": [],
+    "bytes": 4794613
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 2012241,
+        "start_ticks": 47464642,
+        "returncode": 0
+      },
+      {
+        "pid": 2012525,
+        "start_ticks": 47464837,
+        "returncode": 0
+      },
+      {
+        "pid": 2012546,
+        "start_ticks": 47464857,
+        "returncode": 0
+      },
+      {
+        "pid": 2012568,
+        "start_ticks": 47464914,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 2012580,
+        "start_ticks": 47464922,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 2012602,
+        "start_ticks": 47464934,
+        "returncode": 0
+      },
+      {
+        "pid": 2012619,
+        "start_ticks": 47464945,
+        "returncode": 0
+      },
+      {
+        "pid": 2012645,
+        "start_ticks": 47464961,
+        "returncode": 0
+      },
+      {
+        "pid": 2012663,
+        "start_ticks": 47464973,
+        "returncode": 255
+      },
+      {
+        "pid": 2012964,
+        "start_ticks": 47465175,
+        "returncode": 0
+      },
+      {
+        "pid": 2013000,
+        "start_ticks": 47465204,
+        "returncode": 0
+      },
+      {
+        "pid": 2013218,
+        "start_ticks": 47465335,
+        "returncode": 0
+      },
+      {
+        "pid": 2013293,
+        "start_ticks": 47465369,
+        "returncode": 0
+      },
+      {
+        "pid": 2013448,
+        "start_ticks": 47465537,
+        "returncode": -15
+      },
+      {
+        "pid": 2013857,
+        "start_ticks": 47466339,
+        "returncode": 0
+      },
+      {
+        "pid": 2014077,
+        "start_ticks": 47467169,
+        "returncode": 0
+      }
+    ]
+  },
+  "terminal_exit": {
+    "pid": 2012568,
+    "start_ticks": 47464914,
+    "custody": "verified launch identity transferred to installed ObservedProcess"
+  },
+  "original_owner_after": {
+    "root": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/history-lifetime338/installed-destination355-06/private/wire",
+    "mode": "source",
+    "source": "/home/ts/wt/toad-command-source-closure-20261002/tests/history_edge_scheduling_pilot.py",
+    "source_sha256": "58ffb0440e77800fd2b5d66c2226a501d354c6bfafd68a4164fa43bc10d38e3c",
+    "boundary": "source application journey; not installed readiness"
+  }
+}

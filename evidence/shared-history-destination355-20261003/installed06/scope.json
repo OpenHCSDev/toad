@@ -1,0 +1,15 @@
+{
+  "status": "Incomplete combined IRC destination journey; native End/revocation and first pending-read receipt/typing scoped passed",
+  "elapsed_seconds": 39.038,
+  "production_head": "9d0d150fa959abb663d2cfed520e52b175ebdb3a",
+  "native_proof": "revoked10/final11/tail true/no newer/App exception None at native boundary",
+  "physical_frame26": "Fresh current-fixture receipt visible once with typed hi; retained earlier receipts visibly marked History, not current delivery",
+  "native_frame14": "Native retained body readable during actual native destination leg; this frame alone is not final End timing proof",
+  "later_source_boundary": "ProfileTrace28.173091/28.198340: exercise121 -> insert_page218 -> CategorizedMount266 -> Widget.mount1561 -> App._register3673 -> Stylesheet.apply. Premature class-update/CSS path removed; initial registration remains.",
+  "cause_limits": "No proof of an AwaitMount deadlock or total elapsed cost from observed stacks; no final journey-result/App exception export. No global End/performance acceptance.",
+  "recording": "/home/ts/.cache/agent-scratch/kepler355-shared-destination-20261003-06",
+  "original_inputs_replayed": 0,
+  "provider_inputs": 0,
+  "remaining_qualification": "Later IRC original-read restart/second receipt/final End not reached; source acquisition/initial registration and whole frame preparation remain with shared integration owner",
+  "cleanup": "Recorder and callback zero remaining/errors, actual UI/st/operator PIDs absent. Original wrapper children_retired false retained: external participant is operator itself during its finally."
+}
