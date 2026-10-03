@@ -123,7 +123,9 @@ async def main():
                     retiring = asyncio.create_task(update(response, "```python\nretired = 4\n```"))
                     await wait_requests(pool, 7, pilot)
                     await asyncio.wait_for(response.remove(), 2)
-                    await asyncio.wait_for(retiring, 2)
+                    outcome = await asyncio.wait_for(
+                        asyncio.gather(retiring, return_exceptions=True), 2)
+                    assert isinstance(outcome[0], asyncio.CancelledError)
                     pool.complete(6)
                     await pilot.pause()
                     assert not response.is_attached and not response._prepared_fences
