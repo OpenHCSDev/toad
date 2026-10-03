@@ -1,0 +1,59 @@
+{
+  "state": "Ready-scoped-installed-settings-App",
+  "source_head": "f205071bb7e58777517b4655b69dcd71fe352221",
+  "production_files": 5,
+  "production_added_lines": 116,
+  "production_deleted_lines": 110,
+  "terminal": {
+    "exit_code": 0,
+    "elapsed_seconds": 5.675828820967581,
+    "inner_app_deadline_seconds": 45,
+    "source_head": "f205071bb7e58777517b4655b69dcd71fe352221",
+    "driver": "tests/settings_tree_pilot.py",
+    "log": "evidence/settings-native-projection-owner-20261003/installed02.log"
+  },
+  "installed_receipt": {
+    "result": "pass-installed-settings-app",
+    "installed_toad": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/toad/__init__.py",
+    "source_settings": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/fixtures/saved-settings.json",
+    "source_sha256": "aecf1f1c7d28aeb2bd61b63a971293d9baeb9309dcb85bff9fb5e053b3bddd4a",
+    "original_document_roundtrip": true,
+    "all_original_field_kinds_and_bounds": true,
+    "model_values_unchanged_on_form_initialization": true,
+    "boolean_theme_native_effects": true,
+    "numeric_focus_blur_success_and_refusal": true,
+    "inherited_uppercase_descriptor_native_editor": true,
+    "save_reopen_same_original_values": true,
+    "providers": 0,
+    "native_pi_inputs": 0,
+    "scope": "Installed original App/Pilot/settings/edit/effects/save/reopen, not physical st/ACP/Pi/performance"
+  },
+  "candidate_source_proof": "installed-source-proof-before.json",
+  "candidate_pins": {
+    "agent_comms": "a24f696c7caf8deeb59c75d14c1dc8fc97107f31",
+    "toad": "8939b69433b570d16dc765aa563947345272b08a",
+    "textual": "2d1e2efaecf1f1e01c249aa75fe727c530f4a4e8",
+    "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+  },
+  "native_manifest": "2bfb6ba8fd3b3b3bc03dd122e0a67cb69fdc7cef86704a706396024b1561c292",
+  "native_tree": "419453f846ef43a7e847508475685ddd0075a42792f6731d6d5f65f3c60cf74c",
+  "cleanup": {
+    "source_assets_after": 928,
+    "source_mismatches": [],
+    "installed_source_unchanged": true,
+    "owned_driver_processes_remaining": [],
+    "owned_temporary_settings_roots_remaining": [],
+    "original_settings_sha256": "aecf1f1c7d28aeb2bd61b63a971293d9baeb9309dcb85bff9fb5e053b3bddd4a",
+    "source_original_unchanged_assertion": "Driver after-App assertion and terminal exit0",
+    "native_pi_inputs": 0,
+    "provider_calls": 0,
+    "scope": "App/Pilot private settings only; no physical st/ACP/Pi/performance claim"
+  },
+  "preserved_negative": {
+    "log": "installed01.log",
+    "stage": "BEFORE App/private root",
+    "cause": "Existing pilot ToolCall DTO constructors lacked official SDK.12.1 required title",
+    "correction": "All three fixture constructors now use the required original title, no product/package change"
+  },
+  "remaining_scope": "Native theme/preferences frontend policy and remaining interactive shell/MCP raw custody are separate unfinished headless families; no fullU2/U4/U5 readiness claim"
+}
