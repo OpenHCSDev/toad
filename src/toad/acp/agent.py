@@ -21,7 +21,6 @@ from agent_comms.acp_extension import (
     CoordinationChangedUpdate,
     PromptRequest,
     InputStartedUpdate,
-    decode_updates,
 )
 from agent_comms.acp_failure import ACPFailure
 from agent_comms.field_codec import FieldCodec
@@ -239,17 +238,6 @@ class Agent(AgentBase):
     def coordination(self, value: CoordinationChangedUpdate | None) -> None:
         self.controller.coordination = value
 
-    def _receive_comms_metadata(
-        self, metadata, cursor_token: int, queue_token: int, turn_token: int | None = None,
-        *, consumer_class=None,
-    ) -> None:
-        consumer = (consumer_class or self.comms_consumer_class)(
-            self, self.session_id, cursor_token=cursor_token, queue_token=queue_token,
-            turn_token=turn_token,
-        )
-        for fact in decode_updates(metadata):
-            consumer.dispatch_sync(fact)
-
     def _post_queue_view(self, starts: tuple[InputStartedUpdate, ...] = ()) -> None:
         self.events.publish(core_events.CommsUpdated(QueuePresentation(starts), self.session_id))
 
@@ -293,9 +281,8 @@ class Agent(AgentBase):
         async with asyncio.timeout(3):
             turn_token = self.presentation.turns.sequence
             result = await self.controller.request_owner("goal_snapshot")
-        self._receive_comms_metadata(result.get("_meta"), None,
-                                     None, turn_token,
-                                     consumer_class=OwnerSnapshotConsumer)
+        OwnerSnapshotConsumer(self, self.session_id, turn_token=turn_token).consume_metadata(
+            result.get("_meta"))
         raw_goal, raw_execution = result["goal"], result["goalExecution"]
         goal = FieldCodec.decode(Goal, raw_goal) if raw_goal is not None else None
         execution = (
@@ -332,6 +319,7 @@ class Agent(AgentBase):
 
     async def get_thread_presentation(self):
         from toad.owner_preparation import read_thread_presentation
+        from .comms_updates import OwnerSnapshotConsumer
 
         root, thread = (
             (self.coordination.wire_root if self.coordination else None),
@@ -339,6 +327,9 @@ class Agent(AgentBase):
         )
         if root is None or thread is None:
             return None
+        authority = ClientSessionRequest(self, self.session_id)
+        snapshot = OwnerSnapshotConsumer(self, self.session_id,
+                                         turn_token=self.presentation.turns.sequence)
         async with self.controller.transcripts.bind(root) as reader:
             presentation = await asyncio.to_thread(
                 read_thread_presentation, reader, thread
@@ -348,6 +339,9 @@ class Agent(AgentBase):
             (self.coordination.thread.name if self.coordination else None),
         ):
             raise ValueError("Thread attachment changed while reading status")
+        authority.require()
+        if presentation is not None:
+            snapshot.dispatch_sync(presentation)
         return presentation
 
     async def get_message_notifications(self, references):

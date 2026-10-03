@@ -202,7 +202,10 @@ class AgentSession:
         assert response is not None
         self.agent.session_id = response.session_id
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
-        self.agent._receive_comms_metadata(response.field_meta, cursor_token, queue_token)
+        self.agent.comms_consumer_class(
+            self.agent, self.agent.session_id,
+            cursor_token=cursor_token, queue_token=queue_token,
+        ).consume_metadata(response.field_meta)
 
         if self.supports_load:
             db = DB()
@@ -277,7 +280,10 @@ class AgentSession:
         ):
             return
         assert response is not None
-        self.agent._receive_comms_metadata(response.field_meta, cursor_token, queue_token)
+        self.agent.comms_consumer_class(
+            self.agent, self.agent.session_id,
+            cursor_token=cursor_token, queue_token=queue_token,
+        ).consume_metadata(response.field_meta)
 
         self.publish_configuration(response)
 

@@ -11,7 +11,6 @@ class TurnOwner(DeclaredFamily, affix="Turn"):
     managed_id = None
     activity = ""
     started_at = None
-    accepts_snapshot = True
 
     @property
     @abstractmethod
@@ -82,7 +81,6 @@ class AgentTurn(TurnOwner):
     started_at: float | None = None
     busy = True
     session_state = "busy"
-    accepts_snapshot = False
 
     def matches_settlement(self, turn_id) -> bool:
         return self.managed_id == turn_id
@@ -145,12 +143,6 @@ class ManagedTurn(TurnOwner):
             from toad.live_output import ResponseStream
             return ResponseStream(delivery, turn_id=self.managed_id)
         return super().response_stream(delivery)
-
-
-class OrderedManagedTurn(ManagedTurn):
-    @property
-    def accepts_snapshot(self):
-        return not self.busy
 
 
 class TurnBinding(DeclaredFamily, affix="TurnBinding"):
@@ -225,10 +217,10 @@ class ManagedTurnBinding(TurnBinding):
         return (message.publisher is self.agent and message.event.session_id == self.agent.session_id
                 and message.event.sequence == self.sequence)
 
-    def receive(self, state: TurnState, owner_type=OrderedManagedTurn):
+    def receive(self, state: TurnState):
         if not state.busy and not state.matches(self.owner.managed_id):
             return False
-        owner = owner_type(state)
+        owner = ManagedTurn(state)
         if owner == self.owner:
             return False
         self._owner = owner
