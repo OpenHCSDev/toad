@@ -1,0 +1,119 @@
+{
+  "qualification": "Ready: scoped retained-paint/style ownership; not full performance or cold channel acceptance",
+  "toad_production_head": "65a7c638f19ae3c77a943c4460aea00d60d0ccad",
+  "textual_production_head": "1cf32afe9f1c4672145bf3dcbeda0c7320e24139",
+  "core_comparator": "48324afc4d7415afb347cbc1f5f52cfc6820ac73",
+  "main_integrated": "13169632cb380abe55de5f94b4e008e4ff705b00",
+  "installed_source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-registration364-class-cohort-20261003/source-proof.json",
+  "installed_sources": [
+    {
+      "module": "agent_comms",
+      "head": "48324afc4d7415afb347cbc1f5f52cfc6820ac73",
+      "byte_equal": true,
+      "inventory_sha256": "451ad40301413418b14977abfdea9eda669328361ce1cc49c7007caf339acd57"
+    },
+    {
+      "module": "toad",
+      "head": "65a7c638f19ae3c77a943c4460aea00d60d0ccad",
+      "byte_equal": true,
+      "inventory_sha256": "ccd1eb0c9edcf748d9dfc558eff584654126fc3d41f3dc37f42a5a1cb37940f3"
+    },
+    {
+      "module": "textual",
+      "head": "1cf32afe9f1c4672145bf3dcbeda0c7320e24139",
+      "byte_equal": true,
+      "inventory_sha256": "3c9d66c1621a1349236889b2b145766d95d2b14c5bc022151b904c0d78206dfb"
+    },
+    {
+      "module": "textual_diff_view",
+      "head": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "byte_equal": true,
+      "inventory_sha256": "c1ab2e4c7a7595de81eeb8fef14f9fa9e45b603f84e810dc7c08fa9145793679"
+    }
+  ],
+  "installed_app_resource_result": {
+    "fragment_arrangements": 0,
+    "profiled_100_reflows_seconds": 0.3007470829761587,
+    "fragments": 4,
+    "native_cache_capacity": 64,
+    "live_body_boxes_in_original_viewport_layout": 4,
+    "provider_calls": 0,
+    "boundary": "actual saved source/Toad widgets/native compositor, source only",
+    "source_update_painted": true,
+    "style_invalidated": true,
+    "resize_invalidated": true,
+    "cohort_captured_before_preparation_and_pruning": 3,
+    "cohort_capture_whole_scene_arrangements": 0,
+    "rendered_family_reentry": [
+      {
+        "body": "TranscriptFragmentView",
+        "rendered_lines": 10,
+        "nonblank_lines": 4,
+        "reentry_ms": 0.2601739834062755,
+        "rebuild_calls": {},
+        "real_style_change_rebuilt_once": true
+      },
+      {
+        "body": "PreparedConversationMarkdown",
+        "rendered_lines": 5,
+        "nonblank_lines": 2,
+        "reentry_ms": 0.16561400843784213,
+        "rebuild_calls": {},
+        "real_style_change_rebuilt_once": true
+      },
+      {
+        "body": "StreamingMarkdown",
+        "rendered_lines": 5,
+        "nonblank_lines": 2,
+        "reentry_ms": 0.1585709978826344,
+        "rebuild_calls": {},
+        "real_style_change_rebuilt_once": true
+      }
+    ],
+    "inflight_stream_blocks_captured_retirement_commit": true,
+    "offscreen_warm_admission_keeps_rows_not_controls": true,
+    "stationary_admission_preserves_rendered_resource": true,
+    "native_input_materialized_original_body": true,
+    "retirement_and_restore_invalidated": true,
+    "final_disposal_releases_scene": true
+  },
+  "installed_app_scope": "normal noneditable installed ToadApp/native compositor with saved fragments and all three body implementations; original pilot label source-only is historical; not a physical public-history run",
+  "final_native_checks": {
+    "owner_and_consumers": 114,
+    "parser": 73,
+    "failed_intermediate_boundary": "Builder emitted undeclared auto_* rules; removed invented writes at original builder owner, no fallback"
+  },
+  "ast": {
+    "textual_modules": 249,
+    "toad_modules": 287,
+    "omissions": 0,
+    "selected_sites": 195,
+    "limit": "static references do not prove dynamic resolution; native descriptor lookup follows live class MRO"
+  },
+  "production_vs_main": {
+    "textual_added": 376,
+    "textual_deleted": 301,
+    "toad_added": 6,
+    "toad_deleted": 3
+  },
+  "physical04": {
+    "raw_receipt_unchanged": true,
+    "capture_completed": true,
+    "completed": false,
+    "duration_seconds": 51.09343147295,
+    "passed_lifetime_predicates": 18,
+    "failed_predicate": "channel_messages_published",
+    "textual_head": "5c996dc2ac92c94f6086c48100d9e6311a32b9d6",
+    "toad_head": "aa0ce7eea04dc3fb7fb782b389ae7ba9dc198710",
+    "click_finish_to_next_writer_seconds": 1.753560926,
+    "prior_gap_seconds_approx": 1.789,
+    "speed_gain_claim": false,
+    "review": "A-return still PNG viewed during active recorder/UI; consecutive draft/return-a frames viewed afterwards, mostly outside actual input movement. No smoothness qualification.",
+    "original_owner_unchanged": true,
+    "cleanup_remaining": [],
+    "cleanup_errors": [],
+    "terminal_ui_exit_zero_proven": false
+  },
+  "qualification_relation": "Physical04 exercises effective retained paint and compiled CSS commit. Final descriptor/MRO and builder changes qualified by exact installed actual App resource checks plus native descriptor/parser checks. Final bytes have not been filmed; no whole journey pass is claimed.",
+  "remaining": "144Hz/CPU/foreground registration/compose/CSS normalization; cold/warm firstpaint/raster/runway/velocity/growingEnd/void/focus/busy/sidebar/animation/TC1/T9/T4"
+}

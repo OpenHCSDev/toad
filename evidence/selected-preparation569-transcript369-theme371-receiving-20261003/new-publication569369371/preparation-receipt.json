@@ -1,0 +1,17 @@
+{
+  "state": "FROZEN qualified569/merged369371 source with new native915; parent-only NEW preserve publication",
+  "target_prefix": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final",
+  "source_prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "native_schema_equal": true,
+  "derived_checkpoint_schema_equal": true,
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-915c78ab702bd8ea/node_modules/@earendil-works/pi-coding-agent",
+  "operator_manifest": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/selected-preparation569-transcript369-theme371-receiving-20261003/new-publication569369371/operator-manifest.json",
+  "operator_manifest_sha256": "7f419b6be1cadacda1f3486e613279c1c7c432a25d469cfbe4d0b755c9f8ebed",
+  "source_proof_sha256": "a5d5d2288e90abb5ac95da564d16eccd452ab0b47124cadfbe31e190d127ea34",
+  "activation_sha256": "4294d50c3f0fe656a2420b58602b5d5feed2d21e6ac1be717fbca41c5b555335",
+  "runtime_sha256": "717ca469bd2330bcf868ceaf572e8b128795ef3dd54885497f8e16c4680aabae",
+  "public_effects": 0,
+  "new_publication_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/selected-preparation569-transcript369-theme371-receiving-20261003/new-publication569369371/publication-receipt.json",
+  "unchanged_journeys_repeated": false,
+  "parent_public_execution": true
+}

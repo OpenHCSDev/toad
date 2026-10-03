@@ -1,0 +1,36 @@
+{
+  "result": "PASS: ordinary default saved-history startup/display",
+  "observed_at": 1791011013.6198678,
+  "raw_receipt": "/home/ts/.cache/agent-scratch/published569364-helper-default-20261003/capture/receipt.json",
+  "raw_receipt_sha256": "44c20d11f4e2a487d3038edf8740cd511f5aaba28d5be67fccd6764a3711e3dc",
+  "entrypoint": "/home/ts/bin/toad-comms openhcs-helper",
+  "isolation": "plain st, isolated Xvfb3670; user desktop untouched",
+  "duration_seconds": 23.90441749501042,
+  "parent_visual_review": "Personally inspected after.png: original saved history plus prior distinct inbound/replies visible; chat and sidebar Ready; activity bar absent; input visible",
+  "original_owner_unchanged": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "openhcs-helper",
+    "identity": {
+      "pid": 2797652,
+      "start_time": 48623544
+    },
+    "original_owner_alive": true
+  },
+  "runtime_unchanged": true,
+  "actual_st_exit": {
+    "pid": 2805299,
+    "start_ticks": 48646188,
+    "returncode": 0
+  },
+  "cleanup_remaining": [],
+  "cleanup_errors": [],
+  "new_input_sent": false,
+  "qualification": "Default installed assembly and owner attachment/display, together with original affected installed preparation/fork-reader/rendered-body/worker/preference/scorer gates",
+  "limits": [
+    "No fresh provider compaction was performed in this startup journey",
+    "Not a whole-compaction or channel latency claim",
+    "Not held-scrolling motion or 144Hz acceptance",
+    "Original uncertain inputs and earlier failed attempts preserved"
+  ]
+}

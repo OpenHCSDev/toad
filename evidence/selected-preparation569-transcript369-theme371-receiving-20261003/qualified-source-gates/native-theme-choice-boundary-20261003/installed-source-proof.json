@@ -1,0 +1,1824 @@
+{
+  "head": "cf7b8b5ad1d9276e94d83ea7dfeed7129f5df00e",
+  "assets": [
+    {
+      "path": "toad/directory.py",
+      "sha256": "2bf35783c55b5ae89d7504d005039aca3830107bbc68638fe90561604dbd1901",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/mcp_decision.py",
+      "sha256": "646cecd8261e0e4218f128abc76ead6225747c5136cb417ee12a11b46f57c0ab",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/db.py",
+      "sha256": "893d2b2ce868744389d15ab27f66b37e65633bf467bf7957967aca928471bebd",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/render_server.py",
+      "sha256": "c4ca8920ed173e7a6367a7761c481a016abf905c5684c1fdb55a9cfd98844965",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/core_event_carrier.py",
+      "sha256": "578385dd75277e77a103fb1db5983c622c087c83182c441ab2189752e7c4c53a",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widget_actions.py",
+      "sha256": "3b50d4f0c9e6becba8b07cc9aed081bbdd8163abd08a8393fb633fe9237c1748",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/_loop.py",
+      "sha256": "c03baabeff8f1e427f1030f3793fe3d341947160dda40ac77dc825b07b5fff5c",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/agents.py",
+      "sha256": "bad668e3a4854c6682b35f0a6b90a86aaca87114cdb319496e92baf978ffc786",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/setting_widgets.py",
+      "sha256": "eaac63d3fbd3602de17d0082535ebad2c63ac3def6a302307d6db3ffd57677d5",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/render_identity.py",
+      "sha256": "f589a6c819b19656c3943d385e13afc9c0e8243030fb83f79b38c17ae73b27e9",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/mcp_outcomes.py",
+      "sha256": "8157b467a4b6fb8bca5e202ed9e7335d8c1720d616ef371a1f690f3b2c1d1e64",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/frame_presentation.py",
+      "sha256": "e571db440738ef3a978f1a12fe462dae816c8b0aca83891ab394d0c2e5a760f5",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/path_complete.py",
+      "sha256": "86c4a2deb72824143cbb82301c32f3c710cc9493b69b24e8ddeb8e7ec1895eea",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/settings.py",
+      "sha256": "b6dc6f1212c50cc089d5a008c9f0353ae07667b8e24bb5580e459bab43b6f68b",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/tab_order.py",
+      "sha256": "4f72d2ef02f3ec7cbf78cdc2673b8062e5b744b6fb0f22b4ac7627c700543296",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/sidebar_projection.py",
+      "sha256": "a0bed4ab51513f0de393676c9ae0519005ac20fa60de2af1ddf1df8de47e285e",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/application_actions.py",
+      "sha256": "05bc09524c98c297be3234dff6a0895e1bfbb0aa6d694a72c0df889167e10c0f",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/__init__.py",
+      "sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/format_path.py",
+      "sha256": "e24cc71ab4818bf4aae61d6f2155ad2488c34e963c2d2bbacc544f5853f102e2",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/sidebar_preparation.py",
+      "sha256": "f84b1d4664bcc2659e8a67775e3e100383a3493ed486d1414cfdc06f52241f16",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/path_filter.py",
+      "sha256": "7a2c397f15aff6fd1d76ebdec81cf37440056c8f25c92ecbbf7463f251e77af1",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/rich_preparation.py",
+      "sha256": "8b9b126aa0d1ef91490b93c3af72eeb2640040c55bb2367be2cce54d2102411d",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/clipboard.py",
+      "sha256": "bfb4dee5e07235a7c0123f391ebc3ed9c77e148560056e785b1d764392bbd0fb",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/prompt_cursor.py",
+      "sha256": "4b08bd1ecd122dab9708c064e4f702bf401360b381c9e8dcd76fcf98c658d224",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/render_tasks.py",
+      "sha256": "58a7b5a7ce8ea837948de77d1ab11d63a592b075ded060c695b32c125478b671",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/version.py",
+      "sha256": "7dd5ad99ac84afc06dc282c489e33fb1d11752d1e65b97a5c2f9a346260f40a8",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/response_delivery.py",
+      "sha256": "fc66047716a382e11089ab86f2dec1aa807fe9e90079d3c9b1c85d571d9814db",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/channel_preparation.py",
+      "sha256": "5c43e1b7d099cb2a77159325a454190ee39d2d42e297f7cfc23664791d001dd3",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/danger.py",
+      "sha256": "13813f77a1c4d46780113dfd94a3264487f157aeb5a34eabb878e8ceea7f03cd",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/render_protocol.py",
+      "sha256": "3d6d0874acb101caf942e4a9f162190e84f44f150635beb352a9c61fccf1e822",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/shell_source.py",
+      "sha256": "3ab48680a800f81e1a81f4f59ade3c8c1255573c6af26a3a2527c82b87708ad3",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/private_native_cursor.py",
+      "sha256": "e0466d6b64b39721750cc2d207bef8b5d71dafb7aa4192176b1d079f54e4662e",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/render_zmq.py",
+      "sha256": "c4a7360859d282dc6b1bcddf04b70259a0a16d82030f9f9b43926e92c77ed5dc",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/render_runtime.py",
+      "sha256": "54029f7e774673a94b300f92c2b020dbf7c430146a4464d3292dc543f8808a96",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/file_kind.py",
+      "sha256": "0d444cf081eb10864a490a9777838cd1e8f4b00ca1fd672cf12753f0987309fa",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/sidebar_navigation.py",
+      "sha256": "404eae8164b4a35915eff17ba6938ac45300254640386bb743ab94cebdb54d5b",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/messages.py",
+      "sha256": "c3fa5aef23b7a2f2b6ca4ea864996fc204c4238432da4620b0879430cac33498",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/transcript_source_preparation.py",
+      "sha256": "f30defe7863daac1daf07c19b0ee3aaf26ae9ab4d2bd6b632443daae5fdedcab",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/goal_interaction.py",
+      "sha256": "0fd114a09ac96f6952fd99c99276f2903f774834a11a401459cdac535557e9a0",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/_path_fuzzy_search.py",
+      "sha256": "cb72f3ffe0b1bd225ff7494a801ac9b5d01fd1684509f3442daf4037b16620ce",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/tool_output.py",
+      "sha256": "12edb2437d574f2a19d2d7f805e93f57eed56711e01f82bd352ffa9b9ae20899",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/render_choices.py",
+      "sha256": "35dc97844bac87ac1f75becd151c814cc9dedeb190893b14d42cbcc1c135c388",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/application_lifetime.py",
+      "sha256": "ea6df71d056df6d47d2befbc523fd332c7e7bc22fcd8932945833125113b10c5",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/sidebar_layout.py",
+      "sha256": "4f212a560955042e28fe1c24e20ed4142e97120c8dc2f14a6cc284749375d186",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/answer.py",
+      "sha256": "400fdb677c5746b366cf93f32bc7fb386b5c6270e339b451b0537465a22008df",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/question_presentation.py",
+      "sha256": "b590c74572e8dfc6d1240b34c43dba98f5d2761b5e807c98b216600304776c31",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/transcript_filter.py",
+      "sha256": "db1686225c9b99622d56bd64ead42798f9dc81478d35338fe5868461f88ecd79",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/layout.py",
+      "sha256": "fa33813691ed4602ed333a983eacfdbb1787d2836c6e6d55b0aeb8d34ca6b3c9",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/coordination_context_format.py",
+      "sha256": "4737bcabcec18fe2240e23c19a2cd7afee68cfeee5e5bc4f54be34f8a92bce4a",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/shell_output.py",
+      "sha256": "f54ea3ca0e0ff7f0f3e3bdbba509a21587741b63cbf0f92c23a8aa544e8eb09f",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/transcript_state.py",
+      "sha256": "dab5a3c3c7fea9ff51fa703dcc1d008190817a32b6e44b098d93819633fb5924",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/delivery_failure_view.py",
+      "sha256": "d422f55c80ca7a635a1302f16701390aafcab63cfb90aa1990f4f9b8b26a7c8f",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/target_commands.py",
+      "sha256": "459e07717a86155ad629206253f68422693bcf8d0b12561318d4e2c20d96e71a",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/render_processes.py",
+      "sha256": "8bdea112f1de60f05a5f5d6f3c70d02129c5418b5d685f5170108081a40df0a2",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/goal_display.py",
+      "sha256": "46a02c2633a0fe1211022f8684ffea9a629f35a38e489647a876ee4091b84a83",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/session_tracker.py",
+      "sha256": "eb7f98c785037c00872b15ce5e900e1d4c2d84b7d1fa054123eace5464b99c84",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/jsonrpc.py",
+      "sha256": "48ba846bf95f654d22487d9e4038ee77fbec438c601758a3bd8a86ccfda335bb",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/complete.py",
+      "sha256": "7014d97a0c7d6750d928bf947b76674d00a4a076b806bb90616599d2dff194e8",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/fuzzy_index.py",
+      "sha256": "6fbc2b94916d018574068d0d994c7ea5bbf90679a0798100957c8e3c9ad157e9",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/project_path_owner.py",
+      "sha256": "2f0c4de34edb18dc028c0c0a1cf5da402c387e25cbb6624d2ce04ab58dfade7b",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/about.py",
+      "sha256": "f169f61925cb678abd5712fd1e30696cc6e9a2499c92fccb76fbc3441620d0d5",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/fuzzy.py",
+      "sha256": "056f87d6865b2dd51c275132370103fc4a1e548a4ed672f889a7597c9be88e41",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/prompt_actions.py",
+      "sha256": "cca52351b817395cb7a467935c6e95f08886fcd6465b0debf87140cbecb0cb3a",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/message_viewport.py",
+      "sha256": "595246415ad20c870561aee1899eeeb712e0e61f74ae4212aa1cd1f10b5b0b40",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/transcript_publication.py",
+      "sha256": "193e96b2cb2b053b38bdc1e5ea4235652f4ab5090ec737b201e0c1ba85107e02",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/transcript_preparation.py",
+      "sha256": "87d021cb1770f464e87e7155875b0aeae4d8ffd49279fd93c72f6e5bc5ae5bbe",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/mcp_declarations.py",
+      "sha256": "c39bcb880b14ef1d350f7d4cda03e77420e9ebe9f768f24b37b6beb8404d7e9d",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/native_themes.py",
+      "sha256": "f15ee6056caaec49abe1f7a4eb7bcacfef1c05b3bc62ae8292557bd93bb96e96",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/__main__.py",
+      "sha256": "c6d5a4802fec39fdbeff05333271f65cdc95d9a9bd530705c7b5f4595a22185b",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/toad.tcss",
+      "sha256": "8569c3275b198cb1f1e30e4ebb804b48fb61d33585fb3277b3a39a37c4e08636",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/mcp_commands.py",
+      "sha256": "8ce7c118fb61871482621b6ceaa52a52604c0b9e260b387924362852aa55c623",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/menus.py",
+      "sha256": "a4d53453feac3db81bd6f208d6d428aec474bc74a9af0baf109703f2bde82ad8",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/agent.py",
+      "sha256": "0d0ed04088c0cfc647eeaa6831dc4c3b55240d47e645a015d53f975e5f7c1d3e",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/atomic.py",
+      "sha256": "280e8cc64f35131b2db25e1e9d724384be4a2ca80fd9c75ebc22b62f196d57bc",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/agent_schema.py",
+      "sha256": "0cd90781c70f8a5fcf4ba790b23e3dbf8acb0263fec6ddd2f21172b3e4607960",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/sidebar_snapshot.py",
+      "sha256": "409340714c45e4d8c2809fe15a4dea96d2d4f2a7b219d02aa4abe7ba869082aa",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/block_content.py",
+      "sha256": "ca0a66d3df6b7e7bc987a51f20a7d8f0dfbbae09a44c907bb65450fa66cfbe11",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/thread_actions.py",
+      "sha256": "57617826ae3b6c3aecea800ac245e816261c5b2cb99e0e862a3800f2d45b22ab",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/slash_command_results.py",
+      "sha256": "aae1f6512ab3db4a8a82188bae8b7c0a6dd4b5fee9e556ba56d8ead73e17e83c",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/permission_presentation.py",
+      "sha256": "1c0f615a0ce2a54efe44e8251ddbf84ae42d5e1866216220d1d860a16be09bc9",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/preferences.py",
+      "sha256": "ec9b89834d0c0e543fa6143e8912487cb87e43e28b64924150f9e57594f0dee7",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/owner_preparation.py",
+      "sha256": "0070b6e99c2b97384b8065b9d7e9d696f85a06635ac237f28d72f7b269ed7b02",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/directory_watcher.py",
+      "sha256": "556a371b0d74ea16a31db48c1b31f4a912ce7a86261686a6072b55d2d11f0fad",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/workspace_sessions.py",
+      "sha256": "f321ae69bfe1aeee9d0328c91651552b57060b05967b55335cdfe4a4bf91a5b1",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/render_service.py",
+      "sha256": "f168901e484efd8e0dc4744f66c00712b18e9634d0c7fc50ceae133ca3fdb44e",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/clipboard_image.py",
+      "sha256": "49271f14235b0782c4cccf6ddb20e8ac7ecb9ad3838abda2bc3ad82eced42abc",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/plan.py",
+      "sha256": "eb2aa12a1352d361601e97850f200e9404ee2bbf2caf47265a7164b2efb771c0",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/setting_choices.py",
+      "sha256": "e17ee6f3a27a2e8b07c109d17167438ec67062f5d106931b42b6c1deac39319b",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/history.py",
+      "sha256": "252205e7fb0f2407818e4adc81726755497e47835c360ad6048b88e21e604359",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/path_search_ranking.py",
+      "sha256": "740cd5e3cc821fa7d30d1087fe997ff1dffd09467bdb723defebebf88b7e113f",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/command_catalog.py",
+      "sha256": "c035a8cf108aa52625cc15809283b797299abf19e74f818f0b62655e0a4975ab",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/dec.py",
+      "sha256": "c2d9c3f3a3ac0309a1971a40a603ac2f6db5eabe72f5d6037e08d8f6940fabaf",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/question_actions.py",
+      "sha256": "aecb96eb89a1973c79927e50dd49f1efdca6473f7c3ddbc905af96975ec65da5",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/slash_command.py",
+      "sha256": "2a0f052fbc42e63d1cac49345956d4fd952b54faee2c9357431710e42dc5f409",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/agent_presentation.py",
+      "sha256": "af439e1fe9a7536811e52e4fb6e9eff937add8846079e56b98072b77f2cd801e",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/web_server.py",
+      "sha256": "ea1a59167972742d1fb799b92ef9bcd696451a478d1811973447c7a339bd1d40",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/session_observation.py",
+      "sha256": "d07835edd419719470b3194315fd1baf06ef9e2cb56caf0c1cecd187d2635c48",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/live_output.py",
+      "sha256": "cb9e7dadd4ffdec9d6aa17b430ec5f84e80c3c4216e53b2eb83e1aef1ee3bcb8",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/block_navigation.py",
+      "sha256": "6c5b1a3e238af1dedd0852c5c10d350a5867a9fbd96b0f54a97540bd4918e709",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/conversation_actions.py",
+      "sha256": "a10f7f8d44c55526c1b9238eb5025c246d5ae9d2402e76f30b40f85b79cb9356",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/navigation_preparation.py",
+      "sha256": "ff375ced2fa855af28977da6496f4ce6198447ff976e3c451df42bba0bdbc52a",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/work_preparation.py",
+      "sha256": "3af9ea8b02363454c2a7bf62e9b1452a45de7818489c48eff49f8f89521b3ced",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/conversation_submission.py",
+      "sha256": "e046ee4f92c9ec249b8829f25d864ed6edb2090ea5004fc90870691d94aa88f5",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/session_navigation.py",
+      "sha256": "ee9789d316ba66e94f88c1eb63f95c55f4658c0b3cde4c23fc950482dd4a2c24",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/markdown_preparation.py",
+      "sha256": "f735cce23d3d51bb0c3c4477b71dd7e870612c5b6749e539efbd7230eefff959",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/project_link.py",
+      "sha256": "923f3886c358b5b177118250f674aa466eff0b94d454f3a464c194013393c6f4",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/twitter.py",
+      "sha256": "ca03130bdfb18259a59f63972c45b752fced609dca0dcec89134512ea220e135",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/terminal_environment.py",
+      "sha256": "2d7bf0eb49eae31953063ce1c7f173ae8d015d9ae7d5e545dd591d5acaabb3a2",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/agent_surface.py",
+      "sha256": "c592d52b512a03ad4b51b44fc48e726d92672e0b3e61ccd62272402d983545c0",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/session_admission.py",
+      "sha256": "4aaede0b8996217b1e53b7d8c619cbf9a87d06a4f80df96baf16926441bcaf0a",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/app.py",
+      "sha256": "e17d12047606523c1a69b3756388490bd8bd1034a56f29be1176a9cc75315b4a",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/setting_effects.py",
+      "sha256": "7878f3fce31afbc0d8442279faab6f01df4e87d67899d9327693cdd7a244d956",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/conversation_turn.py",
+      "sha256": "0cad6e05db51185f63b254f05cf8eb3ccfc4707e37fbda96f74b224bda3809a5",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/sidebar_observation.py",
+      "sha256": "6df507031ad7ff001e01540942f03eff7c53dff20ee95a058b0caa388b0cb303",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/shell_read.py",
+      "sha256": "986bdff8731a7a2237b2a7429e067a2c38e0037f6e190f5ce632bdebb139ed02",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/workspace_chrome.py",
+      "sha256": "259184944d4950f28491a3805617e56326ddcb4529f5d1e9e6c4eb66ca3b2a05",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/session_presentation.py",
+      "sha256": "0435ece538301239e5e1e734895bfcd20eb263d94710a3e17d31001c724f6580",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/shell.py",
+      "sha256": "098745e6b73022e7bf0e0fa96faf9a2db96275eff19c2e28c94db226a10fb2b6",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/render_backend.py",
+      "sha256": "4e56b3de3cec09f8a01a4a3f983b95d2545a8972e73884b8addb34e22fd583e9",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/conversation_markdown.py",
+      "sha256": "ce8358aba5a368f4b35c23249cfc029f9d4d49c748b9deb6a0c3595e88defce4",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/cli.py",
+      "sha256": "912d4d14440bb07b2fa8ede85b592f2da96ac08e598afd067fbf0cd10fca155f",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/navigation_target.py",
+      "sha256": "0f6ab7c127ea89d85a009821d6a1e3e7dc3aba16260eb189c7cbbf000089a37e",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/catalog_actions.py",
+      "sha256": "b27f6ae2c203bfdaac7ed668663f3d3c4cdb97fab3218092204a385a0e869e6a",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/input_history.py",
+      "sha256": "710bf5a2f3823d22699ca5a037258a2ba18fc772fe5172456cafac8714d408a6",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/conversation_kind.py",
+      "sha256": "ba2d2400d4fc953a3f975f33fd90239a31ba5c84d48975ee82f148cba1711894",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/mcp_inventory.py",
+      "sha256": "5071e43a1c1404e1459bb8e01945f62eaa4f67254d1a37a0347fec325c7dc1f9",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/mounted_message_history.py",
+      "sha256": "a169bbdd82f1b9b1aba985e37742d77910c60f8cb63bb7e9ca804715b5044757",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/paths.py",
+      "sha256": "8fab705c6bb31439c938cb20740564ad655548d4e86c300b0972519b15d688cf",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/comms_root.py",
+      "sha256": "15f8e1095f78a07fe4076c9c64fb4b58b06826cca79436ac394b8a0ccc288570",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/terminal_execution.py",
+      "sha256": "a98b64f3d3131268c15d3e9ce7da5ad97e5d3c567f7c20058d4db73f75cb76e9",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/directory_suggester.py",
+      "sha256": "b486e7683c4c626e08a895d64bf295adf5010bba446e15cc33f96a0dd85f4ea1",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/pill.py",
+      "sha256": "16a6d250cac2696d25b4f7770999433c5f0f4688dfe30317374c492fa6ef1b9b",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/thread_navigation.py",
+      "sha256": "0ea6452318a7cd8846fcaf1a0401d62f28c07af7bef89b9397de0ea7a497642c",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/terminal_attention.py",
+      "sha256": "c72a43b2c4a7d622562c5b33a1bddafb1515e2cb4f767cfa3df4284b6a498454",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/constants.py",
+      "sha256": "2ba25ad4d27235637293bf7e0fc601880ab178dde17bb33ac594cea9075208f5",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/core/__init__.py",
+      "sha256": "82c48d17abc0b3c94c202938da675ccd5a7e56baa8bfd78440267c6960cf476d",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/core/source_events.py",
+      "sha256": "eba0107e8074cd9b0987400d152c89cb2f583a7e550bcb50f1d5bd959c2f8a0c",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/core/preference_events.py",
+      "sha256": "155b4338b1a35ef314e753b27bf9c1931d86018528738d6259dd031baafc498b",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/core/events.py",
+      "sha256": "08e0800676beba20b5e9c5f29f1718b78cc148a735a0833621a5d9f2769906b4",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/core/session_requests.py",
+      "sha256": "c5d47a2723acc56af3a36cb40df151877c33321f4c583f9fda649cd99c649bc8",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/core/context_inspection.py",
+      "sha256": "4f60819485d901814d92e2a4ba26d2494eaf48d4e5c3e8b16319934bfb128fd3",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/core/input_events.py",
+      "sha256": "218eb9d9ea1f7acf26a0f1fdc048538f643af4a2c0e40ceb359896c4cb5a6d86",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/visuals/columns.py",
+      "sha256": "242d17c229ea8ce887dd37236fd6cbf6a589e767b9491863db285192153670d3",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/prompt/extract.py",
+      "sha256": "96d65fdaab773d55c2b6596299a349c414d6dd7605d91c9752df287672cb5b84",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/prompt/resource.py",
+      "sha256": "d8ad4cda8b0017b9958f33ef12cbc6543c3075acb54c73b3e66c420a48c0f591",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/screens/mcp_decision.py",
+      "sha256": "14601fd5db6928e0bca4103730d7e36cf6924724861b6031fde8917da65407e1",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/screens/store.py",
+      "sha256": "b090aa888e2d2d4997ab3f8faaaaf74fb4aa048bfbb96b05756558dd022195c8",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/screens/main.tcss",
+      "sha256": "7ccc9a407bc253b11be16fc80e6d340dab15d1a6a5a39cd9781c777bb48a4e62",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/screens/settings.py",
+      "sha256": "eb3769a92bc4980d39610ce05be5cd0d9cbd84d165451e7bc2ba8cbe854d1493",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/screens/action_modal.py",
+      "sha256": "2c0521ca4082487636eb341a8c2f6019345760939957bed940cc0edb53848ef0",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/screens/comms.tcss",
+      "sha256": "3eb429a0cf08c47a16d950db659a8267a5e646daace69d725821d3defc4c2cd5",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/screens/session_resume_modal.tcss",
+      "sha256": "9ed7ecadd10f13e7bec50b770fc2b45a4323b19bf80681986639199826cadbab",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/screens/comms.py",
+      "sha256": "c3b103d66c8bbe9e4870d1143de0284a26f807ad328c91ba612580402ab6ee7f",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/screens/historical_sessions.py",
+      "sha256": "238ef80a645ddd3f2ef90c412fbbce165f6f0f435f9845327de28564b721b2f5",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/screens/permissions.tcss",
+      "sha256": "49b905b3b376947695dd1ffc6f9e4c9b36305dff276d08a08a682bc958be2c77",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/screens/workspace.py",
+      "sha256": "a76562858184764807301d4d929db942486644a602075227a2a1688cd991124c",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/screens/store.tcss",
+      "sha256": "3404799f012b290cb91c5ee96da68d9dd4955a831e0950a671f42943ec16da36",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/screens/main.py",
+      "sha256": "a3c81682dbfc92fdefa25d720b528ff9a259b63259bccb56eb4b73a395ded300",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/screens/session_view.py",
+      "sha256": "0ed2eff49ba55e282f7ba8afaca19524b4ccb07f4f7cc8028236a171f6686be5",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/screens/permissions.py",
+      "sha256": "89bbae5b58d115bf0729a1770ef4729bfe00fecf302ccaf1e9280f1557e746f3",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/screens/file_preview.py",
+      "sha256": "a9e96ebc81c48a3ac12d4322cf63e128b730f4fda9bf23babca63e18d07eec38",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/screens/agent_modal.py",
+      "sha256": "83b1713bf786ae2af032c20616fb1ea8f99965bf8cd8a7165f4838737325fcc7",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/screens/goal_details.py",
+      "sha256": "ad56acdc9d43afdf3acd43e53ac2cd6e0e8c46cf101dbfd12e360d3558003848",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/screens/session_resume_modal.py",
+      "sha256": "11019580f0f253f5e1c399eaa88de201b34ea90ea58aee3846e36e35d4508a9d",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/screens/settings.tcss",
+      "sha256": "0103da2f0b9ecebfbdffb123c79267e70499e85efa596bd3af9f1bdd46653110",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/screens/goal_edit.py",
+      "sha256": "301f342baaa6ea3c4b5e7e168e5e6b8ddae3904efac76d0563eb2af3a9271a52",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/screens/command_edit_modal.py",
+      "sha256": "e1a6d840e66d70c3a6cfd7c154cea1fe58884f79f28b5cc0ae2a1bbfc8b77207",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/screens/mcp_inventory.py",
+      "sha256": "bebaedf7fac0ed2c00643b38ad3d4e780dc7396dd60214301a93ceac5f5ce80a",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/ansi/_ansi_colors.py",
+      "sha256": "2e711e54988095870ded3b46251423ca5b3e1590356b60da76459740a72123db",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/ansi/_ansi.py",
+      "sha256": "a4fbfe50a6fbfa1e15b3fc10de524522b38b9a39c2f680e5e90cb3f0f0c45f3c",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/ansi/__init__.py",
+      "sha256": "f5f865077c4a291dd0c34926ac98f630e9f8e9ccc958a1a15c71b24196c6d360",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/ansi/_keys.py",
+      "sha256": "d1cb58c0bbf37d435a796a3e49991b4402f74703be60177c46865076d1d71899",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/ansi/_sgr_styles.py",
+      "sha256": "a16293d3d41e6355775e5bb3994f720882a3665e76f8585423b16a6449a578c3",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/ansi/_stream_parser.py",
+      "sha256": "9340de03c3c311e27e5ce3406c294dd499c6cd52703b3ba83b78527c72dada0a",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/ansi/_control_codes.py",
+      "sha256": "e03519962e14d609c91ee2060d9503357896e26873ec16211389157d33d179d0",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/terminal.py",
+      "sha256": "e55a2ab052b2c5d7d52f26f72547d0e8a5492fdd5219160302c7846e760149a8",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/flash.py",
+      "sha256": "e2fad46bc5f24b344d7d6600f399085ed1b50534937813ecd078fbae4ce3e638",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/comms_sidebar.py",
+      "sha256": "bf74878f5fc15a9459cb03ce60538e5dab9d2b9898eea61f9e0aa96f27e8f4f5",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/worker_static.py",
+      "sha256": "7565a5ffb259c0d9b19df2a8fdf54fb6f3b64611cb8bf301e86be35094dff47a",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/prompt.py",
+      "sha256": "071124cde104b60b744b6419f892624971d3653f17408c550ef81daa942f1f25",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/retiring_sidebar.py",
+      "sha256": "8d7d497586f7e27825ad436e4bf3edd2505d3ca4062b1efae80410a3fcf2cfba",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/patch_diff.py",
+      "sha256": "7f2ed0c02f87709c773e67c95d0a93e15798549787f635c29abadcf8f65d2024",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/thread_comms_source.py",
+      "sha256": "e50fe222b8a1d31b22408e94a7bb0cf0f1db940356510011e07cd99ee6d15b7c",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/command_pane.py",
+      "sha256": "5491166091551f26dbc208ea781bf5ac300c95296d4d6c66ab6c46182fbc3a3d",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/native_history.py",
+      "sha256": "d7f94c0ef5bba2abcb5a19d04826ecf490a115fdb73aa311ad2cd780ebf672c5",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/outgoing_message.py",
+      "sha256": "8fd81b19fd30d4870a6c8f0f93e8c7920a6d7738567f377ac9e4fe9b6cfb6468",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/presentation_window.py",
+      "sha256": "c04fb98b89b3eddf6bf014f7fd0c5d39382228fc537da9586eb0a9b2a9f5ae6a",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/throbber.py",
+      "sha256": "bc9e861ce3454f94d2fbbe4e242376961f9a05c4717a4dd8b017089175447837",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/channels_sidebar.py",
+      "sha256": "cfc530b4239c62c289bb22df7918bd7dd43822efbb96cfaf0b8e2d5e1315ad11",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/observed_thread_activity.py",
+      "sha256": "89a017a3646df572de841dfa7bbc174200bd29222fa792e2a1551fdb8ab1ff95",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/sidebar_tree.py",
+      "sha256": "986fd13e5a17b600f0c0bbf71c1b4b5c2efb48d0293b4ca16220402f921ff660",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/question.py",
+      "sha256": "2b714836430044467ac9bd518800b1cb05aff641705a3596c77521f3be698748",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/shell_terminal.py",
+      "sha256": "825b111951fc908ba423581e6ceda525334045562f617ae6c2ead2a216a55daa",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/irc_message.py",
+      "sha256": "8932f30c99fd85e8733f14f30609e6c15633759cec30ef0e430314c178d8e738",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/session_details.py",
+      "sha256": "a2eaa4d911059df43d0824151fa672c3e474531c515f746219995987b64af2b1",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/committed_presentation.py",
+      "sha256": "06ac73aa705fd598af15fab2e378a5890a7eaff8f62a038318494e495136009d",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/non_selectable_label.py",
+      "sha256": "1f396c518bd6578cce97d7a13391d4581d5523a37e7c35a1d20a827af9762cb8",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/highlighted_textarea.py",
+      "sha256": "e7bee63b3297fe0e30dc8953e6cc15f7734c4ef2b4884461c094d07db821a5c2",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/prepared_markdown.py",
+      "sha256": "a9d1413e3c723fb1371b789882f9cf39de2e0cb231a4bd4bf9dd4afa23d99f67",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/note.py",
+      "sha256": "38c0eaac045e89e0d0d71214b1316ffbd97f7482e6c13bc786b3b6f179307aca",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/coordination_context.py",
+      "sha256": "55424b1ce165e15b55aa3119c9ae375a211af39c4d6e515cefa5f02f049a8703",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/conversation.py",
+      "sha256": "235af57bec11828a664c9037d02cd19138fd10307a6ca6e2a4d294d2f2085b23",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/diff_view.py",
+      "sha256": "3658324136b17cdb9e1084866d2adfd25c8c51513e4803e2d96cc87a3427fecb",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/slash_complete.py",
+      "sha256": "91594d9b26edd266954c06b442bea149a00c6102d349423332ba2e222fe3e2bb",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/strike_text.py",
+      "sha256": "a4bd5e1708e952b79866d204838247d6f14d247f5cc2c595449aeca4d90eaaa2",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/thread_comms_model.py",
+      "sha256": "0bf8a7a0117ba311e644c747b13eaff1d778101d5e7052a1c68deb220da2b749",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/route_header.py",
+      "sha256": "c47869494d2b9cfb238673233c50f58f9aea0101a530d21ba966f410db4e89e3",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/inline_message.py",
+      "sha256": "b9371d79f0e584dfce0ae5434040f05336a02f31ff9190f5cb4e81977faf9949",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/channel_participants.py",
+      "sha256": "13c4e9bdbfdb0b10689bfe8c11c624ab9070b7496dc1d2a6453f4e23af4a148e",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/transcript_fragments.py",
+      "sha256": "4a31e35ef6a778f993f7a55ec351c9786f023fe1134a678e1dd55c2c44188a6c",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/sidebar_viewport.py",
+      "sha256": "29629ff6904c2cd0a94282014cb86ab9803347aa8be141324e08936cafd514a4",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/input_delivery.py",
+      "sha256": "c9831f8818c2e6ccc962221c534ba6dbf40f98d6122faf69226b224c980881e4",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/selection.py",
+      "sha256": "6bbd67518be4772152efc69ff2b5aa87c3a9b7fbbe93f10d3ba78dc4eca9b956",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/future_text.py",
+      "sha256": "b27b6ea6dd5939804408cab7c60d6a77a5869deed01902b11fbd831bb1f02e3f",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/channel_prompt.py",
+      "sha256": "a894f714c907414aaadac97ff523ef032aacd2338816266fb3406e75273716a6",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/grid_select.py",
+      "sha256": "ef385c9fad738d55a36138155b23cd50f3076c758254da4d7c9504acdd4aa2e4",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/project_panel.py",
+      "sha256": "e3ff6cd97b4e08cc8870c4ebd690d8e74e95ec1deb3a513155c51044f395f9f5",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/model_switcher.py",
+      "sha256": "1e1bcb7dd0a8beefef62d7d0aa5450e9e184b6c62a87ad1010f17d699eba42b9",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/message_filter.py",
+      "sha256": "6c9739315064dd6af0093eac04c45bf61ea12abef72391a158530f325801f298",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/viewport_body.py",
+      "sha256": "cdd12b36f75ff858e00d7adcee619bfbff12cc4bbd9ecf331b0e591edcbc4b9c",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/session_sort.py",
+      "sha256": "044cec20f338654833a390203ff39533d6251ef74d2fedd303c901dd7d8bf42d",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/tool_content.py",
+      "sha256": "6d8242546fcf41870afc6a67efa9ecfd770f6a8ba33a0d78c3da0a4529ce01f1",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/message_notifications.py",
+      "sha256": "3ef8099489eebdd4b5a9d3837f791ac4f0e0dd02c6c3fc1ed404650922051528",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/history_anchor.py",
+      "sha256": "41cf1414a102b795c4299370ad19ae37c9e6642ae2465dc39e27b4e737fd5f31",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/menu.py",
+      "sha256": "3c067608264eefd338bbbe33cbcec9d2ae47042da294664d744288bdd76e07c1",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/terminal_tool.py",
+      "sha256": "3d8731409f7fa67561628210bd5c6698870347c769ca2106f906a3e29ef4fba4",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/agent_activity.py",
+      "sha256": "43923d9238dde099667038699000c4c7fc9e6ec29d788b8597237b3728cad257",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/comms_fork_dialog.py",
+      "sha256": "e2ca115f5c2a9ddb559de5a5d4bc632ab7a5d9a9b928df0c2d771093d743b835",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/plan.py",
+      "sha256": "537aae92989d293c7277d6c49c27de527cc1b2be6147b1af16d0fd22cfbc4710",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/user_input.py",
+      "sha256": "58df9932024b55c7162168775f1b2c38e2e8a75ed5111ff9c21abba11434de5f",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/comms_menu.py",
+      "sha256": "e7e82864deba737a4bb76f78494083e09e8e1840063dec25162bb2636df5839b",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/session_thread_panels.py",
+      "sha256": "05e6bb51c16c789a7be557c38ea6a1e3f57a536d1a504c93aa5d4a12c024c2d3",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/acp_content.py",
+      "sha256": "53876ecbc7abbc65f71ab89f416186550d33dc02b92fe360b97f750ca88a2bd6",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/mandelbrot.py",
+      "sha256": "e6d462d875ae852cd3e2fa1165036aabd519af578cc09bc828d5a7d938625b1a",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/agent_thought.py",
+      "sha256": "743a2e9a6c98d1ef14d790660ab4fce90e8740426042b90ac333ffcb5d1d9953",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/streaming_markdown.py",
+      "sha256": "9eae334dfe4e0c112b72fca1df2631be364627146e3f485c925f9ba73cec6205",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/markdown_note.py",
+      "sha256": "0facca2e534500d3c3dacd414028cada9b50da42bd1c017f8345e488025c3d50",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/wire_message_handling.py",
+      "sha256": "72a376d2e94a1e02b0d014bc8a59e41c3ef79352c22608e41e9acae30edcad8b",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/agent_response.py",
+      "sha256": "98aa1335d9037e09d30f65b8fbc6edb42efaba7ca00bbdc277b4144bd9c13312",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/message_divider.py",
+      "sha256": "345fea8323a847e247fd7f8b1031a5c2140e2acf0a77ee80813b82562fba8cf8",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/session_thread_sidebar.py",
+      "sha256": "5d3f7858eadf06f9350c630081c34af841525fc7eebea72b95fbee9746796d28",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/session_history_details.py",
+      "sha256": "e02e08268da00c30960f8d6937173cd78b23ef44bce4917fd7bfdbf875f1513a",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/goal_text.py",
+      "sha256": "6a29a56ecfa208114f18aed06e4ef8ada1e89b05c252a9809e45d31973c21eac",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/prompt_popup.py",
+      "sha256": "ad94850ef35f0488d19288d753168734d46f63b7adc3677ca0fd082c2ea4e59e",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/session_tabs.py",
+      "sha256": "bbaf1274803df52b5ee55fa931c23df00e840e2a97e14c82305fa0f001341f55",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/path_search.py",
+      "sha256": "43c8682b7bad5c45c95bd016fb9c7d7e40a9ee5d6506758fea88f52d03b7db32",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/thread_comms.py",
+      "sha256": "5c59a7ca4e1eb090a32be801e14268ff1c9c714800541ab6515d52fd5b3dbbe1",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/project_directory_tree.py",
+      "sha256": "33b8a3d68be4f2ac74865712eccdc02ea50cf0d1ddeda3a73abedbf74d8eb436",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/acp_log.py",
+      "sha256": "b2f992331ea417be6676db3426acfa0d41b0e5d533c9efa4fb822d282fc830ca",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/tool_call.py",
+      "sha256": "c23d652996e4546781e987d4de2715c490df7897998ee4198486f54e2dd89bca",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/incoming_message.py",
+      "sha256": "3af7365157a308ec43e030e640fc39e69cea7ec526b7541835773deba992f225",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/shell_result.py",
+      "sha256": "2239524a078afb997577e92f3d4309477023934a6f1007e229b7b7bb812da5a9",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/transcript_history.py",
+      "sha256": "adc759b09d48767110171504d2dc5c65e1330a8839e36fc3e55cac07eb210555",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/activity_spinner.py",
+      "sha256": "7647a7165b23e6a470e861e9a70e386330dd5d34d15eb75cdc1b0f894b9bffaf",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/recovery_view.py",
+      "sha256": "d47aba18ca5efb1c6af91d0ccdc311f6f9130146f813fbab802cd79e20572e77",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/terminal_projection.py",
+      "sha256": "31dffe864d4a7e2f88f52b6bcfe3a881d047f6f7255ad2f18e74b070de899621",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/comms_chat.py",
+      "sha256": "c25f795f343785fbae34a9489ac9ac8ddd2f69c439f580257d35d4b68da9189e",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/comms_transfer.py",
+      "sha256": "df9900ad36f29b48d0ab8e646ad25adfc5db0b4e1912c18b6589dab8d1c7ee29",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/goal_bar.py",
+      "sha256": "5695e444fc73d04472c0d433b56d4af0bed7fc020eae0c8038cad9c243cde635",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/context_explorer.py",
+      "sha256": "39f2335bbc67c37e416fae3fdbc9314145ff842168d8a6045d51f0714f523f4a",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/project_tree_intent.py",
+      "sha256": "50cbf462c034b4372f5f617d087d2ae5c2debc856e3b545f87ea9513f63b96c8",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/directory_input.py",
+      "sha256": "580c2c3334bcf26615bd26ea1a1a076488973e5ff84af2a36cf4a98ddea8a81a",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/footer.py",
+      "sha256": "b5aeb83e5e3dd5e1e31d5b313c2f3e2b7c8d4a543b146711c0d6f547553f402b",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/session_sidebar.py",
+      "sha256": "d1baf63bc2ae5afeab50c09d27d87ba2759b15723188f453e45e7748266d5f19",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/side_bar.py",
+      "sha256": "68117ff17aea5f806dd02a8d4de4a2e6493a2e4d3b8e4fd450a459f2a34ac394",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/widgets/condensed_path.py",
+      "sha256": "4409e8483feaad783345e1547f6d5967ecb4378695bd2694aad82ca1cebfc5fc",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/prompt.py",
+      "sha256": "58a9ad4cd996c662da4566154d21b3742236d39b77269ac42f3584637ce7fdc9",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/status.py",
+      "sha256": "39d25e11d26b39203879502e65fbd198e6c438b2340feb0d16035eb2ca7a4f1d",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/attachment_presentation.py",
+      "sha256": "2da8fbd976c38d13302f3f866c79cd06031fb73bd8b8e4f5bb9880820a20a825",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/agent_controller.py",
+      "sha256": "b46e914cb8635da03d44a4e48b190a22d25eddf264fd1461cbe2f52535c67f99",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/permission_controller.py",
+      "sha256": "89306e37d20cf8438363019531098adf3dcb328aee7bad39c688af6adfe2aaef",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/client_session.py",
+      "sha256": "3be2e90dd989858ba7dfe5eda193f18d39c91e2deaea5ba181009b277adfba7c",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/context_measurement.py",
+      "sha256": "2719ebf5a7dc5821a278562ea4d4ca14742893b3f6e7c628fffebfc9c42918ec",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/encode_tool_call_id.py",
+      "sha256": "8aa517eeba15904e55a2bc5de211e6c5373e7fea1113fce9de66980631cd749f",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/maintenance_ingress.py",
+      "sha256": "74ee6e3c4bfb721b6cf7de2ce84543a0e569675b61578b43281dc4fa56afc1d4",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/client_files.py",
+      "sha256": "62c8fea900c5ab380bf4adc625df5f9aa94def5314d0928b96590019a2d1d5ad",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/notification_items.py",
+      "sha256": "7a0a576b7233d45ff76645c461a393e5a82a0e95bf6d85ea4a4748206e5efe4d",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/agent.py",
+      "sha256": "ae39bf3312a8689e4fccea26ad26cad0d1596ebe7b8797fe199f69d75794195d",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/log_records.py",
+      "sha256": "f013aa98467c682722dc518d2f434609631fb62201978db236962d896fabbda1",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/queue_attachment.py",
+      "sha256": "f1dd7a4f4b85ceefd21b3312b9c0e85705cd8b37f73f604673ea505f0f983e0b",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/transcript_reader.py",
+      "sha256": "f167a6f21a91462f26a9af0af2f1fe8f61e2f2fcc4f38ae131afdbf05348e677",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/session_updates.py",
+      "sha256": "0c047a34cf0d1d23e5c9b3061c2e4dc2818cb4fc4870b81fe5f025460ab7bb3e",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/terminal_owner.py",
+      "sha256": "a0372530426fbed45ecb5cd389f8fa84c8904b9de34289686a8e063363880b15",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/comms_updates.py",
+      "sha256": "f38d6e87630259fcdf1c8a31bf49eff5d2a056d7313f57c5c13037f18f28f235",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/shell_command.py",
+      "sha256": "6b986221d2e6b9a991013bc9e5ed71acc78b0ec26e43308ddbd34179c1a14826",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/projection_attachment.py",
+      "sha256": "ec14c493a5400a5e4c5c9ebcb26760ffd3fec5c340ed7ac3f70fb46dd463d71f",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/api.py",
+      "sha256": "06251cde7130c9114086791dab9f5eb1cafe8491c34c9c62be14f0bf2fce0988",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/agent_process.py",
+      "sha256": "14db65b96f4526252e1e804d7df5318e9c05b7153ad7bde67da4245c1ca6dc16",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/sdk_boundary.py",
+      "sha256": "4a3981a16cfcde254d29aa0fbd8030b35061dab0bd675db253e56f83fc7fdd74",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/tool_calls.py",
+      "sha256": "2bae465484a7d2497511de35dc74be0369f26a29116c510710f17cfd3a84e981",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/agent_session.py",
+      "sha256": "be61bfe9e7eaa9bd5a99dffd7c7b538a0aba81074ca985bc1de6023a4dff5b88",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/terminal_controller.py",
+      "sha256": "a0fb6af2182f742603ff6f2500c35a0f7d3816fb2c36cf01d4ffe69ff4d06f6c",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/wire_message.py",
+      "sha256": "e4869ca75436887d0150af91ac17b6962d8306008ac49b12597a4a8f013050be",
+      "installed_equal": true
+    },
+    {
+      "path": "toad/acp/agent_configuration.py",
+      "sha256": "bef1f0ec34f72f9fac3279ee7e2e023a9c7fec50ef80e318bba814280ee58b74",
+      "installed_equal": true
+    }
+  ],
+  "asset_count": 294,
+  "distributions": [
+    {
+      "name": "Pygments",
+      "version": "2.21.0",
+      "direct_url": null
+    },
+    {
+      "name": "pydantic_core",
+      "version": "2.46.5",
+      "direct_url": null
+    },
+    {
+      "name": "typing-inspection",
+      "version": "0.4.4",
+      "direct_url": null
+    },
+    {
+      "name": "loguru",
+      "version": "0.6.0",
+      "direct_url": null
+    },
+    {
+      "name": "tree-sitter-go",
+      "version": "0.25.0",
+      "direct_url": null
+    },
+    {
+      "name": "aiohttp",
+      "version": "3.14.3",
+      "direct_url": null
+    },
+    {
+      "name": "propcache",
+      "version": "0.5.4",
+      "direct_url": null
+    },
+    {
+      "name": "yarl",
+      "version": "1.25.1",
+      "direct_url": null
+    },
+    {
+      "name": "tree-sitter-yaml",
+      "version": "0.7.2",
+      "direct_url": null
+    },
+    {
+      "name": "format-currency",
+      "version": "0.0.10",
+      "direct_url": null
+    },
+    {
+      "name": "tree-sitter-rust",
+      "version": "0.24.2",
+      "direct_url": null
+    },
+    {
+      "name": "xdg-base-dirs",
+      "version": "6.0.3",
+      "direct_url": null
+    },
+    {
+      "name": "certifi",
+      "version": "2026.7.22",
+      "direct_url": null
+    },
+    {
+      "name": "frozenlist",
+      "version": "1.8.0",
+      "direct_url": null
+    },
+    {
+      "name": "aiosignal",
+      "version": "1.4.0",
+      "direct_url": null
+    },
+    {
+      "name": "platformdirs",
+      "version": "4.9.6",
+      "direct_url": null
+    },
+    {
+      "name": "metaclass-registry",
+      "version": "0.2.1",
+      "direct_url": null
+    },
+    {
+      "name": "idna",
+      "version": "3.20",
+      "direct_url": null
+    },
+    {
+      "name": "tree-sitter-bash",
+      "version": "0.25.1",
+      "direct_url": null
+    },
+    {
+      "name": "aiohappyeyeballs",
+      "version": "2.7.1",
+      "direct_url": null
+    },
+    {
+      "name": "pyperclip",
+      "version": "1.11.0",
+      "direct_url": null
+    },
+    {
+      "name": "Jinja2",
+      "version": "3.1.6",
+      "direct_url": null
+    },
+    {
+      "name": "rich",
+      "version": "15.0.0",
+      "direct_url": null
+    },
+    {
+      "name": "bashlex",
+      "version": "0.18",
+      "direct_url": null
+    },
+    {
+      "name": "annotated-types",
+      "version": "0.8.0",
+      "direct_url": null
+    },
+    {
+      "name": "textual",
+      "version": "8.2.8",
+      "direct_url": "{\"url\":\"https://github.com/OpenHCSDev/textual.git\",\"vcs_info\":{\"vcs\":\"git\",\"commit_id\":\"940880e12c889e16a0c3e9b1ac6356fb7234ebb0\",\"requested_revision\":\"940880e12c889e16a0c3e9b1ac6356fb7234ebb0\"}}"
+    },
+    {
+      "name": "aiohttp-jinja2",
+      "version": "1.6",
+      "direct_url": null
+    },
+    {
+      "name": "httpx",
+      "version": "0.28.1",
+      "direct_url": null
+    },
+    {
+      "name": "anyio",
+      "version": "4.14.2",
+      "direct_url": null
+    },
+    {
+      "name": "batrachian-toad",
+      "version": "0.6.20",
+      "direct_url": "{\"url\":\"file:///home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/native-theme-choice-boundary-371/batrachian_toad-0.6.20-py3-none-any.whl\",\"archive_info\":{}}"
+    },
+    {
+      "name": "linkify-it-py",
+      "version": "2.2.0",
+      "direct_url": null
+    },
+    {
+      "name": "click",
+      "version": "8.4.0",
+      "direct_url": null
+    },
+    {
+      "name": "tree-sitter-json",
+      "version": "0.24.8",
+      "direct_url": null
+    },
+    {
+      "name": "notify_py",
+      "version": "0.3.43",
+      "direct_url": null
+    },
+    {
+      "name": "tree-sitter-javascript",
+      "version": "0.25.0",
+      "direct_url": null
+    },
+    {
+      "name": "typing_extensions",
+      "version": "4.15.0",
+      "direct_url": null
+    },
+    {
+      "name": "textual-diff-view",
+      "version": "0.1.5",
+      "direct_url": "{\"url\":\"https://github.com/OpenHCSDev/textual-diff-view.git\",\"vcs_info\":{\"vcs\":\"git\",\"commit_id\":\"8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9\",\"requested_revision\":\"8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9\"}}"
+    },
+    {
+      "name": "markdown-it-py",
+      "version": "4.2.0",
+      "direct_url": null
+    },
+    {
+      "name": "setproctitle",
+      "version": "1.3.7",
+      "direct_url": null
+    },
+    {
+      "name": "MarkupSafe",
+      "version": "3.0.3",
+      "direct_url": null
+    },
+    {
+      "name": "tree-sitter-html",
+      "version": "0.23.2",
+      "direct_url": null
+    },
+    {
+      "name": "textual-serve",
+      "version": "1.1.3",
+      "direct_url": null
+    },
+    {
+      "name": "tree-sitter",
+      "version": "0.26.0",
+      "direct_url": null
+    },
+    {
+      "name": "attrs",
+      "version": "26.1.0",
+      "direct_url": null
+    },
+    {
+      "name": "tree-sitter-xml",
+      "version": "0.7.0",
+      "direct_url": null
+    },
+    {
+      "name": "watchdog",
+      "version": "6.0.0",
+      "direct_url": null
+    },
+    {
+      "name": "pydantic",
+      "version": "2.13.5",
+      "direct_url": null
+    },
+    {
+      "name": "pathspec",
+      "version": "1.1.1",
+      "direct_url": null
+    },
+    {
+      "name": "jeepney",
+      "version": "0.9.0",
+      "direct_url": null
+    },
+    {
+      "name": "mdurl",
+      "version": "0.1.2",
+      "direct_url": null
+    },
+    {
+      "name": "packaging",
+      "version": "26.2",
+      "direct_url": null
+    },
+    {
+      "name": "tree-sitter-markdown",
+      "version": "0.5.1",
+      "direct_url": null
+    },
+    {
+      "name": "agent-comms",
+      "version": "0.1.0",
+      "direct_url": "{\"url\":\"https://github.com/OpenHCSDev/agent-comms.git\",\"vcs_info\":{\"vcs\":\"git\",\"commit_id\":\"6a1dad1db068aeb65c6feb2a11d75d4923c942eb\",\"requested_revision\":\"6a1dad1db068aeb65c6feb2a11d75d4923c942eb\"}}"
+    },
+    {
+      "name": "aiosqlite",
+      "version": "0.22.1",
+      "direct_url": null
+    },
+    {
+      "name": "tree-sitter-css",
+      "version": "0.25.0",
+      "direct_url": null
+    },
+    {
+      "name": "tree-sitter-java",
+      "version": "0.23.5",
+      "direct_url": null
+    },
+    {
+      "name": "psutil",
+      "version": "7.2.2",
+      "direct_url": null
+    },
+    {
+      "name": "typeguard",
+      "version": "4.5.2",
+      "direct_url": null
+    },
+    {
+      "name": "httpcore",
+      "version": "1.0.9",
+      "direct_url": null
+    },
+    {
+      "name": "tree-sitter-sql",
+      "version": "0.3.11",
+      "direct_url": null
+    },
+    {
+      "name": "mdit-py-plugins",
+      "version": "0.6.1",
+      "direct_url": null
+    },
+    {
+      "name": "tree-sitter-python",
+      "version": "0.25.0",
+      "direct_url": null
+    },
+    {
+      "name": "nominal-refactor-audit",
+      "version": "0.1.0",
+      "direct_url": "{\"url\":\"https://github.com/OpenHCSDev/NominalRefactorAdvisor.git\",\"vcs_info\":{\"vcs\":\"git\",\"commit_id\":\"d392c5e4cd189ce1203127a746337ad498a0330d\",\"requested_revision\":\"d392c5e4cd189ce1203127a746337ad498a0330d\"},\"subdirectory\":\"skills/refactor-audit\"}"
+    },
+    {
+      "name": "h11",
+      "version": "0.16.0",
+      "direct_url": null
+    },
+    {
+      "name": "agent-client-protocol",
+      "version": "0.12.1",
+      "direct_url": null
+    },
+    {
+      "name": "tree-sitter-toml",
+      "version": "0.7.0",
+      "direct_url": null
+    },
+    {
+      "name": "multidict",
+      "version": "6.9.1",
+      "direct_url": null
+    },
+    {
+      "name": "tree-sitter-regex",
+      "version": "0.25.0",
+      "direct_url": null
+    },
+    {
+      "name": "textual-speedups",
+      "version": "0.2.1",
+      "direct_url": null
+    }
+  ],
+  "distribution_count": 69
+}

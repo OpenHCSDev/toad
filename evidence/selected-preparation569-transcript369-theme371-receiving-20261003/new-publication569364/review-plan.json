@@ -1,0 +1,42 @@
+{
+  "target": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final",
+  "source_interpreter": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+  "current_prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "original_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-044646789787e3d3/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-915c78ab702bd8ea/node_modules/@earendil-works/pi-coding-agent",
+  "activation": {
+    "path": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/activation.json",
+    "sha256": "5cf14533f5f71cc0b246ff0b01e7bf8d237ecb1e9154ee3f7cd4a95c6f9780d9"
+  },
+  "source_proof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/selected-preparation569-transcript369-theme371-receiving-20261003/source-proof.json",
+    "sha256": "4b64ca516a63be08221a58260860d5e66e56777c2d7c2552080d9a385dbd5c1e"
+  },
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/selected-preparation569-transcript369-theme371-receiving-20261003/qualified-source-gates/569-READY.md",
+      "sha256": "e242b093c27a3adfd72817c15a83cce8f424004e32ec67c053ceae3bc468faa5"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/selected-preparation569-transcript369-theme371-receiving-20261003/qualified-source-gates/transcript-task-boundary-20261003/READY.json",
+      "sha256": "7302a583255e5e53445d7863fcf61e6ac43a9853ac692d2071a381f971dd9b10"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/selected-preparation569-transcript369-theme371-receiving-20261003/qualified-source-gates/native-theme-choice-boundary-20261003/READY.json",
+      "sha256": "0e384bbaf26708e12a65042cad1f925310d1cdf23c23d11c334704351ae237d8"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/selected-preparation569-transcript369-theme371-receiving-20261003/qualified-source-gates/364-scoped-ready-current.json",
+      "sha256": "9d65344d946a9c58ec0e9043489200289bd8849191bb67843ecc31c55849766d"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/selected-preparation569-transcript369-theme371-receiving-20261003/qualified-source-gates/570-installed-construction.json",
+      "sha256": "69f9524369efb9d532eec9f9bafbbd4eea8127e84b5ac9e8c5982d7ca9bdcd7f"
+    }
+  ]
+}
