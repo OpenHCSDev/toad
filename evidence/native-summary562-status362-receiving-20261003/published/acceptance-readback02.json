@@ -1,0 +1,145 @@
+{
+  "observed_at": 1791003006.4580793,
+  "original": {
+    "message": {
+      "seq": 497,
+      "from": "user",
+      "to": "openhcs-helper",
+      "ts": 1791002909.5791562,
+      "type": "info",
+      "text": "Live build 365 second distinct while-open status check: testing, please reply only Here. Keep your existing goal state.",
+      "sender_role": "user",
+      "id": "e5b05f428d76"
+    },
+    "returned": 1791002912.1586256,
+    "elapsed_seconds": 2.5806620121002197,
+    "ui_already_open": true,
+    "ui_pid": 2266750
+  },
+  "notifications": [
+    {
+      "recipient_identity": {
+        "recipient_lookup": "c3abd48325c7127c27d27cb2cc93606f",
+        "canonical_thread": "openhcs-helper"
+      },
+      "state": "Responded",
+      "detail": "The response workflow completed.",
+      "priority": 2,
+      "busy": false,
+      "message": null,
+      "displayed_to": []
+    }
+  ],
+  "fresh_rows": [
+    {
+      "seq": 498,
+      "from": "openhcs-helper",
+      "to": "user",
+      "ts": 1791002928.613076,
+      "type": "info",
+      "text": "Here.",
+      "sender_role": "agent",
+      "id": "fa5bb5f04be1"
+    }
+  ],
+  "reply_seconds": 19.03391981124878,
+  "after_capture_ns": 1791002959148877915,
+  "actual_default_capture_completed": true,
+  "capture_seconds": 78.91054454800906,
+  "runtime_unchanged": true,
+  "terminal_exit": {
+    "pid": 2266748,
+    "start_ticks": 47851835,
+    "returncode": 0
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 2266199,
+        "start_ticks": 47851577,
+        "returncode": 0
+      },
+      {
+        "pid": 2266746,
+        "start_ticks": 47851816,
+        "returncode": 0
+      },
+      {
+        "pid": 2266748,
+        "start_ticks": 47851835,
+        "returncode": 0
+      },
+      {
+        "pid": 2266750,
+        "start_ticks": 47851849,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 2266756,
+        "start_ticks": 47851923,
+        "returncode": 0
+      },
+      {
+        "pid": 2266757,
+        "start_ticks": 47851936,
+        "returncode": 0
+      },
+      {
+        "pid": 2266758,
+        "start_ticks": 47851947,
+        "returncode": 0
+      },
+      {
+        "pid": 2266759,
+        "start_ticks": 47851964,
+        "returncode": 255
+      },
+      {
+        "pid": 2267438,
+        "start_ticks": 47853166,
+        "returncode": 0
+      },
+      {
+        "pid": 2267443,
+        "start_ticks": 47853206,
+        "returncode": 0
+      },
+      {
+        "pid": 2267448,
+        "start_ticks": 47853254,
+        "returncode": 0
+      },
+      {
+        "pid": 2271734,
+        "start_ticks": 47859785,
+        "returncode": 0
+      },
+      {
+        "pid": 2271745,
+        "start_ticks": 47859819,
+        "returncode": 0
+      },
+      {
+        "pid": 2271758,
+        "start_ticks": 47859899,
+        "returncode": 0
+      },
+      {
+        "pid": 2271759,
+        "start_ticks": 47860101,
+        "returncode": 0
+      },
+      {
+        "pid": 2271916,
+        "start_ticks": 47860350,
+        "returncode": 0
+      }
+    ]
+  },
+  "before_image_sha256": "7eede7bdf13b26f9799d95609ac29edf308e7ec80407d03469517f10b98ee8ea",
+  "after_image_sha256": "1d7b71d9b2e410938f57097b06de104239a6a94a52f4c9e97c4f6df9383b554e",
+  "assessment": "Parent must inspect final physical status/bar before acceptance; no inference from Responded"
+}

@@ -1,0 +1,153 @@
+{
+  "time": 1791000942.9317708,
+  "holder": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001",
+  "owner_release_receipt": "/home/ts/wt/comms-async-bus-read-publication-custody-20261002/evidence/three-cut-configured-retention-20261003/runtime290-borrow-release.json",
+  "processes_scanned": 168,
+  "borrowers": [],
+  "permission_omissions": [
+    {
+      "pid": 1786010,
+      "attr": "environ",
+      "comm": "systemd"
+    },
+    {
+      "pid": 1786010,
+      "attr": "maps",
+      "comm": "systemd"
+    },
+    {
+      "pid": 1786012,
+      "attr": "environ",
+      "comm": "(sd-pam)"
+    },
+    {
+      "pid": 1786012,
+      "attr": "maps",
+      "comm": "(sd-pam)"
+    }
+  ],
+  "launcher_refs": [],
+  "import_pins": [],
+  "registry_ref": false,
+  "no_changes_to_holder": true,
+  "standing_protected": "S4 root/logs/SDKfork/proofs/InputDocs/ACP_UNCONFIRMED/native044/de166/960, public302/previous485/529,520/334 all untouched",
+  "assigned_borrower": "Mendel562",
+  "privileged_borrower_check": {
+    "holder": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001",
+    "privileged_processes_scanned": 204,
+    "borrowers": [],
+    "permission_gaps": [],
+    "kernel_and_zombie_processes_excluded": true
+  },
+  "original_S4_release_receipt": "/home/ts/wt/comms-async-bus-read-publication-custody-20261002/evidence/three-cut-configured-retention-20261003/runtime290-borrow-release.json",
+  "actual_current_original_archive": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-historical-handling290-current-20261001-for-mendel562",
+  "actual_current_original_files": {
+    "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001/activation.json": {
+      "retained": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-historical-handling290-current-20261001-for-mendel562/activation.json",
+      "sha256": "1f0c75c9d208cb1d1aeae29834c531d27fd73c558e14a4c940889f6fb742350f"
+    },
+    "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001/pyvenv.cfg": {
+      "retained": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-historical-handling290-current-20261001-for-mendel562/pyvenv.cfg",
+      "sha256": "9a3c89807934a054bd033b4719518b3ca35147f830375b89229bb0a2831a92d6"
+    },
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/ready-receipt.json": {
+      "retained": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-historical-handling290-current-20261001-for-mendel562/original-357-source-native-proof/ready-receipt.json",
+      "sha256": "f523f8579ed99f2d69e3f9f8c2f529e9d6318b4fe252373ff0b2f513c0b27214"
+    },
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/dependency-check.log": {
+      "retained": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-historical-handling290-current-20261001-for-mendel562/original-357-source-native-proof/dependency-check.log",
+      "sha256": "e2801daae5c10e80908860017061d818b046628799fa732b1744e4c946fc3e47"
+    },
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/verify.py": {
+      "retained": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-historical-handling290-current-20261001-for-mendel562/original-357-source-native-proof/verify.py",
+      "sha256": "13d3c9dbcfcbe9a07de70d04f4d53159dbb14b3f202993868ab6f9508e97a86d"
+    },
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/agent_comms-inventory.json": {
+      "retained": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-historical-handling290-current-20261001-for-mendel562/original-357-source-native-proof/agent_comms-inventory.json",
+      "sha256": "5f708adef02a2b785441e1dbeb8008765a3b2449f97d11e8d754aaae75797684"
+    },
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/reuse-relation.json": {
+      "retained": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-historical-handling290-current-20261001-for-mendel562/original-357-source-native-proof/reuse-relation.json",
+      "sha256": "c867ee02e768b1641d53d8ba37363daa1dd3129e8b2773b13dcb641c7e9404ca"
+    },
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/requirements.txt": {
+      "retained": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-historical-handling290-current-20261001-for-mendel562/original-357-source-native-proof/requirements.txt",
+      "sha256": "10eeb48ac5d7a02da5deb975e0c17c4fa44d73bd9995ba44e9d8604df9297fa3"
+    },
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/source-proof.json": {
+      "retained": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-historical-handling290-current-20261001-for-mendel562/original-357-source-native-proof/source-proof.json",
+      "sha256": "7948781c6e7810c15f2be3ebae72f2969f4e1cce3b45777bffbc3e753a6063e8"
+    },
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/textual-inventory.json": {
+      "retained": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-historical-handling290-current-20261001-for-mendel562/original-357-source-native-proof/textual-inventory.json",
+      "sha256": "e51fd63e6f12056df99c5b96b78ddce34e1f9ded4901884fe7e73a0bb9fc4636"
+    },
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/toad-inventory.json": {
+      "retained": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-historical-handling290-current-20261001-for-mendel562/original-357-source-native-proof/toad-inventory.json",
+      "sha256": "044ecdcff671a2df82124108c4113e60d49b9401857ddb8218b0075a09e8ba8c"
+    },
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/protected-before.json": {
+      "retained": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-historical-handling290-current-20261001-for-mendel562/original-357-source-native-proof/protected-before.json",
+      "sha256": "3cdc9abe53048de8a93fe222d516d34e087da02bcdba4af13fcee74e3d550fd2"
+    },
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/lock.log": {
+      "retained": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-historical-handling290-current-20261001-for-mendel562/original-357-source-native-proof/lock.log",
+      "sha256": "e373246c431b1be410d5c19ef383a76b25d7ca8a5938fea8310e81a1d9a49ec1"
+    },
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/prepare_activation.py": {
+      "retained": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-historical-handling290-current-20261001-for-mendel562/original-357-source-native-proof/prepare_activation.py",
+      "sha256": "6922efad02946361fda6d3f544759c8e0a0fcc43eda81f6f9d92e8d30834d4f1"
+    },
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/verify.log": {
+      "retained": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-historical-handling290-current-20261001-for-mendel562/original-357-source-native-proof/verify.log",
+      "sha256": "93b55f95a5e49b4cd413e57e91db6631f4b618ff8330da08f1312d8eef725deb"
+    },
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/install.log": {
+      "retained": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-historical-handling290-current-20261001-for-mendel562/original-357-source-native-proof/install.log",
+      "sha256": "c8f7d7a8c50f3e61fdcda723b31a794e9b1119ef129323df1213bc700e45bf49"
+    },
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/export.log": {
+      "retained": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-historical-handling290-current-20261001-for-mendel562/original-357-source-native-proof/export.log",
+      "sha256": "10eeb48ac5d7a02da5deb975e0c17c4fa44d73bd9995ba44e9d8604df9297fa3"
+    },
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/activation.log": {
+      "retained": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-historical-handling290-current-20261001-for-mendel562/original-357-source-native-proof/activation.log",
+      "sha256": "e8ff81c1f8f4249fea6d336b70d5ad699a3822a2bdb251b7444cdbc2c47a3fe3"
+    },
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/textual_diff_view-inventory.json": {
+      "retained": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-historical-handling290-current-20261001-for-mendel562/original-357-source-native-proof/textual_diff_view-inventory.json",
+      "sha256": "ec4c5f0a4025898ce5d6dd8233c3c7786f860bced717e16d59516d40b8269396"
+    },
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/ownership.json": {
+      "retained": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-historical-handling290-current-20261001-for-mendel562/original-357-source-native-proof/ownership.json",
+      "sha256": "854cce082d0f71941454f4e63293dddea7a8631130b7aef6ce7c5900823fce70"
+    },
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/install-requirements.txt": {
+      "retained": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-historical-handling290-current-20261001-for-mendel562/original-357-source-native-proof/install-requirements.txt",
+      "sha256": "b26bb94d5077ca9161677a1da5c6ba75dccd1128019c512a038dddc0f32e901f"
+    },
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/borrowers.py": {
+      "retained": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-historical-handling290-current-20261001-for-mendel562/original-357-source-native-proof/borrowers.py",
+      "sha256": "a50418261407777dd5037ab269455405a0ca821ba7256f7c3439e5daaabf48ca"
+    },
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/borrowers.json": {
+      "retained": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-historical-handling290-current-20261001-for-mendel562/original-357-source-native-proof/borrowers.json",
+      "sha256": "5542849d1441c012645f22ef5df2e42246c6cf68fc948ef867f1d805580d05d5"
+    }
+  },
+  "actual_activation_sha256": "1f0c75c9d208cb1d1aeae29834c531d27fd73c558e14a4c940889f6fb742350f",
+  "original_matching_staging_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/source-proof.json",
+  "reason_for_archive": "Arendt original S4 metadata differs from actual35752f/78f currentpackagecode; preserve this actual activation/fullsource/nativeproof once before restage",
+  "grant": "Mendel sole package-code borrow for merged560/562 configurednative044 savedfork acceptance",
+  "installation_order_clarification": {
+    "time_recorded": 1791001062.8437157,
+    "source": "Mendel direct owner report",
+    "core_wheel_install_preceded_archive": true,
+    "old_source": "52f",
+    "new_source": "cc56",
+    "archived_scope": "Original unchanged activation and immutable full source/native proof records; not a copy of pre-install module files or package dist-info",
+    "core_preimage_direct_url_uv_receipt_retained_by": "Mendel",
+    "cleaner_altered_holder": false,
+    "current_borrower": "Mendel configured562 gate29593"
+  }
+}

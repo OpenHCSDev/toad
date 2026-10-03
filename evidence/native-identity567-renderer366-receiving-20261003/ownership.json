@@ -1,0 +1,15 @@
+{
+  "owner": "Schrodinger",
+  "prefix": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002",
+  "core": "48324afc4d7415afb347cbc1f5f52cfc6820ac73",
+  "toad": "e90ad18d597290e641cacb0e2788c6053e1d5d2d",
+  "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-044646789787e3d3/node_modules/@earendil-works/pi-coding-agent",
+  "purpose": "One existing normal69 released520 holder for merged567/366; current290 and rollback302529 protected",
+  "new_env": false,
+  "new_native_build": false,
+  "gate_files": [
+    "567-installed-custody.json",
+    "366-READY.json"
+  ]
+}
