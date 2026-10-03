@@ -47,3 +47,26 @@ preflight-complete/originals absent. Its source-proof and activation were copied
 to failed349-installed-proof before replacing only the released290 holder.
 Current553 and previous334 remain unchanged. This fixes the pre-stop old-index
 reader failure; broad S2/S4/performance and unrelated555/350/347/338 are excluded.
+
+## Public disposition
+
+Parent executed the NEW operation once (82454 terminal0):51.815s,19 retained
+owners launched and their complete settings verified under original custody.
+The existing publisher checked39 byte invariants before launch. After owners
+resumed writing, parent found only coordination.sqlite3 changed; historical,
+native and input bytes had no mismatch. This is not live-DB byteimmutability.
+All five defaults now select this290 target. Raw publisher phase remains
+configurations-verified-public-ui-pending and is preserved unchanged.
+
+Ordinary default history loaded, but actual several InboxUnavailable errors
+appeared. Current activity records unavailable_drain/BlockingIOError on fresh
+generations2207..2225: this is real current idle observation, not historical
+source status. Mendel owns the shared required-admission relation. No delivery
+notification or full messaging/Ready claim is made. Parent physical8619 remains
+the original recording; no rerun, rollback, input replay or state clearing.
+
+Restart descriptor ownership was inspected independently: success closes the
+wire batch, publisher finally closes the route directory, worker spawning
+passes only exec-gate/error descriptors. All19 fresh workers had no inherited
+active-route directory descriptor at the sample. This does not identify the
+contention cause and is not justification for weakening admission.
