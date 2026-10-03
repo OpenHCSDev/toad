@@ -1,0 +1,15 @@
+Using Python 3.14.2 environment at: /home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534
+   Updating https://github.com/OpenHCSDev/toad.git (290da91fa682b7a0ff7537edd272414e17a54ef3)
+    Updated https://github.com/OpenHCSDev/toad.git (290da91fa682b7a0ff7537edd272414e17a54ef3)
+Resolved 69 packages in 1.49s
+   Building batrachian-toad @ git+https://github.com/OpenHCSDev/toad.git@290da91fa682b7a0ff7537edd272414e17a54ef3
+   Building textual @ git+https://github.com/OpenHCSDev/textual.git@a142a35eb0d7dcafdcb411d9fe8755e83bb14167
+      Built batrachian-toad @ git+https://github.com/OpenHCSDev/toad.git@290da91fa682b7a0ff7537edd272414e17a54ef3
+      Built textual @ git+https://github.com/OpenHCSDev/textual.git@a142a35eb0d7dcafdcb411d9fe8755e83bb14167
+Prepared 2 packages in 676ms
+Uninstalled 2 packages in 21ms
+Installed 2 packages in 8ms
+ - batrachian-toad==0.6.20 (from git+https://github.com/OpenHCSDev/toad.git@014a93e7197367073b2a864367e7936298e6ae6d)
+ + batrachian-toad==0.6.20 (from git+https://github.com/OpenHCSDev/toad.git@290da91fa682b7a0ff7537edd272414e17a54ef3)
+ - textual==8.2.8 (from git+https://github.com/OpenHCSDev/textual.git@14baa381a816f787e06ffbfb9215c243e22d32eb)
+ + textual==8.2.8 (from git+https://github.com/OpenHCSDev/textual.git@a142a35eb0d7dcafdcb411d9fe8755e83bb14167)

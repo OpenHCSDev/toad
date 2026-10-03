@@ -1,0 +1,38 @@
+{
+  "state": "released-package-only-to-parent-receiver",
+  "time": 1791051550.1925874,
+  "prefix": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534",
+  "installed_source_members_equal": 311,
+  "archived_members": 768,
+  "archive": "/home/ts/.cache/agent-scratch/mendel534-package-handback-597-20261003/original597-package-code-metadata-proof02.tar.gz",
+  "archive_bytes": 2751145,
+  "archive_sha256": "b48beeef200f4a4df3327e85203cdc6acfc58101e5a1e34ed2e8bb581a359030",
+  "inventory": "/home/ts/.cache/agent-scratch/mendel534-package-handback-597-20261003/inventory.json",
+  "borrowers": {
+    "time": 1791051474.022108,
+    "processes": 215,
+    "gaps": [],
+    "refs": {
+      "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534": []
+    }
+  },
+  "original595_preimage": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-scoped-input534-595-before-Mendel597/release-receipt.json",
+  "retired_original_private_processes": [
+    752010,
+    752173,
+    751574
+  ],
+  "native_unchanged": "89b56aea0bb128c4bf3e2c979de8a5afa79ac88b1f51a74c49cc1cab46da60d2",
+  "current_direct_url": {
+    "url": "file:///home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/joined-terminal-custody597-wheel/agent_comms-0.1.0-py3-none-any.whl",
+    "archive_info": {}
+  },
+  "scope": "package-only normal sequential dependency resolution; no fixture/public/default/native writes",
+  "protected": [
+    "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/cold-context595-configured02",
+    "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-rebind583-control06",
+    "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/joined-terminal-custody597-configured01"
+  ],
+  "production_ready_head": "a4f3ec380d8b5767a2b20833c6511a81ca2b4b49",
+  "first_archive_validation": "01 retained; verifier incorrectly followed external python symlink; 02 validates symlink identity and every regular-file byte"
+}
