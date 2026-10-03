@@ -94,7 +94,12 @@ async def main():
                     await asyncio.sleep(0)
                     pool.complete(2)
                     await wait_requests(pool, 4, pilot)
-                    assert response.query_one(MarkdownFence).code == "value = 123"
+                    # Original materialization joins the preceding native
+                    # writer before starting the next one. Its intermediate
+                    # native tree is not ready for the frame owner to paint.
+                    await asyncio.wait_for(obsolete, 5)
+                    assert not response.body_ready
+                    assert response.query_one(MarkdownFence).code == "obsolete = 1"
                     pool.complete(3)
                     await asyncio.wait_for(asyncio.gather(obsolete, latest), 5)
                     await pilot.pause()
