@@ -1,0 +1,411 @@
+{
+  "source": "790eb5cfbac2bcf7203b76dee8e03fc3cdeacf0a",
+  "parser": "Existing NRA Package.load",
+  "modules": 286,
+  "omissions": [],
+  "sites": [
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 252,
+      "kind": "Assign",
+      "source": "EMPTY_LINE = Text()"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1010,
+      "kind": "ClassDef",
+      "source": "class LineFold(NamedTuple):"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1030,
+      "kind": "ClassDef",
+      "source": "@dataclass"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1274,
+      "kind": "ClassDef",
+      "source": "@rich.repr.auto"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 252,
+      "kind": "Call",
+      "source": "Text()"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1045,
+      "kind": "FunctionDef",
+      "source": "def simplify(self) -> None:"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1184,
+      "kind": "FunctionDef",
+      "source": "def update_line(self, line_no: int) -> None:"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1443,
+      "kind": "FunctionDef",
+      "source": "def _reflow(self) -> None:"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1559,
+      "kind": "FunctionDef",
+      "source": "def scroll_buffer(self, direction: int, lines: int) -> None:"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1608,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1659,
+      "kind": "FunctionDef",
+      "source": "def add_line(self, buffer: Buffer, content: Text, style: Style=Style.null()) -> None:"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1680,
+      "kind": "FunctionDef",
+      "source": "def update_line(self, buffer: Buffer, line_index: int, line: Text, style: Style | None=None) -> None:"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 292,
+      "kind": "Assign",
+      "source": "line_content = line.content"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 297,
+      "kind": "Assign",
+      "source": "content = Text.styled(state.dec_state.translate(text), state.style)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 421,
+      "kind": "Assign",
+      "source": "previous_content = folded_line.content"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1054,
+      "kind": "Assign",
+      "source": "self.content.spans = spans"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1665,
+      "kind": "Assign",
+      "source": "line_record = LineRecord(content, style, self._fold_line(line_no, content, width), updates)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1700,
+      "kind": "Assign",
+      "source": "line_record.content = line"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1703,
+      "kind": "Assign",
+      "source": "line_record.folds[:] = self._fold_line(line_index, line_expanded_tabs, self.width)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 294,
+      "kind": "Assign",
+      "source": "line_content = state._expand_content(line_content, cursor_line_offset, line.style)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 297,
+      "kind": "Call",
+      "source": "Text.styled(state.dec_state.translate(text), state.style)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 302,
+      "kind": "Assign",
+      "source": "updated_line = Text.assemble(line_content[:cursor_line_offset], content, line_content[cursor_line_offset + len(content):])"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 308,
+      "kind": "Assign",
+      "source": "updated_line = Text.assemble(line_content[:cursor_line_offset], content, line_content[cursor_line_offset:])"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 429,
+      "kind": "Assign",
+      "source": "line_content = line.content"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1146,
+      "kind": "AugAssign",
+      "source": "position += len(folded_line.content)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1171,
+      "kind": "Assign",
+      "source": "line_length = len(fold.content)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1182,
+      "kind": "Assign",
+      "source": "self.cursor_offset = len(line.folds[-1].content)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1438,
+      "kind": "Assign",
+      "source": "last_line_content = buffer.lines[-1].content"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1457,
+      "kind": "Assign",
+      "source": "line_expanded_tabs = line_record.content.copy()"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1459,
+      "kind": "Assign",
+      "source": "line_record.folds[:] = self._fold_line(line_no, line_expanded_tabs, width)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1538,
+      "kind": "AugAssign",
+      "source": "position += len(folded_line.content)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1620,
+      "kind": "AugAssign",
+      "source": "content += Text.styled(' ' * (offset - len(content)), style)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1665,
+      "kind": "Call",
+      "source": "LineRecord(content, style, self._fold_line(line_no, content, width), updates)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1703,
+      "kind": "Call",
+      "source": "self._fold_line(line_index, line_expanded_tabs, self.width)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 286,
+      "kind": "Call",
+      "source": "state.add_line(buffer, EMPTY_LINE)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 294,
+      "kind": "Call",
+      "source": "state._expand_content(line_content, cursor_line_offset, line.style)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 302,
+      "kind": "Call",
+      "source": "Text.assemble(line_content[:cursor_line_offset], content, line_content[cursor_line_offset + len(content):])"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 308,
+      "kind": "Call",
+      "source": "Text.assemble(line_content[:cursor_line_offset], content, line_content[cursor_line_offset:])"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 401,
+      "kind": "Call",
+      "source": "state.add_line(buffer, EMPTY_LINE)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 431,
+      "kind": "Assign",
+      "source": "line_content = state._expand_content(line.content, cursor_line_offset, line.style)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 445,
+      "kind": "Assign",
+      "source": "updated_line = Text.assemble(before_clear, after_clear)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 454,
+      "kind": "Assign",
+      "source": "updated_line = Text.assemble(before_clear, Text.styled(' ' * blank_width, state.style), after_clear)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1146,
+      "kind": "Call",
+      "source": "len(folded_line.content)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1153,
+      "kind": "Call",
+      "source": "any((line.content.plain.strip() or line.content.spans for line in self.lines))"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1171,
+      "kind": "Call",
+      "source": "len(fold.content)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1182,
+      "kind": "Call",
+      "source": "len(line.folds[-1].content)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1457,
+      "kind": "Call",
+      "source": "line_record.content.copy()"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1459,
+      "kind": "Call",
+      "source": "self._fold_line(line_no, line_expanded_tabs, width)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1538,
+      "kind": "Call",
+      "source": "len(folded_line.content)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1575,
+      "kind": "Assign",
+      "source": "copy_content = EMPTY_LINE"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1593,
+      "kind": "Assign",
+      "source": "copy_content = EMPTY_LINE"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1620,
+      "kind": "Call",
+      "source": "Text.styled(' ' * (offset - len(content)), style)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1668,
+      "kind": "Call",
+      "source": "self._fold_line(line_no, content, width)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1692,
+      "kind": "Call",
+      "source": "self.add_line(buffer, EMPTY_LINE)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 430,
+      "kind": "Call",
+      "source": "len(line.content)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 431,
+      "kind": "Call",
+      "source": "state._expand_content(line.content, cursor_line_offset, line.style)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 445,
+      "kind": "Call",
+      "source": "Text.assemble(before_clear, after_clear)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 454,
+      "kind": "Call",
+      "source": "Text.assemble(before_clear, Text.styled(' ' * blank_width, state.style), after_clear)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1555,
+      "kind": "Call",
+      "source": "self.update_line(buffer, cursor_line, line.content[:cursor_line_offset])"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 456,
+      "kind": "Call",
+      "source": "Text.styled(' ' * blank_width, state.style)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1550,
+      "kind": "Call",
+      "source": "self.add_line(buffer, EMPTY_LINE)"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1583,
+      "kind": "Assign",
+      "source": "copy_content = copy_line.content"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1601,
+      "kind": "Assign",
+      "source": "copy_content = copy_line.content"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1154,
+      "kind": "Call",
+      "source": "line.content.plain.strip()"
+    },
+    {
+      "path": "src/toad/widgets/shell_terminal.py",
+      "line": 37,
+      "kind": "Load",
+      "source": "line.content"
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 195,
+      "kind": "Load",
+      "source": "line_record.content"
+    }
+  ],
+  "rich_boundary": {
+    "path": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/rich/text.py",
+    "sha256": "b7627c88caaec11d015148209be715369df45b1c3933c7c817fa748e2a18455d",
+    "__iadd__declared": false,
+    "__add__": "Installed Text.__add__ copies self then appends. += is not in-place here. Text and its span list remain mutable; direct simplify and scroll reuse are real alias ownership risks."
+  },
+  "scope": "All production ANSI allocations/assignments/mutator calls and lexical native folded/unfolded content consumers. Dynamic attribute aliases remain a source limitation."
+}

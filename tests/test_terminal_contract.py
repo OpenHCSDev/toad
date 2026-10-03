@@ -80,8 +80,8 @@ def test_terminal_escape_contract(sequence, expected):
             actual = {
                 "text": "\n".join(line.content.plain for line in state.buffer.lines),
                 "cursor": (state.buffer.cursor_line, state.buffer.cursor_offset),
-                "foreground": state.style.foreground.ansi
-                if state.style.foreground
+                "foreground": state.style.color.number
+                if state.style.color
                 else None,
                 "margins": tuple(state.buffer.scroll_margin),
                 "alternate": state.alternate_screen,
