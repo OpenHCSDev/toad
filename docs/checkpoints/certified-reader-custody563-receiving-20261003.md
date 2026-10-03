@@ -15,3 +15,23 @@ Ready SHA256: `c04ca0ab9bf2ccc4299b5ebbcadfa1d8ff3fc677e0e0e9a5cb297be4eeba3fee`
 Target: `/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001`. Current358529 is the original source interpreter. Whole native/index declarations equal; products differ. Existing51 reviewed operators remain byte-equal. Original receipt/preimages absent. Exact one-use parent command and pure terminal-after-readback command are Ready fields. Archive original485 metadata and563 source proof with honest separate boundaries. No new environment/native/provider/UI/custody run, no original560 recovery or latency-gain claim. Current529/previous290/520/334 and original sources/UNKNOWN protected. Parent fresh original audience/idle/client check and actual default acceptance remain separate.
 
 Persistent evidence: `evidence/certified-reader-custody563-receiving-20261003/`.
+
+## Original operation refused before effects
+
+Parent terminal1 stopped at the old cohort minimum-two-gates decision. Original refusal is archived byte-for-byte in `new-operation/parent-pre-effect-refusal.json`; receipt/preimages remain absent and default358 unchanged. The frozen operation is not retried or edited. Corrected canonical owner and new full-admission preparation will supply a separately reviewed operation, using the same qualified package.
+
+## NEW corrected564 operation
+
+Core564 Ready `70b92f4d23e3ceed45f13d24109a96df44c5a186` changes only the existing canonical cohort tool. The already accepted Core6a1/Toad90d90/Text940/native de166 library package remains immutable. Full read-only cohort admission now passes with the ONE original563 acceptance; final batch rejects absent, duplicate, packaging-only and changed-hash proofs. No new policy/family/wrapper, second journey, wheel/environment/native rebuild or public effect. The original failed operation is untouched.
+
+NEW Ready path: `/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/certified-reader-custody563-receiving-20261003/new-publication563-reviewed-acceptance564/ready-receipt.json`.
+
+NEW Ready SHA256: `917a78812652209d518738f5c06c4535cf10ecde9996f5ee2f9e78d5963f68f3`.
+
+Exact parent command/readback are NEW Ready fields. Receipt/preimages are absent. Of51 canonical operator members, only `publish_retained_summary.py` changes; generated preparation calls full `cohort.require_original()` before freeze. Parent reviews this NEW operation and decides execution; do not reuse old360 command.
+
+## Actual NEW563/564 publication and parent readback
+
+Parent session11653 terminal0 launched19 in43.850909s. Raw receipt SHA256 `44b5f710f97977c7c8c2945ce6d09e5ba04acd0271d07397a5c9d67e59c048ee` remains at `retained-batch-launched-configurations-verified-public-ui-pending`. Parent ONE identity readback terminal0:19 original thread births/stored settings with new alive process identities; all five links/root/native exact. Both original raw artifacts archived byte-for-byte under `corrected-operation564/`; no publication/readback repeats. The failed old360 operation/refusal remains immutable.
+
+Current485 is Core6a1/Toad90d90/Text940/native de166;529 is previous,290 and520 remain borrowed donors. Original560 remains untouched. Parent ordinary default UI/CLI/freshmessage acceptance is next and separate; no UI-readiness or latency-gain claim from publication. Original sessions/UNKNOWN preserved; no live DB byteimmutability claim after owner writes resume.

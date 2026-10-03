@@ -1,0 +1,25 @@
+{
+  "stage": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final",
+  "pins": {
+    "agent_comms": "6a1dad1db068aeb65c6feb2a11d75d4923c942eb",
+    "toad": "f8a23445b47fec8716d461dc7824973f897f46ed",
+    "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
+  },
+  "sdk": "0.12.1",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-de16647979cbad28/node_modules/@earendil-works/pi-coding-agent",
+  "state": "Normal69 merged359 native feedback owners; qualified backend/native de166 unchanged",
+  "staging_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-feedback359-receiving-20261003/source-proof.json",
+  "bins": {
+    "python": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/bin/python",
+    "toad": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/bin/toad",
+    "agent-comms": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/bin/agent-comms-agent",
+    "pi-comms-native": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/bin/pi-comms-native"
+  },
+  "native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-de16647979cbad28/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+  "native_manifest": "de16647979cbad28be4f60349d39a420e83aaffb1d678941609449d306109968",
+  "native_tree": "7bf47002b579908fc556548c19451b925afd688606954ad485180a49da5c133d",
+  "native_configuration_note": "Released302 holder reused; actual matching source proof and activation archived. Current563485, previous529 and290/520donors unchanged. No provider/public changes, no environment/native build."
+}

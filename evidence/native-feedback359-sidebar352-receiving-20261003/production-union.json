@@ -1,0 +1,27 @@
+{
+  "head": "02a85aabfbc047042665f47b568b6992d8ed4da0",
+  "merged_main": "5b10c7aaea11e13d42dc79289171ebb80d357a10",
+  "all_src_pyproject_lock_equal_merged_main": true,
+  "359_original_files_retained_byte_equal": [
+    "src/toad/acp/agent_controller.py",
+    "src/toad/acp/status.py",
+    "src/toad/agent_surface.py",
+    "src/toad/core/events.py",
+    "src/toad/widgets/conversation.py",
+    "src/toad/widgets/tool_call.py"
+  ],
+  "352_original_changed_files_retained_byte_equal": [
+    "src/toad/mounted_message_history.py",
+    "src/toad/sidebar_preparation.py",
+    "src/toad/sidebar_projection.py",
+    "src/toad/transcript_source_preparation.py",
+    "src/toad/transcript_state.py",
+    "src/toad/widgets/comms_sidebar.py",
+    "src/toad/widgets/session_sidebar.py",
+    "src/toad/widgets/sidebar_tree.py",
+    "src/toad/widgets/thread_comms.py",
+    "src/toad/widgets/transcript_history.py"
+  ],
+  "352_delta_from_frozen361": "10 files changed, 169 insertions(+), 91 deletions(-)",
+  "355_new_CSS_admission_excluded": true
+}

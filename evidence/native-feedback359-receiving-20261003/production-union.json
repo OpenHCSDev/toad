@@ -1,0 +1,14 @@
+{
+  "merged359": "37ac2634ff2941e3f713ad20bc18f17b792a3a0c",
+  "receiver": "f8a23445b47fec8716d461dc7824973f897f46ed",
+  "all_src_pyproject_uvlock_equal": true,
+  "core_unchanged": "6a1dad1db068aeb65c6feb2a11d75d4923c942eb",
+  "source_inventory_files": {
+    "agent_comms": 339,
+    "toad": 317,
+    "textual": 266,
+    "textual_diff_view": 3
+  },
+  "accepted_controls_repeated": false,
+  "stale_status_fix_claim": false
+}

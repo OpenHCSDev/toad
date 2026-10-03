@@ -1,0 +1,210 @@
+{
+  "source_head": "78a9d69a2711084691255967eb2eaa7048aea4ef",
+  "core": "6a1dad1db068aeb65c6feb2a11d75d4923c942eb",
+  "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0",
+  "native": "de16647979cbad28",
+  "recording": "/home/ts/.cache/agent-scratch/sidebar352-current563-motion-20261003-01/capture",
+  "capture_completed": true,
+  "raw_completed": false,
+  "raw_error": "RuntimeError: Installed journey failed: reverse_page_up_admitted_older_source",
+  "raw_hashes_unchanged": {
+    "receipt.json": "66302cbc964fd1859cde2750d21fbeb4edc6fb354af8b3ed1bc8bd1c5aabbab9",
+    "warm-scroll-review.json": "ead4bd6d64dfd31784090b01c767ad7459e93ce4edbdbc94db242648885da04b",
+    "input-paging-review.json": "5a8ca1394acee269c02cb4555a7921baf8ccc77c0a64395d74aaf0af63e2addd",
+    "terminal.mp4": "c17846be9cf3371df78ea6927d5ec84f712a6f55f8e4775b5cc1e648f8ec2f84"
+  },
+  "coverage_reanalysis": {
+    "held_page_up_destination_covered": true,
+    "held_page_down_destination_covered": true,
+    "reverse_page_up_destination_covered": true,
+    "input_pageup_destination_covered": true,
+    "input_pagedown_destination_covered": true
+  },
+  "reverse_original_admission": false,
+  "reverse_reader": [
+    327,
+    103
+  ],
+  "reverse_admissions_unchanged": true,
+  "reverse_visible_bodies": 4,
+  "reverse_visible_bodies_ready": true,
+  "installed_disclosure": "cohort-native-paint-installed.log: original channel member paint/collapse/reopen/relationship retention and0tooltip-only row updates passed",
+  "warm_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": true,
+    "held_page_down_admitted_newer_source": true,
+    "reverse_page_up_admitted_older_source": false
+  },
+  "input_checks": {
+    "input_remains_focused": true,
+    "original_editor_window_and_mode": true,
+    "draft_and_caret_preserved": true,
+    "input_pageup_moves_history": true,
+    "input_pagedown_moves_history": true,
+    "input_pageup_reaches_original_window": true,
+    "input_pagedown_reaches_original_window": true
+  },
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 1695859,
+      "start_time": 47199145
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 1695859,
+      "start_time": 47199145
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "duration_seconds": 110.175965611008,
+  "phase_cpu": [
+    {
+      "phase": "input-held-up",
+      "start_seconds": 21.052448512986302,
+      "end_seconds": 25.176692455017474,
+      "ui_cpu": [
+        {
+          "pid": "1882053",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+          "cpu_seconds": 3.369999999999999,
+          "average_cpu_percent": 81.71194641654222
+        }
+      ]
+    },
+    {
+      "phase": "input-mid-history-idle-done",
+      "start_seconds": 42.08253281901125,
+      "end_seconds": 43.73653043300146,
+      "ui_cpu": [
+        {
+          "pid": "1882053",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+          "cpu_seconds": 0.3200000000000003,
+          "average_cpu_percent": 19.347065394369647
+        }
+      ]
+    },
+    {
+      "phase": "input-held-down",
+      "start_seconds": 43.73653043300146,
+      "end_seconds": 48.063174160022754,
+      "ui_cpu": [
+        {
+          "pid": "1882053",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+          "cpu_seconds": 2.8099999999999987,
+          "average_cpu_percent": 64.9464152190447
+        }
+      ]
+    },
+    {
+      "phase": "up",
+      "start_seconds": 53.39506224897923,
+      "end_seconds": 57.53172365500359,
+      "ui_cpu": [
+        {
+          "pid": "1882053",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+          "cpu_seconds": 2.6400000000000006,
+          "average_cpu_percent": 63.819581562930914
+        }
+      ]
+    },
+    {
+      "phase": "down",
+      "start_seconds": 59.16420304001076,
+      "end_seconds": 63.19762427400565,
+      "ui_cpu": [
+        {
+          "pid": "1882053",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+          "cpu_seconds": 2.5199999999999996,
+          "average_cpu_percent": 62.47797722590148
+        }
+      ]
+    },
+    {
+      "phase": "reverse",
+      "start_seconds": 64.78419560502516,
+      "end_seconds": 68.91214274399681,
+      "ui_cpu": [
+        {
+          "pid": "1882053",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+          "cpu_seconds": 2.5799999999999983,
+          "average_cpu_percent": 62.50080035285349
+        }
+      ]
+    },
+    {
+      "phase": "end",
+      "start_seconds": 70.51784818602027,
+      "end_seconds": 73.46776689297985,
+      "ui_cpu": [
+        {
+          "pid": "1882053",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+          "cpu_seconds": 0.8000000000000043,
+          "average_cpu_percent": 27.119391395858088
+        }
+      ]
+    },
+    {
+      "phase": "idle-done",
+      "start_seconds": 90.36363551701652,
+      "end_seconds": 92.12854993902147,
+      "ui_cpu": [
+        {
+          "pid": "1882053",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+          "cpu_seconds": 0.5100000000000051,
+          "average_cpu_percent": 28.896585219165654
+        }
+      ]
+    }
+  ],
+  "profile": {
+    "samples": 1207,
+    "errors": 3,
+    "quality": "partial; inspect errors and missing thread intervals",
+    "alignment_seconds": 0.08246214649174363
+  },
+  "motion_assessment": {
+    "during_live_ui": "live-15-0-frames.png33.2-34.0s stationary midhistory; inspected with recorder/UI alive",
+    "moving_review": "during-input-up-22.8-frames.png22.8-23.6s within actualkeydown22.256-24.393; reviewed while recorder finalizing after UI retired; consecutive48frames: readable chrome/history, repeated positions and chunky advances",
+    "a_return": "phase-a-return.png reviewed after run: correct nra body and selected native tab, footer original backend source; sidebar retains previous navigation selection",
+    "not_claimed": [
+      "smooth motion",
+      "144Hz",
+      "matched CPU gain",
+      "busy-provider/sidebar animation",
+      "full IRC/End destination acceptance",
+      "raw recording pass",
+      "actual Toad exit0 from transferred identity"
+    ]
+  }
+}
