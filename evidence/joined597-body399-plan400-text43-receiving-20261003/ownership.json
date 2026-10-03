@@ -1,0 +1,28 @@
+{
+  "core": "91e07acc481281ce3e7b322567fbd41bc7939226",
+  "toad": "290da91fa682b7a0ff7537edd272414e17a54ef3",
+  "textual": "a142a35eb0d7dcafdcb411d9fe8755e83bb14167",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-89b56aea0bb128c4/node_modules/@earendil-works/pi-coding-agent",
+  "prefix": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534",
+  "gate_files": [
+    "393-text41-ready.json",
+    "394-layout-ready.json",
+    "396-text42-ready.json",
+    "593-installed-sdk03.log",
+    "593-retained-faults-journal.json",
+    "595-configured-cold-receipt.json",
+    "595-397-physical06-terminal.json",
+    "595-397-physical06-capture.json",
+    "595-397-physical06-assessment.json",
+    "398-headless-app-ready.json",
+    "398-installed-app-receipt.json",
+    "597-installed-controls.log",
+    "597-configured01-terminal-original.json",
+    "597-CONFIGURED-TIMING.json",
+    "399-43-READY.json",
+    "399-43-native-resource.json",
+    "399-43-motion-assessment.json",
+    "400-READY.json",
+    "400-installed02-app.json"
+  ]
+}
