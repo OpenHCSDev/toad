@@ -1,0 +1,41 @@
+{
+  "state": "Original parent publication, one-use identity readback and ordinary default saved-history acceptance archived",
+  "publisher_session": 67866,
+  "publisher_terminal_code": 0,
+  "publication_sha256": "955556363c81c904f818acae0a106efa17b93583e53a355fc4da8e9eba7ab0f3",
+  "original_phase": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "duration_seconds": 41.92727565765381,
+  "owner_count": 19,
+  "all_births_settings_retained": true,
+  "new_process_identities_alive": true,
+  "five_links_root_native_exact": true,
+  "current_prefix": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final",
+  "native": "de166",
+  "archive_hashes": {
+    "publication-receipt.json": "955556363c81c904f818acae0a106efa17b93583e53a355fc4da8e9eba7ab0f3",
+    "publication-identity-closure.json": "fa5529e9cf91a778974803014a605db6699dde6ef5fa538abf7166998c3ea394",
+    "acceptance-readback.json": "afdd7bc968c96c4c733605770a3254b07c60fbb3a3760039008714ad87e5d5a3",
+    "default-capture-receipt.json": "3cca829c3c2802bfa8178b59291786c90ca09a468294e6e3e0c23ee75f1e249b"
+  },
+  "publication_repeated": false,
+  "readback_repeated": false,
+  "default_acceptance": "Parent personally viewed after.png after ordinary plain-st isolated7930 run; saved493/494 inboundResponded/outboundHere,sidebar/chatReady. Runtime/helperidentity unchanged,st0/cleanupempty; no newinput/provider/stale362claim.",
+  "562_native044_publicly_switched": false,
+  "acceptance_original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published359352-20261003/acceptance-readback.json",
+  "acceptance_sha256": "afdd7bc968c96c4c733605770a3254b07c60fbb3a3760039008714ad87e5d5a3",
+  "raw_default_capture": "/home/ts/.cache/agent-scratch/published359352-helper-20261003/capture/receipt.json",
+  "raw_default_capture_sha256": "3cca829c3c2802bfa8178b59291786c90ca09a468294e6e3e0c23ee75f1e249b",
+  "default_duration_seconds": 18.560432815982495,
+  "terminal_exit": {
+    "pid": 2082962,
+    "start_ticks": 47579053,
+    "returncode": 0
+  },
+  "recorder_returncode_note": "capture_returncode255 is stopped ffmpeg recorder, not st; original terminal_exit.returncode0.",
+  "remaining": [
+    "362 stale remote-turn status acceptance not included",
+    "364 shared IRC/DM style/materialization/frame cost unfinished",
+    "562 native044 changed configured journey not yet installed publicly",
+    "full144Hz/scroll/End/headless scope unfinished"
+  ]
+}
