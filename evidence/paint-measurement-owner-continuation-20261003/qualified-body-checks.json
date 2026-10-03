@@ -1,0 +1,17 @@
+[
+  {
+    "check": "markdown_process_lifecycle_pilot.py",
+    "exit": 0,
+    "seconds": 7.028983936004806
+  },
+  {
+    "check": "retained_fragment_geometry_pilot.py",
+    "exit": 0,
+    "seconds": 8.08176435797941
+  },
+  {
+    "check": "throbber_busy_pilot.py",
+    "exit": 0,
+    "seconds": 5.525389423011802
+  }
+]

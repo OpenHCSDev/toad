@@ -1,0 +1,454 @@
+{
+  "qualification": "SCOPED_READY body preparation/lifecycle, style measurement and retained native resources; not smoothness/CPU/144Hz/IRC paint ready",
+  "source_head": "ad7fe80713c8ea11355acc3932102a62f8eac7cc",
+  "native_source_head": "95d3b99b8287af866290bc5398c869325d2d2913",
+  "native_review_head": "80e67a8b216a71c46f5dec523832cefdf75c1a49",
+  "installed_sources": [
+    {
+      "module": "agent_comms",
+      "head": "e2c3c2e1343be61cf54f6c36f1ce73d73324f7c0",
+      "byte_equal": true
+    },
+    {
+      "module": "toad",
+      "head": "122069737a82a2031dac5a54e167b97a618ef93f",
+      "byte_equal": true
+    },
+    {
+      "module": "textual",
+      "head": "95d3b99b8287af866290bc5398c869325d2d2913",
+      "byte_equal": true
+    },
+    {
+      "module": "textual_diff_view",
+      "head": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "byte_equal": true
+    }
+  ],
+  "normal_main_merge": "f3493b85e",
+  "core_metadata_after_main_merge": "5e1575269bd20e87f6c03365619feeb0178a215d",
+  "qualification_production_files_unchanged_after_main_merge": [
+    "src/toad/widgets/viewport_body.py",
+    "src/toad/widgets/prepared_markdown.py",
+    "src/toad/widgets/streaming_markdown.py",
+    "src/toad/widgets/context_explorer.py",
+    "src/toad/widgets/throbber.py"
+  ],
+  "main_union_limit": "Accepted main terminal/catalog source imported normally; these disjoint methods were not rerecorded. Five owned production files equal installed1220697. No claim entire merged cohort was recorded.",
+  "capture": "/home/ts/.cache/agent-scratch/preparation384-geometry39-public-20261003-01/capture",
+  "capture_completed": true,
+  "completed": true,
+  "duration_seconds": 111.34899411100196,
+  "physical_checks": {
+    "warm": {
+      "original_saved_history_loaded": true,
+      "peer_saved_history_loaded": true,
+      "draft_typed": true,
+      "peer_selected": true,
+      "source_retained": true,
+      "editor_retained": true,
+      "history_window_retained": true,
+      "draft_retained": true,
+      "reader_position_retained": true,
+      "ready_body_resources_retained": true,
+      "undo_restored_original_draft": true,
+      "history_scroll_extent": true,
+      "scroll_keys_focus_history": true,
+      "held_page_up_destination_covered": true,
+      "held_page_down_destination_covered": true,
+      "reverse_page_up_destination_covered": true
+    },
+    "input": {
+      "input_remains_focused": true,
+      "original_editor_window_and_mode": true,
+      "draft_and_caret_preserved": true,
+      "input_pageup_moves_history": true,
+      "input_pagedown_moves_history": true,
+      "input_pageup_reaches_original_window": true,
+      "input_pagedown_reaches_original_window": true
+    }
+  },
+  "retained_ready_bodies": 38,
+  "original_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3477608,
+      "start_time": 49756380
+    },
+    "original_owner_alive": true
+  },
+  "original_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3477608,
+      "start_time": 49756380
+    },
+    "original_owner_alive": true
+  },
+  "cleanup_remaining": [],
+  "cleanup_errors": [],
+  "application_exit_limit": "Terminal/UI identities transferred to ObservedProcess; receipt has no explicit application exit0 code. FFmpeg255 is its accepted SIGINT, not UI exit evidence. Required state exports and capture completed.",
+  "held_key_writer": [
+    {
+      "action": "input-held-up",
+      "intervals": {
+        "count": 87,
+        "median_ms": 13.85,
+        "p95_ms": 49.29,
+        "p99_ms": 132.76,
+        "max_ms": 137.71
+      },
+      "writer_receipts": 88
+    },
+    {
+      "action": "input-held-down",
+      "intervals": {
+        "count": 127,
+        "median_ms": 13.26,
+        "p95_ms": 23.9,
+        "p99_ms": 41.27,
+        "max_ms": 104.39
+      },
+      "writer_receipts": 128
+    },
+    {
+      "action": "history-up",
+      "intervals": {
+        "count": 136,
+        "median_ms": 12.46,
+        "p95_ms": 19.0,
+        "p99_ms": 26.88,
+        "max_ms": 117.67
+      },
+      "writer_receipts": 137
+    },
+    {
+      "action": "history-down",
+      "intervals": {
+        "count": 130,
+        "median_ms": 12.16,
+        "p95_ms": 24.07,
+        "p99_ms": 37.16,
+        "max_ms": 100.73
+      },
+      "writer_receipts": 131
+    },
+    {
+      "action": "history-reverse",
+      "intervals": {
+        "count": 137,
+        "median_ms": 12.21,
+        "p95_ms": 22.85,
+        "p99_ms": 28.73,
+        "max_ms": 123.72
+      },
+      "writer_receipts": 138
+    }
+  ],
+  "cpu_marker_windows": [
+    {
+      "label": "input-held-up",
+      "video_start_seconds": 19.560980968002696,
+      "video_end_seconds": 23.16162405803334,
+      "cpu": [
+        {
+          "pid": "3631380",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+          "cpu_seconds": 2.83,
+          "average_cpu_percent": 78.59707083536333
+        },
+        {
+          "pid": "3631379",
+          "command": "st -e /home/ts/bin/toad-comms nra-architecture ",
+          "cpu_seconds": 0.09000000000000001,
+          "average_cpu_percent": 2.4995534894638514
+        },
+        {
+          "pid": "3631577",
+          "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=22) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.2777281654959837
+        },
+        {
+          "pid": "3631596",
+          "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3631566",
+          "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3631633",
+          "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3631578",
+          "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=28) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ]
+    },
+    {
+      "label": "input-held-up-done",
+      "video_start_seconds": 23.16162405803334,
+      "video_end_seconds": 39.83462552301353,
+      "cpu": [
+        {
+          "pid": "3631380",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+          "cpu_seconds": 3.629999999999999,
+          "average_cpu_percent": 21.771724830855536
+        },
+        {
+          "pid": "3631577",
+          "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=22) --multiprocessing-fork ",
+          "cpu_seconds": 0.040000000000000036,
+          "average_cpu_percent": 0.23990881356314667
+        },
+        {
+          "pid": "3631596",
+          "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0.019999999999999796,
+          "average_cpu_percent": 0.11995440678157201
+        },
+        {
+          "pid": "3631633",
+          "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.05997720339078667
+        },
+        {
+          "pid": "3631578",
+          "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=28) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.05997720339078667
+        },
+        {
+          "pid": "3631566",
+          "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0.010000000000000002,
+          "average_cpu_percent": 0.059977203390786625
+        },
+        {
+          "pid": "3631379",
+          "command": "st -e /home/ts/bin/toad-comms nra-architecture ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ]
+    },
+    {
+      "label": "input-held-down",
+      "video_start_seconds": 41.46756156900665,
+      "video_end_seconds": 44.845687216031365,
+      "cpu": [
+        {
+          "pid": "3631380",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+          "cpu_seconds": 2.379999999999999,
+          "average_cpu_percent": 70.45327050212543
+        },
+        {
+          "pid": "3631379",
+          "command": "st -e /home/ts/bin/toad-comms nra-architecture ",
+          "cpu_seconds": 0.10999999999999999,
+          "average_cpu_percent": 3.2562435946360506
+        },
+        {
+          "pid": "3631596",
+          "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0.010000000000000231,
+          "average_cpu_percent": 0.29602214496692053
+        },
+        {
+          "pid": "3631577",
+          "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=22) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.296022144966914
+        },
+        {
+          "pid": "3631566",
+          "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3631633",
+          "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3631578",
+          "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=28) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ]
+    },
+    {
+      "label": "reverse",
+      "video_start_seconds": 60.435641225019936,
+      "video_end_seconds": 64.05596029100707,
+      "cpu": [
+        {
+          "pid": "3631380",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+          "cpu_seconds": 2.6499999999999986,
+          "average_cpu_percent": 73.19796823701884
+        },
+        {
+          "pid": "3631379",
+          "command": "st -e /home/ts/bin/toad-comms nra-architecture ",
+          "cpu_seconds": 0.13,
+          "average_cpu_percent": 3.590843724834889
+        },
+        {
+          "pid": "3631633",
+          "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.2762187480642225
+        },
+        {
+          "pid": "3631596",
+          "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3631566",
+          "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3631577",
+          "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=22) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3631578",
+          "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=28) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ]
+    },
+    {
+      "label": "idle",
+      "video_start_seconds": 68.44231680600205,
+      "video_end_seconds": 85.25008495204384,
+      "cpu": [
+        {
+          "pid": "3631380",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+          "cpu_seconds": 3.8800000000000026,
+          "average_cpu_percent": 23.084564031862495
+        },
+        {
+          "pid": "3631577",
+          "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=22) --multiprocessing-fork ",
+          "cpu_seconds": 0.040000000000000036,
+          "average_cpu_percent": 0.23798519620476805
+        },
+        {
+          "pid": "3631596",
+          "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.11899259810238402
+        },
+        {
+          "pid": "3631566",
+          "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.05949629905119201
+        },
+        {
+          "pid": "3631633",
+          "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.05949629905119201
+        },
+        {
+          "pid": "3631379",
+          "command": "st -e /home/ts/bin/toad-comms nra-architecture ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.05949629905119201
+        },
+        {
+          "pid": "3631578",
+          "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=28) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.05949629905119201
+        }
+      ]
+    }
+  ],
+  "profile": {
+    "samples": 1240,
+    "errors": 1,
+    "quality": "partial; inspect errors and missing thread intervals",
+    "alignment_uncertainty_seconds": 0.07998483601026238
+  },
+  "visual_review": {
+    "moving_frames": "/home/ts/.cache/agent-scratch/preparation384-geometry39-public-20261003-01/capture/during-exact-input-up-frames.png",
+    "movie_seconds": [
+      21.3,
+      22.1
+    ],
+    "held_up_seconds": [
+      20.685683094,
+      22.437281979
+    ],
+    "observed": "Readable body/chrome, repeated positions then discrete advances. Not smooth scrolling.",
+    "review_timing": "After UI retirement; recorder remained alive, but post-view UI PID absent. DURING same-UI inspection NOT certified; preserved requirement miss, no optics rerun.",
+    "after_reviewed_images": [
+      "phase-a-return.png",
+      "phase-native-return.png",
+      "phase-channel-open.png"
+    ],
+    "channel_limit": "Actual#openhcs tab/roster/editor opened; chat still Loading messages after settling. No IRC paint, held-channel motion or busy-wave acceptance.",
+    "unmatched_comparison": "Prior38 Up95 26.86ms versus new49.29ms; max178.17ms versus137.71ms. Workloads/phase clocks differ; no causal gain or overall CPU improvement.",
+    "no_input_to_pixel_latency": "Writer receipts are not changed pixels or emulator presentation/input latency."
+  },
+  "scope_unfinished": [
+    "CPU",
+    "144Hz",
+    "smooth motion",
+    "cold/warm firstpaint",
+    "raster",
+    "pure workers",
+    "DM+IRC busy sidebar",
+    "animation continuity",
+    "adaptive3viewport runway",
+    "velocity/reverse/growingEnd/void",
+    "focus/active/postcancel/draft/undo",
+    "TC1",
+    "T9",
+    "T4"
+  ],
+  "raw_hashes": {
+    "receipt.json": "506c3d313cad9ae8c3f4ee2c9eb3b5500bef264fc4c8c8cca587e2dc778d1640",
+    "terminal.mp4": "67d6db1e26585d180088b1eb5c166eb47042830a4f8832f41478ed796a7a159c",
+    "driver.log": "a0449d31de1585c87ba29746391417218b1590216a238bb7bda71352f8bef356",
+    "cpu-profile.json": "82c87ebe7bce190eb623b87ae9de03e087ac815387be7314f2a368f009de745c",
+    "after-state-frames.json": "2d57f6417e73bc44acf77e5593af1471c3487f0ec450deef0d15e2c2a157b738",
+    "scroll-travel.jsonl": "b5e822b616a7054e963a66045c68d67168b199c1ae241d968e8a19c547269869"
+  },
+  "new_env": false,
+  "new_native_copy": false,
+  "provider_input": false,
+  "public_mutation": false
+}
