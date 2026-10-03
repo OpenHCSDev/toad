@@ -1784,5 +1784,8 @@
     "RoutedResponse.prefix",
     "RoutedResponse.decorate"
   ],
-  "dynamic_limit": "AST names/imports and explicit delivery calls do not prove dynamic lookup; all resulting production sites read semantically, declared MRO and Widget constructor inspected."
+  "dynamic_limit": "AST names/imports and explicit delivery calls do not prove dynamic lookup; all resulting production sites read semantically, declared MRO and Widget constructor inspected.",
+  "integrated_current_main": "00f79cebd",
+  "qualified_source": "ba8b9f29f1e2595b62b38aa9e111d74699ce8b47",
+  "owner_files_unchanged_since_ast_source": true
 }
