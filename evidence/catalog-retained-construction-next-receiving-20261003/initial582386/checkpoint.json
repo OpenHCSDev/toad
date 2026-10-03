@@ -1,0 +1,22 @@
+{
+  "state": "Installed qualified582386 candidate/source/static-cohort preparation checkpoint; not final Ready publication freeze",
+  "source": "e8d91603d3fc7d897b0ff2f228f45f06c54430cc",
+  "core": "410c126b7dce5cdf5c821e657bcad8e9dda6241a",
+  "new_receipt_absent": true,
+  "target_current_beforepublication": false,
+  "current485_unchanged": true,
+  "581_reviewed_merge_not_yet_frozen": true,
+  "files": {
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/catalog-retained-construction388-receiving-20261003/ownership.json": "ad13b42ebb38a10911870503d922e691f8aa1628ef29faef433b0184bfe308e4",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/catalog-retained-construction388-receiving-20261003/source-proof.json": "ef5a184d429563a80099f045ebfb2ece3e2312db7cd4986f234fec57a3fbd6cb",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/catalog-retained-construction388-receiving-20261003/released334-original-activation.json": "1504542065b6c8e5cb40dca6973c0a4800003c578d904682511d2706dd1bd7d6",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/activation.json": "74e3b5ef1b67a354ebbca16240f620601a3ada3e51dd0c4723fe336078b8feaa",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/catalog-retained-construction388-receiving-20261003/new-publication580582386/review-plan.json": "53cd6e7e8fa008cd989a7d63ac9341b19114b3636fecea218f6b47406dc43765",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/catalog-retained-construction388-receiving-20261003/new-publication580582386/preparation-receipt.json": "59e8180be49f1dc9803c6df88e75a036acb798bd3d037b2c34722751dea101fc",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/catalog-retained-construction388-receiving-20261003/new-publication580582386/operator-manifest.json": "e5e92ae281ee00ee9f793657a5800f52de853c7f610d7535d6c2c39876168f11",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/catalog-retained-construction388-receiving-20261003/new-publication580582386/declaration-relation.json": "e6cc5efca2fee30483b132af1535c5011502a69cd827e6b557c20ffc87863b52",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/catalog-retained-construction388-receiving-20261003/new-publication580582386/target-declaration.json": "a55fdea16c7340284545edf8c158b0f3f75c1e308175f7b6abd7578ffc54f684",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/catalog-retained-construction388-receiving-20261003/new-publication580582386/runtime-installation.json": "717ca469bd2330bcf868ceaf572e8b128795ef3dd54885497f8e16c4680aabae",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/catalog-retained-construction388-receiving-20261003/new-publication580582386/original-declaration.json": "a55fdea16c7340284545edf8c158b0f3f75c1e308175f7b6abd7578ffc54f684"
+  }
+}
