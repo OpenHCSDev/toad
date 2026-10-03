@@ -1,0 +1,22 @@
+{
+  "reviewed_at": 1791026339.641179,
+  "receiving_pr": 388,
+  "ready_head": "964138a61658084fe636401cf35ef76cdfe28274",
+  "merge": "f3493b85ec9025d084399c46f6671a17d9498c25",
+  "frozen_artifacts_checked": 88,
+  "installed_assets_checked": 927,
+  "original_operator_members_checked": 51,
+  "native_schema_equal": true,
+  "checkpoint_schema_equal": true,
+  "fresh_idle_owners": 19,
+  "fresh_client_guard_pass": true,
+  "auth_captured_RAM_only": true,
+  "single_publication_terminal_exit": 0,
+  "single_readback_terminal_exit": 0,
+  "publisher_duration_seconds": 40.799957513809204,
+  "raw_publication_sha256": "b56a921c90eaa8d0e3da29e4d38974a9a6ddbbe7bbbf2ea282e945a7899c5099",
+  "physical_assessment": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published581387-20261003/physical-assessment.json",
+  "verification_correction": "Initial readonly operator archive lookup used tools/ instead of tools/cutover/. Correct original-path check passed; no source change or publication retry.",
+  "resource_scope": "Reused existing334 and original19 processes; no new environment/native/fleet. Independent source-cache cleanup reclaimed1.186GiB; swap/root pressure remains.",
+  "original_raw_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/catalog-retained-construction388-receiving-20261003/new-publication581582386387/publication-receipt.json"
+}

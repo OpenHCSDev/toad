@@ -1,0 +1,317 @@
+{
+  "scope": "ScopedReady: existing body resource/worker publication, cost/selection/lifetime; not overall CPU/smoothness/144Hz or IRC first paint",
+  "source_head": "2e2578bd054193eab5c5dd05adb5390033a20152",
+  "installed_toad": "38ede873b675756d995e0da5e7c4d89bf9e36819",
+  "textual": "0ab687e007fca311ce9f786634d8f5fc991ff808",
+  "core": "5e1575269bd20e87f6c03365619feeb0178a215d",
+  "native_manifest": "51bff517be67ae98213760beebd2c070591e5df61cb2c9ebbf87cacbf9f039ab",
+  "source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-retained-publication391-native40-20261003/source-proof.json",
+  "source_equal_affected_family": [
+    "src/toad/widgets/viewport_body.py",
+    "tests/retained_fragment_geometry_pilot.py"
+  ],
+  "normal_main_merge": "5a6a3e0d4 (accepted settings/context family; no body/worker/frame consumer overlap)",
+  "capture": "/home/ts/.cache/agent-scratch/retained-publication391-arrangement40-public-20261003-01/capture",
+  "original_hashes": {
+    "receipt.json": "80ca697b7fc038c737ced9263afe607956843cf65b1eb9713540c8b55cfc8acb",
+    "driver.log": "8667fa62c8c0d822bed8d2bcd118a21b55a5ac5afcacaceb0fa632859f240dc0",
+    "events.jsonl": "edfff22407a4f04eafa2e4f9952386a38ed7b105b257f72cc6bf82690d800972",
+    "cpu-profile.json": "2c436c3d029d633a0d2092c4f30f233665d45fc43b7081398ca77baa8e8db5c5",
+    "terminal.mp4": "9c580b63c58f916f7e062aa0bae857fb2f5f913cbfd6ea4074d23078fe9a441f",
+    "after-state-frames.json": "3b54e6b75a384cafeccaf9587a0291bc51327c96bf7ce2a9c5a430c6f1f57b2c"
+  },
+  "duration_seconds": 113.41794098599348,
+  "capture_completed": true,
+  "completed": true,
+  "warm_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_destination_covered": true,
+    "held_page_down_destination_covered": true,
+    "reverse_page_up_destination_covered": true
+  },
+  "input_checks": {
+    "input_remains_focused": true,
+    "original_editor_window_and_mode": true,
+    "draft_and_caret_preserved": true,
+    "input_pageup_moves_history": true,
+    "input_pagedown_moves_history": true,
+    "input_pageup_reaches_original_window": true,
+    "input_pagedown_reaches_original_window": true
+  },
+  "ready_body_ids_retained": 41,
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3639205,
+      "start_time": 50147672
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3639205,
+      "start_time": 50147672
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "capture_returncode": 255,
+  "ui_exit_boundary": "Transferred installed ObservedProcess custody; no explicit UI/ST returncode, do not infer 0 from FFmpeg255/capture_complete",
+  "physical_assessment": "Exact20.5\u201321.3s held-Up 48 consecutive frames viewed while UI alive before74s/after97s; readable history, repeated positions and discrete advances. Exact Down/reverse sheets and End/A-return viewed after. Not smoothness acceptance.",
+  "motion": {
+    "held_keys": [
+      {
+        "label": "input-held-up",
+        "start_seconds": 20.396359471,
+        "end_seconds": 22.18089241
+      },
+      {
+        "label": "input-held-down",
+        "start_seconds": 42.394734311,
+        "end_seconds": 44.141607284
+      },
+      {
+        "label": "history-up",
+        "start_seconds": 51.286392159,
+        "end_seconds": 53.069477693
+      },
+      {
+        "label": "history-down",
+        "start_seconds": 56.384756765,
+        "end_seconds": 58.151527665
+      },
+      {
+        "label": "reverse",
+        "start_seconds": 61.748913941,
+        "end_seconds": 63.493732687
+      }
+    ],
+    "writer": [
+      {
+        "action": "input-held-up",
+        "intervals": {
+          "count": 102,
+          "median_ms": 13.4,
+          "p95_ms": 28.4,
+          "p99_ms": 52.47,
+          "max_ms": 202.19
+        },
+        "writer_receipts": 103
+      },
+      {
+        "action": "input-held-down",
+        "intervals": {
+          "count": 141,
+          "median_ms": 10.94,
+          "p95_ms": 24.52,
+          "p99_ms": 35.96,
+          "max_ms": 93.77
+        },
+        "writer_receipts": 142
+      },
+      {
+        "action": "history-up",
+        "intervals": {
+          "count": 146,
+          "median_ms": 11.31,
+          "p95_ms": 20.5,
+          "p99_ms": 28.53,
+          "max_ms": 119.56
+        },
+        "writer_receipts": 147
+      },
+      {
+        "action": "history-down",
+        "intervals": {
+          "count": 144,
+          "median_ms": 10.75,
+          "p95_ms": 22.66,
+          "p99_ms": 32.89,
+          "max_ms": 63.22
+        },
+        "writer_receipts": 145
+      },
+      {
+        "action": "reverse",
+        "intervals": {
+          "count": 141,
+          "median_ms": 11.17,
+          "p95_ms": 22.49,
+          "p99_ms": 26.75,
+          "max_ms": 115.02
+        },
+        "writer_receipts": 142
+      }
+    ],
+    "writer_frame_count": 1340,
+    "unmatched_enqueues": 0,
+    "cpu": [
+      {
+        "label": "input-held-up",
+        "bounds": [
+          19.25491300300928,
+          22.865893943002447
+        ],
+        "ui": {
+          "pid": "3816059",
+          "cpu_seconds": 2.8100000000000005,
+          "average_cpu_percent": 77.8181897577481
+        }
+      },
+      {
+        "label": "input-held-up-done",
+        "bounds": [
+          22.865893943002447,
+          39.700070658989716
+        ],
+        "ui": {
+          "pid": "3816059",
+          "cpu_seconds": 4.329999999999998,
+          "average_cpu_percent": 25.7214835810048
+        }
+      },
+      {
+        "label": "input-held-down",
+        "bounds": [
+          41.384119861002546,
+          44.88066149299266
+        ],
+        "ui": {
+          "pid": "3816059",
+          "cpu_seconds": 2.650000000000002,
+          "average_cpu_percent": 75.78917338649596
+        }
+      },
+      {
+        "label": "reverse",
+        "bounds": [
+          60.67010811995715,
+          64.24559676495846
+        ],
+        "ui": {
+          "pid": "3816059",
+          "cpu_seconds": 2.629999999999999,
+          "average_cpu_percent": 73.55637959239085
+        }
+      },
+      {
+        "label": "idle",
+        "bounds": [
+          68.71736429299926,
+          85.58067115599988
+        ],
+        "ui": {
+          "pid": "3816059",
+          "cpu_seconds": 3.9600000000000044,
+          "average_cpu_percent": 23.48293862035178
+        }
+      }
+    ],
+    "sampling": {
+      "GIL_samples": 1294,
+      "errors": 0,
+      "alignment_nominal_uncertainty_seconds": 0.0856966600031592,
+      "limits": "GIL-only partial Python coverage; Chrome transitions not durations/samples. Profile/export overhead included; no matched unprofiled comparison."
+    }
+  },
+  "idle": [
+    {
+      "phase": "input-held-up-done",
+      "seconds": 16.83417671598727,
+      "whole_phase_counts": {
+        "scroll": 61,
+        "observe": 60,
+        "request": 67,
+        "full_admission": 58,
+        "page_extension": 1,
+        "body_materialization": 4,
+        "body_retirement_attempt": 9,
+        "fragment_budget": 1,
+        "page_extended": 1,
+        "animation_transforming": 1,
+        "animation_transformed": 1,
+        "relocating": 4,
+        "relocated": 4,
+        "sidebar_publication_start": 17,
+        "sidebar_publication_done": 17
+      },
+      "last10s_counts": {
+        "sidebar_publication_start": 10,
+        "sidebar_publication_done": 10
+      }
+    },
+    {
+      "phase": "idle",
+      "seconds": 16.863306863000616,
+      "whole_phase_counts": {
+        "relocating": 34,
+        "relocated": 34,
+        "sidebar_publication_start": 17,
+        "sidebar_publication_done": 17
+      },
+      "last10s_counts": {
+        "relocating": 20,
+        "relocated": 20,
+        "sidebar_publication_start": 10,
+        "sidebar_publication_done": 10
+      }
+    }
+  ],
+  "app_family": [
+    {
+      "body": "TranscriptFragmentView",
+      "rendered_lines": 10,
+      "nonblank_lines": 4,
+      "reentry_ms": 0.156485999468714,
+      "rebuild_calls": {},
+      "pending_writer_keeps_rows_cost_and_interaction_custody": true,
+      "real_style_change_rebuilt_once": true
+    },
+    {
+      "body": "PreparedConversationMarkdown",
+      "rendered_lines": 5,
+      "nonblank_lines": 2,
+      "reentry_ms": 0.18322700634598732,
+      "rebuild_calls": {},
+      "pending_writer_keeps_rows_cost_and_interaction_custody": true,
+      "real_style_change_rebuilt_once": true
+    },
+    {
+      "body": "StreamingMarkdown",
+      "rendered_lines": 5,
+      "nonblank_lines": 2,
+      "reentry_ms": 0.15374197391793132,
+      "rebuild_calls": {},
+      "pending_writer_keeps_rows_cost_and_interaction_custody": true,
+      "real_style_change_rebuilt_once": true
+    }
+  ],
+  "limits": [
+    "Actual pending writer rows/cost/style/LRU/interaction check across all3 bodies passed in installed App; queued theme/latest/append/removal passed.",
+    "1294 GIL samples,0errors; GIL excludes native/released-GIL work; Chrome B/E transitions not CPU durations.",
+    "Kernel CPU windows include state exports/profile and exceed exact held keys; no matched workload causal CPU improvement or unprofiled overhead comparison.",
+    "Channel opened then still Loading messages at1s; no IRC first paint/frame acceptance.",
+    "Review-only first encoder helper generated sheet then errored on wrong cleanup method; finished ffmpeg, original recording unaffected, negative preserved in observation.",
+    "Full original CPU/raster/cold/warm/runway/growingEnd/void/focus/busy/sidebar/animation/TC1/T9/T4 scope remains active."
+  ]
+}

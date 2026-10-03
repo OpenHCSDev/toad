@@ -1,0 +1,50 @@
+{
+  "reviewed_at": 1791026339.6408727,
+  "capture": "/home/ts/.cache/agent-scratch/published581387-helper-default-20261003/capture",
+  "ordinary_command": [
+    "/home/ts/bin/toad-comms",
+    "openhcs-helper"
+  ],
+  "terminal_command": [
+    "st",
+    "-e",
+    "/home/ts/bin/toad-comms",
+    "openhcs-helper"
+  ],
+  "duration_seconds": 23.738038416020572,
+  "terminal_exit": {
+    "pid": 3642603,
+    "start_ticks": 50160989,
+    "returncode": 0
+  },
+  "completed": true,
+  "runtime_unchanged": true,
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "openhcs-helper",
+    "identity": {
+      "pid": 3639461,
+      "start_time": 50148924
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "openhcs-helper",
+    "identity": {
+      "pid": 3639461,
+      "start_time": 50148924
+    },
+    "original_owner_alive": true
+  },
+  "cleanup_remaining": [],
+  "cleanup_errors": [],
+  "parent_personally_viewed": "/home/ts/.cache/agent-scratch/published581387-helper-default-20261003/capture/after.png",
+  "after_png_sha256": "a1ca2159dbd36291ffe62ab22777132268344d071fb665207e7b32133df8eec5",
+  "visible_result": "Saved inbound and outbound Here history, sidebar/helper and session details Ready, empty focused editor, no activity bar",
+  "inspection_timing": "After cleanup; observe-only journey, not during-motion acceptance",
+  "provider_inputs": 0,
+  "scope": "Ordinary installed default saved-history startup/display, not fresh delivery, compaction, latency or smoothness"
+}

@@ -1,0 +1,16 @@
+{
+  "state": "Final normal585 installed source prepared, actual user donor03 pending; not Ready, no publiceffects",
+  "core": "e7b063e29e4f02a63837f38091f093be5cf3ff8b",
+  "toad": "4fd34f7301765d30217702a6e648f5dda0b60c58",
+  "textual": "2d1e2efaecf1f1e01c249aa75fe727c530f4a4e8",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-2bfb6ba8fd3b3b3b/node_modules/@earendil-works/pi-coding-agent",
+  "normal_packages": 69,
+  "source_files": 928,
+  "current334_protected_files": 957,
+  "current334_unchanged": true,
+  "same_to_ad_production_as_installed02": true,
+  "preserved02_scope": "Installed App saved repository fixture, not actual user preferences donor",
+  "actual_user_donor03_owner": "Einstein389",
+  "operation": "new-publication583584585384389",
+  "all_owned_package_writers_terminal": true
+}

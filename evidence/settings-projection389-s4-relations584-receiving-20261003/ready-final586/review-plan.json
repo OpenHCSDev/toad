@@ -1,0 +1,46 @@
+{
+  "target": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "source_interpreter": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+  "current_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "original_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-51bff517be67ae98/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-2bfb6ba8fd3b3b3b/node_modules/@earendil-works/pi-coding-agent",
+  "activation": {
+    "path": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/activation.json",
+    "sha256": "1e2aaa4ec7c82ec6a4eac518331a3817badda005863cb54312cea3ae879c4435"
+  },
+  "source_proof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/settings-projection389-s4-relations584-receiving-20261003/source-proof.json",
+    "sha256": "45adf7cee4ab2e3b23ac92cd21cf00304c2f9d00d768feb7d6d491898f123b5a"
+  },
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/settings-projection389-s4-relations584-receiving-20261003/qualified-source-gates/384-text39-scoped-ready.json",
+      "sha256": "6f507da1e7bacc5aee858fd8bb7af2fbcae5be32eb19fa7ca215b20563c1f420"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/settings-projection389-s4-relations584-receiving-20261003/qualified-source-gates/583-installed-acceptance.json",
+      "sha256": "f228aa5b41615790c462a303264ee9342612338bd858e210d0128b09638f2ef5"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/settings-projection389-s4-relations584-receiving-20261003/qualified-source-gates/389-actual-user-settings-ready.json",
+      "sha256": "44f6fc8944c8b7eb7340c5a3344580221ed74502add7e7c3552e53b02864be56"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/settings-projection389-s4-relations584-receiving-20261003/qualified-source-gates/586-installed-acceptance.json",
+      "sha256": "88840c19951cbe5293efc1d2feaa7d754902c6d47f4b9edc966541efeb2b340e"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/settings-projection389-s4-relations584-receiving-20261003/qualified-source-gates/584-original-recorded-scorer.json",
+      "sha256": "8515d9824ec23a2fded5d123998b21bac031cf21c3b0503c6240702e7f2e2ce1"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/settings-projection389-s4-relations584-receiving-20261003/qualified-source-gates/585-installed-recorded-scorer.json",
+      "sha256": "b7fe27a0111aceece0a22a89d577989e3967636f546e2afe59082dd1cdfe471b"
+    }
+  ]
+}
