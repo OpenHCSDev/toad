@@ -403,3 +403,8 @@ operator `children_retired:false` is preserved with its stated scope. The same
 holder is released. Current home5.4GiB/root7.6GiB/swap13.5 warning was addressed
 proportionally by reusing the holder/cached wheel and a single bounded journey,
 not allocating another environment or native package.
+
+After the normal main359 union, the earlier shared destination implementation
+is already present in main. Current PR355 production delta is one shared
+admission method: five added/two deleted lines. Its initial native/IRC admission
+is exercised; the whole later IRC End journey stays open in this context.
