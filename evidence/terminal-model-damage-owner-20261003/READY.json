@@ -1,11 +1,11 @@
 {
-  "state": "buffer-source-closure-awaiting-matched-installed-validation",
-  "head": "a6c81e46c52636ef453eed03fb5b18b7b182e3c3",
+  "state": "buffer-source-closure-final-installed-completion-pending",
+  "head": "f167a3a1ea502d0b1d405b0e8f65bbd0f19d4d49",
   "tested_production_head": "41c5ea6b5f5148f0a18c8e115d32d4803d3ab748",
   "production": {
     "files": 4,
-    "added": 16,
-    "deleted": 8,
+    "added": 48,
+    "deleted": 41,
     "new_types": 0
   },
   "owner": "Existing TerminalState/Buffer/TerminalMode own model damage; TerminalExecution owns one model and acquired operation with replaceable weak view; AttachedSurfaceBinding reuses/reconnects that original resource.",
@@ -131,6 +131,51 @@
     "field_search": "buffer-field-search.txt",
     "foreign_damage_accesses": [],
     "external_contract": "Original scrollback/alternate pair; None means full repaint, finite sets use folded line coordinates. No new damage type/semantic store.",
-    "remaining": "Final coherent buffer and clear/truncation model sanity plus one installed App/ACP/PTY --damage-only run in Sch matched334 candidate. Earlier02 applies to old source and is retained as earlier evidence, not current full acceptance."
-  }
+    "remaining": "Final corrected installed journey must complete exit7, original child/PTY retirement, stored blank removal/full damage and final paint in matched receiver slot."
+  },
+  "installed_source_current": {
+    "head": "fb872754a5cd823d56c92e7199af2eea4b6ac6a6",
+    "tracked_assets": 318,
+    "mismatches": [],
+    "installed": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad",
+    "pins": {
+      "agent-comms": {
+        "version": "0.1.0",
+        "direct_url": {
+          "url": "https://github.com/OpenHCSDev/agent-comms.git",
+          "vcs_info": {
+            "vcs": "git",
+            "commit_id": "d3ed99d5773528a2ff061205260f15712de10d09",
+            "requested_revision": "d3ed99d5773528a2ff061205260f15712de10d09"
+          }
+        }
+      },
+      "textual": {
+        "version": "8.2.8",
+        "direct_url": {
+          "url": "https://github.com/OpenHCSDev/textual.git",
+          "vcs_info": {
+            "vcs": "git",
+            "commit_id": "5d5f463108132e402073578e9d0625b491a6d792",
+            "requested_revision": "5d5f463108132e402073578e9d0625b491a6d792"
+          }
+        }
+      },
+      "agent-client-protocol": {
+        "version": "0.12.1",
+        "direct_url": null
+      },
+      "batrachian-toad": {
+        "version": "0.6.20",
+        "direct_url": {
+          "url": "file:///home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/terminal-model-damage-379/batrachian_toad-0.6.20-py3-none-any.whl",
+          "archive_info": {}
+        }
+      }
+    },
+    "distributions": 69,
+    "headless_modules_textual": [],
+    "qualification": "Corrected Buffer source on Sch matched receiver334 Core574/Text36/SDK0.12.1/normal69. Native915 unchanged and not acquired by damage-only App/ACP/PTY path. Original01/02 and black export preserved, no public/default changes."
+  },
+  "current_negative_receipt": "buffer-installed-negative-receipt.json"
 }
