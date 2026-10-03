@@ -32,9 +32,42 @@ def load_recorder():
         def script(cls, args):
             mark = recorder.marker_command()
             helper = Path(__file__).resolve().parents[1] / "tools/performance/click_history.py"
-            def click(state, target):
+            def click(state, target, name=None):
                 return "exec --sync " + shlex.join((sys.executable, str(helper),
-                    "--state", state, "--target", target))
+                    "--state", state, "--target", target,
+                    *(() if name is None else ("--name", name))))
+            def select(state, kind):
+                return "exec --sync " + shlex.join((sys.executable, str(Path(__file__).resolve()),
+                    "--select-context", state, kind))
+            query = os.environ.get("TOAD_CONTEXT_AUDIT_QUERY", "")
+            if query:
+                export = os.environ["TOAD_CONTEXT_AUDIT_EXPORT"]
+                return "\n".join((
+                    mark + "saved --wait-history-seconds 12 --wait-history-thread configured-source",
+                    "key ctrl+b", "sleep 1", mark + "roster",
+                    click("phase-roster-state.pickle", "right_sidebar"),
+                    "sleep 7", mark + "context-open",
+                    click("phase-context-open-state.pickle", "widget", "Input#context-search"),
+                    "type --clearmodifiers " + shlex.quote(query), "key Return",
+                    "sleep 2", mark + "instruction-matches",
+                    select("phase-instruction-matches-state.pickle", "native"),
+                    "sleep 1", mark + "instruction",
+                    click("phase-instruction-state.pickle", "widget", "Button#context-read-full"),
+                    "sleep 1", mark + "full-read", "key Escape", "sleep 1", mark + "reader-return",
+                    click("phase-reader-return-state.pickle", "widget", "Button#context-copy"),
+                    "sleep 1", mark + "copied",
+                    click("phase-copied-state.pickle", "widget", "Input#context-export-path"),
+                    "type --clearmodifiers " + shlex.quote(export), mark + "export-path",
+                    click("phase-export-path-state.pickle", "widget", "Button#context-export"),
+                    "sleep 1", mark + "exported",
+                    click("phase-exported-state.pickle", "widget", "Input#context-search"),
+                    "key ctrl+a", "type --clearmodifiers configured-source", "key Return",
+                    "sleep 2", mark + "core-matches",
+                    select("phase-core-matches-state.pickle", "core"),
+                    "sleep 1", mark + "core-instructions", "key space", "sleep 1", mark + "core-expanded",
+                    select("phase-core-expanded-state.pickle", "source"),
+                    "sleep 3", mark + "authenticated-source", "",
+                ))
             return "\n".join((
                 mark + "saved --wait-history-seconds 12 --wait-history-thread configured-source",
                 "key ctrl+b", "sleep 1", mark + "roster",
@@ -104,6 +137,9 @@ async def run(options):
             PATH=str(runtime) + os.pathsep + environment.get("PATH", os.defpath),
             XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(base / "state"),
             XDG_DATA_HOME=str(base / "data"), TOAD_TEST_ATTEMPT="Einstein-cold595-physical01")
+        if options.instruction_query:
+            environment.update(TOAD_CONTEXT_AUDIT_QUERY=options.instruction_query,
+                               TOAD_CONTEXT_AUDIT_EXPORT=str(base / "selected-public-context.txt"))
         for name in ("PYTHONPATH", "AGENT_COMMS_THREAD", "AGENT_COMMS_STARTUP_INPUT_KEY",
                      "PI_PROMPT", "PI_PARENT_ID", "PI_TASK", "PI_AGENT_ID", "NO_COLOR"):
             environment.pop(name, None)
@@ -137,7 +173,8 @@ async def run(options):
             "--journey", ColdContextJourney.declared_name, "--capture-state",
             "--review-timing", "deferred", "--fps", "20", "--width", "1500",
             "--height", "1100", "--fit-window", "--startup-wait", "10",
-            "--max-duration", "65", "--tail-seconds", "2", "--", *command]
+            "--max-duration", "110" if options.instruction_query else "65",
+            "--tail-seconds", "2", "--", *command]
         (base / "caller.json").write_text(json.dumps(sys.argv, indent=2) + "\n")
         with (base / "recorder.log").open("w") as log:
             recording = await asyncio.create_subprocess_exec(sys.executable,
@@ -149,13 +186,36 @@ async def run(options):
         receipt["native_process"] = FieldCodec.encode(child.proc.identity)
         def phase(label):
             return pickle.loads((base / f"capture/phase-{label}-state.pickle").read_bytes())
-        context = next(view for view in phase("provenance")["views"]
-                       if view["mode"] == phase("provenance")["metadata"]["current_mode"])["context"]
-        assert context["native_present"]
-        assert context["detail"].startswith("Reference only; not read by browsing.")
-        returned = next(view for view in phase("segment-return")["views"]
-                        if view["mode"] == phase("segment-return")["metadata"]["current_mode"])["context"]
-        assert len(returned["detail"]) > 100
+        def context_phase(label):
+            snapshot = phase(label)
+            return next(view for view in snapshot["views"]
+                        if view["mode"] == snapshot["metadata"]["current_mode"])["context"]
+        if options.instruction_query:
+            context = context_phase("instruction")
+            text = context["detail"]
+            assert options.instruction_query.casefold() in text.casefold()
+            assert context["native_present"] and len(text) > 100
+            assert context_phase("full-read")["maximized"]
+            assert context_phase("full-read")["detail"] == text
+            assert not context_phase("reader-return")["maximized"]
+            assert context_phase("copied")["clipboard"] == text
+            assert (base / "selected-public-context.txt").read_text() == text
+            core_text = context_phase("core-instructions")["detail"]
+            assert "configured-source" in core_text
+            reference = context_phase("authenticated-source")
+            assert "Selected context detail unavailable" not in reference["detail"]
+            assert "Preparing selected" not in reference["detail"]
+            assert len(reference["detail"]) > 100
+            assert reference["selected"].startswith("core/") and "/source/" in reference["selected"]
+            receipt.update(instruction_query=options.instruction_query,
+                full_read_copy_export_equal=True, public_characters=len(text),
+                authenticated_source=reference, core_instructions=core_text)
+            returned = context
+        else:
+            context = context_phase("provenance")
+            assert context["native_present"] and "Archived context: not supplied" not in context["detail"]
+            returned = context_phase("segment-return")
+            assert len(returned["detail"]) > 100
         receipt["state"] = "SCOPED_COLD_TREE_TERMINAL_PASS_PENDING_PIXEL_REVIEW"
         receipt["context"] = context
         receipt["segment_text_characters"] = len(returned["detail"])
@@ -185,6 +245,24 @@ async def run(options):
 
 
 if __name__ == "__main__":
+    if sys.argv[1:2] == ["--select-context"]:
+        helper = Path(__file__).resolve().parents[1] / "tools/performance/click_history.py"
+        spec = importlib.util.spec_from_file_location("context_native_click", helper)
+        click = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = click
+        spec.loader.exec_module(click)
+        state, kind = sys.argv[2:]
+        snapshot = click.read_snapshot(Path(state))
+        context = click.NativeFocusTarget.selected_view(snapshot)["context"]
+        if kind == "source":
+            nodes = (node for node in context["nodes"]
+                     if node["key"].startswith(context["selected"] + "/source/"))
+        else:
+            nodes = (node for node in context["nodes"] if node["key"].startswith(kind + "/"))
+        selected = next(node for node in nodes if node["target"] is not None)
+        sys.argv = [str(helper), "--state", state, "--target", "context_tree", "--name", selected["key"]]
+        click.main()
+        raise SystemExit(0)
     if sys.argv[1:2] == ["--record-only"]:
         sys.argv.pop(1)
         recorder, _, _ = load_recorder()
@@ -197,4 +275,5 @@ if __name__ == "__main__":
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--public-root", type=Path, required=True)
     parser.add_argument("--original-python", type=Path, required=True)
+    parser.add_argument("--instruction-query", default="", help="Search the original public instructions in the same cold journey")
     asyncio.run(run(parser.parse_args()))

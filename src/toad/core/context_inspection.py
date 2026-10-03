@@ -18,8 +18,8 @@ from agent_comms.runtime import RuntimeConnection, socket_path
 from agent_comms.selected_source import SessionRevision, SessionObservation
 from agent_comms.threads import Thread
 from agent_comms.turn_context import (
-    ContextManifest, ContextSegment, ContextSourceText, MeasuredNativeSegment, NativeMessages, Provenance,
-    SegmentManifest, SystemLayerSegment, ToolCatalogSegment,
+    ContextManifest, ContextSegment, ContextSourceText, NativeMessages, Provenance,
+    SegmentManifest,
 )
 
 if TYPE_CHECKING:
@@ -158,31 +158,7 @@ class NativeSegmentNode(ContextNode):
         return f"{self.label}\n\n{self.public_text()}\n\nSources:\n{sources}"
 
     def public_text(self):
-        return NativeDetail().dispatch_sync(self.segment)
-
-
-class NativeDetail(MroProjection):
-    """Use existing SDK segment and content owners; omit private reasoning."""
-    @handles(ContextSegment)
-    def contribution(self, segment):
-        return segment.text()
-
-    @handles(MeasuredNativeSegment)
-    def measured(self, segment):
-        # An opaque native provider representation is not public text.
-        return ""
-
-    @handles(SystemLayerSegment)
-    def system(self, segment):
-        return segment.content
-
-    @handles(NativeMessages)
-    def messages(self, segment):
-        return ""
-
-    @handles(ToolCatalogSegment)
-    def tools(self, segment):
-        return json.dumps(segment.tools, ensure_ascii=False, indent=2)
+        return self.segment.public_text()
 
 
 @dataclass(frozen=True)
@@ -227,6 +203,11 @@ class SegmentNodes(MroProjection):
 @dataclass(frozen=True)
 class NativeMessagesNode(NativeSegmentNode):
     page_size: int = 64
+
+    def public_text(self):
+        # This navigation container delegates searching to its original
+        # message children rather than concatenating the same history twice.
+        return ""
 
     def detail(self):
         return f"{self.label}\nExpand a message range to read each original public message."

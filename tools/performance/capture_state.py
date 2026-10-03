@@ -296,16 +296,32 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                     if kind == "ContextExplorer":
                         from textual.widgets import Tree, TextArea, Static
                         tree = node.query_one("#context-tree", Tree)
+                        detail = node.query_one("#context-detail", TextArea)
+                        context_nodes = []
+                        for model in node._context_nodes.values():
+                            target = None
+                            label_region = tree.get_label_region(model)
+                            geometry = visible_regions.get(tree)
+                            if label_region is not None and geometry is not None:
+                                region = label_region.translate(
+                                    tree.content_region.offset - tree.scroll_offset
+                                ).intersection(geometry[1])
+                                if region:
+                                    target = navigation_target(tree, region, model.data.key)
+                            context_nodes.append({"key": model.data.key,
+                                                  "label": model.label.plain,
+                                                  "expanded": model.is_expanded,
+                                                  "target": target})
                         view["context"] = {
                             "owner": node.owner, "root": node.wire_root,
                             "native_present": node._native is not None,
                             "status": str(node.query_one(".context-status", Static).content),
-                            "detail": node.query_one("#context-detail", TextArea).text,
+                            "detail": detail.text,
                             "selected": node.intent.selected,
-                            "nodes": [{"key": model.data.key,
-                                       "label": model.label.plain,
-                                       "expanded": model.is_expanded}
-                                      for model in node._context_nodes.values()],
+                            "query": node.intent.query,
+                            "clipboard": app.clipboard,
+                            "maximized": node.screen.maximized is detail,
+                            "nodes": context_nodes,
                         }
                     if isinstance(node, PromptTextArea):
                         geometry = visible_regions.get(node)
