@@ -47,9 +47,7 @@ class ActionModal(CoreEventReceiver, ModalScreen):
     ) -> None:
         self.operation = action
         self.agent = agent
-        self._command = command
-        self._env = env
-        self._cwd = cwd
+        self.command = Command.for_script(command, env=env, cwd=cwd)
         super().__init__(name=name, id=id, classes=classes)
 
     def get_loading_widget(self) -> Widget:
@@ -58,7 +56,7 @@ class ActionModal(CoreEventReceiver, ModalScreen):
     def compose(self) -> ComposeResult:
         with containers.VerticalGroup(id="container"):
             yield CommandPane(TerminalExecution(
-                Command.for_script(self._command, env=self._env, cwd=self._cwd)
+                self.command
             ))
             with containers.HorizontalGroup(id="action-buttons"):
                 yield widgets.Button("Cancel", id="cancel")
@@ -93,7 +91,7 @@ class ActionModal(CoreEventReceiver, ModalScreen):
             )
             await self.command_pane.execute(bootstrap, final=False)
 
-        await self.command_pane.write(f"$ {self._command}\n")
+        await self.command_pane.write(f"$ {execution.command.command}\n")
         await self.command_pane.execute(execution)
         self.app.application.usage.publish(
             "agent-action",
