@@ -59,3 +59,17 @@ uses the current exact runtime/route and preserves originals/UNKNOWN. Inspect
 moving timed frames during the same UI, join existing writer/profile/kernel CPU,
 report specific gaps and negative outcomes. Ship qualified scoped improvements
 without holding them for the final target. Reuse original tools and holder.
+
+## Current working source (not validated/Ready)
+
+ViewportPresentation now selects visible bodies once for the whole frame from
+native visible geometry and each body's nearest original HistoryWindow. The
+DocumentViewport readiness consumer derives from the same selection. Removed
+the independent all-ancestor membership question and per-window scene rescans.
+Nested bodies still contribute readiness; nested windows own their own work.
+Native mutation and source/body readiness fences are retained. No new registry,
+cache, timer, readiness flag or model state. Existing AST production289/tests391/
+tools41 parsed without omissions; all readiness consumers use the original
+DocumentViewport property or the frame owner. Dynamic resolution remains a
+semantic read, not a zero-by-omission proof. Final affected validation waits for
+the complete changed batch and release of the parent588 borrowed holder.
