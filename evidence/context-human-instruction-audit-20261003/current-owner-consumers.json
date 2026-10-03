@@ -1,25 +1,32 @@
 {
-  "frontend_head": "97875906d9ccb7340e163806ba1e8b45a8ac3e71",
-  "core_head": "2d560e91a6b19736f09bf1ab0edef85a0c70bc8f",
-  "scope": "Existing public context/source owner, authenticated reader and consumer family",
+  "frontend_head": "4297f73a21880693e200b49d2210356b8e7e5100",
+  "core_head": "dbcf3ae4a47b629c85027c0def993a9614fadc6c",
+  "scope": "Original context/source/reader owner with whole declared consumer roots",
   "roots": [
     {
       "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
-      "head": "97875906d9ccb7340e163806ba1e8b45a8ac3e71",
+      "head": "4297f73a21880693e200b49d2210356b8e7e5100",
       "root": "src/toad",
       "parsed": 289,
       "unparsed": []
     },
     {
       "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
-      "head": "97875906d9ccb7340e163806ba1e8b45a8ac3e71",
+      "head": "4297f73a21880693e200b49d2210356b8e7e5100",
       "root": "tests",
       "parsed": 392,
       "unparsed": []
     },
     {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "head": "4297f73a21880693e200b49d2210356b8e7e5100",
+      "root": "tools",
+      "parsed": 41,
+      "unparsed": []
+    },
+    {
       "repo": "/home/ts/wt/comms-async-bus-read-publication-custody-20261002",
-      "head": "2d560e91a6b19736f09bf1ab0edef85a0c70bc8f",
+      "head": "dbcf3ae4a47b629c85027c0def993a9614fadc6c",
       "root": "src/agent_comms",
       "parsed": 311,
       "unparsed": []
@@ -279,6 +286,12 @@
       "source": "intent = self.intents.setdefault(key, ContextTreeIntent())"
     },
     {
+      "path": "tools/performance/click_history.py",
+      "line": 124,
+      "kind": "ClassDef",
+      "source": "class ContextTreeTarget(NativeFocusTarget):"
+    },
+    {
       "path": "src/agent_comms/cli_commands.py",
       "line": 760,
       "kind": "ImportFrom",
@@ -382,37 +395,43 @@
     },
     {
       "path": "src/agent_comms/runtime_requests.py",
-      "line": 21,
+      "line": 23,
       "kind": "ImportFrom",
       "source": "from .turn_context import ContextManifest, ContextSourceText, PreviewProvenance, Provenance, RecordedContextTurn"
     },
     {
       "path": "src/agent_comms/runtime_requests.py",
-      "line": 345,
+      "line": 355,
       "kind": "ClassDef",
       "source": "class ContextSourceRuntimeRequest(ContextRuntimeRequest):"
     },
     {
       "path": "src/agent_comms/runtime_requests.py",
-      "line": 381,
+      "line": 385,
       "kind": "ClassDef",
       "source": "class ContextReferenceRuntimeRequest(RecordedContextRuntimeRequest):"
     },
     {
       "path": "src/agent_comms/runtime_requests.py",
-      "line": 411,
+      "line": 402,
+      "kind": "Call",
+      "source": "segment = manifest.selected_segment(self.segment, self.contributors)"
+    },
+    {
+      "path": "src/agent_comms/runtime_requests.py",
+      "line": 409,
       "kind": "Call",
       "source": "text = await segment.public_text(read_reference)"
     },
     {
       "path": "src/agent_comms/runtime_requests.py",
-      "line": 412,
+      "line": 410,
       "kind": "Call",
       "source": "return FieldCodec.encode(ContextSourceText(segment.public_description(), text))"
     },
     {
       "path": "src/agent_comms/runtime_requests.py",
-      "line": 412,
+      "line": 410,
       "kind": "Call",
       "source": "return FieldCodec.encode(ContextSourceText(segment.public_description(), text))"
     },
@@ -442,7 +461,7 @@
     },
     {
       "path": "src/agent_comms/turn_context.py",
-      "line": 229,
+      "line": 237,
       "kind": "ClassDef",
       "source": "class ContextSegment(DeclaredFamily, affix=\"Segment\"):"
     },
@@ -520,67 +539,85 @@
     },
     {
       "path": "src/agent_comms/turn_context.py",
-      "line": 220,
+      "line": 189,
+      "kind": "FunctionDef",
+      "source": "def selected_contributor(self, positions: tuple[int, ...]) -> SegmentManifest:"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 228,
       "kind": "AsyncFunctionDef",
       "source": "async def public_text(self, read_reference) -> str:"
     },
     {
       "path": "src/agent_comms/turn_context.py",
-      "line": 239,
+      "line": 247,
       "kind": "FunctionDef",
       "source": "def public_description(self) -> str:"
     },
     {
       "path": "src/agent_comms/turn_context.py",
-      "line": 245,
+      "line": 253,
       "kind": "FunctionDef",
       "source": "def public_text(self) -> str:"
     },
     {
       "path": "src/agent_comms/turn_context.py",
-      "line": 325,
+      "line": 333,
       "kind": "FunctionDef",
       "source": "def public_description(self) -> str:"
     },
     {
       "path": "src/agent_comms/turn_context.py",
-      "line": 342,
+      "line": 350,
       "kind": "FunctionDef",
       "source": "def public_text(self) -> str:"
     },
     {
       "path": "src/agent_comms/turn_context.py",
-      "line": 361,
+      "line": 369,
       "kind": "FunctionDef",
       "source": "def public_text(self) -> str:"
     },
     {
       "path": "src/agent_comms/turn_context.py",
-      "line": 326,
+      "line": 597,
+      "kind": "FunctionDef",
+      "source": "def selected_segment(self, position: int, contributors: tuple[int, ...] = ()) -> SegmentManifest:"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 334,
       "kind": "Call",
       "source": "return self.measured_manifest().public_description()"
     },
     {
       "path": "src/agent_comms/turn_context.py",
-      "line": 609,
+      "line": 600,
+      "kind": "Call",
+      "source": "return self.segments[position].selected_contributor(contributors)"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 620,
       "kind": "Call",
       "source": "return ContextSourceText(source.public_description(), source.public_text(comms))"
     },
     {
       "path": "src/agent_comms/turn_context.py",
-      "line": 609,
+      "line": 620,
       "kind": "Call",
       "source": "return ContextSourceText(source.public_description(), source.public_text(comms))"
     },
     {
       "path": "src/agent_comms/turn_context.py",
-      "line": 609,
+      "line": 620,
       "kind": "Call",
       "source": "return ContextSourceText(source.public_description(), source.public_text(comms))"
     },
     {
       "path": "src/agent_comms/turn_context.py",
-      "line": 194,
+      "line": 202,
       "kind": "Call",
       "source": "public = {value.public_text() for value in matched}"
     },
@@ -592,10 +629,16 @@
     },
     {
       "path": "src/agent_comms/turn_context.py",
-      "line": 224,
+      "line": 618,
+      "kind": "Call",
+      "source": "if source not in self.selected_segment(segment).source_membership():"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 232,
       "kind": "Call",
       "source": "return \"\\n\".join([await child.public_text(read_reference) for child in self.contributors])"
     }
   ],
-  "limits": "Lexical AST includes all parsed declared roots; aliases, runtime MRO resolution and dynamic callbacks require semantic source review. Historical SDK recovery outside native89 is not qualified here."
+  "limits": "Lexical AST cannot establish dynamic aliases or MRO resolution; original classes, callbacks and request bindings were read semantically. Native89 does not qualify future captured SDK request values/recovery."
 }

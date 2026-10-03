@@ -1,0 +1,125 @@
+{
+  "state": "SCOPED_READY_CURRENT_PUBLIC_INSTRUCTION_AUDIT; not future recorded-native recovery or overall UI readiness",
+  "frontend_source_head": "4297f73a21880693e200b49d2210356b8e7e5100",
+  "installed_frontend_head": "0de3ab02c154b375f3cad7be10b02eb274ea5c4b",
+  "installed_core": "dbcf3ae4a47b629c85027c0def993a9614fadc6c",
+  "final_core_pin": "b0e5b57be2b3d78bc3b2fb2f960c78aabfa84a5c",
+  "final_core_delta": "Only CLI captured-text completeness query and two original manifest computed properties; current context/source request bodies and consumed public text API unchanged",
+  "native": "89b56aea0bb128c4bf3e2c979de8a5afa79ac88b1f51a74c49cc1cab46da60d2",
+  "textual": "c26499bf66768027ce0128532fb2d43db3e214e0",
+  "packages": 69,
+  "source_assets": 928,
+  "production_delta": {
+    "src/toad/core/context_inspection.py": {
+      "added": 137,
+      "deleted": 60
+    },
+    "src/toad/widgets/context_explorer.py": {
+      "added": 161,
+      "deleted": 32
+    }
+  },
+  "deleted_production_lines": 92,
+  "ast": {
+    "roots": [
+      {
+        "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+        "head": "4297f73a21880693e200b49d2210356b8e7e5100",
+        "root": "src/toad",
+        "parsed": 289,
+        "unparsed": []
+      },
+      {
+        "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+        "head": "4297f73a21880693e200b49d2210356b8e7e5100",
+        "root": "tests",
+        "parsed": 392,
+        "unparsed": []
+      },
+      {
+        "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+        "head": "4297f73a21880693e200b49d2210356b8e7e5100",
+        "root": "tools",
+        "parsed": 41,
+        "unparsed": []
+      },
+      {
+        "repo": "/home/ts/wt/comms-async-bus-read-publication-custody-20261002",
+        "head": "dbcf3ae4a47b629c85027c0def993a9614fadc6c",
+        "root": "src/agent_comms",
+        "parsed": 311,
+        "unparsed": []
+      }
+    ],
+    "relevant_lexical_sites": 101,
+    "omissions": [],
+    "limits": "Lexical AST cannot establish dynamic aliases or MRO resolution; original classes, callbacks and request bindings were read semantically. Native89 does not qualify future captured SDK request values/recovery."
+  },
+  "actual_native_reader": {
+    "source": "physical03; original whole capture failed later coordination gesture, all positives separately retained",
+    "public_characters": 28262,
+    "maximized_original_reader": true,
+    "returned_original_selection": true,
+    "clipboard_original_equal": true,
+    "export_original_equal": true,
+    "export_utf8_bytes": 28285,
+    "pixels": "installed-current/physical03/phase-full-read.png"
+  },
+  "actual_core_source": {
+    "source": "physical05 terminal PASS",
+    "elapsed_seconds": 59.039921212010086,
+    "matching_sources": 3,
+    "core_public_characters": 2610,
+    "authenticated_file_characters": 1138,
+    "original_file_sha256": "9374160606b751a57cdddc5d3108161378b44240013c683730cadfc6d811da48",
+    "authenticated_original_file_equal": true,
+    "selected_source_key": "core/01a1027f-a366-77f8-8b39-0d4999995f4d/0/coordination/source/1",
+    "pixels": "installed-current/physical05/phase-authenticated-source.png",
+    "visual_scope": "Original File node/path highlighted in native Tree; full file body is in original TextArea state below viewport. No claim that this PNG shows all file text."
+  },
+  "preserved_negatives": {
+    "01": "recorder used absent public Tree.get_label_region",
+    "02": "capture helper late-bound workspace screen instead of original App native Screen",
+    "03": "st did not deliver ctrl+shift+a as select-all; coordination query appended old query; native read/copy/export passed",
+    "04": "first source is OwnerProvenance with no retained wording; backend correctly refused, coordination search/read passed"
+  },
+  "public_and_selected_source_unchanged": true,
+  "native_input_rows": 0,
+  "provider_inputs": 0,
+  "priming": 0,
+  "cleanup": {
+    "state": "FULL_CODE_RETURN_TO_HEIS; actual05 terminal PASS; all owned borrowers retired",
+    "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+    "installed_toad": "0de3ab02c154b375f3cad7be10b02eb274ea5c4b",
+    "installed_core": "dbcf3ae4a47b629c85027c0def993a9614fadc6c",
+    "textual": "c26499bf66768027ce0128532fb2d43db3e214e0",
+    "native": "89b56aea0bb128c4bf3e2c979de8a5afa79ac88b1f51a74c49cc1cab46da60d2",
+    "package_count": 69,
+    "source_proof": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/context406-staging/source-proof.json",
+    "original407_archive": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-workspace407-rule47-20261003/qualified407-code-handback",
+    "active_borrowers": [],
+    "unreadable_cmdlines": [],
+    "controller_alive": false,
+    "native_alive": false,
+    "remaining_owned_pids": [],
+    "errors": [],
+    "public_source_unchanged": true,
+    "selected_source_unchanged": true,
+    "input_rows": 0,
+    "final_painted_source_key": "core/01a1027f-a366-77f8-8b39-0d4999995f4d/0/coordination/source/1",
+    "original_file_sha256": "9374160606b751a57cdddc5d3108161378b44240013c683730cadfc6d811da48",
+    "authenticated_file_original_equal": true
+  },
+  "remaining": {
+    "historical_original_request": "Exact original captured values/recovery needs matched future native artifact and separately qualified production path; current base is never substituted",
+    "context_footer": "Context unavailable footer persists while explorer current values work; precise original facts sent Mendel runtime status owner, no frontend status copy/label workaround",
+    "public_delivery": "Parent owns publication; no default/package/owner/public change by this frontend gate"
+  },
+  "raw_roots": [
+    "/home/ts/.cache/agent-scratch/context406-instruction-audit-20261003-01",
+    "/home/ts/.cache/agent-scratch/context406-instruction-audit-20261003-02",
+    "/home/ts/.cache/agent-scratch/context406-instruction-audit-20261003-03",
+    "/home/ts/.cache/agent-scratch/context406-instruction-audit-20261003-04",
+    "/home/ts/.cache/agent-scratch/context406-instruction-audit-20261003-05"
+  ]
+}

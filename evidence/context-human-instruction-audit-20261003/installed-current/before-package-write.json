@@ -1,0 +1,12 @@
+{
+  "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "process_references": [
+    {
+      "pid": "2141775",
+      "cmdline": "/bin/zsh -lc python - <<'PY'\nimport json,os,time\nfrom pathlib import Path\np=Path('/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002')\nout=Path('.artifacts/context406-staging')\nrefs=[]; gaps=[]\nfor proc in Path('/proc').iterdir():\n if not proc.name.isdigit(): continue\n try:\n  cmd=(proc/'cmdline').read_bytes().replace(b'\\0',b' ').decode(errors='replace')\n  if str(p) in cmd and int(proc.name)!=os.getpid(): refs.append({'pid':proc.name,'cmdline':cmd[:800]})\n except (FileNotFoundError,ProcessLookupError): pass\n except PermissionError: gaps.append(proc.name)\n# Shell orchestration can name the candidate; it is not an installed borrower.\n(out/'before-package-write.json').write_text(json.dumps({'prefix':str(p),'process_references':refs,'unreadable"
+    }
+  ],
+  "unreadable_cmdlines": [],
+  "grant": "Heisenberg code-handback406.json",
+  "time": 1791062741.448784
+}
