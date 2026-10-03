@@ -1,0 +1,30 @@
+{
+  "source_head": "46e08543da95a176cff538d9eb2b12b6f2c1103d",
+  "toad_assets": 319,
+  "toad_mismatches": [],
+  "installed": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/toad",
+  "headless_ui_modules": [],
+  "core_text_wheel_source": {
+    "agent_comms": {
+      "wheel": "/home/ts/.cache/uv/sdists-v9/git/20cd241ef3f9b3a1/d3ed99d5773528a2/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "07d86a026a1ab2b8ad1095bd71bc71bfa11c0ba9f33b3ccb0ff4ea64aff9c16f",
+      "assets": 342,
+      "mismatches": []
+    },
+    "textual": {
+      "wheel": "/home/ts/.cache/uv/sdists-v9/git/ea21a5120fe35156/2fff11abda0605f1/textual-8.2.8-py3-none-any.whl",
+      "sha256": "72b9f838984d63f67b110c25ccce21f570768b1231127f9b0140e671a43378c2",
+      "assets": 266,
+      "mismatches": []
+    }
+  },
+  "distributions": 69,
+  "sdk": "0.12.1",
+  "wheel_urls": {
+    "agent-comms": "{\"url\":\"file:///home/ts/.cache/uv/sdists-v9/git/20cd241ef3f9b3a1/d3ed99d5773528a2/agent_comms-0.1.0-py3-none-any.whl\",\"archive_info\":{}}",
+    "textual": "{\"url\":\"file:///home/ts/.cache/uv/sdists-v9/git/ea21a5120fe35156/2fff11abda0605f1/textual-8.2.8-py3-none-any.whl\",\"archive_info\":{}}",
+    "batrachian-toad": "{\"url\":\"file:///home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/headless-shell-383/batrachian_toad-0.6.20-py3-none-any.whl\",\"archive_info\":{}}"
+  },
+  "native": "Historical485native044 preserved and not acquired; no Pi/native/provider claim",
+  "qualification": "Changed native source/model widget reuse after installed02; Core574/Text38 unchanged cached wheel operands, original01/02 proof bytes retained separately."
+}
