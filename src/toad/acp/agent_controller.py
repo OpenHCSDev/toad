@@ -9,6 +9,7 @@ from dataclasses import dataclass, replace
 from functools import partial
 
 from agent_comms.declared_family import DeclaredFamily
+from toad import surface_binding
 from toad.acp.sdk_boundary import ValidateSessionUpdateTask
 from toad.plan import PlanItem
 from .terminal_owner import OperationalTerminalOwner
@@ -40,46 +41,6 @@ class SessionBinding:
         return self.session_id is None or self.session_id == session_id
 
 
-class SurfaceBinding(DeclaredFamily, affix="SurfaceBinding"):
-    target = None
-
-    def owns(self, target):
-        return self.target is target and target is not None
-
-    def prepare(self, controller) -> None:
-        """No frontend means no additional application resources to acquire."""
-
-    def prepare_terminal(self, state) -> None:
-        """A detached terminal keeps its original model's configured geometry."""
-
-    async def present_permission(self, request, view) -> None:
-        """An absent frontend never acquires a permission projection."""
-
-    def permission_changed(self, view) -> None:
-        """An absent frontend has no permission bindings to invalidate."""
-
-    async def present_failure(self, failure, view) -> None:
-        """An absent frontend keeps the original failure without native work."""
-
-    def schedule_terminal_presentation(self, controller):
-        controller.start_terminal_presentation(self.target)
-
-    def publish_terminal(self, controller, terminal_id, execution):
-        """An absent frontend does not acquire native projection work."""
-        return False
-
-    @abstractmethod
-    def post(self, message) -> bool: ...
-
-    def close(self) -> None:
-        """An absent frontend has no subscription to release."""
-
-
-class DetachedSurfaceBinding(SurfaceBinding):
-    def post(self, message):
-        return False
-
-
 class ValidationOwner(DeclaredFamily, affix="ValidationOwner"):
     @abstractmethod
     async def validate(self, task): ...
@@ -102,7 +63,7 @@ class AgentController(OperationalTerminalOwner):
     """One operational source; the surface is an optional weak projection."""
     def __init__(self, agent):
         super().__init__(agent)
-        self.surface: SurfaceBinding = DetachedSurfaceBinding()
+        self.surface: surface_binding.SurfaceBinding = surface_binding.DetachedSurfaceBinding()
         self.validation: ValidationOwner = HeadlessValidationOwner()
         self._deferred_submissions: set[asyncio.Task] = set()
         self.prompt_in_flight = 0
@@ -122,7 +83,7 @@ class AgentController(OperationalTerminalOwner):
             self.session = SessionBinding(session_id)
             self.reset_configuration()
 
-    def attach(self, binding: SurfaceBinding):
+    def attach(self, binding: surface_binding.SurfaceBinding):
         previous = self.surface.target
         if self.surface.owns(binding.target):
             binding.close()
@@ -139,7 +100,7 @@ class AgentController(OperationalTerminalOwner):
     def detach(self, target):
         if self.surface.owns(target):
             self.surface.close()
-            self.surface = DetachedSurfaceBinding()
+            self.surface = surface_binding.DetachedSurfaceBinding()
             self.agent.permissions.detach(target)
             self.terminals.detach()
 

@@ -1,0 +1,13 @@
+{
+  "state": "Ready source, not yet public",
+  "ready_sha256": "b5d578796d110681a6f694a42cc69b2fdf3d9d8e59b3dcaef9b6a030bc08bd9f",
+  "source_proof_sha256": "eab910380da57cc48c9191043275baa26bebb8492c6ec2fb8738424415145d85",
+  "activation_sha256": "1504542065b6c8e5cb40dca6973c0a4800003c578d904682511d2706dd1bd7d6",
+  "source_toad": "7af203ae0e393cd68274f7ed8a242d7e06df89ef",
+  "core": "bc15a45dabf0c2f0b59633e684bfe8ec799fdab1",
+  "textual": "4d2388f12d2d5aa4891920a527141c2b475dd28c",
+  "native_manifest": "51bff517be67ae98213760beebd2c070591e5df61cb2c9ebbf87cacbf9f039ab",
+  "operation": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/selected-acquisition574-component378-receiving-20261003/new-publication573576379380",
+  "execution_artifacts": 80,
+  "current_prefix_preserved": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002"
+}

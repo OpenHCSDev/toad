@@ -1,0 +1,9 @@
+{
+  "terminal_paint": "$ PS1=\"\"                                             \nowned-shell-marker                                   \n          Press escape twice to exit terminal        ",
+  "directory_changed_through_original_stream": true,
+  "same_shell_task_process_model": true,
+  "same_command_widget_source": true,
+  "same_terminal_widget_model": true,
+  "active_shell_subscriptions": 1,
+  "provider_calls": 0
+}

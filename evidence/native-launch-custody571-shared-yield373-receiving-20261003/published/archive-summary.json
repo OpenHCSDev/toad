@@ -1,0 +1,71 @@
+{
+  "state": "Published once; original identity readback and ordinary default saved-history display passed",
+  "pull_request": 376,
+  "reviewed_ready_head": "cfc7fc5e7d92dfbfff5ad5bde65b040283e17c3c",
+  "merged_commit": "c009b807069457d04cd6bae27f8a82905ecfc0b6",
+  "installed_toad_source": "a54b35fb86e23d0e38239904b0cdd7061dc40c38",
+  "ready_sha256": "67fd7c013c783d4f0101da79d52e0687f26dd8fde8d72bd1f8054c36c4b5a1d1",
+  "raw_publication_phase": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "raw_receipts": {
+    "parent-review.json": "5f8cd244a3877745f7bdbb34e04b56e7821dfa26004e7f4ecf05da73e3841e61",
+    "publication-receipt.json": "bd16de1f09a67c3256cee9c28d4df4697fc0cb1f191f6543ab043e7befd50917",
+    "publication-identity-closure.json": "16721795d733eac178e8c735b472a2906b54cd955ddb1d5f8f9e96fad8242632"
+  },
+  "publisher_duration_seconds": 45.22208786010742,
+  "owners": 19,
+  "same_births_and_stored_settings": true,
+  "new_process_identities_alive": true,
+  "five_links_and_root_native_match": true,
+  "source_target_schema_equal": true,
+  "source_target_product_equal": false,
+  "native_915_unchanged": true,
+  "physical_assessment_sha256": "07881f0c40d60780663a84b10f5dccb289f868f4e0043fa1aaa401245b35741d",
+  "raw_physical_receipt_sha256": "ff45ee1b4cbefce1a3a61d2694233c421ad1b48ea266642ed52ba742d93f55a7",
+  "physical_duration_seconds": 23.786893145996146,
+  "actual_st_exit": {
+    "pid": 3033162,
+    "start_ticks": 48923352,
+    "returncode": 0
+  },
+  "physical_image_evidence": {
+    "before.png": {
+      "original": "/home/ts/.cache/agent-scratch/published571375-helper-default-20261003/capture/before.png",
+      "sha256": "ab970f3127a568f5f0078c92fd75858c674c10bf75411b3ddd208a5c4fdd309f",
+      "bytes": 94925
+    },
+    "after.png": {
+      "original": "/home/ts/.cache/agent-scratch/published571375-helper-default-20261003/capture/after.png",
+      "sha256": "a1ca2159dbd36291ffe62ab22777132268344d071fb665207e7b32133df8eec5",
+      "bytes": 94188
+    },
+    "before-state.json": {
+      "original": "/home/ts/.cache/agent-scratch/published571375-helper-default-20261003/capture/before-state.json",
+      "sha256": "18a35acfa6e004b4f78a3a7d7c2ad140ea8c510d9ae00dccf13377a15b76311c",
+      "bytes": 1021739
+    },
+    "after-state.json": {
+      "original": "/home/ts/.cache/agent-scratch/published571375-helper-default-20261003/capture/after-state.json",
+      "sha256": "a5568e2f0b452e2fc2998207dffd39622279745a475abf3cd17cc85e3292b0fe",
+      "bytes": 1021739
+    }
+  },
+  "physical_scope": "Default paired assembly and owner attachment/display; original changed configured saved-native preparation, App/registeredACP permissions/context, saved-history motion and recorded-action gates retain their reviewed scopes",
+  "physical_limits": [
+    "No fresh provider compaction or prompt in this startup journey",
+    "Not whole-turn/channel latency acceptance",
+    "Not held-scrolling smoothness or 144Hz acceptance",
+    "Original uncertain inputs and failed attempts preserved"
+  ],
+  "protected_holders": [
+    "current529",
+    "previous302",
+    "485/520/290 until named release"
+  ],
+  "archive_only": true,
+  "publisher_repeated": false,
+  "readback_repeated": false,
+  "provider_calls": 0,
+  "native_inputs": 0,
+  "package_writes": 0,
+  "scope": "Original raw UI-pending phase unchanged. Parent after-image inspection establishes default assembly/attachment/display alongside original affected gates; no new configured prompt/compaction, full latency/smoothness or S2/S4 claim."
+}
