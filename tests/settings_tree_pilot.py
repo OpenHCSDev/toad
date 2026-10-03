@@ -14,7 +14,8 @@ from unittest.mock import patch
 from toad.app import ToadApp
 from toad.preferences import ToadSettings, UiSettings
 from toad.screens.settings import SettingsScreen
-from toad.setting_choices import BothExpansion, Expansion, FailExpansion, ThemeChoice
+from toad.setting_choices import BothExpansion, Expansion, FailExpansion
+from toad.native_themes import ThemeChoice
 from toad.setting_widgets import BooleanEditor, ChoiceEditor, InputEditor
 from toad.settings import (
     BooleanSetting,

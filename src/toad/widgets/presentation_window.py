@@ -6,12 +6,16 @@ from collections.abc import Iterable
 from itertools import zip_longest
 from math import ceil
 from time import monotonic, get_clock_info
+from typing import TYPE_CHECKING
 
-from textual.widget import Widget
+if TYPE_CHECKING:
+    from textual.widget import Widget
 
 
-def protected_presentations(items: Iterable[Widget], endpoints: Iterable[Widget]) -> set[Widget]:
+def protected_presentations(items: Iterable["Widget"], endpoints: Iterable["Widget"]) -> set["Widget"]:
     """Resolve native selection/focus to its owning presentation, without geometry."""
+    from textual.widget import Widget
+
     candidates = set(items)
     protected = set()
     for endpoint in endpoints:

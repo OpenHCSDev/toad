@@ -20,7 +20,7 @@ class InstalledApp(ToadApp):
     CSS_PATH = files("toad").joinpath("toad.tcss")
 
     async def on_load(self):
-        from toad.setting_choices import ThemeChoice
+        from toad.native_themes import ThemeChoice
         self.settings.ui.theme = ThemeChoice.decode("textual-dark")
         await super().on_load()
 
