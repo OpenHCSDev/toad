@@ -19,8 +19,8 @@ focus/draft/undo and TC1/T9/T4. Writer gaps are not changed-pixel FPS or input d
 Actual motion must be inspected during the next needed changed run, with original
 UI lifetime verified around the personal view. No unchanged optics rerun.
 
-403 holds a sequential code-only style22 loan; no package reads/writes or App
-launch here until explicit restore/handback. Source reasoning remains independent.
+403 returned the sequential style22 code loan; original402 package/proof
+archive remains intact. Normal joined405/45/46 staging uses that same holder.
 Parent/Sch own receiving publication; Arendt/Sch runtime/compaction source stays
 disjoint. Preserve originals/UNKNOWN. Source reasoning first, coherent batch,
 proportionate sanity and configured installed application path last.
@@ -46,3 +46,10 @@ readiness can stop at its first unmet body. Deleted full-descendant snapshot
 allocations; mutation/full-snapshot callers elsewhere keep their list contract.
 No new traversal implementation or readiness/cost field. All current body hooks
 were read for topology-changing side effects before selecting this change.
+
+Current main404/403 is normally merged: Coreeb3778 and response projection retained.
+Native46 source c256 is pinned; final batch has14passes/1pending-frame callback
+failure preserved. Original callback transferred before Pilot.pause, whose timer
+only schedules it; changed check awaits that same callback Event (1PASS.57s),
+no native product changes. Frozen receipt5750aca is production-equal c256.
+No physical launch or performance claim yet.
