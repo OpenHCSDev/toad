@@ -95,3 +95,35 @@ late selection rematches components and arrangement still follows. Worker source
 snapshot decoding is concurrent. Neither stack counts nor spans prove CPU
 dominance. Remaining whole foreground/firstpaint/CPU/raster/runway/growingEnd/
 void/focus/sidebar/animation/TC1T9T4 scope stays active, no unchanged recording.
+
+## Final scoped qualification (current descriptor family)
+
+Text1cf32afe9 / Toad65a7c638 are qualified for this retained-paint/styles
+checkpoint. Existing StyleProperty owns native class/bound access across all20
+property getters; class-specific normalization follows the live MRO. Reflective
+getattr_static lookup is deleted. StylesBuilder no longer writes undeclared
+auto_* fields. Styles.replace_rules remains the single compiled commit owner;
+immediate setter/animation epochs and actual node effects are preserved.
+
+Normal-main union13169632 includes Einstein369/371 imports and theme ownership.
+The same normal69 installed holder has exact source/assets/direct_url/native
+trust and pipcheck, with Core483 as declared comparator, not current default.
+Final native checks114 plus parser73 pass. Installed actual ToadApp/native
+compositor checks pass source/style/resize, all3 retained body reentries with
+nonblank original lines and no rebuild, real interaction, inflight stream
+custody and final disposal. No source overlay, public input or new environment.
+The pilot's historical source-only label does not describe this installed
+invocation; it remains a bounded App resource check, not physical41MB acceptance.
+
+AST parsed249 Textual and287 Toad modules with0 omissions and195 selected
+sites; dynamic dispatch is not proven by a static reference census. Native
+MRO owns descriptor selection. Current production diff vs main: Text376 added/
+301 deleted, Toad6 added/3 deleted. Before/after consumer files are retained.
+
+Original04 film qualifies earlier5c compiled-paint bytes at its18 passing
+lifetime predicates; coldB remains a raw failure. Final1cf/65a bytes are
+qualified by the exact installed App resource check, not a new film. No overall
+CPU/speed/smoothness or terminal-exit0 claim; original errors stay unchanged.
+The next substantive source lead is eager pager registration/child composition
+and descriptor normalization before tab selection. Full remaining scope above
+stays active. Details: scoped-ready-current.json.
