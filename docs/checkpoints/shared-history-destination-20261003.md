@@ -184,3 +184,36 @@ The complete source path identified two concrete corrections in one batch:
 
 The movie/owner budgets remain44/60 seconds. Existing holder is reused only after
 verified cleanup; no new environment, native package, full motion or provider run.
+
+## Changed installed attempt04: acceptance still open
+
+The coherent source/driver batch is `abc22e4e1f5612c009e6919508187fc1c9d54ead`.
+NRA Package.load parses286 production modules before/after with zero omissions;
+`paging-intent-owners.json` records the original Window ownership and consumer
+deletions. All four installed source/assets/directURL inventories and normal69
+pip check passed after updating only the Toad wheel in the released holder.
+Coredb94/Textual940/native960 and the approved558 decoder stayed unchanged.
+
+ONE changed actual run04 retained the original44/60-second budgets. The recorder
+terminated its completion command at the deadline without a journey-result or
+native-end receipt. Neither final native End nor IRC receipt/End is qualified.
+ACP session/load returned normally; the source-start DTO at4.45s still showed
+the initial project view with no history pager. Later live exports contain only
+frame observations, so the exact unfinished source step is unmeasured. The
+existing ProfileTrace parser recovers source stack transitions, not counts or CPU
+durations; asynchronous parent frames are not complete. Do not assign the
+timeout causally to the deleted release or claim End regression from this gap.
+
+Original04 video/profile/recorder evidence:
+`/home/ts/.cache/agent-scratch/kepler355-shared-destination-20261003-04`.
+Structured fixture and exact source/cleanup receipts are retained in
+`evidence/shared-history-destination355-20261003/installed04/`. No native inputs
+were sent; original source hash unchanged; both cleanups report no remaining
+owned processes and zero errors. No public owner restart, provider call,
+application/protocol replacement, deadline padding or further capture.
+
+Heisenberg owns the Window/frame boundary. The remaining driver source question
+is whether its global Pilot child-message/animation barrier is appropriate while
+original destination I/O is deliberately held; that is a source lead, not a
+confirmed cause. This PR remains Draft. Archive559 and the accepted worker/receipt
+installation are independent and must not wait for the unfinished End proof.
