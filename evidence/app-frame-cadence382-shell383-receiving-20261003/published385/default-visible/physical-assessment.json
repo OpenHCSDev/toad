@@ -1,0 +1,35 @@
+{
+  "observed_at": 1791022103.1867917,
+  "default_command": [
+    "/home/ts/bin/toad-comms",
+    "openhcs-helper"
+  ],
+  "capture": "/home/ts/.cache/agent-scratch/published578579382383-helper-default-20261003/capture",
+  "duration_seconds": 23.827736567007378,
+  "terminal_exit": {
+    "pid": 3482332,
+    "start_ticks": 49762069,
+    "returncode": 0
+  },
+  "capture_completed": true,
+  "completed": true,
+  "runtime_unchanged": true,
+  "original_owner_unchanged": true,
+  "original_owner": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "openhcs-helper",
+    "identity": {
+      "pid": 3478923,
+      "start_time": 49757655
+    },
+    "original_owner_alive": true
+  },
+  "cleanup_remaining": [],
+  "cleanup_errors": [],
+  "parent_personally_viewed": "/home/ts/.cache/agent-scratch/published578579382383-helper-default-20261003/capture/after.png",
+  "visible": "Original saved inbound/outbound history, chat/session details Ready, sidebar Ready, no activity bar. Original model/CWD/footer visible.",
+  "scope": "Ordinary default plain st isolated display startup and saved-history display; no new input/provider/full-scroll/latency claim",
+  "publication_repeated": false,
+  "raw_publication_sha256": "50f5948c27bc30d6f8fd1e56abf37f4bca3a36f5235826ad26795f9c5e666861"
+}

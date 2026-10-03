@@ -1,0 +1,21 @@
+{
+  "reviewed_at": 1791022103.1868927,
+  "receiving_pr": 385,
+  "ready_head": "e9dcceaa8b66e9363891af9d81332f8898d54e33",
+  "merge": "435e788ca6a63581238c26da7e06241f33ee63d8",
+  "frozen_artifacts_checked": 82,
+  "installed_assets_checked": 927,
+  "operators_previously_matched": 51,
+  "same_native_schema": true,
+  "same_checkpoint_schema": true,
+  "fresh_idle_owners": 19,
+  "fresh_client_guard_pass": true,
+  "auth_captured_RAM_only": true,
+  "single_publication_terminal_exit": 0,
+  "single_readback_terminal_exit": 0,
+  "publisher_duration_seconds": 42.74876046180725,
+  "physical_assessment": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published578579382383-20261003/physical-assessment.json",
+  "verification_correction": "Inventory digest is canonical JSON, not the pretty-printed file bytes. Initial readonly assertion failed before asset checks; source/schema equal and corrected asset check passed. No publication retry.",
+  "resource_scope": "Reuse installed holders, restart existing owners only; no new environment/native/fleet. Home4.1GiB/RAM11.5GiB, retained swap/root pressure.",
+  "original_raw_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/app-frame-cadence382-shell383-receiving-20261003/new-publication578579382383/publication-receipt.json"
+}
