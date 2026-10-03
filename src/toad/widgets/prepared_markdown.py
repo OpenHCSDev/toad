@@ -83,7 +83,7 @@ class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
     async def prepare_body(self) -> None:
         # Results live only in PreparationRuntime's bounded cache. Fresh file
         # links and widget construction remain at the foreground delivery.
-        await self.app.render_processes.submit(MarkdownRenderTask(
+        await self.app.render_processes.prepare(MarkdownRenderTask(
             self.source, self.app.native_ansi_color, self.app.current_theme.dark,
         ))
 

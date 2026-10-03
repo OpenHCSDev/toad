@@ -20,3 +20,26 @@ with same configured/public path; no unchangedfilm/newenvironment/WT/provider.
 Next source decision: body snapshot/readiness/materialization and native frame
 admission. Preserve nested body/window ownership and reader compensation;
 no registered-outer-body substitution or speculative ready guard removal.
+
+## Working preparation checkpoint
+
+Existing PreparationRuntime now owns acquisition separately from result
+delivery. Its one original admission/cache/pending/worker algorithm supplies
+both warm preparation and foreground submit. Warm preparation retains the
+same prepared value without deep-copy/unpickle/delivery; submit still makes
+each consumer's independent mutable result with the original before/after
+scope checks. The worker's original result validation remains intact.
+
+Existing Renderer.prepare provides uncached renderer execution; existing
+PreparedRenderer consumes the shared retained lifetime. All three discarded
+result warmup sites migrated: PreparedConversationMarkdown, StreamingMarkdown
+paged content, TranscriptBodyPreparation (including fragments/history runway).
+Actual page/event deliveries, foreground Markdown/fence/filelink resolution,
+Rich/rows/tools and model consumers still submit and receive independent data.
+No new class/cache/pool/queue/state/memory policy or timer.
+
+Five production files29+/5-. Published working source, not installed/Ready and
+no CPU or smoothness gain claim. Final source/caller checks and real changed
+saved-history motion join with frozen Text48 after406 CODE handback. Existing
+source sanity covers cache/shared execution/cancellation/budget/delivery/scope,
+plus actual reusable Markdown task warmup without unused materialization.
