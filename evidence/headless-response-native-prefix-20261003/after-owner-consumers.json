@@ -1,0 +1,1788 @@
+{
+  "head": "b6bdbabdfc3b232e70dd9efb0648667cc4adb692",
+  "roots": {
+    "src/toad": {
+      "parsed": 289,
+      "unparsed": []
+    },
+    "tests": {
+      "parsed": 392,
+      "unparsed": []
+    }
+  },
+  "references": [
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 107,
+      "kind": "ImportFrom",
+      "source": "from toad.response_delivery import ResponseDelivery"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 108,
+      "kind": "Name",
+      "source": "stream = self.agent.presentation.turns.owner.response_stream(ResponseDelivery.from_route(self.route))"
+    },
+    {
+      "path": "src/toad/agent_surface.py",
+      "line": 74,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "src/toad/agent_surface.py",
+      "line": 77,
+      "kind": "Name",
+      "source": "link = AgentResponse(f\"[Open ACP log]({quote(str(failure.log_path))})\","
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 11,
+      "kind": "ImportFrom",
+      "source": "from toad.core.projection import MroProjection"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 115,
+      "kind": "Name",
+      "source": "class NativeDetail(MroProjection):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 152,
+      "kind": "Name",
+      "source": "class SegmentNodes(MroProjection):"
+    },
+    {
+      "path": "src/toad/core/projection.py",
+      "line": 5,
+      "kind": "ClassDef",
+      "source": "class MroProjection(MroDispatch):"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 13,
+      "kind": "ImportFrom",
+      "source": "from toad.response_delivery import ResponseDelivery, UnroutedResponse"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 16,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 61,
+      "kind": "Name",
+      "source": "delivery: ResponseDelivery = field(default_factory=UnroutedResponse)"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 71,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 70,
+      "kind": "Name",
+      "source": "def create(self, fragment: str) -> AgentResponse:"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 93,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 92,
+      "kind": "Name",
+      "source": "def create(self, fragment: str) -> AgentResponse:"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 39,
+      "kind": "Name",
+      "source": "def create(self, fragment: str) -> AgentResponse | AgentThought: ..."
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 61,
+      "kind": "Name",
+      "source": "delivery: ResponseDelivery = field(default_factory=UnroutedResponse)"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 72,
+      "kind": "Name",
+      "source": "return AgentResponse(fragment, delivery=self.delivery)"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 95,
+      "kind": "Name",
+      "source": "return AgentResponse(\"## Compaction summary \u00b7 draft\\n\\n\" + fragment,"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 15,
+      "kind": "ClassDef",
+      "source": "class ResponseDelivery(DeclaredFamily, affix=\"Response\"):"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 27,
+      "kind": "ClassDef",
+      "source": "class UnroutedResponse(ResponseDelivery):"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 35,
+      "kind": "ClassDef",
+      "source": "class RoutedResponse(ResponseDelivery):"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 27,
+      "kind": "Name",
+      "source": "class UnroutedResponse(ResponseDelivery):"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 35,
+      "kind": "Name",
+      "source": "class RoutedResponse(ResponseDelivery):"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 17,
+      "kind": "Name",
+      "source": "def from_route(cls, route: MessageRoute | None) -> ResponseDelivery:"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 19,
+      "kind": "Name",
+      "source": "return UnroutedResponse() if route is None else RoutedResponse(route)"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 19,
+      "kind": "Name",
+      "source": "return UnroutedResponse() if route is None else RoutedResponse(route)"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 9,
+      "kind": "ImportFrom",
+      "source": "from toad.core.projection import MroProjection"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 18,
+      "kind": "Name",
+      "source": "class SettingsScreen(MroProjection, ModalScreen):"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "line": 6,
+      "kind": "ImportFrom",
+      "source": "from toad.core.projection import MroProjection"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "line": 16,
+      "kind": "ClassDef",
+      "source": "class AgentResponse(MroProjection, ConversationBlock, CategorizedBlock, StreamingMarkdown):"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "line": 16,
+      "kind": "Name",
+      "source": "class AgentResponse(MroProjection, ConversationBlock, CategorizedBlock, StreamingMarkdown):"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 105,
+      "kind": "ImportFrom",
+      "source": "from toad.response_delivery import ResponseDelivery"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 125,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "src/toad/widgets/coordination_context.py",
+      "line": 10,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "src/toad/widgets/coordination_context.py",
+      "line": 41,
+      "kind": "Name",
+      "source": "self._body: AgentResponse | None = None"
+    },
+    {
+      "path": "src/toad/widgets/coordination_context.py",
+      "line": 53,
+      "kind": "Name",
+      "source": "self._body: AgentResponse | None = None"
+    },
+    {
+      "path": "src/toad/widgets/coordination_context.py",
+      "line": 45,
+      "kind": "Name",
+      "source": "self._body = AgentResponse(literal_context(self.content), show_divider=False,"
+    },
+    {
+      "path": "src/toad/widgets/coordination_context.py",
+      "line": 68,
+      "kind": "Name",
+      "source": "self._body = AgentResponse(self._formatted, show_divider=False, category=OtherCategory)"
+    },
+    {
+      "path": "src/toad/widgets/incoming_message.py",
+      "line": 43,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "src/toad/widgets/incoming_message.py",
+      "line": 49,
+      "kind": "Name",
+      "source": "yield AgentResponse(self.event.text, show_divider=False).add_class(\"routed-body\")"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 93,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 109,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 111,
+      "kind": "Name",
+      "source": "return self.query_one(AgentResponse)"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 100,
+      "kind": "Name",
+      "source": "yield AgentResponse(self.message.body, show_divider=False)"
+    },
+    {
+      "path": "src/toad/widgets/outgoing_message.py",
+      "line": 8,
+      "kind": "ImportFrom",
+      "source": "from toad.response_delivery import ResponseDelivery"
+    },
+    {
+      "path": "src/toad/widgets/outgoing_message.py",
+      "line": 9,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "src/toad/widgets/outgoing_message.py",
+      "line": 33,
+      "kind": "Name",
+      "source": "yield AgentResponse(self.event.text,"
+    },
+    {
+      "path": "src/toad/widgets/outgoing_message.py",
+      "line": 34,
+      "kind": "Name",
+      "source": "delivery=ResponseDelivery.from_route(self.event.routing.reply),"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 42,
+      "kind": "ImportFrom",
+      "source": "from toad.response_delivery import ResponseDelivery"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 43,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 98,
+      "kind": "Name",
+      "source": "self.blocks.append(AgentResponse("
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 257,
+      "kind": "Name",
+      "source": "if isinstance(leaf, (AgentResponse, AgentThought)):"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 99,
+      "kind": "Name",
+      "source": "event.text, delivery=ResponseDelivery.from_route(event.routing.reply if event.routing else None),"
+    },
+    {
+      "path": "tests/acp_log_ui_pilot.py",
+      "line": 16,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/acp_log_ui_pilot.py",
+      "line": 45,
+      "kind": "Name",
+      "source": "AgentResponse(f\"[Open ACP log](toad-file:{quote(str(log))})\")"
+    },
+    {
+      "path": "tests/app_focus_latency_pilot.py",
+      "line": 13,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/app_focus_latency_pilot.py",
+      "line": 40,
+      "kind": "Name",
+      "source": "AgentResponse(f\"## Response {index}\\n\\n\" + \"A paragraph with **bold** and `code`.\\n\\n\" * 8,"
+    },
+    {
+      "path": "tests/blank_presentation_pilot.py",
+      "line": 178,
+      "kind": "ImportFrom",
+      "source": "from toad.response_delivery import RoutedResponse"
+    },
+    {
+      "path": "tests/blank_presentation_pilot.py",
+      "line": 179,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/blank_presentation_pilot.py",
+      "line": 196,
+      "kind": "Name",
+      "source": "delivery = RoutedResponse(route)"
+    },
+    {
+      "path": "tests/blank_presentation_pilot.py",
+      "line": 198,
+      "kind": "Name",
+      "source": "routed = await view.post(AgentResponse(\"routed response body\", delivery=delivery,"
+    },
+    {
+      "path": "tests/blank_presentation_pilot.py",
+      "line": 200,
+      "kind": "Name",
+      "source": "hidden = await view.post(AgentResponse(\"hidden-divider response body\", delivery=delivery,"
+    },
+    {
+      "path": "tests/block_interaction_pilot.py",
+      "line": 13,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/block_interaction_pilot.py",
+      "line": 65,
+      "kind": "Name",
+      "source": "response = AgentResponse(\"PARAGRAPH_COPY_PAINT\\n\\n```python\\nprint('FENCE_COPY_PAINT')\\n```\", paginate=False)"
+    },
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 39,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 422,
+      "kind": "Name",
+      "source": "bodies = tuple(recipient.contents.query(AgentResponse))"
+    },
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 472,
+      "kind": "Name",
+      "source": "assert sum(body.source == response.body for body in recipient.contents.query(AgentResponse)) == 1"
+    },
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 491,
+      "kind": "Name",
+      "source": "await until(pilot, lambda: sum(body.source == token for body in view.contents.query(AgentResponse)) == 1, 30)"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 38,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 401,
+      "kind": "Name",
+      "source": "reply_bodies = [body for body in receiver.contents.query(AgentResponse)"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 350,
+      "kind": "Name",
+      "source": "'children_at_container_mount': len(block.query(AgentResponse)),"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 356,
+      "kind": "Name",
+      "source": "receiver.contents.query(AgentResponse))"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 349,
+      "kind": "Name",
+      "source": "receiver.contents.query(AgentResponse)),"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 352,
+      "kind": "Name",
+      "source": "await until(rp, lambda: bool(block.query(AgentResponse)), 30)"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 398,
+      "kind": "Name",
+      "source": "await until(rp, lambda: any(body.query(AgentResponse) for body in"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 433,
+      "kind": "Name",
+      "source": "assert sum(body.source == reply.body for body in receiver.contents.query(AgentResponse)) == 1"
+    },
+    {
+      "path": "tests/checkpoint_source_pivot_pilot.py",
+      "line": 21,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/checkpoint_source_pivot_pilot.py",
+      "line": 88,
+      "kind": "Name",
+      "source": "responses = [item for item in view.contents.query(AgentResponse)"
+    },
+    {
+      "path": "tests/close_session_latency_pilot.py",
+      "line": 12,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/close_session_latency_pilot.py",
+      "line": 28,
+      "kind": "Name",
+      "source": "AgentResponse(f\"Response {i}\\n\\n\" + \"long paragraphs.\\n\\n\" * 10)"
+    },
+    {
+      "path": "tests/cold_thread_latency_pilot.py",
+      "line": 26,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/cold_thread_latency_pilot.py",
+      "line": 147,
+      "kind": "Name",
+      "source": "response = list(screen.query(AgentResponse))[-1]"
+    },
+    {
+      "path": "tests/cold_thread_latency_pilot.py",
+      "line": 129,
+      "kind": "Name",
+      "source": "for block in screen.query(AgentResponse)"
+    },
+    {
+      "path": "tests/committed_history_pilot.py",
+      "line": 17,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/committed_history_pilot.py",
+      "line": 81,
+      "kind": "Name",
+      "source": "isinstance(child, AgentResponse)"
+    },
+    {
+      "path": "tests/committed_history_pilot.py",
+      "line": 73,
+      "kind": "Name",
+      "source": "AgentResponse(f\"Old block {i}\\n\\nAnother paragraph\")"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 46,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 559,
+      "kind": "ImportFrom",
+      "source": "from toad.response_delivery import UnroutedResponse"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 747,
+      "kind": "Name",
+      "source": "assert chat.query(AgentResponse)"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 561,
+      "kind": "Name",
+      "source": "conversation.post_message(acp_messages.Update('text', 'Background message', conversation.turns.owner.response_stream(UnroutedResponse())))"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 567,
+      "kind": "Name",
+      "source": "conversation.post_message(acp_messages.Update('text', 'Finished answer', conversation.turns.owner.response_stream(UnroutedResponse())))"
+    },
+    {
+      "path": "tests/compaction_pilot.py",
+      "line": 10,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/compaction_pilot.py",
+      "line": 47,
+      "kind": "Name",
+      "source": "await conversation.post(AgentResponse('An earlier answer.'))"
+    },
+    {
+      "path": "tests/compaction_pilot.py",
+      "line": 69,
+      "kind": "Name",
+      "source": "summaries = [block for block in conversation.contents.children if isinstance(block, AgentResponse) and '## Context compacted' in block.source]"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 307,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 220,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 185,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 287,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 232,
+      "kind": "Name",
+      "source": "summaries_visible = [block for block in view.query(AgentResponse)"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 263,
+      "kind": "Name",
+      "source": "restored = [block for block in view.query(AgentResponse)"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 186,
+      "kind": "Name",
+      "source": "notices = [block for block in view.query(AgentResponse)"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 237,
+      "kind": "Name",
+      "source": "for block in view.query(AgentResponse)),"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 371,
+      "kind": "Name",
+      "source": "blocks = [b for b in view.query(AgentResponse) if b.source == outcome.text]"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 291,
+      "kind": "Name",
+      "source": "\"notices\": [block.source[:200] for block in view.query(AgentResponse)"
+    },
+    {
+      "path": "tests/coordination_context_pilot.py",
+      "line": 21,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/coordination_context_pilot.py",
+      "line": 73,
+      "kind": "Name",
+      "source": "body = disclosure.query_one(AgentResponse)"
+    },
+    {
+      "path": "tests/coordination_context_pilot.py",
+      "line": 68,
+      "kind": "Name",
+      "source": "assert not disclosure.query(AgentResponse), \"Hidden context must not parse Markdown eagerly\""
+    },
+    {
+      "path": "tests/coordination_context_pilot.py",
+      "line": 87,
+      "kind": "Name",
+      "source": "assert len(disclosure.query(AgentResponse)) == 1"
+    },
+    {
+      "path": "tests/coordination_context_pilot.py",
+      "line": 96,
+      "kind": "Name",
+      "source": "assert readable.collapsed and not readable.query(AgentResponse)"
+    },
+    {
+      "path": "tests/coordination_context_pilot.py",
+      "line": 101,
+      "kind": "Name",
+      "source": "body = readable.query(AgentResponse).first()"
+    },
+    {
+      "path": "tests/coordination_context_pilot.py",
+      "line": 108,
+      "kind": "Name",
+      "source": "assert original.collapsed and not original.query(AgentResponse)"
+    },
+    {
+      "path": "tests/file_path_preview_pilot.py",
+      "line": 21,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/file_path_preview_pilot.py",
+      "line": 242,
+      "kind": "Name",
+      "source": "channel_response = AgentResponse(\"See plans/tag-channel-view-plan.md\")"
+    },
+    {
+      "path": "tests/file_path_preview_pilot.py",
+      "line": 372,
+      "kind": "Name",
+      "source": "response = history.query_one(AgentResponse)"
+    },
+    {
+      "path": "tests/file_path_preview_pilot.py",
+      "line": 49,
+      "kind": "Name",
+      "source": "response = await app.selected_session.conversation.post(AgentResponse(source))"
+    },
+    {
+      "path": "tests/file_path_preview_pilot.py",
+      "line": 193,
+      "kind": "Name",
+      "source": "nested_response = await owner.conversation.post(AgentResponse(\"See declarations.py\"))"
+    },
+    {
+      "path": "tests/file_path_preview_pilot.py",
+      "line": 369,
+      "kind": "Name",
+      "source": "await until(pilot,lambda: bool(history.query(AgentResponse)))"
+    },
+    {
+      "path": "tests/first_fork_native_installed_pilot.py",
+      "line": 294,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/first_fork_native_installed_pilot.py",
+      "line": 298,
+      "kind": "Name",
+      "source": "response_blocks = [block for block in view.query(AgentResponse)"
+    },
+    {
+      "path": "tests/follow_stream_pilot.py",
+      "line": 9,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/follow_stream_pilot.py",
+      "line": 21,
+      "kind": "Name",
+      "source": "response = await conversation.post(AgentResponse(\"\\n\\n\".join(f\"Paragraph {i}\" for i in range(40))))"
+    },
+    {
+      "path": "tests/fragment_divider_pilot.py",
+      "line": 17,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/fragment_divider_pilot.py",
+      "line": 76,
+      "kind": "Name",
+      "source": "live = await conversation.post(AgentResponse(text))"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 19,
+      "kind": "ImportFrom",
+      "source": "from toad.response_delivery import RoutedResponse"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 62,
+      "kind": "ImportFrom",
+      "source": "from toad.response_delivery import UnroutedResponse"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 63,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 72,
+      "kind": "Name",
+      "source": "first = view.turns.owner.response_stream(UnroutedResponse())"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 73,
+      "kind": "Name",
+      "source": "second = view.turns.owner.response_stream(UnroutedResponse())"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 88,
+      "kind": "Name",
+      "source": "count = len(view.query(AgentResponse))"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 90,
+      "kind": "Name",
+      "source": "assert len(view.query(AgentResponse)) == count"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 45,
+      "kind": "Name",
+      "source": "routed = await view.output.append(ResponseStream(RoutedResponse(MessageRoute('worker', ('#test',)))), 'Routed answer')"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 85,
+      "kind": "Name",
+      "source": "notice = await view.output.append(view.turns.owner.response_stream(UnroutedResponse()), 'Owner notice')"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 86,
+      "kind": "Name",
+      "source": "another = await view.output.append(view.turns.owner.response_stream(UnroutedResponse()), 'Next owner notice')"
+    },
+    {
+      "path": "tests/guards/test_transcript_publication.py",
+      "line": 73,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/guards/test_transcript_publication.py",
+      "line": 145,
+      "kind": "Name",
+      "source": "assert not view.contents.query(AgentResponse)"
+    },
+    {
+      "path": "tests/guards/test_transcript_publication.py",
+      "line": 165,
+      "kind": "Name",
+      "source": "assert not view.contents.query(AgentResponse), 'A pending original request painted the replacement source'"
+    },
+    {
+      "path": "tests/guards/test_transcript_publication.py",
+      "line": 210,
+      "kind": "Name",
+      "source": "assert not view.contents.query(AgentResponse)"
+    },
+    {
+      "path": "tests/guards/test_transcript_publication.py",
+      "line": 170,
+      "kind": "Name",
+      "source": "assert len(view.contents.query(AgentResponse)) == 1"
+    },
+    {
+      "path": "tests/guards/test_transcript_publication.py",
+      "line": 84,
+      "kind": "Name",
+      "source": "await self.contents.mount(AgentResponse('Declared publication painted'))"
+    },
+    {
+      "path": "tests/history_availability_installed_pilot.py",
+      "line": 66,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/history_availability_installed_pilot.py",
+      "line": 73,
+      "kind": "Name",
+      "source": "visible_responses = [r for r in source.query(AgentResponse)"
+    },
+    {
+      "path": "tests/history_availability_installed_pilot.py",
+      "line": 71,
+      "kind": "Name",
+      "source": "print(\"RESPONSES\", [(len(r.source), r.region, r.display, r in app.screen._compositor.visible_widgets, r.body_ready, r.body_dormant) for r in source.query(AgentResponse)])"
+    },
+    {
+      "path": "tests/hot_path_invalidation_pilot.py",
+      "line": 13,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/hot_path_invalidation_pilot.py",
+      "line": 35,
+      "kind": "Name",
+      "source": "AgentResponse(\"\\n\".join(f\"- item {j}\" for j in range(20)))"
+    },
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "line": 30,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "line": 47,
+      "kind": "Name",
+      "source": "for block in view.query(AgentResponse) if text in block.source"
+    },
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "line": 428,
+      "kind": "Name",
+      "source": "assert not any(isinstance(child, AgentResponse) for child in view.contents.children)"
+    },
+    {
+      "path": "tests/large_stream_pilot.py",
+      "line": 41,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/large_stream_pilot.py",
+      "line": 53,
+      "kind": "Name",
+      "source": "response = await conversation.post(AgentResponse(source))"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "line": 24,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "line": 55,
+      "kind": "Name",
+      "source": "blocks = [item for item in view.contents.query(AgentResponse) if item.source == TOKEN]"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "line": 126,
+      "kind": "Name",
+      "source": "blocks = [item for item in view.contents.query(AgentResponse) if item.source==TOKEN]"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "line": 121,
+      "kind": "Name",
+      "source": "'saved_resources':sum(item.source==TOKEN for item in view.contents.query(AgentResponse)),"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "line": 24,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "line": 55,
+      "kind": "Name",
+      "source": "blocks = [item for item in view.contents.query(AgentResponse) if item.source == TOKEN]"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "line": 130,
+      "kind": "Name",
+      "source": "blocks = [item for item in view.contents.query(AgentResponse) if item.source==TOKEN]"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "line": 125,
+      "kind": "Name",
+      "source": "'saved_resources':sum(item.source==TOKEN for item in view.contents.query(AgentResponse)),"
+    },
+    {
+      "path": "tests/lazy_tools_pilot.py",
+      "line": 15,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/lazy_tools_pilot.py",
+      "line": 102,
+      "kind": "Name",
+      "source": "old = await conversation.post(AgentResponse(text))"
+    },
+    {
+      "path": "tests/long_message_pilot.py",
+      "line": 11,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/long_message_pilot.py",
+      "line": 65,
+      "kind": "Name",
+      "source": "for response_type in (AgentResponse, AgentThought):"
+    },
+    {
+      "path": "tests/markdown_process_lifecycle_pilot.py",
+      "line": 12,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/markdown_process_lifecycle_pilot.py",
+      "line": 70,
+      "kind": "Name",
+      "source": "response = await app.selected_session.conversation.post(AgentResponse(paginate=False))"
+    },
+    {
+      "path": "tests/markdown_process_pilot.py",
+      "line": 14,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/markdown_process_pilot.py",
+      "line": 34,
+      "kind": "Name",
+      "source": "response = AgentResponse(paginate=False)"
+    },
+    {
+      "path": "tests/markdown_return_reuse_pilot.py",
+      "line": 16,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/markdown_return_reuse_pilot.py",
+      "line": 44,
+      "kind": "Name",
+      "source": "response = AgentResponse(sources[index], paginate=False)"
+    },
+    {
+      "path": "tests/markdown_return_reuse_pilot.py",
+      "line": 66,
+      "kind": "Name",
+      "source": "assert not view.query(AgentResponse), \"Retired body remained pooled\""
+    },
+    {
+      "path": "tests/markdown_token_rules_installed_pilot.py",
+      "line": 15,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/markdown_token_rules_installed_pilot.py",
+      "line": 49,
+      "kind": "Name",
+      "source": "response = await conversation.post(AgentResponse(source, paginate=False))"
+    },
+    {
+      "path": "tests/message_categories_pilot.py",
+      "line": 35,
+      "kind": "ImportFrom",
+      "source": "from toad.response_delivery import ResponseDelivery"
+    },
+    {
+      "path": "tests/message_categories_pilot.py",
+      "line": 36,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/message_categories_pilot.py",
+      "line": 80,
+      "kind": "Name",
+      "source": "AgentCategory: AgentResponse(\"agent\"),"
+    },
+    {
+      "path": "tests/message_categories_pilot.py",
+      "line": 82,
+      "kind": "Name",
+      "source": "OutboundCategory: AgentResponse(\"outgoing\", delivery=ResponseDelivery.from_route(MessageRoute(\"owner\", (\"peer\",)))),"
+    },
+    {
+      "path": "tests/message_categories_pilot.py",
+      "line": 82,
+      "kind": "Name",
+      "source": "OutboundCategory: AgentResponse(\"outgoing\", delivery=ResponseDelivery.from_route(MessageRoute(\"owner\", (\"peer\",)))),"
+    },
+    {
+      "path": "tests/message_dividers_pilot.py",
+      "line": 20,
+      "kind": "ImportFrom",
+      "source": "from toad.response_delivery import ResponseDelivery"
+    },
+    {
+      "path": "tests/message_dividers_pilot.py",
+      "line": 21,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/message_dividers_pilot.py",
+      "line": 62,
+      "kind": "Name",
+      "source": "routed = await native.post(AgentResponse("
+    },
+    {
+      "path": "tests/message_dividers_pilot.py",
+      "line": 116,
+      "kind": "Name",
+      "source": "assert len(wire_block.query(AgentResponse)) == 1"
+    },
+    {
+      "path": "tests/message_dividers_pilot.py",
+      "line": 63,
+      "kind": "Name",
+      "source": "\"routed answer\", delivery=ResponseDelivery.from_route(MessageRoute(me, (\"#all\",))),"
+    },
+    {
+      "path": "tests/message_dividers_pilot.py",
+      "line": 117,
+      "kind": "Name",
+      "source": "assert len(wire_block.query(AgentResponse).first().query(MessageDivider)) == 0"
+    },
+    {
+      "path": "tests/message_filter_latency_pilot.py",
+      "line": 16,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/message_filter_latency_pilot.py",
+      "line": 33,
+      "kind": "Name",
+      "source": "for index in range(30) for cls in (AgentResponse, AgentThought)"
+    },
+    {
+      "path": "tests/midturn_compaction_pilot.py",
+      "line": 10,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/midturn_compaction_pilot.py",
+      "line": 45,
+      "kind": "Name",
+      "source": "notices = [item for item in view.contents.children if isinstance(item, AgentResponse) and summary in item.source]"
+    },
+    {
+      "path": "tests/midturn_compaction_pilot.py",
+      "line": 54,
+      "kind": "Name",
+      "source": "aborted = [item for item in view.contents.children if isinstance(item, AgentResponse) and 'Compaction aborted' in item.source]"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 19,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 380,
+      "kind": "Name",
+      "source": "bodies = tuple(body for body in view.query(AgentResponse)"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 278,
+      "kind": "Name",
+      "source": "tuple(ref(body) for body in view.query(AgentResponse)"
+    },
+    {
+      "path": "tests/native_message_parts_pilot.py",
+      "line": 16,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/native_message_parts_pilot.py",
+      "line": 52,
+      "kind": "Name",
+      "source": "body = view.contents.query_one(AgentResponse)"
+    },
+    {
+      "path": "tests/native_message_parts_pilot.py",
+      "line": 50,
+      "kind": "Name",
+      "source": "await until(pilot, lambda: bool(view.contents.query(AgentResponse)))"
+    },
+    {
+      "path": "tests/navigation_source_timer_pilot.py",
+      "line": 10,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/navigation_source_timer_pilot.py",
+      "line": 23,
+      "kind": "Name",
+      "source": "await first.conversation.contents.mount(AgentResponse(\"Saved text that stays visible\"))"
+    },
+    {
+      "path": "tests/navigation_source_timer_pilot.py",
+      "line": 43,
+      "kind": "Name",
+      "source": "AgentResponse).source"
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 22,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 140,
+      "kind": "Name",
+      "source": "block = AgentResponse(\"Selected committed block\")"
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 164,
+      "kind": "Name",
+      "source": "late = AgentResponse(\"Commit whose reader moves\")"
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 183,
+      "kind": "Name",
+      "source": "old = AgentResponse(\"Committed before delayed read\")"
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 190,
+      "kind": "Name",
+      "source": "arrival = AgentResponse(\"Uncommitted concurrent arrival\")"
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 199,
+      "kind": "Name",
+      "source": "visible = AgentResponse(text)"
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 217,
+      "kind": "Name",
+      "source": "invalid = AgentResponse(\"Pending during invalid coverage\")"
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 237,
+      "kind": "Name",
+      "source": "old = AgentResponse(\"Original source block\")"
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 257,
+      "kind": "Name",
+      "source": "hidden = AgentResponse(\"Committed while inactive\")"
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 106,
+      "kind": "Name",
+      "source": "blocks = [AgentResponse(text) for text in texts]"
+    },
+    {
+      "path": "tests/original_stream_headers_installed_pilot.py",
+      "line": 12,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/original_stream_headers_installed_pilot.py",
+      "line": 41,
+      "kind": "Name",
+      "source": "for body in view.contents.query(AgentResponse)]"
+    },
+    {
+      "path": "tests/persistent_renderer_ui_pilot.py",
+      "line": 19,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/persistent_renderer_ui_pilot.py",
+      "line": 60,
+      "kind": "Name",
+      "source": "response = await app.selected_session.conversation.post(AgentResponse(paginate=False))"
+    },
+    {
+      "path": "tests/persistent_workspace_source_navigation_pilot.py",
+      "line": 12,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/persistent_workspace_source_navigation_pilot.py",
+      "line": 39,
+      "kind": "Name",
+      "source": "response = await conversation.post(AgentResponse(f\"[Open source file]({target})\"))"
+    },
+    {
+      "path": "tests/profile_hot_paths_pilot.py",
+      "line": 17,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/profile_hot_paths_pilot.py",
+      "line": 51,
+      "kind": "Name",
+      "source": "AgentResponse(f\"Response {i}\\n\\n\" + \"\\n\".join(f\"- list item {j}\" for j in range(20)))"
+    },
+    {
+      "path": "tests/reconnect_source_native_installed_pilot.py",
+      "line": 10,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/reconnect_source_native_installed_pilot.py",
+      "line": 48,
+      "kind": "Name",
+      "source": "widgets = tuple(block for block in view.query(AgentResponse) if block.source == BODY)"
+    },
+    {
+      "path": "tests/relationship_poll_reflow_pilot.py",
+      "line": 14,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/relationship_poll_reflow_pilot.py",
+      "line": 30,
+      "kind": "Name",
+      "source": "AgentResponse(f\"Reply {index}\\n\\n\" + \"Paragraph under the polling panel.\\n\\n\" * 12,"
+    },
+    {
+      "path": "tests/resize_render_pilot.py",
+      "line": 11,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/resize_render_pilot.py",
+      "line": 33,
+      "kind": "Name",
+      "source": "await conversation.post(AgentResponse(\"FINAL_VISIBLE_MARKER\\n\\n\" + \"Last paragraph. \" * 10))"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 19,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 47,
+      "kind": "Name",
+      "source": "resources=[widget for widget in view.contents.query(AgentResponse)"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 102,
+      "kind": "Name",
+      "source": "responses=[widget for widget in view.contents.query(AgentResponse) if 'SOURCE_RESPONSE_ONCE' in widget.source]"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 133,
+      "kind": "Name",
+      "source": "responses=[widget for widget in view.contents.query(AgentResponse) if 'SOURCE_RESPONSE_ONCE' in widget.source]"
+    },
+    {
+      "path": "tests/resume_style_revision_pilot.py",
+      "line": 11,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/resume_style_revision_pilot.py",
+      "line": 29,
+      "kind": "Name",
+      "source": "await first.conversation.contents.mount(AgentResponse(\"Style target\"))"
+    },
+    {
+      "path": "tests/resume_style_revision_pilot.py",
+      "line": 87,
+      "kind": "Name",
+      "source": "assert first.query_one(AgentResponse).styles.color.hex == \"#FFAA22\""
+    },
+    {
+      "path": "tests/retained_history_projection_pilot.py",
+      "line": 17,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/retained_history_projection_pilot.py",
+      "line": 75,
+      "kind": "Name",
+      "source": "synthetic = AgentResponse('## Paged live message\\n\\n' + '\\n\\n'.join("
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 31,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 74,
+      "kind": "Name",
+      "source": "blocks = [block for block in view.query(AgentResponse)"
+    },
+    {
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 18,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 194,
+      "kind": "Name",
+      "source": "first_reply = first.query_ancestor(AgentResponse)"
+    },
+    {
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 142,
+      "kind": "Name",
+      "source": "AgentResponse(f\"## Reply {i}\\n\\n\" + \"\\n\".join("
+    },
+    {
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 197,
+      "kind": "Name",
+      "source": "if item.query_ancestor(AgentResponse) is not first_reply), None)"
+    },
+    {
+      "path": "tests/selection_hover_pilot.py",
+      "line": 13,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/selection_hover_pilot.py",
+      "line": 25,
+      "kind": "Name",
+      "source": "response = await conversation.post(AgentResponse(\"Select this phrase \" * 25))"
+    },
+    {
+      "path": "tests/sidebar_collapse_latency_pilot.py",
+      "line": 16,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/sidebar_collapse_latency_pilot.py",
+      "line": 53,
+      "kind": "Name",
+      "source": "AgentResponse(f\"## Loaded response {index}\\n\\n\" + \"paragraph and line\\n\\n\" * 10)"
+    },
+    {
+      "path": "tests/sidebar_metadata_reflow_pilot.py",
+      "line": 14,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/sidebar_metadata_reflow_pilot.py",
+      "line": 37,
+      "kind": "Name",
+      "source": "AgentResponse(f\"Reply {index}\\n\\n\" + \"Paragraph.\\n\\n\" * 16, paginate=False)"
+    },
+    {
+      "path": "tests/stream_style_work_pilot.py",
+      "line": 10,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/stream_style_work_pilot.py",
+      "line": 22,
+      "kind": "Name",
+      "source": "response = AgentResponse(\"\\n\\n\".join(f\"## Heading {i}\\n\\nA paragraph.\" for i in range(80)))"
+    },
+    {
+      "path": "tests/test_t4_turn_navigation.py",
+      "line": 10,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/test_t4_turn_navigation.py",
+      "line": 42,
+      "kind": "Name",
+      "source": "note, response, extra = Note(\"atomic\"), AgentResponse(\"first\\n\\nsecond\"), ExtraBlock(\"new declaration\")"
+    },
+    {
+      "path": "tests/thread_activation_pilot.py",
+      "line": 12,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/thread_activation_pilot.py",
+      "line": 64,
+      "kind": "Name",
+      "source": "AgentResponse(\"\\n\\n\".join((f\"Old paragraph {i}\" for i in range(40))))"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 13,
+      "kind": "ImportFrom",
+      "source": "from toad.response_delivery import ResponseDelivery"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 14,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 77,
+      "kind": "Name",
+      "source": "outgoing = await view.post(AgentResponse(\"Identical body\", delivery=ResponseDelivery.from_route(MessageRoute(\"me\", (\"#comms\",)))))"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 77,
+      "kind": "Name",
+      "source": "outgoing = await view.post(AgentResponse(\"Identical body\", delivery=ResponseDelivery.from_route(MessageRoute(\"me\", (\"#comms\",)))))"
+    },
+    {
+      "path": "tests/thread_navigation_installed_journey.py",
+      "line": 24,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/thread_navigation_installed_journey.py",
+      "line": 99,
+      "kind": "Name",
+      "source": "alpha_bodies = tuple(ref(body) for body in alpha.conversation.query(AgentResponse)"
+    },
+    {
+      "path": "tests/thread_render_wait_pilot.py",
+      "line": 23,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/thread_render_wait_pilot.py",
+      "line": 140,
+      "kind": "Name",
+      "source": "for response in conversation.query(AgentResponse)"
+    },
+    {
+      "path": "tests/transcript_process_pilot.py",
+      "line": 35,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/transcript_process_pilot.py",
+      "line": 200,
+      "kind": "Name",
+      "source": "response = await conversation.post(AgentResponse(\"initial\"))"
+    },
+    {
+      "path": "tests/transcript_source_lifetime_pilot.py",
+      "line": 16,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/transcript_source_lifetime_pilot.py",
+      "line": 46,
+      "kind": "Name",
+      "source": "short = AgentResponse('Original ordinary native Markdown.\\n\\nRetained body.', paginate=False)"
+    },
+    {
+      "path": "tests/transcript_source_lifetime_pilot.py",
+      "line": 49,
+      "kind": "Name",
+      "source": "paged = AgentResponse(long_source)"
+    },
+    {
+      "path": "tests/unread_paint_only_pilot.py",
+      "line": 14,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/unread_paint_only_pilot.py",
+      "line": 36,
+      "kind": "Name",
+      "source": "AgentResponse(f\"Reply {index}\\n\\n\" + \"Paragraph under unread updates.\\n\\n\" * 12,"
+    },
+    {
+      "path": "tests/view_switch_latency.py",
+      "line": 18,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/view_switch_latency.py",
+      "line": 70,
+      "kind": "Name",
+      "source": "for cls in (AgentResponse, AgentThought, ToolCall, ToolCallHeader, ToolContent,"
+    },
+    {
+      "path": "tests/view_switch_latency.py",
+      "line": 101,
+      "kind": "Name",
+      "source": "AgentResponse(f\"## Block {i}\\n\\n\" + response_body)"
+    },
+    {
+      "path": "tests/viewport_body_lifetime_pilot.py",
+      "line": 13,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/viewport_body_lifetime_pilot.py",
+      "line": 73,
+      "kind": "Name",
+      "source": "anchor = AgentResponse(\"A transient anchor\")"
+    },
+    {
+      "path": "tests/viewport_body_lifetime_pilot.py",
+      "line": 35,
+      "kind": "Name",
+      "source": "docs = [AgentResponse(source(i)) for i in range(32)]"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 23,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 305,
+      "kind": "Name",
+      "source": "class HeldBody(AgentResponse):"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 43,
+      "kind": "Name",
+      "source": "docs = [AgentResponse(f'## Resource body {i}\\n\\n' + '\\n\\n'.join("
+    },
+    {
+      "path": "tests/viewport_bounded_runway_churn_pilot.py",
+      "line": 13,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/viewport_bounded_runway_churn_pilot.py",
+      "line": 33,
+      "kind": "Name",
+      "source": "docs = [AgentResponse(f'## Bounded native body {i}\\n\\n' + '\\n\\n'.join("
+    },
+    {
+      "path": "tests/viewport_demand_custody_pilot.py",
+      "line": 18,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/viewport_demand_custody_pilot.py",
+      "line": 37,
+      "kind": "Name",
+      "source": "bodies = [AgentResponse(f'## Native body {i}\\n\\n' + '\\n\\n'.join("
+    },
+    {
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 15,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 33,
+      "kind": "Name",
+      "source": "docs = [AgentResponse(f\"## Native resource {i}\\n\\n\" +"
+    },
+    {
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 103,
+      "kind": "Name",
+      "source": "short = [AgentResponse(f\"## Foreground {i}\\n\\nActual native body.\", paginate=False)"
+    },
+    {
+      "path": "tests/viewport_layout_reentry_pilot.py",
+      "line": 9,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/viewport_layout_reentry_pilot.py",
+      "line": 25,
+      "kind": "Name",
+      "source": "response=await view.post(AgentResponse('\\n\\n'.join(f'Visible paragraph {i}' for i in range(45))))"
+    },
+    {
+      "path": "tests/viewport_rapid_scroll_pilot.py",
+      "line": 11,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/viewport_rapid_scroll_pilot.py",
+      "line": 54,
+      "kind": "Name",
+      "source": "docs[-1] = AgentResponse(\"## LAST SOURCE\\n\\n\" + \"last record \" * 15 + \"\\n\\nTAIL-RECORD-END\")"
+    },
+    {
+      "path": "tests/viewport_rapid_scroll_pilot.py",
+      "line": 52,
+      "kind": "Name",
+      "source": "docs = [AgentResponse(f\"## Record {index}\\n\\n\" + \"measured source text \" * 25)"
+    },
+    {
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "line": 19,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "line": 33,
+      "kind": "Name",
+      "source": "for node in conversation.query(AgentResponse)]"
+    },
+    {
+      "path": "tests/viewport_runway_pilot.py",
+      "line": 11,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/viewport_runway_pilot.py",
+      "line": 30,
+      "kind": "Name",
+      "source": "docs = [AgentResponse(f\"## Native runway {i}\\n\\n\" + \"\\n\\n\".join("
+    },
+    {
+      "path": "tests/viewport_selection_diff_pilot.py",
+      "line": 15,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/viewport_selection_diff_pilot.py",
+      "line": 29,
+      "kind": "Name",
+      "source": "source = await app.selected_session.conversation.post(AgentResponse(\"START marker\\n\\nBefore the diff.\"))"
+    },
+    {
+      "path": "tests/viewport_selection_diff_pilot.py",
+      "line": 36,
+      "kind": "Name",
+      "source": "destination = await app.selected_session.conversation.post(AgentResponse(\"After the diff.\\n\\nEND marker\"))"
+    },
+    {
+      "path": "tests/viewport_warm_trim_pilot.py",
+      "line": 19,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/viewport_warm_trim_pilot.py",
+      "line": 39,
+      "kind": "Name",
+      "source": "docs = [AgentResponse(f\"## Native body {i}\\n\\n\" + \"\\n\\n\".join("
+    },
+    {
+      "path": "tests/workspace_native_paint_retention_pilot.py",
+      "line": 11,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.agent_response import AgentResponse"
+    },
+    {
+      "path": "tests/workspace_native_paint_retention_pilot.py",
+      "line": 29,
+      "kind": "Name",
+      "source": "response = AgentResponse('## Retained native paint\\n\\n' + '\\n\\n'.join("
+    }
+  ],
+  "semantic_owner": "ResponseDelivery keeps admitted route/category; existing AgentResponse/MroProjection constructs native constructor arguments. Widget.DEFAULT_CLASSES is borrowed, not copied.",
+  "deleted_native_core_methods": [
+    "ResponseDelivery.prefix",
+    "ResponseDelivery.decorate",
+    "UnroutedResponse.prefix",
+    "RoutedResponse.prefix",
+    "RoutedResponse.decorate"
+  ],
+  "dynamic_limit": "AST names/imports and explicit delivery calls do not prove dynamic lookup; all resulting production sites read semantically, declared MRO and Widget constructor inspected."
+}
