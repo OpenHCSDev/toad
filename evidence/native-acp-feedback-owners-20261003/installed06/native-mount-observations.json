@@ -1,0 +1,26 @@
+[
+  {
+    "id": "feedback-pending",
+    "attached": true,
+    "status": "pending",
+    "header": "\u25b6 \ud83d\udd27 FEEDBACK_PENDING \u231b"
+  },
+  {
+    "id": "feedback-in_progress",
+    "attached": true,
+    "status": "in_progress",
+    "header": "\u25b6 \ud83d\udd27 FEEDBACK_IN_PROGRESS [running]"
+  },
+  {
+    "id": "feedback-completed",
+    "attached": true,
+    "status": "completed",
+    "header": "\u25b6 \ud83d\udd27 FEEDBACK_COMPLETED \u2714"
+  },
+  {
+    "id": "feedback-failed",
+    "attached": true,
+    "status": "failed",
+    "header": "\u25b6 \ud83d\udd27 FEEDBACK_FAILED [failed]"
+  }
+]
