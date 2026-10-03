@@ -36,7 +36,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
     ContextExplorer > .context-controls { height: 3; }
     ContextExplorer > .context-controls Button { width: 1fr; min-width: 6; }
     ContextExplorer > Input { height: 3; }
-    ContextExplorer > TextArea:maximized { height: 1fr; width: 1fr; }
+    ContextExplorer > TextArea.-maximized { height: 1fr; width: 1fr; }
     """
     BINDINGS = [("r", "refresh", "Refresh context")]
     def __init__(self, owner: str, root: str | None, *, intent: ContextTreeIntent):
