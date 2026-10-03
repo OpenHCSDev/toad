@@ -1,0 +1,7 @@
+{
+  "result": "FAIL",
+  "cause": "Changed production read missed ClientSessionRequest import. Actual attachment reached read, then NameError; fixed original module import in3e1bdeaa. No input/provider request.",
+  "terminal": "evidence/published-owner-turn-status-20261003/installed02-terminal.txt",
+  "retained": true,
+  "input_replayed": false
+}
