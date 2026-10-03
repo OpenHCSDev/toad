@@ -1,0 +1,1248 @@
+{
+  "revision": "7964b7dd88d5255079db40beced2f97eef439430",
+  "roots": [
+    {
+      "root": "src/toad",
+      "parsed": 288,
+      "omitted": []
+    },
+    {
+      "root": "tests",
+      "parsed": 391,
+      "omitted": []
+    }
+  ],
+  "sites": [
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 51,
+      "role": "Load",
+      "source": "task.execute"
+    },
+    {
+      "path": "src/toad/acp/sdk_boundary.py",
+      "line": 70,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/acp/terminal_controller.py",
+      "line": 43,
+      "role": "construction",
+      "source": "TerminalExecution"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1377,
+      "role": "declaration",
+      "source": "write_stdin"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 618,
+      "role": "Load",
+      "source": "state.write_stdin"
+    },
+    {
+      "path": "src/toad/cli.py",
+      "line": 37,
+      "role": "Load",
+      "source": "app.return_code"
+    },
+    {
+      "path": "src/toad/command_catalog.py",
+      "line": 44,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "line": 33,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "line": 48,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "line": 59,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "line": 70,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "line": 101,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "line": 226,
+      "role": "Load",
+      "source": "InputSubmission.from_event(event, self.view).execute"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "line": 104,
+      "role": "Load",
+      "source": "view.command_catalog.execute"
+    },
+    {
+      "path": "src/toad/core/source_events.py",
+      "line": 21,
+      "role": "declaration",
+      "source": "CommandComplete"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 171,
+      "role": "Load",
+      "source": "db.execute"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 97,
+      "role": "Load",
+      "source": "db.execute"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 98,
+      "role": "Load",
+      "source": "db.execute"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 113,
+      "role": "Load",
+      "source": "db.execute"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 114,
+      "role": "Load",
+      "source": "db.execute"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 126,
+      "role": "Load",
+      "source": "db.execute"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 191,
+      "role": "Load",
+      "source": "db.execute"
+    },
+    {
+      "path": "src/toad/mcp_decision.py",
+      "line": 33,
+      "role": "Store",
+      "source": "self._master"
+    },
+    {
+      "path": "src/toad/mcp_decision.py",
+      "line": 34,
+      "role": "Store",
+      "source": "self._process"
+    },
+    {
+      "path": "src/toad/mcp_decision.py",
+      "line": 76,
+      "role": "Store",
+      "source": "self._master"
+    },
+    {
+      "path": "src/toad/mcp_decision.py",
+      "line": 93,
+      "role": "Store",
+      "source": "self._process"
+    },
+    {
+      "path": "src/toad/mcp_decision.py",
+      "line": 168,
+      "role": "Store",
+      "source": "self._master"
+    },
+    {
+      "path": "src/toad/mcp_decision.py",
+      "line": 169,
+      "role": "Store",
+      "source": "self._process"
+    },
+    {
+      "path": "src/toad/mcp_decision.py",
+      "line": 39,
+      "role": "Load",
+      "source": "self._master"
+    },
+    {
+      "path": "src/toad/mcp_decision.py",
+      "line": 42,
+      "role": "Load",
+      "source": "self._master"
+    },
+    {
+      "path": "src/toad/mcp_decision.py",
+      "line": 174,
+      "role": "Load",
+      "source": "self._process"
+    },
+    {
+      "path": "src/toad/mcp_decision.py",
+      "line": 174,
+      "role": "Load",
+      "source": "self._process"
+    },
+    {
+      "path": "src/toad/mcp_decision.py",
+      "line": 176,
+      "role": "Load",
+      "source": "self._process"
+    },
+    {
+      "path": "src/toad/render_backend.py",
+      "line": 24,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/render_processes.py",
+      "line": 103,
+      "role": "Load",
+      "source": "task.execute"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 91,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 132,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 137,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 142,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 148,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 154,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 160,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/render_service.py",
+      "line": 126,
+      "role": "Load",
+      "source": "command.task.execute"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 30,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 47,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 63,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 78,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 93,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/render_zmq.py",
+      "line": 108,
+      "role": "Load",
+      "source": "command.execute"
+    },
+    {
+      "path": "src/toad/render_zmq.py",
+      "line": 112,
+      "role": "Load",
+      "source": "command.execute"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 104,
+      "role": "declaration",
+      "source": "cancel_command"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 72,
+      "role": "Load",
+      "source": "event.event.return_code"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 88,
+      "role": "construction",
+      "source": "TerminalExecution"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 110,
+      "role": "Load",
+      "source": "self.command_pane.return_code"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 58,
+      "role": "construction",
+      "source": "CommandPane"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 95,
+      "role": "Load",
+      "source": "self.command_pane.execute"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 105,
+      "role": "Load",
+      "source": "self.command_pane.cancel_command"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 58,
+      "role": "construction",
+      "source": "TerminalExecution"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 92,
+      "role": "Load",
+      "source": "self.command_pane.execute"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 100,
+      "role": "Load",
+      "source": "self.command_pane.return_code"
+    },
+    {
+      "path": "src/toad/shell.py",
+      "line": 233,
+      "role": "Store",
+      "source": "self._process"
+    },
+    {
+      "path": "src/toad/shell_output.py",
+      "line": 34,
+      "role": "Load",
+      "source": "self.state.write_stdin"
+    },
+    {
+      "path": "src/toad/shell_source.py",
+      "line": 23,
+      "role": "Store",
+      "source": "self._process"
+    },
+    {
+      "path": "src/toad/shell_source.py",
+      "line": 58,
+      "role": "Load",
+      "source": "self._process"
+    },
+    {
+      "path": "src/toad/shell_source.py",
+      "line": 58,
+      "role": "Load",
+      "source": "self._process"
+    },
+    {
+      "path": "src/toad/shell_source.py",
+      "line": 60,
+      "role": "Load",
+      "source": "self._process"
+    },
+    {
+      "path": "src/toad/shell_source.py",
+      "line": 63,
+      "role": "Load",
+      "source": "self._process"
+    },
+    {
+      "path": "src/toad/shell_source.py",
+      "line": 66,
+      "role": "Load",
+      "source": "self._process"
+    },
+    {
+      "path": "src/toad/shell_source.py",
+      "line": 67,
+      "role": "Load",
+      "source": "self._process"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 191,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 232,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 257,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 270,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 299,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 316,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 210,
+      "role": "Load",
+      "source": "self.execute"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 80,
+      "role": "Load",
+      "source": "command.execute"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 184,
+      "role": "declaration",
+      "source": "PtyProcess"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 233,
+      "role": "declaration",
+      "source": "TerminalOperation"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 359,
+      "role": "declaration",
+      "source": "TerminalExecution"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 69,
+      "role": "declaration",
+      "source": "return_code"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 96,
+      "role": "declaration",
+      "source": "return_code"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 122,
+      "role": "declaration",
+      "source": "return_code"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 141,
+      "role": "declaration",
+      "source": "return_code"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 213,
+      "role": "declaration",
+      "source": "is_cooked"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 241,
+      "role": "declaration",
+      "source": "is_cooked"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 314,
+      "role": "declaration",
+      "source": "is_cooked"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 385,
+      "role": "declaration",
+      "source": "is_cooked"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 478,
+      "role": "declaration",
+      "source": "write_stdin"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 386,
+      "role": "Load",
+      "source": "self._operation.is_cooked"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 316,
+      "role": "Load",
+      "source": "self.ready.result().is_cooked"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 396,
+      "role": "Load",
+      "source": "self.write_stdin"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 431,
+      "role": "Load",
+      "source": "self.write_stdin"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 372,
+      "role": "Load",
+      "source": "self.write_stdin"
+    },
+    {
+      "path": "src/toad/transcript_preparation.py",
+      "line": 146,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/transcript_state.py",
+      "line": 22,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/transcript_state.py",
+      "line": 186,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/transcript_state.py",
+      "line": 209,
+      "role": "Load",
+      "source": "self.execute"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 11,
+      "role": "declaration",
+      "source": "CommandPane"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 24,
+      "role": "declaration",
+      "source": "return_code"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 28,
+      "role": "declaration",
+      "source": "is_cooked"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 37,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 57,
+      "role": "declaration",
+      "source": "cancel_command"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 25,
+      "role": "Load",
+      "source": "self.execution.outcome.return_code"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 29,
+      "role": "Load",
+      "source": "self.execution.is_cooked"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 61,
+      "role": "Load",
+      "source": "self.cancel_command"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 103,
+      "role": "construction",
+      "source": "CommandPane"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 51,
+      "role": "construction",
+      "source": "CommandComplete"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 103,
+      "role": "construction",
+      "source": "TerminalExecution"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 108,
+      "role": "Load",
+      "source": "command_pane.execute"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 51,
+      "role": "Load",
+      "source": "completion.return_code"
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 378,
+      "role": "Load",
+      "source": "self.command_catalog.execute"
+    },
+    {
+      "path": "src/toad/widgets/comms_transfer.py",
+      "line": 115,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/widgets/comms_transfer.py",
+      "line": 112,
+      "role": "Load",
+      "source": "self.execute"
+    },
+    {
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "line": 243,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 606,
+      "role": "Load",
+      "source": "operation.execute"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 978,
+      "role": "Load",
+      "source": "self._source_state.execute"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 975,
+      "role": "Load",
+      "source": "self.reserve_source_work().execute"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 105,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 150,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 162,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 318,
+      "role": "Load",
+      "source": "work.execute"
+    },
+    {
+      "path": "tests/agent_selection_configured_installed_pilot.py",
+      "line": 200,
+      "role": "Load",
+      "source": "db.execute"
+    },
+    {
+      "path": "tests/attachment_request_pilot.py",
+      "line": 150,
+      "role": "Load",
+      "source": "DeferredInputSubmission('old request').execute"
+    },
+    {
+      "path": "tests/blank_presentation_pilot.py",
+      "line": 94,
+      "role": "Load",
+      "source": "shell._process"
+    },
+    {
+      "path": "tests/blank_presentation_pilot.py",
+      "line": 181,
+      "role": "Load",
+      "source": "shell._process"
+    },
+    {
+      "path": "tests/blank_presentation_pilot.py",
+      "line": 106,
+      "role": "Load",
+      "source": "shell._process"
+    },
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 297,
+      "role": "Load",
+      "source": "db.execute"
+    },
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 321,
+      "role": "Load",
+      "source": "db.execute"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 55,
+      "role": "Load",
+      "source": "db.execute"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 119,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 203,
+      "role": "construction",
+      "source": "execute"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 205,
+      "role": "construction",
+      "source": "execute"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 209,
+      "role": "construction",
+      "source": "execute"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 210,
+      "role": "construction",
+      "source": "execute"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 211,
+      "role": "construction",
+      "source": "execute"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 212,
+      "role": "construction",
+      "source": "execute"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 215,
+      "role": "construction",
+      "source": "execute"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 216,
+      "role": "construction",
+      "source": "execute"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 138,
+      "role": "Load",
+      "source": "pane.is_cooked"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 150,
+      "role": "Load",
+      "source": "executor.command_pane.return_code"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 312,
+      "role": "construction",
+      "source": "execute"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 314,
+      "role": "construction",
+      "source": "execute"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 317,
+      "role": "construction",
+      "source": "execute"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 318,
+      "role": "construction",
+      "source": "execute"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 319,
+      "role": "construction",
+      "source": "execute"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 321,
+      "role": "construction",
+      "source": "execute"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 322,
+      "role": "construction",
+      "source": "execute"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 336,
+      "role": "construction",
+      "source": "execute"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 339,
+      "role": "construction",
+      "source": "execute"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 331,
+      "role": "construction",
+      "source": "execute"
+    },
+    {
+      "path": "tests/history_scroll_frames_pilot.py",
+      "line": 101,
+      "role": "Load",
+      "source": "operation.execute"
+    },
+    {
+      "path": "tests/input_failure_pilot.py",
+      "line": 96,
+      "role": "Load",
+      "source": "ImmediateInputSubmission('the local failure prompt').execute"
+    },
+    {
+      "path": "tests/markdown_process_lifecycle_pilot.py",
+      "line": 26,
+      "role": "Load",
+      "source": "task.execute"
+    },
+    {
+      "path": "tests/mcp_decision_pty_pilot.py",
+      "line": 225,
+      "role": "Load",
+      "source": "pty._process"
+    },
+    {
+      "path": "tests/mcp_decision_pty_pilot.py",
+      "line": 184,
+      "role": "Load",
+      "source": "modal._pty._process"
+    },
+    {
+      "path": "tests/mcp_decision_pty_pilot.py",
+      "line": 184,
+      "role": "Load",
+      "source": "modal._pty._master"
+    },
+    {
+      "path": "tests/mcp_decision_pty_pilot.py",
+      "line": 240,
+      "role": "Load",
+      "source": "modal._pty._process"
+    },
+    {
+      "path": "tests/model_picker_pilot.py",
+      "line": 147,
+      "role": "Load",
+      "source": "conversation.command_catalog.execute"
+    },
+    {
+      "path": "tests/model_picker_pilot.py",
+      "line": 156,
+      "role": "Load",
+      "source": "conversation.command_catalog.execute"
+    },
+    {
+      "path": "tests/model_picker_pilot.py",
+      "line": 171,
+      "role": "Load",
+      "source": "conversation.command_catalog.execute"
+    },
+    {
+      "path": "tests/native_terminal_retention_pilot.py",
+      "line": 339,
+      "role": "Load",
+      "source": "execution.write_stdin"
+    },
+    {
+      "path": "tests/native_terminal_retention_pilot.py",
+      "line": 343,
+      "role": "Load",
+      "source": "execution.write_stdin"
+    },
+    {
+      "path": "tests/native_terminal_retention_pilot.py",
+      "line": 347,
+      "role": "Load",
+      "source": "execution.write_stdin"
+    },
+    {
+      "path": "tests/native_terminal_retention_pilot.py",
+      "line": 351,
+      "role": "Load",
+      "source": "execution.write_stdin"
+    },
+    {
+      "path": "tests/native_terminal_retention_pilot.py",
+      "line": 360,
+      "role": "Load",
+      "source": "execution.write_stdin"
+    },
+    {
+      "path": "tests/native_terminal_retention_pilot.py",
+      "line": 372,
+      "role": "Load",
+      "source": "execution.write_stdin"
+    },
+    {
+      "path": "tests/native_terminal_retention_pilot.py",
+      "line": 375,
+      "role": "Load",
+      "source": "execution.write_stdin"
+    },
+    {
+      "path": "tests/native_terminal_retention_pilot.py",
+      "line": 381,
+      "role": "Load",
+      "source": "execution.write_stdin"
+    },
+    {
+      "path": "tests/native_terminal_retention_pilot.py",
+      "line": 387,
+      "role": "Load",
+      "source": "execution.write_stdin"
+    },
+    {
+      "path": "tests/native_terminal_retention_pilot.py",
+      "line": 394,
+      "role": "Load",
+      "source": "execution.write_stdin"
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 275,
+      "role": "Load",
+      "source": "history.reserve_source_work().execute"
+    },
+    {
+      "path": "tests/original_turn_resource_real_installed_pilot.py",
+      "line": 62,
+      "role": "Load",
+      "source": "db.execute"
+    },
+    {
+      "path": "tests/projected_history_budget_pilot.py",
+      "line": 80,
+      "role": "Load",
+      "source": "overlay.reserve_source_work().execute"
+    },
+    {
+      "path": "tests/projected_history_budget_pilot.py",
+      "line": 94,
+      "role": "Load",
+      "source": "overlay.reserve_source_work().execute"
+    },
+    {
+      "path": "tests/render_families_pilot.py",
+      "line": 49,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "tests/render_families_pilot.py",
+      "line": 115,
+      "role": "Load",
+      "source": "decoded.task.execute"
+    },
+    {
+      "path": "tests/render_families_pilot.py",
+      "line": 214,
+      "role": "Load",
+      "source": "AcknowledgeRender(client, request).execute"
+    },
+    {
+      "path": "tests/render_families_pilot.py",
+      "line": 195,
+      "role": "Load",
+      "source": "SubmitRender(client, request, CountRenderTask(17)).execute"
+    },
+    {
+      "path": "tests/render_families_pilot.py",
+      "line": 199,
+      "role": "Load",
+      "source": "SubmitRender(client, uuid4(), CountRenderTask(4)).execute"
+    },
+    {
+      "path": "tests/render_families_pilot.py",
+      "line": 203,
+      "role": "Load",
+      "source": "PollRender(foreign, request).execute"
+    },
+    {
+      "path": "tests/render_families_pilot.py",
+      "line": 206,
+      "role": "Load",
+      "source": "PollRender(client, request).execute"
+    },
+    {
+      "path": "tests/render_families_pilot.py",
+      "line": 212,
+      "role": "Load",
+      "source": "PollRender(client, request).execute"
+    },
+    {
+      "path": "tests/render_families_pilot.py",
+      "line": 209,
+      "role": "Load",
+      "source": "PollRender(client, request).execute"
+    },
+    {
+      "path": "tests/render_runtime_pilot.py",
+      "line": 30,
+      "role": "Load",
+      "source": "task.execute"
+    },
+    {
+      "path": "tests/render_runtime_pilot.py",
+      "line": 96,
+      "role": "Load",
+      "source": "task.execute"
+    },
+    {
+      "path": "tests/sidebar_custody_installed_journey.py",
+      "line": 29,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "tests/t8_mounted_pilot.py",
+      "line": 23,
+      "role": "construction",
+      "source": "TerminalExecution"
+    },
+    {
+      "path": "tests/t8_mounted_pilot.py",
+      "line": 27,
+      "role": "construction",
+      "source": "CommandPane"
+    },
+    {
+      "path": "tests/t8_mounted_pilot.py",
+      "line": 53,
+      "role": "Load",
+      "source": "pane.return_code"
+    },
+    {
+      "path": "tests/t8_mounted_pilot.py",
+      "line": 52,
+      "role": "Load",
+      "source": "pane.execute"
+    },
+    {
+      "path": "tests/t8_mounted_pilot.py",
+      "line": 82,
+      "role": "Load",
+      "source": "copied.execute"
+    },
+    {
+      "path": "tests/t8_mounted_pilot.py",
+      "line": 78,
+      "role": "Load",
+      "source": "copied.execute"
+    },
+    {
+      "path": "tests/t8_mounted_pilot.py",
+      "line": 103,
+      "role": "Load",
+      "source": "copied.execute"
+    },
+    {
+      "path": "tests/test_conversation_submission.py",
+      "line": 24,
+      "role": "Load",
+      "source": "AnnotatedInputSubmission.execute"
+    },
+    {
+      "path": "tests/test_conversation_submission.py",
+      "line": 24,
+      "role": "Load",
+      "source": "OrdinaryInputSubmission.execute"
+    },
+    {
+      "path": "tests/test_session_updates.py",
+      "line": 17,
+      "role": "Load",
+      "source": "ValidateSessionUpdateTask(session_id, update, metadata).execute"
+    },
+    {
+      "path": "tests/test_t8_boundaries.py",
+      "line": 28,
+      "role": "Load",
+      "source": "db.execute"
+    },
+    {
+      "path": "tests/test_t8_boundaries.py",
+      "line": 36,
+      "role": "Load",
+      "source": "db.execute"
+    },
+    {
+      "path": "tests/test_t8_boundaries.py",
+      "line": 80,
+      "role": "Load",
+      "source": "db.execute"
+    },
+    {
+      "path": "tests/test_t8_boundaries.py",
+      "line": 102,
+      "role": "Load",
+      "source": "holder.execute"
+    },
+    {
+      "path": "tests/tools/merged_selector_fixture_recording.py",
+      "line": 95,
+      "role": "Load",
+      "source": "db.execute"
+    },
+    {
+      "path": "tests/transcript_prefetch_pilot.py",
+      "line": 28,
+      "role": "declaration",
+      "source": "execute"
+    },
+    {
+      "path": "tests/transcript_prefetch_pilot.py",
+      "line": 30,
+      "role": "Load",
+      "source": "task.execute"
+    },
+    {
+      "path": "tests/work_preparation_pilot.py",
+      "line": 39,
+      "role": "Load",
+      "source": "task.execute"
+    }
+  ],
+  "limitations": "Lexical references; dynamic resolution requires the recorded semantic read."
+}
