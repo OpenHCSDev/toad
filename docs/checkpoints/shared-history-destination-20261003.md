@@ -101,3 +101,86 @@ Heisenberg has the exact source for normal integration with352 and one changed
 installed IRC/DM End/receipt qualification using the existing holder. No second
 motion capture is running; no native/provider test process remains from the
 bounded source sanity. PR remains Draft until that affected installed journey.
+
+## Joint installed cohort and first launch boundary
+
+Heisenberg normally integrated352+355 at `e55a132f055807add3f0b3b7f87a0d2691d6f565`.
+This checkout normally integrated that same head; later driver commits do not
+change packaged production. The released existing style22 holder was reused
+once, with zero borrowers, archived old activation/source proofs, normal69
+resolution and current353 Core pin `db94c06cfc2174864ab32211ce1bf403bb413440`.
+Textual940880/SDK0.12.1/native960 are unchanged. All four production inventories,
+assets/directURLs/native full trust and pip check passed. The public558 donor
+was read-only throughout. No environment/native build or public activation.
+
+Existing physical driver now covers copied-original native End/Home revocation
+and final End before channel original-read receipt/typing/restart/End. The same
+44-second movie budget remains; full347 motion is not repeated. No native input
+or provider call is selected by this read-only fixture.
+
+The first operator stopped BEFORE SDK fork/app/native input: its acquired-current
+registry decoder uses approved558, but `OriginalTypedCapture.read` incorrectly
+requires the live owner interpreter to equal that decoder. Original current
+`nra-architecture` is authenticated yet uses the historical290 interpreter;
+these are different facts. Parent owns the shared helper correction: let
+`RetainedOwnerLaunch.capture` derive and validate the original process interpreter,
+while the declared registry producer continues to validate its document. Do not
+run the oldCore52f reader against the current-format bus or override the fence.
+Original failure is retained under `evidence/.../preflight01/` and owned scratch.
+No product End failure or pass was established by that rejected preflight.
+
+## Launcher correction and recorder admission
+
+Arendt560 froze the shared helper at `5f1ff1a6971b0af035c929eafa7c3ebc5fd8dc1f`.
+Only the forced interpreter argument was removed. The approved558 interpreter
+continues to decode the registry; original launcher capture independently fences
+the actual process. Related decoder helper files are byte equal to the parent.
+
+Attempt02 passed original capture: the 41,294,021-byte saved source hash remained
+unchanged, both isolated SDK copies were created, and zero native inputs were
+sent. It failed before UI launch because this callback incorrectly placed video
+under its WT evidence directory; the recorder requires its existing scratch
+resource root. The operator now supplies the recording output explicitly while
+structured fixture evidence stays in the persistent WT. No recorder guard,
+budget or product code changed. Cleanup reported no remaining children/errors.
+This attempt establishes neither installed End failure nor End acceptance.
+
+## Complete driver/resource review and native revocation
+
+Reviewed the actual source-capture builder, Current/OriginalTypedCapture,
+RetainedOwnerLaunch, native SDK fork, private route declaration, RuntimeSelection,
+SourceCapture, PhysicalJourney/ObserveJourney actions, recorder output/config/
+clock/observer acquisition, installed ToadApp and native source reader, pending
+read release, ProcessOwner finalization and private daemon teardown together.
+The wrapper imports installed Toad/Core/Textual; its source entrypoint is a driver,
+not a replacement application. Recorder metadata still labels that source-entry
+boundary honestly. Normal all-four-package inventories separately identify the
+installed product. Decoder helpers remain current558; only launch observation
+uses the authenticated original interpreter. No public inputs/restarts.
+
+Attempt03 physically opened the installed App on the original 41 MB copy.
+It reached End, held an original prepared read, then Home revoked follow intent.
+The compound revision/follow assertion failed after source completion; no App
+exception. Exported Window remained off-tail (scroll0, maximum302), but revision
+values were not exported, so the failure does not prove follow was restored.
+The final movie frame is terminal teardown, not evidence of a blank chat.
+IRC was not reached. Fixture elapsed35.653s; raw movie25.533s; zero native inputs;
+original hash unchanged; recorder and outer cleanup both empty/zero errors.
+Original raw and failure evidence are retained; no End or smoothness Ready claim.
+
+The complete source path identified two concrete corrections in one batch:
+
+- The same PreparedPageSource serves destination, edge and prefetch requests.
+  The driver now holds only the existing PageRequest selected from the original
+  destination cursor, not the first unrelated read that completes. The original
+  decoded result is untouched; release remains in finally. Revocation assertions
+  remain strict and now include both revision values and actual follow state.
+- TranscriptHistory._load_page redundantly released an already off-tail anchor
+  before original preserve_history. That leaf decision increments the Window's
+  user revision and resets its scroll target during source publication. Heisenberg
+  granted deletion: protect_history/preserve_history and HistoryAnchor already
+  own reader intent and native compensation. Six production lines were deleted;
+  no Window/native edits, boolean bypass or new authority.
+
+The movie/owner budgets remain44/60 seconds. Existing holder is reused only after
+verified cleanup; no new environment, native package, full motion or provider run.

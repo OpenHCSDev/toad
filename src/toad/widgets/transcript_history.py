@@ -846,12 +846,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                     self.fragment_views, older=older,
                     fallback=edge.children[0 if older else -1] if edge.children else edge,
                 )
-                # Filling a short tail is not a user scroll. Keep its anchor
-                # active through layout, including a concurrent tab activation;
-                # otherwise the first frame paints the old position and live
-                # updates mistake the temporary release for scroll-up intent.
-                if not self.window.follows_tail:
-                    self.window.release_anchor()
                 async with self.window.preserve_history(anchor):
                     await self._extend_and_trim(edge, older, local, page, protected, fragments)
                     self._require_publication()
