@@ -1,0 +1,70 @@
+{
+  "state": "scoped-ready",
+  "head": "54eb7a268381df138bd05ca501e197b57c36436e",
+  "scope": "Existing permission request owns projection acquisition/currentness/answer and retirement across inline, diff and pending mount; native UI renders original request.",
+  "production": {
+    "files": 5,
+    "added": 50,
+    "deleted": 23
+  },
+  "AST": {
+    "src/toad": {
+      "modules": 287,
+      "parse_omissions": [],
+      "sites": 54
+    },
+    "tests": {
+      "modules": 391,
+      "parse_omissions": [],
+      "sites": 33
+    }
+  },
+  "installed": {
+    "holder": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002",
+    "source_assets": 294,
+    "mismatches": [],
+    "packages": 69,
+    "path": "tests/permission_pending_mount_pilot.py",
+    "log": "installed03.log",
+    "exit": 0,
+    "positive": [
+      "registered session/request_permission cancellation before modal mount",
+      "binding replacement before modal mount retains original request",
+      "actual diff text and options paint then original ACP selection",
+      "duplicate event retains one original inline Ask",
+      "same native view reattachment acquires a replacement binding resource",
+      "retired binding cannot answer",
+      "actual inline text/options paint and Enter answers once",
+      "original completion retires Ask and controller future",
+      "real App exits without event exceptions"
+    ],
+    "native_toolkit_free_import": "PermissionController/PermissionRequest fresh installed import has no textual module",
+    "limits": "Real installed App/Pilot and registered ACP protocol. Controlled external permission requests; no provider-issued native turn, physical st capture, latency/performance, full headless frontend or default publication claim. Donor Core85abe427/Text940 remains exact declared scoped installed baseline, not new receiver pair qualification."
+  },
+  "negatives": [
+    {
+      "log": "installed01.log",
+      "cause": "Old fixture used WorkspaceScreen.wait_content_ready; readiness is owned by selected session."
+    },
+    {
+      "log": "installed02.log",
+      "cause": "Old fixture manually removed the active workspace conversation; native owner retained it for shutdown. Corrected fixture borrows original detach/rebind without deleting owner widget."
+    }
+  ],
+  "cleanup": {
+    "owned_attempt_processes": [],
+    "process_access_gaps": [
+      68488,
+      216738,
+      1561676,
+      1786010,
+      1786012,
+      1953373,
+      3699396
+    ],
+    "same_uid_processes_checked": 174,
+    "other_uid_processes_excluded": 294,
+    "scope": "Owned private test processes run under the current UID. Successful private TemporaryDirectory removed; no source/evidence/native deletion. Other UIDs outside owned cleanup claim."
+  },
+  "remaining_scope": "Broader headless UI plan remains open; no full U2/U4/U5 claim. New source family adds no frontend framework or semantic state. Actual acquired callback resources stay bounded and binding-owned."
+}

@@ -1,0 +1,46 @@
+diff --cc pyproject.toml
+index ddc9d5ce3,f2956909b..000000000
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@@ -37,8 -37,8 +37,13 @@@ members = ["toad"
+  persistent-renderer = ["zmqruntime==0.2.24"]
+  
+  [tool.uv.sources]
+++<<<<<<< HEAD
+ +agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", rev = "67f68f3a4b1970c8e43b267f719be5048d0b59b8" }
+ +textual = { git = "https://github.com/OpenHCSDev/textual.git", rev = "940880e12c889e16a0c3e9b1ac6356fb7234ebb0" }
+++=======
++ agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", rev = "48324afc4d7415afb347cbc1f5f52cfc6820ac73" }
++ textual = { git = "https://github.com/OpenHCSDev/textual.git", rev = "1cf32afe9f1c4672145bf3dcbeda0c7320e24139" }
+++>>>>>>> origin/main
+  textual-diff-view = { git = "https://github.com/OpenHCSDev/textual-diff-view.git", rev = "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9" }
+  
+  [project.scripts]
+diff --cc uv.lock
+index 87f020590,93db85c96..000000000
+--- a/uv.lock
++++ b/uv.lock
+@@@ -21,7 -21,7 +21,11 @@@ wheels = 
+  [[package]]
+  name = "agent-comms"
+  version = "0.1.0"
+++<<<<<<< HEAD
+ +source = { git = "https://github.com/OpenHCSDev/agent-comms.git?rev=67f68f3a4b1970c8e43b267f719be5048d0b59b8#67f68f3a4b1970c8e43b267f719be5048d0b59b8" }
+++=======
++ source = { git = "https://github.com/OpenHCSDev/agent-comms.git?rev=48324afc4d7415afb347cbc1f5f52cfc6820ac73#48324afc4d7415afb347cbc1f5f52cfc6820ac73" }
+++>>>>>>> origin/main
+  dependencies = [
+      { name = "metaclass-registry" },
+      { name = "nominal-refactor-audit" },
+@@@ -305,7 -305,7 +309,11 @@@ dev = 
+  [package.metadata]
+  requires-dist = [
+      { name = "agent-client-protocol", specifier = "==0.12.1" },
+++<<<<<<< HEAD
+ +    { name = "agent-comms", extras = ["acp"], git = "https://github.com/OpenHCSDev/agent-comms.git?rev=67f68f3a4b1970c8e43b267f719be5048d0b59b8" },
+++=======
++     { name = "agent-comms", extras = ["acp"], git = "https://github.com/OpenHCSDev/agent-comms.git?rev=48324afc4d7415afb347cbc1f5f52cfc6820ac73" },
+++>>>>>>> origin/main
+      { name = "aiosqlite", specifier = "==0.22.1" },
+      { name = "bashlex", specifier = "==0.18" },
+      { name = "click", specifier = "==8.4.0" },
