@@ -64,6 +64,14 @@ are distinct existing domain facts, not competing process ownership. All other
 selected owner definitions occur once. Receiver identities and dynamic dispatch
 are read semantically; AST is not a dynamic-resolution proof.
 
-Final installed checks remain pending the released matching package holder and
-Core controlling-terminal contribution. No speed/frame/publication/provider or
+The published Core contribution is now pinned directly for the paired check;
+its merge is not a validation prerequisite. Final installed checks remain
+pending only release of the matching existing package holder. No speed/frame/publication/provider or
 full headless completion is claimed from this source checkpoint.
+
+Package checkpoint pins Core a3a1b8f69f61acb0b01e92a0ac5a9ed161b28f9f,
+Textual 0ab687e007fca311ce9f786634d8f5fc991ff808 and SDK 0.12.1.
+Normal uv lock resolved 99 lockfile packages in 1.73 seconds, changing only
+the three Core reference lines. Installed baseline dependencies will be derived
+from the existing holder, not assumed from the lockfile total. No environment
+or native copy was created.
