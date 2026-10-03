@@ -1,0 +1,33 @@
+{
+  "state": "Parent NEW563/564 publication and ONE pure identity readback completed; actual default acceptance separate",
+  "parent_execution": 11653,
+  "parent_terminal_exit": 0,
+  "raw_receipt_sha256": "44b5f710f97977c7c8c2945ce6d09e5ba04acd0271d07397a5c9d67e59c048ee",
+  "raw_phase": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "duration_seconds": 43.85090923309326,
+  "owner_count": 19,
+  "identity_closure_sha256": "80656449338c51622062ee5e4e741cf63aa5d1fe5637ae616226348c7ccf5cf7",
+  "all_original_births_and_settings_preserved": true,
+  "all_new_pid_identities_alive": true,
+  "five_links_root_native_exact": true,
+  "current_prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "actual_current_prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "previous_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002",
+  "original_operator_hashes_unchanged": true,
+  "frozen_artifact_hashes_unchanged": true,
+  "publication_repeated": false,
+  "readback_repeated": false,
+  "public_effects_from_archiving": 0,
+  "default_ui_and_freshmessage": "Next parent-owned; no claim from operation/readback",
+  "protected": [
+    "current485/de166",
+    "previous529",
+    "borrowed290original560",
+    "520Kepler donor",
+    "334",
+    "originalfailed360operation",
+    "originalinputs/sessions/UNKNOWN",
+    "562044separateartifact"
+  ],
+  "live_database_immutability_claim": false
+}
