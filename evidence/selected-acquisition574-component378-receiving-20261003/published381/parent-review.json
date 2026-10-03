@@ -1,0 +1,30 @@
+{
+  "observed_at": 1791019333.9119046,
+  "reviewed_head": "7a809956770f365039e992ab2ae3aff768f9b67e",
+  "ready_sha256": "b5d578796d110681a6f694a42cc69b2fdf3d9d8e59b3dcaef9b6a030bc08bd9f",
+  "execution_artifacts": 80,
+  "all_artifact_bytes_equal": true,
+  "operator_source": "bc15a45dabf0c2f0b59633e684bfe8ec799fdab1",
+  "canonical_operator_count": 51,
+  "all_operator_bytes_equal": true,
+  "installed_assets": 926,
+  "all_installed_assets_equal": true,
+  "fresh_original_audience": 19,
+  "all_idle": true,
+  "client_admission_pass": true,
+  "configured_auth_captured_in_ram_only": true,
+  "native_schema_equal": true,
+  "derived_index_schema_equal": true,
+  "readback_operation_derived_from_own_file": true,
+  "original_publication_absent": true,
+  "runtime_installation": "PreserveRuntimeInstallation",
+  "task_carry": "PreserveOwnerRuntime",
+  "changes_to_frozen_product": 0,
+  "merge_conflict": "normal merge requested from existing receiver owner; no auto/force merge",
+  "qualification_limits": [
+    "379 real App/ACP/PTY projections; black exports not pixel-color proof",
+    "573 original configured request/manifest; no HTTP/full-history or comparative study",
+    "576 authentic three-fork long-root channel/native/ACP acceptance; original failed attempts preserved",
+    "380 same installed motion warm/input checks; no full smoothness or CPU/FPS improvement"
+  ]
+}

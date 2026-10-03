@@ -1,0 +1,87 @@
+{
+  "state": "Published381 and ordinary default saved-history/status/teardown accepted; separate scope from configured source gates",
+  "installed_toad": "7af203ae0e393cd68274f7ed8a242d7e06df89ef",
+  "merged_repository_text38_is_not_the_installed_text37_stage": true,
+  "core": "bc15a45dabf0c2f0b59633e684bfe8ec799fdab1",
+  "textual": "4d2388f12d2d5aa4891920a527141c2b475dd28c",
+  "native_manifest": "51bff517be67ae98213760beebd2c070591e5df61cb2c9ebbf87cacbf9f039ab",
+  "publication_count": 1,
+  "publisher_duration_seconds": 42.05634570121765,
+  "raw_publication_sha256": "50fcc9c12a04f9765a9ab2e5e4d761640fd85caa52fecc11c7f3151f6ff40b5e",
+  "raw_phase_unchanged": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "readback_count": 1,
+  "owners": 19,
+  "same_births_and_settings": true,
+  "new_processes_alive": true,
+  "five_links_root_native_exact": true,
+  "actual_default_capture_seconds": 23.85490757098887,
+  "actual_st_exit": 0,
+  "physical_after_image_personally_viewed_by_parent": true,
+  "saved_history_chat_and_sidebar_ready": true,
+  "activity_bar_absent": true,
+  "owner_and_runtime_unchanged": true,
+  "cleanup_empty": true,
+  "fresh_inputs": 0,
+  "provider_calls": 0,
+  "public_mutations_from_archiving": 0,
+  "current_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "previous529_protected": true,
+  "named302520290_remain_until_release": true,
+  "archive_files": [
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/selected-acquisition574-component378-receiving-20261003/new-publication573576379380/publication-receipt.json",
+      "archive": "evidence/selected-acquisition574-component378-receiving-20261003/published381/publication-receipt.json",
+      "sha256": "50fcc9c12a04f9765a9ab2e5e4d761640fd85caa52fecc11c7f3151f6ff40b5e",
+      "bytes": 38793
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/selected-acquisition574-component378-receiving-20261003/new-publication573576379380/publication-identity-closure.json",
+      "archive": "evidence/selected-acquisition574-component378-receiving-20261003/published381/publication-identity-closure.json",
+      "sha256": "e5a9b810b1a0ca20863c78e63d0053300e1c92f4d754173795c41848a255f52f",
+      "bytes": 18506
+    },
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published573576379380-20261003/parent-review.json",
+      "archive": "evidence/selected-acquisition574-component378-receiving-20261003/published381/parent-review.json",
+      "sha256": "0f5f4bd5a0da2689b710d32eb7eb770f6441439524a2bceef42df574f2372ebf",
+      "bytes": 1377
+    },
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published573576379380-20261003/physical-assessment.json",
+      "archive": "evidence/selected-acquisition574-component378-receiving-20261003/published381/default-visible/physical-assessment.json",
+      "sha256": "f6d48d08e8223c00a84b124182da45ed15fb8e1cf364d48647e81d5f9925fa40",
+      "bytes": 1163
+    },
+    {
+      "original": "/home/ts/.cache/agent-scratch/published573576379380-helper-default-20261003/capture/receipt.json",
+      "archive": "evidence/selected-acquisition574-component378-receiving-20261003/published381/default-visible/receipt.json",
+      "sha256": "1f82f0f34cd4f5a1930d7b6cf1d196dcdfb76a3cc0fe43581116aec38472fc72",
+      "bytes": 30456
+    },
+    {
+      "original": "/home/ts/.cache/agent-scratch/published573576379380-helper-default-20261003/capture/before.png",
+      "archive": "evidence/selected-acquisition574-component378-receiving-20261003/published381/default-visible/before.png",
+      "sha256": "a1ca2159dbd36291ffe62ab22777132268344d071fb665207e7b32133df8eec5",
+      "bytes": 94188
+    },
+    {
+      "original": "/home/ts/.cache/agent-scratch/published573576379380-helper-default-20261003/capture/after.png",
+      "archive": "evidence/selected-acquisition574-component378-receiving-20261003/published381/default-visible/after.png",
+      "sha256": "a1ca2159dbd36291ffe62ab22777132268344d071fb665207e7b32133df8eec5",
+      "bytes": 94188
+    },
+    {
+      "original": "/home/ts/.cache/agent-scratch/published573576379380-helper-default-20261003/capture/before-state.json",
+      "archive": "evidence/selected-acquisition574-component378-receiving-20261003/published381/default-visible/before-state.json",
+      "sha256": "fa2b593fc13ac98bf96403cecdcb55589663c1c66a457984179de2554c5d87dd",
+      "bytes": 1021769
+    },
+    {
+      "original": "/home/ts/.cache/agent-scratch/published573576379380-helper-default-20261003/capture/after-state.json",
+      "archive": "evidence/selected-acquisition574-component378-receiving-20261003/published381/default-visible/after-state.json",
+      "sha256": "59f93e8a570d93af944935a7a4f7d1fd89c9821ab45e771e66d51634d35b120c",
+      "bytes": 1021768
+    }
+  ],
+  "scope": "Default entrypoint/retained history/visible idle status/normal teardown. Original qualified573/576 configured and379App/ACP/PTY/380motion gates retain exact limits; no new provider/smoothness/full-history/latency/S4 claim."
+}

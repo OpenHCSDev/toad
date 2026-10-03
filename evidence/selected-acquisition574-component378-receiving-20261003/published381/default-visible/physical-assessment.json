@@ -1,0 +1,28 @@
+{
+  "observed_at": 1791019720.3730633,
+  "entrypoint": [
+    "/home/ts/bin/toad-comms",
+    "openhcs-helper"
+  ],
+  "capture": "/home/ts/.cache/agent-scratch/published573576379380-helper-default-20261003/capture",
+  "physical_screenshot_personally_viewed": true,
+  "saved_history_visible": true,
+  "sidebar_ready": true,
+  "chat_session_details_ready": true,
+  "activity_bar_absent": true,
+  "runtime_unchanged": true,
+  "original_owner_unchanged": true,
+  "all_owned_capture_processes_retired": true,
+  "capture_duration_seconds": 23.85490757098887,
+  "terminal_exit": {
+    "pid": 3341167,
+    "start_ticks": 49524895,
+    "returncode": 0
+  },
+  "raw_publication_phase": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "raw_publication_sha256": "50fcc9c12a04f9765a9ab2e5e4d761640fd85caa52fecc11c7f3151f6ff40b5e",
+  "publication_operation_count": 1,
+  "fresh_inputs": 0,
+  "provider_calls": 0,
+  "scope": "Actual default entrypoint, retained history, visible idle status and normal terminal teardown. Original qualified configured/native/ACP/PTY gates retained; not fresh-provider reply, smoothness, full history or latency acceptance."
+}

@@ -21,3 +21,11 @@ Parent caught the copied readback path still naming original376operation. The he
 ### Normal main382 merge for381 landing
 
 Normal merge preserves main382 cadence implementation and its exact qualified Text38 pin2fff11ab, retaining receiving Corebc15. These prospective repository source/pins differ from the approved immutable stage: installed To ad7af203ae/Text37 remain frozen with original80execution hashes and Ready b5d57879 unchanged. Parent explicitly authorized executing that previously reviewed operation, not rebuilding or claiming the new HEAD is its installed source. The later38 checkpoint stays separate.
+
+## Actual381 publication and default closure
+
+Parent executed the original NEW operation once,42.0563457s/19owners. Raw receipt SHA50fcc9c12a04f9765a9ab2e5e4d761640fd85caa52fecc11c7f3151f6ff40b5e remains originalUIpending; separate one-use readback confirms19samebirths/settings,newalivePIDs/five links/root/native51b. No input replay/migration/reset. The stage is installed To ad7af203ae/Corebc15/Text37/native51b; repository merge preserved newerText38 but did not replace this approvedstage.
+
+Ordinary default toad-comms helper plainst/isolated capture23.854908s, actualst0. Parent personally viewed after.png: savedhistory/chat+sidebarReady/barabsent. Originalowner3338923/birth49520295 unchanged; cleanupempty/runtimeunchanged. No newinput/provider. This qualifies default assembly/attachment/history/status/teardown, not freshreply/fullhistory/smoothness/latency/S4. Original573/576configured and379App/ACP/PTY/380motion qualifications retain their separate limits andnegatives.
+
+Originalparentreview/rawpublication/readback/physicalassessment/rawcapture/images/states archived once at `evidence/selected-acquisition574-component378-receiving-20261003/published381/`; hashes andoriginalscope retained. Current334 and previous529 protected, named302/520/290 retained untilrelease. No package/activation/operator/public writes fromarchive. Parent persistent deliveredquestion sent.
