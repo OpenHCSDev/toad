@@ -106,7 +106,7 @@ async def main():
             # Reattach the SAME native view: the old binding must not answer or
             # retire the replacement binding's original request resource.
             agent.detach_surface(view)
-            agent.attach_surface(view)
+            view.bind_agent(agent)
             async with asyncio.timeout(10):
                 while view.prompt._ask is None:
                     await pilot.pause(.02)
