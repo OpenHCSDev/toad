@@ -27,13 +27,8 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
         if (not request.pending or request.projected_on(view) or not self.owns(view)
                 or request.controller.agent.controller.surface is not self):
             return
-        presentation = request.presentation
-        handlers = tuple(self.handlers_for(presentation))
-        if not handlers:
-            raise TypeError(f"No native permission view for {type(presentation).__name__}")
         view.refresh_bindings()
-        for handler in handlers:
-            await handler(presentation, view, request)
+        await self.dispatch(request.presentation, view, request)
 
     @handles(DiffPermissionPresentation)
     async def show_file_permission(self, presentation, view, request):

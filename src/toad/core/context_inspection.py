@@ -113,8 +113,8 @@ class NativeSegmentNode(ContextNode):
 
 class ContextProjection(MroDispatch):
     """A leaf projection returns display data rather than mutating an event."""
-    def consume_handlers_sync(self, value, handlers):
-        return next(iter(handlers))(value)
+    def consume_handlers_sync(self, value, handlers, *args, **kwargs):
+        return next(iter(handlers))(value, *args, **kwargs)
 
 
 class NativeDetail(ContextProjection):

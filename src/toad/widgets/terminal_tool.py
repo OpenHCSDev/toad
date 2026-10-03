@@ -52,11 +52,7 @@ class TerminalTool(Terminal, MroDispatch):
 
     def present_execution(self) -> None:
         self.project_state(None, None)
-        outcome = self.execution.outcome
-        handlers = tuple(self.handlers_for(outcome))
-        if not handlers:
-            raise TypeError(f"No native terminal view for {type(outcome).__name__}")
-        self.consume_handlers_sync(outcome, handlers)
+        self.dispatch_sync(self.execution.outcome)
 
     @handles(RunningTerminalOutcome, UnstartedTerminalOutcome, RetiredTerminalOutcome)
     def present_pending(self, outcome) -> None:
