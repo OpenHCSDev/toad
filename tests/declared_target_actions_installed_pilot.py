@@ -135,9 +135,6 @@ async def journey(args):
                                   'target': frame.f_locals['target']})
     threading.setprofile_all_threads(observe)
     app = ToadApp(project_dir=str(project))
-    # No link in this operation workflow needs browser dispatch. Keep native
-    # Textual link opening disabled before any pointer action on the isolated UI.
-    app.open_links = False
     async with app.run_test(size=(125, 48), headless=not args.physical) as pilot:
         sidebar = await wait_channel_roster(app, pilot, '#first', '#all')
         row = await reveal_thread_row(app, pilot, 'tagged', '#first')
@@ -200,7 +197,6 @@ async def journey(args):
         assert comms.registry.require('tagged').incarnation == original
         assert app._exception is None
     reopened = ToadApp(project_dir=str(project))
-    reopened.open_links = False
     async with reopened.run_test(size=(125,48), headless=not args.physical) as pilot:
         sidebar = await wait_channel_roster(reopened, pilot, '#first', '#cli-tag', '#hidden-tag')
         row = await reveal_thread_row(reopened, pilot, 'tagged', '#cli-tag')

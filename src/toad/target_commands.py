@@ -47,13 +47,13 @@ class TargetContext:
 
     def show_menu(self, sidebar, offset):
         from toad.widgets.comms_menu import show_target_menu
-        from toad.screens.session_view import SessionView
         selected_screen = sidebar.app.screen
-        source = sidebar.query_ancestor(SessionView)
+        source = sidebar.app.selected_session
         async def read():
             try:
                 choices = await self.command_choices()
-                if (not sidebar.is_attached or not source.is_current
+                if (not sidebar.is_attached or sidebar.app.selected_session is not source
+                        or sidebar.observation.service is not self.comms
                         or sidebar.app.screen is not selected_screen):
                     return
                 show_target_menu(selected_screen, offset, self.subject,
