@@ -355,7 +355,7 @@ class TranscriptPageView(VerticalGroup):
             self.stop -= count
 
     async def update_fragments(
-        self, fragments: tuple[TranscriptFragment, ...], selected: slice,
+        self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...], selected: slice,
         current: Callable[[], bool],
     ) -> bool:
         if not current():
@@ -379,7 +379,6 @@ class TranscriptPageView(VerticalGroup):
             if not current() or self.capture_admission() != admission:
                 return False
             async with window.preserve_history(None):
-                self.fragments = fragments
                 for index, child in previous.items():
                     if not start <= index < stop:
                         await child.remove()
@@ -390,6 +389,7 @@ class TranscriptPageView(VerticalGroup):
                         child = self._body(fragments[index])
                         await self.mount(child, before=before)
                     before = child
+                self.page, self.fragments = page, fragments
                 self.start, self.stop = start, stop
             return True
 
@@ -676,12 +676,14 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                     continue
             # Body workers have their own native custody. They may publish a
             # nested page in the same window before this source is committed.
-            if not await view.update_fragments(fragments, selected, current):
+            if not await view.update_fragments(
+                page, fragments, selected,
+                lambda: current() and selected == view.update_slice(fragments, window.follows_tail),
+            ):
                 continue
             async with window.history_lock:
                 if not current():
                     return
-                view.page = page
                 self._update_edges()
             return
 
@@ -820,7 +822,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             # around pending body writers or replacing their paint resources.
             view.batch_size = destination_admission
             if not await view.update_fragments(
-                fragments, selected, lambda: snapshot.current(self) and request.current(window),
+                page, fragments, selected, lambda: snapshot.current(self) and request.current(window),
             ):
                 return False
         async with window.history_lock:
@@ -829,7 +831,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             async with window.preserve_history(None):
                 if view.capture_admission().interval == CommittedInterval(page.before, page.after):
                     await self.remove_children([retired for retired in self.pages if retired is not view])
-                    view.page = page
                 else:
                     await self.remove_children(list(self.pages))
                     view = TranscriptPageView(

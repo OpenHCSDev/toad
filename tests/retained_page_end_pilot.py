@@ -27,7 +27,7 @@ async def main():
    page=history.pages[-1]; held_before=tuple(page.children)
    page.batch_size=page.stop-page.start+4
    snapshot=history.source_snapshot()
-   assert await page.update_fragments(page.fragments,page.update_slice(page.fragments,True),lambda: snapshot.current(history))
+   assert await page.update_fragments(page.page,page.fragments,page.update_slice(page.fragments,True),lambda: snapshot.current(history))
    async with view.window.history_lock:
     async with view.window.preserve_history(None):
      ordered=tuple(c.fragment for c in page.children)==page.fragments[page.start:page.stop]

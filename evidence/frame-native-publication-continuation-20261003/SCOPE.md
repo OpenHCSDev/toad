@@ -49,3 +49,12 @@ This checkpoint is working source for review, not Ready. Batched checks must
 cover retained page widening/End, overlapping body publication and native frame
 custody; then one changed installed saved-history motion/profile journey joins
 Kepler42 registration. Preserve393 recording and inspect exact moving bands.
+
+Source review also closed both commit consumers: the page owner now commits its
+TranscriptPage header, fragments and membership together under the same native
+fence; callers no longer assign the header later after reacquiring a fair lock.
+Live updates recheck the actual current reader-selected slice at that commit,
+so Home/PageUp during a body join cannot force an old tail range. End retains
+its original request revision check. New-child mount and retirement still need
+the original native custody; this source batch does not claim that those awaits
+or all lazy-load animation blocking have been eliminated.
