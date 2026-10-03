@@ -1,0 +1,362 @@
+{
+  "revision": "b9565504cf2d699044326f68ae575c473919c6ee",
+  "packages": [
+    {
+      "root": "src/toad",
+      "parsed": 289,
+      "unparsed": [],
+      "sites": [
+        {
+          "path": "src/toad/_path_fuzzy_search.py",
+          "line": 11,
+          "kind": "Name",
+          "source": "lru_cache"
+        },
+        {
+          "path": "src/toad/ansi/_ansi.py",
+          "line": 353,
+          "kind": "Name",
+          "source": "lru_cache"
+        },
+        {
+          "path": "src/toad/ansi/_ansi.py",
+          "line": 645,
+          "kind": "Name",
+          "source": "lru_cache"
+        },
+        {
+          "path": "src/toad/ansi/_ansi.py",
+          "line": 789,
+          "kind": "Name",
+          "source": "lru_cache"
+        },
+        {
+          "path": "src/toad/ansi/_ansi.py",
+          "line": 860,
+          "kind": "Name",
+          "source": "lru_cache"
+        },
+        {
+          "path": "src/toad/ansi/_ansi.py",
+          "line": 1056,
+          "kind": "Name",
+          "source": "Span"
+        },
+        {
+          "path": "src/toad/ansi/_ansi.py",
+          "line": 1060,
+          "kind": "Name",
+          "source": "Span"
+        },
+        {
+          "path": "src/toad/ansi/_stream_parser.py",
+          "line": 235,
+          "kind": "Name",
+          "source": "lru_cache"
+        },
+        {
+          "path": "src/toad/danger.py",
+          "line": 186,
+          "kind": "ClassDef",
+          "source": "@dataclass(frozen=True)\nclass DangerStyles:\n    dangerous: str\n    destructive: str"
+        },
+        {
+          "path": "src/toad/danger.py",
+          "line": 191,
+          "kind": "ClassDef",
+          "source": "class DangerLevel(ABC):\n    \"\"\"A command's effect owns highlighting and path escalation.\"\"\"\n\n    @abstractmethod\n    def highlight(self, styles: DangerStyles) -> str:\n        ...\n\n"
+        },
+        {
+          "path": "src/toad/danger.py",
+          "line": 228,
+          "kind": "ClassDef",
+          "source": "@dataclass(frozen=True)\nclass CommandAtom:\n    level: DangerLevel\n    span: tuple[int, int]"
+        },
+        {
+          "path": "src/toad/danger.py",
+          "line": 233,
+          "kind": "ClassDef",
+          "source": "class CommandVisitor(ast.nodevisitor):\n    \"\"\"Use bashlex's visitor boundary to follow words, redirects and commands.\"\"\"\n\n    def __init__(self, project: Path, cwd: Path):\n        "
+        },
+        {
+          "path": "src/toad/danger.py",
+          "line": 287,
+          "kind": "FunctionDef",
+          "source": "@lru_cache(maxsize=1024)\ndef analyze(project_directory: str, current_working_directory: str, command_line: str) -> tuple[CommandAtom, ...]:\n    \"\"\"Retain bounded analysis data; fro"
+        },
+        {
+          "path": "src/toad/danger.py",
+          "line": 201,
+          "kind": "Name",
+          "source": "DangerLevel"
+        },
+        {
+          "path": "src/toad/danger.py",
+          "line": 214,
+          "kind": "Name",
+          "source": "DangerLevel"
+        },
+        {
+          "path": "src/toad/danger.py",
+          "line": 222,
+          "kind": "Name",
+          "source": "DangerLevel"
+        },
+        {
+          "path": "src/toad/danger.py",
+          "line": 197,
+          "kind": "Name",
+          "source": "DangerLevel"
+        },
+        {
+          "path": "src/toad/danger.py",
+          "line": 218,
+          "kind": "Name",
+          "source": "DangerLevel"
+        },
+        {
+          "path": "src/toad/danger.py",
+          "line": 229,
+          "kind": "Name",
+          "source": "DangerLevel"
+        },
+        {
+          "path": "src/toad/danger.py",
+          "line": 286,
+          "kind": "Name",
+          "source": "lru_cache"
+        },
+        {
+          "path": "src/toad/danger.py",
+          "line": 241,
+          "kind": "Name",
+          "source": "DangerLevel"
+        },
+        {
+          "path": "src/toad/danger.py",
+          "line": 289,
+          "kind": "Name",
+          "source": "CommandAtom"
+        },
+        {
+          "path": "src/toad/danger.py",
+          "line": 195,
+          "kind": "Name",
+          "source": "DangerStyles"
+        },
+        {
+          "path": "src/toad/danger.py",
+          "line": 202,
+          "kind": "Name",
+          "source": "DangerStyles"
+        },
+        {
+          "path": "src/toad/danger.py",
+          "line": 215,
+          "kind": "Name",
+          "source": "DangerStyles"
+        },
+        {
+          "path": "src/toad/danger.py",
+          "line": 223,
+          "kind": "Name",
+          "source": "DangerStyles"
+        },
+        {
+          "path": "src/toad/danger.py",
+          "line": 239,
+          "kind": "Name",
+          "source": "CommandAtom"
+        },
+        {
+          "path": "src/toad/danger.py",
+          "line": 292,
+          "kind": "Name",
+          "source": "CommandVisitor"
+        },
+        {
+          "path": "src/toad/danger.py",
+          "line": 248,
+          "kind": "Name",
+          "source": "CommandAtom"
+        },
+        {
+          "path": "src/toad/danger.py",
+          "line": 273,
+          "kind": "Name",
+          "source": "CommandAtom"
+        },
+        {
+          "path": "src/toad/fuzzy.py",
+          "line": 60,
+          "kind": "Name",
+          "source": "lru_cache"
+        },
+        {
+          "path": "src/toad/jsonrpc.py",
+          "line": 29,
+          "kind": "Name",
+          "source": "lru_cache"
+        },
+        {
+          "path": "src/toad/slash_command_results.py",
+          "line": 41,
+          "kind": "Name",
+          "source": "Span"
+        },
+        {
+          "path": "src/toad/widgets/condensed_path.py",
+          "line": 34,
+          "kind": "Name",
+          "source": "lru_cache"
+        },
+        {
+          "path": "src/toad/widgets/highlighted_textarea.py",
+          "line": 135,
+          "kind": "FunctionDef",
+          "source": "def highlight_shell(self, text: str) -> Content:\n    \"\"\"Highlight text with a bash shell command.\n\n        Args:\n            text: Text containing shell command.\n\n        Returns:\n"
+        },
+        {
+          "path": "src/toad/widgets/highlighted_textarea.py",
+          "line": 108,
+          "kind": "Attribute",
+          "source": "self.highlight_shell"
+        },
+        {
+          "path": "src/toad/widgets/patch_diff.py",
+          "line": 203,
+          "kind": "Name",
+          "source": "Span"
+        },
+        {
+          "path": "src/toad/widgets/path_search.py",
+          "line": 254,
+          "kind": "Name",
+          "source": "Span"
+        },
+        {
+          "path": "src/toad/widgets/prompt.py",
+          "line": 211,
+          "kind": "FunctionDef",
+          "source": "def highlight_shell(self, text: str) -> Content:\n    \"\"\"Override shell highlighting with additional danger detection.\"\"\"\n    content = super().highlight_shell(text)\n    if not self"
+        },
+        {
+          "path": "src/toad/widgets/prompt.py",
+          "line": 213,
+          "kind": "Attribute",
+          "source": "super().highlight_shell"
+        },
+        {
+          "path": "src/toad/widgets/prompt.py",
+          "line": 222,
+          "kind": "Name",
+          "source": "Span"
+        },
+        {
+          "path": "src/toad/widgets/prompt.py",
+          "line": 223,
+          "kind": "Attribute",
+          "source": "danger.analyze"
+        },
+        {
+          "path": "src/toad/widgets/throbber.py",
+          "line": 45,
+          "kind": "Name",
+          "source": "lru_cache"
+        }
+      ]
+    },
+    {
+      "root": "tests",
+      "parsed": 391,
+      "unparsed": [],
+      "sites": [
+        {
+          "path": "tests/prepared_diff_rows_pilot.py",
+          "line": 27,
+          "kind": "Name",
+          "source": "Span"
+        },
+        {
+          "path": "tests/prepared_diff_rows_pilot.py",
+          "line": 27,
+          "kind": "Name",
+          "source": "Span"
+        },
+        {
+          "path": "tests/prepared_diff_rows_pilot.py",
+          "line": 27,
+          "kind": "Name",
+          "source": "Span"
+        },
+        {
+          "path": "tests/prepared_diff_rows_pilot.py",
+          "line": 28,
+          "kind": "Name",
+          "source": "Span"
+        },
+        {
+          "path": "tests/prepared_diff_rows_pilot.py",
+          "line": 28,
+          "kind": "Name",
+          "source": "Span"
+        },
+        {
+          "path": "tests/prepared_diff_rows_pilot.py",
+          "line": 28,
+          "kind": "Name",
+          "source": "Span"
+        },
+        {
+          "path": "tests/prepared_diff_rows_pilot.py",
+          "line": 29,
+          "kind": "Name",
+          "source": "Span"
+        },
+        {
+          "path": "tests/prepared_diff_rows_pilot.py",
+          "line": 30,
+          "kind": "Name",
+          "source": "Span"
+        },
+        {
+          "path": "tests/prepared_diff_rows_pilot.py",
+          "line": 30,
+          "kind": "Name",
+          "source": "Span"
+        },
+        {
+          "path": "tests/prepared_diff_rows_pilot.py",
+          "line": 40,
+          "kind": "Name",
+          "source": "Span"
+        },
+        {
+          "path": "tests/test_t8_boundaries.py",
+          "line": 136,
+          "kind": "Name",
+          "source": "analyze"
+        },
+        {
+          "path": "tests/test_t8_boundaries.py",
+          "line": 137,
+          "kind": "Name",
+          "source": "DangerStyles"
+        },
+        {
+          "path": "tests/test_t8_boundaries.py",
+          "line": 127,
+          "kind": "Name",
+          "source": "analyze"
+        },
+        {
+          "path": "tests/test_t8_boundaries.py",
+          "line": 128,
+          "kind": "Name",
+          "source": "DangerStyles"
+        }
+      ]
+    }
+  ],
+  "limits": "Lexical evidence only; unrelated Span/lru_cache families retained. One existing cache at analyze replaces detect; classification source/grammar/DangerLevel methods unchanged."
+}
