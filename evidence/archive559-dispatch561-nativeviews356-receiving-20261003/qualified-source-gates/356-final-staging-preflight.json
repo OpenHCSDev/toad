@@ -1,0 +1,89 @@
+{
+  "selection": "AGENT_COMMS_RUNTIME_ROOT",
+  "bin_directory": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin",
+  "launcher": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/toad",
+  "launcher_sha256": "57c0b44df35417229e3718b128aca8d7ca5487fce0ff96f09555a4e2fe31cc67",
+  "launcher_links": {
+    "command": {
+      "selected_path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/toad",
+      "resolved_path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/toad",
+      "sha256": "57c0b44df35417229e3718b128aca8d7ca5487fce0ff96f09555a4e2fe31cc67"
+    },
+    "acp": {
+      "selected_path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/agent-comms-acp",
+      "resolved_path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/agent-comms-acp",
+      "sha256": "d61f22fceec1c5e67089c36755bad3c7da8e706d8cb86d8029867b8d4a36c297"
+    }
+  },
+  "entrypoints": {
+    "toad": {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/toad",
+      "sha256": "57c0b44df35417229e3718b128aca8d7ca5487fce0ff96f09555a4e2fe31cc67"
+    },
+    "agent-comms-acp": {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/agent-comms-acp",
+      "sha256": "d61f22fceec1c5e67089c36755bad3c7da8e706d8cb86d8029867b8d4a36c297"
+    }
+  },
+  "activation_path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/activation.json",
+  "activation_sha256": "0351dc187243c49e2786e6a1add221e7601ca740a87719426d515b7d8b90badf",
+  "activation": {
+    "stage": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002",
+    "pins": {
+      "toad": "e8c93e146f840dba7b9c647d0ecc2a79223967f8",
+      "agent_comms": "85abe4276e91d52a72eec7411ed2314aaccc8c02",
+      "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
+    },
+    "sdk": "0.12.1",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-de16647979cbad28/node_modules/@earendil-works/pi-coding-agent",
+    "state": "verified-immutable-cohort",
+    "staging_receipt_sha256": "51d627eae505703630a3b862ea0a9b1a41d4b7f0ca1dd1920cb1fd7448489b53"
+  },
+  "observed": {
+    "python": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/python",
+    "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002",
+    "packages": {
+      "toad": {
+        "origin": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/lib/python3.14/site-packages/toad/__init__.py",
+        "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+        "source_tree_sha256": "f6987c840ba0a8189cef977202a86bc8decd63cf9f5d959a03bb3f97e50d636b",
+        "distribution": "batrachian-toad",
+        "version": "0.6.20",
+        "direct_url": {
+          "url": "file:///home/ts/wt/toad-regression-widget-cost-20261001/evidence/native-permission-terminal-frontends-20261003/wheels/batrachian_toad-0.6.20-py3-none-any.whl",
+          "archive_info": {}
+        }
+      },
+      "textual": {
+        "origin": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/lib/python3.14/site-packages/textual/__init__.py",
+        "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+        "source_tree_sha256": "88911b4e2b3555c3f09979cf3492b24373a05637d3f2a04e66cb56d7d037f818",
+        "distribution": "textual",
+        "version": "8.2.8",
+        "direct_url": {
+          "url": "https://github.com/OpenHCSDev/textual.git",
+          "vcs_info": {
+            "vcs": "git",
+            "commit_id": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0",
+            "requested_revision": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
+          }
+        }
+      },
+      "agent_comms": {
+        "origin": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/lib/python3.14/site-packages/agent_comms/__init__.py",
+        "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+        "source_tree_sha256": "69426b0cd99055ed4b81cc9732f58b1e74265be85161b7b5572dca208702ef7a",
+        "distribution": "agent-comms",
+        "version": "0.1.0",
+        "direct_url": {
+          "url": "https://github.com/OpenHCSDev/agent-comms.git",
+          "vcs_info": {
+            "vcs": "git",
+            "commit_id": "85abe4276e91d52a72eec7411ed2314aaccc8c02",
+            "requested_revision": "85abe4276e91d52a72eec7411ed2314aaccc8c02"
+          }
+        }
+      }
+    }
+  }
+}

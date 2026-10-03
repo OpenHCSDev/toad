@@ -1,0 +1,12 @@
+{
+  "stage": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002",
+  "pins": {
+    "toad": "e8c93e146f840dba7b9c647d0ecc2a79223967f8",
+    "agent_comms": "85abe4276e91d52a72eec7411ed2314aaccc8c02",
+    "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
+  },
+  "sdk": "0.12.1",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-de16647979cbad28/node_modules/@earendil-works/pi-coding-agent",
+  "state": "verified-immutable-cohort",
+  "staging_receipt_sha256": "51d627eae505703630a3b862ea0a9b1a41d4b7f0ca1dd1920cb1fd7448489b53"
+}
