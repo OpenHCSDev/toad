@@ -1,0 +1,2237 @@
+{
+  "parsed": 390,
+  "omissions": [],
+  "sites": [
+    {
+      "file": "tests/acp_completion_server.py",
+      "line": 62,
+      "call": "asyncio.run(run_agent(CompletionPeer()))"
+    },
+    {
+      "file": "tests/acp_first_frame_server.py",
+      "line": 21,
+      "call": "asyncio.run(run_agent(FramePeer()))"
+    },
+    {
+      "file": "tests/acp_log_ui_pilot.py",
+      "line": 195,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/acp_navigation_server.py",
+      "line": 60,
+      "call": "asyncio.run(run_agent(NavigationPeer()))"
+    },
+    {
+      "file": "tests/acp_plan_server.py",
+      "line": 55,
+      "call": "asyncio.run(run_agent(PlanPeer()))"
+    },
+    {
+      "file": "tests/acp_specification_installed_pilot.py",
+      "line": 70,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/acp_specification_server.py",
+      "line": 78,
+      "call": "asyncio.run(run_agent(SpecificationPeer()))"
+    },
+    {
+      "file": "tests/activity_spinners_pilot.py",
+      "line": 130,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/admission_scope_installed_pilot.py",
+      "line": 69,
+      "call": "asyncio.run(main(app_type=InstalledApp, prepare_state=prepare_state, acceptance=acceptance, provider_request_budget=0))"
+    },
+    {
+      "file": "tests/agent_activity_divider_pilot.py",
+      "line": 196,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/agent_activity_divider_pilot.py",
+      "line": 58,
+      "call": "agent.attach_surface(view)"
+    },
+    {
+      "file": "tests/agent_configuration_native_installed_pilot.py",
+      "line": 52,
+      "call": "asyncio.run(main(app_type=InstalledApp, acceptance=acceptance))"
+    },
+    {
+      "file": "tests/agent_process_retirement_installed_pilot.py",
+      "line": 118,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/agent_selection_configured_installed_pilot.py",
+      "line": 218,
+      "call": "asyncio.run(main(Path(sys.argv[1]).absolute(), Path(sys.argv[2]).absolute(), len(sys.argv) > 3, sys.argv[4] if len(sys.argv) > 4 else 'continuation-851'))"
+    },
+    {
+      "file": "tests/agent_selection_configured_installed_pilot.py",
+      "line": 67,
+      "call": "ForkSessionHelper.run(ForkSessionRequest(str(package), str(original), source.worktree), cwd=Path(source.worktree), env=dict(environment, PI_CODING_AGENT_DIR=str(stage / 'forks')))"
+    },
+    {
+      "file": "tests/agent_selection_configured_installed_pilot.py",
+      "line": 120,
+      "call": "service.owners.start(child.name, agent_bin=str(runtime / 'pi-comms-native'), agent_args=launch.arguments)"
+    },
+    {
+      "file": "tests/agent_startup_failure_installed_pilot.py",
+      "line": 76,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/app_focus_latency_pilot.py",
+      "line": 73,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/application_actions_installed_journey.py",
+      "line": 165,
+      "call": "asyncio.run(run())"
+    },
+    {
+      "file": "tests/async_tab_activation_pilot.py",
+      "line": 123,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/async_tab_activation_pilot.py",
+      "line": 47,
+      "call": "agent.attach_surface(target)"
+    },
+    {
+      "file": "tests/async_thread_open_pilot.py",
+      "line": 181,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/async_thread_open_pilot.py",
+      "line": 64,
+      "call": "agent.attach_surface(target)"
+    },
+    {
+      "file": "tests/attachment_request_pilot.py",
+      "line": 189,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/attachment_request_pilot.py",
+      "line": 133,
+      "call": "agent.attach_surface(view)"
+    },
+    {
+      "file": "tests/attachment_request_pilot.py",
+      "line": 77,
+      "call": "agent.attach_surface(view)"
+    },
+    {
+      "file": "tests/attachment_request_pilot.py",
+      "line": 154,
+      "call": "replacement.attach_surface(view)"
+    },
+    {
+      "file": "tests/backend_failure_feedback_installed_journey.py",
+      "line": 42,
+      "call": "asyncio.run(native_fixture(app_type=InstalledApp, acceptance=acceptance))"
+    },
+    {
+      "file": "tests/bar_projection_reuse_pilot.py",
+      "line": 65,
+      "call": "asyncio.run(main(parser.parse_args().observe))"
+    },
+    {
+      "file": "tests/blank_presentation_pilot.py",
+      "line": 141,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/block_interaction_pilot.py",
+      "line": 156,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/block_interaction_pilot.py",
+      "line": 86,
+      "call": "subprocess.run(['xclip', '-selection', 'clipboard', '-o'], capture_output=True, timeout=3, check=True)"
+    },
+    {
+      "file": "tests/browser_download_app.py",
+      "line": 34,
+      "call": "FileDeliveryApp().run()"
+    },
+    {
+      "file": "tests/browser_serving_pilot.py",
+      "line": 438,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 532,
+      "call": "asyncio.run(readonly_cold_main())"
+    },
+    {
+      "file": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 534,
+      "call": "asyncio.run(main(app_type=EvidenceApp, prepare_state=prepare, acceptance=acceptance, provider_reply=reply, provider_request_budget=18, fixture_stage=Path(os.environ['AC_CONTROLLED_FIXTURE_STAGE'])))"
+    },
+    {
+      "file": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 505,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 143,
+      "call": "ForkSessionHelper.run(ForkSessionRequest(str(package), str(source_file), str(project)), cwd=project, env=helper_env)"
+    },
+    {
+      "file": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 253,
+      "call": "asyncio.run(asyncio.wait_for(main(app_type=InstalledApp, acceptance=acceptance, provider_request_budget=1, fixture_stage=os.environ['CATALOG_FIXTURE_STAGE']), 115))"
+    },
+    {
+      "file": "tests/channel_any_mode_ui_pilot.py",
+      "line": 89,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/channel_disclosure_publication_pilot.py",
+      "line": 238,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/channel_display_basis_pilot.py",
+      "line": 66,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/channel_mentions_pilot.py",
+      "line": 69,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/channel_partial_paint_pilot.py",
+      "line": 88,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/channel_retirement_pilot.py",
+      "line": 67,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/channel_roster_retention_pilot.py",
+      "line": 139,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/channel_scope_expansion_pilot.py",
+      "line": 68,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/channel_unread_follow_pilot.py",
+      "line": 91,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/channel_views_pilot.py",
+      "line": 276,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/channel_visibility_observation_pilot.py",
+      "line": 54,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/channel_visibility_pilot.py",
+      "line": 100,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/checkpoint_source_pivot_pilot.py",
+      "line": 122,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/client_session_native_installed_pilot.py",
+      "line": 99,
+      "call": "agent.attach_surface(returned)"
+    },
+    {
+      "file": "tests/client_session_native_installed_pilot.py",
+      "line": 130,
+      "call": "asyncio.run(main(app_type=InstalledApp, acceptance=acceptance))"
+    },
+    {
+      "file": "tests/clipboard_native_pilot.py",
+      "line": 167,
+      "call": "subprocess.run([sys.executable, '-c', 'import asyncio,sys; from toad.clipboard_image import read_clipboard_png; sys.stdout.buffer.write(asyncio.run(read_clipboard_png()))'], env=env, capture_output=True, timeout=5, check=True)"
+    },
+    {
+      "file": "tests/clipboard_native_pilot.py",
+      "line": 115,
+      "call": "subprocess.run(['xclip', '-selection', 'clipboard', '-o'], env=env, capture_output=True, timeout=3, check=True)"
+    },
+    {
+      "file": "tests/close_session_latency_pilot.py",
+      "line": 55,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/cold_thread_latency_pilot.py",
+      "line": 319,
+      "call": "asyncio.run(main(args.profile, args.trace))"
+    },
+    {
+      "file": "tests/cold_thread_latency_pilot.py",
+      "line": 74,
+      "call": "agent.attach_surface(target)"
+    },
+    {
+      "file": "tests/command_family_pilot.py",
+      "line": 179,
+      "call": "asyncio.run(native_fixture(app_type=InstalledApp, acceptance=acceptance, prepare_state=prepare_saved_state, headless=False, provider_request_budget=3, fixture_stage=os.environ['COMMAND297_FIXTURE_STAGE']))"
+    },
+    {
+      "file": "tests/committed_history_pilot.py",
+      "line": 135,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/comms_boundary_pilot.py",
+      "line": 205,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/comms_boundary_pilot.py",
+      "line": 100,
+      "call": "agent.attach_surface(view)"
+    },
+    {
+      "file": "tests/comms_pilot.py",
+      "line": 963,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/comms_pilot.py",
+      "line": 398,
+      "call": "startup_agent.attach_surface(created_conversation)"
+    },
+    {
+      "file": "tests/comms_pilot.py",
+      "line": 582,
+      "call": "protocol_agent.attach_surface(conversation)"
+    },
+    {
+      "file": "tests/comms_scene_latency_pilot.py",
+      "line": 79,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/compaction_pilot.py",
+      "line": 83,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 414,
+      "call": "asyncio.run(reconnect_cancelled_source())"
+    },
+    {
+      "file": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 417,
+      "call": "asyncio.run(main(app_type=StreamApp, acceptance=acceptance, prepare_state=prepare, fixture_stage=Path(os.environ['COMPACTION_FIXTURE_STAGE']) if 'COMPACTION_FIXTURE_STAGE' in os.environ else None, native_settings={'transport': 'sse', 'retry': {'enabled': False}, 'compaction': {'enabled': True, 'reserveTokens': 16384, '"
+    },
+    {
+      "file": "tests/conftest.py",
+      "line": 79,
+      "call": "asyncio.run(run())"
+    },
+    {
+      "file": "tests/conftest.py",
+      "line": 64,
+      "call": "BoundedRun.run((sys.executable, str(self.path)), timeout=timeout, cwd=self.config.rootpath, env=env)"
+    },
+    {
+      "file": "tests/context_compaction_native_installed_pilot.py",
+      "line": 198,
+      "call": "asyncio.run(main(app_type=InstalledApp, acceptance=goal_acceptance, prepare_state=prepare_cold_goal, provider_reply=goal_reply, provider_usage=goal_usage, provider_after_chunk=hold_goal_response, provider_request_budget=40, native_settings={'compaction': {'enabled': True, 'reserveTokens': 1000, 'keepRecentTokens': 100}"
+    },
+    {
+      "file": "tests/context_compaction_native_installed_pilot.py",
+      "line": 206,
+      "call": "asyncio.run(main(app_type=InstalledApp, acceptance=acceptance, provider_usage=usage, provider_reply=reply, native_settings={'compaction': {'enabled': True, 'reserveTokens': 4096, 'keepRecentTokens': 1024}}))"
+    },
+    {
+      "file": "tests/context_native_installed_pilot.py",
+      "line": 45,
+      "call": "asyncio.run(main(app_type=InstalledApp, acceptance=acceptance))"
+    },
+    {
+      "file": "tests/context_resume_pilot.py",
+      "line": 88,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/context_usage_pilot.py",
+      "line": 45,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/context_usage_pilot.py",
+      "line": 24,
+      "call": "agent.attach_surface(view)"
+    },
+    {
+      "file": "tests/coordination_context_pilot.py",
+      "line": 122,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/coordination_context_pilot.py",
+      "line": 58,
+      "call": "agent.attach_surface(view)"
+    },
+    {
+      "file": "tests/core_events_native_installed_pilot.py",
+      "line": 100,
+      "call": "asyncio.run(main(app_type=InstalledApp, acceptance=acceptance, fixture_stage=os.environ['U1_FIXTURE_ROOT'], provider_request_budget=2, provider_reply=lambda request, number: ({'role': 'assistant', 'content': f'NATIVE_RESPONSE_{number}'}, 'stop')))"
+    },
+    {
+      "file": "tests/cursor_extent_pilot.py",
+      "line": 109,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/cursor_request_pilot.py",
+      "line": 152,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/cursor_request_pilot.py",
+      "line": 87,
+      "call": "agent.attach_surface(view)"
+    },
+    {
+      "file": "tests/default_route_admission_pilot.py",
+      "line": 241,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/default_route_cancel_pilot.py",
+      "line": 141,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/default_route_pilot.py",
+      "line": 282,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/default_route_prompt_selection_pilot.py",
+      "line": 86,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/default_route_retirement_pilot.py",
+      "line": 120,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/dense_history_pilot.py",
+      "line": 54,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/diff_damage_latency_pilot.py",
+      "line": 59,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/diff_row_damage_pilot.py",
+      "line": 191,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/directory_watcher_burst_pilot.py",
+      "line": 48,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/directory_watcher_visibility_pilot.py",
+      "line": 45,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/divider_unread_paint_pilot.py",
+      "line": 72,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/dm_rebind_paint_pilot.py",
+      "line": 87,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/editor_key_burst_pilot.py",
+      "line": 91,
+      "call": "asyncio.run(main(Path(sys.argv[1])))"
+    },
+    {
+      "file": "tests/editor_key_terminal_journey.py",
+      "line": 158,
+      "call": "asyncio.run(main(saved_history=sys.argv[1:] in (['--saved-history'], ['--close-tabs']), close_tabs=sys.argv[1:] == ['--close-tabs']))"
+    },
+    {
+      "file": "tests/editor_key_workflow_pilot.py",
+      "line": 225,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/editor_key_workflow_pilot.py",
+      "line": 221,
+      "call": "app.run()"
+    },
+    {
+      "file": "tests/existing_thread_link_pilot.py",
+      "line": 131,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/existing_thread_tab_title_pilot.py",
+      "line": 166,
+      "call": "asyncio.run(main(cold_metadata=True))"
+    },
+    {
+      "file": "tests/existing_thread_tab_title_pilot.py",
+      "line": 167,
+      "call": "asyncio.run(main('Already named thread'))"
+    },
+    {
+      "file": "tests/existing_thread_tab_title_pilot.py",
+      "line": 57,
+      "call": "agent.attach_surface(target)"
+    },
+    {
+      "file": "tests/external_cli_native_installed_pilot.py",
+      "line": 50,
+      "call": "subprocess.run([*command, *arguments], check=True, capture_output=True, text=True)"
+    },
+    {
+      "file": "tests/external_cli_native_installed_pilot.py",
+      "line": 278,
+      "call": "asyncio.run(journey())"
+    },
+    {
+      "file": "tests/file_path_preview_pilot.py",
+      "line": 323,
+      "call": "subprocess.run(['import', '-window', 'root', str(root / (label + '.png'))], check=True, timeout=5)"
+    },
+    {
+      "file": "tests/file_path_preview_pilot.py",
+      "line": 335,
+      "call": "subprocess.run(['xdotool', 'mousemove', '--window', window, str(px), str(py), 'click', str(button)], check=True)"
+    },
+    {
+      "file": "tests/file_path_preview_pilot.py",
+      "line": 422,
+      "call": "asyncio.run(encoded_historical_journey(Path(sys.argv[2])) if sys.argv[1:2] == ['--installed-owner'] else main())"
+    },
+    {
+      "file": "tests/file_preview_latency_pilot.py",
+      "line": 95,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/filter_mount_supersession_pilot.py",
+      "line": 194,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/filter_style_scope_pilot.py",
+      "line": 58,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/first_fork_native_installed_pilot.py",
+      "line": 344,
+      "call": "asyncio.run(dialog_content_only())"
+    },
+    {
+      "file": "tests/first_fork_native_installed_pilot.py",
+      "line": 346,
+      "call": "asyncio.run(main(app_type=InstalledApp, acceptance=task_admission if os.environ.get('FORK_NATIVE_TASK') else acceptance, provider_request_budget=2, fixture_stage=Path(os.environ['FORK_FIXTURE_STAGE'])))"
+    },
+    {
+      "file": "tests/first_frame_installed_terminal_journey.py",
+      "line": 83,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/first_frame_terminal_app.py",
+      "line": 49,
+      "call": "app.run()"
+    },
+    {
+      "file": "tests/follow_stream_pilot.py",
+      "line": 49,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/footer_pilot.py",
+      "line": 77,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/fragment_divider_pilot.py",
+      "line": 85,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/fresh_fork_pilot.py",
+      "line": 141,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/fresh_fork_pilot.py",
+      "line": 66,
+      "call": "agent.attach_surface(target)"
+    },
+    {
+      "file": "tests/goal_collapse_pilot.py",
+      "line": 106,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/goal_details_pilot.py",
+      "line": 55,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/goal_edit_owner_pilot.py",
+      "line": 87,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/goal_geometry_pilot.py",
+      "line": 65,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/goal_objective_edit_pilot.py",
+      "line": 180,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/goal_objective_edit_pilot.py",
+      "line": 72,
+      "call": "agent.attach_surface(conversation)"
+    },
+    {
+      "file": "tests/goal_pause_owner_pilot.py",
+      "line": 157,
+      "call": "asyncio.run(native_fixture(app_type=InstalledApp, acceptance=acceptance, prepare_state=prepare, native_settings={'compaction': {'enabled': False}, 'retry': {'enabled': False}}, provider_request_budget=4, fixture_stage=Path(os.environ['C3_FIXTURE_STAGE'])))"
+    },
+    {
+      "file": "tests/goal_resize_pilot.py",
+      "line": 97,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/goal_retry_pilot.py",
+      "line": 66,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/goal_server_poll_pilot.py",
+      "line": 249,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/goal_set_owner_pilot.py",
+      "line": 58,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/goal_standby_history_pilot.py",
+      "line": 227,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/goal_state_installed_journey.py",
+      "line": 146,
+      "call": "asyncio.run(native_fixture(app_type=InstalledApp, prepare_state=prepare_state, acceptance=acceptance))"
+    },
+    {
+      "file": "tests/guards/test_goal_interaction.py",
+      "line": 67,
+      "call": "asyncio.run(declared_case())"
+    },
+    {
+      "file": "tests/guards/test_live_output.py",
+      "line": 99,
+      "call": "asyncio.run(declaration_case())"
+    },
+    {
+      "file": "tests/guards/test_live_output.py",
+      "line": 69,
+      "call": "agent.attach_surface(view)"
+    },
+    {
+      "file": "tests/guards/test_observation_cancellation.py",
+      "line": 42,
+      "call": "asyncio.run(run())"
+    },
+    {
+      "file": "tests/guards/test_observation_cancellation.py",
+      "line": 56,
+      "call": "asyncio.run(run())"
+    },
+    {
+      "file": "tests/guards/test_permission_presentation.py",
+      "line": 34,
+      "call": "asyncio.run(new_case())"
+    },
+    {
+      "file": "tests/guards/test_permission_presentation.py",
+      "line": 40,
+      "call": "asyncio.run(new_case())"
+    },
+    {
+      "file": "tests/guards/test_plan_presentation.py",
+      "line": 69,
+      "call": "asyncio.run(run())"
+    },
+    {
+      "file": "tests/guards/test_session_observation.py",
+      "line": 25,
+      "call": "asyncio.run(_new_case_inherits_coalescing_owner_fence_and_retirement())"
+    },
+    {
+      "file": "tests/guards/test_tool_output.py",
+      "line": 97,
+      "call": "asyncio.run(run())"
+    },
+    {
+      "file": "tests/guards/test_tr0.py",
+      "line": 57,
+      "call": "subprocess.run([sys.executable, '-m', 'pytest', '-q', *selector], cwd=tmp_path, env=environment, capture_output=True, text=True, timeout=30)"
+    },
+    {
+      "file": "tests/guards/test_transcript_publication.py",
+      "line": 218,
+      "call": "asyncio.run(declaration_case())"
+    },
+    {
+      "file": "tests/historical_views_pilot.py",
+      "line": 244,
+      "call": "subprocess.run(['xdotool', 'mousemove', '--window', window, str(px), str(py), 'click', '1'], check=True)"
+    },
+    {
+      "file": "tests/historical_views_pilot.py",
+      "line": 249,
+      "call": "subprocess.run(['import', '-window', 'root', str(root / (name + '.png'))], check=True, timeout=5)"
+    },
+    {
+      "file": "tests/historical_views_pilot.py",
+      "line": 322,
+      "call": "asyncio.run(installed_handling(Path(sys.argv[2])) if sys.argv[1:2] == ['--installed-handling'] else main())"
+    },
+    {
+      "file": "tests/historical_views_pilot.py",
+      "line": 295,
+      "call": "subprocess.run(['xdotool', 'key', 'Down', 'Return'], check=True)"
+    },
+    {
+      "file": "tests/historical_views_pilot.py",
+      "line": 299,
+      "call": "subprocess.run(['xdotool', 'key', 'Up', 'Return'], check=True)"
+    },
+    {
+      "file": "tests/historical_views_pilot.py",
+      "line": 302,
+      "call": "subprocess.run(['xdotool', 'key', 'Escape'], check=True)"
+    },
+    {
+      "file": "tests/history_anchor_geometry_pilot.py",
+      "line": 50,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/history_availability_installed_pilot.py",
+      "line": 112,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/history_availability_installed_pilot.py",
+      "line": 42,
+      "call": "agent.attach_surface(view)"
+    },
+    {
+      "file": "tests/history_edge_scheduling_pilot.py",
+      "line": 225,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/history_frame_publication_pilot.py",
+      "line": 241,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/history_mounted_budget_pilot.py",
+      "line": 83,
+      "call": "asyncio.run(main(parser.parse_args().observe))"
+    },
+    {
+      "file": "tests/history_page_batch_mount_pilot.py",
+      "line": 113,
+      "call": "asyncio.run(main(Path(sys.argv[1])))"
+    },
+    {
+      "file": "tests/history_prefetch_pilot.py",
+      "line": 114,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/history_reflow_travel_pilot.py",
+      "line": 130,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/history_scroll_frames_pilot.py",
+      "line": 136,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/history_stationary_feedback_pilot.py",
+      "line": 152,
+      "call": "asyncio.run(main(Path(sys.argv[1]), compact='--compact' in sys.argv[2:], input_paging='--input' in sys.argv[2:], scroll_trace='--scroll-trace' in sys.argv[2:]))"
+    },
+    {
+      "file": "tests/history_stationary_local_runway_pilot.py",
+      "line": 111,
+      "call": "asyncio.run(main(Path(sys.argv[1])))"
+    },
+    {
+      "file": "tests/hot_path_invalidation_pilot.py",
+      "line": 101,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/human_mark_read_pilot.py",
+      "line": 78,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/image_attachment_inputs.py",
+      "line": 86,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/image_paste_pilot.py",
+      "line": 63,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/in_out_underfill_pilot.py",
+      "line": 139,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/inbound_history_reprojection_installed_pilot.py",
+      "line": 133,
+      "call": "asyncio.run(main(acceptance=acceptance, provider_reply=reply, provider_request_budget=3))"
+    },
+    {
+      "file": "tests/independent_native_writer_pilot.py",
+      "line": 179,
+      "call": "asyncio.run(native_fixture(app_type=PaintedSwitchApp, prepare_state=prepare, provider_reply=reply, acceptance=acceptance, headless=False, provider_request_budget=len(NAMES)))"
+    },
+    {
+      "file": "tests/independent_native_writer_pty.py",
+      "line": 52,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/initial_session_title_pilot.py",
+      "line": 172,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/initial_session_title_pilot.py",
+      "line": 74,
+      "call": "agent.attach_surface(screen.conversation)"
+    },
+    {
+      "file": "tests/initial_session_title_pilot.py",
+      "line": 102,
+      "call": "resumed.attach_surface(screen.conversation)"
+    },
+    {
+      "file": "tests/input_failure_pilot.py",
+      "line": 107,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/input_failure_pilot.py",
+      "line": 48,
+      "call": "receiver.attach_surface(conversation)"
+    },
+    {
+      "file": "tests/input_history_native_installed_pilot.py",
+      "line": 41,
+      "call": "asyncio.run(main(app_type=InstalledApp, acceptance=acceptance))"
+    },
+    {
+      "file": "tests/input_latency_pilot.py",
+      "line": 57,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/input_visibility_native_installed_pilot.py",
+      "line": 354,
+      "call": "asyncio.run(main(app_type=InstalledApp, acceptance=acceptance, expected_response_disconnects=frozenset({3, 5}), provider_request_budget=5, headless=os.environ.get('INPUT_VISIBILITY_TERMINAL') != '1', fixture_stage=Path(os.environ['INPUT_VISIBILITY_FIXTURE'])))"
+    },
+    {
+      "file": "tests/irc_wrap_pilot.py",
+      "line": 98,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/l0a_archive_history_pilot.py",
+      "line": 103,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/l0a_native_installed_pilot.py",
+      "line": 606,
+      "call": "asyncio.run(main(notification_only=args.notification_only, retire_surface=args.retire_surface))"
+    },
+    {
+      "file": "tests/large_stream_pilot.py",
+      "line": 141,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/late_native_after_join_pilot.py",
+      "line": 150,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/late_native_application_pilot.py",
+      "line": 153,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/layout_alignment_pilot.py",
+      "line": 124,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/lazy_tools_pilot.py",
+      "line": 113,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/local_echo_pilot.py",
+      "line": 43,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/long_message_pilot.py",
+      "line": 79,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/main_menu_transfer_pilot.py",
+      "line": 100,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/maintenance_boundary_pilot.py",
+      "line": 39,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/maintenance_cancel_process_group_pilot.py",
+      "line": 97,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/manual_live_turn_status.py",
+      "line": 169,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/markdown_extent_policy_pilot.py",
+      "line": 68,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/markdown_process_lifecycle_pilot.py",
+      "line": 115,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/markdown_process_lifecycle_pilot.py",
+      "line": 27,
+      "call": "self.run(execute_render_task, task)"
+    },
+    {
+      "file": "tests/markdown_process_pilot.py",
+      "line": 68,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/markdown_return_reuse_pilot.py",
+      "line": 76,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/markdown_row_render_pilot.py",
+      "line": 88,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/markdown_token_rules_installed_pilot.py",
+      "line": 88,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/mcp_decision_pty_pilot.py",
+      "line": 61,
+      "call": "subprocess.run(['node', '--input-type=module', '-e', script, str(package), str(project), str(agent_dir), str(trusted).lower(), str(not (project / '.pi/mcp.json').exists()).lower()], check=True, timeout=10)"
+    },
+    {
+      "file": "tests/mcp_decision_pty_pilot.py",
+      "line": 251,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/mcp_decision_pty_pilot.py",
+      "line": 68,
+      "call": "subprocess.run([node, cli, 'inventory', '--json', '--project', str(project)], check=True, capture_output=True, timeout=10)"
+    },
+    {
+      "file": "tests/mcp_decision_pty_pilot.py",
+      "line": 222,
+      "call": "pty.run(selection=MCPSelection(prior, prior_row), command=AllowCommand(), show=unexpected, controller_visible=lambda: True)"
+    },
+    {
+      "file": "tests/message_categories_pilot.py",
+      "line": 164,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/message_dividers_pilot.py",
+      "line": 125,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/message_filter_latency_pilot.py",
+      "line": 58,
+      "call": "asyncio.run(main(parser.parse_args().baseline))"
+    },
+    {
+      "file": "tests/message_filter_supersession_pilot.py",
+      "line": 74,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/message_notifications_pilot.py",
+      "line": 145,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/midturn_compaction_pilot.py",
+      "line": 67,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/midturn_compaction_pilot.py",
+      "line": 29,
+      "call": "agent.attach_surface(view)"
+    },
+    {
+      "file": "tests/model_picker_pilot.py",
+      "line": 210,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/native_goal_read_first_paint_pilot.py",
+      "line": 69,
+      "call": "asyncio.run(reconnect_cancelled_source(app_type=PaintedReturnApp, after_cold_load=held_original_read, headless=False))"
+    },
+    {
+      "file": "tests/native_loaded_return_cache_pilot.py",
+      "line": 487,
+      "call": "asyncio.run(native_fixture(app_type=PaintedReturnApp, acceptance=acceptance, provider_request_budget=2 * int(os.environ.get('NATIVE_RETURN_PROMPTS', '2')) + 2))"
+    },
+    {
+      "file": "tests/native_message_parts_pilot.py",
+      "line": 65,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/native_message_parts_pilot.py",
+      "line": 43,
+      "call": "agent.attach_surface(view)"
+    },
+    {
+      "file": "tests/native_permission_ui.py",
+      "line": 141,
+      "call": "agent.attach_surface(view)"
+    },
+    {
+      "file": "tests/native_return_anchor_trace.py",
+      "line": 54,
+      "call": "asyncio.run(main(app_type=PaintedReturnApp, acceptance=acceptance, provider_request_budget=2 * int(os.environ.get('NATIVE_RETURN_PROMPTS', '2')) + 2))"
+    },
+    {
+      "file": "tests/native_scroll_recording_pilot.py",
+      "line": 93,
+      "call": "asyncio.run(main(app_type=InstalledApp, acceptance=record, provider_reply=reply, provider_request_budget=2))"
+    },
+    {
+      "file": "tests/native_session_retention_pilot.py",
+      "line": 259,
+      "call": "asyncio.run(native_fixture(app_type=PaintedSwitchApp, prepare_state=prepare_loaded_histories, acceptance=acceptance))"
+    },
+    {
+      "file": "tests/native_tab_terminal_app.py",
+      "line": 83,
+      "call": "app.run()"
+    },
+    {
+      "file": "tests/native_tab_terminal_check.py",
+      "line": 119,
+      "call": "subprocess.run(['xdotool', 'mousemove', '--sync', '--window', str(window.id), str(round(padding_x + column * cell_width)), str(round(padding_y + row * cell_height)), *actions], env=env, check=True)"
+    },
+    {
+      "file": "tests/native_tab_terminal_check.py",
+      "line": 130,
+      "call": "subprocess.run(['xdotool', 'windowsize', str(window.id), str(columns * cell_width + 2 * padding_x), str(32 * cell_height + 2 * padding_y)], env=env, check=True)"
+    },
+    {
+      "file": "tests/native_terminal_retention_pilot.py",
+      "line": 253,
+      "call": "asyncio.run(native_fixture(app_type=InstalledApp, acceptance=acceptance, headless=False, provider_request_budget=0, fixture_stage=Path(os.environ['TOAD_TERMINAL_FIXTURE_ROOT'])))"
+    },
+    {
+      "file": "tests/native_tool_output_pilot.py",
+      "line": 114,
+      "call": "asyncio.run(native_fixture(app_type=InstalledApp, acceptance=acceptance, provider_reply=provider_reply))"
+    },
+    {
+      "file": "tests/native_widget_actions_installed_pilot.py",
+      "line": 173,
+      "call": "asyncio.run(asyncio.wait_for(main(app_type=InstalledApp, acceptance=acceptance, expected_response_disconnects=frozenset({2}), provider_request_budget=2, fixture_stage=os.environ['ACTION_FIXTURE_STAGE']), 115))"
+    },
+    {
+      "file": "tests/navigation_preparation_pilot.py",
+      "line": 200,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/navigation_source_timer_pilot.py",
+      "line": 50,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/navigation_terminal_fixture.py",
+      "line": 190,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/navigation_terminal_fixture.py",
+      "line": 152,
+      "call": "agent.attach_surface(target)"
+    },
+    {
+      "file": "tests/navigation_terminal_fixture.py",
+      "line": 171,
+      "call": "agent.attach_surface(screen.conversation)"
+    },
+    {
+      "file": "tests/nominal_tool_menu_pilot.py",
+      "line": 72,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/observed_thread_activity_pilot.py",
+      "line": 236,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/observed_thread_activity_pilot.py",
+      "line": 81,
+      "call": "agent.attach_surface(native)"
+    },
+    {
+      "file": "tests/off_tail_checkpoint_pilot.py",
+      "line": 300,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/offscreen_tool_hydration_pilot.py",
+      "line": 67,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/original_stream_headers_installed_pilot.py",
+      "line": 103,
+      "call": "asyncio.run(main(app_type=ToadApp, acceptance=acceptance, provider_reply=reply, provider_request_budget=1, provider_chunk_characters=25, provider_after_chunk=after_chunk, fixture_stage=Path(os.environ['STREAM_FIXTURE_STAGE'])))"
+    },
+    {
+      "file": "tests/original_turn_resource_real_installed_pilot.py",
+      "line": 330,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/original_turn_resource_real_installed_pilot.py",
+      "line": 105,
+      "call": "ForkSessionHelper.run(ForkSessionRequest(str(package), str(original), str(project)), cwd=project, env=dict(retained.environment, PI_CODING_AGENT_DIR=str(stage / 'native-forks')))"
+    },
+    {
+      "file": "tests/original_turn_resource_real_installed_pilot.py",
+      "line": 192,
+      "call": "ForkSessionHelper.run(ForkSessionRequest(str(package), str(original), str(project)), cwd=project, env=dict(environment, PI_CODING_AGENT_DIR=str(stage / 'native-forks')))"
+    },
+    {
+      "file": "tests/owner_navigation_pilot.py",
+      "line": 115,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/owner_poll_latency_pilot.py",
+      "line": 79,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/owner_reader_reuse_pilot.py",
+      "line": 117,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/owner_reader_reuse_pilot.py",
+      "line": 102,
+      "call": "agent.attach_surface(app.selected_session.conversation)"
+    },
+    {
+      "file": "tests/owner_replacement_recovery_installed_pilot.py",
+      "line": 189,
+      "call": "asyncio.run(main(prepare_state=prepare, acceptance=acceptance, app_type=HealthyWindow if healthy else ToadApp, attachment_expected=healthy, provider_request_budget=2))"
+    },
+    {
+      "file": "tests/path_filter_pilot.py",
+      "line": 76,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/pending_thread_open_pilot.py",
+      "line": 162,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/pending_unread_pilot.py",
+      "line": 81,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/permission_pending_mount_pilot.py",
+      "line": 91,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/persistent_render_pilot.py",
+      "line": 71,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/persistent_renderer_ui_pilot.py",
+      "line": 108,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/persistent_workspace_installed_pilot.py",
+      "line": 46,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/persistent_workspace_profile.py",
+      "line": 27,
+      "call": "asyncio.run(native_fixture(app_type=InstalledApp, acceptance=profile))"
+    },
+    {
+      "file": "tests/persistent_workspace_source_navigation_pilot.py",
+      "line": 72,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/plan_status_installed_pilot.py",
+      "line": 172,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/post_cancel_session_installed_journey.py",
+      "line": 87,
+      "call": "asyncio.run(native_fixture(app_type=InstalledApp, acceptance=acceptance, expected_response_disconnects=frozenset({1, 2}), provider_reply=reply, provider_chunk_characters=40, provider_after_chunk=after_chunk))"
+    },
+    {
+      "file": "tests/prepared_bars_pilot.py",
+      "line": 84,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/prepared_diff_pilot.py",
+      "line": 98,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/prepared_diff_pilot.py",
+      "line": 90,
+      "call": "pool.run(prepare_patch, 'not a valid unified patch\\n', False, True)"
+    },
+    {
+      "file": "tests/prepared_diff_pilot.py",
+      "line": 51,
+      "call": "pool.run(prepare_patch, source, app.current_theme.ansi, app.current_theme.dark)"
+    },
+    {
+      "file": "tests/prepared_diff_rows_pilot.py",
+      "line": 83,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/prepared_height_contract_pilot.py",
+      "line": 135,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/profile_hot_paths_pilot.py",
+      "line": 81,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/project_resume_pilot.py",
+      "line": 65,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/projected_history_budget_pilot.py",
+      "line": 137,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/prompt_completion_installed_pilot.py",
+      "line": 224,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/prompt_popup_new_case_pilot.py",
+      "line": 67,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/prompt_routing_pilot.py",
+      "line": 86,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/queue_admission_pilot.py",
+      "line": 186,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/queue_admission_pilot.py",
+      "line": 67,
+      "call": "consumer.attach_surface(view)"
+    },
+    {
+      "file": "tests/quit_save_installed_pilot.py",
+      "line": 104,
+      "call": "asyncio.run(run())"
+    },
+    {
+      "file": "tests/reader_geometry_pilot.py",
+      "line": 132,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/readonly_saved_reader_pilot.py",
+      "line": 319,
+      "call": "asyncio.run(retained_fixture(readonly_acceptance=private_original_warm, app_type=SavedReaderApp))"
+    },
+    {
+      "file": "tests/readonly_saved_reader_pilot.py",
+      "line": 322,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/receiver_inbound_installed_pilot.py",
+      "line": 66,
+      "call": "asyncio.run(main(acceptance=acceptance, provider_request_budget=2))"
+    },
+    {
+      "file": "tests/reconnect_source_native_installed_pilot.py",
+      "line": 91,
+      "call": "asyncio.run(main(app_type=InstalledApp, acceptance=acceptance, provider_reply=lambda request, number: ({'role': 'assistant', 'content': BODY}, 'stop'), provider_request_budget=2, fixture_stage=Path(os.environ['RECONNECT_FIXTURE_STAGE'])))"
+    },
+    {
+      "file": "tests/recovery_view_boundaries_pilot.py",
+      "line": 179,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/recovery_view_pilot.py",
+      "line": 174,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/relationship_poll_reflow_pilot.py",
+      "line": 120,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/render_processes_pilot.py",
+      "line": 76,
+      "call": "pool.run(worker_info)"
+    },
+    {
+      "file": "tests/render_processes_pilot.py",
+      "line": 83,
+      "call": "pool.run(fail)"
+    },
+    {
+      "file": "tests/render_processes_pilot.py",
+      "line": 86,
+      "call": "pool.run(lambda: os.getpid())"
+    },
+    {
+      "file": "tests/render_processes_pilot.py",
+      "line": 130,
+      "call": "pool.run(cpu_work, 10, str(started), str(release))"
+    },
+    {
+      "file": "tests/render_processes_pilot.py",
+      "line": 139,
+      "call": "pool.run(worker_info)"
+    },
+    {
+      "file": "tests/render_processes_pilot.py",
+      "line": 165,
+      "call": "pool.run(cpu_work, 10, str(first_started), str(release))"
+    },
+    {
+      "file": "tests/render_processes_pilot.py",
+      "line": 166,
+      "call": "pool.run(cpu_work, 10, str(second_started), str(release))"
+    },
+    {
+      "file": "tests/render_processes_pilot.py",
+      "line": 189,
+      "call": "pool.run(worker_info)"
+    },
+    {
+      "file": "tests/render_processes_pilot.py",
+      "line": 87,
+      "call": "pool.run(worker_info)"
+    },
+    {
+      "file": "tests/render_processes_pilot.py",
+      "line": 99,
+      "call": "pool.run(cpu_work, 10, str(started), str(release), True)"
+    },
+    {
+      "file": "tests/render_processes_pilot.py",
+      "line": 156,
+      "call": "pool.run(worker_info)"
+    },
+    {
+      "file": "tests/render_processes_pilot.py",
+      "line": 170,
+      "call": "pool.run(worker_info)"
+    },
+    {
+      "file": "tests/render_processes_pilot.py",
+      "line": 106,
+      "call": "pool.run(worker_info)"
+    },
+    {
+      "file": "tests/render_processes_pilot.py",
+      "line": 113,
+      "call": "pool.run(worker_info)"
+    },
+    {
+      "file": "tests/renderer_cli_pty_pilot.py",
+      "line": 133,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/renderer_selection_pilot.py",
+      "line": 21,
+      "call": "asyncio.run(local.aclose())"
+    },
+    {
+      "file": "tests/renderer_selection_pilot.py",
+      "line": 22,
+      "call": "asyncio.run(persistent.aclose())"
+    },
+    {
+      "file": "tests/renderer_selection_pilot.py",
+      "line": 27,
+      "call": "asyncio.run(local.aclose())"
+    },
+    {
+      "file": "tests/renderer_warmup_pilot.py",
+      "line": 81,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/resize_pty.py",
+      "line": 53,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/resize_render_pilot.py",
+      "line": 60,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/response_source_custody_pilot.py",
+      "line": 171,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/restored_inbound_continuous_installed_pilot.py",
+      "line": 233,
+      "call": "asyncio.run(main(prepare_state=prepare, acceptance=acceptance, provider_reply=reply, provider_request_budget=11 if os.environ.get('L0A_SWITCH_SOURCE') else 4))"
+    },
+    {
+      "file": "tests/resume_style_revision_pilot.py",
+      "line": 125,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/retained_body_transfer_pilot.py",
+      "line": 78,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/retained_fragment_geometry_pilot.py",
+      "line": 317,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/retained_history_projection_pilot.py",
+      "line": 100,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/retained_input_origin_native_pilot.py",
+      "line": 87,
+      "call": "asyncio.run(main(acceptance=acceptance, provider_reply=lambda request, index: ({'role': 'assistant', 'content': f'S2_ORIGIN_ANSWER_{index}'}, 'stop'), provider_request_budget=2, fixture_stage=os.environ['S2_ORIGIN_FIXTURE']))"
+    },
+    {
+      "file": "tests/retained_input_origin_observer.py",
+      "line": 226,
+      "call": "self.run(self.observer.queue_followup(text))"
+    },
+    {
+      "file": "tests/retained_input_origin_observer.py",
+      "line": 236,
+      "call": "self.run(self.observer.submit(text, image=image, while_running=callback if while_running is not None else None, observation_seconds=observation_seconds))"
+    },
+    {
+      "file": "tests/retained_input_origin_observer.py",
+      "line": 266,
+      "call": "asyncio.run(serve())"
+    },
+    {
+      "file": "tests/retained_page_end_pilot.py",
+      "line": 46,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/retained_page_scope_pilot.py",
+      "line": 139,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/retained_tool_text_pilot.py",
+      "line": 108,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/right_comms_integration_pilot.py",
+      "line": 251,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/right_comms_pilot.py",
+      "line": 283,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/runtime_fixture_cleanup_probe.py",
+      "line": 71,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/saved_state_user_journey_pilot.py",
+      "line": 639,
+      "call": "asyncio.run(native_fixture(app_type=StreamJourneyApp, prepare_state=prepare_saved_state, acceptance=acceptance, provider_reply=streamed_reply, provider_chunk_characters=40))"
+    },
+    {
+      "file": "tests/scroll_select_latency_pilot.py",
+      "line": 365,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/selection_disclosure_pilot.py",
+      "line": 87,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/selection_hover_pilot.py",
+      "line": 48,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/serialized_preparation_pilot.py",
+      "line": 109,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/session_details_pilot.py",
+      "line": 122,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/session_route_installed_pilot.py",
+      "line": 63,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/session_sort_pilot.py",
+      "line": 239,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/settings_tree_pilot.py",
+      "line": 228,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/shared_channels_pilot.py",
+      "line": 296,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/shared_channels_pilot.py",
+      "line": 78,
+      "call": "agent.attach_surface(target)"
+    },
+    {
+      "file": "tests/sidebar_collapse_latency_pilot.py",
+      "line": 113,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/sidebar_custody_installed_journey.py",
+      "line": 82,
+      "call": "asyncio.run(native_fixture(app_type=InstalledApp, prepare_state=prepare_saved_state, acceptance=acceptance))"
+    },
+    {
+      "file": "tests/sidebar_direction_pilot.py",
+      "line": 93,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/sidebar_drag_resize_pilot.py",
+      "line": 100,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/sidebar_edge_anchor_installed_pilot.py",
+      "line": 123,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/sidebar_latency_pilot.py",
+      "line": 96,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/sidebar_layout_controls_pilot.py",
+      "line": 119,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/sidebar_metadata_reflow_pilot.py",
+      "line": 117,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/sidebar_navigation_pilot.py",
+      "line": 301,
+      "call": "asyncio.run(main(finish_before_layout=parser.parse_args().finish_before_layout))"
+    },
+    {
+      "file": "tests/sidebar_nonvirtual_scroll_pilot.py",
+      "line": 107,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/sidebar_pointer_focus_pilot.py",
+      "line": 62,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/sidebar_preparation_boundary_pilot.py",
+      "line": 37,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/sidebar_projection_pilot.py",
+      "line": 107,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 160,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/sidebar_retirement_pilot.py",
+      "line": 197,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/sidebar_sort_viewport_pilot.py",
+      "line": 85,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/snapshot_cancellation_custody_pilot.py",
+      "line": 245,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/source_admission_trace_pilot.py",
+      "line": 53,
+      "call": "asyncio.run(main(rich=args.rich, steps=args.steps))"
+    },
+    {
+      "file": "tests/sparse_history_pilot.py",
+      "line": 66,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/stale_selection_pilot.py",
+      "line": 43,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/startup_attachment_feedback_installed_journey.py",
+      "line": 30,
+      "call": "asyncio.run(native_fixture(app_type=InstalledApp, acceptance=acceptance, prepare_state=prepare, attachment_expected=False, provider_request_budget=0))"
+    },
+    {
+      "file": "tests/stop_responsiveness_pilot.py",
+      "line": 110,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/stream_style_work_pilot.py",
+      "line": 52,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/submission_native_installed_pilot.py",
+      "line": 135,
+      "call": "asyncio.run(main(app_type=InstalledApp, acceptance=acceptance, provider_reply=reply, provider_request_budget=4, expected_response_disconnects=frozenset({3})))"
+    },
+    {
+      "file": "tests/t8_mounted_pilot.py",
+      "line": 110,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/tab_clipboard_native_app.py",
+      "line": 73,
+      "call": "CopyApp(project_dir=sys.argv[1], mode='store').run()"
+    },
+    {
+      "file": "tests/tab_history_controls_pilot.py",
+      "line": 194,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/tab_order_pilot.py",
+      "line": 46,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/tab_scrollbar_top_pilot.py",
+      "line": 133,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/tail_anchor_policy_pilot.py",
+      "line": 78,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/terminal_attention_installed_journey.py",
+      "line": 319,
+      "call": "asyncio.run(child())"
+    },
+    {
+      "file": "tests/test_agent_session.py",
+      "line": 45,
+      "call": "asyncio.run(run())"
+    },
+    {
+      "file": "tests/test_client_session.py",
+      "line": 34,
+      "call": "asyncio.run(run())"
+    },
+    {
+      "file": "tests/test_client_session.py",
+      "line": 65,
+      "call": "asyncio.run(run())"
+    },
+    {
+      "file": "tests/test_client_session.py",
+      "line": 79,
+      "call": "asyncio.run(run())"
+    },
+    {
+      "file": "tests/test_client_session.py",
+      "line": 110,
+      "call": "asyncio.run(run())"
+    },
+    {
+      "file": "tests/test_input_custody.py",
+      "line": 41,
+      "call": "asyncio.run(run())"
+    },
+    {
+      "file": "tests/test_input_history.py",
+      "line": 39,
+      "call": "asyncio.run(acceptance())"
+    },
+    {
+      "file": "tests/test_session_updates.py",
+      "line": 43,
+      "call": "asyncio.run(run())"
+    },
+    {
+      "file": "tests/test_terminal_contract.py",
+      "line": 103,
+      "call": "asyncio.run(run())"
+    },
+    {
+      "file": "tests/test_terminal_contract.py",
+      "line": 135,
+      "call": "asyncio.run(run())"
+    },
+    {
+      "file": "tests/thread_activation_pilot.py",
+      "line": 182,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/thread_layout_pilot.py",
+      "line": 101,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/thread_navigation_installed_journey.py",
+      "line": 188,
+      "call": "asyncio.run(native_fixture(app_type=InstalledApp, prepare_state=prepare, provider_reply=reply, acceptance=acceptance))"
+    },
+    {
+      "file": "tests/thread_render_wait_pilot.py",
+      "line": 156,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/thread_render_wait_pilot.py",
+      "line": 79,
+      "call": "agent.attach_surface(target)"
+    },
+    {
+      "file": "tests/thread_spawn_bind_owner_installed_pilot.py",
+      "line": 20,
+      "call": "asyncio.run(native_fixture(app_type=InstalledApp, prepare_state=prepare_saved_state, acceptance=acceptance))"
+    },
+    {
+      "file": "tests/thread_unread_start_pilot.py",
+      "line": 226,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/throbber_busy_pilot.py",
+      "line": 88,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/throbber_render_cache_pilot.py",
+      "line": 59,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/throbber_scroll_cost_pilot.py",
+      "line": 82,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/tool_diff_lifecycle_pilot.py",
+      "line": 117,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/tool_diff_pilot.py",
+      "line": 137,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/tool_read_latency_pilot.py",
+      "line": 71,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/tools/merged_selector_fixture_recording.py",
+      "line": 60,
+      "call": "service.owners.start(thread_name, agent_bin=str(runtime / 'pi-comms-native'), agent_args=launch.arguments)"
+    },
+    {
+      "file": "tests/tools/merged_selector_fixture_recording.py",
+      "line": 66,
+      "call": "service.owners.start(peer_name, agent_bin=str(runtime / 'pi-comms-native'), agent_args=launch.arguments)"
+    },
+    {
+      "file": "tests/tools/merged_selector_fixture_recording.py",
+      "line": 86,
+      "call": "owner.run(command, env, stdout=log, stderr=log, timeout=270)"
+    },
+    {
+      "file": "tests/tools/physical_warm_capture.py",
+      "line": 51,
+      "call": "owner.run([*common, '--write-journey-script', str(actions)], environment, timeout=15)"
+    },
+    {
+      "file": "tests/tools/physical_warm_capture.py",
+      "line": 53,
+      "call": "owner.run(command, environment, stdout=log, stderr=log, timeout=130)"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 1327,
+      "call": "owner.run(common + interval + ['-vf', filters, '-frames:v', '1', '-threads', '1', '-update', '1', str(sheet)], env, timeout=60)"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 1378,
+      "call": "owner.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_packets', '-show_entries', 'format=duration:packet=pts_time,flags', '-of', 'json', str(output / 'terminal.mp4')], env, stdout=subprocess.PIPE, text=True, timeout=5)"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 269,
+      "call": "self.start(argv, env=env, stdout=stdout, **kwargs)"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 419,
+      "call": "owner.run([str(self.bin_directory / 'python'), str(Path(__file__).resolve()), '--runtime-probe'], env, stdout=subprocess.PIPE, text=True, timeout=15)"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 1186,
+      "call": "owner.start(['st', '-e', *command], env=os.environ.copy(), before_start=transfer_terminal)"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 1315,
+      "call": "owner.run(common + interval + ['-vf', trim + f'setpts={args.slowdown}*PTS', '-r', str(args.fps), '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '22', '-threads', '1', str(slow)], env, timeout=60)"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 1417,
+      "call": "owner.run(['ffprobe', '-v', 'error', '-show_format', '-of', 'json', str(video)], env, stdout=subprocess.PIPE, text=True, timeout=5)"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 1476,
+      "call": "owner.run([sys.executable, str(helper), '--pid', str(identity.pid), '--output-dir', str(output), '--name', name, '--state', '--sudo', '--wait-history-seconds', str(wait_history_seconds), '--wait-history-interval', str(wait_history_interval), *(['--wait-history-thread', wait_history_thread] if wait_history_thread else ["
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 1631,
+      "call": "owner.run(['xdotool', 'windowfocus', '--sync', window], env)"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 1635,
+      "call": "owner.start(['ffmpeg', '-nostdin', '-y', '-loglevel', 'warning', '-threads', '1', '-f', 'x11grab', '-framerate', str(args.fps), '-video_size', f'{args.width}x{args.height}', '-i', env['DISPLAY'], '-t', str(args.max_duration), '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '26', '-threads', '1', '-r', str(args.fps),"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 1754,
+      "call": "owner.run(['xdotool', 'key', '--window', window, 'ctrl+q'], env, timeout=2)"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 1767,
+      "call": "owner.run(['ffprobe', '-v', 'error', '-show_streams', '-show_format', '-of', 'json', str(output / 'terminal.mp4')], env, stdout=subprocess.PIPE, text=True)"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 1895,
+      "call": "owner.run(['import', '-display', display, '-window', 'root', str(output / name)], os.environ.copy(), timeout=5)"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 1572,
+      "call": "owner.start(['Xvfb', f':{display_number}', '-displayfd', str(write_fd), '-screen', '0', f'{args.width}x{args.height}x24', '-nolisten', 'tcp'], pass_fds=(write_fd,), stderr=stack.enter_context((output / 'xvfb.log').open('w')))"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 1597,
+      "call": "owner.start(argv, env=env, process_type=ProfileProcess, stdout=stack.enter_context((output / 'profiler.log').open('w')), stderr=stack.enter_context((output / 'terminal.log').open('w')))"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 1619,
+      "call": "owner.start(['st', '-e', *command], env=env, stderr=stack.enter_context((output / 'terminal.log').open('w')))"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 1633,
+      "call": "owner.run(['xdotool', 'windowsize', window, str(args.width - 20), str(args.height - 20)], env)"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 1662,
+      "call": "owner.run(['import', '-display', env['DISPLAY'], '-window', 'root', str(output / name)], env, timeout=min(10, remaining()))"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 1629,
+      "call": "owner.run(['xdotool', 'search', '--sync', '--pid', str(terminal_pid)], env, stdout=subprocess.PIPE, timeout=10, text=True)"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 1720,
+      "call": "owner.run(['xdotool', *action_argv], env, stdout=log, stderr=subprocess.STDOUT, observe=observe, observation_interval=args.live_review_interval, timeout=max(0.1, remaining() - args.tail_seconds - 1))"
+    },
+    {
+      "file": "tests/tools/sqlite_busy_recording.py",
+      "line": 164,
+      "call": "asyncio.run(fixture(readonly_capture=capture))"
+    },
+    {
+      "file": "tests/tools/sqlite_busy_recording.py",
+      "line": 114,
+      "call": "owner.start(command, env=environment, stdout=log, stderr=log)"
+    },
+    {
+      "file": "tests/tools/sqlite_busy_recording.py",
+      "line": 128,
+      "call": "owner.start([str(runtime / 'python'), str(SQL_HOLDER), str(service.root)], env=environment, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=sql)"
+    },
+    {
+      "file": "tests/transcript_filter_installed_journey.py",
+      "line": 207,
+      "call": "asyncio.run(native_fixture(app_type=InstalledApp, provider_reply=reply, prepare_state=prepare, acceptance=acceptance))"
+    },
+    {
+      "file": "tests/transcript_history_pilot.py",
+      "line": 108,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/transcript_lifecycle_pilot.py",
+      "line": 94,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/transcript_prefetch_pilot.py",
+      "line": 139,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/transcript_process_pilot.py",
+      "line": 318,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/transcript_process_pilot.py",
+      "line": 73,
+      "call": "super().run(observed_parse, transcript_fragments, events)"
+    },
+    {
+      "file": "tests/transcript_reader_reuse.py",
+      "line": 176,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/transcript_reader_reuse.py",
+      "line": 113,
+      "call": "attachment.attach_surface(app.selected_session.conversation)"
+    },
+    {
+      "file": "tests/transcript_source_lifetime_pilot.py",
+      "line": 174,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/transcript_teardown_pilot.py",
+      "line": 59,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/typed_comms_command_pilot.py",
+      "line": 81,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/typed_comms_command_pilot.py",
+      "line": 51,
+      "call": "agent.attach_surface(view)"
+    },
+    {
+      "file": "tests/ui_sidebar_geometry_pilot.py",
+      "line": 155,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/unread_navigation_pilot.py",
+      "line": 104,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/unread_paint_only_pilot.py",
+      "line": 98,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/user_input_worker_pilot.py",
+      "line": 46,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/view_switch_latency.py",
+      "line": 218,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/viewport_body_lifetime_pilot.py",
+      "line": 119,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/viewport_body_order_pilot.py",
+      "line": 465,
+      "call": "asyncio.run(readiness_journey() if '--readiness' in sys.argv else main())"
+    },
+    {
+      "file": "tests/viewport_bounded_runway_churn_pilot.py",
+      "line": 88,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/viewport_demand_custody_pilot.py",
+      "line": 112,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/viewport_idle_cadence_pilot.py",
+      "line": 133,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/viewport_layout_reentry_pilot.py",
+      "line": 81,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/viewport_rapid_scroll_pilot.py",
+      "line": 134,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/viewport_recent_tabs_pilot.py",
+      "line": 170,
+      "call": "asyncio.run(native_fixture(app_type=InstalledApp, acceptance=acceptance))"
+    },
+    {
+      "file": "tests/viewport_runway_pilot.py",
+      "line": 100,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/viewport_selection_diff_pilot.py",
+      "line": 85,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/viewport_warm_trim_pilot.py",
+      "line": 98,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/watcher_peer_close.py",
+      "line": 38,
+      "call": "subprocess.run([sys.executable, __file__, directory], capture_output=True, text=True, timeout=12, env=os.environ)"
+    },
+    {
+      "file": "tests/watcher_startup_cancellation.py",
+      "line": 119,
+      "call": "subprocess.run([sys.executable, __file__, '--abandon', str(abandoned)], check=True, timeout=10)"
+    },
+    {
+      "file": "tests/welcome_source_return_pilot.py",
+      "line": 64,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/work_preparation_delivery_pilot.py",
+      "line": 119,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/work_preparation_pilot.py",
+      "line": 104,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/worker_native_size_pilot.py",
+      "line": 183,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/worker_preview_pilot.py",
+      "line": 234,
+      "call": "asyncio.run(main())"
+    },
+    {
+      "file": "tests/workspace_native_paint_retention_pilot.py",
+      "line": 78,
+      "call": "asyncio.run(main())"
+    }
+  ],
+  "scope": "All source fixture callers; run/start lexical matches include unrelated owners read separately."
+}

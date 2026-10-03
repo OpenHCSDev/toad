@@ -42,7 +42,7 @@ from toad.render_protocol import (
     SubmitRender,
 )
 from toad.render_service import RenderService, RenderServiceConfig
-from toad.render_tasks import RenderTask
+from toad.render_backend import RenderTask
 
 ResultT = TypeVar("ResultT")
 

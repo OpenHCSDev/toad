@@ -21,7 +21,7 @@ async def main():
             agent = Agent(root, {"name": "Fixture", "identity": "fixture",
                                  "short_name": "fixture", "run_command": {"*": "true"},
                                  "protocol": "acp"}, "fixture")
-            agent.attach_surface(view)
+            view.bind_agent(agent)
             agent.updates.accept("fixture", {"sessionUpdate": "usage_update", "used": 120000,
                                                  "size": 272000})
             await pilot.pause()

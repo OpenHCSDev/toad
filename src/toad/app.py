@@ -54,7 +54,7 @@ from toad.application_lifetime import ApplicationLifetime
 
 if TYPE_CHECKING:
     from toad.db import DB
-    from toad.render_tasks import RenderTask
+    from toad.render_backend import RenderTask
     from toad.screens.main import MainScreen
     from toad.screens.store import StoreScreen
 

@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 import asyncio
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Generic, TypeVar, TYPE_CHECKING
+from typing import TypeVar
 
-from agent_comms.declared_family import DeclaredFamily
+from toad.render_backend import ReusableRenderTask
 from agent_comms.transcript_events import TranscriptEvent, MarkdownTranscript
 from agent_comms.mro_dispatch import MroDispatch, handles
 
@@ -27,76 +26,6 @@ from toad.rich_preparation import (
 )
 
 ResultT = TypeVar("ResultT", covariant=True)
-
-if TYPE_CHECKING:
-    from acp.schema import SessionNotification
-
-
-class RenderExecution(ABC, Generic[ResultT]):
-    @abstractmethod
-    def execute(self) -> ResultT:
-        """Execute pure preparation in the renderer process."""
-
-    @abstractmethod
-    def accept_result(self, result: object) -> ResultT:
-        """Validate the result at a transport boundary."""
-
-
-
-class RenderTask(RenderExecution[ResultT], DeclaredFamily, affix="RenderTask"):
-    """A nominal operation with an exact input and result contract."""
-
-    def reusable_inputs(self) -> object | None:
-        """None means external state prevents sharing or retaining this capture."""
-        return None
-
-class ReusableRenderTask(RenderTask[ResultT]):
-    def reusable_inputs(self) -> object:
-        return self
-
-
-class SessionUpdateValidation(DeclaredFamily, affix='SessionUpdateValidation'):
-    @abstractmethod
-    def publish(self, owner, session_id, raw, metadata): ...
-
-
-@dataclass(frozen=True)
-class AcceptedSessionUpdateValidation(SessionUpdateValidation):
-    notification: SessionNotification
-
-    def publish(self, owner, session_id, raw, metadata):
-        owner.publish(session_id, self.notification)
-
-
-@dataclass(frozen=True)
-class RejectedSessionUpdateValidation(SessionUpdateValidation):
-    error: str
-
-    def publish(self, owner, session_id, raw, metadata):
-        owner.reject(session_id, raw, metadata, self.error)
-
-
-@dataclass(frozen=True)
-class ValidateSessionUpdateTask(RenderTask[SessionUpdateValidation]):
-    """Keep the official SDK's validator graph in process workers, not the UI."""
-
-    session_id: str
-    update: object
-    metadata: dict | None = None
-
-    def execute(self) -> SessionUpdateValidation:
-        from toad.acp.sdk_boundary import decode_session_update
-
-        try:
-            notification = decode_session_update(self.session_id, self.update, self.metadata)
-        except (ValueError, TypeError) as error:
-            return RejectedSessionUpdateValidation(str(error))
-        return AcceptedSessionUpdateValidation(notification)
-
-    def accept_result(self, result: object) -> SessionUpdateValidation:
-        if not isinstance(result, SessionUpdateValidation):
-            raise TypeError("ACP validation worker returned an invalid result")
-        return result
 
 
 @dataclass(frozen=True)
@@ -219,8 +148,3 @@ class TabRosterRenderTask(ReusableRenderTask[tuple[PreparedTab, ...]]):
         if not isinstance(result, tuple) or not all(isinstance(tab, PreparedTab) for tab in result):
             raise TypeError("Tab renderer returned an invalid result")
         return result
-
-
-def execute_render_task(task: RenderTask[ResultT]) -> ResultT:
-    """Importable process entry point; transport adapters dispatch by task type."""
-    return task.execute()

@@ -110,7 +110,7 @@ async def main():
                 for _ in range(3)
             ]
             for attachment in attachments:
-                attachment.attach_surface(app.selected_session.conversation)
+                app.selected_session.conversation.bind_agent(attachment)
                 attach_coordination(attachment, str(root / "wire"), "fixture")
             with patch("toad.acp.transcript_reader.wire", wraps=wire) as create:
                 await asyncio.gather(
