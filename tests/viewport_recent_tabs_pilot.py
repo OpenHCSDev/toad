@@ -17,7 +17,7 @@ from textual.widget import Widget
 from toad.widgets.transcript_history import TranscriptFragmentView
 from agent_comms.transcript_events import TextTranscript
 from toad.widgets.agent_response import AgentResponse
-from toad.render_tasks import TranscriptRenderTask
+from toad.widgets.transcript_fragments import TranscriptRenderTask
 from toad.work_preparation import RenderPreparation
 
 

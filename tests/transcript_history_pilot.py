@@ -10,7 +10,7 @@ from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from toad.app import ToadApp
 from toad.widgets.transcript_history import TranscriptHistory
-from toad.render_tasks import TranscriptBodyPreparation
+from toad.widgets.transcript_fragments import TranscriptBodyPreparation
 
 
 async def until(predicate):

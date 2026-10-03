@@ -19,7 +19,7 @@ from worker_preview_pilot import GateRenderer
 
 from toad.acp.agent import Agent
 from toad.core.events import AgentReady
-from toad.render_tasks import TranscriptRenderTask
+from toad.widgets.transcript_fragments import TranscriptRenderTask
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.conversation import ThreadLoading
 

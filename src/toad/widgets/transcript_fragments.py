@@ -1,5 +1,6 @@
 """Render-sized transcript fragments; wire records and cursors remain model-owned."""
 
+import asyncio
 from dataclasses import dataclass, replace
 from functools import cached_property
 from collections.abc import Iterator
@@ -12,6 +13,7 @@ from agent_comms.transcript_events import (
 )
 from markdown_it import MarkdownIt
 
+from toad.render_backend import ReusableRenderTask
 from toad.widgets.agent_activity import AgentActivityBoundary
 from toad.widgets.message_filter import event_category
 
@@ -40,8 +42,6 @@ async def prepare_transcript_fragments(
     Standalone Textual apps may not own a pool. Their large requests own and close
     a temporary pool, including on cancellation; there is no hidden global pool.
     """
-    from toad.render_tasks import TranscriptRenderTask
-
     if pool is not None:
         return await pool.submit(TranscriptRenderTask(events, continuation=continuation))
     from toad.render_processes import RenderProcessPool
@@ -201,3 +201,49 @@ def transcript_fragments(
     for fragment in consumer.fragments:
         fragment.retained_bytes
     return tuple(consumer.fragments)
+
+
+class TranscriptBodyPreparation(MroDispatch):
+    """Pure body work for declared transcript cases, without native widgets."""
+
+    def __init__(self, renderer, ansi: bool, dark: bool):
+        self.renderer, self.ansi, self.dark = renderer, ansi, dark
+
+    async def prepare_fragments(self, fragments, keep_going, *, batch_size: int) -> None:
+        """Warm a bounded source range in shared workers, without native mounts.
+
+        Reversal/retirement stops the next batch. Already admitted render work
+        keeps its existing runtime custody and resource limits.
+        """
+        for first in range(0, len(fragments), batch_size):
+            if not keep_going():
+                return
+            await asyncio.gather(*(self.dispatch(event)
+                                   for fragment in fragments[first:first + batch_size]
+                                   for event in fragment.events))
+
+    @handles(TranscriptEvent)
+    async def undisclosed(self, event: TranscriptEvent) -> None:
+        # Metadata and tool disclosure contents retain their existing lazy
+        # owners. A viewport prediction does not open those disclosures.
+        pass
+
+    @handles(MarkdownTranscript)
+    async def markdown(self, event: MarkdownTranscript) -> None:
+        from toad.render_tasks import MarkdownRenderTask
+
+        await self.renderer.submit(MarkdownRenderTask(event.text, self.ansi, self.dark))
+
+
+@dataclass(frozen=True)
+class TranscriptRenderTask(ReusableRenderTask[tuple[TranscriptFragment, ...]]):
+    events: tuple[TranscriptEvent, ...]
+    continuation: bool = False
+
+    def execute(self) -> tuple[TranscriptFragment, ...]:
+        return transcript_fragments(self.events, continuation=self.continuation)
+
+    def accept_result(self, result: object) -> tuple[TranscriptFragment, ...]:
+        if not isinstance(result, tuple) or not all(isinstance(item, TranscriptFragment) for item in result):
+            raise TypeError("Transcript renderer returned an invalid result")
+        return result
