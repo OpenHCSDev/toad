@@ -279,6 +279,3 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
                 detail = detail[:self.detail_characters] + (
                     "\n\n[Preview truncated; original context remains unchanged.]")
             self.query_one(TextArea).load_text(detail)
-
-    def on_unmount(self):
-        self.workers.cancel_node(self)
