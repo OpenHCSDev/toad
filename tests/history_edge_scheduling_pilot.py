@@ -334,7 +334,8 @@ async def retained_app(project):
 
 
 async def record_retained(service, project, evidence, environment, *, recording_args,
-                          recording_timeout, journey=RetainedHistorySourceJourney):
+                          recording_timeout, recording_output,
+                          journey=RetainedHistorySourceJourney):
     """Existing original-turn fixture callback; owns no second App or root."""
     env = dict(environment, L0A_HEADLESS='0', TOAD_HISTORY_LIFETIME_DIRECTORY=str(project),
                XDG_STATE_HOME=str(evidence / 'ui-state'))
@@ -344,7 +345,7 @@ async def record_retained(service, project, evidence, environment, *, recording_
     command = [sys.executable, str(Path(__file__).resolve()), '--record', *recording_args,
         '--capture-target', 'source', '--private-root', str(service.root),
         '--journey', journey.declared_name, '--peer-thread', 'resource236b',
-        '--capture-state', '--scroll-travel', '--output', str(evidence / 'capture'),
+        '--capture-state', '--scroll-travel', '--output', str(recording_output),
         '--', sys.executable, str(Path(__file__).resolve()), '--retained-app', str(project)]
     (evidence / 'joint-command.json').write_text(json.dumps(command, indent=2) + '\n')
     owner = ProcessOwner(service.registry)

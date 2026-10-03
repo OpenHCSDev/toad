@@ -128,3 +128,19 @@ while the declared registry producer continues to validate its document. Do not
 run the oldCore52f reader against the current-format bus or override the fence.
 Original failure is retained under `evidence/.../preflight01/` and owned scratch.
 No product End failure or pass was established by that rejected preflight.
+
+## Launcher correction and recorder admission
+
+Arendt560 froze the shared helper at `5f1ff1a6971b0af035c929eafa7c3ebc5fd8dc1f`.
+Only the forced interpreter argument was removed. The approved558 interpreter
+continues to decode the registry; original launcher capture independently fences
+the actual process. Related decoder helper files are byte equal to the parent.
+
+Attempt02 passed original capture: the 41,294,021-byte saved source hash remained
+unchanged, both isolated SDK copies were created, and zero native inputs were
+sent. It failed before UI launch because this callback incorrectly placed video
+under its WT evidence directory; the recorder requires its existing scratch
+resource root. The operator now supplies the recording output explicitly while
+structured fixture evidence stays in the persistent WT. No recorder guard,
+budget or product code changed. Cleanup reported no remaining children/errors.
+This attempt establishes neither installed End failure nor End acceptance.
