@@ -1,6 +1,7 @@
 """Native Toad conversation view for an agent-comms channel or DM."""
 
 from __future__ import annotations
+from toad.core import input_events
 from functools import partial
 from toad.delivery_failure_view import DeliveryFailureView
 from toad.mounted_message_history import MountedMessageHistory
@@ -373,7 +374,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
         return TargetContext.decode(self.kind)(self.app, self.message_history.reader.comms, self.target, self._me, self.project_path,
                              self.app.selected_mode)
 
-    async def submit_input(self, event: messages.UserInputSubmitted) -> None:
+    async def submit_input(self, event: input_events.UserInputSubmitted) -> None:
         if event.body.strip().startswith("/") and await self.command_catalog.execute(event.body.strip(), self):
             return
         if not event.body.strip():

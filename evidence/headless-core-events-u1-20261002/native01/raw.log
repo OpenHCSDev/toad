@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/core_events_native_installed_pilot.py", line 10, in <module>
+    from l0a_native_installed_pilot import main, response_painted, until
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/l0a_native_installed_pilot.py", line 32, in <module>
+    from toad.widgets.comms_chat import CommsChatView
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/toad/widgets/comms_chat.py", line 29, in <module>
+    from toad.widgets.conversation import (
+    ...<5 lines>...
+    )
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/toad/widgets/conversation.py", line 90, in <module>
+    from toad.widgets.session_details import SessionDetails
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/toad/widgets/session_details.py", line 24, in <module>
+    class SessionDetails(Collapsible):
+    ...<96 lines>...
+            self._refresh_summary()
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/toad/widgets/session_details.py", line 67, in SessionDetails
+    @on(ObservedThreadActivity.Changed)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'ObservedThreadActivity' has no attribute 'Changed'

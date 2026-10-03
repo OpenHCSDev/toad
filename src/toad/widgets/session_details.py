@@ -6,7 +6,6 @@ from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING
 
 from agent_comms.thread_presentation import ThreadPresentation
-from textual import on
 from textual.reactive import var
 from textual.widgets import Collapsible
 
@@ -15,13 +14,16 @@ from toad.widgets.native_history import NativeHistory
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.widgets.session_history_details import SessionHistoryDetails
 from toad.conversation_turn import ConversationTurn
+from agent_comms.mro_dispatch import handles
+from toad.core import events as core_events
+from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 
 
 if TYPE_CHECKING:
     from toad.transcript_publication import TranscriptPresentation
 
 
-class SessionDetails(Collapsible):
+class SessionDetails(CoreEventReceiver, Collapsible):
     """Keep one summary row; native detail producers remain the state owners."""
 
     DETAIL_ROWS = 8
@@ -64,10 +66,10 @@ class SessionDetails(Collapsible):
             self.watch(self.delivery, "error", self._refresh_summary)
         self._refresh_summary()
 
-    @on(ObservedThreadActivity.Changed)
-    def observed_activity_changed(self, event: ObservedThreadActivity.Changed) -> None:
+    @handles(core_events.ThreadActivityChanged)
+    def observed_activity_changed(self, message: CoreEventMessage) -> None:
         # The same event still reaches Conversation's activity/Ready policy.
-        if event.current:
+        if message.publisher is self.activity:
             self._refresh_summary()
 
     def _refresh_summary(self, *_args) -> None:

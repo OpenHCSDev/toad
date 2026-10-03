@@ -1,0 +1,9 @@
+Using Python 3.14.2 environment at: /home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final
+   Updating https://github.com/OpenHCSDev/toad.git (04cd0b1cb337d28e80cc26c560c9602ab8741797)
+error: Failed to download and build `batrachian-toad @ git+https://github.com/OpenHCSDev/toad.git@04cd0b1cb337d28e80cc26c560c9602ab8741797`
+  cause: Git operation failed
+  cause: failed to fetch into: /home/ts/.cache/uv/git-v1/db/e0d6980a492da0bf
+  cause: failed to fetch commit `04cd0b1cb337d28e80cc26c560c9602ab8741797`
+  cause: process didn't exit successfully: `/usr/bin/git fetch --force --update-head-ok 'https://github.com/OpenHCSDev/toad.git' '+04cd0b1cb337d28e80cc26c560c9602ab8741797:refs/commit/04cd0b1cb337d28e80cc26c560c9602ab8741797'` (exit status: 128)
+         --- stderr
+         fatal: remote error: upload-pack: not our ref 04cd0b1cb337d28e80cc26c560c9602ab8741797

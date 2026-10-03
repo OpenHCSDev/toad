@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/l0a_native_installed_pilot.py", line 311, in main
+    await acceptance(app, pilot, agent, comms, entered, release,
+                     hold_next, requests)
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/core_events_native_installed_pilot.py", line 38, in acceptance
+    await until(pilot, lambda: bool(view.queue_projection.items))
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/l0a_native_installed_pilot.py", line 52, in until
+    while not predicate():
+              ~~~~~~~~~^^
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/core_events_native_installed_pilot.py", line 38, in <lambda>
+    await until(pilot, lambda: bool(view.queue_projection.items))
+                                    ^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Conversation' object has no attribute 'queue_projection'

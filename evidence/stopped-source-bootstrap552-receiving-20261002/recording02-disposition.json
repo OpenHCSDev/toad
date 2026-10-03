@@ -1,0 +1,16 @@
+{
+  "original_receipt": "/home/ts/.cache/agent-scratch/channel-native-lifetime344-public-20261002-02/capture/receipt.json",
+  "sha256": "8f6ff2b227c6e8553dd90e73ae00c14ca36160b8f4349368b224cc9300c5a025",
+  "completed": false,
+  "capture_completed": true,
+  "remaining_owned_pids": [],
+  "cleanup_errors": [],
+  "actual_recorder_client_terminal_pids": [
+    900792,
+    900800,
+    900799
+  ],
+  "current_proc_absent": true,
+  "raw_negative_preserved": true,
+  "scope": "Recording captured; review KeyError/raw completedFalse retained, no false full-recording PASS"
+}

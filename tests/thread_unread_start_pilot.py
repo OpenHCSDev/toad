@@ -1,6 +1,6 @@
 """Persistent native unread counts reach sidebar/tabs; Start uses the core tool."""
 from toad.navigation_target import NavigationContext
-from toad.acp.messages import CommsUpdated
+from toad.core.events import CommsUpdated
 
 from toad.navigation_target import channel_target
 
@@ -15,7 +15,7 @@ from agent_comms.runtime import socket_path
 from agent_comms.threads import Thread
 from runtime_fixture import ToadApp, private_native_wire
 
-from toad.acp.messages import CommsUpdated
+from toad.core.events import CommsUpdated
 from toad.session_tracker import ExactUnread
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_menu import ContextMenuItem

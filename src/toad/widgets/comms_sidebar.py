@@ -12,6 +12,10 @@ acts through ``agent_comms`` operations.
 """
 
 from __future__ import annotations
+from toad.core.input_events import SelectTarget
+from toad.core.preference_events import PreferenceChanged
+from toad.core_event_carrier import CoreEventMessage
+from toad.core import session_requests
 
 import os
 from collections.abc import Mapping
@@ -30,6 +34,10 @@ from textual.widgets import Static
 
 
 from toad import messages
+from agent_comms.mro_dispatch import handles
+from toad.core.events import SessionChangedEvent
+from toad.core.events import SessionSelected, ThreadActionsChanged, CoordinationObserved
+from toad.core_event_carrier import CoreEventReceiver
 from toad.navigation_target import NavigationOwner
 from toad.sidebar_preparation import ThreadRowInput
 from toad.widgets.session_sidebar import ThreadStatusRow
@@ -194,15 +202,7 @@ def _display_path(path: Path) -> str:
         return str(path.resolve())
 
 
-class SelectTarget(Message):
-    """User picked a view target: a channel, a DM peer, or the session."""
-
-    def __init__(self, target: NavigationTarget) -> None:
-        self.target = target
-        super().__init__()
-
-
-class CommsRow(ThreadStatusRow):
+class CommsRow(CoreEventReceiver, ThreadStatusRow):
     """One interactive row: a channel or a thread."""
 
     mode_name: str | None = None
@@ -295,7 +295,7 @@ class CommsRow(ThreadStatusRow):
                 group="sidebar-open",
             )
         else:
-            self.post_message(SelectTarget(self.target))
+            self.publish_core(SelectTarget(self.target))
 
     def on_focus(self) -> None:
         """Keep the sidebar cursor in sync with keyboard focus."""
@@ -359,7 +359,7 @@ class NewSessionButton(Static):
 
     def action_create(self) -> None:
         source_mode = cast("ToadApp", self.app).selected_mode
-        self.app.post_message(messages.SessionCreate(source_mode))
+        self.app.session_navigation.events.publish(session_requests.SessionCreate(source_mode))
 
     def on_mouse_up(self, event) -> None:
         if event.button == 1:
@@ -441,7 +441,7 @@ class CoordinationStatus(Static):
         )
 
 
-class CommsSidebar(SidebarVisibilityObserver, TargetTree):
+class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
     """One shared channel hierarchy; source, paint and reader intent have owners."""
     DEFAULT_CSS = """
     CommsSidebar { height: auto; padding: 0 0 1 0; }
@@ -483,6 +483,26 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
 
     async def on_unmount(self) -> None:
         await self.observation.close()
+
+    @handles(SessionChangedEvent)
+    async def session_changed(self, event: CoreEventMessage) -> None:
+        await self.observation.session_updated(event.event)
+
+    @handles(SessionSelected)
+    async def session_selected(self, event: CoreEventMessage) -> None:
+        self.navigation.mode_changed(event.event.mode_name)
+
+    @handles(ThreadActionsChanged)
+    async def thread_actions_changed(self, event: CoreEventMessage) -> None:
+        await self.observation.actions_changed(event.event)
+
+    @handles(CoordinationObserved)
+    async def coordination_observed(self, event: CoreEventMessage) -> None:
+        await self.observation.coordination_updated(event.event)
+
+    @handles(PreferenceChanged)
+    async def settings_changed(self, event: CoreEventMessage) -> None:
+        self.observation.settings_changed(event.event)
 
     def sidebar_visibility_changed(self) -> None:
         self.projection.sync_spinner()

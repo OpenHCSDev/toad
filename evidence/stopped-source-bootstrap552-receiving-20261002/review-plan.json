@@ -1,0 +1,38 @@
+{
+  "target": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002",
+  "source_interpreter": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+  "current_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "original_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-9f12ddf4e22d6d7a/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-960296fdddafb01c/node_modules/@earendil-works/pi-coding-agent",
+  "activation": {
+    "path": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/activation.json",
+    "sha256": "f94bdd4e3b92761c14d4f59812b0a19a83051c7885e4775846058aa90481c9c0"
+  },
+  "source_proof": {
+    "path": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/source-proof.json",
+    "sha256": "fe6b2fcaa54d822e0f522c5218857159e093473fd7c15cd01b9c5abd9e00b908"
+  },
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/lifetime-recovery-receipt.json",
+      "sha256": "c5517bec7ced8206f8aa899982a43935d623663feba6f8ab985aad22064b8355"
+    },
+    {
+      "path": "/home/ts/wt/comms-task-aware-native-bundle-20261002/evidence/native-operation-custody-20261002/corrected-owner-terminal.json",
+      "sha256": "48a3c8c9e017261bd4a75406d4c86444ace328b0925138fd47413785062a3ee8"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/context-explorer309-return-2809-20261002/capture/receipt.json",
+      "sha256": "31e48ee51fb92ba88a6e6f1d9f190bf18bc6bdbb4ab7f4bd18da32cd9b8ef416"
+    },
+    {
+      "path": "/home/ts/wt/comms-task-aware-native-bundle-20261002/evidence/stopped-source-recovery-footprint-20261002/final552-installed-file-mode-recovery-receipt.json",
+      "sha256": "6d4fcdc963179628198a919926c5fa2e6de8808c178a66f7118c5736345452eb"
+    }
+  ]
+}

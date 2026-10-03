@@ -1,6 +1,7 @@
 """An interrupted mounted USER send is not replayable while its worker survives."""
 
 from __future__ import annotations
+from toad.core import input_events
 from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import DirectTarget, channel_target
@@ -67,7 +68,7 @@ async def main() -> None:
                         settled.set()
 
                 with patch.object(view._wire.messaging, 'send_user_message', delayed_send):
-                    event = messages.UserInputSubmitted("CANCELLED-IN-FLIGHT")
+                    event = input_events.UserInputSubmitted("CANCELLED-IN-FLIGHT")
                     task = asyncio.create_task(view.submit_input(event))
                     assert await asyncio.to_thread(started.wait, 8)
                     task.cancel()
@@ -112,7 +113,7 @@ async def main() -> None:
                         wraps=channel._wire.messaging.send_user_message,
                     ) as sender,
                 ):
-                    postreceipt = messages.UserInputSubmitted("POSTRECEIPT-CANCEL")
+                    postreceipt = input_events.UserInputSubmitted("POSTRECEIPT-CANCEL")
                     pending = asyncio.create_task(channel.submit_input(postreceipt))
                     async with asyncio.timeout(8):
                         await entered_paint.wait()

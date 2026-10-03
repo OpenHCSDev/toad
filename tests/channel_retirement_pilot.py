@@ -1,4 +1,5 @@
 """Mounted migrated audience: normal sidebar/history and an explicit read-only composer."""
+from toad.core import input_events
 
 import asyncio
 import json
@@ -55,7 +56,7 @@ async def main():
             assert [m.body for m,_ in chat.message_history.rows] == [m.body for m in rows]
             assert chat.prompt.prompt_text_area.disabled
             assert 'Read-only' in chat.status
-            await chat.submit_input(messages.UserInputSubmitted('must not publish'))
+            await chat.submit_input(input_events.UserInputSubmitted('must not publish'))
             assert chat.prompt.text == 'must not publish'
             assert comms.bus.log.path.read_bytes() == original
             assert next(v for v in comms.views.channel_views() if v.channel.name=='#engineering').channel.pinned

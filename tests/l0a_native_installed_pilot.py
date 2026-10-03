@@ -1,3 +1,4 @@
+from toad.core import input_events
 from toad.agent_schema import AgentDefinition
 from agent_comms.acp_extension import QueuePromptRequest
 """Installed Toad/ACP/owner/Pi path with a loopback-only model fixture."""
@@ -64,7 +65,7 @@ async def notification_feedback(
     entered.clear()
     release.clear()
     hold_next.set()
-    await channel.submit_input(messages.UserInputSubmitted("CHANNEL_NATIVE_TRIAGE"))
+    await channel.submit_input(input_events.UserInputSubmitted("CHANNEL_NATIVE_TRIAGE"))
     await until(pilot, entered.is_set)
     await until(pilot, lambda: comms.registry.require("beta").executing)
     await refresh_comms(channel)
@@ -486,7 +487,7 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 release.clear()
                 hold_next.set()
                 await dm.submit_input(
-                    messages.UserInputSubmitted("DIRECT_NATIVE_MESSAGE")
+                    input_events.UserInputSubmitted("DIRECT_NATIVE_MESSAGE")
                 )
                 await until(pilot, entered.is_set)
                 assert comms.registry.require("beta").executing

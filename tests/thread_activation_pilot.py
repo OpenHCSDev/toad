@@ -1,5 +1,5 @@
 """Returning to a thread paints its intended viewport without replaying old scroll positions."""
-from toad.acp.messages import CommsUpdated
+from toad.core.events import CommsUpdated
 
 import asyncio
 import os

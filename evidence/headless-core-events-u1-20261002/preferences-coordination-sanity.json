@@ -1,0 +1,15 @@
+{
+  "source": "d563d8b8 source overlay, existing installed dependencies",
+  "core_import_textual": false,
+  "preference_original_identity_cases": 3,
+  "no_copied_preference_value": true,
+  "inherited_declaration_alias_refused": true,
+  "persisted_settings_format_unchanged": true,
+  "native_callback_ordering": [
+    "resumed-original-callback"
+  ],
+  "retired_callback_suppressed": true,
+  "cleanup_subscriptions": 0,
+  "installed_readiness": false,
+  "risks": "WireValue method collision/persisted JSON; inherited descriptor identity alias; deferred callback bypassing native ordering or resuming after retirement"
+}

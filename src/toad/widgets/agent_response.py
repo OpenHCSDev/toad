@@ -4,9 +4,8 @@ from functools import cached_property
 
 from textual.widget import Widget
 from toad.widgets.streaming_markdown import StreamingMarkdown
-from agent_comms.routing import MessageRoute
-from toad.widgets.route_header import RouteHeader
-from toad.widgets.message_divider import MessageDivider, MessageClock, LiveMessageClock
+from toad.widgets.message_divider import MessageClock, LiveMessageClock
+from toad import response_delivery
 from toad.widgets.message_filter import (
     CategorizedBlock,
     MessageCategory,
@@ -14,50 +13,6 @@ from toad.widgets.message_filter import (
     AgentCategory,
 )
 
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
-
-
-class ResponseDelivery(ABC):
-    @classmethod
-    def from_route(cls, route: MessageRoute | None) -> ResponseDelivery:
-        """Decode the optional routing annotation at the ACP/transcript boundary."""
-        return UnroutedResponse() if route is None else RoutedResponse(route)
-
-    @property
-    @abstractmethod
-    def category(self) -> type[MessageCategory]: ...
-
-    @abstractmethod
-    def prefix(self, clock: MessageClock) -> tuple[Widget, ...]: ...
-
-    def decorate(self, widget: Widget) -> None:
-        pass
-
-
-@dataclass(frozen=True)
-class UnroutedResponse(ResponseDelivery):
-    @property
-    def category(self):
-        return AgentCategory
-
-    def prefix(self, clock: MessageClock):
-        return (MessageDivider("Agent", clock=clock),)
-
-
-@dataclass(frozen=True)
-class RoutedResponse(ResponseDelivery):
-    route: MessageRoute
-
-    @property
-    def category(self):
-        return OutboundCategory
-
-    def prefix(self, clock: MessageClock):
-        return MessageDivider("Outbound", clock=clock), RouteHeader(self.route)
-
-    def decorate(self, widget):
-        widget.add_class("-routed")
 
 
 class AgentResponse(ConversationBlock, CategorizedBlock, StreamingMarkdown):
@@ -77,7 +32,7 @@ class AgentResponse(ConversationBlock, CategorizedBlock, StreamingMarkdown):
     def message_category(self) -> type[MessageCategory]:
         return self._message_category
 
-    def __init__(self, markdown: str | None = None, *, delivery: ResponseDelivery = UnroutedResponse(),
+    def __init__(self, markdown: str | None = None, *, delivery: response_delivery.ResponseDelivery = response_delivery.UnroutedResponse(),
                  category: type[MessageCategory] | None = None,
                  paginate: bool = True, show_divider: bool = True, clock: MessageClock = LiveMessageClock()) -> None:
         self._message_category = category or delivery.category

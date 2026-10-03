@@ -1,6 +1,7 @@
 """Command declarations own completion, argument parsing and execution."""
 
 from __future__ import annotations
+from toad.core import session_requests
 
 from abc import abstractmethod
 from dataclasses import dataclass
@@ -305,7 +306,7 @@ class SessionCloseCommand(NoArgumentsCommand, declared_name="toad:session-close"
         if conversation.turns.owner.busy and conversation.agent is not None:
             await conversation.agent.cancel()
         if conversation.screen.id is not None:
-            conversation.post_message(messages.SessionClose(conversation.screen.id))
+            conversation.app.session_navigation.events.publish(session_requests.SessionClose(conversation.screen.id))
         return True
 
 
@@ -323,8 +324,8 @@ class SessionNewCommand(SlashCommand, LocalCommand, declared_name="toad:session-
         from toad import messages
 
         if conversation._agent_data is not None:
-            conversation.post_message(
-                messages.SessionNew(
+            conversation.app.session_navigation.events.publish(
+                session_requests.SessionNew(
                     conversation.working_directory,
                     conversation._agent_data.identity,
                     self.prompt,

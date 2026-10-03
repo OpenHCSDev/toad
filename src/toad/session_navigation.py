@@ -1,5 +1,7 @@
 """App admission and close use the existing workspace's declared factories."""
 from __future__ import annotations
+from toad.core import events as core_events
+from toad.core.events import CoreEventStream
 
 from collections.abc import Callable
 from itertools import count
@@ -7,8 +9,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, cast
 from functools import partial
 
-from agent_comms.mro_dispatch import MroDispatch, handles
-from toad import messages
 
 from toad.comms_root import current_root, root_is_current
 from toad.navigation_preparation import CommsNavigationRequest
@@ -22,9 +22,10 @@ if TYPE_CHECKING:
     from toad.screens.main import MainScreen
 
 
-class SessionAdmissions(MroDispatch):
+class SessionAdmissions:
     def __init__(self, app: ToadApp, initial_session_id: str | None = None) -> None:
         self.app = app
+        self.events = CoreEventStream(self)
         self.identities = count(1)
         self.initial_session_id = initial_session_id
 
@@ -33,48 +34,9 @@ class SessionAdmissions(MroDispatch):
         app = self.app
         session_id = self.initial_session_id
         self.initial_session_id = None
-        return MainScreen(app.project_dir, app.agent_data, agent_session_id=session_id,
-            agent_session_title=session_id).data_bind(column=type(app).column,
+        return MainScreen(app.project_dir, app.agent_data, agent_session_id=session_id).data_bind(column=type(app).column,
                 column_width=type(app).column_width, scrollbar=type(app).scrollbar)
 
-    @handles(messages.SessionNavigate)
-    async def navigate_request(self, event: messages.SessionNavigate) -> None:
-        modes = [tab.mode_name for tab in self.tabs]
-        if self.app.selected_mode in modes:
-            await self.app.select_session(modes[(modes.index(self.app.selected_mode) + event.direction) % len(modes)])
-
-    @handles(messages.SessionSwitch)
-    async def switch_request(self, event: messages.SessionSwitch) -> None:
-        await self.app.select_session(event.mode_name)
-
-    @handles(messages.SessionNew)
-    async def new_request(self, event: messages.SessionNew) -> None:
-        self.app.run_worker(partial(self.launch, event.agent,
-            project_path=Path(event.path), initial_prompt=event.prompt))
-
-    @handles(messages.SessionCreate)
-    async def create_request(self, event: messages.SessionCreate) -> None:
-        await self.create_from(event.source_mode)
-
-    @handles(messages.SessionRename)
-    async def rename_request(self, event: messages.SessionRename) -> None:
-        name = event.name.strip()
-        source = self.source(event.mode_name)
-        if name and source is not None:
-            await source.conversation.rename_session(name)
-
-    @handles(messages.SessionArchive)
-    async def archive_request(self, event: messages.SessionArchive) -> None:
-        await self.close(event.mode_name)
-
-    @handles(messages.SessionClose)
-    async def close_request(self, event: messages.SessionClose) -> None:
-        self.app.update_show_sessions()
-
-    @handles(messages.LaunchAgent)
-    async def launch_request(self, event: messages.LaunchAgent) -> None:
-        self.app.run_worker(partial(self.launch, event.identity,
-            agent_session_id=event.session_id, session_pk=event.pk, initial_prompt=event.prompt))
 
     async def reveal(self) -> None:
         from toad.widgets.comms_sidebar import CommsSidebar
@@ -108,7 +70,7 @@ class SessionAdmissions(MroDispatch):
         return admission.source(self) if admission else None
 
     def publish(self) -> None:
-        self.app.open_tabs_changed.publish(None)
+        self.app.events.publish(core_events.OpenTabsChanged())
         self.app.update_show_sessions()
 
     async def admit(self, admission: SessionAdmission, *, after: str | None = None) -> str:
@@ -122,7 +84,6 @@ class SessionAdmissions(MroDispatch):
 
     async def new(self, factory: Callable[[], MainScreen], *, title: str = "New Session") -> SessionDetails:
         details = self.app.session_tracker.new_session(title=title)
-        self.app.session_update_signal.publish((details.mode_name, details))
         await self.admit(NativeSessionAdmission(details, factory))
         return details
 
@@ -157,9 +118,10 @@ class SessionAdmissions(MroDispatch):
             if existing is not None:
                 await app.select_session(existing.mode)
                 return
-        await self.new(lambda: MainScreen(project, agent, agent_session_id, agent_session_title=title,
+        await self.new(lambda: MainScreen(project, agent, agent_session_id,
             session_pk=session_pk, initial_prompt=initial_prompt).data_bind(
-            column=type(app).column, column_width=type(app).column_width, scrollbar=type(app).scrollbar))
+            column=type(app).column, column_width=type(app).column_width, scrollbar=type(app).scrollbar),
+            title=title or "New Session")
 
     async def history(self, *, owner_mode: str, project_path: Path, me: str, target: str,
                       kind: type[ConversationKind]) -> str:

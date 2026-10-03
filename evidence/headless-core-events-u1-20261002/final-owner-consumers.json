@@ -1,0 +1,1001 @@
+{
+  "source": "e2170d93c2e9f839d67f9bf6c464ad29776fc1e6",
+  "collector": "refactor-audit.audit.findings.Package.load",
+  "production_modules": 285,
+  "parse_omissions": [],
+  "mechanism_declarations": [
+    {
+      "path": "src/toad/core/events.py",
+      "line": 22,
+      "name": "CoreEvent",
+      "bases": [
+        "DeclaredFamily"
+      ]
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 247,
+      "name": "Subscription",
+      "bases": []
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 283,
+      "name": "CoreEventStream",
+      "bases": []
+    },
+    {
+      "path": "src/toad/core_event_carrier.py",
+      "line": 16,
+      "name": "CoreEventMessage",
+      "bases": [
+        "Message"
+      ]
+    }
+  ],
+  "publication_subscription_consumers": [
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 208,
+      "operation": "self.events.publish"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 271,
+      "operation": "self.events.publish"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 275,
+      "operation": "self.events.publish"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 425,
+      "operation": "self.events.publish"
+    },
+    {
+      "path": "src/toad/acp/agent_configuration.py",
+      "line": 141,
+      "operation": "self.publish"
+    },
+    {
+      "path": "src/toad/acp/agent_configuration.py",
+      "line": 145,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 67,
+      "operation": "target.subscribe_core"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 187,
+      "operation": "agent.configuration.publish"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 188,
+      "operation": "agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 218,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 227,
+      "operation": "agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 232,
+      "operation": "self.agent.configuration.publish"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 249,
+      "operation": "self.agent.configuration.publish"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 260,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 265,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 71,
+      "operation": "target.retire_core"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 191,
+      "operation": "agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 197,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 205,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 344,
+      "operation": "agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 346,
+      "operation": "agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 177,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 182,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 191,
+      "operation": "agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 245,
+      "operation": "agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 208,
+      "operation": "agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 70,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/agent_session.py",
+      "line": 65,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/agent_session.py",
+      "line": 99,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/agent_session.py",
+      "line": 306,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/agent_session.py",
+      "line": 78,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 73,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 77,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 87,
+      "operation": "agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 137,
+      "operation": "agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 142,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 149,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 164,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 168,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 180,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 191,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 197,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 114,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 95,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 101,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 94,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 99,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 109,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 142,
+      "operation": "self.publish"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 148,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 71,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 86,
+      "operation": "self.publish"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 130,
+      "operation": "validation.publish"
+    },
+    {
+      "path": "src/toad/acp/tool_calls.py",
+      "line": 20,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/acp/tool_calls.py",
+      "line": 33,
+      "operation": "self.agent.events.publish"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 318,
+      "operation": "self.subscribe_core"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 506,
+      "operation": "self.events.publish"
+    },
+    {
+      "path": "src/toad/application_lifetime.py",
+      "line": 65,
+      "operation": "self.usage.publish"
+    },
+    {
+      "path": "src/toad/clipboard.py",
+      "line": 25,
+      "operation": "self.publish"
+    },
+    {
+      "path": "src/toad/clipboard.py",
+      "line": 51,
+      "operation": "TerminalClipboard().publish"
+    },
+    {
+      "path": "src/toad/comms_root.py",
+      "line": 162,
+      "operation": "self.events.publish"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 304,
+      "operation": "subscription.publish"
+    },
+    {
+      "path": "src/toad/core_event_carrier.py",
+      "line": 53,
+      "operation": "self.subscribe_core"
+    },
+    {
+      "path": "src/toad/core_event_carrier.py",
+      "line": 57,
+      "operation": "self.core_publications.publish"
+    },
+    {
+      "path": "src/toad/core_event_carrier.py",
+      "line": 82,
+      "operation": "self.retire_core"
+    },
+    {
+      "path": "src/toad/directory_watcher.py",
+      "line": 248,
+      "operation": "widget.subscribe_core"
+    },
+    {
+      "path": "src/toad/directory_watcher.py",
+      "line": 295,
+      "operation": "self.events.publish"
+    },
+    {
+      "path": "src/toad/directory_watcher.py",
+      "line": 323,
+      "operation": "self._widget.retire_core_observations"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 336,
+      "operation": "app.settings.events.publish"
+    },
+    {
+      "path": "src/toad/prompt_cursor.py",
+      "line": 94,
+      "operation": "editor.publish_core"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 68,
+      "operation": "owner.publish"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 93,
+      "operation": "self.app.application.usage.publish"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 187,
+      "operation": "self.observe_core"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 292,
+      "operation": "self.app.session_navigation.events.publish"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 295,
+      "operation": "self.app.session_navigation.events.publish"
+    },
+    {
+      "path": "src/toad/screens/goal_details.py",
+      "line": 102,
+      "operation": "view.publish_core"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 512,
+      "operation": "self.observe_core"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 446,
+      "operation": "self.app.session_navigation.events.publish"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 450,
+      "operation": "self.app.session_navigation.events.publish"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 110,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 192,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 210,
+      "operation": "self.app.session_navigation.events.publish"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 316,
+      "operation": "self.app.session_navigation.events.publish"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 523,
+      "operation": "self.observe_core"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 514,
+      "operation": "self.app.session_navigation.events.publish"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 581,
+      "operation": "self.app.session_navigation.events.publish"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 73,
+      "operation": "self.app.events.publish"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 80,
+      "operation": "self.publish"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 207,
+      "operation": "self.publish"
+    },
+    {
+      "path": "src/toad/session_observation.py",
+      "line": 60,
+      "operation": "self.publish"
+    },
+    {
+      "path": "src/toad/session_observation.py",
+      "line": 80,
+      "operation": "self.publish"
+    },
+    {
+      "path": "src/toad/session_tracker.py",
+      "line": 150,
+      "operation": "self.events.publish"
+    },
+    {
+      "path": "src/toad/session_tracker.py",
+      "line": 156,
+      "operation": "self.events.publish"
+    },
+    {
+      "path": "src/toad/session_tracker.py",
+      "line": 187,
+      "operation": "self.events.publish"
+    },
+    {
+      "path": "src/toad/shell.py",
+      "line": 298,
+      "operation": "conversation.publish_core"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 56,
+      "operation": "self.sidebar.subscribe_core"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 57,
+      "operation": "self.sidebar.observe_core"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 58,
+      "operation": "self.sidebar.observe_core"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 59,
+      "operation": "self.sidebar.observe_core"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 107,
+      "operation": "self.sidebar.projection.publish"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 125,
+      "operation": "self.sidebar.projection.publish"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 137,
+      "operation": "self.sidebar.projection.publish"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 284,
+      "operation": "self.sidebar.projection.publish"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 289,
+      "operation": "app.events.publish"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 116,
+      "operation": "self.sidebar.projection.publish"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 245,
+      "operation": "self.sidebar.projection.publish"
+    },
+    {
+      "path": "src/toad/slash_command.py",
+      "line": 309,
+      "operation": "conversation.app.session_navigation.events.publish"
+    },
+    {
+      "path": "src/toad/slash_command.py",
+      "line": 327,
+      "operation": "conversation.app.session_navigation.events.publish"
+    },
+    {
+      "path": "src/toad/tab_order.py",
+      "line": 88,
+      "operation": "self.events.publish"
+    },
+    {
+      "path": "src/toad/tab_order.py",
+      "line": 101,
+      "operation": "self.events.publish"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 271,
+      "operation": "ctx.app.session_navigation.events.publish"
+    },
+    {
+      "path": "src/toad/terminal_attention.py",
+      "line": 134,
+      "operation": "self.state.publish"
+    },
+    {
+      "path": "src/toad/thread_actions.py",
+      "line": 65,
+      "operation": "app.events.publish"
+    },
+    {
+      "path": "src/toad/thread_actions.py",
+      "line": 70,
+      "operation": "self.app.events.publish"
+    },
+    {
+      "path": "src/toad/thread_actions.py",
+      "line": 170,
+      "operation": "agent.events.publish"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 341,
+      "operation": "view.retire_core_observations"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 342,
+      "operation": "view.observe_core_callback"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 294,
+      "operation": "self.owner.publish"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 350,
+      "operation": "view.retire_core_observations"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 363,
+      "operation": "view.retire_core_observations"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 598,
+      "operation": "self.publish"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 594,
+      "operation": "publication.publish"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 357,
+      "operation": "publication.publish"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 560,
+      "operation": "publication.publish"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 89,
+      "operation": "self.retire_core_observations"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 90,
+      "operation": "self.observe_core_callback"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 105,
+      "operation": "self.retire_core_observations"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 83,
+      "operation": "self.retire_core_observations"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 124,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 101,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/transcript_state.py",
+      "line": 109,
+      "operation": "self.source.publish"
+    },
+    {
+      "path": "src/toad/widgets/channel_participants.py",
+      "line": 18,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 182,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 322,
+      "operation": "self.message_history.publish"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 362,
+      "operation": "self.app.session_navigation.events.publish"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 298,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/widgets/comms_transfer.py",
+      "line": 97,
+      "operation": "app.events.publish"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 330,
+      "operation": "self.observe_core"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 768,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1019,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1416,
+      "operation": "self.app.events.publish"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1667,
+      "operation": "self.observe_core"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1668,
+      "operation": "self.observe_core"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 890,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 905,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1049,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1086,
+      "operation": "self.app.application.usage.publish"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1273,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 587,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 621,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 625,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1005,
+      "operation": "self.app.application.usage.publish"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1066,
+      "operation": "self.app.application.usage.publish"
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "line": 29,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/widgets/goal_text.py",
+      "line": 40,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 39,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 118,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 37,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 116,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 34,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 232,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 39,
+      "operation": "self.observe_core"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 40,
+      "operation": "self.observe_core"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 113,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 56,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 318,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/widgets/recovery_view.py",
+      "line": 50,
+      "operation": "self.observe_core"
+    },
+    {
+      "path": "src/toad/widgets/recovery_view.py",
+      "line": 51,
+      "operation": "self.observe_core"
+    },
+    {
+      "path": "src/toad/widgets/route_header.py",
+      "line": 51,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 70,
+      "operation": "self.app.session_navigation.events.publish"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 186,
+      "operation": "self.observe_core"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 187,
+      "operation": "self.subscribe_core"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 37,
+      "operation": "self.app.session_navigation.events.publish"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 341,
+      "operation": "self.observe_core"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 342,
+      "operation": "self.observe_core"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 872,
+      "operation": "app.events.publish"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 540,
+      "operation": "app.events.publish"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 680,
+      "operation": "self.observe_core"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 682,
+      "operation": "self.observe_core"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 855,
+      "operation": "cast('ToadApp', self.app).events.publish"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 929,
+      "operation": "cast('ToadApp', self.app).events.publish"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 863,
+      "operation": "app.events.publish"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 251,
+      "operation": "self.observe_core"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 252,
+      "operation": "self.observe_core"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 476,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 219,
+      "operation": "self.publication.publish"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 470,
+      "operation": "self._source_state.publish"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 471,
+      "operation": "self.publish_core"
+    },
+    {
+      "path": "src/toad/widgets/wire_message_handling.py",
+      "line": 21,
+      "operation": "self.publish_core"
+    }
+  ],
+  "textual_signals": [
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 20,
+      "import": "from textual.signal import Signal",
+      "classification": "TYPE_CHECKING-only annotation for borrowed native Screen visibility Signal; not an application publisher or data mirror"
+    }
+  ],
+  "core_textual_imports": [],
+  "limits": "Lexical AST plus source relationships; not dynamic MRO proof. Existing narrower dependency-root receipts retained.",
+  "checks": {
+    "one_core_event_declaration": true,
+    "one_core_stream_declaration": true,
+    "one_generic_native_carrier": true,
+    "zero_core_textual_imports": true,
+    "zero_parse_omissions": true
+  },
+  "initial_check_failure": "Overbroad zero-textual.signal-import assertion included the existing native Screen visibility TYPE_CHECKING annotation. No source bypass/removal inferred."
+}

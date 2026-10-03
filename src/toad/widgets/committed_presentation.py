@@ -10,8 +10,8 @@ from typing import TYPE_CHECKING
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from textual.widget import Widget
-from textual.message import Message
-from agent_comms.transcript_events import TranscriptEvent, UserTranscript
+from agent_comms.transcript_events import UserTranscript
+from toad.core.source_events import TranscriptCoverage
 from agent_comms.acp_extension import InputStartedUpdate
 
 from toad.widgets.presentation_window import protected_presentations
@@ -28,23 +28,6 @@ class CommitEvidence:
     sequences: frozenset[int] = frozenset()
     retained_history: Widget | None = None
     native_inputs: frozenset[str] = frozenset()
-
-
-class TranscriptCoverage(Message):
-    """An accepted source publication owns its original message/input identities."""
-
-    def __init__(self, events: tuple[TranscriptEvent, ...], history=None):
-        super().__init__()
-        self.events, self.history = events, history
-
-    @property
-    def sequences(self) -> frozenset[int]:
-        from toad.transcript_preparation import incoming_sequences
-        return incoming_sequences(self.events)
-
-    @property
-    def native_inputs(self) -> frozenset[str]:
-        return frozenset(native_id for event in self.events for native_id in event.native_inputs)
 
 
 class CommitClaim(ABC):
@@ -260,7 +243,6 @@ class FollowTailCheckpoint(CheckpointPlan):
         return window.follows_tail and window.scroll_revision == self.revision
 
     async def prepare(self, view, history, page, captured, is_current):
-        from toad.transcript_preparation import incoming_sequences
         from toad.render_tasks import TranscriptRenderTask
         from toad.work_preparation import RenderPreparation
 
@@ -273,12 +255,12 @@ class FollowTailCheckpoint(CheckpointPlan):
         if history is not None and history.accepts_commit(page.after) and not transfers:
             if not await history.advance_committed(page.after, is_current):
                 return None
-            return PreparedCommit(history, None, incoming_sequences(page.events)
+            return PreparedCommit(history, None, TranscriptCoverage(page.events).sequences
                                   | history.covered_sequences(required_sequences(captured)))
         fragments = await view.app.preparation.submit(
             RenderPreparation(TranscriptRenderTask(page.events))
         )
-        return PreparedCommit(None, fragments, incoming_sequences(page.events))
+        return PreparedCommit(None, fragments, TranscriptCoverage(page.events).sequences)
 
     def finish(self, view, cursor):
         view.transcript.painted(cursor)
@@ -317,13 +299,12 @@ class RetainViewportCheckpoint(CheckpointPlan):
                        for widget in candidates)
 
     async def prepare(self, view, history, page, captured, is_current):
-        from toad.transcript_preparation import incoming_sequences
 
         if (history is None or not history.accepts_commit(page.after)
                 or not history.checkpoint_available):
             return None
         required = required_sequences(captured)
-        known = incoming_sequences(page.events) | history.covered_sequences(required)
+        known = TranscriptCoverage(page.events).sequences | history.covered_sequences(required)
         covered = frozenset(sequence for sequence in required
                             if page.after.covers_incoming(sequence))
         return PreparedCommit(history, None, known | covered)

@@ -1,0 +1,32 @@
+{
+  "packages": {
+    "batrachian-toad": {
+      "url": "https://github.com/OpenHCSDev/toad.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "04cd0b1c23e06a4e46acf8ae38b62677df5fee3f",
+        "requested_revision": "04cd0b1c23e06a4e46acf8ae38b62677df5fee3f"
+      }
+    },
+    "agent-comms": {
+      "url": "https://github.com/OpenHCSDev/agent-comms.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "992a4311c5f2afa1b24b568d3454389c3e5f71ef",
+        "requested_revision": "992a4311c5f2afa1b24b568d3454389c3e5f71ef"
+      }
+    },
+    "textual": {
+      "url": "https://github.com/OpenHCSDev/textual.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0",
+        "requested_revision": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
+      }
+    }
+  },
+  "distribution_count": 69,
+  "toad_source_mismatches": [],
+  "source": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad",
+  "installed": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/toad"
+}

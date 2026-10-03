@@ -1,4 +1,5 @@
 """Installed native input -> real keyboard history/draft -> retained owner."""
+from toad.core import input_events
 import asyncio
 from l0a_native_installed_pilot import main, until, response_painted
 from native_session_retention_pilot import InstalledApp
@@ -10,7 +11,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     release.set()
     hold_next.clear()
     await until(pilot, lambda: view.agent_ready)
-    await view.submit_input(messages.UserInputSubmitted("HISTORY_NATIVE_INPUT"))
+    await view.submit_input(input_events.UserInputSubmitted("HISTORY_NATIVE_INPUT"))
     await until(pilot, lambda: response_painted(app, view, "NATIVE_RESPONSE_1"))
     await until(pilot, lambda: view.input_histories.prompt.size == 1)
     editor = view.prompt.prompt_text_area

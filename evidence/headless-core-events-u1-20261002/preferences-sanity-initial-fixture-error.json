@@ -1,0 +1,6 @@
+{
+  "phase": "before native pump or provider",
+  "error": "fixture referenced nonexistent UiSettings.viewport_buffer; actual inherited descriptor is UiSettings.renderer, declared by RendererSettings",
+  "production_change": false,
+  "input_started": false
+}

@@ -1,0 +1,91 @@
+{
+  "owner_consumers": [
+    {
+      "path": "src/toad/settings.py",
+      "line": 29,
+      "node": "class SettingsNode"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 160,
+      "node": "class PreferenceChange"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 227,
+      "node": "class SettingsGroup"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 283,
+      "node": "node.document_value"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 64,
+      "node": "node.to_wire"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 312,
+      "node": "class ToadSettings"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 336,
+      "node": "PreferenceChanged"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 147,
+      "node": "PreferenceChanged"
+    },
+    {
+      "path": "src/toad/core/preference_events.py",
+      "line": 10,
+      "node": "class PreferenceChanged"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 145,
+      "node": "PiMessage.from_wire"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 549,
+      "node": "PreferenceChanged"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 510,
+      "node": "PreferenceChanged"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 343,
+      "node": "PreferenceChanged"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1777,
+      "node": "PreferenceChanged"
+    },
+    {
+      "path": "src/toad/widgets/recovery_view.py",
+      "line": 67,
+      "node": "PreferenceChanged"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 934,
+      "node": "PreferenceChanged"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 319,
+      "node": "GoalExecution.from_wire"
+    }
+  ],
+  "omissions": [],
+  "limits": "lexical declarations/references plus source-reviewed settings inheritance; not dynamic resolution proof"
+}

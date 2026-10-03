@@ -1,4 +1,5 @@
 from __future__ import annotations
+from toad.core import input_events
 from toad.navigation_target import NavigationContext
 
 from agent_comms.acp_extension import (
@@ -33,7 +34,10 @@ from textual.widgets import Footer, Markdown
 from textual.widgets._footer import FooterKey
 
 from toad import messages, paths
-from toad.acp import messages as acp_messages
+from toad.core import events as acp_messages
+from toad.core import events as core_events
+from toad.acp.status import ToolCallStatus
+from acp.schema import ToolCall as SDKToolCall
 from toad.acp.agent import Agent as ACPAgent
 from toad.db import DB
 from toad.pill import pill
@@ -401,8 +405,8 @@ async def main() -> None:
             await pilot.pause()
             assert app.session_tracker.get_session(created_mode).title == managed_thread
             await startup_agent.set_session_name("Name this from my first prompt")
-            created_conversation.post_message(
-                messages.SessionUpdate(name="Name this from my first prompt")
+            created_conversation.publish_core(
+                core_events.SessionTitleChanged("Name this from my first prompt")
             )
             await pilot.pause()
             renamed_thread = "Name-this-from-my-first-prompt"
@@ -435,16 +439,16 @@ async def main() -> None:
                 app.session_tracker.get_session(created_mode).title
                 == "Name this from my first prompt"
             )
-            created_conversation.post_message(
-                messages.UserInputSubmitted("  Name this\nfrom my first prompt  ")
+            created_conversation.publish_core(
+                input_events.UserInputSubmitted("  Name this\nfrom my first prompt  ")
             )
             await pilot.pause()
             assert (
                 app.session_tracker.get_session(created_mode).title
                 == "Name this from my first prompt"
             )
-            created_conversation.post_message(
-                messages.UserInputSubmitted("Do not rename this twice")
+            created_conversation.publish_core(
+                input_events.UserInputSubmitted("Do not rename this twice")
             )
             await pilot.pause()
             assert (
@@ -535,14 +539,14 @@ async def main() -> None:
             assert flash.visible
             assert flash.rich_style.color != flash.rich_style.bgcolor
             flash.visible = False
-            conversation.post_message(
-                acp_messages.SessionInfoUpdate("Agent-owned title")
+            conversation.agent.events.publish(
+                core_events.SessionInfoUpdate("Agent-owned title")
             )
             await pilot.pause()
             assert (
                 app.session_tracker.get_session(owner_mode).title == "Agent-owned title"
             )
-            conversation.post_message(acp_messages.SessionInfoUpdate(None))
+            conversation.agent.events.publish(core_events.SessionInfoUpdate(None))
             await pilot.pause()
             assert app.session_tracker.get_session(owner_mode).title == ""
             assert me in open_rows(app.screen)[0].render().plain
@@ -552,21 +556,15 @@ async def main() -> None:
             assert app.session_tracker.session_count == 1
             conversation._loading = await conversation.post(Loading("Thinking…"))
             current_summary = app.session_tracker.get_session(owner_mode).summary
-            from toad.widgets.agent_response import UnroutedResponse
+            from toad.response_delivery import UnroutedResponse
             conversation.turns.finish_client()
-            conversation.post_message(acp_messages.Update(
-                "text", "Background message",
-                conversation.turns.owner.response_stream(UnroutedResponse()), conversation.agent,
-            ))
+            conversation.post_message(acp_messages.Update('text', 'Background message', conversation.turns.owner.response_stream(UnroutedResponse())))
             await pilot.pause()
             assert (
                 app.session_tracker.get_session(owner_mode).summary == current_summary
             )
             conversation.turns.start_client()
-            conversation.post_message(acp_messages.Update(
-                "text", "Finished answer",
-                conversation.turns.owner.response_stream(UnroutedResponse()), conversation.agent,
-            ))
+            conversation.post_message(acp_messages.Update('text', 'Finished answer', conversation.turns.owner.response_stream(UnroutedResponse())))
             await pilot.pause()
             assert (
                 app.session_tracker.get_session(owner_mode).summary
@@ -607,8 +605,8 @@ async def main() -> None:
             assert settled.state == "idle"
             assert settled.summary == "Ready for review"
             conversation.set_reactive(type(conversation).agent, previous_agent)
-            conversation.post_message(
-                acp_messages.Thinking("agent_thought_chunk", "Inspecting the workspace")
+            conversation.agent.events.publish(
+                core_events.Thinking("agent_thought_chunk", "Inspecting the workspace")
             )
             await pilot.pause()
             thought = conversation.query_one(AgentThought)
@@ -622,17 +620,13 @@ async def main() -> None:
             await pilot.press("ctrl+c")
             await pilot.pause()
             assert prompt_input.text == ""
-            conversation.post_message(
-                acp_messages.ToolCall(
-                    {
-                        "sessionUpdate": "tool_call",
-                        "toolCallId": "pilot-tool",
-                        "title": "Run tests",
-                        "kind": "execute",
-                        "status": "in_progress",
-                    }
-                )
-            )
+            conversation.agent.events.publish(core_events.ToolCall(
+                ToolCallStatus.from_acp(SDKToolCall.model_validate({
+                    "toolCallId": "pilot-tool",
+                    "title": "Run tests",
+                    "kind": "execute",
+                    "status": "in_progress",
+                }, strict=True))))
             await pilot.pause()
             tool = conversation.query_one(ToolCall)
             assert "Run tests" in tool.tool_call_header_content.plain

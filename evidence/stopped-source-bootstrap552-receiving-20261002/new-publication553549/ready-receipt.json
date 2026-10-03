@@ -1,0 +1,46 @@
+{
+  "state": "FROZEN READY: receiving346 merged549/553; NEW parent-only one-use publication",
+  "core": "58686f983377087e85ef20fd2928bcf113ab7acb",
+  "toad": "500f78e3e0e1a6cb6dec33a1a32bf9ece020800a",
+  "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0",
+  "prefix": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002",
+  "source_proof": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/source-proof.json",
+  "source_proof_sha256": "d307c32503bebf7d81e22014cb7467753eed050fb0c6d01d5c13667eda235f1f",
+  "activation_sha256": "6b48c39c5fb2eb70eb410ae509d917f35e232ea206537b68bca4f669ed0fda98",
+  "cohort": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/new-publication553549/review-plan.json",
+  "cohort_sha256": "ae4caed33bed8f24fa4711fe3fa8f91b837a19e49da8bded57dc643b1a7f34c0",
+  "operator_manifest_sha256": "1d4230cbcc9f94454700de45cdf73a943b27f4e14aeae3d1863f32bf701d8a3e",
+  "operator_members": 52,
+  "execution_artifacts": {
+    "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/new-publication553549/operator-manifest.json": "1d4230cbcc9f94454700de45cdf73a943b27f4e14aeae3d1863f32bf701d8a3e",
+    "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/new-publication553549/review-plan.json": "ae4caed33bed8f24fa4711fe3fa8f91b837a19e49da8bded57dc643b1a7f34c0",
+    "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/new-publication553549/runtime-installation.json": "717ca469bd2330bcf868ceaf572e8b128795ef3dd54885497f8e16c4680aabae",
+    "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/new-publication553549/source-installation.json": "b867f9d8fbf015c7f545656284e7692fa39ff063e62d044e6f059fa3822c6820",
+    "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/new-publication553549/execute-bootstrap-publication.py": "2992c97c489270bd0d1a8c4cc262ee7b4b870b63da20ab7f3997dfc98c382700"
+  },
+  "command": "env -u PYTHONPATH -u PYTHONHOME /home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/python -I /home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/new-publication553549/execute-bootstrap-publication.py --execute",
+  "receipt": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/new-publication553549/publication-receipt.json",
+  "receipt_exists": false,
+  "bootstrap_original_mode": "0o755",
+  "source_preimages": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/new-publication553549/bootstrap-preimages",
+  "schema_relation": "Whole declared NativeSchema equal; products differ; PreserveRuntimeInstallation/PreserveOwnerRuntime semantics, no reset/carry/input replay",
+  "reused_proofs": [
+    "accepted548 RAM/OFD/source-recovery lifetime",
+    "accepted547 real native custody",
+    "accepted309 physical intent/return",
+    "final552 installed portable mode and source footprint witness",
+    "accepted549 actual configured fork/write/claim-release/reply",
+    "accepted553 real installed canonical19 +External admission"
+  ],
+  "excluded_scopes": [
+    "345",
+    "551",
+    "341/U1/full smoothness"
+  ],
+  "public_effects": 0,
+  "publication_guards": "Original publisher derives implicit audience through OwnerRestartRequest/ThreadExecution; fresh idle/client absence and original route/defaults/settings checks. Existing EX resource and pre-stop source witness; preserve-only runtime. Do not repeat if NEW receipt/preimages exist. Parent alone executes. No public state changed by preparation.",
+  "failed552_archive": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/new-publication548343/failed552-installed-source/archive-receipt.json",
+  "failed552_receipt_sha256": "0c0418296bfa69f7354e815ba486d37e925b4a3815a660860ee20bd2ed722cad",
+  "normal_package_count": 69,
+  "private_directory_mode": "0o700"
+}

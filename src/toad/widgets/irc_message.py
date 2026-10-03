@@ -1,3 +1,5 @@
+from toad.core.input_events import SelectHistoricalIdentity
+from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 from toad.block_navigation import ConversationBlock
 """Compact wire messages with keyboard- and pointer-accessible routing names."""
 
@@ -9,24 +11,16 @@ from textual.containers import HorizontalGroup, VerticalGroup
 from textual.content import Content
 from textual.style import Style
 from textual.widget import Widget
-from textual.message import Message as UIMessage
 from textual.widgets import Static
 from agent_comms.messages import Message
 from agent_comms import HistoricalMessage
-from toad.widgets.comms_sidebar import SelectTarget
+from toad.core.input_events import SelectTarget
 from toad.widgets.inline_message import inline_message
 from toad.widgets.message_divider import MessageDivider, MessageClock
 from toad.widgets.message_notifications import MessageNotifications
 
 
-class SelectHistoricalIdentity(UIMessage):
-    def __init__(self, name: str, source: str):
-        super().__init__()
-        self.name = name
-        self.source = source
-
-
-class ThreadLink(Static, can_focus=True):
+class ThreadLink(CoreEventReceiver, Static, can_focus=True):
     BINDINGS = [("enter,space", "open_target", "Open thread")]
     DEFAULT_CSS = """
     ThreadLink { width: auto; max-width: 25%; height: auto; color: $accent; pointer: pointer; }
@@ -40,9 +34,9 @@ class ThreadLink(Static, can_focus=True):
 
     def action_open_target(self):
         if self.history_source and not self.target.startswith("#"):
-            self.post_message(SelectHistoricalIdentity(self.target, self.history_source))
+            self.publish_core(SelectHistoricalIdentity(self.target, self.history_source))
             return
-        self.post_message(
+        self.publish_core(
             SelectTarget(linked_target(self.target))
         )
 
@@ -74,7 +68,7 @@ class IRCMessageText(Static):
         self.app.open_url(url)
 
 
-class WireMarkdownMessage(ConversationBlock, VerticalGroup):
+class WireMarkdownMessage(CoreEventReceiver, ConversationBlock, VerticalGroup):
     """One original wire envelope; concrete bodies own only their rendering."""
 
     DEFAULT_CLASSES = "block"
@@ -118,9 +112,9 @@ class WireMarkdownMessage(ConversationBlock, VerticalGroup):
 
     def action_open_target(self, target: str):
         if isinstance(self.message, HistoricalMessage) and not target.startswith("#"):
-            self.post_message(SelectHistoricalIdentity(target, self.message.source.key))
+            self.publish_core(SelectHistoricalIdentity(target, self.message.source.key))
             return
-        self.post_message(
+        self.publish_core(
             SelectTarget(linked_target(target))
         )
 

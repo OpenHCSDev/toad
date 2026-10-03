@@ -1,3 +1,5 @@
+from toad.core import events as core_events
+from toad.core_event_carrier import CoreEventMessage
 from toad.workspace_sessions import WorkspaceSessionShutdown
 from inspect import isabstract
 from toad.comms_root import CoordinationAccess, implicit_root, root_is_current, run_selected_write
@@ -23,9 +25,11 @@ from textual.content import Content
 from textual.notifications import Notify
 from textual.reactive import reactive, var
 from textual.screen import Screen
-from textual.signal import Signal
 
 from toad import messages
+from toad.core import session_requests
+from toad.core_event_carrier import CoreEventReceiver
+from agent_comms.mro_dispatch import handles
 from toad.agent_schema import AgentDefinition
 from toad.render_backend import Renderer
 from toad.navigation_preparation import (
@@ -39,7 +43,6 @@ from toad.session_tracker import (
     SessionTracker,
     SidebarState,
 )
-from toad.settings import PreferenceChange
 from toad.sidebar_layout import SidebarLayout
 from toad.clipboard import Clipboard
 from toad.tab_order import TabOrder
@@ -237,7 +240,7 @@ def get_store_screen() -> StoreScreen:
     return StoreScreen()
 
 
-class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
+class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings=False):
     """The top level app."""
 
     CSS_PATH = ["toad.tcss", "screens/comms.tcss"]
@@ -277,6 +280,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
         from toad.work_preparation import PreparationRuntime, PreparedRenderer
 
         Renderer.prepare_spawn()
+        self.events = core_events.CoreEventStream(self)
         self.settings = ToadSettings.open(self)
         self.preparation = PreparationRuntime(self.settings.ui.renderer.start() if renderer is None else renderer)
         self.render_processes: Renderer = PreparedRenderer(self.preparation)
@@ -284,43 +288,32 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
         self.background_render_slots = asyncio.Semaphore(1)
         self._background_render_tasks: set[asyncio.Task[object]] = set()
         self.navigation_reader = NavigationReader()
-        self.settings_changed_signal: Signal[PreferenceChange] = Signal(
-            self, "settings_changed"
-        )
         self.agent_data = agent_data
 
         self.application = ApplicationLifetime(self, mode)
         self.clipboard_transport = Clipboard.for_platform()
         self.terminal_attention = TerminalAttention(self)
 
-        self.session_update_signal: Signal[tuple[str, SessionDetails | None]] = Signal(
-            self, "session_update"
-        )
-        self._session_tracker = SessionTracker(self.session_update_signal)
+        self._session_tracker = SessionTracker()
         self.session_navigation = SessionAdmissions(self, agent_session_id)
         self.thread_navigation = ThreadNavigator(self)
         self._sidebar_snapshot = None
         self.thread_actions = ThreadActions(self)
         self.transfers = Transfers(self)
-        self.thread_actions_changed: Signal[None] = Signal(self, "thread-actions-changed")
         self.sidebar_state = SidebarState()
         self.sidebar_layout = SidebarLayout()
-        self.sidebar_layout_changed: Signal[None] = Signal(self, "sidebar-layout-changed")
         self._mode_switch_lock = asyncio.Lock()
         self._atomic_mode_switch = False
         self._pending_mode_switch: str | None = None
-        self.session_selected_signal: Signal[str] = Signal(self, "session-selected")
-        self.open_tabs_changed: Signal[None] = Signal(self, "open-tabs-changed")
         self.tab_order = TabOrder(
-            self, lambda mode, index: self.select_session(mode, history_index=index)
+            lambda mode, index: self.select_session(mode, history_index=index)
         )
         self.coordination_facts: WeakKeyDictionary[object, CoordinationChangedUpdate] = WeakKeyDictionary()
-        self.coordination_observed: Signal[None] = Signal(self, "coordination-observed")
-        self.coordination_access = CoordinationAccess(
-            self._coordination_changed, lambda: self.coordination_observed.publish(None), self.preparation)
+        self.coordination_access = CoordinationAccess(self._coordination_changed, self.preparation)
         self.temporary_background_screen: Screen | None = None
 
         super().__init__()
+        self.subscribe_core(self.session_navigation.events)
         self.project_dir = Path(project_dir or "./").expanduser().resolve()
 
 
@@ -507,7 +500,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
                         await self.workspace_screen.layout_navigation()
                     if mode != previous:
                         self.tab_order.record_visit(mode, history_index)
-                        self.session_selected_signal.publish(mode)
+                        self.events.publish(core_events.SessionSelected(mode))
             finally:
                 self._atomic_mode_switch = False
                 self._pending_mode_switch = None
@@ -604,9 +597,9 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
         self.coordination_access.start(self)
         await self.application.start()
 
-    @on(messages.WorkspaceSessionRequest)
-    async def on_workspace_session_request(self, event: messages.WorkspaceSessionRequest) -> None:
-        await self.session_navigation.dispatch(event)
+    @handles(session_requests.WorkspaceSessionRequest)
+    async def on_workspace_session_request(self, event: CoreEventMessage) -> None:
+        await event.event.apply(self.session_navigation)
 
     async def _dispatch_action(self, namespace, action_name: str, params) -> bool:
         if namespace is self:

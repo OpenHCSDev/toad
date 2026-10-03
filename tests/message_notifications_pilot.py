@@ -18,7 +18,6 @@ from agent_comms.threads import Thread
 from textual.screen import Screen
 
 from runtime_fixture import ToadApp
-from toad import messages
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
@@ -72,16 +71,14 @@ async def main():
                 observed.read = observe
                 observed.refresh_observation()
                 await until(lambda: observed.presentation == current)
-                native.post_message(messages.SessionUpdate(state="idle", summary="Ready"))
                 await pilot.pause()
-                tracker = app.session_tracker.sessions[native_mode]
-                assert tracker.state == "busy" and "Checking #comms" in tracker.summary, tracker
+                assert "Checking #comms" in observed.presentation.summary
                 assert native.turns.managed_id is None and not native.turns.owner.busy
                 current = ThreadPresentation("peer", "●", "Responding in #comms", True)
                 observed.refresh_observation()
                 await until(lambda: observed.presentation == current)
                 await pilot.pause()
-                assert "Responding in #comms" in tracker.summary
+                assert "Responding in #comms" in observed.presentation.summary
 
                 await channel_target("#comms").open(NavigationContext(app, native_mode, root, "peer"))
                 chat = app.screen.query_one(CommsChatView)

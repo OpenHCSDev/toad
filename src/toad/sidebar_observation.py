@@ -1,12 +1,13 @@
 """Validated observation of the shared coordination service; no independent store."""
 from __future__ import annotations
+from toad.core import events as core_events
 import asyncio
 from dataclasses import dataclass
 from agent_comms.comms import Comms, wire
 from agent_comms.presentation import WireRevision
 from toad.preferences import SidebarSettings
-from toad.settings import PreferenceChange
-from toad.session_tracker import SessionDetails
+from toad.core.preference_events import PreferenceChanged
+from toad.core.events import SessionChangedEvent
 from toad.sidebar_snapshot import SidebarSnapshot
 from toad.comms_root import current_root
 
@@ -52,11 +53,10 @@ class SidebarObservation:
             return
         service = app.coordination_access.service
         self.service = service if root == service.root else wire(root)
-        app.session_update_signal.subscribe(self.sidebar, self.session_updated)
-        app.session_selected_signal.subscribe(self.sidebar, self.sidebar.navigation.mode_changed)
-        app.thread_actions_changed.subscribe(self.sidebar, self.actions_changed)
-        app.settings_changed_signal.subscribe(self.sidebar, self.settings_changed)
-        app.coordination_observed.subscribe(self.sidebar, self.coordination_updated)
+        self.sidebar.subscribe_core(app.session_tracker.events)
+        self.sidebar.observe_core(app.events)
+        self.sidebar.observe_core(app.settings.events)
+        self.sidebar.observe_core(app.coordination_access.events)
         self.sidebar.navigation.prepare()
         from toad.screens.workspace import WorkspaceScreen
         if isinstance(screen, WorkspaceScreen):
@@ -97,7 +97,7 @@ class SidebarObservation:
             self.sidebar.navigation.reset()
             self.sidebar.projection.sync_spinner()
 
-    async def session_updated(self, update: tuple[str, SessionDetails | None]) -> None:
+    async def session_updated(self, event: SessionChangedEvent) -> None:
         if not self.accepts_observation():
             return
         # Session routes/title changes are local projection facts. The wire's
@@ -144,7 +144,7 @@ class SidebarObservation:
         settings = self.sidebar.app.settings
         return settings.sidebar.show_stopped, settings.sidebar.show_archived
 
-    def settings_changed(self, update: PreferenceChange) -> None:
+    def settings_changed(self, update: PreferenceChanged) -> None:
         if update.field in {SidebarSettings.show_stopped, SidebarSettings.show_archived}:
             self.identity = None
             self.refresh()
@@ -286,7 +286,7 @@ class SidebarObservation:
             # metadata. Heartbeats and unrelated channel activity must not
             # invalidate every Conversation's goal and relationship readers.
             if app.open_tabs != previous_tabs:
-                app.open_tabs_changed.publish(None)
+                app.events.publish(core_events.OpenTabsChanged())
         except (OSError, ValueError):
             # An external writer may be replacing/recovering the wire. Retry on
             # the next poll without blocking or terminating the view.

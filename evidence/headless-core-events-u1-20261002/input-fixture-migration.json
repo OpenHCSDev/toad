@@ -1,0 +1,23 @@
+{
+  "changed_fixture_sources": [
+    "tests/input_history_native_installed_pilot.py",
+    "tests/comms_pilot.py",
+    "tests/channel_retirement_pilot.py",
+    "tests/context_compaction_native_installed_pilot.py",
+    "tests/acp_specification_installed_pilot.py",
+    "tests/l0a_native_installed_pilot.py",
+    "tests/default_route_pilot.py",
+    "tests/test_conversation_submission.py",
+    "tests/pending_thread_open_pilot.py",
+    "tests/blank_presentation_pilot.py",
+    "tests/input_latency_pilot.py",
+    "tests/agent_configuration_native_installed_pilot.py",
+    "tests/prompt_routing_pilot.py",
+    "tests/path_filter_pilot.py",
+    "tests/context_native_installed_pilot.py",
+    "tests/compaction_pilot.py",
+    "tests/default_route_cancel_pilot.py"
+  ],
+  "omissions": [],
+  "limits": "source API call/import migration; no installed behavior claim"
+}

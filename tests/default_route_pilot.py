@@ -6,6 +6,7 @@ When /var/tmp lacks space, this non-durability UI pilot uses /dev/shm.
 """
 
 from __future__ import annotations
+from toad.core import input_events
 from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import channel_target
@@ -205,7 +206,7 @@ async def main() -> None:
                     side_effect=ValueError("pre-append admission rejected"),
                 ) as rejected:
                     await new_view.submit_input(
-                        messages.UserInputSubmitted("EDITABLE-REJECTION")
+                        input_events.UserInputSubmitted("EDITABLE-REJECTION")
                     )
                     assert rejected.call_count == 1
                     assert new_view.prompt.text == "EDITABLE-REJECTION"
@@ -218,7 +219,7 @@ async def main() -> None:
                 with patch.object(
                     new_view.message_history.reader.comms.messaging, "send_user_message", side_effect=error
                 ) as sender:
-                    event = messages.UserInputSubmitted("UNCERTAIN-NO-RETRY")
+                    event = input_events.UserInputSubmitted("UNCERTAIN-NO-RETRY")
                     await new_view.submit_input(event)
                     assert sender.call_count == 1
                     assert new_view._unknown_send == (

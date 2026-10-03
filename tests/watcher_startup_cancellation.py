@@ -11,6 +11,7 @@ from unittest.mock import patch
 
 import psutil
 from textual.widget import Widget
+from toad.core_event_carrier import CoreEventReceiver
 
 from toad.directory_watcher import DirectoryWatcher, _observe_path, _shared_observer_manager
 
@@ -30,9 +31,13 @@ def blocked_observe_path(path, owner):
         _observe_path(path, owner)
 
 
+class RecordingWidget(CoreEventReceiver, Widget):
+    pass
+
+
 class RecordingWatcher(DirectoryWatcher):
     def __init__(self, path):
-        super().__init__(path, Widget())
+        super().__init__(path, RecordingWidget())
         self.received = threading.Event()
 
     def on_any_event(self, event):

@@ -227,12 +227,12 @@ class ConversationSubmissions:
 
     def accepts_failure(self, message):
         agent = self.view.agent
-        if agent is None or message.agent is not agent:
+        if agent is None or message.publisher is not agent:
             return False
-        if message.session_id != agent.session_id:
+        if message.event.session_id != agent.session_id:
             return False
-        if message.recover_draft:
-            return agent.queue_attachment.accepts_request(message.queue_scope)
+        if message.event.recover_draft:
+            return agent.queue_attachment.accepts_request(message.event.queue_scope)
         return True
 
     @property

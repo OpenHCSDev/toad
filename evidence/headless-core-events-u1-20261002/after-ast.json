@@ -1,0 +1,1417 @@
+{
+  "source_head": "963c935f609ffab32bea969f9d80dd6f90375d2c",
+  "production_modules": 280,
+  "test_modules": 389,
+  "parse_omissions": [],
+  "declarations": [
+    {
+      "path": "src/toad/acp/sdk_boundary.py",
+      "line": 11,
+      "name": "ToolCallWire",
+      "bases": [
+        "FieldRepresentation"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 22,
+      "name": "CoreEvent",
+      "bases": [
+        "DeclaredFamily"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 27,
+      "name": "Update",
+      "bases": [
+        "CoreEvent"
+      ],
+      "fields": [
+        "type: str",
+        "text: str",
+        "stream: OutputStream"
+      ]
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 36,
+      "name": "CommsUpdated",
+      "bases": [
+        "CoreEvent"
+      ],
+      "fields": [
+        "update: AgentCommsUpdate | QueuePresentation | CursorPresentation",
+        "session_id: str | None = None",
+        "sequence: int | None = None",
+        "recover_draft: bool = False",
+        "queue_scope: QueueScope | None = None"
+      ]
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 104,
+      "name": "RequestPermission",
+      "bases": [
+        "CoreEvent"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 191,
+      "name": "Subscription",
+      "bases": [],
+      "fields": [
+        "stream: CoreEventStream",
+        "listener: Callable[[CoreEvent, Subscription], object]"
+      ]
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 211,
+      "name": "CoreEventStream",
+      "bases": [],
+      "fields": []
+    },
+    {
+      "path": "src/toad/core/session_requests.py",
+      "line": 15,
+      "name": "WorkspaceSessionRequest",
+      "bases": [
+        "Command",
+        "CoreEvent"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/core_event_carrier.py",
+      "line": 9,
+      "name": "CoreEventMessage",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/core_event_carrier.py",
+      "line": 22,
+      "name": "CoreEventReceiver",
+      "bases": [
+        "MroDispatch"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 23,
+      "name": "OutputStream",
+      "bases": [
+        "DeclaredFamily"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 17,
+      "name": "ResponseDelivery",
+      "bases": [
+        "DeclaredFamily"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/session_tracker.py",
+      "line": 121,
+      "name": "SessionTracker",
+      "bases": [],
+      "fields": []
+    }
+  ],
+  "consumers": [
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 271,
+      "role": "Load",
+      "source": "core_events.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 275,
+      "role": "Load",
+      "source": "core_events.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 425,
+      "role": "Load",
+      "source": "core_events.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 179,
+      "role": "import",
+      "source": "from toad.core.events import CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 218,
+      "role": "Load",
+      "source": "core_events.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 197,
+      "role": "Load",
+      "source": "CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 205,
+      "role": "Load",
+      "source": "CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 344,
+      "role": "Load",
+      "source": "core_events.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/agent_session.py",
+      "line": 306,
+      "role": "Load",
+      "source": "core_events.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 73,
+      "role": "Load",
+      "source": "core_events.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 77,
+      "role": "Load",
+      "source": "core_events.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 87,
+      "role": "Load",
+      "source": "core_events.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 137,
+      "role": "Load",
+      "source": "core_events.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 142,
+      "role": "Load",
+      "source": "core_events.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 149,
+      "role": "Load",
+      "source": "core_events.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 168,
+      "role": "Load",
+      "source": "core_events.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 180,
+      "role": "Load",
+      "source": "core_events.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 197,
+      "role": "Load",
+      "source": "core_events.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 114,
+      "role": "Load",
+      "source": "core_events.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 92,
+      "role": "import",
+      "source": "from toad.core.events import RequestPermission"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 99,
+      "role": "import",
+      "source": "from toad.core.events import RequestPermission"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 95,
+      "role": "Load",
+      "source": "RequestPermission"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 101,
+      "role": "Load",
+      "source": "RequestPermission"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 107,
+      "role": "import",
+      "source": "from toad.response_delivery import ResponseDelivery"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 109,
+      "role": "Load",
+      "source": "events.Update"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 108,
+      "role": "Load",
+      "source": "ResponseDelivery"
+    },
+    {
+      "path": "src/toad/agent.py",
+      "line": 7,
+      "role": "import",
+      "source": "from toad.core.events import CoreEventStream"
+    },
+    {
+      "path": "src/toad/agent.py",
+      "line": 17,
+      "role": "Load",
+      "source": "CoreEventStream"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 1,
+      "role": "import",
+      "source": "from toad.core_event_carrier import CoreEventMessage"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 31,
+      "role": "import",
+      "source": "from toad.core_event_carrier import CoreEventReceiver"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 41,
+      "role": "import",
+      "source": "from toad.session_tracker import OpenTab, SessionDetails, SessionTracker, SidebarState"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 245,
+      "role": "Load",
+      "source": "CoreEventReceiver"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 384,
+      "role": "Load",
+      "source": "SessionTracker"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 610,
+      "role": "Load",
+      "source": "session_requests.WorkspaceSessionRequest"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 302,
+      "role": "Load",
+      "source": "SessionTracker"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 611,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 16,
+      "role": "import",
+      "source": "from toad.acp.sdk_boundary import ToolCallWire"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 17,
+      "role": "import",
+      "source": "from toad.live_output import OutputStream"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 27,
+      "role": "Load",
+      "source": "CoreEvent"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 36,
+      "role": "Load",
+      "source": "CoreEvent"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 47,
+      "role": "Load",
+      "source": "CoreEvent"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 54,
+      "role": "Load",
+      "source": "CoreEvent"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 66,
+      "role": "Load",
+      "source": "CoreEvent"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 78,
+      "role": "Load",
+      "source": "CoreEvent"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 84,
+      "role": "Load",
+      "source": "CoreEvent"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 92,
+      "role": "Load",
+      "source": "CoreEvent"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 99,
+      "role": "Load",
+      "source": "CoreEvent"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 104,
+      "role": "Load",
+      "source": "CoreEvent"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 109,
+      "role": "Load",
+      "source": "CoreEvent"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 114,
+      "role": "Load",
+      "source": "CoreEvent"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 119,
+      "role": "Load",
+      "source": "CoreEvent"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 124,
+      "role": "Load",
+      "source": "CoreEvent"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 129,
+      "role": "Load",
+      "source": "CoreEvent"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 134,
+      "role": "Load",
+      "source": "CoreEvent"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 141,
+      "role": "Load",
+      "source": "CoreEvent"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 32,
+      "role": "Load",
+      "source": "OutputStream"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 194,
+      "role": "Load",
+      "source": "CoreEventStream"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 204,
+      "role": "Load",
+      "source": "Subscription"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 225,
+      "role": "Load",
+      "source": "Subscription"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 57,
+      "role": "Load",
+      "source": "ToolCallWire"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 216,
+      "role": "Load",
+      "source": "Subscription"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 226,
+      "role": "Load",
+      "source": "Subscription"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 230,
+      "role": "Load",
+      "source": "CoreEvent"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 195,
+      "role": "Load",
+      "source": "CoreEvent"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 195,
+      "role": "Load",
+      "source": "Subscription"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 225,
+      "role": "Load",
+      "source": "CoreEvent"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 225,
+      "role": "Load",
+      "source": "Subscription"
+    },
+    {
+      "path": "src/toad/core/session_requests.py",
+      "line": 12,
+      "role": "import",
+      "source": "from toad.core.events import CoreEvent"
+    },
+    {
+      "path": "src/toad/core/session_requests.py",
+      "line": 15,
+      "role": "Load",
+      "source": "CoreEvent"
+    },
+    {
+      "path": "src/toad/core/session_requests.py",
+      "line": 23,
+      "role": "Load",
+      "source": "WorkspaceSessionRequest"
+    },
+    {
+      "path": "src/toad/core/session_requests.py",
+      "line": 36,
+      "role": "Load",
+      "source": "WorkspaceSessionRequest"
+    },
+    {
+      "path": "src/toad/core/session_requests.py",
+      "line": 44,
+      "role": "Load",
+      "source": "WorkspaceSessionRequest"
+    },
+    {
+      "path": "src/toad/core/session_requests.py",
+      "line": 55,
+      "role": "Load",
+      "source": "WorkspaceSessionRequest"
+    },
+    {
+      "path": "src/toad/core/session_requests.py",
+      "line": 63,
+      "role": "Load",
+      "source": "WorkspaceSessionRequest"
+    },
+    {
+      "path": "src/toad/core/session_requests.py",
+      "line": 75,
+      "role": "Load",
+      "source": "WorkspaceSessionRequest"
+    },
+    {
+      "path": "src/toad/core/session_requests.py",
+      "line": 83,
+      "role": "Load",
+      "source": "WorkspaceSessionRequest"
+    },
+    {
+      "path": "src/toad/core/session_requests.py",
+      "line": 91,
+      "role": "Load",
+      "source": "WorkspaceSessionRequest"
+    },
+    {
+      "path": "src/toad/core_event_carrier.py",
+      "line": 6,
+      "role": "import",
+      "source": "from toad.core.events import CoreEvent, CoreEventStream, Subscription"
+    },
+    {
+      "path": "src/toad/core_event_carrier.py",
+      "line": 29,
+      "role": "Load",
+      "source": "Subscription"
+    },
+    {
+      "path": "src/toad/core_event_carrier.py",
+      "line": 12,
+      "role": "Load",
+      "source": "CoreEvent"
+    },
+    {
+      "path": "src/toad/core_event_carrier.py",
+      "line": 12,
+      "role": "Load",
+      "source": "Subscription"
+    },
+    {
+      "path": "src/toad/core_event_carrier.py",
+      "line": 26,
+      "role": "Load",
+      "source": "Subscription"
+    },
+    {
+      "path": "src/toad/core_event_carrier.py",
+      "line": 29,
+      "role": "Load",
+      "source": "CoreEventStream"
+    },
+    {
+      "path": "src/toad/core_event_carrier.py",
+      "line": 34,
+      "role": "Load",
+      "source": "Subscription"
+    },
+    {
+      "path": "src/toad/core_event_carrier.py",
+      "line": 38,
+      "role": "Load",
+      "source": "CoreEvent"
+    },
+    {
+      "path": "src/toad/core_event_carrier.py",
+      "line": 38,
+      "role": "Load",
+      "source": "Subscription"
+    },
+    {
+      "path": "src/toad/core_event_carrier.py",
+      "line": 41,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/core_event_carrier.py",
+      "line": 39,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 13,
+      "role": "import",
+      "source": "from toad.response_delivery import ResponseDelivery, UnroutedResponse"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 60,
+      "role": "Load",
+      "source": "OutputStream"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 84,
+      "role": "Load",
+      "source": "OutputStream"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 105,
+      "role": "Load",
+      "source": "OutputStream"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 61,
+      "role": "Load",
+      "source": "ResponseDelivery"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 36,
+      "role": "Load",
+      "source": "OutputStream"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 130,
+      "role": "Load",
+      "source": "OutputStream"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 126,
+      "role": "Load",
+      "source": "OutputStream"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 147,
+      "role": "Load",
+      "source": "OutputStream"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 126,
+      "role": "Load",
+      "source": "OutputStream"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 35,
+      "role": "Load",
+      "source": "ResponseDelivery"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 47,
+      "role": "Load",
+      "source": "ResponseDelivery"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 19,
+      "role": "Load",
+      "source": "ResponseDelivery"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 1,
+      "role": "import",
+      "source": "from toad.core_event_carrier import CoreEventMessage"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 3,
+      "role": "import",
+      "source": "from toad.core_event_carrier import CoreEventReceiver"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 108,
+      "role": "Load",
+      "source": "CoreEventReceiver"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 347,
+      "role": "Load",
+      "source": "core_events.CommsUpdated"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 348,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 483,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 3,
+      "role": "import",
+      "source": "from toad.core.events import CoreEventStream"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 27,
+      "role": "Load",
+      "source": "CoreEventStream"
+    },
+    {
+      "path": "src/toad/session_tracker.py",
+      "line": 7,
+      "role": "import",
+      "source": "from toad.core.events import CoreEventStream, SessionChangedEvent, SessionClosedEvent"
+    },
+    {
+      "path": "src/toad/session_tracker.py",
+      "line": 127,
+      "role": "Load",
+      "source": "CoreEventStream"
+    },
+    {
+      "path": "src/toad/thread_actions.py",
+      "line": 161,
+      "role": "import",
+      "source": "from toad.core.events import CommsUpdated"
+    },
+    {
+      "path": "src/toad/thread_actions.py",
+      "line": 169,
+      "role": "Load",
+      "source": "CommsUpdated"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "line": 35,
+      "role": "Load",
+      "source": "response_delivery.ResponseDelivery"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 15,
+      "role": "import",
+      "source": "from toad.core_event_carrier import CoreEventMessage"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 37,
+      "role": "import",
+      "source": "from toad.core_event_carrier import CoreEventReceiver"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 449,
+      "role": "Load",
+      "source": "CoreEventReceiver"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 493,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 2,
+      "role": "import",
+      "source": "from toad.core_event_carrier import CoreEventMessage"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 62,
+      "role": "import",
+      "source": "from toad.core_event_carrier import CoreEventReceiver"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 102,
+      "role": "import",
+      "source": "from toad.response_delivery import ResponseDelivery"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 636,
+      "role": "Load",
+      "source": "CoreEventReceiver"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1404,
+      "role": "Load",
+      "source": "core_events.Update"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1503,
+      "role": "Load",
+      "source": "core_events.RequestPermission"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1717,
+      "role": "Load",
+      "source": "core_events.CommsUpdated"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 996,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1034,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1074,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1326,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1334,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1350,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1365,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1369,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1405,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1413,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1425,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1442,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1461,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1498,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1504,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1510,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1522,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1542,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1574,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1684,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1718,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/widgets/outgoing_message.py",
+      "line": 8,
+      "role": "import",
+      "source": "from toad.response_delivery import ResponseDelivery"
+    },
+    {
+      "path": "src/toad/widgets/outgoing_message.py",
+      "line": 34,
+      "role": "Load",
+      "source": "ResponseDelivery"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 1,
+      "role": "import",
+      "source": "from toad.core_event_carrier import CoreEventMessage"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 22,
+      "role": "import",
+      "source": "from toad.core_event_carrier import CoreEventReceiver"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 128,
+      "role": "Load",
+      "source": "CoreEventReceiver"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 261,
+      "role": "Load",
+      "source": "CoreEventMessage"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 42,
+      "role": "import",
+      "source": "from toad.response_delivery import ResponseDelivery"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 99,
+      "role": "Load",
+      "source": "ResponseDelivery"
+    },
+    {
+      "path": "tests/agent_activity_divider_pilot.py",
+      "line": 100,
+      "role": "Load",
+      "source": "acp.CommsUpdated"
+    },
+    {
+      "path": "tests/agent_activity_divider_pilot.py",
+      "line": 132,
+      "role": "Load",
+      "source": "acp.Update"
+    },
+    {
+      "path": "tests/agent_activity_divider_pilot.py",
+      "line": 66,
+      "role": "Load",
+      "source": "acp.CommsUpdated"
+    },
+    {
+      "path": "tests/async_thread_open_pilot.py",
+      "line": 2,
+      "role": "import",
+      "source": "from toad.core.events import CommsUpdated"
+    },
+    {
+      "path": "tests/cold_thread_latency_pilot.py",
+      "line": 2,
+      "role": "import",
+      "source": "from toad.core.events import CommsUpdated"
+    },
+    {
+      "path": "tests/committed_history_pilot.py",
+      "line": 16,
+      "role": "import",
+      "source": "from toad.core.events import CommsUpdated"
+    },
+    {
+      "path": "tests/committed_history_pilot.py",
+      "line": 101,
+      "role": "Load",
+      "source": "CommsUpdated"
+    },
+    {
+      "path": "tests/committed_history_pilot.py",
+      "line": 109,
+      "role": "Load",
+      "source": "CommsUpdated"
+    },
+    {
+      "path": "tests/committed_history_pilot.py",
+      "line": 111,
+      "role": "Load",
+      "source": "CommsUpdated"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 560,
+      "role": "Load",
+      "source": "acp_messages.Update"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 566,
+      "role": "Load",
+      "source": "acp_messages.Update"
+    },
+    {
+      "path": "tests/compaction_pilot.py",
+      "line": 6,
+      "role": "import",
+      "source": "from toad.core.events import Update, CommsUpdated"
+    },
+    {
+      "path": "tests/compaction_pilot.py",
+      "line": 30,
+      "role": "Load",
+      "source": "CommsUpdated"
+    },
+    {
+      "path": "tests/compaction_pilot.py",
+      "line": 32,
+      "role": "Load",
+      "source": "Update"
+    },
+    {
+      "path": "tests/compaction_pilot.py",
+      "line": 33,
+      "role": "Load",
+      "source": "CommsUpdated"
+    },
+    {
+      "path": "tests/compaction_pilot.py",
+      "line": 61,
+      "role": "Load",
+      "source": "CommsUpdated"
+    },
+    {
+      "path": "tests/fresh_fork_pilot.py",
+      "line": 2,
+      "role": "import",
+      "source": "from toad.core.events import CommsUpdated"
+    },
+    {
+      "path": "tests/goal_objective_edit_pilot.py",
+      "line": 5,
+      "role": "import",
+      "source": "from toad.core.events import CommsUpdated"
+    },
+    {
+      "path": "tests/goal_objective_edit_pilot.py",
+      "line": 168,
+      "role": "Load",
+      "source": "CommsUpdated"
+    },
+    {
+      "path": "tests/goal_objective_edit_pilot.py",
+      "line": 102,
+      "role": "Load",
+      "source": "CommsUpdated"
+    },
+    {
+      "path": "tests/goal_standby_history_pilot.py",
+      "line": 2,
+      "role": "import",
+      "source": "from toad.core.events import CommsUpdated"
+    },
+    {
+      "path": "tests/goal_standby_history_pilot.py",
+      "line": 209,
+      "role": "Load",
+      "source": "CommsUpdated"
+    },
+    {
+      "path": "tests/goal_standby_history_pilot.py",
+      "line": 216,
+      "role": "Load",
+      "source": "CommsUpdated"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 18,
+      "role": "import",
+      "source": "from toad.live_output import OutputStream, ResponseStream, ThoughtStream"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 24,
+      "role": "Load",
+      "source": "OutputStream"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 61,
+      "role": "import",
+      "source": "from toad.core.events import Update"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 68,
+      "role": "Load",
+      "source": "Update"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 69,
+      "role": "Load",
+      "source": "Update"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 82,
+      "role": "Load",
+      "source": "Update"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "line": 25,
+      "role": "import",
+      "source": "from toad.core.events import Update, CommsUpdated"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "line": 69,
+      "role": "Load",
+      "source": "Update"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "line": 25,
+      "role": "import",
+      "source": "from toad.core.events import Update, CommsUpdated"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "line": 69,
+      "role": "Load",
+      "source": "Update"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "line": 112,
+      "role": "Load",
+      "source": "CommsUpdated"
+    },
+    {
+      "path": "tests/message_categories_pilot.py",
+      "line": 35,
+      "role": "import",
+      "source": "from toad.response_delivery import ResponseDelivery"
+    },
+    {
+      "path": "tests/message_categories_pilot.py",
+      "line": 82,
+      "role": "Load",
+      "source": "ResponseDelivery"
+    },
+    {
+      "path": "tests/message_dividers_pilot.py",
+      "line": 20,
+      "role": "import",
+      "source": "from toad.response_delivery import ResponseDelivery"
+    },
+    {
+      "path": "tests/message_dividers_pilot.py",
+      "line": 63,
+      "role": "Load",
+      "source": "ResponseDelivery"
+    },
+    {
+      "path": "tests/midturn_compaction_pilot.py",
+      "line": 9,
+      "role": "import",
+      "source": "from toad.core.events import CommsUpdated"
+    },
+    {
+      "path": "tests/navigation_terminal_fixture.py",
+      "line": 8,
+      "role": "import",
+      "source": "from toad.core.events import CommsUpdated"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 11,
+      "role": "import",
+      "source": "from toad.core.events import CommsUpdated"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 117,
+      "role": "Load",
+      "source": "CommsUpdated"
+    },
+    {
+      "path": "tests/thread_activation_pilot.py",
+      "line": 2,
+      "role": "import",
+      "source": "from toad.core.events import CommsUpdated"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 13,
+      "role": "import",
+      "source": "from toad.response_delivery import ResponseDelivery"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 23,
+      "role": "import",
+      "source": "from toad.core.events import CommsUpdated"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 88,
+      "role": "Load",
+      "source": "CommsUpdated"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 96,
+      "role": "Load",
+      "source": "CommsUpdated"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 77,
+      "role": "Load",
+      "source": "ResponseDelivery"
+    },
+    {
+      "path": "tests/thread_render_wait_pilot.py",
+      "line": 2,
+      "role": "import",
+      "source": "from toad.core.events import CommsUpdated"
+    },
+    {
+      "path": "tests/thread_unread_start_pilot.py",
+      "line": 3,
+      "role": "import",
+      "source": "from toad.core.events import CommsUpdated"
+    },
+    {
+      "path": "tests/thread_unread_start_pilot.py",
+      "line": 18,
+      "role": "import",
+      "source": "from toad.core.events import CommsUpdated"
+    }
+  ],
+  "dependency_roots": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/agent_comms/field_codec.py",
+      "classes": 9,
+      "methods": 35
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/agent_comms/declared_family.py",
+      "classes": 2,
+      "methods": 6
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/agent_comms/mro_dispatch.py",
+      "classes": 1,
+      "methods": 8
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/agent_comms/command.py",
+      "classes": 1,
+      "methods": 2
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/textual/message.py",
+      "classes": 1,
+      "methods": 12
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+      "classes": 4,
+      "methods": 62
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/textual/widget.py",
+      "classes": 9,
+      "methods": 279
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/textual/signal.py",
+      "classes": 2,
+      "methods": 8
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/acp/schema.py",
+      "classes": 273,
+      "methods": 127
+    }
+  ],
+  "limits": [
+    "Scoped lexical declarations/references, not dynamic resolution or behavioral proof.",
+    "Relevant mechanism dependency modules parsed; entire dependency package import closure not claimed.",
+    "Older direct native-handler fixtures still need original subscriber resource; not an installed readiness claim."
+  ]
+}

@@ -1,11 +1,29 @@
 """Optional projection of the operational ACP terminal execution."""
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
 from textual.content import Content
+from textual.message import Message
 
 from toad.terminal_execution import TerminalExecution
 from toad.widgets.terminal import Terminal
 
+if TYPE_CHECKING:
+    from toad.acp.agent_controller import AttachedSurfaceBinding
+    from toad.acp.terminal_controller import TerminalController
+
 
 class TerminalTool(Terminal):
+    @dataclass
+    class Projection(Message):
+        """A native render request borrows its original acquired resources."""
+
+        binding: AttachedSurfaceBinding
+        controller: TerminalController
+        terminal_id: str
+        execution: TerminalExecution
+
     DEFAULT_CSS = """
     TerminalTool {
         height: auto;

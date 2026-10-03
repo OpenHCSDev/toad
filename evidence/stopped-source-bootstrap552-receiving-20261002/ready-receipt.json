@@ -1,0 +1,40 @@
+{
+  "state": "FROZEN READY for parent-only NEW one-use publication",
+  "core": "3c48ace44f2f8ce00c55638e23655b1ed50a3b5a",
+  "toad": "9a92f8e9f21cedce71126430c24c8994dce61489",
+  "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0",
+  "prefix": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002",
+  "source_proof": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/source-proof.json",
+  "source_proof_sha256": "fe6b2fcaa54d822e0f522c5218857159e093473fd7c15cd01b9c5abd9e00b908",
+  "activation_sha256": "f94bdd4e3b92761c14d4f59812b0a19a83051c7885e4775846058aa90481c9c0",
+  "cohort": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/new-publication548343/review-plan.json",
+  "cohort_sha256": "c8b41b5e0cf8fdbc06d0bcad49311803dcc94e2cbb1c0843169b6271d67198d7",
+  "operator_manifest_sha256": "f9c06403914c031122bf554e9e29ebb82af6ba8ad03e2a392cce2480f3ef572b",
+  "operator_members": 52,
+  "execution_artifacts": {
+    "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/new-publication548343/operator-manifest.json": "f9c06403914c031122bf554e9e29ebb82af6ba8ad03e2a392cce2480f3ef572b",
+    "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/new-publication548343/review-plan.json": "c8b41b5e0cf8fdbc06d0bcad49311803dcc94e2cbb1c0843169b6271d67198d7",
+    "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/new-publication548343/runtime-installation.json": "717ca469bd2330bcf868ceaf572e8b128795ef3dd54885497f8e16c4680aabae",
+    "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/new-publication548343/source-installation.json": "408cf15e46e423a4267c2a7510797eb29629bd4c0db54f8f641ea3a6eedbf437",
+    "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/new-publication548343/execute-bootstrap-publication.py": "bff923634631b58212cf3ee8fde3e8cdb8689c59a65f24db56dcc894c58fd107"
+  },
+  "command": "env -u PYTHONPATH -u PYTHONHOME /home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/python -I /home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/new-publication548343/execute-bootstrap-publication.py --execute",
+  "receipt": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/new-publication548343/publication-receipt.json",
+  "receipt_exists": false,
+  "bootstrap_original_mode": "0o755",
+  "source_preimages": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/new-publication548343/bootstrap-preimages",
+  "schema_relation": "Whole declared NativeSchema equal; products differ; PreserveRuntimeInstallation/PreserveOwnerRuntime semantics, no reset/carry/input replay",
+  "reused_proofs": [
+    "accepted548 RAM/OFD/source-recovery lifetime",
+    "accepted547 real native custody",
+    "accepted309 physical intent/return",
+    "final552 installed portable mode and source footprint witness"
+  ],
+  "excluded_scopes": [
+    "345",
+    "549",
+    "551"
+  ],
+  "public_effects": 0,
+  "publication_guards": "Existing original publisher freshly captures complete audience/settings, idle, clients, current route/defaults, EX route lifetime, pre-stop original source paths before stop. Current334 clients are old lease-less clients and must be absent at first publication. Never repeat if receipt/preimages exist."
+}

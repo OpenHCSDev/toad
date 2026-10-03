@@ -1,0 +1,12 @@
+{
+  "state": "future-preparation-directory-source-batch-passed",
+  "source": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/new-publication548343/prepare_review.py",
+  "source_sha256": "6a98704bdf75698d6f20139b5c1a5b1a6ffd037b85d7f3cff4bc084ddf705efc",
+  "new_directory_role": "PrivateDirectoryRole.permissions",
+  "new_directory_validated": true,
+  "existing_bad_permissions_refused": "private_directory: unsafe_node_permissions",
+  "existing_bad_directory_unchanged": true,
+  "public_effects": 0,
+  "frozen_execution_code_modified": false,
+  "scope": "Only owned directory construction and role validation; full preparation/publisher not executed"
+}
