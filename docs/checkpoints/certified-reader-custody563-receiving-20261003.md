@@ -15,3 +15,7 @@ Ready SHA256: `c04ca0ab9bf2ccc4299b5ebbcadfa1d8ff3fc677e0e0e9a5cb297be4eeba3fee`
 Target: `/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001`. Current358529 is the original source interpreter. Whole native/index declarations equal; products differ. Existing51 reviewed operators remain byte-equal. Original receipt/preimages absent. Exact one-use parent command and pure terminal-after-readback command are Ready fields. Archive original485 metadata and563 source proof with honest separate boundaries. No new environment/native/provider/UI/custody run, no original560 recovery or latency-gain claim. Current529/previous290/520/334 and original sources/UNKNOWN protected. Parent fresh original audience/idle/client check and actual default acceptance remain separate.
 
 Persistent evidence: `evidence/certified-reader-custody563-receiving-20261003/`.
+
+## Original operation refused before effects
+
+Parent terminal1 stopped at the old cohort minimum-two-gates decision. Original refusal is archived byte-for-byte in `new-operation/parent-pre-effect-refusal.json`; receipt/preimages remain absent and default358 unchanged. The frozen operation is not retried or edited. Corrected canonical owner and new full-admission preparation will supply a separately reviewed operation, using the same qualified package.

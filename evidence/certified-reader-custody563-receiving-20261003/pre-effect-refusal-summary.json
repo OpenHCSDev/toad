@@ -1,0 +1,10 @@
+{
+  "state": "Original360 operation terminal1 before receipt/fence/effects; not repeated",
+  "original_ready_sha256": "c04ca0ab9bf2ccc4299b5ebbcadfa1d8ff3fc677e0e0e9a5cb297be4eeba3fee",
+  "original_refusal_sha256": "0a911860a147f95d739a96615fd31093ada2d85d8e60ec216419d83870c1a494",
+  "original_receipt_exists": false,
+  "original_preimages_exists": false,
+  "exact_cause": "Original cohort minimum-two-gates policy rejects one coherent reviewed affected installed acceptance",
+  "default_unchanged": "358529/Core85/Toad0fd/native de166",
+  "next": "Existing cohort nonempty/distinct original gate validation and FULL preparation require_original; new separately reviewed operation with unchanged qualified package"
+}
