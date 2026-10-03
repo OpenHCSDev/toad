@@ -1,5 +1,11 @@
 # Share history preparation and publication through their existing owners
 
+## Scoped ready checkpoint: worker scheduling and receipt publication
+
+Ready for the shared worker and receipt-during-read changes. End qualification,
+prepared wire-body admission and the full performance goal remain open below.
+This scope does not claim full338 completion or smooth scrolling.
+
 Reuse this finished checkout. Heisenberg owns Window/frame/anchor and the
 joined physical workflow; this contribution owns MountedMessageHistory,
 channel_preparation and CommsChatView's history delegation. Source-specific
@@ -367,3 +373,52 @@ The installed source/assets were byte equal, so this was a source closure defect
 not an installer failure. Original operator failure is retained under
 `history-lifetime338/physical-installed03` and
 `kepler338-reader-demand-tail-20261002-01`; it is not a physical acceptance.
+
+### Affected installed receipt qualification and explicit End remainder
+
+Installed product4906b8b39 retains the normally merged347/main341 source and
+the corrected reader-progress owner. The exact normal69 cohort is Core
+58686f983377087e85ef20fd2928bcf113ab7acb, Textual
+940880e12c889e16a0c3e9b1ac6356fb7234ebb0, SDK0.12.1, DiffView8fa7d4 and native
+960296fdddafb01c. All four source/assets inventories, direct URLs, native trust,
+actual App/channel/native-pager imports and dependency checks passed. Proof is
+`.artifacts/staging-history-source338-tail-02/source-proof.json`. This reused
+Heisenberg's released holder; no new environment/native copy or public change.
+The current production delta against fc964606 is three files20 additions and
+7 deletions, including removal of the obsolete helper import.
+
+Actual physical tail05, through the installed production App and original
+Linux driver in isolated st/Xvfb, passed both fresh canonical wire receipts,
+typing while the original reader task and worker were still unfinished,
+exactly-once rows after release, and restart rejecting the earlier source.
+This is a source-entry wrapper importing installed product, not default-CLI
+acceptance. It is sufficient evidence for this scoped scheduling/publication
+checkpoint, together with the original joined04 saved-native motion evidence.
+
+The final compound End assertion failed; its original snapshot later has
+LiveTranscript, no newer source, the correct final receipt, follows_tail=True,
+maximum0 and a free history lock. It cannot identify whether the immediate
+assertion saw unsettled follow or a separate App exception. The later driver
+records the App exception separately and awaits the original native destination;
+tail06 ended within unchanged44-second recorder custody without its outcome.
+Neither is promoted to full End acceptance. No further recording or deadline
+increase is planned until the End family ownership is resolved with Heisenberg.
+The wire leaf reads/publishes the latest page; the native leaf independently
+defers its guarded _anchor_latest. Both borrow HistoryWindow's follow/restore
+owner. That difference is a source question, not a confirmed defect or permission
+to add a receipt/destination special path.
+
+Original raw05 and06 are retained under
+`/home/ts/.cache/agent-scratch/kepler338-reader-demand-tail-20261002-{05,06}`;
+their private originals/failed DTOs are under
+`.artifacts/history-lifetime338/physical-installed{07,08}`. Every cleanup has
+zero remaining owned processes and zero cleanup errors. Original profiles and
+frame receipts are retained. Tail05 writer enqueue-to-completion p95 is1.54ms,
+frame-interval p95 is97.28ms; these are whole-capture native writer observations,
+not presentation FPS or CPU gain. Profile05 reports464 samples and1 sampling
+error. Tail06 writer p95 is1.64ms, interval p95 is81.98ms; its incomplete outcome
+and empty phase joins prevent a performance/End claim. Earlier launcher guards
+also remain retained; they stopped before App construction or any input.
+
+The matching holder is released back to Heisenberg. Frozen344/347 proofs and
+the public install remain unchanged. Full338 history/body work stays active.
