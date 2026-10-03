@@ -1,0 +1,30 @@
+{
+  "head": "ae7995eeec41a0193be22371ea00289035e80cdb",
+  "tracked_assets": 318,
+  "mismatches": [],
+  "installed": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad",
+  "pins": {
+    "agent-comms": {
+      "url": "https://github.com/OpenHCSDev/agent-comms.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "d3ed99d5773528a2ff061205260f15712de10d09",
+        "requested_revision": "d3ed99d5773528a2ff061205260f15712de10d09"
+      }
+    },
+    "textual": {
+      "url": "https://github.com/OpenHCSDev/textual.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "4d2388f12d2d5aa4891920a527141c2b475dd28c",
+        "requested_revision": "4d2388f12d2d5aa4891920a527141c2b475dd28c"
+      }
+    },
+    "batrachian-toad": {
+      "url": "file:///home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/terminal-model-damage-379/batrachian_toad-0.6.20-py3-none-any.whl",
+      "archive_info": {}
+    },
+    "agent-client-protocol": null
+  },
+  "distributions": 69
+}
