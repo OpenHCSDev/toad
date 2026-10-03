@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from toad.app import ToadApp
     from toad.setting_choices import SessionBar
-    from toad.native_themes import ThemeChoice
 
 
 def history_buffer_viewports(app: ToadApp, value: int) -> None:
@@ -36,8 +35,8 @@ def sidebar_spinner_frames_per_second(app: ToadApp, value: int) -> None:
     app.workspace_chrome.channels.roster.projection.update_animation_cadence()
 
 
-def theme(app: ToadApp, value: type[ThemeChoice]) -> None:
-    app.theme = value.theme.name
+def theme(app: ToadApp, value: str) -> None:
+    app.theme = value
 
 
 def compact_input(app: ToadApp, value: bool) -> None:
