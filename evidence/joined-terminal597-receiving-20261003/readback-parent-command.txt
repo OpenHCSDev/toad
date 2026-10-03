@@ -1,0 +1,1 @@
+env -u PYTHONPATH -u PYTHONHOME /home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin/python -I /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/joined-terminal597-receiving-20261003/new-publication597/readback_publication.py

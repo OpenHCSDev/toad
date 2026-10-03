@@ -1,0 +1,6 @@
+{
+  "state": "Holder release operand classified from original fields",
+  "release_receipt_sha256": "3c3133f01127d9fdd32979796a8cde1ab7790c31959317d3f8a7b002f563f13c",
+  "original_archive_sha256": "b48beeef200f4a4df3327e85203cdc6acfc58101e5a1e34ed2e8bb581a359030",
+  "initial_private_check": "First compared supplied archive digest to release JSON and refused before package writes. Read original archive_sha256 field; original archive bytes match supplied digest; same prefix and authorization, no witness mutation or new qualification."
+}
