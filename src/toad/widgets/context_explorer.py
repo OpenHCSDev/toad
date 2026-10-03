@@ -9,7 +9,7 @@ from acp.exceptions import RequestError
 from textual import on, work
 from textual.containers import Horizontal, Vertical
 from textual.widgets import Button, Input, Static, TextArea, Tree
-from textual.worker import Worker, WorkerState, get_current_worker
+from textual.worker import Worker, WorkerCancelled, WorkerState, get_current_worker
 from agent_comms.mro_dispatch import handles
 
 from toad.core.context_inspection import ContextInspection, ContextNode
@@ -194,8 +194,8 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         if self.intent.query and native is not None:
             self._search(inspection, native, self.intent.query)
             return
+        self.workers.cancel_group(self, "context-search")
         tree = self.query_one(Tree)
-        selected = self.intent.selected
         self._context_nodes.clear()
         self._loaded.clear()
         with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
@@ -209,6 +209,10 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             recorded = tree.root.add("Recorded requests · source evidence, not today's base")
             for model in inspection.recorded():
                 self._add(recorded, model)
+        self._restore_reader("Select a context segment to inspect.")
+
+    def _restore_reader(self, placeholder):
+        with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
             # Restore expansions without fetching referenced files or rebuilding text.
             pending = list(self._context_nodes.values())
             while pending:
@@ -217,13 +221,13 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
                     self._expand(node)
                     node.expand()
                     pending.extend(node.children)
-        if selected in self._context_nodes:
-            model = self._context_nodes[selected].data
+        if self.intent.selected in self._context_nodes:
+            model = self._context_nodes[self.intent.selected].data
             self.call_after_refresh(self._restore_cursor, model)
         else:
             # A pending/unavailable original observation cannot revoke the
             # reader's choice. Reuse it when its node is materialized again.
-            self.query_one(TextArea).load_text("Select a context segment to inspect.")
+            self.query_one(TextArea).load_text(placeholder)
 
     @on(Input.Changed, "#context-search")
     def query_changed(self, event):
@@ -247,12 +251,10 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         try:
             matches = await asyncio.to_thread(inspection.find, native, query)
         except (OSError, ValueError, RuntimeError, RequestError) as error:
-            if self._inspection is inspection and self.intent.query == query:
+            if self._searching(inspection, native, query):
                 status.update(f"Context search unavailable: {error}")
             return
-        if (not self.is_attached or get_current_worker().is_cancelled
-                or self._inspection is not inspection or self._native is not native
-                or self.intent.query != query):
+        if not self._searching(inspection, native, query):
             return
         tree = self.query_one(Tree)
         self._context_nodes.clear()
@@ -264,10 +266,26 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             for model in matches:
                 self._add(tree.root, model)
         status.update(f"{len(matches)} matching sources · first 100 shown · recorded request text is separate evidence")
-        self.query_one(TextArea).load_text("Select a matching original source to read its full public text.")
+        self._restore_reader("Select a matching original source to read its full public text.")
+
+    def _searching(self, inspection, native, query):
+        return (self.is_attached and not get_current_worker().is_cancelled
+                and self._inspection is inspection and self._native is native
+                and self.intent.query == query)
 
     @on(Button.Pressed, "#context-read-full")
-    def action_read_full(self):
+    @work(group="context-full-read", exclusive=True, exit_on_error=False)
+    async def action_read_full(self):
+        node = self.query_one(Tree).cursor_node
+        if not self._owns_node(node):
+            return
+        model = node.data
+        try:
+            await self._show_detail(model).wait()
+        except WorkerCancelled:
+            return
+        if not self._selected(model):
+            return
         detail = self.query_one(TextArea)
         self.screen.maximize(detail, container=False)
         detail.focus()
@@ -278,7 +296,12 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         node = self.query_one(Tree).cursor_node
         if self._owns_node(node):
             model = node.data
-            detail = await asyncio.to_thread(model.detail)
+            try:
+                detail = await asyncio.to_thread(model.detail)
+            except (OSError, ValueError, RuntimeError, RequestError) as error:
+                if self._selected(model):
+                    self.notify(f"Context copy failed: {error}", severity="error")
+                return
             if self._selected(model):
                 self.app.copy_to_clipboard(detail)
                 self.notify("Complete selected public text and source copied")
@@ -297,7 +320,8 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         try:
             await asyncio.to_thread(model.export, Path(destination).expanduser())
         except (OSError, ValueError, RuntimeError) as error:
-            self.notify(f"Context export failed: {error}", severity="error")
+            if self.is_attached:
+                self.notify(f"Context export failed: {error}", severity="error")
         else:
             if self.is_attached:
                 self.notify(f"Exported selected public text and source to {destination}")
