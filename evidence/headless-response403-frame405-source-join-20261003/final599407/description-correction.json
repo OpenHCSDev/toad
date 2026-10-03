@@ -1,0 +1,10 @@
+{
+  "description_only_before_final_freeze": true,
+  "old_activation_sha256": "2af5875096efffc5340e00e0f50253fe9c30d3b9625adfc299d41372cac16c90",
+  "new_activation_sha256": "4028393d1b055986e22f4deb437aafba463da5e6242c3aeba9283ddd9f836a0a",
+  "unchanged_fields": "All activation fields except descriptive state; pins, binaries, sourceproof, native bindings unchanged",
+  "actual25_origin_controls_original_activation_sha256": "2af5875096efffc5340e00e0f50253fe9c30d3b9625adfc299d41372cac16c90",
+  "original_controls_preserved": true,
+  "journeys_repeated": false,
+  "public_effects": 0
+}

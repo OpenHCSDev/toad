@@ -1,0 +1,286 @@
+{
+  "state": "SCOPED_READY; whole performance ACTIVE",
+  "qualified_source": [
+    {
+      "module": "agent_comms",
+      "head": "eb3778d6a00e14f396a0b0d37c7c6aeea4583853",
+      "location": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/agent_comms",
+      "files": 339,
+      "python_files": 311,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/agent-comms.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "eb3778d6a00e14f396a0b0d37c7c6aeea4583853",
+          "requested_revision": "eb3778d6a00e14f396a0b0d37c7c6aeea4583853"
+        }
+      },
+      "inventory_sha256": "d6117ccb2569b85803acefa4472465c357e873653e217a579463de529e3601e2"
+    },
+    {
+      "module": "toad",
+      "head": "984000eb0e8406633506c240640a5689a7dd9c46",
+      "location": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad",
+      "files": 320,
+      "python_files": 289,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/toad.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "984000eb0e8406633506c240640a5689a7dd9c46",
+          "requested_revision": "984000eb0e8406633506c240640a5689a7dd9c46"
+        }
+      },
+      "inventory_sha256": "e363e3361230b19f478704e443c2e168834f838b505b21f332f9e408b8c6e75b"
+    },
+    {
+      "module": "textual",
+      "head": "5750aca10eda456b0186dd0a9cfabb1e3a5263bc",
+      "location": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual",
+      "files": 266,
+      "python_files": 249,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/textual.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "5750aca10eda456b0186dd0a9cfabb1e3a5263bc",
+          "requested_revision": "5750aca10eda456b0186dd0a9cfabb1e3a5263bc"
+        }
+      },
+      "inventory_sha256": "eacd3041ac441d59eff8569c94cc012459db9e3f8b663b77cdc32cd9881bbf9d"
+    },
+    {
+      "module": "textual_diff_view",
+      "head": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "location": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual_diff_view",
+      "files": 3,
+      "python_files": 2,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/textual-diff-view.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+          "requested_revision": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+        }
+      },
+      "inventory_sha256": "c1ab2e4c7a7595de81eeb8fef14f9fa9e45b603f84e810dc7c08fa9145793679"
+    }
+  ],
+  "installed_toad_head": "984000eb0e8406633506c240640a5689a7dd9c46",
+  "native_text_head": "5750aca10eda456b0186dd0a9cfabb1e3a5263bc",
+  "native45_included": "f7683fa77274e6a031c36ac9b9d68b9db1cf57f6",
+  "production_files": 2,
+  "production_added": 12,
+  "production_deleted": 10,
+  "owner_change": "Existing DOM lazy ancestry owns all six selected body/frame/window interaction and placement walks; existing depth-first iterator owns two pure body readiness/cost reads. No new traversal/cache/type/authority.",
+  "ast_modules": 289,
+  "ast_omissions": 0,
+  "native_ast_modules": 249,
+  "native_ast_omissions": 0,
+  "source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body405-ancestry46-20261003/source-proof.json",
+  "activation": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/activation.json",
+  "normal_packages": 69,
+  "new_env": false,
+  "new_native_copy": false,
+  "body_resource_sanity": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body405-ancestry46-20261003/body-resource-sanity/receipt.json",
+  "native_checks": "Original14PASS/1callback-failure retained; corrected same original callback Event1PASS.57s, product unchanged.",
+  "capture": "/home/ts/.cache/agent-scratch/body405-native45-46-public-20261003-01/capture",
+  "tool_exit": 0,
+  "capture_completed": true,
+  "completed": true,
+  "duration_seconds": 145.2158722539898,
+  "warm_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_destination_covered": true,
+    "held_page_down_destination_covered": true,
+    "reverse_page_up_destination_covered": true
+  },
+  "input_checks": {
+    "input_remains_focused": true,
+    "original_editor_window_and_mode": true,
+    "draft_and_caret_preserved": true,
+    "input_pageup_moves_history": true,
+    "input_pagedown_moves_history": true,
+    "input_pageup_reaches_original_window": true,
+    "input_pagedown_reaches_original_window": true
+  },
+  "retained_ready_bodies": 41,
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 1454512,
+      "start_time": 53130478
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 1454512,
+      "start_time": 53130478
+    },
+    "original_owner_alive": true
+  },
+  "runtime_unchanged": true,
+  "cleanup_remaining": [],
+  "cleanup_errors": [],
+  "terminal_exit_custody": {
+    "pid": 1836894,
+    "start_ticks": 53452855,
+    "custody": "verified launch identity transferred to installed ObservedProcess"
+  },
+  "writer_trace": {
+    "flushed": 1313,
+    "unmatched": 0,
+    "phases": [
+      {
+        "action": "input-held-up",
+        "intervals": {
+          "count": 100,
+          "median_ms": 13.54,
+          "p95_ms": 27.97,
+          "p99_ms": 119.1,
+          "max_ms": 190.21
+        },
+        "writer_receipts": 101
+      },
+      {
+        "action": "input-held-down",
+        "intervals": {
+          "count": 127,
+          "median_ms": 12.9,
+          "p95_ms": 22.16,
+          "p99_ms": 28.3,
+          "max_ms": 98.7
+        },
+        "writer_receipts": 128
+      },
+      {
+        "action": "up",
+        "intervals": {
+          "count": 124,
+          "median_ms": 13.25,
+          "p95_ms": 26.5,
+          "p99_ms": 29.47,
+          "max_ms": 120.23
+        },
+        "writer_receipts": 125
+      },
+      {
+        "action": "down",
+        "intervals": {
+          "count": 123,
+          "median_ms": 13.82,
+          "p95_ms": 22.85,
+          "p99_ms": 30.58,
+          "max_ms": 102.98
+        },
+        "writer_receipts": 124
+      },
+      {
+        "action": "reverse",
+        "intervals": {
+          "count": 127,
+          "median_ms": 13.31,
+          "p95_ms": 23.92,
+          "p99_ms": 34.44,
+          "max_ms": 99.92
+        },
+        "writer_receipts": 128
+      },
+      {
+        "action": "end",
+        "intervals": {
+          "count": 7,
+          "median_ms": 493.94,
+          "p95_ms": 499.38,
+          "p99_ms": 499.38,
+          "max_ms": 500.2
+        },
+        "writer_receipts": 8
+      }
+    ]
+  },
+  "profile": {
+    "GIL_samples": 1305,
+    "errors": 2,
+    "alignment_uncertainty_seconds": 0.06365743147674949,
+    "limits": "Partial GIL sampling; Chrome stack transitions not CPU time; kernel marker spans include diagnostic export/inline encoding. Unmatched prior workload forbids causal CPU/gain comparison."
+  },
+  "motion": "Personally reviewed original48-consecutive-frame Up,Down,reverse bands with sameUI alive before and immediately after view. Parent also bracketed Up/Down. Body/chrome retained/readable, repeated positions and discrete advances. AreturnPNG inspected after termination. No smoothness/144Hz/CPUgain/wholeviewbinding claim.",
+  "raw_receipt_unchanged": true,
+  "raw_assessment": "unreviewed preserved; this separate qualification supplies human scope",
+  "raw_keepers": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/body405-native45-46-public-20261003-01/capture/receipt.json",
+      "bytes": 701417,
+      "sha256": "5ff9b719174a86ee10bd748e3929136c91bf0bdd8ed842b51438843a9200a7b2"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/body405-native45-46-public-20261003-01/capture/terminal.mp4",
+      "bytes": 27965548,
+      "sha256": "0b971981bcee832e2ededb47a10bb3fffc1451abfafdd2c91017bfb8d6145c0c"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/body405-native45-46-public-20261003-01/capture/cpu-profile.json",
+      "bytes": 8673956,
+      "sha256": "b7d460b9d9a280dc4902e76da85782fb0202fbcb9819403721648024b291b66e"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/body405-native45-46-public-20261003-01/capture/frame-delivery.json",
+      "bytes": 234581,
+      "sha256": "0152d5d9fe7ce8d36d73fedfbfb35f8726cb7efc67144f7fb24e75afbc830218"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/body405-native45-46-public-20261003-01/capture/profile-review.json",
+      "bytes": 352170,
+      "sha256": "454e94cd35abac014917b36fb1d487ba408f00142cce02577bbe6479bd15441d"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/body405-native45-46-public-20261003-01/capture/events.jsonl",
+      "bytes": 85256,
+      "sha256": "1616e366e638e19617e306926cc0bf553f6e39e62e4bf2c8f0b11b674632c81d"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/body405-native45-46-public-20261003-01/capture/personal-motion-review.json",
+      "bytes": 465,
+      "sha256": "b47129bac7790b7fef03b7664909caa4e13f4adbb680ea093bc587e13c841383"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/body405-native45-46-public-20261003-01/capture/personal-down-motion-review.json",
+      "bytes": 531,
+      "sha256": "3dc7538407330b1d07bc99a0a10ed55dfa8d648234358aff3ce5909f96901d87"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/body405-native45-46-public-20261003-01/capture/personal-reverse-motion-review.json",
+      "bytes": 516,
+      "sha256": "d9ecf393131cb6f8d3935974398d11f98de76ae4032a03359f0112a8ee627e2d"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/body405-native45-46-public-20261003-01/capture/parent-during-motion-observation.json",
+      "bytes": 711,
+      "sha256": "97d51b82804045b0e783492189a2059c2845e0f5db8ae61219140c07fb103c01"
+    }
+  ],
+  "remaining_full_scope": "CPU/raster/firstpaint/cold/warm/runway/velocity/reversal/growingEnd/PageDownvoid/sidebar/busy/compaction/DM-IRC/focus/undo/animation/144Hz/inputlatency/TC1/T9/T4. New meaningful source change before next recording."
+}
