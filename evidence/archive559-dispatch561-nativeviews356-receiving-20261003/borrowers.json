@@ -1,0 +1,6 @@
+{
+  "scope": "privileged proc cwd/exe/argv/environment/FD/maps",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002",
+  "references": [],
+  "permission_gaps": []
+}

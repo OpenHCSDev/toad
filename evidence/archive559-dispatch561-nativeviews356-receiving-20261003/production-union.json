@@ -1,0 +1,14 @@
+{
+  "merged356": "b2bc8c722963b6d16b94ac946f51e6420c530085",
+  "receiver": "0fd956b92e157a6461db5783a84fa34e4603fa21",
+  "src_pyproject_lock_equal": true,
+  "core_ready": "df3ac026a2288f5cedbcadacc4c988d153b6da23",
+  "core_merged": "85abe4276e91d52a72eec7411ed2314aaccc8c02",
+  "full_source_files": {
+    "agent_comms": 339,
+    "toad": 317,
+    "textual": 266,
+    "textual_diff_view": 3
+  },
+  "parent_only_publication": true
+}
