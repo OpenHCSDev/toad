@@ -1632,5 +1632,7 @@
   "count": 69,
   "head": "9e09b9655cd63bef8de3d0642779cd92cec0380b",
   "inventory_scope": "Every tracked src/toad file, including all static assets; no exclusion by suffix.",
-  "holder_release_receipt": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-native-read532-534-retirement325-20261002-for-einstein-u2/release-receipt.json"
+  "holder_release_receipt": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-native-read532-534-retirement325-20261002-for-einstein-u2/release-receipt.json",
+  "coherent_head": "3edb464ca7239b2ba43bb7e62f4b3821cb43c000",
+  "normal_main_source_unchanged": true
 }

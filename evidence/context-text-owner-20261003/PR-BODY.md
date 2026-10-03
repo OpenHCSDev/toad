@@ -19,3 +19,5 @@ Reused released334; no new environment or native copy. Its old Core7dd failed pr
 ## Limits and cleanup
 
 Registered ACP external facts are controlled; no provider/native-issued context update or public mutation. Reattachment explicitly uses the original bind_agent/refresh_native_projection operations, not a physical tab-return claim. No physical recording, latency, performance, old native9f12 compatibility or full U2/U4/U5 claim. CI deferred. Successful private directory removed, runner exited; cleanup lists environment-read gaps rather than hiding them. Originals/native/UNKNOWN and previous receipts remain protected; Sch529 unchanged.
+
+Normal current main375 was merged after acceptance: only Heisenberg receiving evidence/Textual pin metadata changed, **zero src/toad delta**. Installed Core12c/Textb1 proof remains exact scoped baseline; no Text35 candidate qualification or repeat requested.
