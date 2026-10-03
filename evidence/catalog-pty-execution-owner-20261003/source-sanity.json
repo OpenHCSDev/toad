@@ -1,12 +1,25 @@
 {
   "result": "pass-source-only",
-  "product": "7964b7dd8",
-  "parsed_roots": {"src/toad": 288, "tests": 391},
+  "product": "39af5e889abb0a95f7bec0693291ae6cb8e93ca7",
+  "parsed_roots": {
+    "src/toad": 288,
+    "tests": 391
+  },
   "parse_omissions": [],
   "changed_module_compile": 6,
   "pane_retired_process_master_task_return_code_sites": [],
-  "production_delta": {"files": 4, "added": 112, "deleted": 197, "new_classes": 0},
+  "production_delta": {
+    "files": 4,
+    "added": 91,
+    "deleted": 200,
+    "new_classes": 0
+  },
   "concrete_risk": "All changed constructor/import/execute consumers and the original resource/writer boundary must compile; lexical census supplements semantic reads, not dynamic proof.",
   "installed_acceptance": "pending-one-matched-App-catalog-PTY-journey-through-receiver",
-  "resources": {"home_free_gib": 3.0, "available_ram_gib": 20.0, "scope": "Existing shared candidate only; bounded private local commands, no new env/provider/native copies."}
+  "resources": {
+    "home_free_gib": 3.0,
+    "available_ram_gib": 20.0,
+    "scope": "Existing shared candidate only; bounded private local commands, no new env/provider/native copies."
+  },
+  "retired_cooked_query_sites": []
 }
