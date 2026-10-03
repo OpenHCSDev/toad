@@ -1,0 +1,14 @@
+{
+  "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/activation.json": "5cf14533f5f71cc0b246ff0b01e7bf8d237ecb1e9154ee3f7cd4a95c6f9780d9",
+  "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/agent_comms/native_pi.py": "a7f8f8dca2b759f62acb0797f5a291b9e963451ea7d39cf7e39d2d79ef850d4b",
+  "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/toad/widgets/conversation.py": "99ee591faf9b58ddba97d009b6b655d551975eec5cb5775ee3f836a0ce3e5017",
+  "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/textual/app.py": "d29ddba6a777fea0ae804f3ff17fa5dd3b8e5101a4f85fe8b0bf82fa43ac3d38",
+  "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/activation.json": "aa52c52f13486f60a06e186e3ca488ff4400253954738f023384f13cf8cedf70",
+  "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/agent_comms/native_pi.py": "a7f8f8dca2b759f62acb0797f5a291b9e963451ea7d39cf7e39d2d79ef850d4b",
+  "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/toad/widgets/conversation.py": "235af57bec11828a664c9037d02cd19138fd10307a6ca6e2a4d294d2f2085b23",
+  "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/textual/app.py": "cd0c93fbdba749c82b92db953be8c99330665bd8fe74b0f53e7de22547ef1cf0",
+  "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/activation.json": "dc07ddc1cc7034bf7487cc25c6949f0b6310cdeea4be00004f1c152ec65c5b80",
+  "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/lib/python3.14/site-packages/agent_comms/native_pi.py": "a7f8f8dca2b759f62acb0797f5a291b9e963451ea7d39cf7e39d2d79ef850d4b",
+  "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/lib/python3.14/site-packages/toad/widgets/conversation.py": "235af57bec11828a664c9037d02cd19138fd10307a6ca6e2a4d294d2f2085b23",
+  "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/lib/python3.14/site-packages/textual/app.py": "cd0c93fbdba749c82b92db953be8c99330665bd8fe74b0f53e7de22547ef1cf0"
+}
