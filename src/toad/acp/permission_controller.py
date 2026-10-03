@@ -33,7 +33,7 @@ class PermissionRequest(DeclaredFamily, affix="PermissionRequest"):
     def presentation(self): ...
 
     def answer(self, binding, answer):
-        if self.pending and self.controller.agent.controller.surface is binding:
+        if self.owns_projection(binding, binding.target):
             if answer is None or any(option.id == answer.id for option in self.options):
                 self.future.set_result(answer)
 
@@ -41,21 +41,51 @@ class PermissionRequest(DeclaredFamily, affix="PermissionRequest"):
         if self.pending:
             self.future.set_result(None)
 
-    def watch(self, surface, retire):
-        self._projections.setdefault(surface, []).append(retire)
+    def current_on(self, binding, surface):
+        """The original controller and surface own this attachment."""
+        return (self.controller.agent.controller.surface is binding
+                and binding.owns(surface))
 
-    def projected_on(self, surface):
-        """The acquired native projections own their presence."""
-        return surface in self._projections
+    def owns_projection(self, binding, surface):
+        return self.pending and self.current_on(binding, surface) and binding in self._projections
+
+    async def present(self, surface):
+        """Acquire once before asynchronous frontend work; retain its callbacks."""
+        binding = self.controller.agent.controller.surface
+        if not self.pending or not self.current_on(binding, surface) or binding in self._projections:
+            return
+        self._projections[binding] = []
+        try:
+            binding.permission_changed(surface)
+            await binding.present_permission(self, surface)
+        except BaseException:
+            self._retire_projection(binding)
+            raise
+        finally:
+            if self.current_on(binding, surface):
+                binding.permission_changed(surface)
+
+    def watch(self, binding, retire):
+        surface = binding.target
+        if not self.owns_projection(binding, surface):
+            retire()
+            return False
+        self._projections[binding].append(retire)
+        return True
 
     def detach(self, surface):
-        for retire in self._projections.pop(surface, ()):
+        for binding in tuple(self._projections):
+            if binding.owns(surface):
+                self._retire_projection(binding)
+
+    def _retire_projection(self, binding):
+        for retire in self._projections.pop(binding, ()):
             retire()
 
     def _completed(self, future):
         self.controller.requests.discard(self)
-        for surface in tuple(self._projections):
-            self.detach(surface)
+        for binding in tuple(self._projections):
+            self._retire_projection(binding)
 
     async def wait(self, timeout):
         try:
