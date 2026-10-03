@@ -1,10 +1,10 @@
-"""Context measurement owns availability, provenance and visible projection."""
+"""Context measurement owns availability, provenance and shared status text."""
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from math import floor
 from typing import NamedTuple
-from textual.content import Content
+from rich.text import Text as RichText
 
 class Cost(NamedTuple):
     """A cost with associated currency."""
@@ -27,7 +27,7 @@ class ContextMeasurement(ABC):
     available = False
 
     @abstractmethod
-    def status(self) -> Content: ...
+    def status(self) -> RichText: ...
 
     @classmethod
     def saved(cls, usage):
@@ -48,8 +48,8 @@ class ContextMeasurement(ABC):
 class ContextUnavailable(ContextMeasurement):
     reason: str
 
-    def status(self):
-        return Content(f"Context unavailable · {self.reason}")
+    def status(self) -> RichText:
+        return RichText(f"Context unavailable · {self.reason}")
 
 
 @dataclass(frozen=True)
@@ -68,14 +68,14 @@ class MeasuredContext(ContextMeasurement):
     def percentage_display(self):
         return f"{floor(self.percentage_used * 10) / 10:.1f}%"
 
-    def status(self):
-        parts = [Content.assemble(f"{self.used / 1000:.1f}K (",
+    def status(self) -> RichText:
+        parts = [RichText.assemble(f"{self.used / 1000:.1f}K (",
                   (self.percentage_display, "bold"), ")")]
         if self.source_label:
-            parts.append(Content(self.source_label))
+            parts.append(RichText(self.source_label))
         if self.cost is not None:
-            parts.append(Content.assemble((f"{self.cost}", "bold")))
-        return Content(" • ").join(parts)
+            parts.append(RichText.assemble((f"{self.cost}", "bold")))
+        return RichText(" • ").join(parts)
 
 
 class LiveContextMeasurement(MeasuredContext):
