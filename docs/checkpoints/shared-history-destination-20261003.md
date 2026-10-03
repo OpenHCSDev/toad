@@ -101,3 +101,30 @@ Heisenberg has the exact source for normal integration with352 and one changed
 installed IRC/DM End/receipt qualification using the existing holder. No second
 motion capture is running; no native/provider test process remains from the
 bounded source sanity. PR remains Draft until that affected installed journey.
+
+## Joint installed cohort and first launch boundary
+
+Heisenberg normally integrated352+355 at `e55a132f055807add3f0b3b7f87a0d2691d6f565`.
+This checkout normally integrated that same head; later driver commits do not
+change packaged production. The released existing style22 holder was reused
+once, with zero borrowers, archived old activation/source proofs, normal69
+resolution and current353 Core pin `db94c06cfc2174864ab32211ce1bf403bb413440`.
+Textual940880/SDK0.12.1/native960 are unchanged. All four production inventories,
+assets/directURLs/native full trust and pip check passed. The public558 donor
+was read-only throughout. No environment/native build or public activation.
+
+Existing physical driver now covers copied-original native End/Home revocation
+and final End before channel original-read receipt/typing/restart/End. The same
+44-second movie budget remains; full347 motion is not repeated. No native input
+or provider call is selected by this read-only fixture.
+
+The first operator stopped BEFORE SDK fork/app/native input: its acquired-current
+registry decoder uses approved558, but `OriginalTypedCapture.read` incorrectly
+requires the live owner interpreter to equal that decoder. Original current
+`nra-architecture` is authenticated yet uses the historical290 interpreter;
+these are different facts. Parent owns the shared helper correction: let
+`RetainedOwnerLaunch.capture` derive and validate the original process interpreter,
+while the declared registry producer continues to validate its document. Do not
+run the oldCore52f reader against the current-format bus or override the fence.
+Original failure is retained under `evidence/.../preflight01/` and owned scratch.
+No product End failure or pass was established by that rejected preflight.
