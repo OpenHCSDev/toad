@@ -52,9 +52,6 @@ class ViewportBody:
     async def restore_body(self) -> bool:
         raise NotImplementedError
 
-    async def prepare_body(self) -> None:
-        """Warm pure work in the shared renderer without mounting widgets."""
-
     @property
     def retained_source_bytes(self) -> int:
         return 0
@@ -1120,24 +1117,24 @@ class DocumentViewport:
                 or not self.lookahead.accepts(demand)):
             return ()
         owners = tuple(owner for owner in owners if owner.is_attached and not owner._closing)
-        # The same visible/runway cohort prepares detached work before it
-        # borrows reader compensation or starts a native reconstruction.
-        await asyncio.gather(*(owner.prepare_body() for owner in owners
-                               if owner.body_dormant and not owner.body_ready))
-        if not self.accepts_frame() or not self.lookahead.accepts(demand):
-            return ()
-        restored = []
         async with AsyncExitStack() as mutation:
             if any(not owner.body_ready for owner in owners):
                 await mutation.enter_async_context(self.window.preserve_reader(anchor))
-            for owner in owners:
-                if not self.accepts_frame() or not self.lookahead.accepts(demand):
-                    break
-                if owner.is_attached and not owner._closing:
-                    if await owner.restore_body():
-                        restored.append(owner)
+            # Each original materialization worker acquires its prepared result
+            # once. Source-page lookahead warms unmounted leaves separately;
+            # repeating that work here delays every body before delivery begins.
+            # Join this admitted cohort together under the same reader anchor,
+            # retaining the runtime's existing worker and resource limits.
+            async with asyncio.TaskGroup() as restoration:
+                tasks = []
+                for owner in owners:
+                    if not self.accepts_frame() or not self.lookahead.accepts(demand):
+                        break
+                    if owner.is_attached and not owner._closing:
+                        tasks.append((owner, restoration.create_task(owner.restore_body())))
+            restored = tuple(owner for owner, task in tasks if task.result())
         if restored:
             # Native child composition and nested page publication produce
             # readiness. The same frame owns capture after compensated layout.
             self.window.screen.frame_presentation.defer(self.window, self.request)
-        return tuple(restored)
+        return restored

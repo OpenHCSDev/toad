@@ -80,13 +80,6 @@ class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
     def _append_body_source(self, markdown: str) -> AwaitComplete:
         return super().append(markdown)
 
-    async def prepare_body(self) -> None:
-        # Results live only in PreparationRuntime's bounded cache. Fresh file
-        # links and widget construction remain at the foreground delivery.
-        await self.app.render_processes.prepare(MarkdownRenderTask(
-            self.source, self.app.native_ansi_color, self.app.current_theme.dark,
-        ))
-
     def on_unmount(self) -> None:
         self._prepared_fences.clear()
 
