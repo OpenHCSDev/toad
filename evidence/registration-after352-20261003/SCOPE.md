@@ -37,3 +37,18 @@ retained resource behavior; own style, width, source, stream custody and final
 disposal remain invalidating. Source native72 checks and the existing body
 family experiment passed. Actual changed installed return remains required;
 this draft is not Ready and has no speed/smoothness claim.
+
+## Changed installed02
+
+Normal69 Corecc56/native044 +To ad1617 +Text809c exact-source candidate, in
+the same holder, completed filming50.666s; raw journey failed
+channel_messages_published. All26 retained native bodies stay ready and
+reconciliation finishes on A return, so the false dependency invalidation is
+closed. Physical A-return PNG still shows B, with native A appearing later in
+Undo/native-return. PNG precedes metadata/export and writer events; this is
+a delayed replacement, not proof of a stale Presented frame. Original timed
+profile has channel page mount/register/style activity before the writer.
+Keep this as a negative physical-return qualification, not Ready or a gain.
+Warm/start and return PNGs were viewed during active clients; no moving-frame
+inspection or smoothness acceptance is claimed. All owned clients closed,
+cleanup empty, original owner unchanged. No unchanged recapture.
