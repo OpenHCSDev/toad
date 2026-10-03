@@ -1,0 +1,15 @@
+{
+  "python": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+  "provider_calls": 0,
+  "public_inputs": 0,
+  "headless_official_sdk_accepted_and_rejected": true,
+  "local_official_sdk_accepted_and_rejected": true,
+  "persistent_official_sdk_accepted_and_rejected": true,
+  "wrong_completed_result_refused": true,
+  "non_reusable_capture_not_shared_or_retained": true,
+  "reusable_capture_shared_retained_and_independently_delivered": true,
+  "elapsed": 5.25327228900278,
+  "cleanup": [],
+  "state": "PASS",
+  "scope": "Actual installed local spawn, persistent ZMQ worker, official SDK and headless/application validation. No terminal pixels or provider turn."
+}

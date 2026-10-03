@@ -84,7 +84,7 @@ class ValidationOwner(DeclaredFamily, affix="ValidationOwner"):
 
 class HeadlessValidationOwner(ValidationOwner):
     async def validate(self, task):
-        return await asyncio.to_thread(task.execute)
+        return await task.complete(asyncio.to_thread(task.execute))
 
 
 class ApplicationValidationOwner(ValidationOwner):

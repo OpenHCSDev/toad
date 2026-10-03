@@ -1,0 +1,23 @@
+render_families_pilot (unittest.loader._FailedTest.render_families_pilot) ... ERROR
+
+======================================================================
+ERROR: render_families_pilot (unittest.loader._FailedTest.render_families_pilot)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: render_families_pilot
+Traceback (most recent call last):
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/unittest/loader.py", line 426, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/unittest/loader.py", line 367, in _get_module_from_name
+    __import__(name)
+    ~~~~~~~~~~^^^^^^
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/render_families_pilot.py", line 31, in <module>
+    from toad.render_zmq import RenderSubmission
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/render_zmq.py", line 22, in <module>
+    from zmqruntime import ZMQClient, ZMQConfig, ZMQServer
+ModuleNotFoundError: No module named 'zmqruntime'
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+FAILED (errors=1)
