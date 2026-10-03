@@ -71,7 +71,7 @@ async def main(profile_path=None, trace=False):
         )
 
         async def start(agent, target):
-            agent.attach_surface(target)
+            target.bind_agent(agent)
 
             async def attach():
                 await released.wait()

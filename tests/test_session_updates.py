@@ -2,15 +2,15 @@
 import asyncio
 from toad.acp.agent import Agent
 from toad.acp.agent_process import ActiveProcessDisposition
-from toad.acp.session_updates import SessionUpdateEffect
-from toad.render_tasks import ValidateSessionUpdateTask
+from toad.agent_schema import AgentDefinition
+from toad.acp.sdk_boundary import ValidateSessionUpdateTask
 
 
 def test_pending_notification_cannot_publish_after_process_or_session_return(tmp_path, monkeypatch):
     async def run():
-        agent = Agent(tmp_path, {'name': 'updates', 'run_command': {'*': 'true'}}, 'A')
+        agent = Agent(tmp_path, AgentDefinition('updates', 'updates', {'*': 'true'}), 'A')
         emitted = []
-        agent.post_message = emitted.append
+        subscription = agent.events.subscribe(lambda event, source: emitted.append(event))
         for replace in ('binding', 'process'):
             entered, release = asyncio.Event(), asyncio.Event()
             async def validation(session_id, update, metadata):
@@ -38,19 +38,7 @@ def test_pending_notification_cannot_publish_after_process_or_session_return(tmp
         await agent.server.call({'jsonrpc': '2.0', 'method': 'session/update',
             'params': {'sessionId': 'A', 'update': {'sessionUpdate': 'available_commands_update',
             'availableCommands': [{'name': 'current', 'description': 'current source'}]}}})
-        assert agent.controller.commands[0]['name'] == 'current'
+        assert agent.controller.commands[0].name == 'current'
         await agent.stop()
+        subscription.close()
     asyncio.run(run())
-
-
-def test_new_update_effect_owns_behavior_without_dispatch_or_roster_edit():
-    class AddedEffect(SessionUpdateEffect, declared_name='test_declaration_effect'):
-        def apply(self, agent, route):
-            agent.append((self.update['value'], route))
-    raw = {'sessionUpdate': AddedEffect.declared_name, 'value': 'owned'}
-    effect = SessionUpdateEffect.from_wire(raw)
-    assert effect.update is raw
-    assert SessionUpdateEffect.decode(AddedEffect.declared_name) is AddedEffect
-    result = []
-    effect.apply(result, 'route')
-    assert result == [('owned', 'route')]

@@ -1,0 +1,392 @@
+{
+  "source": "ff6c90073e6297dae2cde82bdaf7b22f7fbbe621",
+  "parsed": 286,
+  "omissions": [],
+  "declarations": {
+    "AgentController": [
+      {
+        "path": "src/toad/acp/agent_controller.py",
+        "line": 90,
+        "bases": [
+          "OperationalTerminalOwner"
+        ]
+      }
+    ],
+    "AttachedSurfaceBinding": [
+      {
+        "path": "src/toad/agent_surface.py",
+        "line": 7,
+        "bases": [
+          "SurfaceBinding"
+        ]
+      }
+    ],
+    "CoordinationTranscriptReader": [
+      {
+        "path": "src/toad/acp/transcript_reader.py",
+        "line": 48,
+        "bases": [
+          "ABC"
+        ]
+      }
+    ],
+    "DetachedSurfaceBinding": [
+      {
+        "path": "src/toad/acp/agent_controller.py",
+        "line": 67,
+        "bases": [
+          "SurfaceBinding"
+        ]
+      }
+    ],
+    "DirectTranscriptReadDelivery": [
+      {
+        "path": "src/toad/acp/transcript_reader.py",
+        "line": 115,
+        "bases": [
+          "CoordinationTranscriptReader"
+        ]
+      }
+    ],
+    "PreparedTranscriptReadDelivery": [
+      {
+        "path": "src/toad/acp/transcript_reader.py",
+        "line": 122,
+        "bases": [
+          "CoordinationTranscriptReader"
+        ]
+      }
+    ],
+    "RenderExecution": [
+      {
+        "path": "src/toad/render_backend.py",
+        "line": 14,
+        "bases": [
+          "ABC",
+          "Generic[ResultT]"
+        ]
+      }
+    ],
+    "RenderTask": [
+      {
+        "path": "src/toad/render_backend.py",
+        "line": 24,
+        "bases": [
+          "RenderExecution[ResultT]",
+          "DeclaredFamily"
+        ]
+      }
+    ],
+    "ReusableRenderTask": [
+      {
+        "path": "src/toad/render_backend.py",
+        "line": 31,
+        "bases": [
+          "RenderTask[ResultT]"
+        ]
+      }
+    ],
+    "SessionUpdateValidation": [
+      {
+        "path": "src/toad/acp/sdk_boundary.py",
+        "line": 41,
+        "bases": [
+          "DeclaredFamily"
+        ]
+      }
+    ],
+    "SurfaceBinding": [
+      {
+        "path": "src/toad/acp/agent_controller.py",
+        "line": 41,
+        "bases": [
+          "DeclaredFamily"
+        ]
+      }
+    ],
+    "ValidateSessionUpdateTask": [
+      {
+        "path": "src/toad/acp/sdk_boundary.py",
+        "line": 63,
+        "bases": [
+          "RenderTask[SessionUpdateValidation]"
+        ]
+      }
+    ]
+  },
+  "related_lexical_calls": [
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 342,
+      "call": "self.controller.transcripts.bind(root)"
+    },
+    {
+      "path": "src/toad/acp/agent_configuration.py",
+      "line": 107,
+      "call": "kind.bind(option)"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 166,
+      "call": "binding.schedule_terminal_presentation(self)"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 362,
+      "call": "self.transcripts.bind(coordination.wire_root)"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 247,
+      "call": "self.transcripts.bind(coordination.wire_root)"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 94,
+      "call": "self.agent._private_cursor.bind(update.envelope, self.session_id, self.cursor_token)"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 105,
+      "call": "self.agent.queue_attachment.bind(update, self.session_id, self.queue_token)"
+    },
+    {
+      "path": "src/toad/acp/queue_attachment.py",
+      "line": 61,
+      "call": "super().bind(value, session_id, token)"
+    },
+    {
+      "path": "src/toad/acp/terminal_controller.py",
+      "line": 45,
+      "call": "self.owner.surface.terminal_dimensions()"
+    },
+    {
+      "path": "src/toad/acp/transcript_reader.py",
+      "line": 77,
+      "call": "self.bind(identity.root)"
+    },
+    {
+      "path": "src/toad/acp/transcript_reader.py",
+      "line": 90,
+      "call": "self.bind(root)"
+    },
+    {
+      "path": "src/toad/acp/transcript_reader.py",
+      "line": 101,
+      "call": "self.bind(root)"
+    },
+    {
+      "path": "src/toad/acp/transcript_reader.py",
+      "line": 107,
+      "call": "self.deliver(NativeTranscriptReadWork(read))"
+    },
+    {
+      "path": "src/toad/acp/transcript_reader.py",
+      "line": 137,
+      "call": "super().service(root)"
+    },
+    {
+      "path": "src/toad/acp/transcript_reader.py",
+      "line": 141,
+      "call": "super().with_runtime(runtime, access)"
+    },
+    {
+      "path": "src/toad/acp/transcript_reader.py",
+      "line": 80,
+      "call": "self.deliver(PublishedNativeTranscriptReadWork(read, update.page))"
+    },
+    {
+      "path": "src/toad/acp/transcript_reader.py",
+      "line": 68,
+      "call": "self.service(root)"
+    },
+    {
+      "path": "src/toad/agent_surface.py",
+      "line": 14,
+      "call": "controller.transcripts.with_runtime(app.preparation, app.coordination_access)"
+    },
+    {
+      "path": "src/toad/agent_surface.py",
+      "line": 20,
+      "call": "super().terminal_dimensions()"
+    },
+    {
+      "path": "src/toad/screens/agent_modal.py",
+      "line": 47,
+      "call": "command.bind(name)"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 109,
+      "call": "conversation.bind_agent(self.agent)"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 170,
+      "call": "self.bind(service)"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 380,
+      "call": "agent.attach_surface(AttachedSurfaceBinding(self, agent.events))"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 343,
+      "call": "viewport.membership.bind(destination.viewport_presentation)"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1798,
+      "call": "self.bind_agent(agent)"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1805,
+      "call": "observed.bind(agent.get_thread_presentation if agent is not None else self._read_thread_activity)"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 591,
+      "call": "self.bind_agent(self.agent)"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1164,
+      "call": "Command(method.name, command).bind('login')"
+    },
+    {
+      "path": "src/toad/workspace_chrome.py",
+      "line": 53,
+      "call": "roster.observation.bind(view.app.coordination_access.service)"
+    }
+  ],
+  "deleted_lexical_consumers": [],
+  "ambiguous_unrelated_names": [
+    {
+      "path": "src/toad/live_output.py",
+      "line": 68,
+      "node": "self.delivery"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 72,
+      "node": "self.delivery"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "line": 44,
+      "node": "self.delivery"
+    },
+    {
+      "path": "src/toad/widgets/input_delivery.py",
+      "line": 88,
+      "node": "self.delivery"
+    },
+    {
+      "path": "src/toad/widgets/input_delivery.py",
+      "line": 89,
+      "node": "self.delivery"
+    },
+    {
+      "path": "src/toad/widgets/input_delivery.py",
+      "line": 152,
+      "node": "self.delivery"
+    },
+    {
+      "path": "src/toad/widgets/input_delivery.py",
+      "line": 228,
+      "node": "self.delivery"
+    },
+    {
+      "path": "src/toad/widgets/input_delivery.py",
+      "line": 229,
+      "node": "self.delivery"
+    },
+    {
+      "path": "src/toad/widgets/input_delivery.py",
+      "line": 87,
+      "node": "self.delivery"
+    },
+    {
+      "path": "src/toad/widgets/input_delivery.py",
+      "line": 96,
+      "node": "self.delivery"
+    },
+    {
+      "path": "src/toad/widgets/input_delivery.py",
+      "line": 104,
+      "node": "self.delivery"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 55,
+      "node": "self.delivery"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 64,
+      "node": "self.delivery"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 98,
+      "node": "self.delivery"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 65,
+      "node": "self.delivery"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 66,
+      "node": "self.delivery"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 99,
+      "node": "self.delivery"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 108,
+      "node": "self.delivery"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 120,
+      "node": "self.delivery"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 120,
+      "node": "self.delivery"
+    }
+  ],
+  "remaining": "Existing ANSI TerminalExecution still imports Textual; preference theme choices and deferred native compose hooks remain U2/U4/U5. No complete headless import claim.",
+  "limits": "Existing NRA parser enumerates committed Python sources; receiver dynamic resolution and TYPE_CHECKING imports require semantic reading. Unrelated self.delivery/self.controller.app lexical names are listed separately, not erased or counted as this owner. Unchanged ACP external roots remain original SDK/task family.",
+  "timestamp_storage_consumers": [
+    {
+      "path": "src/toad/db.py",
+      "line": 49,
+      "call": "Column(primary_key=True, auto_increment=True)"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 59,
+      "call": "Column(storage=TextStorage)"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 63,
+      "call": "Column(storage=TextStorage)"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 68,
+      "call": "Column(storage=SessionMetaStorage)"
+    }
+  ],
+  "removed_timestamp_storage": []
+}

@@ -1,0 +1,132 @@
+{
+  "parsed": 286,
+  "omissions": [],
+  "sites": [
+    {
+      "path": "src/toad/db.py",
+      "line": 33,
+      "node": "class SessionTimestampStorage(SqlStorage):"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 52,
+      "node": "class SessionMetaStorage(JsonStorage):"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 59,
+      "node": "@dataclass(frozen=True, kw_only=True)"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 30,
+      "node": "SessionTimestamp"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 69,
+      "node": "SessionTimestamp"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 73,
+      "node": "SessionTimestamp"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 197,
+      "node": "Session"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 38,
+      "node": "SessionTimestamp"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 158,
+      "node": "Session"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 200,
+      "node": "Session"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 170,
+      "node": "Session"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 184,
+      "node": "Session"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 187,
+      "node": "Session"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 71,
+      "node": "SessionTimestampStorage"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 75,
+      "node": "SessionTimestampStorage"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 80,
+      "node": "SessionMetaStorage"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 144,
+      "node": "Session"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 198,
+      "node": "Session"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 202,
+      "node": "Session"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 140,
+      "node": "Session"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 204,
+      "node": "Session"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 204,
+      "node": "Session"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 204,
+      "node": "Session"
+    },
+    {
+      "path": "src/toad/screens/session_resume_modal.py",
+      "line": 16,
+      "node": "Session"
+    },
+    {
+      "path": "src/toad/screens/session_resume_modal.py",
+      "line": 97,
+      "node": "Session"
+    }
+  ],
+  "semantics": "TypedTable._Field owns annotated datetime encode/decode. Native Session timestamp uses existing TimestampText representation, whose encoded primitive is ordinary SQL text. Existing explicit Column metadata selects TextStorage, no separate timestamp storage behavior needed."
+}

@@ -2,14 +2,10 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from acp.schema import FileEditToolCallContent
+from acp.schema import FileEditToolCallContent, ContentToolCallContent, TerminalToolCallContent
 from dataclasses import dataclass
 from functools import partial
-from toad.screens.permissions import PermissionReview
 from agent_comms.declared_family import DeclaredFamily
-from toad import messages
-from toad.widgets.acp_content import ACPToolCallContent
-from toad.tool_output import ToolOutputPart, decode_content
 
 
 @dataclass
@@ -57,6 +53,8 @@ class DiffPermissionPresentation(PermissionPresentation):
         return cls(title, diffs) if diffs else None
 
     async def show(self, view, request, binding):
+        from toad.screens.permissions import PermissionReview
+
         screen = PermissionReview(request, view, self.diffs, binding)
         app = view.app
         try:
@@ -75,14 +73,18 @@ class DiffPermissionPresentation(PermissionPresentation):
 @dataclass
 class InlinePermissionPresentation(PermissionPresentation):
     priority = -1
-    parts: tuple[ToolOutputPart, ...]
+    parts: tuple[ContentToolCallContent | FileEditToolCallContent | TerminalToolCallContent, ...]
 
     @classmethod
     def admit(cls, kind, title, content):
-        return cls(title, tuple(preview for item in content
-                               if (preview := decode_content(item).permission_preview()) is not None))
+        return cls(title, tuple(content))
 
     async def show(self, view, request, binding):
+        from toad.widgets.acp_content import ACPToolCallContent
+        from toad.tool_output import decode_content
+
+        parts = tuple(preview for item in self.parts
+                      if (preview := decode_content(item).permission_preview()) is not None)
         def answer(answer):
             if request.controller.agent.controller.surface is not binding:
                 return
@@ -91,7 +93,7 @@ class InlinePermissionPresentation(PermissionPresentation):
                 view.refresh_bindings()
 
         ask = view.ask(request.options, self.title,
-                       partial(ACPToolCallContent, self.parts) if self.parts else None,
+                       partial(ACPToolCallContent, parts) if parts else None,
                        answer)
 
         def retire():
