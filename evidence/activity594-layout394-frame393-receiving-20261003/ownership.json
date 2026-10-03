@@ -1,7 +1,20 @@
 {
-  "core": "b0682f2cdb3ba673bc7263133504e39f5488043c",
-  "toad": "916a5fd465cc894643ccb588c35ecb4653785e74",
+  "core": "f4a5827955174d23ca6e6bcf96f2a3abc4af996d",
+  "toad": "83b5b4bd46d2fc8288fe2892f9bcb3c7b820d8c7",
   "textual": "14baa381a816f787e06ffbfb9215c243e22d32eb",
   "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-89b56aea0bb128c4/node_modules/@earendil-works/pi-coding-agent",
-  "prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001"
+  "prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "gate_files": [
+    "393-text41-ready.json",
+    "394-layout-ready.json",
+    "396-text42-ready.json",
+    "593-installed-sdk03.log",
+    "593-retained-faults-journal.json",
+    "595-configured-cold-receipt.json",
+    "595-397-physical06-terminal.json",
+    "595-397-physical06-capture.json",
+    "595-397-physical06-assessment.json",
+    "398-headless-app-ready.json",
+    "398-installed-app-receipt.json"
+  ]
 }
