@@ -1,0 +1,58 @@
+{
+  "target": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "source_interpreter": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+  "current_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "original_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-89b56aea0bb128c4/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-89b56aea0bb128c4/node_modules/@earendil-works/pi-coding-agent",
+  "activation": {
+    "path": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/activation.json",
+    "sha256": "2af5875096efffc5340e00e0f50253fe9c30d3b9625adfc299d41372cac16c90"
+  },
+  "source_proof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/headless-response403-frame405-receiving-20261003/source-proof.json",
+    "sha256": "8164f979815bc6b5c8b9c41d2f1751fb8f9d22b60ac8efd5fd4e62e89ac45176"
+  },
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/headless-response403-frame405-receiving-20261003/qualified-source-gates/403-READY.json",
+      "sha256": "2c2ac60e0f870157e30247f01e11e4b7ac294ce3bfe4ea473620bf61298b658e"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/headless-response403-frame405-receiving-20261003/qualified-source-gates/403-App.json",
+      "sha256": "3c63df906a7793470d0532dc5d6c74660e634cc36bfcf3806df66fae58b8b403"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/headless-response403-frame405-receiving-20261003/qualified-source-gates/405-READY.json",
+      "sha256": "b2da73b626928f760d401429a36173cd64ff448cdc08db8081e6bbbf59aecb4d"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/headless-response403-frame405-receiving-20261003/qualified-source-gates/405-source-proof.json",
+      "sha256": "2985fa2925df17ad5f03e78cfb0620f87749b5ceefde1fa18219143beeafee13"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/headless-response403-frame405-receiving-20261003/qualified-source-gates/604-origin-controls.json",
+      "sha256": "5467dd40ad84a9606f78b70db16587cb1596b157322db8af87f0b23d12bbdf20"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/headless-response403-frame405-receiving-20261003/qualified-source-gates/407-READY.json",
+      "sha256": "6d8588482d908389723e62385af4c7725d1626c86a71c5fd77deb99ad45ca5f8"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/headless-response403-frame405-receiving-20261003/qualified-source-gates/407-frame-delivery.json",
+      "sha256": "3cb5a826da39595464fcbd9e7bc9723a6f5966acf77986448ed26330c4ab3ab8"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/headless-response403-frame405-receiving-20261003/qualified-source-gates/599-READY.md",
+      "sha256": "c95a76e70a5e0ebaf757e0d206e695782dec731afb69339e32d6958a136b2e55"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/headless-response403-frame405-receiving-20261003/qualified-source-gates/599-configured02.json",
+      "sha256": "1f4cc844b8cb4fc35c54155910eb242bb892b80d8ac7c5c2e0f07d23b7cef4b7"
+    }
+  ]
+}

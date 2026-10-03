@@ -1,0 +1,57 @@
+{
+  "core": "3e5c97f9a38d10e65c3a5d06919d85d8e38b98ab",
+  "toad": "d70643053f13f4a5b73296839ac07f469acede3d",
+  "textual": "688d06b12dc893b290422fa5d6924529e7689ac9",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-89b56aea0bb128c4/node_modules/@earendil-works/pi-coding-agent",
+  "prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "operator_core": "c5ed38fdb4607aeacce2910a4c933a1df77f1f74",
+  "purpose": "408 normal599+403405407/mainText47 in released485; normal local source wheels and existingnative89",
+  "gate_files": [
+    "403-READY.json",
+    "403-App.json",
+    "405-READY.json",
+    "405-source-proof.json",
+    "604-origin-controls.json",
+    "407-READY.json",
+    "407-frame-delivery.json",
+    "599-READY.md",
+    "599-configured02.json"
+  ],
+  "excluded": [
+    "unqualified603/406/40948",
+    "LIVE334",
+    "fallback534",
+    "style22/540"
+  ],
+  "core_file_wheel": {
+    "source_head": "3e5c97f9a38d10e65c3a5d06919d85d8e38b98ab",
+    "checkout_build_head": "c5ed38fdb4607aeacce2910a4c933a1df77f1f74",
+    "wheel": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/installed-package-origin408-20261003/core599-wheel/agent_comms-0.1.0-py3-none-any.whl",
+    "wheel_sha256": "290833385771c0798e20ac56116f91f920728a6cb53e29c3b856e11141c70e3d",
+    "wheel_bytes": 865107,
+    "normal_local_uv_build": true,
+    "source_head_byte_equality": "git diff --exit-code 3e5c97f9 HEAD -- src pyproject.toml uv.lock stack; zero differences",
+    "native_build": false,
+    "new_checkout_or_environment": false,
+    "tools_only604_excluded_from_package_payload": true
+  },
+  "no_new_environment": true,
+  "no_new_native": true,
+  "archive_artifacts": [
+    {
+      "path": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/installed-package-origin408-20261003/core599-wheel/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "290833385771c0798e20ac56116f91f920728a6cb53e29c3b856e11141c70e3d"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/headless-response403-frame405-receiving-20261003/toad408-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "da5ed4b1e21473bed3e33308280b644496ab5e03036d5993031ef058c7180639"
+    }
+  ],
+  "toad_file_wheel": {
+    "source_head": "d70643053f13f4a5b73296839ac07f469acede3d",
+    "wheel": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/headless-response403-frame405-receiving-20261003/toad408-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "wheel_sha256": "da5ed4b1e21473bed3e33308280b644496ab5e03036d5993031ef058c7180639",
+    "wheel_bytes": 2239402,
+    "normal_local_uv_build": true
+  }
+}
