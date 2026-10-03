@@ -75,3 +75,13 @@ actual native body workers still own their resources and source-page warming
 before publication remains. Whole remaining scope above continues after this
 useful checkpoint. READY.json retains exact original hashes and all negatives.
 
+
+## Normal main integration
+
+Normal merge of actual main411 retains accepted410 pure ThemeChoice/settings
+family, Core605 determining pin and mergedText48 pin. All four body files and
+recorder bytes are exactly the original66da installed capture. Only those
+four product files differ from current main; theme/settings equal main.
+Original film remains truthfully Coredbcf/old-settings scope. Accepted410
+original App result is retained independently; no unchanged film or theme
+checks rerun. MAIN-JOIN.json records source identities and equality.
