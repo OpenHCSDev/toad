@@ -1,0 +1,29 @@
+{
+  "state": "One-use357 published and19launched; parent readonly/default/fresh-message acceptance separate",
+  "qualified_checkpoint": "050d96e8dc6ac057f20e763447b8c7fd2ca214ce",
+  "installed_toad": "78f0c17a0843916bdd018520080630029833af34",
+  "installed_core": "52f29173347f9fdce21c1dd4bbc886763a9e550f",
+  "native_manifest": "de16647979cbad28be4f60349d39a420e83aaffb1d678941609449d306109968",
+  "ready_sha256": "079ff3079f4759913f00a016270b896022db62abd80ebaf3830b21221d89f0b9",
+  "parent_executor": {
+    "actual_handle": 25409,
+    "terminal": 0,
+    "source": "Parent explicit terminal report; no handle guessed or publisher invocation fromarchive"
+  },
+  "raw_phase": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "raw_receipt_sha256": "740e9a4541994cbe3472dc85e296e4a2b2aca3d891900edb46b35e6d8ca7033e",
+  "raw_receipt_unchanged": true,
+  "publisher_seconds": 43.08394265174866,
+  "owners_published_and_launched": 19,
+  "protected": [
+    "current290/native de166",
+    "previous520/native960",
+    "334",
+    "originalhistory/inputs/UNKNOWN"
+  ],
+  "native555_claim": "Qualified original native clocks are measurements, not99-second improvement. FullS1/S4 and performance remain open.",
+  "archive_public_effects": 0,
+  "publisher_repeated": false,
+  "readback_repeated": false,
+  "ordinary_default_and_freshmessage": "Parent same-run evidence pending; no acceptance or goalcompleteclaim"
+}

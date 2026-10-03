@@ -1,7 +1,7 @@
 {
   "operation": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/async-certified-read558-headless350-receiving-20261003/new-publication558350",
   "ready": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/async-certified-read558-headless350-receiving-20261003/new-publication558350/ready-receipt.json",
-  "ready_sha256": "5c48879373fbc78617b177b9e777dd1b9878b60554f6738e889c2ef67289907a",
+  "ready_sha256": "22eb36e6f470aa6e94a0390ff18fef4dbf022498b9a36c45645e5313c5f0d4d1",
   "source_proof": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/async-certified-read558-headless350-receiving-20261003/source-proof.json",
   "source_proof_sha256": "da1e4a3fbeecd6ff21132344bb7e11bc4ce5848dc40753a65329ded82c5b2382",
   "pins": {
@@ -9,6 +9,6 @@
     "toad": "6350c3466e477d507ca2410af3b9e035d4347e8b",
     "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
   },
-  "command": "env -u PYTHONPATH -u PYTHONHOME /home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/python -I /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/async-certified-read558-headless350-receiving-20261003/new-publication558350/execute-preserve-publication.py --execute",
+  "command": "env -u PYTHONPATH -u PYTHONHOME /home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/python -I -c 'import runpy,sys; sys.path.insert(0,'\"'\"'/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/async-certified-read558-headless350-receiving-20261003/new-publication558350/operator-freeze'\"'\"'); runpy.run_module(\"execute_retained_summary_foundation\",run_name=\"__main__\")' --review-plan /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/async-certified-read558-headless350-receiving-20261003/new-publication558350/review-plan.json --receipt /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/async-certified-read558-headless350-receiving-20261003/new-publication558350/publication-receipt.json --runtime-installation /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/async-certified-read558-headless350-receiving-20261003/new-publication558350/runtime-installation.json --execute",
   "state": "Parent review/execution pending; original guards authoritative"
 }

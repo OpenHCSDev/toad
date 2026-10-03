@@ -1,0 +1,34 @@
+{
+  "target": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002",
+  "source_interpreter": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001/bin/python",
+  "current_prefix": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001",
+  "original_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-de16647979cbad28/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-de16647979cbad28/node_modules/@earendil-works/pi-coding-agent",
+  "activation": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/activation.json",
+    "sha256": "69a67200f2a5fa2f39a837abed9f6cc464402be4c384fbba48ede4470c2525f8"
+  },
+  "source_proof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/archive559-dispatch561-nativeviews356-receiving-20261003/source-proof.json",
+    "sha256": "a20ebdbbb5af7166e11e84ed40bdeec00d35a96a78849b63d72f51a427c994bd"
+  },
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/archive559-dispatch561-nativeviews356-receiving-20261003/qualified-source-gates/559-installed-receipt.json",
+      "sha256": "977d9bef6453eae3b26ff4b7b22af251af52ca82d80d12fccaf4c6fb7f45f612"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/archive559-dispatch561-nativeviews356-receiving-20261003/qualified-source-gates/561-installed-receipt.json",
+      "sha256": "8e0b52d82c580fb70a48f3dd8c8c2a062839303bbc81122daba7286cdebc0eb8"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/archive559-dispatch561-nativeviews356-receiving-20261003/qualified-source-gates/356-RECEIPT.json",
+      "sha256": "af399b6b6f6668673c6bcf5d4b6dd2cfdee7c9427aeb00ef0d8fa6a4cb570b63"
+    }
+  ]
+}

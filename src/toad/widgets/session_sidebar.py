@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from textual.content import Content
+
 from toad.widgets.selection import HoverSelection
 from toad.sidebar_preparation import PreparedThreadRow, ThreadRowPresentation
 
@@ -44,7 +46,6 @@ class ThreadStatusRow(HoverSelection):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._thread_signature: tuple | None = None
         self.thread_name: str | None = None
         self._spinner_phase = 0
         self._thread_presentation: PreparedThreadRow | None = None
@@ -80,12 +81,12 @@ class ThreadStatusRow(HoverSelection):
             self.update_classes({"-wire-thread": False, "-busy": False,
                                  "-unread": False, "-asking": False})
         self._thread_presentation = None
-        self._thread_signature = None
 
     def paint_thread_frame(self, prepared: PreparedThreadRow) -> None:
         """Paint a prepared frame without repeating source publication."""
-        signature = (prepared.signature, self._spinner_phase % len(prepared.frames))
-        if signature == self._thread_signature:
-            return
-        self._thread_signature = signature
-        self.update(prepared.content(self._spinner_phase), layout=False)
+        content = prepared.content(self._spinner_phase)
+        current = self.content
+        # Native Content owns text and span equality. Tooltip/source metadata
+        # isn't row damage, and Static already owns the displayed content.
+        if not isinstance(current, Content) or not current.is_same(content):
+            self.update(content, layout=False)

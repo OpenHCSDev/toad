@@ -1,0 +1,233 @@
+{
+  "roots": [
+    {
+      "root": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "revision": "e8c93e146f840dba7b9c647d0ecc2a79223967f8",
+      "source_root": "src/toad",
+      "parsed": 286,
+      "omissions": [],
+      "retired_name_candidates": [
+        {
+          "file": "src/toad/channel_preparation.py",
+          "line": 84,
+          "source": "self.changed"
+        },
+        {
+          "file": "src/toad/channel_preparation.py",
+          "line": 110,
+          "source": "self.changed"
+        },
+        {
+          "file": "src/toad/comms_root.py",
+          "line": 67,
+          "source": "self.changed"
+        },
+        {
+          "file": "src/toad/comms_root.py",
+          "line": 101,
+          "source": "self.changed"
+        },
+        {
+          "file": "src/toad/preferences.py",
+          "line": 363,
+          "source": "self.changed"
+        },
+        {
+          "file": "src/toad/preferences.py",
+          "line": 367,
+          "source": "self.changed"
+        },
+        {
+          "file": "src/toad/widgets/conversation.py",
+          "line": 2201,
+          "source": "self.conversation.transcript.changed"
+        },
+        {
+          "file": "src/toad/widgets/conversation.py",
+          "line": 1420,
+          "source": "self.turns.changed"
+        },
+        {
+          "file": "src/toad/widgets/prompt.py",
+          "line": 415,
+          "source": "self.input_cursor.changed"
+        },
+        {
+          "file": "src/toad/widgets/transcript_history.py",
+          "line": 443,
+          "source": "self.filter.changed"
+        }
+      ],
+      "context_contract_hooks": [
+        {
+          "file": "src/toad/core/context_inspection.py",
+          "line": 116,
+          "source": "def consume_handlers_sync(self, value, handlers, *args, **kwargs):\n    return next(iter(handlers))(value, *args, **kwargs)"
+        },
+        {
+          "file": "src/toad/core_event_carrier.py",
+          "line": 59,
+          "source": "async def consume_handlers(self, message, handlers, *args, **kwargs):\n    for handler in handlers:\n        await invoke(partial(handler, **kwargs), message, *args)\n    return message"
+        },
+        {
+          "file": "src/toad/widgets/context_explorer.py",
+          "line": 59,
+          "source": "def on_mount(self):\n    self.observe_core(self.app.coordination_access.events)\n    self.observe_core(self.app.events)\n    self.call_after_refresh(self.action_refresh)"
+        },
+        {
+          "file": "src/toad/widgets/context_explorer.py",
+          "line": 65,
+          "source": "@handles(CoordinationObserved, SessionSelected)\ndef context_changed(self, message: CoreEventMessage):\n    self._observed()"
+        }
+      ]
+    },
+    {
+      "root": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "revision": "e8c93e146f840dba7b9c647d0ecc2a79223967f8",
+      "source_root": "tests",
+      "parsed": 390,
+      "omissions": [],
+      "retired_name_candidates": [
+        {
+          "file": "tests/application_actions_installed_journey.py",
+          "line": 122,
+          "source": "app.settings.changed"
+        },
+        {
+          "file": "tests/application_actions_installed_journey.py",
+          "line": 127,
+          "source": "app.settings.changed"
+        },
+        {
+          "file": "tests/quit_save_installed_pilot.py",
+          "line": 27,
+          "source": "app.settings.changed"
+        },
+        {
+          "file": "tests/quit_save_installed_pilot.py",
+          "line": 79,
+          "source": "app.settings.changed"
+        },
+        {
+          "file": "tests/quit_save_installed_pilot.py",
+          "line": 91,
+          "source": "app.settings.changed"
+        },
+        {
+          "file": "tests/settings_tree_pilot.py",
+          "line": 69,
+          "source": "current.changed"
+        },
+        {
+          "file": "tests/settings_tree_pilot.py",
+          "line": 152,
+          "source": "app.settings.changed"
+        },
+        {
+          "file": "tests/settings_tree_pilot.py",
+          "line": 217,
+          "source": "reopened.changed"
+        },
+        {
+          "file": "tests/transcript_filter_installed_journey.py",
+          "line": 141,
+          "source": "canonical.filter.changed"
+        }
+      ],
+      "context_contract_hooks": []
+    },
+    {
+      "root": "/home/ts/wt/comms-retained-human-main-20261001",
+      "revision": "85abe4276e91d52a72eec7411ed2314aaccc8c02",
+      "source_root": "src/agent_comms",
+      "parsed": 311,
+      "omissions": [],
+      "retired_name_candidates": [
+        {
+          "file": "src/agent_comms/bus_route_counts.py",
+          "line": 123,
+          "source": "revision.changed"
+        },
+        {
+          "file": "src/agent_comms/cli_commands.py",
+          "line": 677,
+          "source": "rename_result.changed"
+        },
+        {
+          "file": "src/agent_comms/tools.py",
+          "line": 431,
+          "source": "result.changed"
+        },
+        {
+          "file": "src/agent_comms/turn_inputs.py",
+          "line": 61,
+          "source": "self.changed"
+        },
+        {
+          "file": "src/agent_comms/turn_inputs.py",
+          "line": 90,
+          "source": "self.changed"
+        },
+        {
+          "file": "src/agent_comms/turn_inputs.py",
+          "line": 94,
+          "source": "self.changed"
+        },
+        {
+          "file": "src/agent_comms/wire_watch.py",
+          "line": 74,
+          "source": "self.changed"
+        },
+        {
+          "file": "src/agent_comms/wire_watch.py",
+          "line": 79,
+          "source": "self.changed"
+        },
+        {
+          "file": "src/agent_comms/wire_watch.py",
+          "line": 109,
+          "source": "self.changed"
+        },
+        {
+          "file": "src/agent_comms/wire_watch.py",
+          "line": 87,
+          "source": "self.changed"
+        },
+        {
+          "file": "src/agent_comms/wire_watch.py",
+          "line": 102,
+          "source": "self.changed"
+        }
+      ],
+      "context_contract_hooks": [
+        {
+          "file": "src/agent_comms/durable_turn.py",
+          "line": 46,
+          "source": "async def consume_handlers(self, event, handlers, *args, **kwargs):\n    return await Coordination.run_async(self.attempts.session.path, partial(self.observe_owned, event, handlers, *args, **kwargs))"
+        },
+        {
+          "file": "src/agent_comms/mro_dispatch.py",
+          "line": 45,
+          "source": "async def consume_handlers(self, value: Any, handlers: Iterable[Handler], *args, **kwargs) -> Any:\n    \"\"\"Consume the selected declarations inside the consumer's resource lifetime.\"\"\"\n    for handler in handlers:\n        value = self.replace_value(value, await handler(value, *args, **kwargs))\n    return value"
+        },
+        {
+          "file": "src/agent_comms/mro_dispatch.py",
+          "line": 55,
+          "source": "def consume_handlers_sync(self, value: Any, handlers: Iterable[Handler], *args, **kwargs) -> Any:\n    for handler in handlers:\n        value = self.replace_value(value, handler(value, *args, **kwargs))\n    return value"
+        }
+      ]
+    },
+    {
+      "root": "/home/ts/wt/textual-intrinsic-placement-after18-20261001",
+      "revision": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0",
+      "source_root": "src/textual",
+      "parsed": 249,
+      "omissions": [],
+      "retired_name_candidates": [],
+      "context_contract_hooks": []
+    }
+  ],
+  "retired_app_signal_consumers_remaining_in_production": [],
+  "classification": "All eight old producer signal declarations examined. Only ContextExplorer had two genuine old App attribute reads; deleted. Remaining changed attribute hits belong to HistoryReadRequest methods, CoordinationAccess route callback, PreferencesModel dirtiness, Transcript/Tur n/PromptCursor invalidation and filter policy, or unrelated Textual native geometry/style notifications. None resolves the retired TabOrder.changed resource. No restored Signal fields, aliases or event stores.",
+  "limits": "AST parses all declared tracked roots without silent omissions. Spelling candidates on unrelated owners are preserved; dynamic receiver resolution needs source reading. External C extensions/untracked generated third-party mutations are outside the roots."
+}

@@ -1,0 +1,17 @@
+{
+  "prefix": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001",
+  "archived_original290": ".artifacts/summary-clock555-terminal353-receiving-20261003/old290-original-proof",
+  "privileged_borrower_references": [],
+  "permission_gaps": [],
+  "current_five_links": {
+    "/home/ts/.local/bin/toad": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/toad",
+    "/home/ts/.local/bin/agent-comms": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/agent-comms",
+    "/home/ts/.local/bin/agent-comms-acp": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/agent-comms-acp",
+    "/home/ts/.local/bin/agent-comms-agent": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/agent-comms-agent",
+    "/home/ts/.local/bin/agent-comms-nk-foreground": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/agent-comms-nk-foreground"
+  },
+  "original_route_sha256": "dadacdd75d9a3c04f4c734ccc802d5603f7dd9a2e79bc1992accd8493bd43cea",
+  "current354_and334_protected": true,
+  "new_environment": false,
+  "new_native_build": false
+}

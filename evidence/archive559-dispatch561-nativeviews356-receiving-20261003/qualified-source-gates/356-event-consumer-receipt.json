@@ -1,0 +1,18 @@
+{
+  "result": "PASS",
+  "elapsed_seconds": 0.7104430430335924,
+  "actual_installed_native_sidebar_disclosure_mounted_explorer": true,
+  "canonical_coordination_and_application_streams": true,
+  "native_pump_typed_publication_consumed": true,
+  "borrowed_positional_keyword_context_exact": true,
+  "sync_async_callbacks_and_original_worker_return": [
+    "sync",
+    "async",
+    "no-arguments",
+    "owned-worker"
+  ],
+  "zero_argument_positional_truncation": true,
+  "original_subscriptions_retired_on_unmount": true,
+  "provider_requests": 0,
+  "scope": "Real installed Toad/ACP/Pi; native Pilot sidebar click and event carrier. No repeated permission/PTY journey, prompt, public source or provider input; context content quality/physical pixel readability not claimed."
+}

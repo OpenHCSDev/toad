@@ -122,7 +122,11 @@ class ChannelGroup(SidebarGroup):
     def rows_changed(self) -> None:
         self.query_ancestor(CommsSidebar).navigation.rows_changed()
 
-    async def _reconcile_members(self) -> None:
+    def thread_people(self):
+        snapshot = self.query_ancestor(CommsSidebar).projection.snapshot
+        return snapshot.all_people.values() if snapshot is not None else ()
+
+    async def _reconcile_members(self, captured: ThreadRowsWork) -> None:
         if not self.is_attached or self._pruning or self._closing:
             return
         sidebar = self.query_ancestor(CommsSidebar)
@@ -141,7 +145,7 @@ class ChannelGroup(SidebarGroup):
             pinned=name in view.pinned_members,
             action_status=app.thread_actions.pending.get(name),
         ) for name in wanted}
-        prepared_rows = await self.prepare_thread_rows(inputs, self._members)
+        prepared_rows = await self.prepare_thread_rows(inputs, self._members, captured)
         if not self.is_attached or self._pruning or self._closing:
             return
         # A tab may close while immutable row text is being prepared. The
@@ -166,7 +170,7 @@ class ChannelGroup(SidebarGroup):
             wanted if self.expanded else (), self._members, create, update)
 
 
-    async def present(self, view: ChannelView) -> None:
+    async def present(self, view: ChannelView, captured: ThreadRowsWork) -> None:
         row = self.row
         sidebar = self.query_ancestor(CommsSidebar)
         if row.is_attached:
@@ -181,7 +185,8 @@ class ChannelGroup(SidebarGroup):
                 group.disclosure.update("▾" if expanded else "▸", layout=False)
             # Projection publication already owns its lock. The shared base
             # owns member retirement/mount serialization inside that lifetime.
-            await super()._sync_members()
+            async with self.member_lock:
+                await self._reconcile_members(captured)
 
 
 def _comms_root() -> Path:

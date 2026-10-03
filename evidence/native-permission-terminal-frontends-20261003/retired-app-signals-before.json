@@ -1,0 +1,141 @@
+{
+  "before_revision": "26d9581846dcf4d6f548e70380b62c4e7963796c",
+  "after_revision": "44c5d779a8175323933cc20742d04e749eb03a46",
+  "before_parsed": 276,
+  "after_parsed": 286,
+  "omissions": [],
+  "retired_signal_declarations": [
+    {
+      "file": "src/toad/app.py",
+      "owner": "ToadApp",
+      "attribute": "settings_changed_signal",
+      "line": 289,
+      "source": "self.settings_changed_signal: Signal[PreferenceChange] = Signal(self, 'settings_changed')"
+    },
+    {
+      "file": "src/toad/app.py",
+      "owner": "ToadApp",
+      "attribute": "session_update_signal",
+      "line": 298,
+      "source": "self.session_update_signal: Signal[tuple[str, SessionDetails | None]] = Signal(self, 'session_update')"
+    },
+    {
+      "file": "src/toad/app.py",
+      "owner": "ToadApp",
+      "attribute": "thread_actions_changed",
+      "line": 307,
+      "source": "self.thread_actions_changed: Signal[None] = Signal(self, 'thread-actions-changed')"
+    },
+    {
+      "file": "src/toad/app.py",
+      "owner": "ToadApp",
+      "attribute": "sidebar_layout_changed",
+      "line": 310,
+      "source": "self.sidebar_layout_changed: Signal[None] = Signal(self, 'sidebar-layout-changed')"
+    },
+    {
+      "file": "src/toad/app.py",
+      "owner": "ToadApp",
+      "attribute": "session_selected_signal",
+      "line": 314,
+      "source": "self.session_selected_signal: Signal[str] = Signal(self, 'session-selected')"
+    },
+    {
+      "file": "src/toad/app.py",
+      "owner": "ToadApp",
+      "attribute": "open_tabs_changed",
+      "line": 315,
+      "source": "self.open_tabs_changed: Signal[None] = Signal(self, 'open-tabs-changed')"
+    },
+    {
+      "file": "src/toad/app.py",
+      "owner": "ToadApp",
+      "attribute": "coordination_observed",
+      "line": 320,
+      "source": "self.coordination_observed: Signal[None] = Signal(self, 'coordination-observed')"
+    },
+    {
+      "file": "src/toad/tab_order.py",
+      "owner": "TabOrder",
+      "attribute": "changed",
+      "line": 17,
+      "source": "self.changed: Signal[None] = Signal(owner, 'tab-history-changed')"
+    }
+  ],
+  "retained_native_signal_declarations": [],
+  "current_candidate_consumers": [
+    {
+      "file": "src/toad/channel_preparation.py",
+      "line": 84,
+      "source": "self.changed",
+      "context": "Load"
+    },
+    {
+      "file": "src/toad/channel_preparation.py",
+      "line": 110,
+      "source": "self.changed",
+      "context": "Load"
+    },
+    {
+      "file": "src/toad/comms_root.py",
+      "line": 67,
+      "source": "self.changed",
+      "context": "Store"
+    },
+    {
+      "file": "src/toad/comms_root.py",
+      "line": 101,
+      "source": "self.changed",
+      "context": "Load"
+    },
+    {
+      "file": "src/toad/preferences.py",
+      "line": 363,
+      "source": "self.changed",
+      "context": "Load"
+    },
+    {
+      "file": "src/toad/preferences.py",
+      "line": 367,
+      "source": "self.changed",
+      "context": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 57,
+      "source": "self.app.coordination_observed",
+      "context": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 58,
+      "source": "self.app.session_selected_signal",
+      "context": "Load"
+    },
+    {
+      "file": "src/toad/widgets/conversation.py",
+      "line": 2201,
+      "source": "self.conversation.transcript.changed",
+      "context": "Load"
+    },
+    {
+      "file": "src/toad/widgets/conversation.py",
+      "line": 1420,
+      "source": "self.turns.changed",
+      "context": "Load"
+    },
+    {
+      "file": "src/toad/widgets/prompt.py",
+      "line": 415,
+      "source": "self.input_cursor.changed",
+      "context": "Load"
+    },
+    {
+      "file": "src/toad/widgets/transcript_history.py",
+      "line": 443,
+      "source": "self.filter.changed",
+      "context": "Load"
+    }
+  ],
+  "limits": "Original Signal constructors including annotated/generic forms; inherited and dynamically assigned methods are not resolved by AST. Candidate spelling hits on unrelated current owners remain for semantic review, not blanket deletion."
+}

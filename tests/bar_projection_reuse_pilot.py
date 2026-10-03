@@ -60,7 +60,8 @@ async def main(observe):
             if not observe:
                 assert runtime.misses == 1, "Unrendered metadata invalidated every bar's prepared content"
             changed = ThreadRowInput(people[0], unread=ExactUnread(7), pinned=True, action_status="Stopping")
-            result = await runtime.submit(await ThreadRowsWork.capture(runtime, (changed,)))
+            captured = await ThreadRowsWork.capture(runtime, (ThreadRowInput(people[0]),))
+            result = await runtime.submit(ThreadRowsWork(tuple(captured.for_rows({"row": changed}).values())))
             expected = prepare_thread_presentation(changed.presentation())
             assert result[0].frames[0].plain == expected.frames[0].plain
             assert result[0].frames[0].plain.startswith("(7) * ") and result[0].busy

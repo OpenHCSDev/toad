@@ -1,0 +1,33 @@
+{
+  "state": "Original parent-only publication completed; parent identity/default acceptance remains separate",
+  "parent_terminal_handle": 80499,
+  "parent_exit": 0,
+  "raw_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/archive559-dispatch561-nativeviews356-receiving-20261003/new-publication559561356/publication-receipt.json",
+  "raw_sha256": "88d6d3ee67ae4eac8bf436e0390c22d1a5fb919446ae407719e0c954fdeb346a",
+  "raw_phase": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "duration_seconds": 43.43428325653076,
+  "original_audience": 19,
+  "launched_results": 19,
+  "ready_sha256": "cbd05918513b4264385df96b277edee68a30c5b6cd9a9bc2e45bac0f26efab9e",
+  "original_operator_members": 51,
+  "original_operator_hashes_unchanged": true,
+  "execution_artifacts_unchanged": true,
+  "publication_repeated": false,
+  "public_readback_repeated": false,
+  "ordinary_default_acceptance": "Parent next; not proved by packaging or publication",
+  "current_target": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002",
+  "previous_prefix": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001",
+  "preserved": [
+    "originalreceiptphase",
+    "originalinputs/sessions/UNKNOWN",
+    "native de166/960",
+    "old529 sourceproof",
+    "previous290",
+    "520 Kepler donor ifclaimed"
+  ],
+  "excluded_unqualified": [
+    "native562 changed-path qualification",
+    "deadlock563 not live"
+  ],
+  "source_native_product_claim": "Core85/Toad0fd/Text940/native de166; no End/FPS/S4 performance claim"
+}

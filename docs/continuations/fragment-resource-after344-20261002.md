@@ -242,3 +242,146 @@ mention candidates and participant-bar preparation are distinct consumers and
 are not claimed migrated by this sidebar batch. Source batch is published WIP;
 batched resource sanity and the affected installed UI journey follow. It is not
 a measured improvement or smoothness claim.
+
+## PR352: reuse captured people across member groups
+
+Original04 contains native arrangement/style/layout stacks and sidebar source
+publication. Reading that publication showed it captured all people once for
+activity/width, then captured the same people again for every expanded channel
+and relationship group. Those repeated process-identity reads and preparation
+handoffs are now deleted. ThreadRowsWork.for_rows derives only each row's unread,
+pin and action decoration from the publication's captured people. Both leaf
+families consume that cohort. SidebarGroup still owns a fresh capture under its
+member lock for an independent disclosure change, using the original leaf's
+people hook. The relationship publication resolves each named person once even
+when it occurs in several groups. No cohort or lookup is retained in a widget.
+
+This batch deletes18 production lines and adds48 across five existing files.
+NRA parsed286/286 production modules before and after; both SidebarGroup leaves,
+publication calls, disclosure calls and direct test consumers were migrated.
+Call spelling is source evidence, not proof of dynamic resolution. Existing maps
+are `sidebar-cohort-before.json` and `sidebar-cohort-after.json` under the owned
+fragment-resource-after344 artifacts. This removes repeated IMPL-12 work, rather
+than introducing another presentation owner.
+
+Batched source output sanity passed:60 rows,16 requests,15 hits/one miss,
+14,745 retained bytes; worker-result delivery median0.97ms/max4.70ms. Unread,
+pin and action decoration matches the original prepared Content/tooltip. This
+is not a comparison of physical frame latency or CPU. The source App disclosure
+check reached channel member publication/collapse/expansion but exited1 when
+ContextExplorer.on_mount subscribed to the deleted app.coordination_observed
+signal. Einstein was given that separate event-consumer closure; the relationship
+disclosure portion and whole App exit are not claimed passed. The e55 installed
+package and Kepler's joint355 gate remain frozen and exclude this follow-on
+source. PR352 stays draft until the affected installed sidebar workflow is
+qualified; original04 and all broader performance scope remain unchanged.
+
+## Normal main356 union and destination04 source adjudication
+
+Normally merged main356 and355 sourceabc in this same checkout, preserving the
+frozen e55/abc installed artifacts and original04 film. The accepted six-line
+native paging deletion is included: page admission no longer calls
+release_anchor on an already offset reader. HistoryWindow owns the reader
+revision; protect_history/preserve_history own that page's compensation. No
+Window, frame or native geometry implementation was replaced for this finding.
+
+The affected source App disclosure check now exits0. Channel member paint,
+collapse during outstanding preparation, collapse/reopen and the canonical
+relationship child all pass; unchanged metadata/relationship preparation
+submissions are both empty and the original row resources remain attached.
+This is source App sanity with the existing db94 donor dependencies, not a
+new installed byte snapshot for main356's Core85abe pin or a CPU comparison.
+
+Destination355's original04 did not complete its prerequisite: the private
+bus contains exactly106 initial writes, History0 through105, out of the required
+140. retained_app awaits seed_channel before exercise_retained, so the native
+End journey was not reached. Its existing profile records seed_channel through
+publish_initial_cohort/private_guard at15.824117s; those changed-stack observations
+are not CPU durations. The native load reply around9s establishes neither an End
+request nor a blocked destination. Pilot independently waits for global animation
+completion and every child message pump, which is inappropriate as a source-read
+completion witness; it is not established as the cause of04.
+
+Window/frame source custody was read through both native and wire publication,
+body restoration and retirement. preserve_history releases the native tree lock
+before preserve_reader's compensated-layout wait. Workspace completes that
+layout waiter after native reflow even when the visible-body gate rejects paint;
+the gate does not suppress the layout signal. The raw04 record therefore does
+not establish a new Window/frame deadlock. Kepler owns moving the existing seed
+prerequisite into the original fixture callback before App launch and correcting
+held-input release custody through the existing physical key owner. No timeout
+padding, new recorder, replay, environment, Window guard or readiness mirror.
+Whole End acceptance and the installed sidebar journey remain unqualified.
+
+## Prepared row publication and native damage closure
+
+Removed PreparedThreadRow.signature, its stored derived busy field, and
+ThreadStatusRow._thread_signature (two production files, 13 added/12 deleted).
+Static.content owns the actual displayed resource; Content.is_same compares text
+and spans. Tooltip-only/model changes now publish their tooltip without
+repainting identical text. Busy derives from the original captured row source.
+Both channel and relationship rows inherit the same consumer. Native class
+updates and unchanged prepared-resource reuse already guard their own changes.
+
+NRA parsed286/286 production modules; selected declaration/member sites fall15
+to10, sole ThreadStatusRow subclass CommsRow and inherited RelationshipRow read.
+Content/Static/DOM dependency semantics were read; AST spellings are not dynamic
+dispatch proof. Before/after source maps remain in owned sidebar-native-paint
+JSON artifacts. No new authority/store/timer/pool.
+
+Batched source checks:60rows/16requests/15hits/1miss,12910retained bytes,
+worker-delivery median0.96ms/max3.63ms (not frame timing). Original App
+disclosure/collapse/reopen/relationship resource checks passed, with zero
+unchanged-row submissions and zero native updates for tooltip-only changes.
+These are source App checks against existing db94 dependencies, not installed
+main360/Core563 qualification or a CPU improvement.
+
+Kepler35505 completed native End/Home/revoke/finalEnd; its combined channel
+tail failed later while awaiting mount_page. Original negative retained. Its
+released style22 holder is reused for one changed352 row/motion/CPU pair; that
+qualification is the next step, not another End run. Full performance scope
+remains active and this checkpoint is not Ready.
+
+## Scoped352 installed row checkpoint — Core563/current main360
+
+Qualified production source78a9d69a (normal main360/Core6a merge) in SAME released
+style22 holder, normal69 Git packages, Text940/native-de166/SDK12.1. Original
+activation/inventories archived before installation; four source/assets inventories,
+direct_url, full native trust and pipcheck pass. No new environment/native copy.
+
+ONE actual public nra-architecture/agent-comms-ux read-only isolatedst journey
+captured110.176s. Source/view/editor/window/reader/draft and actualCtrlZ retained;
+31 original ready body resources retained onAreturn. Inputpaging7/7; raw warm15/16.
+Raw completedFALSE/reverse-admission error and all four original report/video
+hashes remain unchanged. Reverse327→103 kept exactly the same three source
+intervals; all visible bodies ready and original screen PresentedFrame ready.
+A new source read was not demanded. Existing NativePhase now derives warm
+destination coverage from original admitted ranges and visible body resources
+(including bounded trimming), rather than demandingI/O aftereverykey. Both warm
+and input paging consumers use that owner. SAME immutable snapshots reanalysis
+qualifies all five directional destinations; it is not a rewritten rawrunPASS.
+
+Installed original App channel member paint/disclosure/collapse/reopen/relationship
+retention passed, unchanged-row worker submissions0 and tooltip-only native text
+updates0. Captured output sourcecheck retains12910bytes vsprior14745 over60rows;
+this is serialized preparation-resource accounting, not native RSS or CPUgain.
+
+Actual moving48frames22.8–23.6s (inside exact heldUp22.256–24.393) are readable
+but chunky/repeatedpositions. Inspected while recorder finalizing AFTER UIretired;
+DURING liveUI inspection covered stationary33.2–34.0s, notmoving acceptance.
+AreturnPNG readable/correctnativeA tab+body reviewed afterrun. WriterUp18.11ms
+median/40.76p95/185.72max; reverse16.63/26.40/121.89. Writer!=pixels/FPS/inputlatency.
+KernelUICPU Up81.71%,Down64.95%,reverse62.50% marker windows include exports;
+short midhistorydone→nextmarker19.35% is not the full15s idle period. Sampling
+1207GIL/3errors, alignment±82.5ms, partial. No matchedCPUgain/144Hz/smoothclaim.
+Original owner1695859/start47199145 unchangedalive; cleanupempty/errors0. FFmpeg
+255 acceptedSIGINT; transferred terminal identity does not proveToadexit0.
+
+Ready scope: shared one-cohort row preparation, unchanged prepared/native row
+reuse, tooltip/paint separation, original channel/relationship disclosure and
+saved native retention/input/Undo. FullCPU/raster/firstpaint/adaptivebuffer/void/
+velocity/animation/focus/busy/sidebar/TC1T9T4 remainACTIVE. Kepler355 owns the
+separate detached CategorizedMount initialCSS fix; original05 laterIRCpage/final
+End qualification remainsopen, nativeEnd proof retained, no repeat recordedrun.
+Rawcapture: /home/ts/.cache/agent-scratch/sidebar352-current563-motion-20261003-01/capture
+Tracked qualification: evidence/sidebar352-current563-20261003/.
