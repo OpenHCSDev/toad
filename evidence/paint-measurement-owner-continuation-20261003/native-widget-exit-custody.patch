@@ -21,3 +21,24 @@
  
      def action_scroll_home(self) -> None:
          if not self._allow_scroll:
+--- a/src/textual/message_pump.py
++++ b/src/textual/message_pump.py
+@@ -598,12 +598,13 @@
+         self._running = True
+         try:
+             with self._context():
+-                if not await self._pre_process():
+-                    return
+                 try:
+-                    await self._process_messages_loop()
+-                except CancelledError:
+-                    pass
++                    if not await self._pre_process():
++                        return
++                    try:
++                        await self._process_messages_loop()
++                    except CancelledError:
++                        pass
+                 finally:
+                     self._running = False
+                     try:
