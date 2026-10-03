@@ -20,7 +20,7 @@ installed saved-history motion/profile journey, inspect exact moving frames
 while the same UI is alive. Capture rate/writer receipts are not pixel FPS.
 No CPU or smoothness gain is currently claimed.
 
-## Working source batch (not installed-qualified)
+## Scoped installed checkpoint
 
 Source reading found that `HistoryWindow.history_mutating` already means only
 native tree lock custody. That fence is kept. The actual crossing was both
@@ -45,10 +45,13 @@ has joined the child. Nonzero exits and missing required exports still fail;
 profiled transferred identities still do not invent an exit code. The original
 395 raw failure is preserved. No extra timeout or recording is introduced.
 
-This checkpoint is working source for review, not Ready. Batched checks must
-cover retained page widening/End, overlapping body publication and native frame
-custody; then one changed installed saved-history motion/profile journey joins
-Kepler42 registration. Preserve393 recording and inspect exact moving bands.
+This checkpoint is scoped Ready for body/source publication custody and native42
+registration lifetime. The original 119.209s installed public saved-history run
+completed all 16 warm-resource and 7 input paging checks with 22 retained ready
+bodies, unchanged original owner and empty cleanup. The source-advance/End native
+App sanity also passed. See READY.json and scoped-motion-metrics.json. Raw receipt
+and movie are unchanged. Exact held-key sheets were inspected AFTER the run;
+during-motion inspection was missed, not claimed or repaired by a rerun.
 
 Source review also closed both commit consumers: the page owner now commits its
 TranscriptPage header, fragments and membership together under the same native
@@ -58,3 +61,44 @@ so Home/PageUp during a body join cannot force an old tail range. End retains
 its original request revision check. New-child mount and retirement still need
 the original native custody; this source batch does not claim that those awaits
 or all lazy-load animation blocking have been eliminated.
+
+## Qualification and remaining work
+
+Original installed sources: Toad366504d9d, Text161461f59, Core80dfd0d02,
+configured native2b/SDK0.12.1. All installed source/assets/direct URLs/native trust
+were verified; this evidence-only commit changes no production bytes.
+
+Exact keydown→keyup native writer intervals: input Up median13.59/p9528.96ms;
+Down12.29/23.79; reverse13.12/23.45. These are not changed-pixel FPS or input
+latency. Original393 Up13.00/47.49 and reverse11.06/21.39 used 38 retained bodies
+versus22 here. Source activity/admission and joined changes differ; no causal
+performance improvement or overall CPU gain is claimed. Marker CPU (including
+exports) was81.79% Up,64.95% Down,75.42% reverse and20.69% after Up.
+Last10s mid-history idle had zero viewport request/admission/restore/retirement
+events; only10 sidebar publications. GIL sampling1265/1error is partial with
+nominal clock uncertainty0.0792s; there is no unprofiled overhead comparison.
+
+Consecutive48-frame exact Up21.606–22.406, Down43.758–44.558 and reverse64.020–
+64.820 bands show readable body/chrome with repeated positions and discrete
+advances. A return shows original A history and preserved draft. No smoothness,
+144Hz, whole busy IRC, compaction or full workflow performance acceptance.
+
+New-child mount/removal still awaits native custody; MaterializingBody from a
+previous Live body still blocks frame readiness. Next work stays with existing
+BodyMeasurement/native subtree paint resources: retain previous painted lines
+while its ordered writer runs, without acknowledging a new source before paint.
+All original CPU/raster/firstpaint/cold/warm/runway/velocity/growingEnd/void/focus/
+sidebar/animation/TC1/T9/T4 scope remains active. No new WT/env/capture/provider.
+
+Source census: existing audit Package289 production/391 test modules, no parse
+omissions; all2 production and1 direct native-page callers migrated. Dynamic
+callback/MRO remains semantic review. Existing source/header/admission commits
+remain authoritative; no competing mirror introduced. Production61+/29− in one
+Toad file; App registration28+/14− in one Textual file (IMPL-12).
+
+Preserved negatives: initial private sanity lacked required package env before
+App construction; the old process pilot's fake SimpleNamespace Agent lacked its
+canonical presentation before changed page work. Neither is product acceptance;
+neither was repaired by weakening production. Original395 exit-order failure and
+393 recording are unchanged. Current profiled terminal transfers identity and
+does not record explicit UI exit0; required exports and cleanup are complete.
