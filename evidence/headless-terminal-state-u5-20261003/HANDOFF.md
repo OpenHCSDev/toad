@@ -1,3 +1,11 @@
+## Review correction closed
+
+Existing LineRecord.replace_content now acquires distinct mutable text and spans for construction and every replacement. Global blank Text is deleted; gap fill and both scroll directions use the same owner. add_line folds owned content. simplify mutates its own line. Installed Rich has no __iadd__ and copies through __add__, so _expand_content is unchanged.
+
+Corrected production d5c19375636128d5dde5986408dab5b4e3e85dcc: **9 production files,201 added /454 deleted**. This correction is one file18+/14-. Final installed model isolation and installed03 realACP/Pi/PTY/Pilot both pass after normal wheel refresh in the same302 holder. Native acceptance body1.348s/0providerrequests; ownedfixtureprocessmatches0. No newenv/nativecopy/publicchanges. Original negative and previous receipts retained as history; current readiness is the corrected source.
+
+NRA AST:286modules/0omissions/75relatedsites; sole content assignment is original LineRecord content.copy(). Evidence: mutable-content-before.json/mutable-content-after.json, model-isolation.json, installed03/terminal-model-receipt.json and native-terminal-model.svg. Canonical RECEIPT.json points to corrected source/installation. The earlier accepted checkpoint below is historical; qualifications for Pilot/physical/fullU4/U5 remain.
+
 ## Changed
 
 The existing `TerminalState`, `Buffer` and `LineRecord` now own ANSI text, Rich styles/colors, cursor modes and geometry without importing Textual. The original native Terminal converts Rich text at its drawing boundary after checking its existing Strip cache. Original selection offsets and line folds are reused; native refolding and silent drawing-error suppression were deleted.

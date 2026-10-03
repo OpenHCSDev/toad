@@ -1,6 +1,6 @@
 {
   "state": "scoped-ready",
-  "source": "d5c19375636128d5dde5986408dab5b4e3e85dcc",
+  "source": "e7c6ede5da01a545f3e24393f6916c51c764cf22",
   "base": "8b81122c0ec99111f3af1b0cf9a1e55ce3eb7d59",
   "pr": 353,
   "production_delta": {
@@ -22,8 +22,8 @@
       },
       {
         "path": "src/toad/ansi/_ansi.py",
-        "added": 91,
-        "deleted": 78
+        "added": 77,
+        "deleted": 68
       },
       {
         "path": "src/toad/ansi/_ansi_colors.py",
@@ -51,13 +51,13 @@
         "deleted": 1
       }
     ],
-    "added": 201,
-    "deleted": 454
+    "added": 187,
+    "deleted": 444
   },
   "tested_cohort": {
     "stage": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final",
     "pins": {
-      "toad": "d5c19375636128d5dde5986408dab5b4e3e85dcc",
+      "toad": "e7c6ede5da01a545f3e24393f6916c51c764cf22",
       "agent_comms": "325e9f355cf29be3f54594bb2672f7c9aa42c553",
       "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
     },
@@ -71,18 +71,17 @@
   "model": {
     "result": "PASS",
     "scope": "Installed original model/execution imports no Textual; ANSI colors/unicode/cursor/modes/key/reply/geometry; bounded incremental stream and reflow. No application/provider yet.",
-    "mutable_text_isolation": "Constructed/copied/replaced/gap-filled rows have distinct text/span lists; caller mutation, line simplification and bidirectional scroll leave neighbors/other states unchanged.",
     "stream_bytes": 196800,
     "stream_lines": 1200,
-    "elapsed_seconds": 0.15740492101758718,
-    "cpu_seconds": 0.15641293899999997,
+    "elapsed_seconds": 0.18497297196881846,
+    "cpu_seconds": 0.1829756629999999,
     "model_width": 91,
     "model_height": 21,
     "folded_lines": 2400
   },
   "installed": {
     "result": "PASS",
-    "elapsed_seconds": 1.3479992909706198,
+    "elapsed_seconds": 1.456708358018659,
     "native_provider_requests": 0,
     "configured_detached_geometry": [
       57,
@@ -106,7 +105,7 @@
   "installed_stderr": "Original shell_read reports OSError5 at PTY EOF; both terminal outputs/exit0 and native teardown complete. No zero-stderr claim.",
   "scope": "Actual installed ANSI/model/ACP/realPTY/Textual Pilot drawing, unicode/truecolor, selection, configurable geometry and same-state tab reattachment. No physical st or performance improvement claim. No full U4/U5 completion claim.",
   "public_effects": "No public launcher/default/backend changes or user input;0 provider requests. Private fixture state only.",
-  "fixture_cleanup": "isolation-fixture-cleanup.json",
+  "fixture_cleanup": "fixture-cleanup.json",
   "remaining": "Generic frontend view registration/U4 and broader headless-plan work remain independent; pytest unavailable in reused holder, no new environment/dev dependency installed.",
   "proofs": {
     "model-sanity.json": "b8f8a3bdfc794b5cca3ad631461bf0243b3edfa99982cbbd522997f4053d4d7d",
@@ -114,26 +113,6 @@
     "installed02/terminal-model-receipt.json": "d4046150cd83a2a1ec507a880cd1bf8859282ab8787ec6ab41d95448ce36a70a",
     "installed02/native-terminal-model.svg": "8bb06041a70000b43443cd448d957218ac56f7867647891c8d422344849c9cee",
     "staging-preflight.json": "e9c6bf1fd898f94ee4f6ff36b88520e6e8c9b355dfbe0f54f685e07ac35b6663",
-    "after-owner-consumers.json": "f5a5c8002e55dc95128015e1fddd9ad1f298404834078e0923574961c965ff23",
-    "model-isolation.json": "628da420cbf49d6f58f9fd87dfa1cde924794ffdfc84ce136708cdc3ecc88511",
-    "mutable-content-before.json": "f590798d9398461ffe9d6937230bc632a6fba86b87df103a022a2ac014007f18",
-    "mutable-content-after.json": "b35410ee57d3561d34f2ddcd507dd7c029dc4e45fb73471564e234d21c41d189",
-    "installed03/native-terminal-model.svg": "8bb06041a70000b43443cd448d957218ac56f7867647891c8d422344849c9cee",
-    "installed03/terminal-model-receipt.json": "ee78651ce7a6a8e6543830510138e5f4a475860952fcc0f5256c8784eb2b29fb",
-    "isolation-staging-preflight.json": "694154d030929eb2404ece4fd0b5a5899e054462884f93ed731aef80369cc87e",
-    "isolation-fixture-cleanup.json": "ae0d4cd966d053b04739e1900218c9cf1390be8dffab3290de301f4f0f366e84"
-  },
-  "review_correction": {
-    "source": "d5c19375636128d5dde5986408dab5b4e3e85dcc",
-    "changed": "Existing LineRecord.replace_content acquires distinct Rich text/span list for construction and every replacement. Global EMPTY_LINE deleted; command/gap-fill/scroll blank allocations local. add_line folds owned content. scroll rows acquire through same owner. simplify only mutates its owned line.",
-    "production_delta_since_review": "One file18+/14-; wholePR9productionfiles201+/454-.",
-    "nondefect_preserved": "Rich.Text has no __iadd__; += uses __add__ copy. _expand_content unchanged.",
-    "source_evidence": [
-      "mutable-content-before.json",
-      "mutable-content-after.json"
-    ],
-    "model_affected_checks": "Constructor/gapfill/replacement/bidirectional scroll/caller mutation/simplify leave neighbors and other terminal states unchanged.",
-    "final_native_scope": "installed03; same302 holder/native960; realACP/Pi/PTY/Pilot;0provider/newenv/publicchanges.",
-    "superseded_receipt_sha256": "32291813d95d6657da5a87fe85d1983428febf00709a2a5b75ea9c6c871f1410"
+    "after-owner-consumers.json": "f5a5c8002e55dc95128015e1fddd9ad1f298404834078e0923574961c965ff23"
   }
 }
