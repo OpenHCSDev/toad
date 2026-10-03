@@ -52,5 +52,98 @@
   "new_env": false,
   "new_native": false,
   "public_defaults_changed": false,
-  "providers": 0
+  "providers": 0,
+  "visibility_gap_assessment": [
+    {
+      "pid": 68488,
+      "exited": true
+    },
+    {
+      "pid": 216738,
+      "exited": true
+    },
+    {
+      "pid": 312355,
+      "exited": true
+    },
+    {
+      "pid": 312358,
+      "exited": true
+    },
+    {
+      "pid": 312359,
+      "exited": true
+    },
+    {
+      "pid": 312365,
+      "exited": true
+    },
+    {
+      "pid": 312379,
+      "exited": true
+    },
+    {
+      "pid": 312386,
+      "exited": true
+    },
+    {
+      "pid": 312395,
+      "exited": true
+    },
+    {
+      "pid": 312404,
+      "exited": true
+    },
+    {
+      "pid": 312412,
+      "exited": true
+    },
+    {
+      "pid": 312418,
+      "exited": true
+    },
+    {
+      "pid": 312431,
+      "exited": true
+    },
+    {
+      "pid": 1561676,
+      "exited": true
+    },
+    {
+      "pid": 1786010,
+      "create_time": 1790544886.28,
+      "predates_owned394_fixture_root": true,
+      "argv": [
+        "/usr/lib/systemd/systemd",
+        "--user",
+        "--deserialize=10"
+      ]
+    },
+    {
+      "pid": 1786012,
+      "create_time": 1790544886.3,
+      "predates_owned394_fixture_root": true,
+      "argv": [
+        "(sd-pam)"
+      ]
+    },
+    {
+      "pid": 1953373,
+      "exited": true
+    },
+    {
+      "pid": 3699396,
+      "create_time": 1790598148.66,
+      "predates_owned394_fixture_root": true,
+      "argv": [
+        "fusermount3",
+        "-o",
+        "rw,nosuid,nodev,fsname=portal,auto_unmount,subtype=portal",
+        "--",
+        "/run/user/1000/doc"
+      ]
+    }
+  ],
+  "fixture_root_created_at": 1791039285.7310154
 }
