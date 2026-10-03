@@ -1,0 +1,118 @@
+{
+  "state": "scoped-ready",
+  "source": "e7c6ede5da01a545f3e24393f6916c51c764cf22",
+  "base": "8b81122c0ec99111f3af1b0cf9a1e55ce3eb7d59",
+  "pr": 353,
+  "production_delta": {
+    "files": [
+      {
+        "path": "src/toad/acp/agent_controller.py",
+        "added": 2,
+        "deleted": 2
+      },
+      {
+        "path": "src/toad/acp/terminal_controller.py",
+        "added": 2,
+        "deleted": 2
+      },
+      {
+        "path": "src/toad/agent_surface.py",
+        "added": 3,
+        "deleted": 2
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "added": 77,
+        "deleted": 68
+      },
+      {
+        "path": "src/toad/ansi/_ansi_colors.py",
+        "added": 3,
+        "deleted": 262
+      },
+      {
+        "path": "src/toad/ansi/_sgr_styles.py",
+        "added": 42,
+        "deleted": 42
+      },
+      {
+        "path": "src/toad/terminal_execution.py",
+        "added": 19,
+        "deleted": 11
+      },
+      {
+        "path": "src/toad/widgets/terminal.py",
+        "added": 38,
+        "deleted": 54
+      },
+      {
+        "path": "src/toad/widgets/terminal_tool.py",
+        "added": 1,
+        "deleted": 1
+      }
+    ],
+    "added": 187,
+    "deleted": 444
+  },
+  "tested_cohort": {
+    "stage": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final",
+    "pins": {
+      "toad": "e7c6ede5da01a545f3e24393f6916c51c764cf22",
+      "agent_comms": "325e9f355cf29be3f54594bb2672f7c9aa42c553",
+      "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
+    },
+    "sdk": "0.12.1",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-960296fdddafb01c/node_modules/@earendil-works/pi-coding-agent",
+    "distribution_count": 69,
+    "source_files_compared": 314,
+    "mismatches": [],
+    "public_activation": false
+  },
+  "model": {
+    "result": "PASS",
+    "scope": "Installed original model/execution imports no Textual; ANSI colors/unicode/cursor/modes/key/reply/geometry; bounded incremental stream and reflow. No application/provider yet.",
+    "stream_bytes": 196800,
+    "stream_lines": 1200,
+    "elapsed_seconds": 0.18497297196881846,
+    "cpu_seconds": 0.1829756629999999,
+    "model_width": 91,
+    "model_height": 21,
+    "folded_lines": 2400
+  },
+  "installed": {
+    "result": "PASS",
+    "elapsed_seconds": 1.456708358018659,
+    "native_provider_requests": 0,
+    "configured_detached_geometry": [
+      57,
+      13
+    ],
+    "configured_pty_output": "13 57\r\nCONFIGURED_DETACHED",
+    "detached_default_output": "24 80\r\nDETACHED_NATIVE_TERMINAL",
+    "original_state_retained_after_reattach": true,
+    "widget_geometry_derived_from_state": true,
+    "large_native_stream_lines": 1200,
+    "unicode_color_paint_and_selection": true,
+    "final_pty_masters_retained": false,
+    "application": "Real installed Toad/ACP/Pi callbacks/native PTYs; Textual Pilot (not physical st recording)"
+  },
+  "validation_order": "Read original owners and all callers with existing NRA AST parser, coherent migration/deletion, published source, final installed validation.",
+  "original_failure": "installed01 original native stty size0 0. Existing PTY spawned before window ioctl. Same original PtyProcess now initializes model dimensions before child launch; resize shares original resize_fd. Original failure/protocol/fixture retained.",
+  "model_oracle_corrections": [
+    "Initial oracle assumed insertion of old llo; original replace mode overwrites it. No production patch for this oracle.",
+    "Final row index depended on whether original cursor movement had materialized a trailing blank. Assert last nonempty original row; rawfailed log retained."
+  ],
+  "installed_stderr": "Original shell_read reports OSError5 at PTY EOF; both terminal outputs/exit0 and native teardown complete. No zero-stderr claim.",
+  "scope": "Actual installed ANSI/model/ACP/realPTY/Textual Pilot drawing, unicode/truecolor, selection, configurable geometry and same-state tab reattachment. No physical st or performance improvement claim. No full U4/U5 completion claim.",
+  "public_effects": "No public launcher/default/backend changes or user input;0 provider requests. Private fixture state only.",
+  "fixture_cleanup": "fixture-cleanup.json",
+  "remaining": "Generic frontend view registration/U4 and broader headless-plan work remain independent; pytest unavailable in reused holder, no new environment/dev dependency installed.",
+  "proofs": {
+    "model-sanity.json": "b8f8a3bdfc794b5cca3ad631461bf0243b3edfa99982cbbd522997f4053d4d7d",
+    "installed01/acceptance-failure.txt": "8de4e44f7dc7b5264782529c637cd37260cbd3765fe5d9308a9d2eb71a08e440",
+    "installed02/terminal-model-receipt.json": "d4046150cd83a2a1ec507a880cd1bf8859282ab8787ec6ab41d95448ce36a70a",
+    "installed02/native-terminal-model.svg": "8bb06041a70000b43443cd448d957218ac56f7867647891c8d422344849c9cee",
+    "staging-preflight.json": "e9c6bf1fd898f94ee4f6ff36b88520e6e8c9b355dfbe0f54f685e07ac35b6663",
+    "after-owner-consumers.json": "f5a5c8002e55dc95128015e1fddd9ad1f298404834078e0923574961c965ff23"
+  }
+}

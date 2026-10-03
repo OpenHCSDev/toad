@@ -1,0 +1,12 @@
+{
+  "result": "PASS",
+  "scope": "Installed original model/execution imports no Textual; ANSI colors/unicode/cursor/modes/key/reply/geometry; bounded incremental stream and reflow. No application/provider yet.",
+  "mutable_text_isolation": "Constructed/copied/replaced/gap-filled rows have distinct text/span lists; caller mutation, line simplification and bidirectional scroll leave neighbors/other states unchanged.",
+  "stream_bytes": 196800,
+  "stream_lines": 1200,
+  "elapsed_seconds": 0.15740492101758718,
+  "cpu_seconds": 0.15641293899999997,
+  "model_width": 91,
+  "model_height": 21,
+  "folded_lines": 2400
+}

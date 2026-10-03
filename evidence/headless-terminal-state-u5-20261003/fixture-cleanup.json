@@ -1,0 +1,9 @@
+{
+  "observed_readable_owned_process_matches": [],
+  "unreadable_proc_pids": [],
+  "limitations": "Inaccessible processes not claimed inspected. Original fixture teardown awaits agent.stop and original owners.stop for every registered fixture owner. Both actual terminal operations release after completed output.",
+  "native_fixture_roots_preserved": [
+    "/home/ts/wt/u353e01",
+    "/home/ts/wt/u353e02"
+  ]
+}

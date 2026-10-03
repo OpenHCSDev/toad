@@ -42,9 +42,9 @@ class TerminalController:
         terminal_id = f"terminal-{self._next_id}"
         execution = TerminalExecution(command, output_byte_limit)
         self.executions[terminal_id] = execution
-        width, height = self.owner.surface.terminal_dimensions()
+        self.owner.surface.prepare_terminal(execution.state)
         try:
-            await execution.start(width, height)
+            await execution.start()
             if self.state is state:
                 self.owner.surface.publish_terminal(self, terminal_id, execution)
             if self.state is not state:
