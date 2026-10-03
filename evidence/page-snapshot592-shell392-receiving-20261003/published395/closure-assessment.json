@@ -1,0 +1,146 @@
+{
+  "state": "Published395 originalidentityclosure+scopedordinarydefaultsavedhelperdisplay; rawrecorderteardownnegativepreserved",
+  "publication_phase": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "publication_raw_sha256": "60c330d8578605174586a9d6f8df67606d3a8cf7f05345fecd9272cdc591e79e",
+  "one_original_publication": true,
+  "capture_duration_seconds": 23.63670903700404,
+  "capture_completed": true,
+  "raw_completed": false,
+  "raw_recorder_error": "RuntimeError: Installed terminal did not exit successfully: {'pid': 281594, 'start_ticks': 51424034, 'returncode': None}",
+  "actual_terminal_exit": {
+    "pid": 281594,
+    "start_ticks": 51424034,
+    "returncode": 0
+  },
+  "runtime_unchanged": true,
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "openhcs-helper",
+    "identity": {
+      "pid": 274908,
+      "start_time": 51408538
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "openhcs-helper",
+    "identity": {
+      "pid": 274908,
+      "start_time": 51408538
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 281582,
+        "start_ticks": 51423823,
+        "returncode": 0
+      },
+      {
+        "pid": 281592,
+        "start_ticks": 51424023,
+        "returncode": 0
+      },
+      {
+        "pid": 281594,
+        "start_ticks": 51424034,
+        "returncode": 0
+      },
+      {
+        "pid": 281595,
+        "start_ticks": 51424039,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 281601,
+        "start_ticks": 51424111,
+        "returncode": 0
+      },
+      {
+        "pid": 281602,
+        "start_ticks": 51424122,
+        "returncode": 0
+      },
+      {
+        "pid": 281603,
+        "start_ticks": 51424132,
+        "returncode": 0
+      },
+      {
+        "pid": 281604,
+        "start_ticks": 51424143,
+        "returncode": 255
+      },
+      {
+        "pid": 281923,
+        "start_ticks": 51425345,
+        "returncode": 0
+      },
+      {
+        "pid": 281928,
+        "start_ticks": 51425374,
+        "returncode": 0
+      },
+      {
+        "pid": 281934,
+        "start_ticks": 51425412,
+        "returncode": 0
+      },
+      {
+        "pid": 282176,
+        "start_ticks": 51426438,
+        "returncode": 0
+      },
+      {
+        "pid": 282181,
+        "start_ticks": 51426466,
+        "returncode": 0
+      },
+      {
+        "pid": 282322,
+        "start_ticks": 51426562,
+        "returncode": 0
+      },
+      {
+        "pid": 282332,
+        "start_ticks": 51426764,
+        "returncode": 0
+      }
+    ]
+  },
+  "physical_inspection": "Sch personally viewed after.png AFTER terminal: savedReceived history, session/chatReady, visible rosterReady, idleeditor/noactivebar; externalcleanupStopped. No DURINGinspection claim.",
+  "provider_calls": 0,
+  "new_inputs": 0,
+  "scope": "Ordinary installed saved-history startup/ownerattachment/display only. Separate592App row/readstate gate and392originalshell/MCP retain scope; not configuredprovider/channel/compaction/motion/fullS4.",
+  "original_files": {
+    "publication-receipt.json": {
+      "source": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/page-snapshot592-shell392-receiving-20261003/new-publication590591592392/publication-receipt.json",
+      "sha256": "60c330d8578605174586a9d6f8df67606d3a8cf7f05345fecd9272cdc591e79e"
+    },
+    "publication-identity-closure.json": {
+      "source": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/page-snapshot592-shell392-receiving-20261003/new-publication590591592392/publication-identity-closure.json",
+      "sha256": "e4b7150b5715d4b030c457f0b3e4c96f10c4b815b3fca118aa3270a828d3eb1c"
+    },
+    "capture-receipt.json": {
+      "source": "/home/ts/.cache/agent-scratch/published590591592392-helper-default-20261003/capture/receipt.json",
+      "sha256": "6a0eceab111bc51d6a65a61bb861f61af32fc9940d741e046d14544db6ea316f"
+    },
+    "capture-before.png": {
+      "source": "/home/ts/.cache/agent-scratch/published590591592392-helper-default-20261003/capture/before.png",
+      "sha256": "8c00f2087071ca41a024e271ff6ffa22d87d022acfc1c4a2bd53412517a6be0d"
+    },
+    "capture-after.png": {
+      "source": "/home/ts/.cache/agent-scratch/published590591592392-helper-default-20261003/capture/after.png",
+      "sha256": "8c00f2087071ca41a024e271ff6ffa22d87d022acfc1c4a2bd53412517a6be0d"
+    }
+  },
+  "current334_protected": true,
+  "previous485_protected": true
+}
