@@ -261,7 +261,7 @@ class CategorizedMount:
                 classes[f"-message-{category.declared_name}"] = True
             # Registration owns the first CSS match for detached blocks. For
             # attached blocks, Textual applies this class change as one batch.
-            widget.update_classes(classes, update=widget.is_attached)
+            widget.update_classes(classes)
             apply_block_filter(widget, selected)
         return super().mount(*widgets, **kwargs)
 
