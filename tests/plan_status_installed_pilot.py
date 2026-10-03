@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import shlex
 import sys
+from time import monotonic
 from tempfile import TemporaryDirectory
 from typing import get_args
 
@@ -35,6 +36,7 @@ def painted(widget, text):
 
 
 async def main():
+    started = monotonic()
     with TemporaryDirectory(prefix="plan-wire-", dir=os.environ["TMPDIR"]) as directory:
         root = Path(directory)
         os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"),
@@ -158,6 +160,23 @@ async def main():
                 assert view.prompt.text == "Detached plan draft"
                 assert app._exception is None
                 print("DETACHED_OPERATIONAL_TYPED_PLAN_RETURN_PAINTED_SAME_AGENT_PROCESS_EDITOR", flush=True)
+                if output := os.environ.get("TOAD_TEST_OUTPUT"):
+                    destination = Path(output)
+                    destination.mkdir(parents=True, exist_ok=True)
+                    (destination / "plan-return.svg").write_text(app.export_screenshot())
+                    (destination / "receipt.json").write_text(json.dumps({
+                        "result": "pass",
+                        "elapsed_seconds": monotonic() - started,
+                        "installed_toad": str(files("toad")),
+                        "official_sdk_status_markers_painted": True,
+                        "completion_transition_animated": True,
+                        "existing_completion_static": True,
+                        "empty_reset_and_retired_sidebar_return": True,
+                        "detached_plan_same_source_agent_process_editor": True,
+                        "inputs_to_configured_owners": 0,
+                        "providers": 0,
+                        "scope": "Actual installed App/Pilot and official SDK ACP subprocess; no physical st or provider claim",
+                    }, indent=2) + "\n")
             finally:
                 for index in range(len(stages)):
                     (root / f"plan-advance-{index}").touch()
