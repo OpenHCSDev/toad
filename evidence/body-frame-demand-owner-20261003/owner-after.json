@@ -1,0 +1,59 @@
+{
+  "modules": [
+    289,
+    249
+  ],
+  "omissions": [],
+  "warm_calls": [
+    {
+      "path": "src/toad/widgets/prepared_markdown.py",
+      "line": 86,
+      "call": "self.app.render_processes.prepare"
+    },
+    {
+      "path": "src/toad/widgets/streaming_markdown.py",
+      "line": 56,
+      "call": "self.app.render_processes.prepare"
+    },
+    {
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "line": 235,
+      "call": "self.renderer.prepare"
+    }
+  ],
+  "discarded_submits": [],
+  "geometry_members": [
+    {
+      "owner": "ViewportBody",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 46,
+      "source": "@property\ndef body_requires_geometry(self) -> bool:\n    raise NotImplementedError"
+    },
+    {
+      "owner": "BodyMeasurement",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 138,
+      "source": "def requires_geometry(self, body) -> bool:\n    \"\"\"Settled native content needs its box; retained extent does not.\"\"\"\n    return not self.dormant"
+    },
+    {
+      "owner": "MaterializingBody",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 274,
+      "source": "def requires_geometry(self, body):\n    return not self.paint_ready(body)"
+    },
+    {
+      "owner": "MeasuredViewportBody",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 433,
+      "source": "@property\ndef body_requires_geometry(self):\n    return self._body_measurement.requires_geometry(self)"
+    }
+  ],
+  "delivery_calls": [
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 276,
+      "call": "self._deliver(key, result)"
+    }
+  ],
+  "limitations": "Syntactic receiver resolution plus source reading; external dynamic aliases/overrides and runtime CPU dominance are not proved."
+}

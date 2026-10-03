@@ -1,0 +1,20 @@
+{
+  "boundary": "source-only; immutable installed default dependencies, no package writes or live route/client",
+  "results": [
+    {
+      "check": "work_preparation_pilot",
+      "exit": 0,
+      "seconds": 1.7671494700480253
+    },
+    {
+      "check": "serialized_preparation_pilot",
+      "exit": 0,
+      "seconds": 1.7679943710099906
+    },
+    {
+      "check": "work_preparation_delivery_pilot",
+      "exit": 0,
+      "seconds": 1.7173646569717675
+    }
+  ]
+}

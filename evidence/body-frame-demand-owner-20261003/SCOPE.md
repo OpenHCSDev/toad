@@ -61,3 +61,26 @@ semantic reads do not prove external dynamic overrides (IMPL-4/IMPL-6).
 Existing three-body native resource sanity now also checks pending-before-
 capture, captured pending, and pending-after-paint-release placement. That
 check addresses the concrete omitted offscreen writer path, not a CPU claim.
+
+## Current qualification
+
+Combined production delta: six files47+/6-. Working source published, draft.
+After source coverage remains289+249/zero omissions: three warm prepare
+callers, zero discarded submit calls in that family, one foreground _deliver
+call. No copy of admission/cache/cancellation policy was introduced.
+
+One final source sanity batch passed (1.77s/1.77s/1.72s): existing shared-work
+check now confirms two warm requests execute once and materialize zero unused
+results; foreground consumers still receive two independent mutable copies.
+Serialized-result check covers retained graph release and byte budgeting;
+delivery check covers scope retirement/shutdown while copying and draining
+original workers. Immutable default dependency imports only; no installed
+package write, ACP/public client, or provider operation. Resource warning
+(home6.9GiB/RAM11.8GiB/swap12.2GiB) was handled with these small sequential
+checks rather than another environment or parallel run.
+
+Actual three-body native geometry check and changed409/Text48 saved-history
+motion/profile remain pending the explicit406 style22 CODE handback. This
+is a real package borrower; independent source/check work has continued.
+No new motion/CPU/input-to-paint or 144Hz claim. Previous407 originals and
+all unfinished performance requirements remain retained.
