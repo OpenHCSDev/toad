@@ -1,0 +1,35 @@
+{
+  "checks": [
+    {
+      "name": "installed-boundary",
+      "args": [
+        "tests/render_families_pilot.py",
+        "RenderingFamilyTests.test_captured_task_loads_its_declaring_module"
+      ],
+      "elapsed_seconds": 3.7717049440252595,
+      "exit_code": 0
+    },
+    {
+      "name": "installed-prepared-diff",
+      "args": [
+        "tests/prepared_diff_pilot.py"
+      ],
+      "elapsed_seconds": 8.733639539976139,
+      "exit_code": 0
+    },
+    {
+      "name": "installed-app-patch",
+      "args": [
+        "tests/persistent_renderer_ui_pilot.py",
+        "--patch-only"
+      ],
+      "elapsed_seconds": 9.333318243036047,
+      "exit_code": 0
+    }
+  ],
+  "prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "fixture": "/home/ts/wt/r368e01",
+  "provider_calls": 0,
+  "public_changes": 0,
+  "scope": "Installed native patch worker/binding/Pilot app and clean captured task boundary. No physical pixels or native provider turn."
+}

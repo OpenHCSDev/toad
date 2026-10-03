@@ -1,5 +1,5 @@
 {
-  "revision": "9b92dac09fd878f91488017f1456b655e10bfc88",
+  "revision": "8fef929cc16f293ef396a2603dd69934a86bd5ea",
   "parser": "refactor-audit audit.findings.Package",
   "modules": 286,
   "parse_omissions": [],
@@ -199,61 +199,49 @@
     },
     {
       "path": "src/toad/render_protocol.py",
-      "line": 16,
-      "kind": "Import",
-      "source": "import toad.render_tasks"
-    },
-    {
-      "path": "src/toad/render_protocol.py",
-      "line": 17,
-      "kind": "Import",
-      "source": "import toad.acp.sdk_boundary"
-    },
-    {
-      "path": "src/toad/render_protocol.py",
-      "line": 43,
+      "line": 40,
       "kind": "ClassDef",
       "source": "class RendererCapture(FieldRepresentation):"
     },
     {
       "path": "src/toad/render_protocol.py",
-      "line": 65,
+      "line": 62,
       "kind": "ClassDef",
       "source": "class TaskCapture(RendererCapture):"
     },
     {
       "path": "src/toad/render_protocol.py",
-      "line": 65,
+      "line": 62,
       "kind": "Name",
       "source": "RendererCapture"
     },
     {
       "path": "src/toad/render_protocol.py",
-      "line": 77,
+      "line": 74,
       "kind": "Name",
       "source": "RendererCapture"
     },
     {
       "path": "src/toad/render_protocol.py",
-      "line": 133,
+      "line": 130,
       "kind": "Name",
       "source": "RenderTask"
     },
     {
       "path": "src/toad/render_protocol.py",
-      "line": 133,
+      "line": 130,
       "kind": "Name",
       "source": "TaskCapture"
     },
     {
       "path": "src/toad/render_protocol.py",
-      "line": 72,
+      "line": 69,
       "kind": "Name",
       "source": "RenderTask"
     },
     {
       "path": "src/toad/render_protocol.py",
-      "line": 72,
+      "line": 69,
       "kind": "Name",
       "source": "RenderTask"
     },
@@ -427,135 +415,117 @@
     },
     {
       "path": "src/toad/widgets/patch_diff.py",
-      "line": 136,
+      "line": 162,
       "kind": "ClassDef",
       "source": "@dataclass(frozen=True)"
     },
     {
       "path": "src/toad/widgets/patch_diff.py",
-      "line": 143,
+      "line": 175,
       "kind": "FunctionDef",
       "source": "def prepare_patch(text: str, ansi: bool, dark: bool) -> PreparedPatch:"
     },
     {
       "path": "src/toad/widgets/patch_diff.py",
-      "line": 30,
+      "line": 56,
       "kind": "Name",
       "source": "Patch"
     },
     {
       "path": "src/toad/widgets/patch_diff.py",
-      "line": 157,
+      "line": 168,
       "kind": "FunctionDef",
-      "source": "def highlight_lines(lines: dict[int, str], path: str) -> dict[int, Content]:"
+      "source": "def bind(self, added: Style, removed: Style) -> tuple['KnownLines', 'KnownLines']:"
     },
     {
       "path": "src/toad/widgets/patch_diff.py",
-      "line": 143,
+      "line": 175,
       "kind": "Name",
       "source": "PreparedPatch"
     },
     {
       "path": "src/toad/widgets/patch_diff.py",
-      "line": 472,
+      "line": 484,
       "kind": "FunctionDef",
       "source": "@property"
     },
     {
       "path": "src/toad/widgets/patch_diff.py",
-      "line": 34,
-      "kind": "Name",
-      "source": "Patch"
+      "line": 31,
+      "kind": "FunctionDef",
+      "source": "def highlight_lines(lines: dict[int, str], path: str) -> dict[int, Content]:"
     },
     {
       "path": "src/toad/widgets/patch_diff.py",
-      "line": 138,
+      "line": 60,
       "kind": "Name",
       "source": "Patch"
-    },
-    {
-      "path": "src/toad/widgets/patch_diff.py",
-      "line": 163,
-      "kind": "Name",
-      "source": "highlight_lines"
     },
     {
       "path": "src/toad/widgets/patch_diff.py",
       "line": 164,
       "kind": "Name",
+      "source": "Patch"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 39,
+      "kind": "Name",
       "source": "highlight_lines"
     },
     {
       "path": "src/toad/widgets/patch_diff.py",
-      "line": 174,
+      "line": 40,
+      "kind": "Name",
+      "source": "highlight_lines"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 50,
       "kind": "Name",
       "source": "PreparedPatch"
     },
     {
       "path": "src/toad/widgets/patch_diff.py",
-      "line": 483,
-      "kind": "FunctionDef",
-      "source": "def highlight_lines(lines, path):"
-    },
-    {
-      "path": "src/toad/widgets/patch_diff.py",
-      "line": 159,
-      "kind": "Attribute",
-      "source": "DiffView.highlight"
-    },
-    {
-      "path": "src/toad/widgets/patch_diff.py",
-      "line": 436,
+      "line": 448,
       "kind": "Name",
       "source": "Patch"
     },
     {
       "path": "src/toad/widgets/patch_diff.py",
-      "line": 150,
+      "line": 33,
+      "kind": "Attribute",
+      "source": "DiffView.highlight"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 182,
       "kind": "Attribute",
       "source": "Syntax(text, 'diff', theme='ansi_dark', background_color='default').highlight"
     },
     {
       "path": "src/toad/widgets/patch_diff.py",
-      "line": 155,
+      "line": 187,
       "kind": "Name",
       "source": "PreparedPatch"
     },
     {
       "path": "src/toad/widgets/patch_diff.py",
-      "line": 436,
+      "line": 448,
       "kind": "Name",
       "source": "PreparedPatch"
     },
     {
       "path": "src/toad/widgets/patch_diff.py",
-      "line": 493,
-      "kind": "Name",
-      "source": "highlight_lines"
+      "line": 492,
+      "kind": "Attribute",
+      "source": "prepared.bind"
     },
     {
       "path": "src/toad/widgets/patch_diff.py",
-      "line": 494,
-      "kind": "Name",
-      "source": "highlight_lines"
-    },
-    {
-      "path": "src/toad/widgets/patch_diff.py",
-      "line": 168,
+      "line": 44,
       "kind": "Attribute",
       "source": "DiffView._highlight_diff_lines"
-    },
-    {
-      "path": "src/toad/widgets/patch_diff.py",
-      "line": 485,
-      "kind": "Attribute",
-      "source": "self.highlight"
-    },
-    {
-      "path": "src/toad/widgets/patch_diff.py",
-      "line": 498,
-      "kind": "Attribute",
-      "source": "self._highlight_diff_lines"
     },
     {
       "path": "src/toad/widgets/prompt.py",
