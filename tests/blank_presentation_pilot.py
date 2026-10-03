@@ -99,6 +99,9 @@ async def main():
                 while not await shell.is_busy():
                     await pilot.pause(.02)
             await second.conversation.submit_input(UserInputSubmitted("busy-shell-input", shell=True))
+            # Widget.focus publishes through App.call_later; direct PTY writes
+            # no longer happen to await a separate executor first.
+            await pilot.pause()
             assert app.focused is shell.output.terminal
             third = (await app.session_navigation.new(app.session_navigation.default_source)).mode_name
             assert second.query_one(Conversation) is second_surface

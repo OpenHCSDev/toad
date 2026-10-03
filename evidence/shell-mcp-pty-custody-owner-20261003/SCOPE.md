@@ -75,3 +75,10 @@ Normal uv lock resolved 99 lockfile packages in 1.73 seconds, changing only
 the three Core reference lines. Installed baseline dependencies will be derived
 from the existing holder, not assumed from the lockfile total. No environment
 or native copy was created.
+
+Installed shell01 started the real original PTY and reached busy input, then
+failed its immediate focus assertion. Existing Textual Widget.focus queues
+App.call_later(set_focus); the old threaded os.write happened to yield first.
+Corrected the original fixture to await its native callback through pilot.pause
+before the unchanged focus assertion. No production change or injected focus.
+Raw shell01 failure is retained; its owned children are absent.
