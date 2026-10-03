@@ -1,0 +1,19 @@
+{
+  "head": "8ef021977aa6698127acc13538416135397a0bfc",
+  "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "installed_toad_assets_equal": 319,
+  "core_text_diff_assets_unchanged": 608,
+  "packages_unchanged_except_toad": 68,
+  "package_count": 69,
+  "original_sdk": "0.12.1",
+  "actual_direct_url": {
+    "url": "file:///home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/theme410-code-loan-20261003/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "archive_info": {}
+  },
+  "wheel_sha256": "0968f7066bf7b2056390dcfd4d8f0772baa3173de19db51986cd5a42394828be",
+  "builder": "existing system hatchling1.30.1; no isolated environment or dependency install",
+  "old_native_theme_module_absent": true,
+  "overlay": false,
+  "vcs_clone": false,
+  "core_text_native_dependency_writes": false
+}

@@ -1,0 +1,624 @@
+{
+  "head": "8840d35ce8364f2b1c2cbbeac3c90ef6aa76be76",
+  "roots": [
+    {
+      "root": "src/toad",
+      "parsed": 289,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "parsed": 392,
+      "omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "path": "src/toad/app.py",
+      "line": 19,
+      "kind": "import",
+      "source": "from rich import terminal_theme"
+    },
+    {
+      "path": "src/toad/native_themes.py",
+      "line": 3,
+      "kind": "import",
+      "source": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "path": "src/toad/native_themes.py",
+      "line": 4,
+      "kind": "import",
+      "source": "from textual.theme import BUILTIN_THEMES"
+    },
+    {
+      "path": "src/toad/native_themes.py",
+      "line": 6,
+      "kind": "import",
+      "source": "from toad.setting_choices import Choice"
+    },
+    {
+      "path": "src/toad/native_themes.py",
+      "line": 9,
+      "kind": "declaration",
+      "name": "ThemeChoice",
+      "bases": [
+        "Choice",
+        "DeclaredFamily"
+      ]
+    },
+    {
+      "path": "src/toad/native_themes.py",
+      "line": 13,
+      "kind": "FunctionDef",
+      "source": "@classmethod\ndef label(cls) -> str:\n    return cls.theme.name"
+    },
+    {
+      "path": "src/toad/native_themes.py",
+      "line": 18,
+      "kind": "Call",
+      "source": "type(ThemeChoice)(''.join((part.title() for part in _name.split('-'))) + 'Theme', (ThemeChoice,), {'theme': _theme, '__module__': __name__}, declared_name=_name)"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 3,
+      "kind": "import",
+      "source": "import asyncio"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 4,
+      "kind": "import",
+      "source": "from functools import partial"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 5,
+      "kind": "import",
+      "source": "import json"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 6,
+      "kind": "import",
+      "source": "from pathlib import Path"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 7,
+      "kind": "import",
+      "source": "from uuid import uuid4"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 8,
+      "kind": "import",
+      "source": "from collections.abc import Awaitable, Callable"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 9,
+      "kind": "import",
+      "source": "from typing import TYPE_CHECKING, Any"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 11,
+      "kind": "import",
+      "source": "from toad import atomic, paths"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 13,
+      "kind": "import",
+      "source": "from toad import setting_effects as effects"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 14,
+      "kind": "import",
+      "source": "from toad.render_choices import RendererChoice, LocalRenderer"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 15,
+      "kind": "import",
+      "source": "from toad.native_themes import ThemeChoice"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 16,
+      "kind": "import",
+      "source": "from toad.setting_choices import AlwaysSessionBar, AutoDiff, BlurNotification, DiffMode, Expansion, FailExpansion, LoadingStyle, NormalScrollbar, NotificationPolicy, NoWrapMode, PulseLoading, Scrollbar, SessionBar, WrapMode"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 32,
+      "kind": "import",
+      "source": "from toad.settings import BooleanSetting, ChoiceSetting, Group, IntegerSetting, NumberSetting, SettingsGroup, StringSetting, TextSetting, PreferenceChange"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 43,
+      "kind": "import",
+      "source": "from toad.widgets.presentation_window import PresentationBudget"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 46,
+      "kind": "import",
+      "source": "from toad.app import ToadApp"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 70,
+      "kind": "Assign",
+      "source": "theme = ChoiceSetting(ThemeChoice, title='Theme', default=ThemeChoice.decode('ansi-dark'), help='One of the builtin Textual themes. ANSI themes inherit your terminal palette.', effect=effects.theme)"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 70,
+      "kind": "Call",
+      "source": "ChoiceSetting(ThemeChoice, title='Theme', default=ThemeChoice.decode('ansi-dark'), help='One of the builtin Textual themes. ANSI themes inherit your terminal palette.', effect=effects.theme)"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 316,
+      "kind": "import",
+      "source": "from toad.core.events import CoreEventStream"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 334,
+      "kind": "import",
+      "source": "from toad.core.preference_events import PreferenceChanged"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 1,
+      "kind": "import",
+      "source": "from __future__ import annotations"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 3,
+      "kind": "import",
+      "source": "from textual import on, containers, getters, lazy"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 4,
+      "kind": "import",
+      "source": "from textual.app import ComposeResult"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 5,
+      "kind": "import",
+      "source": "from textual.screen import ModalScreen, ScreenResultType"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 6,
+      "kind": "import",
+      "source": "from textual.widgets import Input, Footer"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 7,
+      "kind": "import",
+      "source": "from textual.content import Content"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 8,
+      "kind": "import",
+      "source": "from agent_comms.mro_dispatch import handles"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 9,
+      "kind": "import",
+      "source": "from toad.core.projection import MroProjection"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 10,
+      "kind": "import",
+      "source": "from toad.settings import BoundSetting, Group, SettingsGroup, BooleanSetting, StringSetting, TextSetting, PathSetting, IntegerSetting, NumberSetting, ChoiceSetting"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 14,
+      "kind": "import",
+      "source": "from toad.setting_widgets import InputEditor, TextEditor, BooleanEditor, ChoiceEditor"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 15,
+      "kind": "import",
+      "source": "from toad.app import ToadApp"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 18,
+      "kind": "declaration",
+      "name": "SettingsScreen",
+      "bases": [
+        "MroProjection",
+        "ModalScreen"
+      ]
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 103,
+      "kind": "FunctionDef",
+      "source": "@handles(ChoiceSetting)\ndef choice_form(self, kind, group, title):\n    return self.leaf(kind, group, title, ChoiceEditor)"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 45,
+      "kind": "import",
+      "source": "from textual.widgets import Static"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 65,
+      "kind": "import",
+      "source": "from textual.widgets import Static"
+    },
+    {
+      "path": "src/toad/setting_effects.py",
+      "line": 3,
+      "kind": "import",
+      "source": "from __future__ import annotations"
+    },
+    {
+      "path": "src/toad/setting_effects.py",
+      "line": 5,
+      "kind": "import",
+      "source": "from dataclasses import replace"
+    },
+    {
+      "path": "src/toad/setting_effects.py",
+      "line": 6,
+      "kind": "import",
+      "source": "from typing import TYPE_CHECKING"
+    },
+    {
+      "path": "src/toad/setting_effects.py",
+      "line": 39,
+      "kind": "FunctionDef",
+      "source": "def theme(app: ToadApp, value: type[ThemeChoice]) -> None:\n    app.theme = value.theme.name"
+    },
+    {
+      "path": "src/toad/setting_effects.py",
+      "line": 9,
+      "kind": "import",
+      "source": "from toad.app import ToadApp"
+    },
+    {
+      "path": "src/toad/setting_effects.py",
+      "line": 10,
+      "kind": "import",
+      "source": "from toad.setting_choices import SessionBar"
+    },
+    {
+      "path": "src/toad/setting_effects.py",
+      "line": 11,
+      "kind": "import",
+      "source": "from toad.native_themes import ThemeChoice"
+    },
+    {
+      "path": "src/toad/setting_effects.py",
+      "line": 15,
+      "kind": "import",
+      "source": "from toad.widgets.history_anchor import HistoryWindow"
+    },
+    {
+      "path": "src/toad/setting_effects.py",
+      "line": 28,
+      "kind": "import",
+      "source": "from toad.widgets.conversation import Conversation"
+    },
+    {
+      "path": "src/toad/setting_effects.py",
+      "line": 40,
+      "kind": "Assign",
+      "source": "app.theme = value.theme.name"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 3,
+      "kind": "import",
+      "source": "from __future__ import annotations"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 5,
+      "kind": "import",
+      "source": "from textual import on"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 6,
+      "kind": "import",
+      "source": "from textual.screen import Screen"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 7,
+      "kind": "import",
+      "source": "from textual.validation import Function"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 8,
+      "kind": "import",
+      "source": "from textual.widgets import Checkbox, Input, Select, TextArea"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 10,
+      "kind": "import",
+      "source": "from toad.settings import BoundSetting"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 76,
+      "kind": "declaration",
+      "name": "ChoiceEditor",
+      "bases": [
+        "Select"
+      ]
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 31,
+      "kind": "FunctionDef",
+      "source": "@on(Input.Blurred)\n@on(Input.Submitted)\ndef commit(self, event: Input.Blurred | Input.Submitted) -> None:\n    event.stop()\n    self.commit_value(event.value)"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 56,
+      "kind": "FunctionDef",
+      "source": "@on(TextArea.Changed)\ndef commit(self, event: TextArea.Changed) -> None:\n    event.stop()\n    try:\n        self.bound.set_text(self.text)\n    except (ValueError, TypeError) as error:\n        self.notify(str(error), title=self.bound.kind.title, severity='error')\n        self.text = self.bound.value"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 71,
+      "kind": "FunctionDef",
+      "source": "@on(Checkbox.Changed)\ndef commit(self, event: Checkbox.Changed) -> None:\n    event.stop()\n    self.bound.set(event.value)"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 89,
+      "kind": "FunctionDef",
+      "source": "@on(Select.Changed)\ndef commit(self, event: Select.Changed) -> None:\n    event.stop()\n    if event.value is not Select.NULL:\n        self.bound.set(event.value)"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 3,
+      "kind": "import",
+      "source": "from __future__ import annotations"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 5,
+      "kind": "import",
+      "source": "import json"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 6,
+      "kind": "import",
+      "source": "from abc import ABC, abstractmethod"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 7,
+      "kind": "import",
+      "source": "from collections.abc import Callable, Iterator"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 8,
+      "kind": "import",
+      "source": "from dataclasses import dataclass"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 9,
+      "kind": "import",
+      "source": "from pathlib import Path"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 10,
+      "kind": "import",
+      "source": "from typing import TYPE_CHECKING, Any, TypeVar, overload"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 12,
+      "kind": "import",
+      "source": "from agent_comms.field_codec import FieldCodec, WireValue"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 13,
+      "kind": "import",
+      "source": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 28,
+      "kind": "declaration",
+      "name": "SettingsNode",
+      "bases": [
+        "WireValue",
+        "ABC"
+      ]
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 83,
+      "kind": "declaration",
+      "name": "SettingKind",
+      "bases": [
+        "SettingsNode"
+      ]
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 275,
+      "kind": "declaration",
+      "name": "StringSetting",
+      "bases": [
+        "SettingKind[str]"
+      ]
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 336,
+      "kind": "declaration",
+      "name": "ChoiceSetting",
+      "bases": [
+        "SettingKind[type[C]]"
+      ]
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 16,
+      "kind": "import",
+      "source": "from toad.app import ToadApp"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 17,
+      "kind": "import",
+      "source": "from toad.setting_choices import Choice"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 74,
+      "kind": "FunctionDef",
+      "source": "@abstractmethod\ndef load(self, group: SettingsGroup, raw: object, present: bool) -> None:\n    ..."
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 77,
+      "kind": "FunctionDef",
+      "source": "@abstractmethod\ndef document_value(self, group: SettingsGroup) -> object:\n    ..."
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 101,
+      "kind": "FunctionDef",
+      "source": "def __set__(self, group: SettingsGroup, value: T) -> None:\n    if group._values[self.name] == value:\n        return\n    group._values[self.name] = value\n    group._present.add(self.name)\n    group._mark_present()\n    group._root._changed = True\n    group._root._notify(PreferenceChange(self, value))"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 111,
+      "kind": "FunctionDef",
+      "source": "@abstractmethod\ndef parse(self, raw: object) -> T:\n    ..."
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 113,
+      "kind": "FunctionDef",
+      "source": "def load(self, group: SettingsGroup, raw: object, present: bool) -> None:\n    group._values[self.name] = self.parse(raw) if present else self.default"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 116,
+      "kind": "FunctionDef",
+      "source": "def document_value(self, group: SettingsGroup) -> object:\n    return FieldCodec.encode(self.__get__(group))"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 171,
+      "kind": "FunctionDef",
+      "source": "def load(self, group: SettingsGroup, raw: object, present: bool) -> None:\n    group._values[self.name] = self.declaration(raw if present else {}, parent=group, declaration=self)"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 178,
+      "kind": "FunctionDef",
+      "source": "def document_value(self, group: SettingsGroup) -> object:\n    return self.__get__(group).document()"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 271,
+      "kind": "FunctionDef",
+      "source": "def parse(self, raw: object) -> bool:\n    return FieldCodec.decode(bool, raw)"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 276,
+      "kind": "FunctionDef",
+      "source": "def parse(self, raw: object) -> str:\n    return FieldCodec.decode(str, raw)"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 285,
+      "kind": "FunctionDef",
+      "source": "def parse(self, raw: object) -> Path:\n    from os.path import expandvars\n    return Path(expandvars(FieldCodec.decode(str, raw))).expanduser()"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 290,
+      "kind": "FunctionDef",
+      "source": "def document_value(self, group: SettingsGroup) -> str:\n    return str(self.__get__(group))"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 318,
+      "kind": "FunctionDef",
+      "source": "def parse(self, raw: object) -> int:\n    return self.constrain(FieldCodec.decode(int, raw))"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 326,
+      "kind": "FunctionDef",
+      "source": "def parse(self, raw: object) -> float:\n    return self.constrain(float(FieldCodec.decode(float | int, raw)))"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 341,
+      "kind": "FunctionDef",
+      "source": "def parse(self, raw: object) -> type[C]:\n    return FieldCodec.decode(type[self.family], raw)"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 286,
+      "kind": "import",
+      "source": "from os.path import expandvars"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 20,
+      "kind": "import",
+      "source": "from toad.native_themes import ThemeChoice"
+    },
+    {
+      "path": "tests/native_widget_actions_installed_pilot.py",
+      "line": 25,
+      "kind": "import",
+      "source": "from toad.native_themes import ThemeChoice"
+    },
+    {
+      "path": "tests/reconnect_source_native_installed_pilot.py",
+      "line": 23,
+      "kind": "import",
+      "source": "from toad.native_themes import ThemeChoice"
+    },
+    {
+      "path": "tests/settings_tree_pilot.py",
+      "line": 21,
+      "kind": "import",
+      "source": "from toad.native_themes import ThemeChoice"
+    }
+  ],
+  "dynamic_limits": "MRO dispatch/forms and frontend catalog semantics read directly; lexical AST is not behavioral proof"
+}

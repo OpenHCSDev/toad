@@ -277,6 +277,14 @@ class StringSetting(SettingKind[str]):
         return FieldCodec.decode(str, raw)
 
 
+class ThemeChoice(StringSetting):
+    """A stored theme name; native frontends own their catalog and editor.
+
+    Loading, mutation and serialization use the original string setting
+    contract. Frontend registration validates availability when applying it.
+    """
+
+
 class TextSetting(StringSetting):
     """Multiline text; each frontend owns its corresponding editor."""
 

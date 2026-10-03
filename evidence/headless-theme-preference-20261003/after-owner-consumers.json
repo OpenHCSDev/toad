@@ -1,0 +1,127 @@
+{
+  "head": "9e7aeec54",
+  "roots": [
+    {
+      "root": "src/toad",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "parsed": 392,
+      "omissions": []
+    },
+    {
+      "root": "tools",
+      "parsed": 41,
+      "omissions": []
+    }
+  ],
+  "dependency": {
+    "root": "src/textual",
+    "head": "688d06b12dc893b290422fa5d6924529e7689ac9",
+    "parsed": 249,
+    "omissions": [],
+    "owner": "App.available_themes and App._validate_theme; original native registration is authoritative"
+  },
+  "sites": [
+    {
+      "path": "src/toad/preferences.py",
+      "line": 31,
+      "kind": "import",
+      "source": "from toad.settings import BooleanSetting, ChoiceSetting, Group, IntegerSetting, NumberSetting, SettingsGroup, StringSetting, TextSetting, ThemeChoice, PreferenceChange"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 70,
+      "kind": "Assign",
+      "source": "theme = ThemeChoice(title='Theme', default='ansi-dark', help='A theme registered by the frontend. ANSI themes inherit your terminal palette.', effect=effects.theme)"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 70,
+      "kind": "Call",
+      "source": "ThemeChoice(title='Theme', default='ansi-dark', help='A theme registered by the frontend. ANSI themes inherit your terminal palette.', effect=effects.theme)"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 12,
+      "kind": "import",
+      "source": "from toad.settings import BoundSetting, Group, SettingsGroup, BooleanSetting, StringSetting, ThemeChoice, TextSetting, PathSetting, IntegerSetting, NumberSetting, ChoiceSetting"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 20,
+      "kind": "declaration",
+      "name": "SettingsScreen",
+      "bases": [
+        "MroProjection",
+        "ModalScreen"
+      ]
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 111,
+      "kind": "Assign",
+      "source": "options = ((theme.name, theme.name) for theme in self.app.available_themes.values())"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 109,
+      "kind": "Call",
+      "source": "handles(ThemeChoice)"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 111,
+      "kind": "Call",
+      "source": "self.app.available_themes.values()"
+    },
+    {
+      "path": "src/toad/setting_effects.py",
+      "line": 39,
+      "kind": "Assign",
+      "source": "app.theme = value"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 76,
+      "kind": "declaration",
+      "name": "ChoiceEditor",
+      "bases": [
+        "Select"
+      ]
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 275,
+      "kind": "declaration",
+      "name": "StringSetting",
+      "bases": [
+        "SettingKind[str]"
+      ]
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 280,
+      "kind": "declaration",
+      "name": "ThemeChoice",
+      "bases": [
+        "StringSetting"
+      ]
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 344,
+      "kind": "declaration",
+      "name": "ChoiceSetting",
+      "bases": [
+        "SettingKind[type[C]]"
+      ]
+    }
+  ],
+  "retired_lexical_consumers": [],
+  "production_added": 26,
+  "production_deleted": 37,
+  "limits": "MRO/partial editor factories read semantically; lexical evidence is not installed UI readiness. Theme family scope, not full U2."
+}
