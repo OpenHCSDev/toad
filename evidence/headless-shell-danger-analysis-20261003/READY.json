@@ -1,0 +1,105 @@
+{
+  "state": "SCOPED_READY",
+  "tested_head": "55b7c323cae5f310f4d0fb07f82055e53d5066ca",
+  "pr": 398,
+  "source_files": [
+    "src/toad/danger.py",
+    "src/toad/widgets/prompt.py"
+  ],
+  "production_added": 20,
+  "production_deleted": 35,
+  "owner": "Existing CommandVisitor/CommandAtom/DangerLevel, one original bounded analyze cache; existing PromptTextArea owns native Span/styles",
+  "deleted": [
+    "danger.detect",
+    "danger Textual Span import",
+    "core frontend CSS defaults",
+    "native span cache replaced by original analysis cache, not a second cache"
+  ],
+  "all_consumers": "One original production caller PromptTextArea.highlight_shell; original classifier checks migrated. Before/after NRA AST src289/tests392 after, zero parse omissions; unrelated names and dynamic resolution limits explicit.",
+  "configured_cold_context_scope": "Separate terminal06 source/roster/segment/provenance acceptance, evidence/cold-context595-physical-20261003/06/receipt.json; original05 failed journey preserved",
+  "installed_scope": "ONE actual App/Pilot native shell warning draft, tab return, existing setting; no shell execution/ACP/provider/physical-st/performance/full-headless claim for398",
+  "sanity": "Headless import loads no Textual; original2 real shell/classification checks PASS;69 packages compatible",
+  "installed_source": [
+    {
+      "module": "agent_comms",
+      "head": "b0682f2cdb3ba673bc7263133504e39f5488043c",
+      "location": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/agent_comms",
+      "files": 339,
+      "python_files": 311,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/agent-comms.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "b0682f2cdb3ba673bc7263133504e39f5488043c",
+          "requested_revision": "b0682f2cdb3ba673bc7263133504e39f5488043c"
+        }
+      },
+      "inventory_sha256": "aac9c5c1dcf3f0dccb6fa072b5bf7a644ced45822681aa8e2e620de805c05521"
+    },
+    {
+      "module": "toad",
+      "head": "55b7c323cae5f310f4d0fb07f82055e53d5066ca",
+      "location": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/toad",
+      "files": 320,
+      "python_files": 289,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/toad.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "55b7c323cae5f310f4d0fb07f82055e53d5066ca",
+          "requested_revision": "55b7c323cae5f310f4d0fb07f82055e53d5066ca"
+        }
+      },
+      "inventory_sha256": "15d99cece7ca3b23808d02685119cb52551397f8fba151b937947dd75bf2a576"
+    },
+    {
+      "module": "textual",
+      "head": "14baa381a816f787e06ffbfb9215c243e22d32eb",
+      "location": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/textual",
+      "files": 266,
+      "python_files": 249,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/textual.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "14baa381a816f787e06ffbfb9215c243e22d32eb",
+          "requested_revision": "14baa381a816f787e06ffbfb9215c243e22d32eb"
+        }
+      },
+      "inventory_sha256": "b7d829a8028bb3195c495e95f95cc851b6965877e1bfb3083613d6d7b807e571"
+    },
+    {
+      "module": "textual_diff_view",
+      "head": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "location": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/textual_diff_view",
+      "files": 3,
+      "python_files": 2,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/textual-diff-view.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+          "requested_revision": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+        }
+      },
+      "inventory_sha256": "c1ab2e4c7a7595de81eeb8fef14f9fa9e45b603f84e810dc7c08fa9145793679"
+    }
+  ],
+  "native": {
+    "manifest": "89b56aea0bb128c4bf3e2c979de8a5afa79ac88b1f51a74c49cc1cab46da60d2",
+    "tree": "4b7f66f396a342e523d631c753686789b61313c34c30d894ddf24b5a861caa26",
+    "package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-89b56aea0bb128c4/node_modules/@earendil-works/pi-coding-agent"
+  },
+  "normal_package_count": 69,
+  "no_new_environment_or_native_copy": true,
+  "no_live_handle": true,
+  "holder_handed_back_to": "Sch",
+  "metadata_preflight_negatives": [
+    "Typed PackageDirectUrl was compared to raw dict; then str location treated as Path; then missing inventory from interrupted builder. All before activation publication; fixed at existing FieldCodec/record boundary, no product/parser changes or App rerun."
+  ],
+  "remaining_scope": "Broader U2/U4/U5 unfinished; no full frontend/performance claim; matched public publication remains parent"
+}
