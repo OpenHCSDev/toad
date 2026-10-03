@@ -77,3 +77,14 @@ owner. Bodies outside a HistoryWindow do not acquire a viewport, and a nested
 HistoryWindow owns its own bodies even if an enclosing window is selected. Dynamic resolution remains a
 semantic read, not a zero-by-omission proof. Final affected validation waits for
 the complete changed batch and release of the parent588 borrowed holder.
+
+## Joined native source
+
+Textual41 normal-main union c4e5fd22e94e2d9c53502f7f80cd19757b1d80a0 is now
+the declared dependency. Its production bytes equal the reviewed d6ddd054c
+resource fix: the original box-model LRU selects its matching Extrema together
+with BoxModel, including hits after another measurement context. No second
+cache or constraints owner. Kepler retains native ownership. Native40 and391
+qualification stays frozen; this new dependency and393 frame selection are not
+yet an installed qualification. Normal uv lock changed only the Textual source.
+No package or borrowed holder bytes were changed.
