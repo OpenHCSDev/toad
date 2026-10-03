@@ -1,0 +1,11 @@
+{
+  "source_head": "db620680bf6f52133157209b2a7b557eaef988a1",
+  "wheel": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/registry605-receiving-20261003/core605-wheel/agent_comms-0.1.0-py3-none-any.whl",
+  "sha256": "2b2e46758fc0f7244c71cc802009433879cde0c67ef02fc264fce9218550ffdb",
+  "bytes": 865195,
+  "normal_local_uv_build": true,
+  "native_build": false,
+  "new_environment": false,
+  "new_worktree": false,
+  "package_write": false
+}

@@ -1,0 +1,18 @@
+{
+  "state": "Actual ordinary default saved-helper acceptance passed",
+  "reviewed_utc": "2026-10-03T22:06:03.130246+00:00",
+  "scope": "Published408 Core599/Toad403405407/Text47 native89; ordinary default saved-helper startup; no new input, model reply or smoothness claim",
+  "capture": "/home/ts/.cache/agent-scratch/published408-helper-default-20261003/capture",
+  "raw_receipt_sha256": "5455cb3540232502b2be87399940c89323c59838082ff0e4feb9d1615c0853c2",
+  "duration_seconds": 23.70520684600342,
+  "runtime_unchanged": true,
+  "original_owner_unchanged": true,
+  "cleanup_remaining": [],
+  "personal_review": "after.png personally viewed AFTER terminal: retained messages readable, helper tab/sidebar/session Ready, empty focused editor and no activity bar",
+  "after_png_sha256": "5143c75511674d7335dc4b11f1064b182fd73492ad1b820b6eba0a271d432f42",
+  "movie_sha256": "54d3beaa252f5f3b9c040170d5577b22a69c027dd71fccd09e6621e36c295574",
+  "raw_receipt_changed": false,
+  "terminal_returncode": 0,
+  "recorder_returncode": 255,
+  "recorder_limit": "255 is deliberate encoder finalization; actual st terminal0 and capture completed"
+}

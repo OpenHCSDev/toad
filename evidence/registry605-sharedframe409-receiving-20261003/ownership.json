@@ -1,0 +1,39 @@
+{
+  "core": "db620680bf6f52133157209b2a7b557eaef988a1",
+  "operator_core": "db620680bf6f52133157209b2a7b557eaef988a1",
+  "toad": "268a3b395f2b915be572df39c7dfd6ec48f22d84",
+  "textual": "7ccfcf6af55ac6e743220aa0d2286b9763ccee27",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-89b56aea0bb128c4/node_modules/@earendil-works/pi-coding-agent",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "archive_artifacts": [
+    {
+      "path": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/registry605-receiving-20261003/core605-wheel/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "2b2e46758fc0f7244c71cc802009433879cde0c67ef02fc264fce9218550ffdb"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/registry605-sharedframe409-receiving-20261003/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "15dd28386c9f98a4b44c97fab36af467d60c79b1a7dc62c9e2f2cebd2324ea6b"
+    },
+    {
+      "path": "/home/ts/.cache/uv/sdists-v9/git/62f7f81f0cec9b83/3efcc03803400c10/textual-8.2.8-py3-none-any.whl",
+      "sha256": "517ad82a4ae1f7d6a5670276dc4ab8772e928dc2e03f7475b143460465157e96"
+    }
+  ],
+  "purpose": "411 merged605/409/410/Text48; granted334 package-only; actual local file-wheel provenance; normal69 deps retained",
+  "excluded": [
+    "603/406",
+    "live485",
+    "fallback534",
+    "style22/540"
+  ],
+  "no_new_environment": true,
+  "no_new_native": true,
+  "gate_files": [
+    "605-READY.md",
+    "605-installed.json",
+    "409-READY.json",
+    "409-main-join.json",
+    "410-READY.json",
+    "410-installed.json"
+  ]
+}
