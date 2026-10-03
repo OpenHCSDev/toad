@@ -13,6 +13,7 @@ from acp.schema import SessionConfigOptionSelect, SessionConfigSelectOption
 from toad.acp.status import EndTurnStopReason
 from toad.agent import AgentBase
 from toad.app import ToadApp
+from toad.command_catalog import CommandCatalog
 from toad.db import DB
 from toad.widgets.prompt import AgentInfo
 

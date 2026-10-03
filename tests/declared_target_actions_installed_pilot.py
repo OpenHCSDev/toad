@@ -97,10 +97,10 @@ async def slash(chat, pilot, text):
     editor.scroll_visible(animate=False, immediate=True)
     await pilot.pause()
     assert await pilot.click(editor)
-    editor.insert(text)
+    # The completed no-argument command has no fuzzy command selection to
+    # dismiss. Escape on an ordinary channel composer navigates to its agent.
+    editor.insert(text + ' ')
     await pilot.pause()
-    await pilot.press('escape')
-    editor.focus()
     await pilot.press('enter')
 
 
