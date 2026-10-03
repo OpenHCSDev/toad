@@ -1,0 +1,7 @@
+{
+  "result": "PASS",
+  "status_import_loaded_no_textual": true,
+  "retired_status_native_methods_absent": true,
+  "external_sdk_vocabulary_unchanged": true,
+  "startup_failure_producers_still_use_original_nominal_members": true
+}
