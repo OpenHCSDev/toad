@@ -127,3 +127,10 @@ Style22 package writes are sequentially leased to Einstein400 for one original
 ACP/App plan fixture, no provider/public inputs. Its current399/43 source proof,
 activation and inventories are archived at staging-body399-damage43/pre400-installed-proof.
 Source work continues independently; no code/run borrows occur until handback.
+
+Transition write census: before11 direct writes, after2 (constructor and sole
+_update_body_measurement storage write). Existing audit.Package parsed all289
+production modules at both revisions with no omissions. The nine bypasses are
+deleted; publication/retirement/eviction/measurement consumers use that owner.
+The preceding native-resource03 result qualifies35c8; the new37dec22c transition
+batch is source reviewed, with changed installed qualification still pending.
