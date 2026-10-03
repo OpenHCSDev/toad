@@ -1,0 +1,38 @@
+{
+  "target": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002",
+  "source_interpreter": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001/bin/python",
+  "current_prefix": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001",
+  "original_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-960296fdddafb01c/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-960296fdddafb01c/node_modules/@earendil-works/pi-coding-agent",
+  "activation": {
+    "path": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/activation.json",
+    "sha256": "52485f4a22200a652fbdae56381423155b1b56599203f5843344b0a725dedf74"
+  },
+  "source_proof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/async-certified-read558-headless350-receiving-20261003/source-proof.json",
+    "sha256": "da1e4a3fbeecd6ff21132344bb7e11bc4ce5848dc40753a65329ded82c5b2382"
+  },
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/async-certified-read558-headless350-receiving-20261003/qualified-source-gates/558-installed-receipt.json",
+      "sha256": "8a59df2a9d2845a0abe8a168dbe28d7204a3976d105bb10250c0e411fd06e4ce"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/async-certified-read558-headless350-receiving-20261003/qualified-source-gates/350-RECEIPT.json",
+      "sha256": "5e5521a7d159afd7f2caa758e9c2567f687c129ef548cf7de089a7c7a6d278c2"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/async-certified-read558-headless350-receiving-20261003/qualified-source-gates/347-installed04-scoped.json",
+      "sha256": "b62c478b96bc28c823b17f888f5c3b0c28eafc31a744d4c159127a653627359f"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/async-certified-read558-headless350-receiving-20261003/qualified-source-gates/347-source-checks.json",
+      "sha256": "05a40decdde4ff64d9b25961f6ebc7afbe995d18163b88dba6cd02e1057ec13b"
+    }
+  ]
+}

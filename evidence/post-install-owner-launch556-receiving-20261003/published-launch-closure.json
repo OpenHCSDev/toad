@@ -1,0 +1,171 @@
+{
+  "state": "Published retained settings/launch accepted; actual ordinary UI has current idle InboxUnavailable errors, messaging acceptance NOT qualified",
+  "observed_at": 1790989651.7443957,
+  "publication_sha256": "d70a8e76510705071fc3999684de9e629d2cb38f3abd9fc50c3bbdd4d603df0b",
+  "raw_publication_phase": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "publisher_duration_seconds": 51.815078020095825,
+  "owner_count": 19,
+  "retained_settings_verified_inside_original_custody": true,
+  "byte_invariants_prelaunch_count": 39,
+  "byte_invariants_scope": "Existing publisher verified before retained launch; no live database byteimmutability claim.",
+  "postlaunch_parent_hash_report": {
+    "only_changed": "coordination.sqlite3",
+    "historical_native_and_input_mismatches": [],
+    "source": "Parent actual readback after terminal82454"
+  },
+  "target_prefix": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001",
+  "current_idle_negative_samples": [
+    {
+      "thread": "compaction501-live-architecture-memory",
+      "state": "idle",
+      "detail": "",
+      "ts": 1790989649.3939998,
+      "diagnostic": {
+        "kind": "unavailable_drain",
+        "owner": {
+          "incarnation": {
+            "name": "compaction501-live-architecture-memory",
+            "created_at": 1790900050.675298
+          },
+          "generation": 2225
+        },
+        "error_type": "BlockingIOError",
+        "reason": "[Errno 11] Resource temporarily unavailable"
+      }
+    },
+    {
+      "thread": "openhcs-audit-open-prs",
+      "state": "idle",
+      "detail": "",
+      "ts": 1790989649.5674264,
+      "diagnostic": {
+        "kind": "unavailable_drain",
+        "owner": {
+          "incarnation": {
+            "name": "openhcs-audit-open-prs",
+            "created_at": 1790873496.352646
+          },
+          "generation": 2223
+        },
+        "error_type": "BlockingIOError",
+        "reason": "[Errno 11] Resource temporarily unavailable"
+      }
+    },
+    {
+      "thread": "nra-roster-heuristic-map",
+      "state": "idle",
+      "detail": "",
+      "ts": 1790989650.5776875,
+      "diagnostic": {
+        "kind": "unavailable_drain",
+        "owner": {
+          "incarnation": {
+            "name": "nra-roster-heuristic-map",
+            "created_at": 1790218471.1256046
+          },
+          "generation": 2212
+        },
+        "error_type": "BlockingIOError",
+        "reason": "[Errno 11] Resource temporarily unavailable"
+      }
+    },
+    {
+      "thread": "compaction499-live-architecture-memory",
+      "state": "idle",
+      "detail": "",
+      "ts": 1790989650.5917244,
+      "diagnostic": {
+        "kind": "unavailable_drain",
+        "owner": {
+          "incarnation": {
+            "name": "compaction499-live-architecture-memory",
+            "created_at": 1790895107.1284342
+          },
+          "generation": 2224
+        },
+        "error_type": "BlockingIOError",
+        "reason": "[Errno 11] Resource temporarily unavailable"
+      }
+    },
+    {
+      "thread": "nominal-refactor-advisor-2",
+      "state": "idle",
+      "detail": "",
+      "ts": 1790989650.6315584,
+      "diagnostic": {
+        "kind": "unavailable_drain",
+        "owner": {
+          "incarnation": {
+            "name": "nominal-refactor-advisor-2",
+            "created_at": 1790700391.614946
+          },
+          "generation": 2216
+        },
+        "error_type": "BlockingIOError",
+        "reason": "[Errno 11] Resource temporarily unavailable"
+      }
+    },
+    {
+      "thread": "nra-class-first-name-review",
+      "state": "idle",
+      "detail": "",
+      "ts": 1790989651.6206465,
+      "diagnostic": {
+        "kind": "unavailable_drain",
+        "owner": {
+          "incarnation": {
+            "name": "nra-class-first-name-review",
+            "created_at": 1790229371.6420214
+          },
+          "generation": 2209
+        },
+        "error_type": "BlockingIOError",
+        "reason": "[Errno 11] Resource temporarily unavailable"
+      }
+    },
+    {
+      "thread": "compaction501-live-architecture-memory",
+      "state": "idle",
+      "detail": "",
+      "ts": 1790989651.6554341,
+      "diagnostic": {
+        "kind": "unavailable_drain",
+        "owner": {
+          "incarnation": {
+            "name": "compaction501-live-architecture-memory",
+            "created_at": 1790900050.675298
+          },
+          "generation": 2225
+        },
+        "error_type": "BlockingIOError",
+        "reason": "[Errno 11] Resource temporarily unavailable"
+      }
+    },
+    {
+      "thread": "openhcs-architecture-memory",
+      "state": "idle",
+      "detail": "",
+      "ts": 1790989651.6494236,
+      "diagnostic": {
+        "kind": "unavailable_drain",
+        "owner": {
+          "incarnation": {
+            "name": "openhcs-architecture-memory",
+            "created_at": 1790654215.0835924
+          },
+          "generation": 2214
+        },
+        "error_type": "BlockingIOError",
+        "reason": "[Errno 11] Resource temporarily unavailable"
+      }
+    }
+  ],
+  "current_idle_negative_scope": "Actual activity unavailable_drain/BlockingIOError on current owner generations after this publication; distinct from new prompt diagnostics or historical cursor failures.",
+  "restart_fd_source_relation": "StoppedOwnerBatch.complete closes successful wire custody; publisher finally closes route directory; ParentedProcess.launch passes only exec-gate/error descriptors, no retained route/wire FD to daemon owners. Actual all19 descriptor sample had no active-route directory descriptor. This does not identify the admission contention cause.",
+  "failure_owner": "Mendel original runtime idle observation and required admission family",
+  "physical_acceptance": "Parent recording8619; actual current InboxUnavailable, no Ready or messaging acceptance claim",
+  "public_operations_repeated": false,
+  "input_replays": 0,
+  "new_provider_calls": 0,
+  "notification_sent": false
+}
