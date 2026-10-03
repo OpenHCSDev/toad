@@ -4,7 +4,8 @@ from weakref import ref
 from functools import partial
 
 from agent_comms.mro_dispatch import MroDispatch, handles
-from toad.acp.agent_controller import SurfaceBinding, ApplicationValidationOwner
+from toad.surface_binding import SurfaceBinding
+from toad.acp.agent_controller import ApplicationValidationOwner
 from toad.permission_presentation import DiffPermissionPresentation, InlinePermissionPresentation
 from toad.core.events import HelpAgentFail, LogAgentFail
 from toad.shell_output import ShellCommandOutput, ShellTerminalOutput

@@ -10,7 +10,7 @@ import struct
 import termios
 from contextlib import suppress
 import logging
-from toad.acp.agent_controller import SurfaceBinding
+from toad.surface_binding import SurfaceBinding
 from toad.core.source_events import CurrentWorkingDirectoryChanged
 
 from toad.shell_read import shell_read
@@ -34,7 +34,7 @@ def resize_pty(fd, cols, rows):
 
 
 class Shell(ShellOperationalSource):
-    """Responsible for shell interactions in Conversation."""
+    """Own one retained shell process and its original terminal output."""
 
     def __init__(
         self,

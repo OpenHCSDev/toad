@@ -5,7 +5,7 @@ from contextlib import suppress
 import os
 import signal
 from agent_comms.child_process import STOP_GRACE_SECONDS
-from toad.acp.agent_controller import SurfaceBinding, DetachedSurfaceBinding
+from toad.surface_binding import SurfaceBinding, DetachedSurfaceBinding
 from toad.core.events import CoreEventStream
 from toad.shell_output import ShellOutput, ShellTerminalOutput
 
