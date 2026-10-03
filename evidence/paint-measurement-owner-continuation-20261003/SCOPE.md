@@ -35,6 +35,19 @@ longer overwrites a pending writer with a LiveBody snapshot.
 
 Source query used the existing refactor-audit Package parser: production288,
 tests391, tools41 modules, zero parse omissions. Dynamic dispatch and the native
-runtime still require final affected application validation. This checkpoint is
-unvalidated and not Ready; no timing or smoothness improvement claim. Native40
-is Kepler's disjoint arrangement/palette batch for the eventual joined gate.
+runtime still require final affected application validation. This checkpoint is now scoped-qualified by the installed App family and one
+113.418s actual saved-history run. See evidence/retained-publication391-native40-20261003/READY.json.
+No timing, overall CPU or smoothness improvement claim. Native40 is the joined
+arrangement/palette source; its complete source scope remains distinct.
+
+## Scoped installed outcome
+
+Normal69 Core5e/Toad38ede873/Text40 0ab/native51b installed with complete source,
+assets, direct URLs and native trust. Actual public history:16warm/7focusedpaging
+checks;41ready body identities retained, original owner unchanged, cleanup empty.
+First actual20.5–21.3s held-Up moving sheet inspected DURING the same UI lifetime;
+Down/reverse and readable End/A-return inspected afterward. Motion stays chunky.
+Writer Up13.40ms median/28.40p95/202.19worst; CPU marker windows Up77.82%,
+Down75.79%,reverse73.56%,mididle25.72%,Endidle23.48% include exports/profile.
+No causal CPU gain or final144Hz claim. Recorder255 is accepted FFmpeg shutdown,
+not an observed UI returncode. Actual channel opened but was still loading at1s.
