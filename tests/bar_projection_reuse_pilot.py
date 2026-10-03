@@ -11,6 +11,8 @@ import time
 
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
+from agent_comms.presentation import ThreadView
+from agent_comms.goal_waits import GoalWaits
 
 from toad.session_tracker import ExactUnread
 from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork, prepare_thread_presentation
@@ -24,7 +26,15 @@ async def main(observe):
         comms = wire(root / "wire")
         for index in range(60):
             comms.registry.declare(Thread(f"worker-{index}", frozenset({"shared"}), str(root)))
-        people = comms.views.viewer_snapshot(str(root), show_stopped=True).threads
+        # This resource check needs original thread presentations, not wire
+        # delivery/unread traversal on a root without native bus admission.
+        people = ThreadView.roster(
+            comms.registry.snapshot(),
+            comms.agents,
+            GoalWaits(root / "wire" / GoalWaits.filename),
+            show_stopped=True,
+            show_archived=False,
+        )
         runtime = PreparationRuntime(Backend())
         durations = []
         sources = []

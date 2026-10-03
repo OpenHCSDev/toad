@@ -160,3 +160,27 @@ is repeated row input projection on the native pump and renderer-task factory.
 Use original ThreadRowInput/ThreadRowPresentation/ThreadRowsWork and PreparationRuntime;
 no parallel row cache, status mirror or pool. Shared native geometry work stays
 coordinated with Kepler. All original remaining scope above is retained.
+
+## Receiving PR352: row inputs resolved once
+
+ThreadRowsWork.capture now resolves the original ThreadRowInput presentations
+through PreparationRuntime.run_thread. Native retained-row reuse, work identity
+and renderer construction consume that same immutable input. The shared
+SidebarGroup algorithm serves channel and relationship rows. Three existing
+production files changed, with 8 lines deleted and 20 added; no new owner, cache,
+pool or semantic status store was introduced. This closes the repeated projection
+inside the row preparation family (IMPL-12); channel activity and width projection
+still have separate foreground source reads and are not claimed fixed here.
+
+The existing row resource check completed: 60 rows, 16 requests, 15 hits and one
+miss, 14,745 retained bytes; worker-result delivery median 1.39ms and maximum
+5.38ms. Changed unread, pin and action inputs also produced the expected original
+Content and tooltip. This is source/resource sanity, not installed UI, frame
+latency or a measured CPU improvement. The earlier bare-root wire traversal
+rejection remains in the owned log; the check now takes the canonical
+ThreadView.roster producer because it needs thread presentations rather than
+wire delivery/unread traversal. No private bus admission guard was weakened.
+
+PR352 remains draft pending its affected installed UI journey. Original04 motion
+and its specialized tail failure are unchanged. Kepler retains the same holder
+for the targeted338 tail completion; main350 integration follows that release.
