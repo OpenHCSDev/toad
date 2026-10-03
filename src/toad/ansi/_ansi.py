@@ -249,9 +249,6 @@ class ANSIParser(StreamParser[tuple[str, str]]):
             self.emit(("content", token.text))
 
 
-EMPTY_LINE = Text()
-
-
 type ClearType = Literal["cursor_to_end", "cursor_to_beginning", "screen", "scrollback"]
 
 
@@ -283,7 +280,7 @@ class ANSIContent(ANSICommand):
         buffer = state.buffer
         folded_lines = buffer.folded_lines
         while buffer.cursor_line >= len(folded_lines):
-            state.add_line(buffer, EMPTY_LINE)
+            state.add_line(buffer, Text())
         folded_line = folded_lines[buffer.cursor_line]
         line_no = folded_line.line_no
         line = buffer.lines[line_no]
@@ -398,7 +395,7 @@ class ANSICursor(ANSICommand):
         buffer = state.buffer
         folded_lines = buffer.folded_lines
         while buffer.cursor_line >= len(folded_lines):
-            state.add_line(buffer, EMPTY_LINE)
+            state.add_line(buffer, Text())
 
         if auto_scroll and delta_y is not None:
             margins = buffer.scroll_margin.get_line_range(state.height)
@@ -1042,6 +1039,13 @@ class LineRecord:
     updates: int = 0
     """An integer used for caching."""
 
+    def __post_init__(self) -> None:
+        self.replace_content(self.content)
+
+    def replace_content(self, content: Text) -> None:
+        """Own mutable text and its span list, even when copying another line."""
+        self.content = content.copy()
+
     def simplify(self) -> None:
         """Coalesce adjacent equal spans on this original line resource."""
         spans: list[Span] = []
@@ -1547,7 +1551,7 @@ class TerminalState:
             folded_cursor_line = buffer.cursor_line
             cursor_line, cursor_line_offset = buffer.cursor
             while buffer.cursor_line >= len(buffer.folded_lines):
-                self.add_line(buffer, EMPTY_LINE)
+                self.add_line(buffer, Text())
             line = buffer.lines[cursor_line]
             del buffer.lines[cursor_line + 1 :]
             del buffer.line_to_fold[cursor_line + 1 :]
@@ -1572,7 +1576,7 @@ class TerminalState:
             # up (first in test)
             for line_no in range(margin_top, margin_bottom + 1):
                 copy_line_no = line_no + lines
-                copy_content = EMPTY_LINE
+                copy_content = Text()
                 copy_style = Style.null()
                 if copy_line_no <= margin_bottom:
                     try:
@@ -1590,7 +1594,7 @@ class TerminalState:
             # down
             for line_no in reversed(range(margin_top, margin_bottom + 1)):
                 copy_line_no = line_no - lines
-                copy_content = EMPTY_LINE
+                copy_content = Text()
                 copy_style = Style.null()
                 if copy_line_no >= margin_top:
                     try:
@@ -1665,9 +1669,9 @@ class TerminalState:
         line_record = LineRecord(
             content,
             style,
-            self._fold_line(line_no, content, width),
-            updates,
+            updates=updates,
         )
+        line_record.folds[:] = self._fold_line(line_no, line_record.content, width)
         buffer.lines.append(line_record)
         folds = line_record.folds
         buffer.line_to_fold.append(len(buffer.folded_lines))
@@ -1689,15 +1693,15 @@ class TerminalState:
             style: New background style, or `None` not to update.
         """
         while line_index >= len(buffer.lines):
-            self.add_line(buffer, EMPTY_LINE)
+            self.add_line(buffer, Text())
 
-        line_expanded_tabs = line.copy()
+        line_record = buffer.lines[line_index]
+        line_record.replace_content(line)
+        line_expanded_tabs = line_record.content.copy()
         line_expanded_tabs.expand_tabs(8)
         buffer.max_line_width = max(
             line_expanded_tabs.cell_len, buffer.max_line_width
         )
-        line_record = buffer.lines[line_index]
-        line_record.content = line
         if style is not None:
             line_record.style = style
         line_record.folds[:] = self._fold_line(
