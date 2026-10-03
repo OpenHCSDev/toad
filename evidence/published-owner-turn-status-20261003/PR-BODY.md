@@ -10,7 +10,7 @@ The original controller's local operation resource now has one lifetime across t
 
 ## Whole family and deletions
 
-Five production files:92 additions/56 deletions against currentmain363. Stream/new/load/goal/thread reads use the existing typed consumer. All four prompt entrypoints use the same original local custody. `TurnActivity`, Prompt, SessionDetails, throbber, response retirement and transcript settlement already consume the original binding; no independent view status is introduced.
+Five production files:93 additions/57 deletions against currentmain363. Stream/new/load/goal/thread reads use the existing typed consumer. All four prompt entrypoints use the same original local custody. `TurnActivity`, Prompt, SessionDetails, throbber, response retirement and transcript settlement already consume the original binding; no independent view status is introduced.
 
 Queue/start receipts remain with `QueueAttachment` and the producer. Human `InputDocument` delivery and managed `NativeRuntimeInput` are distinct originals. Cursor availability remains with the original scope/envelope/proof; a reply does not create a cursor proof. Mendel confirmed no current-admission cursor row, and absence of a human row for managed493 is legitimate. No UNKNOWN/input493 replay, new native enrollment or public owner recovery.
 
@@ -18,6 +18,8 @@ Existing NRA/refactor-audit Package AST evidence covers286 production Toad modul
 
 ## Validation and current readiness
 
-Source-first ownership implementation is published. Final source batch:four checks passed; one older guard still opens retired `acp/messages.py`, preserved in `source-sanity.json`. This is not installed acceptance.
+Source-first ownership implementation is published. Final source batch:four checks passed. The obsolete three-line ACP facade assertion was deleted and its remaining guard passed. Its original failure is preserved in `source-sanity.json`. This is not installed acceptance.
+
+Installed01 failed before attachment because the old helper returned a raw catalog dict; the fixture now decodes through existing AgentDefinition. Installed02 attached and caught my missing ClientSessionRequest import at the changed read boundary. The import is fixed and all five changed files were reviewed for required bindings/signatures together; both negatives are preserved. The same private wheel is being refreshed before one corrected affected check.
 
 The sole affected installed App/ACP check uses the actual configured retained helper source, its recorded original active notification and a genuine canonical read. It also checks a read refused during held local operation custody is automatically reconciled on release. No input/provider call or replay is required. Installed result is pending; original source/capture and cursor warning are protected. CI deferred. No full performance/default-live claim.
