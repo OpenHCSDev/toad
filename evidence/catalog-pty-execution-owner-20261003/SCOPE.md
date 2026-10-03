@@ -78,3 +78,21 @@ local executable with spaces/#/% and literal/empty arguments. This confirms
 assembly/custody across the shared owner, without ACP transport replacement or
 provider calls. Scope: registered RPC/server plus installed App/catalog/real PTY;
 no subprocess ACP transport, native Pi or physical/authentication claim.
+
+
+## Final installed acceptance
+
+PASS one original installed App/Pilot/catalog/editor/real-PTY journey plus
+registered ACP create/wait/output/release. Original model retains bootstrap/main
+prefixes; native keys reach PTY; exit7/success/login/cancel settle original
+custody; spaced executable and literal/empty arguments survive. No provider/Pi.
+319 authored source assets match before and after. Private catalog data removed,
+fixture children and own attempt processes absent; candidate released receiver.
+Ten unchanged shell_read OSError(5) EOF messages retained; no zero-log claim.
+See READY.json and installed01/catalog-only-receipt.json. Native render exports
+are not physical st screenshots. No performance or whole headless claim.
+
+Both native render exports were personally viewed: bootstrap/main output and
+native-input response are readable, with the original catalog beneath the modal.
+The final Escape return to the SAME Store is asserted after the recorded modal
+frame, not inferred from that frame. Candidate package/source bytes are unchanged.
