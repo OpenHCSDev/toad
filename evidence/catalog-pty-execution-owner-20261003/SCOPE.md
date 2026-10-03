@@ -29,7 +29,7 @@ No latency, physical pixel or full headless completion claim.
 
 ## Working source closure
 
-Four production files: 112 added / 197 deleted at this checkpoint (remeasure at
+Four production files: 91 added / 200 deleted at this checkpoint (remeasure at
 Ready). No classes added. The unused cooked-mode query is removed. Pane no longer opens PTYs, starts subprocesses, stores
 process/master/task/code, decodes output, writes via a delayed thread, or sends
 signals. It holds one original execution resource. The original async worker
