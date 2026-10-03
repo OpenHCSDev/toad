@@ -1,0 +1,17 @@
+{
+  "stage": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002",
+  "pins": {
+    "toad": "13177f6efdcfbd4b373d4f7135df50cd6f3d6d5f",
+    "agent_comms": "ebf7ff9f59268837bae2e007a4450df4b83d7f5b",
+    "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
+  },
+  "sdk": "0.12.1",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-960296fdddafb01c/node_modules/@earendil-works/pi-coding-agent",
+  "distribution_count": 69,
+  "source_files_compared": {
+    "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad": 314,
+    "/home/ts/wt/comms-retained-human-main-20261001/src/agent_comms": 311
+  },
+  "mismatches": [],
+  "public_activation": false
+}

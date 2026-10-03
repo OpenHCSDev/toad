@@ -1,0 +1,117 @@
+{
+  "state": "ready-scoped-installed-native-Pilot",
+  "source_pins": {
+    "toad": "13177f6efdcfbd4b373d4f7135df50cd6f3d6d5f",
+    "agent_comms": "ebf7ff9f59268837bae2e007a4450df4b83d7f5b",
+    "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
+  },
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-de16647979cbad28/node_modules/@earendil-works/pi-coding-agent",
+  "native_manifest_sha256": "de16647979cbad28be4f60349d39a420e83aaffb1d678941609449d306109968",
+  "native_tree_sha256": "7bf47002b579908fc556548c19451b925afd688606954ad485180a49da5c133d",
+  "production_files": [
+    {
+      "file": "src/toad/acp/agent_controller.py",
+      "added": 3,
+      "deleted": 0
+    },
+    {
+      "file": "src/toad/agent_surface.py",
+      "added": 56,
+      "deleted": 1
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "added": 2,
+      "deleted": 2
+    },
+    {
+      "file": "src/toad/permission_presentation.py",
+      "added": 1,
+      "deleted": 57
+    },
+    {
+      "file": "src/toad/terminal_execution.py",
+      "added": 0,
+      "deleted": 21
+    },
+    {
+      "file": "src/toad/widgets/conversation.py",
+      "added": 1,
+      "deleted": 1
+    },
+    {
+      "file": "src/toad/widgets/terminal_tool.py",
+      "added": 25,
+      "deleted": 3
+    }
+  ],
+  "production_added": 88,
+  "production_deleted": 85,
+  "core_production_added": 13,
+  "core_production_deleted": 12,
+  "source_provenance": {
+    "compared": {
+      "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad": 314,
+      "/home/ts/wt/comms-retained-human-main-20261001/src/agent_comms": 311
+    },
+    "mismatches": [],
+    "actual_distributions": 69,
+    "sdk": "0.12.1"
+  },
+  "installed_journey": {
+    "result": "PASS",
+    "elapsed_seconds": 2.36012429301627,
+    "original_permission_future_after_detach_reattach": true,
+    "native_pilot_diff_allow_retained_diff_reject_inline_allow": true,
+    "real_pty_terminal_completion": [
+      {
+        "terminal": "terminal-1",
+        "exit_code": 0,
+        "painted": "NATIVE_SUCCESS"
+      },
+      {
+        "terminal": "terminal-2",
+        "exit_code": 7,
+        "painted": "NATIVE_NONZERO"
+      }
+    ],
+    "real_pty_signal_completion": {
+      "signal": "SIGKILL"
+    },
+    "same_terminal_execution_and_state": true,
+    "original_agent_process_retained": true,
+    "pty_masters_before": [],
+    "pty_masters_after": [],
+    "provider_requests": 0,
+    "scope": "Actual installed Toad/ACP/Pi/PTY; native Textual Pilot/compositor, not a physical st capture. No prompt/provider/public input. Startup-failed terminal native drawing is source-reviewed, not claimed as rendered."
+  },
+  "receipt_sha256": "819d123fb936e81d43036ae16263b48e9e7c1d015524955fe6ae6c551b0aa576",
+  "source_owner_closure": {
+    "one_dispatch_declaration": "agent_comms.mro_dispatch.MroDispatch",
+    "core_presentation_ui_methods_deleted": true,
+    "native_view_owner": "AttachedSurfaceBinding and TerminalTool",
+    "request_future_answer_projection_lifetime_owner": "original PermissionRequest/PermissionController",
+    "terminal_resource_outcome_owner": "original TerminalExecution/TerminalOutcome",
+    "context_lifetime": "dispatcher borrows call args; no context field/registry",
+    "parse_omissions": []
+  },
+  "negative_evidence": [
+    {
+      "attempt": "installed01",
+      "result": "Native manifest mismatch before fixture/session creation; preserved log; no input."
+    },
+    {
+      "attempt": "installed02",
+      "result": "Permission approvals/reattachment passed; driver assumed border_title.plain, but actual descriptor returns str. Corrected only driver; failed receipt retained."
+    }
+  ],
+  "limitations": [
+    "Native Textual Pilot/compositor and actual registered ACP/Pi/PTY path; not physical st acceptance.",
+    "SVG exports and derived PNG have black-on-black text with this headless palette. Compositor text and native keyboard/answer behavior checked; exported pixel readability is not proven.",
+    "FailedTerminalOutcome handler source-reviewed; startup failure rendered pixels not exercised.",
+    "Inherited real PTY EOF OSError(5) output appears twice; no zero-stderr claim.",
+    "Cleanup: no readable matching fixture processes; original beta/user owner identities dead; three unrelated same-UID inaccessible /proc observations not assumed absent.",
+    "Scoped U2/U4/U5 checkpoint; full alternate frontend/render-pool/terminal-event independence remains unfinished.",
+    "No public/default publication; parent owns release. Original302-final donor preserved."
+  ]
+}
