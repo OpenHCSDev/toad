@@ -9,7 +9,6 @@ from time import monotonic
 from textual.app import App, ComposeResult
 from textual.containers import VerticalScroll
 from textual.widgets import Static
-from textual.screen import UPDATE_PERIOD
 
 from toad.widgets.throbber import Throbber
 
@@ -22,7 +21,7 @@ class Probe(App):
         with VerticalScroll(id="history"):
             for index in range(2000):
                 yield Static(f"Saved record {index}", classes="record")
-            yield Throbber(id="throbber", refresh_interval=UPDATE_PERIOD * 2)
+            yield Throbber(id="throbber", refresh_interval=self.frame_interval * 2)
 
 
 async def main():
@@ -60,7 +59,7 @@ async def main():
                 assert ("━" in painted) == (count > 0), (count, painted)
                 assert indicator.busy == (count > 0)
                 if count:
-                    assert indicator.auto_refresh == indicator.refresh_interval == UPDATE_PERIOD * 2
+                    assert indicator.auto_refresh == indicator.refresh_interval == app.frame_interval * 2
                     assert indicator._auto_refresh_timer is not None
                     if timer is None:
                         timer = indicator._auto_refresh_timer

@@ -15,7 +15,6 @@ from textual.visual import RenderOptions
 from textual.widget import Widget
 from textual.reactive import reactive
 from textual.css.styles import RulesMap
-from textual.screen import UPDATE_PERIOD
 
 
 COLORS = [
@@ -93,9 +92,9 @@ class Throbber(Widget):
     # The row is always reserved; only its paint and animation change.
     busy = reactive(False, layout=False)
 
-    def __init__(self, *, refresh_interval: float = UPDATE_PERIOD, **kwargs) -> None:
+    def __init__(self, *, refresh_interval: float | None = None, **kwargs) -> None:
         """Use the frame owner's default period, or a caller's explicit override."""
-        if refresh_interval <= 0:
+        if refresh_interval is not None and refresh_interval <= 0:
             raise ValueError("refresh_interval must be positive")
         super().__init__(**kwargs)
         self.refresh_interval = refresh_interval
@@ -110,7 +109,9 @@ class Throbber(Widget):
         self.watch_busy(self.busy)
 
     def watch_busy(self, busy: bool) -> None:
-        interval = self.refresh_interval if busy and self.is_mounted else None
+        interval = (
+            self.app.frame_interval if self.refresh_interval is None else self.refresh_interval
+        ) if busy and self.is_mounted else None
         if self.auto_refresh != interval:
             self.auto_refresh = interval
 
