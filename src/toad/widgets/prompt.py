@@ -3,6 +3,7 @@ from toad.core import input_events
 from toad.conversation_turn import ConversationTurn
 
 from pathlib import Path
+from rich.text import Text as RichText
 import shlex
 from typing import TYPE_CHECKING, Literal, Self
 
@@ -80,9 +81,9 @@ class ModeInfo(Label):
 
 
 class StatusLine(Label):
-    status: var[str | Content] = var("")
+    status: var[str | Content | RichText] = var("")
 
-    def watch_status(self, status: str) -> None:
+    def watch_status(self, status: str | Content | RichText) -> None:
         self.set_class(not bool(status), "-hidden")
         self.update(status)
         self.tooltip = status
@@ -456,7 +457,7 @@ class Prompt(containers.VerticalGroup):
     _ask: var[Ask | None] = var(None)
     agent: var[AgentBase | None] = var(None)
     model_history_scope = var("")
-    status: var[str | Content] = var("")
+    status: var[str | Content | RichText] = var("")
 
     app = getters.app(ToadApp)
 
