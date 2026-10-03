@@ -1,0 +1,61 @@
+{
+  "scope": "Same immutable original command intervals; no UI/provider/replay, no motion improvement claim",
+  "intervals": [
+    {
+      "label": "input-held-up",
+      "start": 20.313998318,
+      "seconds": 0.8,
+      "gesture_end": 22.089022449,
+      "complete": true,
+      "basis": "checked keydown start through keyup start; release completed"
+    },
+    {
+      "label": "input-held-down",
+      "start": 42.350519039,
+      "seconds": 0.8,
+      "gesture_end": 44.157014359,
+      "complete": true,
+      "basis": "checked keydown start through keyup start; release completed"
+    },
+    {
+      "label": "up",
+      "start": 51.300717131,
+      "seconds": 0.8,
+      "gesture_end": 53.076423287,
+      "complete": true,
+      "basis": "checked keydown start through keyup start; release completed"
+    },
+    {
+      "label": "down",
+      "start": 56.496647621,
+      "seconds": 0.8,
+      "gesture_end": 58.246217708,
+      "complete": true,
+      "basis": "checked keydown start through keyup start; release completed"
+    },
+    {
+      "label": "reverse",
+      "start": 61.544472982,
+      "seconds": 0.8,
+      "gesture_end": 63.328666921,
+      "complete": true,
+      "basis": "checked keydown start through keyup start; release completed"
+    },
+    {
+      "label": "end",
+      "start": 65.6472779129399,
+      "seconds": 0.8,
+      "gesture_end": 68.4812971149804,
+      "complete": true,
+      "basis": "phase markers"
+    }
+  ],
+  "closed_ui_rejected_before_encoding": true,
+  "original_hashes_unchanged": {
+    "receipt.json": "321cc8fe633a74ce75c483e8d186d0deb62c3da04786d66766548cdb5c0dd1ed",
+    "terminal.mp4": "1d28b506d100f92f4ac4442fe317e38115b3975fbb8cc3b6b6802944a3baa786",
+    "driver.log": "78351957553384fded967d8e7ed4c2066e1e7e849da5a90254b794b38c321eb9",
+    "events.jsonl": "5e29a7e506aa1deefd39348c6dd51fa43efa31e46bbfa0b3c2e8a7f2b0d33acd"
+  },
+  "remaining": "Actual live extraction/scheduling exercised only in NEXT changed product journey; no unchanged rerun"
+}

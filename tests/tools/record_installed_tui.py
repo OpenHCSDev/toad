@@ -71,13 +71,14 @@ class ReviewTiming(DeclaredFamily, affix="ReviewTiming"):
 
     @classmethod
     @abstractmethod
-    def observe(cls, output, args, env, owner, label): ...
+    def observe(cls, output, args, env, owner, label, *, identity, origin_ns, reviewed): ...
 
 
 class InlineReviewTiming(ReviewTiming):
     @classmethod
-    def observe(cls, output, args, env, owner, label):
-        return live_review(output, args, env, owner, label)
+    def observe(cls, output, args, env, owner, label, *, identity, origin_ns, reviewed):
+        return live_review(output, args, env, owner, label,
+                           identity=identity, origin_ns=origin_ns, reviewed=reviewed)
 
     @classmethod
     def generate(cls, output, args, env, owner, intervals, *, prefix=""):
@@ -93,7 +94,7 @@ class InlineReviewTiming(ReviewTiming):
 
 class DeferredReviewTiming(ReviewTiming):
     @classmethod
-    def observe(cls, output, args, env, owner, label):
+    def observe(cls, output, args, env, owner, label, *, identity, origin_ns, reviewed):
         return {"label": label,
                 "assessment": "Clip encoding deferred; native frame tracing remains active. "
                               "Inspect consecutive original video frames during or after the run."}
@@ -439,8 +440,17 @@ class PhysicalJourney(DeclaredFamily, affix="Journey"):
         return args.command[-1]
 
     @classmethod
-    def review_intervals(cls, args, events, duration):
-        """Select real gesture intervals from the journey's original markers."""
+    def review_intervals(cls, args, output, duration, *, origin_ns):
+        """Select gestures from original phase and checked key-command receipts.
+
+        Phase markers precede diagnostic exports. Held-key review therefore
+        uses the command interval, not that export or the following idle wait.
+        These are physical driver bounds, not terminal input-delivery times.
+        """
+        events = phase_events(output)
+        path = output / "driver.log"
+        commands = [json.loads(line) for line in path.read_text().splitlines()
+                    if line.startswith('{"event": "driver_command_')] if path.exists() else []
         labels = args.review_phase or cls.motion_phases
         indexed = {event["label"]: index for index, event in enumerate(events)}
         missing = set(args.review_phase) - indexed.keys()
@@ -453,14 +463,34 @@ class PhysicalJourney(DeclaredFamily, affix="Journey"):
             index = indexed[label]
             start = events[index]["seconds_since_capture_launch"]
             end = events[index + 1]["seconds_since_capture_launch"] if index + 1 < len(events) else duration
+            complete = index + 1 < len(events)
+            basis = "phase markers"
+            down = next((command for command in commands
+                         if command["event"] == "driver_command_started"
+                         and command["argv"][0] == "keydown"
+                         and start <= (command["ns"] - origin_ns) / 1e9 < end), None)
+            if down is not None:
+                up = next((command for command in commands
+                           if command["event"] == "driver_command_finished"
+                           and command["argv"] == ["keyup", *down["argv"][1:]]
+                           and down["ns"] < command["ns"]
+                           and (command["ns"] - origin_ns) / 1e9 <= end), None)
+                if up is None:
+                    continue  # The original key release has not completed.
+                start = (down["ns"] - origin_ns) / 1e9
+                end = (up["begin_ns"] - origin_ns) / 1e9
+                complete = True
+                basis = "checked keydown start through keyup start; release completed"
             seconds = min(args.review_seconds, end - start, duration - start)
             if seconds > 0:
-                intervals.append({"label": label, "start": start, "seconds": seconds})
+                intervals.append({"label": label, "start": start, "seconds": seconds,
+                                  "gesture_end": end, "complete": complete, "basis": basis})
         if not intervals:
             seconds = min(args.review_seconds, duration - args.review_start)
             if seconds <= 0:
                 raise ValueError("Review start lies outside the recorded video")
-            intervals.append({"label": "main", "start": args.review_start, "seconds": seconds})
+            intervals.append({"label": "main", "start": args.review_start, "seconds": seconds,
+                              "complete": False, "basis": "explicit review start"})
         return intervals
 
     @classmethod
@@ -1386,7 +1416,7 @@ def phase_events(output):
     return [json.loads(line) for line in path.read_text().splitlines()] if path.exists() else []
 
 
-def frame_review(output, receipt, *, window_seconds):
+def frame_review(output, receipt, *, args):
     """Use the original observer/analysis and recording's monotonic origin."""
     tools = Path(__file__).resolve().parents[2] / "tools/performance"
     spec = importlib.util.spec_from_file_location("analyze_trace", tools / "analyze_trace.py")
@@ -1401,15 +1431,19 @@ def frame_review(output, receipt, *, window_seconds):
         return {"available": False, "trace": source.name,
                 "reason": "No original driver enqueue events; exports do not establish frame observation"}
     origin = round(receipt["capture_launch_monotonic"] * 1e9)
-    events = phase_events(output)
-    actions = [{"action": before["label"],
-                "start_ns": origin + round(before["seconds_since_capture_launch"] * 1e9),
-                "end_ns": origin + round(after["seconds_since_capture_launch"] * 1e9)}
-               for before, after in zip(events, events[1:])]
+    journey = PhysicalJourney.decode(receipt["physical_journey"])
+    # Writer analysis consumes the same original phase/key selection as film
+    # review. Diagnostic export tails aren't part of a held-key interval.
+    duration = (trace[-1]["ns"] - origin) / 1e9
+    actions = [{"action": interval["label"],
+                "start_ns": origin + round(interval["start"] * 1e9),
+                "end_ns": origin + round(interval["gesture_end"] * 1e9)}
+               for interval in journey.review_intervals(args, output, duration, origin_ns=origin)
+               if interval["complete"]]
     delivery = analysis.frame_delivery(
         trace, actions, origin_ns=origin,
         end_ns=trace[-1]["ns"] if trace else origin,
-        window_seconds=window_seconds)
+        window_seconds=args.frame_window_seconds)
     delivery["trace_source"] = source.name
     delivery["trace_limit"] = 100000
     delivery["trace_limit_reached"] = len(trace) == 100000
@@ -1420,12 +1454,14 @@ def frame_review(output, receipt, *, window_seconds):
             "intervals": delivery["intervals"], "scope": delivery["scope"]}
 
 
-def live_review(output, args, env, owner, label):
+def live_review(output, args, env, owner, label, *, identity, origin_ns, reviewed):
     """Expose consecutive finalized video frames while the same UI is running.
 
     Encoding a sheet does not attest that somebody watched it. Record the
     source interval and encoding overhead; the operator must inspect it then.
     """
+    if not identity.alive():
+        raise RuntimeError("Original UI exited before live motion review")
     started = time.monotonic()
     info = owner.run(["ffprobe", "-v", "error", "-select_streams", "v:0",
                       "-show_packets", "-show_entries", "format=duration:packet=pts_time,flags",
@@ -1436,14 +1472,25 @@ def live_review(output, args, env, owner, label):
     # last acquired keyframe starts that GOP; earlier packets are complete.
     duration = max(float(packet["pts_time"]) for packet in metadata["packets"]
                    if "K" in packet["flags"])
-    seconds = min(duration, args.review_frames / args.fps)
-    if seconds <= 0:
-        raise RuntimeError("Live recording has no finalized video frames yet")
-    start = duration - seconds
+    intervals = args.journey.review_intervals(args, output, duration, origin_ns=origin_ns)
+    completed = {review["phase"] for review in reviewed if review.get("available")}
+    interval = next((interval for interval in intervals
+                     if interval["complete"] and interval["label"] not in completed
+                     and interval["start"] + interval["seconds"] <= duration), None)
+    if interval is None:
+        return {"label": label, "available": False,
+                "assessment": "No unreviewed completed gesture has finalized video frames yet"}
+    start = interval["start"]
+    seconds = min(interval["seconds"], args.review_frames / args.fps)
     artifacts(output, args, env, owner, start=start, seconds=seconds,
               label=label, consecutive=True, encode_slow=False)
-    result = {"event": "live_review_available", "label": label,
-              "source_start_seconds": start, "source_end_seconds": duration,
+    if not identity.alive():
+        raise RuntimeError("Original UI exited while encoding its live motion review")
+    result = {"event": "live_review_available", "label": label, "available": True,
+              "phase": interval["label"], "interval_basis": interval["basis"],
+              "source_start_seconds": start, "source_end_seconds": start + seconds,
+              "ui_identity": {"pid": identity.pid, "start_ticks": identity.start_time},
+              "ui_alive_before_and_after_encoding": True,
               "encoding_started_monotonic": started,
               "encoding_finished_monotonic": time.monotonic(),
               "frames": str(output / f"{label}-frames.png"),
@@ -1472,7 +1519,8 @@ def review_recording(args):
         args.fps = capture["fps"]
         journey = PhysicalJourney.decode(capture["physical_journey"])
         events = phase_events(output)
-        intervals = journey.review_intervals(args, events, duration)
+        intervals = journey.review_intervals(
+            args, output, duration, origin_ns=round(capture["capture_launch_monotonic"] * 1e9))
         receipt["source"] = {"receipt_sha256": digest(output / "receipt.json"),
                              "video_sha256": digest(video),
                              "application_completed": capture["completed"],
@@ -1482,7 +1530,7 @@ def review_recording(args):
         if frame_path.exists():
             receipt["frame_review"] = {"available": True, "artifact": frame_path.name}
         else:
-            receipt["frame_review"] = frame_review(output, capture, window_seconds=args.frame_window_seconds)
+            receipt["frame_review"] = frame_review(output, capture, args=args)
         profile_path = output / "profile-review.json"
         if profile_path.exists():
             profile = json.loads(profile_path.read_text())
@@ -1752,13 +1800,16 @@ def record(args):
                             def observe():
                                 label = f"live-{action_number}-{len(reviews)}"
                                 try:
-                                    reviews.append(args.review_timing.observe(output, args, env, owner, label))
-                                    if args.capture_state:
+                                    reviews.append(args.review_timing.observe(
+                                        output, args, env, owner, label,
+                                        identity=transferred_program.child.identity,
+                                        origin_ns=round(started * 1e9), reviewed=reviews))
+                                    if args.capture_state and reviews[-1].get("available"):
                                         capture_loaded_state(
                                             output, label, transferred_program.child.identity, owner, env,
                                             timeout=remaining(), frames_only=True)
                                         receipt["live_frame_delivery"] = frame_review(
-                                            output, receipt, window_seconds=args.frame_window_seconds)
+                                            output, receipt, args=args)
                                 except (OSError, subprocess.SubprocessError, ValueError, KeyError, RuntimeError) as error:
                                     reviews.append({"label": label, "error": f"{type(error).__name__}: {error}",
                                                     "assessment": "unreviewed"})
@@ -1778,6 +1829,12 @@ def record(args):
                                                       "ns": time.monotonic_ns(), "begin_ns": begin,
                                                       "argv": action_argv}) + "\n")
                                 log.flush()
+                            # A short held gesture finishes before the periodic
+                            # observer runs. Expose that original band promptly;
+                            # the next phase export also gives its GOP time to
+                            # finalize, without another sleep or observation clock.
+                            if action_argv[0] == "keyup" or "--mark" in action_argv:
+                                observe()
                 receipt["driver_finished_seconds"] = time.monotonic() - started
                 time.sleep(min(args.tail_seconds, remaining()))
             else:
@@ -1828,11 +1885,12 @@ def record(args):
             events = phase_events(output)
             receipt["events"] = events
             receipt["frame_review"] = frame_review(
-                output, receipt, window_seconds=args.frame_window_seconds)
+                output, receipt, args=args)
             if args.profile:
                 receipt["profile_review"] = profile_review(output, receipt)
             receipt["journey_review"] = args.journey.review(output, receipt)
-            receipt["review_intervals"] = args.journey.review_intervals(args, events, duration)
+            receipt["review_intervals"] = args.journey.review_intervals(
+                args, output, duration, origin_ns=round(started * 1e9))
             names = ["terminal.mp4", "before.png", "after.png"]
             if args.capture_state:
                 names.extend(path.name for name in ("before", "after", "phase")
