@@ -90,3 +90,20 @@ Exported SVG/PNG body is black and retained as a negative. This does not establi
 readable physical paint. Final parent-requested actual saved user configuration
 donor is pending on the same existing driver after matched390 package handoff.
 No full headless, physical, provider or performance claim.
+
+## Final actual saved-configuration acceptance
+
+Installed03 passed in5.6269 seconds on the final normal69 candidate (Core585,
+Toad390+389, Text39, native2b). The existing runner loaded the actual original
+/home/ts/.config/toad/toad.json, copied it to private XDG configuration, edited
+actual mounted controls/effects and inherited fields, saved and reopened there.
+Original donor SHA256 remained dc7757bf1a59dc9df0b20a575d6453def6b0283742bced0aa3d910edec2b79a2.
+All928 installed assets unchanged; zero owned process/private root remaining.
+The final donor gap is closed. Product five files116+/110del unchanged.
+
+Original SVG contains native settings text and controls. The black PNG does NOT
+prove a blank App: Text39's export does not consume existing App.ansi_theme, and
+Rich export selects SVG_EXPORT_THEME instead. Kepler owns the separate Text40
+existing palette-consumer correction. Preserve01 schema-constructor negative,
+02 fixture-positive/raw SVG/black PNG, and03 actual donor proof. No readable
+physical pixel, ACP/Pi/provider, overall frontend or speed claim. CI deferred.
