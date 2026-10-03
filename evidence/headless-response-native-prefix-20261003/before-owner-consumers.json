@@ -1,0 +1,1278 @@
+{
+  "head": "0a46bf83910fbddb49011d063abf3a97cedfd1cc",
+  "roots": {
+    "src/toad": {
+      "parsed": 289,
+      "unparsed": []
+    },
+    "tests": {
+      "parsed": 392,
+      "unparsed": []
+    }
+  },
+  "references": [
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 107,
+      "kind": "ImportFrom",
+      "source": "from toad.response_delivery import ResponseDelivery"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 108,
+      "kind": "Name",
+      "source": "ResponseDelivery"
+    },
+    {
+      "path": "src/toad/agent_surface.py",
+      "line": 77,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 115,
+      "kind": "Name",
+      "source": "MroProjection"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 152,
+      "kind": "Name",
+      "source": "MroProjection"
+    },
+    {
+      "path": "src/toad/core/projection.py",
+      "line": 5,
+      "kind": "ClassDef",
+      "source": "class MroProjection(MroDispatch):"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 13,
+      "kind": "ImportFrom",
+      "source": "from toad.response_delivery import ResponseDelivery, UnroutedResponse"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 61,
+      "kind": "Name",
+      "source": "ResponseDelivery"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 70,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 92,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 39,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 61,
+      "kind": "Name",
+      "source": "UnroutedResponse"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 72,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 95,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 17,
+      "kind": "ClassDef",
+      "source": "class ResponseDelivery(DeclaredFamily, affix='Response'):"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 35,
+      "kind": "ClassDef",
+      "source": "@dataclass(frozen=True)"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 47,
+      "kind": "ClassDef",
+      "source": "@dataclass(frozen=True)"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 25,
+      "kind": "FunctionDef",
+      "source": "@property"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 28,
+      "kind": "FunctionDef",
+      "source": "@abstractmethod"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 30,
+      "kind": "FunctionDef",
+      "source": "def decorate(self, widget: Widget) -> None:"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 35,
+      "kind": "Name",
+      "source": "ResponseDelivery"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 37,
+      "kind": "FunctionDef",
+      "source": "@property"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 41,
+      "kind": "FunctionDef",
+      "source": "def prefix(self, clock: MessageClock):"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 47,
+      "kind": "Name",
+      "source": "ResponseDelivery"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 51,
+      "kind": "FunctionDef",
+      "source": "@property"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 55,
+      "kind": "FunctionDef",
+      "source": "def prefix(self, clock: MessageClock):"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 60,
+      "kind": "FunctionDef",
+      "source": "def decorate(self, widget):"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 19,
+      "kind": "Name",
+      "source": "ResponseDelivery"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 21,
+      "kind": "Name",
+      "source": "UnroutedResponse"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 21,
+      "kind": "Name",
+      "source": "RoutedResponse"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 18,
+      "kind": "Name",
+      "source": "MroProjection"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "line": 8,
+      "kind": "ImportFrom",
+      "source": "from toad import response_delivery"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "line": 18,
+      "kind": "ClassDef",
+      "source": "class AgentResponse(ConversationBlock, CategorizedBlock, StreamingMarkdown):"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "line": 35,
+      "kind": "Attribute",
+      "source": "response_delivery.ResponseDelivery"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "line": 35,
+      "kind": "Attribute",
+      "source": "response_delivery.UnroutedResponse"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "line": 38,
+      "kind": "Name",
+      "source": "category"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "line": 38,
+      "kind": "Attribute",
+      "source": "delivery.category"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "line": 45,
+      "kind": "Attribute",
+      "source": "delivery.decorate"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "line": 42,
+      "kind": "Attribute",
+      "source": "delivery.prefix"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 105,
+      "kind": "ImportFrom",
+      "source": "from toad.response_delivery import ResponseDelivery"
+    },
+    {
+      "path": "src/toad/widgets/coordination_context.py",
+      "line": 41,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "src/toad/widgets/coordination_context.py",
+      "line": 53,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "src/toad/widgets/coordination_context.py",
+      "line": 45,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "src/toad/widgets/coordination_context.py",
+      "line": 68,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "src/toad/widgets/incoming_message.py",
+      "line": 49,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 111,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 100,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "src/toad/widgets/outgoing_message.py",
+      "line": 8,
+      "kind": "ImportFrom",
+      "source": "from toad.response_delivery import ResponseDelivery"
+    },
+    {
+      "path": "src/toad/widgets/outgoing_message.py",
+      "line": 33,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "src/toad/widgets/outgoing_message.py",
+      "line": 34,
+      "kind": "Name",
+      "source": "ResponseDelivery"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 42,
+      "kind": "ImportFrom",
+      "source": "from toad.response_delivery import ResponseDelivery"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 98,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 257,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 99,
+      "kind": "Name",
+      "source": "ResponseDelivery"
+    },
+    {
+      "path": "tests/acp_log_ui_pilot.py",
+      "line": 45,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/app_focus_latency_pilot.py",
+      "line": 40,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/block_interaction_pilot.py",
+      "line": 65,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 422,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 472,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 491,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 401,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 350,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 356,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 349,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 352,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 398,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 433,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/checkpoint_source_pivot_pilot.py",
+      "line": 88,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/close_session_latency_pilot.py",
+      "line": 28,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/cold_thread_latency_pilot.py",
+      "line": 147,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/cold_thread_latency_pilot.py",
+      "line": 129,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/committed_history_pilot.py",
+      "line": 81,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/committed_history_pilot.py",
+      "line": 73,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 559,
+      "kind": "ImportFrom",
+      "source": "from toad.response_delivery import UnroutedResponse"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 747,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 561,
+      "kind": "Name",
+      "source": "UnroutedResponse"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 567,
+      "kind": "Name",
+      "source": "UnroutedResponse"
+    },
+    {
+      "path": "tests/compaction_pilot.py",
+      "line": 47,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/compaction_pilot.py",
+      "line": 69,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 232,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 263,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 186,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 237,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 371,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 291,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/coordination_context_pilot.py",
+      "line": 73,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/coordination_context_pilot.py",
+      "line": 68,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/coordination_context_pilot.py",
+      "line": 87,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/coordination_context_pilot.py",
+      "line": 96,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/coordination_context_pilot.py",
+      "line": 101,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/coordination_context_pilot.py",
+      "line": 108,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/file_path_preview_pilot.py",
+      "line": 242,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/file_path_preview_pilot.py",
+      "line": 372,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/file_path_preview_pilot.py",
+      "line": 49,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/file_path_preview_pilot.py",
+      "line": 193,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/file_path_preview_pilot.py",
+      "line": 369,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/first_fork_native_installed_pilot.py",
+      "line": 298,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/follow_stream_pilot.py",
+      "line": 21,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/fragment_divider_pilot.py",
+      "line": 76,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 19,
+      "kind": "ImportFrom",
+      "source": "from toad.response_delivery import RoutedResponse"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 62,
+      "kind": "ImportFrom",
+      "source": "from toad.response_delivery import UnroutedResponse"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 72,
+      "kind": "Name",
+      "source": "UnroutedResponse"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 73,
+      "kind": "Name",
+      "source": "UnroutedResponse"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 88,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 90,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 45,
+      "kind": "Name",
+      "source": "RoutedResponse"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 85,
+      "kind": "Name",
+      "source": "UnroutedResponse"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 86,
+      "kind": "Name",
+      "source": "UnroutedResponse"
+    },
+    {
+      "path": "tests/guards/test_transcript_publication.py",
+      "line": 145,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/guards/test_transcript_publication.py",
+      "line": 165,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/guards/test_transcript_publication.py",
+      "line": 210,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/guards/test_transcript_publication.py",
+      "line": 170,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/guards/test_transcript_publication.py",
+      "line": 84,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/history_availability_installed_pilot.py",
+      "line": 73,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/history_availability_installed_pilot.py",
+      "line": 71,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/hot_path_invalidation_pilot.py",
+      "line": 35,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "line": 47,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "line": 428,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/large_stream_pilot.py",
+      "line": 53,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "line": 55,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "line": 126,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "line": 121,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "line": 55,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "line": 130,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "line": 125,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/lazy_tools_pilot.py",
+      "line": 102,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/long_message_pilot.py",
+      "line": 65,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/markdown_process_lifecycle_pilot.py",
+      "line": 70,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/markdown_process_pilot.py",
+      "line": 34,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/markdown_return_reuse_pilot.py",
+      "line": 44,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/markdown_return_reuse_pilot.py",
+      "line": 66,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/markdown_token_rules_installed_pilot.py",
+      "line": 49,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/message_categories_pilot.py",
+      "line": 35,
+      "kind": "ImportFrom",
+      "source": "from toad.response_delivery import ResponseDelivery"
+    },
+    {
+      "path": "tests/message_categories_pilot.py",
+      "line": 80,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/message_categories_pilot.py",
+      "line": 82,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/message_categories_pilot.py",
+      "line": 82,
+      "kind": "Name",
+      "source": "ResponseDelivery"
+    },
+    {
+      "path": "tests/message_dividers_pilot.py",
+      "line": 20,
+      "kind": "ImportFrom",
+      "source": "from toad.response_delivery import ResponseDelivery"
+    },
+    {
+      "path": "tests/message_dividers_pilot.py",
+      "line": 62,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/message_dividers_pilot.py",
+      "line": 116,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/message_dividers_pilot.py",
+      "line": 63,
+      "kind": "Name",
+      "source": "ResponseDelivery"
+    },
+    {
+      "path": "tests/message_dividers_pilot.py",
+      "line": 117,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/message_filter_latency_pilot.py",
+      "line": 33,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/midturn_compaction_pilot.py",
+      "line": 45,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/midturn_compaction_pilot.py",
+      "line": 54,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 380,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 278,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/native_message_parts_pilot.py",
+      "line": 52,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/native_message_parts_pilot.py",
+      "line": 50,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/navigation_source_timer_pilot.py",
+      "line": 23,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/navigation_source_timer_pilot.py",
+      "line": 43,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 140,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 164,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 183,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 190,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 199,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 217,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 237,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 257,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 106,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/original_stream_headers_installed_pilot.py",
+      "line": 41,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/persistent_renderer_ui_pilot.py",
+      "line": 60,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/persistent_workspace_source_navigation_pilot.py",
+      "line": 39,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/profile_hot_paths_pilot.py",
+      "line": 51,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/reconnect_source_native_installed_pilot.py",
+      "line": 48,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/relationship_poll_reflow_pilot.py",
+      "line": 30,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/resize_render_pilot.py",
+      "line": 33,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 47,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 102,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 133,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/resume_style_revision_pilot.py",
+      "line": 29,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/resume_style_revision_pilot.py",
+      "line": 87,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/retained_history_projection_pilot.py",
+      "line": 75,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 74,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 194,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 142,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 197,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/selection_hover_pilot.py",
+      "line": 25,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/sidebar_collapse_latency_pilot.py",
+      "line": 53,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/sidebar_metadata_reflow_pilot.py",
+      "line": 37,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/stream_style_work_pilot.py",
+      "line": 22,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/test_t4_turn_navigation.py",
+      "line": 42,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/thread_activation_pilot.py",
+      "line": 64,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 13,
+      "kind": "ImportFrom",
+      "source": "from toad.response_delivery import ResponseDelivery"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 77,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 77,
+      "kind": "Name",
+      "source": "ResponseDelivery"
+    },
+    {
+      "path": "tests/thread_navigation_installed_journey.py",
+      "line": 99,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/thread_render_wait_pilot.py",
+      "line": 140,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/transcript_process_pilot.py",
+      "line": 200,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/transcript_source_lifetime_pilot.py",
+      "line": 46,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/transcript_source_lifetime_pilot.py",
+      "line": 49,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/unread_paint_only_pilot.py",
+      "line": 36,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/view_switch_latency.py",
+      "line": 70,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/view_switch_latency.py",
+      "line": 101,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/viewport_body_lifetime_pilot.py",
+      "line": 73,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/viewport_body_lifetime_pilot.py",
+      "line": 35,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 305,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 43,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/viewport_bounded_runway_churn_pilot.py",
+      "line": 33,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/viewport_demand_custody_pilot.py",
+      "line": 37,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 33,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 103,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/viewport_layout_reentry_pilot.py",
+      "line": 25,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/viewport_rapid_scroll_pilot.py",
+      "line": 54,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/viewport_rapid_scroll_pilot.py",
+      "line": 52,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "line": 33,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/viewport_runway_pilot.py",
+      "line": 30,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/viewport_selection_diff_pilot.py",
+      "line": 29,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/viewport_selection_diff_pilot.py",
+      "line": 36,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/viewport_warm_trim_pilot.py",
+      "line": 39,
+      "kind": "Name",
+      "source": "AgentResponse"
+    },
+    {
+      "path": "tests/workspace_native_paint_retention_pilot.py",
+      "line": 29,
+      "kind": "Name",
+      "source": "AgentResponse"
+    }
+  ],
+  "limits": [
+    "Lexical AST cannot prove dynamic receiver resolution. Delivery native hooks have one semantically traced production consumer. Prefix fields in unrelated renderers are real independent resources. Official MessageRoute is the original routed identity."
+  ]
+}

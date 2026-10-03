@@ -1,0 +1,11 @@
+{
+  "result": "pass",
+  "owned_exec_handle": 85365,
+  "exit_code": 0,
+  "source": "ba8b9f29f1e2595b62b38aa9e111d74699ce8b47",
+  "app_receipt": "app/receipt.json",
+  "restore_source": "613da1897ea9fadc992971d642aff4aa0a17f604",
+  "inputs": 0,
+  "providers": 0,
+  "physical_film": false
+}

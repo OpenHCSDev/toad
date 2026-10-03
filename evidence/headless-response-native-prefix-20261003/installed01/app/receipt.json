@@ -1,0 +1,12 @@
+{
+  "result": "pass",
+  "installed_toad": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/__init__.py",
+  "original_live_stream_agent_header": true,
+  "original_route_identity_native_header": true,
+  "recorded_clock_and_default_block_class": true,
+  "hidden_divider_keeps_routed_style_and_explicit_category": true,
+  "actual_composited_response_bodies_and_header": true,
+  "inputs": 0,
+  "providers": 0,
+  "scope": "Actual installed App/Pilot/native response paint; no ACP/provider/physical st/performance claim"
+}

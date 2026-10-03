@@ -1,0 +1,38 @@
+{
+  "result": "scoped-ready",
+  "tested_source": "ba8b9f29f1e2595b62b38aa9e111d74699ce8b47",
+  "production_delta": {
+    "files": 2,
+    "added": 21,
+    "deleted": 32
+  },
+  "existing_owner": "ResponseDelivery original data; AgentResponse/MroProjection native prefix and classes",
+  "removed_methods": [
+    "ResponseDelivery.prefix",
+    "ResponseDelivery.decorate",
+    "UnroutedResponse.prefix",
+    "RoutedResponse.prefix",
+    "RoutedResponse.decorate"
+  ],
+  "source_ast": {
+    "production_modules": 289,
+    "test_modules": 392,
+    "parse_omissions": [],
+    "dynamic_resolution_limits": "See after-owner-consumers.json"
+  },
+  "installed_acceptance": "installed01/app/receipt.json",
+  "pixel_export": "installed01/app/responses.svg",
+  "source_proof": "installed01/source-verification.json",
+  "terminal": "installed01/terminal-receipt.json",
+  "code_handback": "installed01/handback.json",
+  "original_compaction_input_unknowns": "untouched",
+  "installed_holder": "existing style22; returned with original613 package restored320hashes",
+  "borrowed_dependencies": "Coref4 (same context-capable MroDispatch contract), Text44 3ad603; branch current-main pins91e07/db8 preserved for receiving",
+  "builder": "Existing system hatchling1.30.1, no build env created; declared build pin1.28.0 not used in this bounded borrowed installed gate; exact source asset/provenance recorded",
+  "inputs": 0,
+  "providers": 0,
+  "new_environments": 0,
+  "native_copies": 0,
+  "physical_recordings": 0,
+  "remaining_scope": "Broader U2/headless work unfinished; no full frontend/ACP/provider/performance claim; receiver installation/publication remains parent owned."
+}
