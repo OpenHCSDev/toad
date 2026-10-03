@@ -35,7 +35,7 @@ async def main(observe):
                 rows = tuple(ThreadRowInput(replace(person, last_seen=person.last_seen + revision))
                              for person in people)
                 before = time.perf_counter()
-                result = await runtime.submit(ThreadRowsWork(rows))
+                result = await runtime.submit(await ThreadRowsWork.capture(runtime, rows))
                 durations.append((time.perf_counter() - before) * 1000)
                 rendered = [(row.frames[0].plain, row.tooltip.plain, row.busy) for row in result]
                 if sources:
@@ -50,7 +50,7 @@ async def main(observe):
             if not observe:
                 assert runtime.misses == 1, "Unrendered metadata invalidated every bar's prepared content"
             changed = ThreadRowInput(people[0], unread=ExactUnread(7), pinned=True, action_status="Stopping")
-            result = await runtime.submit(ThreadRowsWork((changed,)))
+            result = await runtime.submit(await ThreadRowsWork.capture(runtime, (changed,)))
             expected = prepare_thread_presentation(changed.presentation())
             assert result[0].frames[0].plain == expected.frames[0].plain
             assert result[0].frames[0].plain.startswith("(7) * ") and result[0].busy

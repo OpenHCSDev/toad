@@ -14,6 +14,7 @@ from toad.work_preparation import ContentAddressedWork, RendererWork, Serialized
 
 if TYPE_CHECKING:
     from toad.render_tasks import TabRosterRenderTask, ThreadRowsRenderTask
+    from toad.work_preparation import PreparationRuntime
 
 
 @dataclass(frozen=True, slots=True)
@@ -80,13 +81,23 @@ def prepare_thread_presentation(source: ThreadRowPresentation) -> PreparedThread
 class ThreadRowsWork(SerializedWork[tuple[PreparedThreadRow, ...]],
                      ContentAddressedWork[tuple[PreparedThreadRow, ...]],
                      RendererWork[tuple[PreparedThreadRow, ...]]):
-    rows: tuple[ThreadRowInput, ...]
+    rows: tuple[ThreadRowPresentation, ...]
+
+    @classmethod
+    async def capture(cls, runtime: PreparationRuntime, rows: tuple[ThreadRowInput, ...]) -> ThreadRowsWork:
+        """Resolve the original display inputs once before reuse or rendering.
+
+        ThreadView.presentation may inspect its original process identity. Keep
+        that source read off the native pump, and hash/render the same captured
+        inputs rather than making another decision after an asynchronous wait.
+        """
+        if not rows:
+            return cls(())
+        return cls(await runtime.run_thread(lambda: tuple(row.presentation() for row in rows)))
 
     @property
     def inputs(self) -> tuple[ThreadRowPresentation, ...]:
-        # ContentAddressedWork evaluates this on its worker thread. Declare the
-        # semantic projection before hashing, not every field of a core record.
-        return tuple(row.presentation() for row in self.rows)
+        return self.rows
 
     @property
     def render_task(self) -> ThreadRowsRenderTask:

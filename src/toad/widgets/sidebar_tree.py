@@ -92,8 +92,9 @@ class SidebarGroup(VerticalGroup):
         """Prepare changed row inputs; retained native rows own their frames."""
         from toad.sidebar_preparation import ThreadRowsWork
 
+        captured = await ThreadRowsWork.capture(self.app.preparation, tuple(inputs.values()))
         prepared, pending = {}, {}
-        for key, source in inputs.items():
+        for key, source in zip(inputs, captured.rows):
             row = rows.get(key)
             current = row.thread_preparation(source) if row is not None else None
             if current is None:

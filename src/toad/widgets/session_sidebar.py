@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from toad.widgets.selection import HoverSelection
-from toad.sidebar_preparation import PreparedThreadRow, ThreadRowInput
+from toad.sidebar_preparation import PreparedThreadRow, ThreadRowPresentation
 
 
 class ThreadStatusRow(HoverSelection):
@@ -56,10 +56,10 @@ class ThreadStatusRow(HoverSelection):
         if self._thread_presentation is not None:
             self.paint_thread_frame(self._thread_presentation)
 
-    def thread_preparation(self, source: ThreadRowInput) -> PreparedThreadRow | None:
+    def thread_preparation(self, source: ThreadRowPresentation) -> PreparedThreadRow | None:
         """Reuse this row's rendered resource for its exact authored inputs."""
         prepared = self._thread_presentation
-        if prepared is not None and prepared.source == source.presentation():
+        if prepared is not None and prepared.source == source:
             return prepared
         return None
 
