@@ -1,0 +1,539 @@
+{
+  "head": "54eb7a268381df138bd05ca501e197b57c36436e",
+  "parser": "refactor-audit Package",
+  "limits": "Lexical family references; generic method names are ambiguous and their receivers were read semantically. No claim that AST resolves dynamic dispatch.",
+  "src/toad": {
+    "modules": 287,
+    "parse_omissions": [],
+    "sites": [
+      {
+        "path": "src/toad/acp/agent.py",
+        "line": 10,
+        "kind": "ImportFrom",
+        "source": "from toad.acp.permission_controller import PermissionController"
+      },
+      {
+        "path": "src/toad/acp/agent.py",
+        "line": 92,
+        "kind": "Name",
+        "source": "PermissionController"
+      },
+      {
+        "path": "src/toad/acp/agent_controller.py",
+        "line": 43,
+        "kind": "ClassDef",
+        "source": "class SurfaceBinding(DeclaredFamily, affix='SurfaceBinding'):\n    target = None\n\n    def owns(self, target):\n        return self.target is target and target is not None\n\n    def prepare(self, controller) -> None:\n        \"\"\"No frontend means no additional application resources to acquire.\"\"\"\n\n    def prepare_terminal(self, state) -> None:\n        \"\"\"A detached terminal keeps its original model's configured geometry.\"\"\"\n\n    async def present_permission(self, request, view) -> None:\n        \"\"\"An absent frontend never acquires a permission projection.\"\"\"\n\n    def permission_changed(self, view) -> None:\n        \"\"\"An absent frontend has no permission bindings to invalidate.\"\"\"\n\n    async def present_failure(self, failure, view) -> None:\n        \"\"\"An absent frontend keeps the original failure without native work.\"\"\"\n\n    def schedule_terminal_presentation(self, controller):\n        controller.start_terminal_presentation(self.target)\n\n    def publish_terminal(self, controller, terminal_id, execution):\n        \"\"\"An absent frontend does not acquire native projection work.\"\"\"\n        return False\n\n    @abstractmethod\n    def post(self, message) -> bool:\n        ...\n\n    def close(self) -> None:\n        \"\"\"An absent frontend has no subscription to release.\"\"\""
+      },
+      {
+        "path": "src/toad/acp/agent_controller.py",
+        "line": 78,
+        "kind": "Name",
+        "source": "SurfaceBinding"
+      },
+      {
+        "path": "src/toad/acp/agent_controller.py",
+        "line": 105,
+        "kind": "Name",
+        "source": "SurfaceBinding"
+      },
+      {
+        "path": "src/toad/acp/agent_controller.py",
+        "line": 125,
+        "kind": "Name",
+        "source": "SurfaceBinding"
+      },
+      {
+        "path": "src/toad/acp/agent_controller.py",
+        "line": 130,
+        "kind": "Attribute",
+        "source": "self.detach"
+      },
+      {
+        "path": "src/toad/acp/agent_controller.py",
+        "line": 133,
+        "kind": "Attribute",
+        "source": "self.agent.permissions.present"
+      },
+      {
+        "path": "src/toad/acp/agent_controller.py",
+        "line": 143,
+        "kind": "Attribute",
+        "source": "self.agent.permissions.detach"
+      },
+      {
+        "path": "src/toad/acp/agent_controller.py",
+        "line": 144,
+        "kind": "Attribute",
+        "source": "self.terminals.detach"
+      },
+      {
+        "path": "src/toad/acp/permission_controller.py",
+        "line": 16,
+        "kind": "ClassDef",
+        "source": "class PermissionRequest(DeclaredFamily, affix='PermissionRequest'):\n\n    def __init__(self, controller):\n        self.controller = controller\n        self.future = asyncio.get_running_loop().create_future()\n        self._projections = {}\n        self.future.add_done_callback(self._completed)\n\n    @property\n    def pending(self):\n        return not self.future.done()\n\n    @property\n    @abstractmethod\n    def options(self) -> list[Answer]:\n        ...\n\n    @property\n    @abstractmethod\n    def presentation(self):\n        ...\n\n    def answer(self, binding, answer):\n        if self.owns_projection(binding, binding.target):\n            if answer is None or any((option.id == answer.id for option in self.options)):\n                self.future.set_result(answer)\n\n    def cancel(self):\n        if self.pending:\n            self.future.set_result(None)\n\n    def current_on(self, binding, surface):\n        \"\"\"The original controller and surface own this attachment.\"\"\"\n        return self.controller.agent.controller.surface is binding and binding.owns(surface)\n\n    def owns_projection(self, binding, surface):\n        return self.pending and self.current_on(binding, surface) and (binding in self._projections)\n\n    async def present(self, surface):\n        \"\"\"Acquire once before asynchronous frontend work; retain its callbacks.\"\"\"\n        binding = self.controller.agent.controller.surface\n        if not self.pending or not self.current_on(binding, surface) or binding in self._projections:\n            return\n        self._projections[binding] = []\n        try:\n            binding.permission_changed(surface)\n            await binding.present_permission(self, surface)\n        except BaseException:\n            self._retire_projection(binding)\n            raise\n        finally:\n            if self.current_on(binding, surface):\n                binding.permission_changed(surface)\n\n    def watch(self, binding, retire):\n        surface = binding.target\n        if not self.owns_projection(binding, surface):\n            retire()\n            return False\n        self._projections[binding].append(retire)\n        return True\n\n    def detach(self, surface):\n        for binding in tuple(self._projections):\n            if binding.owns(surface):\n                self._retire_projection(binding)\n\n    def _retire_projection(self, binding):\n        for retire in self._projections.pop(binding, ()):\n            retire()\n\n    def _completed(self, future):\n        self.controller.requests.discard(self)\n        for binding in tuple(self._projections):\n            self._retire_projection(binding)\n\n    async def wait(self, timeout):\n        try:\n            return await asyncio.wait_for(self.future, timeout)\n        except TimeoutError:\n            return None"
+      },
+      {
+        "path": "src/toad/acp/permission_controller.py",
+        "line": 97,
+        "kind": "ClassDef",
+        "source": "class ToolPermissionRequest(PermissionRequest):\n\n    def __init__(self, controller, options, tool_call):\n        super().__init__(controller)\n        self._options = [Answer(option.name, option.option_id, option.kind) for option in options]\n        self._presentation = PermissionPresentation.from_acp(tool_call)\n\n    @property\n    def options(self):\n        return self._options\n\n    @property\n    def presentation(self):\n        return self._presentation"
+      },
+      {
+        "path": "src/toad/acp/permission_controller.py",
+        "line": 112,
+        "kind": "ClassDef",
+        "source": "class PermissionController(ClientRequestOwner):\n\n    def __init__(self, agent):\n        super().__init__(agent)\n        self.requests: set[PermissionRequest] = set()\n\n    @property\n    def pending(self):\n        return tuple((request for request in self.requests if request.pending))\n\n    def request(self, options, tool_call):\n        from toad.core.events import RequestPermission\n        request = ToolPermissionRequest(self, options, tool_call)\n        self.requests.add(request)\n        self.agent.events.publish(RequestPermission())\n        return request\n\n    def present(self):\n        from toad.core.events import RequestPermission\n        if self.pending:\n            self.agent.events.publish(RequestPermission())\n\n    def detach(self, surface):\n        for request in self.pending:\n            request.detach(surface)\n\n    def cancel(self):\n        for request in self.pending:\n            request.cancel()\n\n    @classmethod\n    def resolve(cls, agent):\n        return agent.permissions\n\n    @jsonrpc.expose('session/request_permission')\n    async def request_permission(self, sessionId: str, options: list[protocol.PermissionOption], toolCall: protocol.ToolCallUpdate, _meta: dict | None=None) -> protocol.RequestPermissionResponse:\n        cancelled = protocol.RequestPermissionResponse(outcome=protocol.DeniedOutcome(outcome='cancelled'))\n        authority = ClientSessionRequest(self.agent, sessionId)\n        if authority.retired:\n            return cancelled\n        visible = self.agent.tools.permission(toolCall)\n        request = self.request(options, visible)\n        answer = await request.wait(PERMISSION_TIMEOUT_SECONDS)\n        if answer is None or authority.retired:\n            return cancelled\n        return protocol.RequestPermissionResponse(outcome=protocol.AllowedOutcome(option_id=answer.id, outcome='selected'))"
+      },
+      {
+        "path": "src/toad/acp/permission_controller.py",
+        "line": 97,
+        "kind": "Name",
+        "source": "PermissionRequest"
+      },
+      {
+        "path": "src/toad/acp/permission_controller.py",
+        "line": 41,
+        "kind": "Attribute",
+        "source": "self.pending"
+      },
+      {
+        "path": "src/toad/acp/permission_controller.py",
+        "line": 130,
+        "kind": "Attribute",
+        "source": "self.pending"
+      },
+      {
+        "path": "src/toad/acp/permission_controller.py",
+        "line": 134,
+        "kind": "Attribute",
+        "source": "self.pending"
+      },
+      {
+        "path": "src/toad/acp/permission_controller.py",
+        "line": 138,
+        "kind": "Attribute",
+        "source": "self.pending"
+      },
+      {
+        "path": "src/toad/acp/permission_controller.py",
+        "line": 36,
+        "kind": "Attribute",
+        "source": "self.owns_projection"
+      },
+      {
+        "path": "src/toad/acp/permission_controller.py",
+        "line": 50,
+        "kind": "Attribute",
+        "source": "self.pending"
+      },
+      {
+        "path": "src/toad/acp/permission_controller.py",
+        "line": 115,
+        "kind": "Name",
+        "source": "PermissionRequest"
+      },
+      {
+        "path": "src/toad/acp/permission_controller.py",
+        "line": 123,
+        "kind": "Name",
+        "source": "ToolPermissionRequest"
+      },
+      {
+        "path": "src/toad/acp/permission_controller.py",
+        "line": 50,
+        "kind": "Attribute",
+        "source": "self.current_on"
+      },
+      {
+        "path": "src/toad/acp/permission_controller.py",
+        "line": 55,
+        "kind": "Attribute",
+        "source": "self.pending"
+      },
+      {
+        "path": "src/toad/acp/permission_controller.py",
+        "line": 59,
+        "kind": "Attribute",
+        "source": "binding.permission_changed"
+      },
+      {
+        "path": "src/toad/acp/permission_controller.py",
+        "line": 65,
+        "kind": "Attribute",
+        "source": "self.current_on"
+      },
+      {
+        "path": "src/toad/acp/permission_controller.py",
+        "line": 70,
+        "kind": "Attribute",
+        "source": "self.owns_projection"
+      },
+      {
+        "path": "src/toad/acp/permission_controller.py",
+        "line": 88,
+        "kind": "Attribute",
+        "source": "self._retire_projection"
+      },
+      {
+        "path": "src/toad/acp/permission_controller.py",
+        "line": 135,
+        "kind": "Attribute",
+        "source": "request.detach"
+      },
+      {
+        "path": "src/toad/acp/permission_controller.py",
+        "line": 55,
+        "kind": "Attribute",
+        "source": "self.current_on"
+      },
+      {
+        "path": "src/toad/acp/permission_controller.py",
+        "line": 60,
+        "kind": "Attribute",
+        "source": "binding.present_permission"
+      },
+      {
+        "path": "src/toad/acp/permission_controller.py",
+        "line": 62,
+        "kind": "Attribute",
+        "source": "self._retire_projection"
+      },
+      {
+        "path": "src/toad/acp/permission_controller.py",
+        "line": 66,
+        "kind": "Attribute",
+        "source": "binding.permission_changed"
+      },
+      {
+        "path": "src/toad/acp/permission_controller.py",
+        "line": 79,
+        "kind": "Attribute",
+        "source": "self._retire_projection"
+      },
+      {
+        "path": "src/toad/acp/permission_controller.py",
+        "line": 119,
+        "kind": "Attribute",
+        "source": "request.pending"
+      },
+      {
+        "path": "src/toad/acp/terminal_owner.py",
+        "line": 12,
+        "kind": "ImportFrom",
+        "source": "from .agent_controller import SurfaceBinding"
+      },
+      {
+        "path": "src/toad/agent_surface.py",
+        "line": 7,
+        "kind": "ImportFrom",
+        "source": "from toad.acp.agent_controller import SurfaceBinding, ApplicationValidationOwner"
+      },
+      {
+        "path": "src/toad/agent_surface.py",
+        "line": 11,
+        "kind": "ClassDef",
+        "source": "class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):\n\n    def __init__(self, target, events):\n        self._target = ref(target)\n        self.subscription = target.subscribe_core(events)\n\n    def prepare(self, controller) -> None:\n        app = self.target.app\n        controller.transcripts = controller.transcripts.with_runtime(app.preparation, app.coordination_access)\n        controller.validation = ApplicationValidationOwner(app.render_processes)\n\n    def prepare_terminal(self, state) -> None:\n        target = self.target\n        if target is not None:\n            state.update_size(*target.get_terminal_dimensions())\n\n    async def present_failure(self, failure, view) -> None:\n        if self.owns(view):\n            await self.dispatch(failure, view)\n\n    @handles(HelpAgentFail)\n    async def show_failure_help(self, failure, view):\n        from toad.widgets.markdown_note import MarkdownNote\n        await view.post(MarkdownNote(failure.help_text))\n\n    @handles(LogAgentFail)\n    async def show_failure_log(self, failure, view):\n        from urllib.parse import quote\n        from toad.widgets.agent_response import AgentResponse\n        from toad.widgets.message_filter import OtherCategory\n        link = AgentResponse(f'[Open ACP log]({quote(str(failure.log_path))})', show_divider=False, category=OtherCategory)\n        link.add_class('-error-log-link')\n        await view.post(link)\n\n    async def present_permission(self, request, view) -> None:\n        await self.dispatch(request.presentation, view, request)\n\n    def permission_changed(self, view) -> None:\n        view.refresh_bindings()\n\n    @handles(DiffPermissionPresentation)\n    async def show_file_permission(self, presentation, view, request):\n        from toad.screens.permissions import PermissionReview\n        screen = PermissionReview(request, view, presentation.diffs, self)\n        app = view.app\n        if not request.watch(self, screen.retire):\n            return\n        try:\n            app.terminal_attention.require(screen)\n            app.terminal_attention.notify(f'{view.agent_title} would like to write files', title='Permissions request', sound='question')\n            result = await app.push_screen_wait(screen, mode=view.screen.id)\n            request.answer(self, result)\n        finally:\n            app.terminal_attention.release(screen)\n\n    @handles(InlinePermissionPresentation)\n    async def show_inline_permission(self, presentation, view, request):\n        from toad.widgets.acp_content import ACPToolCallContent\n        from toad.tool_output import decode_content\n        parts = tuple((preview for item in presentation.parts if (preview := decode_content(item).permission_preview()) is not None))\n\n        def answer(answer):\n            request.answer(self, answer)\n        ask = view.ask(request.options, presentation.title, partial(ACPToolCallContent, parts) if parts else None, answer)\n\n        def retire():\n            if view.is_attached:\n                view.prompt.remove_ask(ask)\n                if view.prompt._ask is None:\n                    view.refresh_bindings()\n        request.watch(self, retire)\n\n    def schedule_terminal_presentation(self, controller):\n        if (target := self.target) is not None:\n            target.call_later(controller.start_terminal_presentation, target)\n\n    def close(self) -> None:\n        if (target := self.target) is not None:\n            target.retire_core(self.subscription)\n        else:\n            self.subscription.close()\n\n    @property\n    def target(self):\n        return self._target()\n\n    def post(self, message):\n        target = self.target\n        return target.post_message(message) if target is not None else False\n\n    def publish_terminal(self, controller, terminal_id, execution):\n        from toad.widgets.terminal_tool import TerminalTool\n        return self.post(TerminalTool.Projection(self, controller, terminal_id, execution))\n\n    def owns_terminal(self, projection, target):\n        \"\"\"Same original surface, controller lifetime and acquired address.\"\"\"\n        if not self.owns(target):\n            return False\n        return projection.controller.owner.owns_terminal_projection(self, projection)\n\n    async def present_terminal(self, projection, target):\n        if not self.owns_terminal(projection, target):\n            return\n        from toad.widgets.terminal_tool import TerminalTool\n        if (existing := target.query_one_optional(f'#{projection.terminal_id}', TerminalTool)):\n            if existing.execution is projection.execution:\n                return\n            await existing.remove()\n            if not self.owns_terminal(projection, target):\n                return\n        terminal = TerminalTool(projection.execution, id=projection.terminal_id)\n        await target.post(terminal)\n        if not self.owns_terminal(projection, target):\n            await terminal.remove()"
+      },
+      {
+        "path": "src/toad/agent_surface.py",
+        "line": 11,
+        "kind": "Name",
+        "source": "SurfaceBinding"
+      },
+      {
+        "path": "src/toad/agent_surface.py",
+        "line": 56,
+        "kind": "ImportFrom",
+        "source": "from toad.screens.permissions import PermissionReview"
+      },
+      {
+        "path": "src/toad/agent_surface.py",
+        "line": 58,
+        "kind": "Name",
+        "source": "PermissionReview"
+      },
+      {
+        "path": "src/toad/agent_surface.py",
+        "line": 92,
+        "kind": "Attribute",
+        "source": "request.watch"
+      },
+      {
+        "path": "src/toad/agent_surface.py",
+        "line": 60,
+        "kind": "Attribute",
+        "source": "request.watch"
+      },
+      {
+        "path": "src/toad/agent_surface.py",
+        "line": 67,
+        "kind": "Attribute",
+        "source": "request.answer"
+      },
+      {
+        "path": "src/toad/agent_surface.py",
+        "line": 80,
+        "kind": "Attribute",
+        "source": "request.answer"
+      },
+      {
+        "path": "src/toad/screens/permissions.py",
+        "line": 209,
+        "kind": "ClassDef",
+        "source": "class PermissionReview(PermissionsScreen):\n    \"\"\"Admission at mount uses the same pending request and source binding.\"\"\"\n\n    def __init__(self, request, view, diffs, binding):\n        super().__init__(request.options, diffs, agent_name=view.agent_title or 'The Agent')\n        self.request = request\n        self.binding = binding\n        self._view = ref(view)\n\n    def retire(self):\n        if self.is_active:\n            self.dismiss(None)\n\n    def on_screen_resume(self, event):\n        self.on_mount(event)\n\n    def on_mount(self, event):\n        view = self._view()\n        if not self.request.owns_projection(self.binding, view):\n            event.prevent_default()\n            self.retire()"
+      },
+      {
+        "path": "src/toad/screens/permissions.py",
+        "line": 189,
+        "kind": "Attribute",
+        "source": "event.answer"
+      },
+      {
+        "path": "src/toad/screens/permissions.py",
+        "line": 226,
+        "kind": "Attribute",
+        "source": "self.request.owns_projection"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 381,
+        "kind": "ImportFrom",
+        "source": "from toad.agent_surface import AttachedSurfaceBinding"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 1520,
+        "kind": "Attribute",
+        "source": "self.agent.permissions.pending"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 383,
+        "kind": "Name",
+        "source": "AttachedSurfaceBinding"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 1616,
+        "kind": "Attribute",
+        "source": "request.present"
+      },
+      {
+        "path": "src/toad/widgets/terminal_tool.py",
+        "line": 17,
+        "kind": "ImportFrom",
+        "source": "from toad.agent_surface import AttachedSurfaceBinding"
+      },
+      {
+        "path": "src/toad/widgets/terminal_tool.py",
+        "line": 26,
+        "kind": "Name",
+        "source": "AttachedSurfaceBinding"
+      }
+    ]
+  },
+  "tests": {
+    "modules": 391,
+    "parse_omissions": [],
+    "sites": [
+      {
+        "path": "tests/acp_specification_installed_pilot.py",
+        "line": 61,
+        "kind": "Attribute",
+        "source": "agent.permissions.pending"
+      },
+      {
+        "path": "tests/client_session_native_installed_pilot.py",
+        "line": 8,
+        "kind": "ImportFrom",
+        "source": "from toad.screens.permissions import PermissionReview"
+      },
+      {
+        "path": "tests/client_session_native_installed_pilot.py",
+        "line": 95,
+        "kind": "Attribute",
+        "source": "agent.permissions.pending"
+      },
+      {
+        "path": "tests/client_session_native_installed_pilot.py",
+        "line": 98,
+        "kind": "Attribute",
+        "source": "owned_request.pending"
+      },
+      {
+        "path": "tests/client_session_native_installed_pilot.py",
+        "line": 103,
+        "kind": "Attribute",
+        "source": "agent.permissions.pending"
+      },
+      {
+        "path": "tests/client_session_native_installed_pilot.py",
+        "line": 124,
+        "kind": "Attribute",
+        "source": "agent.permissions.pending"
+      },
+      {
+        "path": "tests/client_session_native_installed_pilot.py",
+        "line": 47,
+        "kind": "Name",
+        "source": "PermissionReview"
+      },
+      {
+        "path": "tests/client_session_native_installed_pilot.py",
+        "line": 100,
+        "kind": "Name",
+        "source": "PermissionReview"
+      },
+      {
+        "path": "tests/client_session_native_installed_pilot.py",
+        "line": 109,
+        "kind": "Name",
+        "source": "PermissionReview"
+      },
+      {
+        "path": "tests/client_session_native_installed_pilot.py",
+        "line": 121,
+        "kind": "Name",
+        "source": "PermissionReview"
+      },
+      {
+        "path": "tests/client_session_native_installed_pilot.py",
+        "line": 85,
+        "kind": "Name",
+        "source": "PermissionReview"
+      },
+      {
+        "path": "tests/client_session_native_installed_pilot.py",
+        "line": 90,
+        "kind": "Attribute",
+        "source": "agent.permissions.pending"
+      },
+      {
+        "path": "tests/client_session_native_installed_pilot.py",
+        "line": 97,
+        "kind": "Name",
+        "source": "PermissionReview"
+      },
+      {
+        "path": "tests/history_availability_installed_pilot.py",
+        "line": 106,
+        "kind": "Attribute",
+        "source": "agent.permissions.pending"
+      },
+      {
+        "path": "tests/l0a_native_installed_pilot.py",
+        "line": 514,
+        "kind": "Attribute",
+        "source": "agent.permissions.pending"
+      },
+      {
+        "path": "tests/late_native_after_join_pilot.py",
+        "line": 20,
+        "kind": "ImportFrom",
+        "source": "from toad.acp.agent_controller import AttachedSurfaceBinding"
+      },
+      {
+        "path": "tests/late_native_after_join_pilot.py",
+        "line": 76,
+        "kind": "Name",
+        "source": "AttachedSurfaceBinding"
+      },
+      {
+        "path": "tests/late_native_application_pilot.py",
+        "line": 20,
+        "kind": "ImportFrom",
+        "source": "from toad.acp.agent_controller import AttachedSurfaceBinding"
+      },
+      {
+        "path": "tests/late_native_application_pilot.py",
+        "line": 76,
+        "kind": "Name",
+        "source": "AttachedSurfaceBinding"
+      },
+      {
+        "path": "tests/native_permission_ui.py",
+        "line": 85,
+        "kind": "Attribute",
+        "source": "self.agent.permissions.pending"
+      },
+      {
+        "path": "tests/native_permission_ui.py",
+        "line": 90,
+        "kind": "Attribute",
+        "source": "request.pending"
+      },
+      {
+        "path": "tests/native_permission_ui.py",
+        "line": 97,
+        "kind": "Attribute",
+        "source": "request.pending"
+      },
+      {
+        "path": "tests/native_widget_actions_installed_pilot.py",
+        "line": 159,
+        "kind": "Attribute",
+        "source": "agent.permissions.pending"
+      },
+      {
+        "path": "tests/permission_pending_mount_pilot.py",
+        "line": 94,
+        "kind": "Attribute",
+        "source": "agent.permissions.pending"
+      },
+      {
+        "path": "tests/permission_pending_mount_pilot.py",
+        "line": 110,
+        "kind": "Attribute",
+        "source": "request.pending"
+      },
+      {
+        "path": "tests/permission_pending_mount_pilot.py",
+        "line": 53,
+        "kind": "Attribute",
+        "source": "agent.permissions.pending"
+      },
+      {
+        "path": "tests/permission_pending_mount_pilot.py",
+        "line": 97,
+        "kind": "Attribute",
+        "source": "agent.permissions.present"
+      },
+      {
+        "path": "tests/permission_pending_mount_pilot.py",
+        "line": 100,
+        "kind": "Attribute",
+        "source": "request.owns_projection"
+      },
+      {
+        "path": "tests/permission_pending_mount_pilot.py",
+        "line": 109,
+        "kind": "Attribute",
+        "source": "request.answer"
+      },
+      {
+        "path": "tests/permission_pending_mount_pilot.py",
+        "line": 111,
+        "kind": "Attribute",
+        "source": "request.owns_projection"
+      },
+      {
+        "path": "tests/permission_pending_mount_pilot.py",
+        "line": 65,
+        "kind": "Attribute",
+        "source": "request.pending"
+      },
+      {
+        "path": "tests/terminal_attention_installed_journey.py",
+        "line": 199,
+        "kind": "ImportFrom",
+        "source": "from toad.screens.permissions import PermissionReview"
+      },
+      {
+        "path": "tests/terminal_attention_installed_journey.py",
+        "line": 209,
+        "kind": "Name",
+        "source": "PermissionReview"
+      }
+    ]
+  }
+}
