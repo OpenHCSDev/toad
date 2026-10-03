@@ -1,0 +1,25 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/settings_tree_pilot.py", line 255, in <module>
+    asyncio.run(asyncio.wait_for(main(), 45))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 488, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/settings_tree_pilot.py", line 74, in main
+    failed = ToolCallStatus.from_acp(ToolCall(tool_call_id="private-failed", status="failed"))
+                                     ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/pydantic/main.py", line 263, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+pydantic_core._pydantic_core.ValidationError: 1 validation error for ToolCall
+title
+  Field required [type=missing, input_value={'tool_call_id': 'private...ed', 'status': 'failed'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.13/v/missing
