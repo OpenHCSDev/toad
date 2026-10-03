@@ -1,0 +1,290 @@
+{
+  "before": {
+    "parsed": 286,
+    "omitted": [],
+    "sites": [
+      {
+        "path": "src/toad/mounted_message_history.py",
+        "line": 264,
+        "declaration": "_load_page"
+      },
+      {
+        "path": "src/toad/mounted_message_history.py",
+        "line": 280,
+        "declaration": "_publish_latest"
+      },
+      {
+        "path": "src/toad/mounted_message_history.py",
+        "line": 205,
+        "reference": "self.window.preserve_history"
+      },
+      {
+        "path": "src/toad/transcript_filter.py",
+        "line": 291,
+        "reference": "self.owner.window.preserve_history"
+      },
+      {
+        "path": "src/toad/transcript_filter.py",
+        "line": 133,
+        "reference": "snapshot.window.preserve_history"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 210,
+        "reference": "self.window.preserve_history"
+      },
+      {
+        "path": "src/toad/transcript_source_preparation.py",
+        "line": 138,
+        "declaration": "_publish_latest"
+      },
+      {
+        "path": "src/toad/transcript_source_preparation.py",
+        "line": 142,
+        "declaration": "_complete_latest"
+      },
+      {
+        "path": "src/toad/widgets/committed_presentation.py",
+        "line": 229,
+        "declaration": "anchor"
+      },
+      {
+        "path": "src/toad/widgets/committed_presentation.py",
+        "line": 316,
+        "declaration": "anchor"
+      },
+      {
+        "path": "src/toad/widgets/committed_presentation.py",
+        "line": 234,
+        "reference": "view.window.preserve_history"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 1438,
+        "reference": "self.window.preserve_history"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 718,
+        "reference": "window.release_anchor"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 1456,
+        "reference": "self.window.preserve_history"
+      },
+      {
+        "path": "src/toad/widgets/history_anchor.py",
+        "line": 178,
+        "declaration": "anchor"
+      },
+      {
+        "path": "src/toad/widgets/history_anchor.py",
+        "line": 185,
+        "declaration": "release_anchor"
+      },
+      {
+        "path": "src/toad/widgets/history_anchor.py",
+        "line": 255,
+        "declaration": "preserve_history"
+      },
+      {
+        "path": "src/toad/widgets/history_anchor.py",
+        "line": 266,
+        "declaration": "preserve_reader"
+      },
+      {
+        "path": "src/toad/widgets/history_anchor.py",
+        "line": 93,
+        "reference": "window.release_anchor"
+      },
+      {
+        "path": "src/toad/widgets/history_anchor.py",
+        "line": 188,
+        "reference": "super().release_anchor"
+      },
+      {
+        "path": "src/toad/widgets/history_anchor.py",
+        "line": 262,
+        "reference": "self.preserve_reader"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 777,
+        "declaration": "_publish_latest"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 814,
+        "declaration": "_load_page"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 793,
+        "reference": "window.preserve_history"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 653,
+        "reference": "window.preserve_history"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 854,
+        "reference": "self.window.release_anchor"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 855,
+        "reference": "self.window.preserve_history"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 923,
+        "reference": "self.window.preserve_reader"
+      }
+    ]
+  },
+  "after": {
+    "parsed": 286,
+    "omitted": [],
+    "sites": [
+      {
+        "path": "src/toad/mounted_message_history.py",
+        "line": 264,
+        "declaration": "_load_page"
+      },
+      {
+        "path": "src/toad/mounted_message_history.py",
+        "line": 280,
+        "declaration": "_publish_latest"
+      },
+      {
+        "path": "src/toad/mounted_message_history.py",
+        "line": 205,
+        "reference": "self.window.preserve_history"
+      },
+      {
+        "path": "src/toad/transcript_filter.py",
+        "line": 291,
+        "reference": "self.owner.window.preserve_history"
+      },
+      {
+        "path": "src/toad/transcript_filter.py",
+        "line": 133,
+        "reference": "snapshot.window.preserve_history"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 210,
+        "reference": "self.window.preserve_history"
+      },
+      {
+        "path": "src/toad/transcript_source_preparation.py",
+        "line": 138,
+        "declaration": "_publish_latest"
+      },
+      {
+        "path": "src/toad/transcript_source_preparation.py",
+        "line": 142,
+        "declaration": "_complete_latest"
+      },
+      {
+        "path": "src/toad/widgets/committed_presentation.py",
+        "line": 229,
+        "declaration": "anchor"
+      },
+      {
+        "path": "src/toad/widgets/committed_presentation.py",
+        "line": 316,
+        "declaration": "anchor"
+      },
+      {
+        "path": "src/toad/widgets/committed_presentation.py",
+        "line": 234,
+        "reference": "view.window.preserve_history"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 1438,
+        "reference": "self.window.preserve_history"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 718,
+        "reference": "window.release_anchor"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 1456,
+        "reference": "self.window.preserve_history"
+      },
+      {
+        "path": "src/toad/widgets/history_anchor.py",
+        "line": 178,
+        "declaration": "anchor"
+      },
+      {
+        "path": "src/toad/widgets/history_anchor.py",
+        "line": 185,
+        "declaration": "release_anchor"
+      },
+      {
+        "path": "src/toad/widgets/history_anchor.py",
+        "line": 255,
+        "declaration": "preserve_history"
+      },
+      {
+        "path": "src/toad/widgets/history_anchor.py",
+        "line": 266,
+        "declaration": "preserve_reader"
+      },
+      {
+        "path": "src/toad/widgets/history_anchor.py",
+        "line": 93,
+        "reference": "window.release_anchor"
+      },
+      {
+        "path": "src/toad/widgets/history_anchor.py",
+        "line": 188,
+        "reference": "super().release_anchor"
+      },
+      {
+        "path": "src/toad/widgets/history_anchor.py",
+        "line": 262,
+        "reference": "self.preserve_reader"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 777,
+        "declaration": "_publish_latest"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 814,
+        "declaration": "_load_page"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 793,
+        "reference": "window.preserve_history"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 653,
+        "reference": "window.preserve_history"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 849,
+        "reference": "self.window.preserve_history"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 923,
+        "reference": "self.window.preserve_reader"
+      }
+    ]
+  },
+  "ambiguity": "AST attributes do not resolve dynamic receiver identity; original Window/native owner implementations were read separately."
+}
