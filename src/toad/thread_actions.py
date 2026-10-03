@@ -7,7 +7,7 @@ import asyncio
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from agent_comms.cli_commands import TargetEditCliCommand
+from agent_comms.cli_commands import TargetActionsCliCommand, TargetEditCliCommand
 from toad.comms_root import RouteSelection
 
 if TYPE_CHECKING:

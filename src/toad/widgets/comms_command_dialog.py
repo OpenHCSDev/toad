@@ -4,7 +4,7 @@ from __future__ import annotations
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalScroll
 from textual.screen import ModalScreen
-from textual.widgets import Button, Input, Static
+from textual.widgets import Button, Input, Static, TextArea
 
 
 class CommandDialog(ModalScreen[dict[str, str]]):
@@ -13,6 +13,7 @@ class CommandDialog(ModalScreen[dict[str, str]]):
     CommandDialog #command-box { width: 68; height: auto; max-height: 90%;
         background: $surface; border: solid $primary; padding: 1 2; }
     CommandDialog #command-fields { height: auto; max-height: 24; }
+    CommandDialog TextArea { height: 5; }
     """
     BINDINGS = [('escape', 'cancel', 'Cancel'), ('ctrl+enter', 'submit', 'Apply')]
 
@@ -28,13 +29,14 @@ class CommandDialog(ModalScreen[dict[str, str]]):
             with VerticalScroll(id='command-fields'):
                 for key, parameter in self.definition['parameters']['properties'].items():
                     yield Static(parameter['description'], markup=False)
-                    yield Input(parameter['editor_default'], name=key,
-                                id='command-field-' + key.replace('_', '-'))
+                    widget = TextArea if parameter['multiline'] else Input
+                    yield widget(parameter['editor_default'], name=key,
+                                 id='command-field-' + key.replace('_', '-'))
             yield Button('Apply', id='command-apply', variant='primary')
             yield Button('Cancel', id='command-cancel')
 
     def on_mount(self):
-        fields = list(self.query(Input))
+        fields = list(self.query('Input, TextArea'))
         (fields[0] if fields else self.query_one('#command-cancel', Button)).focus()
 
     def on_input_submitted(self, event: Input.Submitted):
@@ -49,7 +51,8 @@ class CommandDialog(ModalScreen[dict[str, str]]):
             self.action_cancel()
 
     def action_submit(self):
-        self.dismiss({editor.name: editor.value for editor in self.query(Input)})
+        self.dismiss({**{editor.name: editor.value for editor in self.query(Input)},
+                      **{editor.name: editor.text for editor in self.query(TextArea)}})
 
     def action_cancel(self):
         self.dismiss(None)

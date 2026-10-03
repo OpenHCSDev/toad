@@ -38,7 +38,7 @@ class TargetContext:
 
     def available_actions(self):
         self.current()
-        return TargetActionsCliCommand(target=self.subject, channel=self.channel).apply(self.comms)['actions']
+        return TargetActionsCliCommand(target=self.subject, channel=self.channel, project=str(self.project)).apply(self.comms)['actions']
 
     def show_menu(self, sidebar, offset):
         from toad.widgets.comms_menu import show_target_menu
@@ -91,7 +91,7 @@ class ContextualCommand(CommandPresentation, ABC):
     def parse_arguments(self, arguments: str) -> ContextualCommand:
         if arguments.strip():
             raise ValueError(
-                "Use the current target; fork parameters are collected in its dialog"
+                "Use the current target; parameters are collected in the operation form"
             )
         return self
 

@@ -1,3 +1,4 @@
+from runtime_fixture import request_target
 from toad.core import input_events
 from toad.agent_schema import AgentDefinition
 from agent_comms.acp_extension import QueuePromptRequest
@@ -6,7 +7,7 @@ from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import DirectTarget, channel_target
 
-from toad.thread_actions import StartAction
+from agent_comms.cli_commands import StartCliCommand
 import asyncio
 from contextlib import nullcontext
 import json
@@ -515,7 +516,7 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 print("ACTUAL_ACP_PROCESS_CLEANUP_CONFIRMED", flush=True)
                 await asyncio.to_thread(comms.owners.stop, "beta")
                 assert not comms.registry.require("beta").process_alive
-                app.thread_actions.invoke(StartAction(), "beta", user)
+                request_target(app, StartCliCommand, "beta", user)
                 await until(pilot, lambda: "beta" not in app.thread_actions.pending)
                 assert comms.registry.require("beta").process_alive, (
                     "Explicit Start did not launch owner"
