@@ -50,3 +50,11 @@ same existing artifacts encoder/ProcessOwner. No new recorder. Down writer
 median17.59/p9530.39/max103.39ms. ExactEndkey68.263824s; body retained and
 readable, chunkedmovement persists. Ready only for the startup/resource family
 with native34; all unfinished smoothness/CPU/144Hz work remains active.
+
+## Normal current-main integration
+
+Merged current main f54 through metadata conflicts only. Production src remains
+byteequal recorded a030; retain Core57012c1758 and pin merged Text34 2150fb334,
+whose production src is byteequal recorded782. Installed motion proof remains
+the declared Core483/native044 comparator; this metadata union is not a new
+Core570/native915 physical performance claim. No unchanged capture repeated.
