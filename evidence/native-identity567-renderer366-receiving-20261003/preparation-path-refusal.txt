@@ -1,0 +1,1 @@
+Original metadata preparation tried evidence/saved-native-startup-owner-20261003/READY.json, which does not exist. git show refused before verifier/gates finished. Source tree declares READY.md; corrected using exact existing READY.md/installed-custody.json. No product failure, new input, or source-policy change. Normal package install completed once.
