@@ -10,6 +10,7 @@ import json
 import shlex
 import sys
 import time
+import traceback
 import os
 from pathlib import Path
 from threading import Event
@@ -64,6 +65,9 @@ async def pending_read(chat, pilot, body):
                         and not chat._human_admission_blocked)
             receipt = next(m for m, _ in history.rows if m.body == body)
             assert not release.is_set()
+            assert reader._pending and not refresh.is_finished, (
+                "The original read must still be pending when its receipt paints"
+            )
             print('receipt visible with original I/O pending', body, flush=True)
             await pilot.pause()
             assert [m.view_key for m, _ in history.rows].count(receipt.view_key) == 1
@@ -72,6 +76,9 @@ async def pending_read(chat, pilot, body):
             chat.prompt.focus()
             await pilot.press('h', 'i')
             assert chat.prompt.text.endswith('hi')
+            assert reader._pending and not refresh.is_finished, (
+                "Typing must finish before the controlled original read completes"
+            )
         finally:
             release.set()
             await refresh.wait()
@@ -146,7 +153,8 @@ async def exercise_with_evidence(app, pilot, root):
     try:
         history = await exercise(app, pilot, root)
     except BaseException as error:
-        outcome = {'status': 'failed', 'error': repr(error)}
+        outcome = {'status': 'failed', 'error': repr(error),
+                   'traceback': traceback.format_exc()}
         exporter = Path(__file__).resolve().parents[1] / 'tools/performance/capture_state.py'
         spec = importlib.util.spec_from_file_location('history_failure_capture', exporter)
         module = importlib.util.module_from_spec(spec)
