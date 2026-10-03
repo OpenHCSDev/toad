@@ -1,0 +1,10 @@
+{
+  "scope": "Private receipt preparation, no product failure",
+  "error": "requirements-declared.txt absent; existing producer owns requirements.txt only",
+  "install_ran_after_private_metadata_failure": true,
+  "package_grant_already_closed": true,
+  "target_only": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "public_protection_basis": "Original 411 installed inventories and executed activation commitment, verified after target replacement; not an invented before capture",
+  "fallback534_no_package_writer": true,
+  "public_publication_or_input": false
+}
