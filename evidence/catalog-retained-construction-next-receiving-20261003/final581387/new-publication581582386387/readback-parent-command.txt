@@ -1,0 +1,1 @@
+env -u PYTHONPATH -u PYTHONHOME /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python -I /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/catalog-retained-construction388-receiving-20261003/new-publication581582386387/readback_publication.py

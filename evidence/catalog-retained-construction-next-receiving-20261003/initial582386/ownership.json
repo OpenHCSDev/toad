@@ -1,0 +1,23 @@
+{
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "core": "410c126b7dce5cdf5c821e657bcad8e9dda6241a",
+  "toad": "e8d91603d3fc7d897b0ff2f228f45f06c54430cc",
+  "textual": "69954eb3809ab7abbd564efdf3d70fa9ad985d6e",
+  "diff": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "sdk": "0.12.1",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-51bff517be67ae98/node_modules/@earendil-works/pi-coding-agent",
+  "normal_distributions": 69,
+  "no_new_environment": true,
+  "no_publication_by_packaging": true,
+  "release_receipt": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-native-read532-534-retirement325-20261002-for-Sch-next-after385/release-receipt.json",
+  "holder_return": "Bohr fresh215 allUID0 real borrowers,496 original381 metadata/proof preserved; grantedSch",
+  "gate_files": [
+    "382-text38-qualified.json",
+    "386-installed01-ready.json",
+    "573-installed-configured-receipt.json",
+    "576-configured-channel-receipt.json",
+    "578-original-cli-receipt.json",
+    "580-recorded-scorer.json",
+    "582-recorded-capture.json"
+  ]
+}

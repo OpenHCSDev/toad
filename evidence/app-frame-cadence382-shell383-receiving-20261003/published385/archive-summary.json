@@ -1,0 +1,82 @@
+{
+  "state": "Published385 original receipt/identity/ordinary default visible closure archived once",
+  "merged_pr": "https://github.com/OpenHCSDev/toad/pull/385",
+  "ready_head": "e9dcceaa8b66e9363891af9d81332f8898d54e33",
+  "merge_head": "435e788",
+  "installed_source": {
+    "core": "e2c3c2e1343be61cf54f6c36f1ce73d73324f7c0",
+    "toad": "08178f5e051bf7ef43cfaf970cad3c0a3056aad5",
+    "textual": "69954eb3809ab7abbd564efdf3d70fa9ad985d6e",
+    "native_manifest": "51bff517be67ae98213760beebd2c070591e5df61cb2c9ebbf87cacbf9f039ab"
+  },
+  "raw_publication_phase_preserved": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "raw_publication_sha256": "50f5948c27bc30d6f8fd1e56abf37f4bca3a36f5235826ad26795f9c5e666861",
+  "publication_seconds": 42.74876046180725,
+  "owner_count": 19,
+  "ordinary_default_seconds": 23.827736567007378,
+  "actual_st_exit": 0,
+  "parent_image_inspection": "after terminal; no during-motion claim",
+  "scope": "Ordinary default saved-history startup/display with original owner/runtime unchanged and cleanup empty; original affected source gates retain their separate scopes. No new input/provider/performance/fullS4 claim.",
+  "current_protected": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "previous_protected": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "originals": [
+    {
+      "source": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/app-frame-cadence382-shell383-receiving-20261003/new-publication578579382383/publication-receipt.json",
+      "archive": "publication-receipt.json",
+      "bytes": 38740,
+      "sha256": "50f5948c27bc30d6f8fd1e56abf37f4bca3a36f5235826ad26795f9c5e666861"
+    },
+    {
+      "source": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/app-frame-cadence382-shell383-receiving-20261003/new-publication578579382383/publication-identity-closure.json",
+      "archive": "publication-identity-closure.json",
+      "bytes": 18440,
+      "sha256": "8a38811064fb090a7dd88a51da2aa0051d35dd971871f095344f2bdf523f0b7e"
+    },
+    {
+      "source": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published578579382383-20261003/parent-review.json",
+      "archive": "parent-review.json",
+      "bytes": 1313,
+      "sha256": "37793f0fe8e680960d9035b3ed631392a705dbfc61df23a067cb3161f9d43190"
+    },
+    {
+      "source": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published578579382383-20261003/physical-assessment.json",
+      "archive": "default-visible/physical-assessment.json",
+      "bytes": 1327,
+      "sha256": "fb51fb7fa557b6a43685be1c0429fb551590ca79cb67cf9b5f1dbdc623d7fd9d"
+    },
+    {
+      "source": "/home/ts/.cache/agent-scratch/published578579382383-helper-default-20261003/capture/receipt.json",
+      "archive": "default-visible/receipt.json",
+      "bytes": 29959,
+      "sha256": "1405733af0eb49578a4473a5a1f13c930d920e8a4787a07a9113bcaf3f32b00f"
+    },
+    {
+      "source": "/home/ts/.cache/agent-scratch/published578579382383-helper-default-20261003/capture/before-state.json",
+      "archive": "default-visible/before-state.json",
+      "bytes": 1021736,
+      "sha256": "4a3643efe36a73fa6ee90fb7f7b6a25a326ae174813ffa799e3ef44728d67021"
+    },
+    {
+      "source": "/home/ts/.cache/agent-scratch/published578579382383-helper-default-20261003/capture/after-state.json",
+      "archive": "default-visible/after-state.json",
+      "bytes": 1021735,
+      "sha256": "287afecb8b28844cc77233c713075c3d645edd9ecf8f2340b8cef4856557b1c0"
+    },
+    {
+      "source": "/home/ts/.cache/agent-scratch/published578579382383-helper-default-20261003/capture/before.png",
+      "archive": "default-visible/before.png",
+      "bytes": 94170,
+      "sha256": "4d71aa0d51ed1990ca72ad2ab1c0b54846d7136c64657be1e8a3e56254dc58d8"
+    },
+    {
+      "source": "/home/ts/.cache/agent-scratch/published578579382383-helper-default-20261003/capture/after.png",
+      "archive": "default-visible/after.png",
+      "bytes": 94170,
+      "sha256": "4d71aa0d51ed1990ca72ad2ab1c0b54846d7136c64657be1e8a3e56254dc58d8"
+    }
+  ],
+  "archive_bytes": 2321590,
+  "package_mutations": 0,
+  "publication_repeated": false,
+  "readback_repeated": false
+}

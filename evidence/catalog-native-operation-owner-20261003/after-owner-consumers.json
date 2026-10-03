@@ -1,0 +1,1644 @@
+{
+  "revision": "ee9cc70409ece8d1cb53e872f2b5cdf3eb2ebfa4",
+  "collector": "Existing refactor-audit Package.load",
+  "roots": {
+    "src/toad": 288,
+    "tests": 391
+  },
+  "parse_omissions": [],
+  "sites": [
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 42,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 333,
+      "kind": "Attribute",
+      "text": "self.controller.transcripts.bind"
+    },
+    {
+      "path": "src/toad/acp/agent_configuration.py",
+      "line": 43,
+      "kind": "FunctionDef",
+      "text": "@classmethod"
+    },
+    {
+      "path": "src/toad/acp/agent_configuration.py",
+      "line": 107,
+      "kind": "Attribute",
+      "text": "kind.bind"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 360,
+      "kind": "Attribute",
+      "text": "self.transcripts.bind"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 245,
+      "kind": "Attribute",
+      "text": "self.transcripts.bind"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 90,
+      "kind": "Attribute",
+      "text": "self.agent._private_cursor.bind"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 101,
+      "kind": "Attribute",
+      "text": "self.agent.queue_attachment.bind"
+    },
+    {
+      "path": "src/toad/acp/projection_attachment.py",
+      "line": 81,
+      "kind": "FunctionDef",
+      "text": "def bind(self, value: CursorEnvelope | QueueChangedUpdate | None, session_id: str, token: int) -> str:"
+    },
+    {
+      "path": "src/toad/acp/queue_attachment.py",
+      "line": 60,
+      "kind": "FunctionDef",
+      "text": "def bind(self, value: QueueChangedUpdate, session_id: str, token: int):"
+    },
+    {
+      "path": "src/toad/acp/queue_attachment.py",
+      "line": 61,
+      "kind": "Attribute",
+      "text": "super().bind"
+    },
+    {
+      "path": "src/toad/acp/terminal_controller.py",
+      "line": 28,
+      "kind": "alias",
+      "text": "Command"
+    },
+    {
+      "path": "src/toad/acp/terminal_controller.py",
+      "line": 38,
+      "kind": "Name",
+      "text": "Command"
+    },
+    {
+      "path": "src/toad/acp/terminal_owner.py",
+      "line": 9,
+      "kind": "alias",
+      "text": "Command"
+    },
+    {
+      "path": "src/toad/acp/terminal_owner.py",
+      "line": 56,
+      "kind": "Name",
+      "text": "Command"
+    },
+    {
+      "path": "src/toad/acp/transcript_reader.py",
+      "line": 65,
+      "kind": "AsyncFunctionDef",
+      "text": "@asynccontextmanager"
+    },
+    {
+      "path": "src/toad/acp/transcript_reader.py",
+      "line": 77,
+      "kind": "Attribute",
+      "text": "self.bind"
+    },
+    {
+      "path": "src/toad/acp/transcript_reader.py",
+      "line": 90,
+      "kind": "Attribute",
+      "text": "self.bind"
+    },
+    {
+      "path": "src/toad/acp/transcript_reader.py",
+      "line": 101,
+      "kind": "Attribute",
+      "text": "self.bind"
+    },
+    {
+      "path": "src/toad/agent_schema.py",
+      "line": 11,
+      "kind": "ClassDef",
+      "text": "class AgentKind(DeclaredFamily, affix='AgentKind'):"
+    },
+    {
+      "path": "src/toad/agent_schema.py",
+      "line": 49,
+      "kind": "ClassDef",
+      "text": "@dataclass(frozen=True)"
+    },
+    {
+      "path": "src/toad/agent_schema.py",
+      "line": 20,
+      "kind": "Name",
+      "text": "AgentKind"
+    },
+    {
+      "path": "src/toad/agent_schema.py",
+      "line": 33,
+      "kind": "Name",
+      "text": "AgentKind"
+    },
+    {
+      "path": "src/toad/agent_schema.py",
+      "line": 76,
+      "kind": "FunctionDef",
+      "text": "def commands_for(self, platform: OS) -> dict[str, Command]:"
+    },
+    {
+      "path": "src/toad/agent_schema.py",
+      "line": 76,
+      "kind": "Name",
+      "text": "Command"
+    },
+    {
+      "path": "src/toad/agent_schema.py",
+      "line": 41,
+      "kind": "Name",
+      "text": "AgentKind"
+    },
+    {
+      "path": "src/toad/agent_schema.py",
+      "line": 62,
+      "kind": "Name",
+      "text": "AgentKind"
+    },
+    {
+      "path": "src/toad/agent_schema.py",
+      "line": 72,
+      "kind": "Name",
+      "text": "Command"
+    },
+    {
+      "path": "src/toad/agents.py",
+      "line": 4,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 33,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "src/toad/application_actions.py",
+      "line": 8,
+      "kind": "alias",
+      "text": "Command"
+    },
+    {
+      "path": "src/toad/application_actions.py",
+      "line": 50,
+      "kind": "Name",
+      "text": "Command"
+    },
+    {
+      "path": "src/toad/catalog_actions.py",
+      "line": 9,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition, Command"
+    },
+    {
+      "path": "src/toad/catalog_actions.py",
+      "line": 17,
+      "kind": "ClassDef",
+      "text": "@dataclass(frozen=True)"
+    },
+    {
+      "path": "src/toad/catalog_actions.py",
+      "line": 9,
+      "kind": "alias",
+      "text": "Command"
+    },
+    {
+      "path": "src/toad/catalog_actions.py",
+      "line": 24,
+      "kind": "FunctionDef",
+      "text": "@classmethod"
+    },
+    {
+      "path": "src/toad/catalog_actions.py",
+      "line": 63,
+      "kind": "Name",
+      "text": "CatalogCommandAction"
+    },
+    {
+      "path": "src/toad/catalog_actions.py",
+      "line": 67,
+      "kind": "Name",
+      "text": "CatalogCommandAction"
+    },
+    {
+      "path": "src/toad/catalog_actions.py",
+      "line": 86,
+      "kind": "Name",
+      "text": "CatalogCommandAction"
+    },
+    {
+      "path": "src/toad/catalog_actions.py",
+      "line": 21,
+      "kind": "Name",
+      "text": "Command"
+    },
+    {
+      "path": "src/toad/catalog_actions.py",
+      "line": 24,
+      "kind": "Name",
+      "text": "CatalogCommandAction"
+    },
+    {
+      "path": "src/toad/catalog_actions.py",
+      "line": 24,
+      "kind": "Name",
+      "text": "Command"
+    },
+    {
+      "path": "src/toad/cli.py",
+      "line": 6,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "src/toad/cli.py",
+      "line": 114,
+      "kind": "Attribute",
+      "text": "click.Command"
+    },
+    {
+      "path": "src/toad/cli.py",
+      "line": 277,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "src/toad/core/session_requests.py",
+      "line": 11,
+      "kind": "alias",
+      "text": "Command"
+    },
+    {
+      "path": "src/toad/core/session_requests.py",
+      "line": 15,
+      "kind": "Name",
+      "text": "Command"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 18,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "src/toad/directory_suggester.py",
+      "line": 90,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/mcp_commands.py",
+      "line": 9,
+      "kind": "alias",
+      "text": "Command"
+    },
+    {
+      "path": "src/toad/mcp_commands.py",
+      "line": 26,
+      "kind": "Name",
+      "text": "Command"
+    },
+    {
+      "path": "src/toad/mounted_message_history.py",
+      "line": 122,
+      "kind": "FunctionDef",
+      "text": "def compose(self):"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 35,
+      "kind": "FunctionDef",
+      "text": "@classmethod"
+    },
+    {
+      "path": "src/toad/question_presentation.py",
+      "line": 97,
+      "kind": "Name",
+      "text": "compose"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 14,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 15,
+      "kind": "import",
+      "text": "from toad.catalog_actions import CatalogCommandAction"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 15,
+      "kind": "alias",
+      "text": "CatalogCommandAction"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 57,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 37,
+      "kind": "Name",
+      "text": "CatalogCommandAction"
+    },
+    {
+      "path": "src/toad/screens/agent_modal.py",
+      "line": 15,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition, OS"
+    },
+    {
+      "path": "src/toad/screens/agent_modal.py",
+      "line": 16,
+      "kind": "import",
+      "text": "from toad.catalog_actions import CatalogCommandAction, LaunchAction"
+    },
+    {
+      "path": "src/toad/screens/agent_modal.py",
+      "line": 16,
+      "kind": "alias",
+      "text": "CatalogCommandAction"
+    },
+    {
+      "path": "src/toad/screens/agent_modal.py",
+      "line": 43,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/agent_modal.py",
+      "line": 47,
+      "kind": "Attribute",
+      "text": "CatalogCommandAction.bind"
+    },
+    {
+      "path": "src/toad/screens/agent_modal.py",
+      "line": 47,
+      "kind": "Name",
+      "text": "CatalogCommandAction"
+    },
+    {
+      "path": "src/toad/screens/agent_modal.py",
+      "line": 48,
+      "kind": "Attribute",
+      "text": "agent.commands_for"
+    },
+    {
+      "path": "src/toad/screens/command_edit_modal.py",
+      "line": 28,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 119,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/file_preview.py",
+      "line": 30,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/goal_details.py",
+      "line": 47,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/goal_edit.py",
+      "line": 46,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 56,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 28,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 234,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/mcp_decision.py",
+      "line": 41,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/mcp_inventory.py",
+      "line": 53,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/permissions.py",
+      "line": 105,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/session_resume_modal.py",
+      "line": 25,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 20,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 34,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 120,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 141,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 244,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 283,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 378,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 428,
+      "kind": "FunctionDef",
+      "text": "def compose_agents(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 456,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentKind"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 456,
+      "kind": "alias",
+      "text": "AgentKind"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 457,
+      "kind": "Name",
+      "text": "AgentKind"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 543,
+      "kind": "Attribute",
+      "text": "self.compose_agents"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 457,
+      "kind": "Name",
+      "text": "AgentKind"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 92,
+      "kind": "FunctionDef",
+      "text": "def compose(self):"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 88,
+      "kind": "AsyncFunctionDef",
+      "text": "async def bind(self, service: Comms) -> None:"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 170,
+      "kind": "Attribute",
+      "text": "self.bind"
+    },
+    {
+      "path": "src/toad/slash_command.py",
+      "line": 12,
+      "kind": "alias",
+      "text": "Command"
+    },
+    {
+      "path": "src/toad/slash_command.py",
+      "line": 64,
+      "kind": "Name",
+      "text": "Command"
+    },
+    {
+      "path": "src/toad/slash_command.py",
+      "line": 122,
+      "kind": "Attribute",
+      "text": "conversation.action_provider_login"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 31,
+      "kind": "ClassDef",
+      "text": "@dataclass"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 313,
+      "kind": "Name",
+      "text": "Command"
+    },
+    {
+      "path": "src/toad/thread_actions.py",
+      "line": 12,
+      "kind": "alias",
+      "text": "Command"
+    },
+    {
+      "path": "src/toad/thread_actions.py",
+      "line": 111,
+      "kind": "Name",
+      "text": "Command"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 42,
+      "kind": "FunctionDef",
+      "text": "@abstractmethod"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 113,
+      "kind": "FunctionDef",
+      "text": "def compose(self, view: Widget) -> tuple[Widget, ...]:"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 156,
+      "kind": "FunctionDef",
+      "text": "def compose(self, view: Widget) -> tuple[Widget, ...]:"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 173,
+      "kind": "FunctionDef",
+      "text": "def compose(self, view: Widget) -> tuple[Widget, ...]:"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 222,
+      "kind": "FunctionDef",
+      "text": "def compose(self, view: Widget) -> tuple[Widget, ...]:"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 249,
+      "kind": "FunctionDef",
+      "text": "def compose(self, view: Widget) -> tuple[Widget, ...]:"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 264,
+      "kind": "FunctionDef",
+      "text": "def compose(self, view: Widget) -> tuple[Widget, ...]:"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 275,
+      "kind": "FunctionDef",
+      "text": "def compose(self, view: Widget) -> tuple[Widget, ...]:"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 420,
+      "kind": "Attribute",
+      "text": "part.compose"
+    },
+    {
+      "path": "src/toad/visuals/columns.py",
+      "line": 270,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/acp_content.py",
+      "line": 18,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/acp_content.py",
+      "line": 20,
+      "kind": "Attribute",
+      "text": "part.compose"
+    },
+    {
+      "path": "src/toad/widgets/acp_log.py",
+      "line": 43,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/channel_participants.py",
+      "line": 34,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/channel_prompt.py",
+      "line": 59,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/channel_prompt.py",
+      "line": 61,
+      "kind": "Attribute",
+      "text": "super().compose"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 248,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 123,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/comms_fork_dialog.py",
+      "line": 37,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 117,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/comms_transfer.py",
+      "line": 156,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/comms_transfer.py",
+      "line": 220,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 52,
+      "kind": "FunctionDef",
+      "text": "def compose(self):"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 71,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 830,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1132,
+      "kind": "AsyncFunctionDef",
+      "text": "@work(group='provider-login', exclusive=True)"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1135,
+      "kind": "import",
+      "text": "from toad.agent_schema import Command"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1136,
+      "kind": "import",
+      "text": "from toad.catalog_actions import CatalogCommandAction"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1135,
+      "kind": "alias",
+      "text": "Command"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1136,
+      "kind": "alias",
+      "text": "CatalogCommandAction"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1129,
+      "kind": "Attribute",
+      "text": "self.action_provider_login"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 347,
+      "kind": "Attribute",
+      "text": "viewport.membership.bind"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1814,
+      "kind": "Attribute",
+      "text": "observed.bind"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1169,
+      "kind": "Attribute",
+      "text": "CatalogCommandAction.bind"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1169,
+      "kind": "Name",
+      "text": "CatalogCommandAction"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1169,
+      "kind": "Name",
+      "text": "Command"
+    },
+    {
+      "path": "src/toad/widgets/footer.py",
+      "line": 45,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/footer.py",
+      "line": 50,
+      "kind": "Attribute",
+      "text": "super().compose"
+    },
+    {
+      "path": "src/toad/widgets/future_text.py",
+      "line": 123,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "line": 143,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/grid_select.py",
+      "line": 225,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/incoming_message.py",
+      "line": 42,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/input_delivery.py",
+      "line": 74,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/input_delivery.py",
+      "line": 154,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 87,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/mandelbrot.py",
+      "line": 290,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/menu.py",
+      "line": 31,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 122,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 43,
+      "kind": "FunctionDef",
+      "text": "def bind(self, read: Callable[[], Awaitable[ThreadPresentation | None]]) -> None:"
+    },
+    {
+      "path": "src/toad/widgets/outgoing_message.py",
+      "line": 32,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 168,
+      "kind": "FunctionDef",
+      "text": "def bind(self, added: Style, removed: Style) -> tuple['KnownLines', 'KnownLines']:"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 461,
+      "kind": "FunctionDef",
+      "text": "def compose(self):"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 471,
+      "kind": "Attribute",
+      "text": "super().compose"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 492,
+      "kind": "Attribute",
+      "text": "prepared.bind"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 199,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 77,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 82,
+      "kind": "Attribute",
+      "text": "entry.status.compose"
+    },
+    {
+      "path": "src/toad/widgets/prepared_markdown.py",
+      "line": 252,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 68,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 157,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 774,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 97,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 205,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 269,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 248,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/shell_result.py",
+      "line": 28,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 109,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 317,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 738,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 1015,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 111,
+      "kind": "Attribute",
+      "text": "super().compose"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 65,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/slash_complete.py",
+      "line": 111,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/streaming_markdown.py",
+      "line": 48,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/strike_text.py",
+      "line": 59,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 493,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 242,
+      "kind": "FunctionDef",
+      "text": "def compose(self):"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 185,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 61,
+      "kind": "FunctionDef",
+      "text": "@abstractmethod"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 65,
+      "kind": "FunctionDef",
+      "text": "def compose(self, view: 'ToolCallDiff') -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 80,
+      "kind": "FunctionDef",
+      "text": "def compose(self, view: 'ToolCallDiff') -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 109,
+      "kind": "FunctionDef",
+      "text": "def compose(self, view: 'ToolCallDiff') -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 150,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 81,
+      "kind": "Attribute",
+      "text": "WaitingPatchPublication().compose"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 151,
+      "kind": "Attribute",
+      "text": "self.publication.compose"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 111,
+      "kind": "Attribute",
+      "text": "WaitingPatchPublication().compose"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 220,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 298,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 527,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/user_input.py",
+      "line": 58,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 580,
+      "kind": "FunctionDef",
+      "text": "def bind(self, presentation):"
+    },
+    {
+      "path": "src/toad/workspace_chrome.py",
+      "line": 15,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/workspace_chrome.py",
+      "line": 53,
+      "kind": "Attribute",
+      "text": "roster.observation.bind"
+    },
+    {
+      "path": "tests/acp_specification_installed_pilot.py",
+      "line": 13,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/activity_spinners_pilot.py",
+      "line": 29,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/agent_process_retirement_installed_pilot.py",
+      "line": 13,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/agent_selection_configured_installed_pilot.py",
+      "line": 24,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/browser_download_app.py",
+      "line": 20,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/browser_serving_pilot.py",
+      "line": 25,
+      "kind": "Attribute",
+      "text": "sock.bind"
+    },
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 42,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 30,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 12,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 13,
+      "kind": "import",
+      "text": "from toad.catalog_actions import CatalogCommandAction"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 13,
+      "kind": "alias",
+      "text": "CatalogCommandAction"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 23,
+      "kind": "Name",
+      "text": "CatalogCommandAction"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 87,
+      "kind": "Attribute",
+      "text": "modal.agent.commands_for"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 174,
+      "kind": "Attribute",
+      "text": "modal.agent.commands_for"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 95,
+      "kind": "Attribute",
+      "text": "modal.agent.commands_for"
+    },
+    {
+      "path": "tests/checkpoint_source_pivot_pilot.py",
+      "line": 17,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/comms_boundary_pilot.py",
+      "line": 188,
+      "kind": "Attribute",
+      "text": "agent.queue_attachment.bind"
+    },
+    {
+      "path": "tests/comms_boundary_pilot.py",
+      "line": 193,
+      "kind": "Attribute",
+      "text": "agent.queue_attachment.bind"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 306,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/context_usage_pilot.py",
+      "line": 11,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/default_route_prompt_selection_pilot.py",
+      "line": 15,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/diff_row_damage_pilot.py",
+      "line": 46,
+      "kind": "FunctionDef",
+      "text": "def compose(self):"
+    },
+    {
+      "path": "tests/diff_row_damage_pilot.py",
+      "line": 55,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/diff_row_damage_pilot.py",
+      "line": 47,
+      "kind": "Attribute",
+      "text": "DiffView.compose"
+    },
+    {
+      "path": "tests/existing_thread_tab_title_pilot.py",
+      "line": 75,
+      "kind": "Attribute",
+      "text": "SessionsTabs.compose"
+    },
+    {
+      "path": "tests/filter_style_scope_pilot.py",
+      "line": 21,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/filter_style_scope_pilot.py",
+      "line": 28,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/guards/test_acp_specification_ownership.py",
+      "line": 7,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/guards/test_agent_controller.py",
+      "line": 51,
+      "kind": "Attribute",
+      "text": "attachment.bind"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 65,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/guards/test_tool_output.py",
+      "line": 66,
+      "kind": "FunctionDef",
+      "text": "def compose(self, view):"
+    },
+    {
+      "path": "tests/guards/test_transcript_publication.py",
+      "line": 178,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/history_anchor_geometry_pilot.py",
+      "line": 16,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/history_edge_scheduling_pilot.py",
+      "line": 343,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/irc_wrap_pilot.py",
+      "line": 41,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "line": 2,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "line": 21,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "line": 21,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/markdown_extent_policy_pilot.py",
+      "line": 25,
+      "kind": "FunctionDef",
+      "text": "def compose(self):"
+    },
+    {
+      "path": "tests/markdown_row_render_pilot.py",
+      "line": 25,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/native_terminal_retention_pilot.py",
+      "line": 259,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/observed_thread_activity_pilot.py",
+      "line": 23,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/original_turn_resource_real_installed_pilot.py",
+      "line": 26,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/owner_reader_reuse_pilot.py",
+      "line": 107,
+      "kind": "Attribute",
+      "text": "agent.controller.transcripts.bind"
+    },
+    {
+      "path": "tests/permission_pending_mount_pilot.py",
+      "line": 10,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 1,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/prepared_diff_pilot.py",
+      "line": 30,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/prepared_diff_rows_pilot.py",
+      "line": 20,
+      "kind": "FunctionDef",
+      "text": "def compose(self):"
+    },
+    {
+      "path": "tests/prompt_popup_new_case_pilot.py",
+      "line": 24,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 18,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 17,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/retained_history_projection_pilot.py",
+      "line": 15,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/retained_input_origin_observer.py",
+      "line": 24,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/right_comms_pilot.py",
+      "line": 115,
+      "kind": "FunctionDef",
+      "text": "def compose(self):"
+    },
+    {
+      "path": "tests/right_comms_pilot.py",
+      "line": 141,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 419,
+      "kind": "Attribute",
+      "text": "agent.controller.transcripts.bind"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 423,
+      "kind": "Attribute",
+      "text": "agent.controller.transcripts.bind"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "line": 39,
+      "kind": "FunctionDef",
+      "text": "def compose(self):"
+    },
+    {
+      "path": "tests/shared_channels_pilot.py",
+      "line": 265,
+      "kind": "Name",
+      "text": "bind"
+    },
+    {
+      "path": "tests/shared_channels_pilot.py",
+      "line": 265,
+      "kind": "Attribute",
+      "text": "roster.observation.bind"
+    },
+    {
+      "path": "tests/shared_channels_pilot.py",
+      "line": 270,
+      "kind": "Name",
+      "text": "bind"
+    },
+    {
+      "path": "tests/snapshot_cancellation_custody_pilot.py",
+      "line": 19,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/t8_mounted_pilot.py",
+      "line": 20,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/tab_clipboard_native_app.py",
+      "line": 31,
+      "kind": "Attribute",
+      "text": "self._bindings.bind"
+    },
+    {
+      "path": "tests/test_agent_session.py",
+      "line": 1,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/test_client_session.py",
+      "line": 9,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/test_input_custody.py",
+      "line": 10,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/test_saved_message_clock.py",
+      "line": 15,
+      "kind": "Attribute",
+      "text": "user.compose"
+    },
+    {
+      "path": "tests/test_saved_message_clock.py",
+      "line": 21,
+      "kind": "Attribute",
+      "text": "user.compose"
+    },
+    {
+      "path": "tests/test_session_updates.py",
+      "line": 5,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/test_sidebar_destinations.py",
+      "line": 29,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/throbber_busy_pilot.py",
+      "line": 20,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/throbber_render_cache_pilot.py",
+      "line": 16,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/throbber_scroll_cost_pilot.py",
+      "line": 18,
+      "kind": "FunctionDef",
+      "text": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/transcript_reader_reuse.py",
+      "line": 22,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/transcript_reader_reuse.py",
+      "line": 121,
+      "kind": "Attribute",
+      "text": "attachment.controller.transcripts.bind"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 21,
+      "kind": "import",
+      "text": "from toad.agent_schema import AgentDefinition"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 312,
+      "kind": "FunctionDef",
+      "text": "def compose(self):"
+    }
+  ],
+  "limits": "Lexical bind/compose overlap; receivers read semantically. No dependency/dynamic proof."
+}

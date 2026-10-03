@@ -1,0 +1,98 @@
+# Catalog PTY execution owner
+
+Source reasoning precedes implementation and final validation.
+
+`CommandPane` repeats PTY acquisition, process/input handles, resize, read,
+completion, and TERM/KILL retirement already owned by `TerminalExecution`,
+`TerminalOperation`, `PtyProcess` and `AttachedChild` (IMPL-13 / IDEN-3).
+
+Reuse those original owners. The mounted pane borrows the original execution
+and ANSI state. Preserve sequential bootstrap/prefix output and catalog `/bin/sh`
+versus ACP's configured shell. Publish action completion only for its final
+command. Cancellation joins the original execution, including cancelled startup
+and native worker retirement; no copied process/task/return-code fields.
+
+The complete production family is terminal_execution, ANSI stdin binding,
+CommandPane and ActionModal. TerminalTool retains its existing ACP acquisition
+contract. Existing catalog and mounted-PTY fixtures consume original custody.
+Heisenberg granted these process/projection hooks; CSS/layout/frame work excluded.
+
+Before evidence uses the existing refactor-audit Package loader over all 288
+production and 391 test modules, zero omissions. Lexical hits are read semantically;
+they do not establish dynamic receiver resolution. ChildOutcome/AttachedChild
+contracts were read from the installed Core donor, without modifying it.
+
+Final validation: one affected installed original App/catalog/real-PTY journey,
+including success, nonzero exit, sequential bootstrap, input and cancellation.
+Receiver owns packaging. No new environment, provider, auth or public mutation.
+No latency, physical pixel or full headless completion claim.
+
+## Working source closure
+
+Five production files: 100 added / 207 deleted at this checkpoint (remeasure at
+Ready). No classes added. The unused cooked-mode query is removed. Pane no longer opens PTYs, starts subprocesses, stores
+process/master/task/code, decodes output, writes via a delayed thread, or sends
+signals. It holds one original execution resource. The original async worker
+awaits it; finally joins original custody even during early native teardown.
+
+`Command.for_script` owns catalog shell/environment; `Command.shell_command`
+owns launch arguments consumed by the SAME `PtyProcess.acquire` for ACP/catalog.
+`TerminalCompletion` derives exit/signal return codes from original ChildOutcome.
+The unused `CommandPane.is_cooked` API is deleted, rather than expanded into
+new forwarding hooks solely for compatibility. Native keys still use original
+PTY input.
+
+`TerminalState.bind_stdin` binds the operation that consumes an existing model;
+no buffer/provenance is copied. Constructor optional `state` is an ephemeral
+resource argument, not stored nullable lifecycle. ActionModal retains its original
+main execution while bootstrap borrows that SAME state, then starts main. Only
+final command completion publishes the catalog event. Official precompletion
+return-code absence remains a derived public query, never a stored status.
+
+All CommandPane creation/execute/private test consumers migrated, including demo
+and the older mounted-resume pilot. ACP TerminalController/TerminalTool retain
+original operation creation, detachment, outcome and retirement consumers.
+
+Existing catalog pilot extends the SAME journey with real local curl/sh bootstrap
+and typed command config, native cooked input, original custody closed/retired.
+No provider or installer network call; no alternate application/protocol/model.
+
+ActionModal also replaces `_command/_env/_cwd` with one original `Command`
+constructed at the action boundary and consumed by execution/prefix paint.
+
+
+## Complete invocation assembly
+
+The existing `Command` now retains ONE compiled `script`, environment, cwd and
+shell. Delete its separate command/args fields, whitespace case decision, and
+label quote/strip assembly. Exact catalog scripts enter through `for_script`.
+The sole ACP creator uses `for_argv`: executable and typed arguments are quoted
+once at that external boundary, then every launch and label consumes the SAME
+invocation. No string classification, kind flag or additional command class.
+
+Read installed ACP SDK 0.12.1 CreateTerminalRequest plus the official terminal
+contract: https://agentclientprotocol.com/protocol/v1/terminals (command/args).
+All terminal executions use the same original PtyProcess and outcomes. Existing
+catalog fixture adds one registered ACP create/wait/output/release using a real
+local executable with spaces/#/% and literal/empty arguments. This confirms
+assembly/custody across the shared owner, without ACP transport replacement or
+provider calls. Scope: registered RPC/server plus installed App/catalog/real PTY;
+no subprocess ACP transport, native Pi or physical/authentication claim.
+
+
+## Final installed acceptance
+
+PASS one original installed App/Pilot/catalog/editor/real-PTY journey plus
+registered ACP create/wait/output/release. Original model retains bootstrap/main
+prefixes; native keys reach PTY; exit7/success/login/cancel settle original
+custody; spaced executable and literal/empty arguments survive. No provider/Pi.
+319 authored source assets match before and after. Private catalog data removed,
+fixture children and own attempt processes absent; candidate released receiver.
+Ten unchanged shell_read OSError(5) EOF messages retained; no zero-log claim.
+See READY.json and installed01/catalog-only-receipt.json. Native render exports
+are not physical st screenshots. No performance or whole headless claim.
+
+Both native render exports were personally viewed: bootstrap/main output and
+native-input response are readable, with the original catalog beneath the modal.
+The final Escape return to the SAME Store is asserted after the recorded modal
+frame, not inferred from that frame. Candidate package/source bytes are unchanged.

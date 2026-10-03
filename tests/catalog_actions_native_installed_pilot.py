@@ -7,6 +7,8 @@ from pathlib import Path
 import shlex
 import sys
 import tomllib
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 from textual import widgets
 from toad.agent_schema import AgentDefinition
@@ -53,11 +55,15 @@ def seed_installed_catalog():
         'owner-custom-script': ('Run arbitrary script', 'printf CMD_CUSTOM_OK'),
         'hold': ('Cancel held local command', 'printf CMD_HELD; sleep 30'),
         'audit': ('Declaration-only audit', 'printf CMD_AUDIT_OK'),
+        'bootstrap': ('Sequential local bootstrap', 'printf CMD_BOOTSTRAP_MAIN'),
+        'input': ('Actual terminal input', 'printf CMD_INPUT_READY; read line; printf CMD_INPUT:%s "$line"'),
     }
     import toad
     for name, (label, command) in commands.items():
         text += f'\n[actions.{json.dumps(toad.os)}.{json.dumps(name)}]\n'
         text += f'description = {json.dumps(label)}\ncommand = {json.dumps(command)}\n'
+        if name == 'bootstrap':
+            text += 'bootstrap_uv = true\n'
     if destination.exists():
         assert destination.read_text() == text, 'Never overwrite a different catalog entry'
     else:
@@ -67,10 +73,11 @@ def seed_installed_catalog():
 class InstalledApp(ToadApp):
     CSS_PATH = files('toad').joinpath('toad.tcss')
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, catalog_only=False, **kwargs):
         # Use the same real catalog definition in the initial native session and
         # Store. Saved SessionMeta therefore exercises the unchanged public form.
-        kwargs['agent_data'] = AgentDefinition.decode(tomllib.loads(fixture_file().read_text()))
+        if not catalog_only:
+            kwargs['agent_data'] = AgentDefinition.decode(tomllib.loads(fixture_file().read_text()))
         super().__init__(*args, **kwargs)
 
     async def on_load(self):
@@ -109,7 +116,7 @@ async def open_item(app, pilot, item):
     await until(pilot, lambda: isinstance(app.screen, AgentModal))
 
 
-async def execute(app, pilot, name, *, edited=None, cancel=False, expected=0):
+async def execute(app, pilot, name, *, edited=None, cancel=False, expected=0, input_text=None):
     modal = app.screen
     assert isinstance(modal, AgentModal)
     await choose(pilot, modal, name)
@@ -125,6 +132,12 @@ async def execute(app, pilot, name, *, edited=None, cancel=False, expected=0):
         return
     await until(pilot, lambda: isinstance(app.screen, ActionModal))
     executor = app.screen
+    pane = executor.command_pane
+    if input_text is not None:
+        await until(pilot, lambda: 'CMD_INPUT_READY' in frame(app))
+        assert not pane.execution.outcome.finished
+        pane.focus()
+        await pilot.press(*list(input_text), 'enter')
     if cancel:
         await pilot.pause(.5)
         evidence = Path(os.environ['L0A_EVIDENCE'])
@@ -138,6 +151,12 @@ async def execute(app, pilot, name, *, edited=None, cancel=False, expected=0):
         app.save_screenshot(str(Path(os.environ['L0A_EVIDENCE']) / f'command-{name}-exit{expected}.svg'))
         assert await pilot.click(executor.ok_button)
     await until(pilot, lambda: app.screen is modal)
+    execution = pane.execution
+    custody = await execution.custody()
+    assert execution.outcome.finished, 'Original terminal operation remains active after its dialog'
+    assert custody.child.returncode is not None and custody.master.closed
+    assert custody.child.retired, 'Original process custody survives its completed dialog'
+    return pane
 
 
 async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
@@ -248,7 +267,144 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     }, indent=2) + '\n')
 
 
+async def registered_argv(root):
+    """The same installed ACP request owner creates and retires a real PTY."""
+    from toad.acp.agent import Agent
+
+    executable = root / 'argv with spaces # %.sh'
+    executable.write_text("#!/bin/sh\nprintf '%s|%s' \"$1\" \"$2\"\n")
+    executable.chmod(0o700)
+    original_argument = "literal # % ' \" spaces"
+    agent = Agent(root, AgentDefinition('argv-control', 'argv-control', {'*': 'true'}), 'argv-session')
+    request_id = 0
+
+    async def rpc(method, **params):
+        nonlocal request_id
+        request_id += 1
+        response = await agent.server.call({'jsonrpc': '2.0', 'id': request_id,
+            'method': method, 'params': {'sessionId': agent.session_id, **params}})
+        assert 'error' not in response, response
+        return response['result']
+
+    try:
+        created = await rpc('terminal/create', command=str(executable),
+                            args=[original_argument, ''], cwd=str(root))
+        terminal_id = created['terminalId']
+        execution = agent.controller.terminals.require(terminal_id)
+        custody = await execution.custody()
+        assert (await rpc('terminal/wait_for_exit', terminalId=terminal_id))['exitCode'] == 0
+        assert (await rpc('terminal/output', terminalId=terminal_id))['output'] == original_argument + '|'
+        await rpc('terminal/release', terminalId=terminal_id)
+        assert execution.outcome.finished and custody.master.closed and custody.child.retired
+        assert not agent.controller.terminals.executions
+    finally:
+        await agent.stop()
+
+
+async def catalog_only_main():
+    """The existing native catalog/editor/PTY journey without a Pi admission."""
+    evidence = Path(os.environ['L0A_EVIDENCE'])
+    temporary_parent = Path(os.environ['TOAD_CATALOG_PRIVATE'])
+    temporary_parent.mkdir(parents=True, exist_ok=True)
+    with TemporaryDirectory(dir=temporary_parent, prefix='catalog-') as temporary:
+        root = Path(temporary)
+        config = root / 'config' / 'toad'
+        config.mkdir(parents=True)
+        (config / 'toad.json').write_text(json.dumps({
+            'anon_id': '00000000-0000-0000-0000-000000000001',
+            'statistics': {'allow_collect': False},
+        }))
+        with patch.dict(os.environ, XDG_CONFIG_HOME=str(root / 'config'),
+                        XDG_STATE_HOME=str(root / 'state'), XDG_DATA_HOME=str(root / 'data'),
+                        AGENT_COMMS_ROOT=str(root / 'wire')):
+            app = InstalledApp(catalog_only=True, mode='store', project_dir=str(root))
+            async with app.run_test(size=(140, 48)) as pilot:
+                await until(pilot, lambda: isinstance(app.screen, StoreScreen))
+                store = app.screen
+                await until(pilot, lambda: any(item.agent.identity == 'native-fixture'
+                                              for item in store.query(AgentItem)))
+                agent = store.agents['native-fixture']
+                item = next(item for item in store.query(AgentItem)
+                            if item.agent is agent)
+                from toad.agent_schema import ChatAgentKind
+                expected_chat = {entry.identity for entry in store.agents.values()
+                                 if entry.kind.section() is ChatAgentKind}
+                actual_chat = {entry.agent.identity for entry in store.query(AgentItem)
+                               if entry.agent.kind.section() is ChatAgentKind}
+                assert actual_chat == expected_chat
+                chat_headings = [heading for heading in store.query('.heading')
+                                 if ChatAgentKind.heading in str(heading.render())]
+                assert len(chat_headings) == bool(expected_chat)
+                app.save_screenshot(str(evidence / 'catalog-sections.svg'))
+                await open_item(app, pilot, item)
+                modal = app.screen
+                original_command = agent.commands_for(__import__('toad').os)['install']
+                await choose(pilot, modal, 'install')
+                await until(pilot, lambda: isinstance(app.screen, CommandEditModal))
+                assert await pilot.click(app.screen.query_one('#cancel', widgets.Button))
+                await until(pilot, lambda: app.screen is modal)
+                await execute(app, pilot, 'install', expected=7)
+                assert not modal.launcher_checkbox.value
+                await execute(app, pilot, 'install', edited='printf CMD_INSTALL_EDITED')
+                await until(pilot, lambda: modal.launcher_checkbox.value)
+                assert original_command.command == 'printf CMD_INSTALL_ORIGINAL; exit 7'
+                await execute(app, pilot, 'install-acp')
+                await execute(app, pilot, 'owner-custom-script')
+                await execute(app, pilot, 'audit')
+                assert 'AUDIT_0' in frame(app)
+                await execute(app, pilot, 'login', edited='exit 5', expected=5)
+                await execute(app, pilot, 'login')
+                # Only the external installer command is controlled: real curl/sh
+                # executables feed a local bootstrap script through the original PTY.
+                tools = root / 'bootstrap-tools'
+                tools.mkdir()
+                (tools / 'curl').write_text("#!/bin/sh\nprintf 'printf CMD_BOOTSTRAP_FIRST\\n'\n")
+                (tools / 'curl').chmod(0o700)
+                (tools / 'sh').symlink_to('/bin/sh')
+                with patch.dict(os.environ, PATH=str(tools)):
+                    bootstrap_pane = await execute(app, pilot, 'bootstrap')
+                bootstrap_text = '\n'.join(line.content.plain
+                    for line in bootstrap_pane.execution.state.scrollback_buffer.lines)
+                assert 'CMD_BOOTSTRAP_FIRST' in bootstrap_text and 'CMD_BOOTSTRAP_MAIN' in bootstrap_text
+                assert bootstrap_text.index('CMD_BOOTSTRAP_FIRST') < bootstrap_text.rindex('CMD_BOOTSTRAP_MAIN')
+                input_pane = await execute(app, pilot, 'input', input_text='native-input')
+                assert 'CMD_INPUT:native-input' in '\n'.join(line.content.plain
+                    for line in input_pane.execution.state.scrollback_buffer.lines)
+                await execute(app, pilot, 'hold', cancel=True)
+                await registered_argv(root)
+                app.save_screenshot(str(evidence / 'catalog-return.svg'))
+                await pilot.press('escape')
+                await until(pilot, lambda: app.screen is store)
+                assert store.agents['native-fixture'] is agent and app._exception is None
+                (evidence / 'catalog-only-receipt.json').write_text(json.dumps({
+                    'installed_toad': __import__('toad').__file__,
+                    'original_kind_grouping': True, 'original_command_identity': True,
+                    'actual_selector_editor_cancel': True, 'real_pty_exit7': True,
+                    'edited_command_source_unchanged': True, 'hyphen_id_member': True,
+                    'arbitrary_id_explicit_completion': True, 'declaration_new_case': True,
+                    'login_failure_explicit_success_auto_close': True, 'real_pty_cancel': True,
+                    'same_ansi_sequential_bootstrap_and_main_prefixes': True,
+                    'actual_cooked_terminal_key_input': True, 'original_custody_retired_closed': True,
+                    'registered_acp_spaced_executable_literal_args_and_release': True,
+                    'same_store_catalog_on_return': True, 'native_pi_inputs': 0,
+                    'provider_calls': 0,
+                    'scope': 'Installed App/Pilot/catalog/editor/real shell PTY, not physical st/ACP/Pi/authentication',
+                }, indent=2) + '\n')
+    print('CATALOG_EXISTING_OWNER_INSTALLED_APP_PTY_PASS', flush=True)
+
+
 if __name__ == '__main__':
-    seed_installed_catalog()
-    asyncio.run(asyncio.wait_for(main(app_type=InstalledApp, acceptance=acceptance,
-        provider_request_budget=1, fixture_stage=os.environ['CATALOG_FIXTURE_STAGE']), 115))
+    destination = fixture_file()
+    original = destination.read_bytes() if destination.exists() else None
+    try:
+        seed_installed_catalog()
+        if '--catalog-only' in sys.argv:
+            asyncio.run(asyncio.wait_for(catalog_only_main(), 50))
+        else:
+            asyncio.run(asyncio.wait_for(main(app_type=InstalledApp, acceptance=acceptance,
+                provider_request_budget=1, fixture_stage=os.environ['CATALOG_FIXTURE_STAGE']), 115))
+    finally:
+        if original is None:
+            destination.unlink(missing_ok=True)
+        else:
+            assert destination.read_bytes() == original

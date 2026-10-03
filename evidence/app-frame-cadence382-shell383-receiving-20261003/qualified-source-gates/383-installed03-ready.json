@@ -1,0 +1,101 @@
+{
+  "state": "ready-scoped-shell-source-native-boundary",
+  "tested_source_head": "46e08543da95a176cff538d9eb2b12b6f2c1103d",
+  "production": {
+    "files": 10,
+    "added": 138,
+    "deleted": 110,
+    "new_types": 0,
+    "note": "Deletion count includes moving the existing SurfaceBinding/DetachedSurfaceBinding declarations out of ACP orchestration; no competing definitions or compatibility exports remain."
+  },
+  "owner": "Original ShellOperationalSource owns PTY/task/output/models/serialized binding; original SurfaceBinding owns native projection acquisition; ShellResult borrows original ShellCommandOutput; native handlers reuse existing widget resources by original source/model identity.",
+  "deleted_decisions": [
+    "ShellOperationalSource retaining Conversation/app for native services",
+    "ShellOutput importing and constructing native widgets",
+    "Shell process publishing directory through native Conversation",
+    "Shell process duplicate transport/master/finished cleanup",
+    "ShellResult storing copied command text",
+    "Native retained-shell replay constructing duplicate command and terminal widgets",
+    "Retired controller surface exports and two late-native helper imports"
+  ],
+  "source_evidence": {
+    "before": "before-final-family.json",
+    "after": "after-owner-consumers.json",
+    "production_modules": 288,
+    "test_modules": 391,
+    "parse_omissions": [],
+    "single_definitions": true,
+    "limits": "Lexical AST plus semantic receiver reading, not dynamic resolution/external dependency-root proof."
+  },
+  "installed_source": {
+    "source_head": "46e08543da95a176cff538d9eb2b12b6f2c1103d",
+    "toad_assets": 319,
+    "toad_mismatches": [],
+    "installed": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/toad",
+    "headless_ui_modules": [],
+    "core_text_wheel_source": {
+      "agent_comms": {
+        "wheel": "/home/ts/.cache/uv/sdists-v9/git/20cd241ef3f9b3a1/d3ed99d5773528a2/agent_comms-0.1.0-py3-none-any.whl",
+        "sha256": "07d86a026a1ab2b8ad1095bd71bc71bfa11c0ba9f33b3ccb0ff4ea64aff9c16f",
+        "assets": 342,
+        "mismatches": []
+      },
+      "textual": {
+        "wheel": "/home/ts/.cache/uv/sdists-v9/git/ea21a5120fe35156/2fff11abda0605f1/textual-8.2.8-py3-none-any.whl",
+        "sha256": "72b9f838984d63f67b110c25ccce21f570768b1231127f9b0140e671a43378c2",
+        "assets": 266,
+        "mismatches": []
+      }
+    },
+    "distributions": 69,
+    "sdk": "0.12.1",
+    "wheel_urls": {
+      "agent-comms": "{\"url\":\"file:///home/ts/.cache/uv/sdists-v9/git/20cd241ef3f9b3a1/d3ed99d5773528a2/agent_comms-0.1.0-py3-none-any.whl\",\"archive_info\":{}}",
+      "textual": "{\"url\":\"file:///home/ts/.cache/uv/sdists-v9/git/ea21a5120fe35156/2fff11abda0605f1/textual-8.2.8-py3-none-any.whl\",\"archive_info\":{}}",
+      "batrachian-toad": "{\"url\":\"file:///home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/headless-shell-383/batrachian_toad-0.6.20-py3-none-any.whl\",\"archive_info\":{}}"
+    },
+    "native": "Historical485native044 preserved and not acquired; no Pi/native/provider claim",
+    "qualification": "Changed native source/model widget reuse after installed02; Core574/Text38 unchanged cached wheel operands, original01/02 proof bytes retained separately."
+  },
+  "actual_journey": {
+    "script": "tests/blank_presentation_pilot.py",
+    "log": "installed03.log",
+    "result": "pass",
+    "facts": "installed03/shell-publication.json",
+    "frame": "installed03/retained-shell.png",
+    "verified": [
+      "same command widget and original source after actual tab click",
+      "same terminal widget/model and shell process/task after detach/return",
+      "output while detached reaches original model",
+      "actual composited terminal body marker excluding command caption",
+      "one active source subscription and retired subscription absent while detached",
+      "original directory event reaches working-directory view",
+      "clipboard reads original command source",
+      "retained editor document/history/selection/undo/drafts preserved",
+      "logical session close retires actual process/reader"
+    ],
+    "provider_calls": 0,
+    "native_pi_calls": 0,
+    "scope": "Installed actual App/Pilot/real shell PTY; no Agent/transport/model/renderer replacements. Pilot uses native application but is not a physical st/Xvfb user-launcher capture.",
+    "visual": "Personally viewed exported PNG readable with one command caption and original output body. NO_COLOR deliberately removed at existing runner environment boundary; earlier NO_COLOR/black exports preserved."
+  },
+  "negative_or_earlier_results": {
+    "installed01": "Failed before shell at retired private exact-two Signal subscription assumption; raw log/source proof retained. Current Window owns one subscription; public resource checks preserved.",
+    "installed02": "Actual native shell/directory/body/retirement passed but PNG showed repeated command caption; original image/facts/proof retained, prompting same-family original-widget/source correction.",
+    "historical_first_proof": "installed-source-proof.json is the original Text37 preflight, not final current proof. Final canonical proof is installed03-source-proof.json Text38; original bytes never rewritten."
+  },
+  "cleanup": {
+    "owned_attempt_processes": [],
+    "private_fixtures": "Original TemporaryDirectory App/cleanup ran, only empty own scratch parent remains. Original shell._process.returncode is terminal and _task.done asserted. No public/native/user processes stopped.",
+    "holder": "485 package slot released directly Bohr after final terminal; original activation/evidence/native044/UNKNOWN preserved; current334/381/529/302 untouched."
+  },
+  "limits": [
+    "No native-Pi/provider/ACP-admission or configured saved-session claim",
+    "No physical st/FPS/latency/full U2/U4/U5 completion claim",
+    "Normal382/Text38 source joined; no public/default publication performed"
+  ],
+  "wheel": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/headless-shell-383/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "c4bd96cfac6d248cb4d5d9b8efd9a677edd289bb98af3aaa45eaa4ff62c8c3da"
+  }
+}
