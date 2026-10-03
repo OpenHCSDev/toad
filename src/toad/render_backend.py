@@ -3,15 +3,23 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Awaitable
 import os
 from pathlib import Path
-from typing import TypeVar, Generic
+from typing import TypeVar, Generic, TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
 
 ResultT = TypeVar("ResultT", covariant=True)
 
+if TYPE_CHECKING:
+    from toad.work_preparation import PreparationRuntime, RenderPreparation, WorkKey, PreparationWork
+
 class RenderExecution(ABC, Generic[ResultT]):
+    async def complete(self, execution: Awaitable[object]) -> ResultT:
+        """Accept the actual completed worker result through this task's contract."""
+        return self.accept_result(await execution)
+
     @abstractmethod
     def execute(self) -> ResultT:
         """Execute pure preparation in the renderer process."""
@@ -24,13 +32,30 @@ class RenderExecution(ABC, Generic[ResultT]):
 class RenderTask(RenderExecution[ResultT], DeclaredFamily, affix="RenderTask"):
     """A nominal operation with an exact input and result contract."""
 
-    def reusable_inputs(self) -> object | None:
-        """None means external state prevents sharing or retaining this capture."""
-        return None
+    async def preparation_identity(self, work: RenderPreparation, runtime: PreparationRuntime) -> WorkKey:
+        """External state requires independent work for each submission."""
+        from toad.work_preparation import WorkKey
+
+        return WorkKey(type(work), object(), work.scope)
+
+    @property
+    def preparation_storage(self) -> type[PreparationWork]:
+        from toad.work_preparation import PreparationWork
+
+        return PreparationWork
 
 class ReusableRenderTask(RenderTask[ResultT]):
-    def reusable_inputs(self) -> object:
-        return self
+    async def preparation_identity(self, work: RenderPreparation, runtime: PreparationRuntime) -> WorkKey:
+        from dataclasses import replace
+        from toad.work_preparation import ContentAddressedWork
+
+        return replace(await ContentAddressedWork.identity(work, runtime), scope=work.scope)
+
+    @property
+    def preparation_storage(self) -> type[PreparationWork]:
+        from toad.work_preparation import SerializedWork
+
+        return SerializedWork
 
 
 class RendererSpawn(ABC):

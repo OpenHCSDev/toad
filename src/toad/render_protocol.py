@@ -211,7 +211,7 @@ class CompleteReply(RequestReply):
 
     async def advance(self, submission, client):
         await client.acknowledge(submission)
-        submission.result.set_result(submission.task.accept_result(self.result.value))
+        submission.result.set_result(self.result.value)
         return None
 
 

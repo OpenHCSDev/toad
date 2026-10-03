@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from collections import OrderedDict
 from collections.abc import Hashable, Mapping
 from copy import deepcopy
-from dataclasses import dataclass, fields, is_dataclass, replace
+from dataclasses import dataclass, fields, is_dataclass
 from enum import Enum
 from hashlib import sha256
 from pathlib import Path
@@ -169,15 +169,11 @@ class RenderPreparation(ContentAddressedWork[ResultT], RendererWork[ResultT]):
     scope: PreparationScope | None = None
 
     async def identity(self, runtime: PreparationRuntime) -> WorkKey:
-        # Tasks such as path-aware Markdown read external state not represented
-        # by their text. Their declaration opts out of both retention and sharing.
-        if self.task.reusable_inputs() is None:
-            return WorkKey(type(self), object(), self.scope)
-        return replace(await super().identity(runtime), scope=self.scope)
+        return await self.task.preparation_identity(self, runtime)
 
     @property
     def inputs(self) -> object:
-        return self.task.reusable_inputs()
+        return self.task
 
     @property
     def render_task(self) -> RenderTask[ResultT]:
@@ -185,10 +181,10 @@ class RenderPreparation(ContentAddressedWork[ResultT], RendererWork[ResultT]):
 
     @property
     def retain_result(self) -> bool:
-        return self.task.reusable_inputs() is not None
+        return self.task.preparation_storage.retain_result
 
     def store_result(self, result: ResultT) -> PreparedValue[ResultT]:
-        return serialize_result(result) if self.retain_result else super().store_result(result)
+        return self.task.preparation_storage.store_result(self, result)
 
 
 def retained_bytes(value: object) -> int:
