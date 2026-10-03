@@ -91,3 +91,27 @@ immediately after terminal exit0. The first mismatched7dd failure remains intact
 The source batch deletes20 production lines and adds37 across four existing
 files. The installed saved-history workflow remains the next qualification;
 no main-thread CPU, motion or live-performance improvement is claimed here.
+
+## Joined installed candidate
+
+Normally merged Kepler3384b9461b4. Its original WorkingTranscript now owns
+source reads rather than holding the widget input pump. Installed source and
+assets were verified for Core58686f9, Toad4b8ea96a, Textual940880e1 and the full
+native960 tree, SDK0.12.1, using the released existing style22 holder and69 frozen
+dependencies. No new environment, package overlay or native build. The old344
+activation and source proofs were saved before updating this disposable prefix.
+Tool-only80196187 normally merged afterwards; production and pins are byte equal
+to the verified installed4b8 pair.
+
+One original CurrentTypedCapture and SDK-copy attempt completed and released
+its public process witness. Its recorder stopped before opening Xvfb/Toad:
+the fixture supplied a worktree XDG_STATE_HOME but the original warm-draft
+journey requires private UI state under agent scratch. This is an operator
+boundary failure, not application, performance or paging evidence. No native
+inputs or channel Enter occurred, and owned cleanup was empty. Preserve the
+original source-capture, receipt and joint-recorder.log at
+~/.cache/agent-scratch/fragment-resource347-held-reader338-20261002-01.
+The existing callback owner is correcting the environment handoff; its guard
+remains intact. The planned joined journey is one App on original saved-history
+copies with physical input paging/A-B-A/draft/Undo followed by original held-read
+receipt/typing/restart/End. It cannot establish busy-public multiowner CPU gains.
