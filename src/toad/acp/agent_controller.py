@@ -9,7 +9,7 @@ from dataclasses import dataclass, replace
 from functools import partial
 
 from agent_comms.declared_family import DeclaredFamily
-from toad.surface_binding import SurfaceBinding, DetachedSurfaceBinding
+from toad import surface_binding
 from toad.acp.sdk_boundary import ValidateSessionUpdateTask
 from toad.plan import PlanItem
 from .terminal_owner import OperationalTerminalOwner
@@ -63,7 +63,7 @@ class AgentController(OperationalTerminalOwner):
     """One operational source; the surface is an optional weak projection."""
     def __init__(self, agent):
         super().__init__(agent)
-        self.surface: SurfaceBinding = DetachedSurfaceBinding()
+        self.surface: surface_binding.SurfaceBinding = surface_binding.DetachedSurfaceBinding()
         self.validation: ValidationOwner = HeadlessValidationOwner()
         self._deferred_submissions: set[asyncio.Task] = set()
         self.prompt_in_flight = 0
@@ -83,7 +83,7 @@ class AgentController(OperationalTerminalOwner):
             self.session = SessionBinding(session_id)
             self.reset_configuration()
 
-    def attach(self, binding: SurfaceBinding):
+    def attach(self, binding: surface_binding.SurfaceBinding):
         previous = self.surface.target
         if self.surface.owns(binding.target):
             binding.close()
@@ -100,7 +100,7 @@ class AgentController(OperationalTerminalOwner):
     def detach(self, target):
         if self.surface.owns(target):
             self.surface.close()
-            self.surface = DetachedSurfaceBinding()
+            self.surface = surface_binding.DetachedSurfaceBinding()
             self.agent.permissions.detach(target)
             self.terminals.detach()
 
