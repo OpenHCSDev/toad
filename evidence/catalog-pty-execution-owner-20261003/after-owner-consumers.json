@@ -1,5 +1,5 @@
 {
-  "revision": "39af5e889abb0a95f7bec0693291ae6cb8e93ca7",
+  "revision": "39781c5f6fe0d93b03faa7c554f70acf56e402bd",
   "roots": [
     {
       "root": "src/toad",
@@ -30,6 +30,12 @@
       "line": 43,
       "role": "construction",
       "source": "TerminalExecution"
+    },
+    {
+      "path": "src/toad/acp/terminal_owner.py",
+      "line": 56,
+      "role": "Load",
+      "source": "Command.for_argv"
     },
     {
       "path": "src/toad/ansi/_ansi.py",
@@ -321,6 +327,12 @@
     },
     {
       "path": "src/toad/screens/action_modal.py",
+      "line": 50,
+      "role": "Load",
+      "source": "Command.for_script"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
       "line": 72,
       "role": "Load",
       "source": "event.event.return_code"
@@ -360,6 +372,12 @@
       "line": 58,
       "role": "construction",
       "source": "TerminalExecution"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 89,
+      "role": "Load",
+      "source": "Command.for_script"
     },
     {
       "path": "src/toad/screens/action_modal.py",
@@ -477,69 +495,93 @@
     },
     {
       "path": "src/toad/terminal_execution.py",
-      "line": 184,
+      "line": 185,
       "role": "declaration",
       "source": "PtyProcess"
     },
     {
       "path": "src/toad/terminal_execution.py",
-      "line": 227,
+      "line": 228,
       "role": "declaration",
       "source": "TerminalOperation"
     },
     {
       "path": "src/toad/terminal_execution.py",
-      "line": 343,
+      "line": 344,
       "role": "declaration",
       "source": "TerminalExecution"
     },
     {
       "path": "src/toad/terminal_execution.py",
-      "line": 69,
+      "line": 45,
+      "role": "declaration",
+      "source": "for_script"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 52,
+      "role": "declaration",
+      "source": "for_argv"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 58,
+      "role": "declaration",
+      "source": "shell_command"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 70,
       "role": "declaration",
       "source": "return_code"
     },
     {
       "path": "src/toad/terminal_execution.py",
-      "line": 96,
+      "line": 97,
       "role": "declaration",
       "source": "return_code"
     },
     {
       "path": "src/toad/terminal_execution.py",
-      "line": 122,
+      "line": 123,
       "role": "declaration",
       "source": "return_code"
     },
     {
       "path": "src/toad/terminal_execution.py",
-      "line": 141,
+      "line": 142,
       "role": "declaration",
       "source": "return_code"
     },
     {
       "path": "src/toad/terminal_execution.py",
-      "line": 458,
+      "line": 459,
       "role": "declaration",
       "source": "write_stdin"
     },
     {
       "path": "src/toad/terminal_execution.py",
-      "line": 376,
+      "line": 377,
       "role": "Load",
       "source": "self.write_stdin"
     },
     {
       "path": "src/toad/terminal_execution.py",
-      "line": 411,
+      "line": 412,
       "role": "Load",
       "source": "self.write_stdin"
     },
     {
       "path": "src/toad/terminal_execution.py",
-      "line": 356,
+      "line": 357,
       "role": "Load",
       "source": "self.write_stdin"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 426,
+      "role": "Load",
+      "source": "command.shell_command"
     },
     {
       "path": "src/toad/transcript_preparation.py",
@@ -630,6 +672,12 @@
       "line": 47,
       "role": "Load",
       "source": "completion.return_code"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 99,
+      "role": "Load",
+      "source": "Command.for_script"
     },
     {
       "path": "src/toad/widgets/comms_chat.py",
@@ -807,61 +855,61 @@
     },
     {
       "path": "tests/catalog_actions_native_installed_pilot.py",
-      "line": 312,
+      "line": 346,
       "role": "construction",
       "source": "execute"
     },
     {
       "path": "tests/catalog_actions_native_installed_pilot.py",
-      "line": 314,
+      "line": 348,
       "role": "construction",
       "source": "execute"
     },
     {
       "path": "tests/catalog_actions_native_installed_pilot.py",
-      "line": 317,
+      "line": 351,
       "role": "construction",
       "source": "execute"
     },
     {
       "path": "tests/catalog_actions_native_installed_pilot.py",
-      "line": 318,
+      "line": 352,
       "role": "construction",
       "source": "execute"
     },
     {
       "path": "tests/catalog_actions_native_installed_pilot.py",
-      "line": 319,
+      "line": 353,
       "role": "construction",
       "source": "execute"
     },
     {
       "path": "tests/catalog_actions_native_installed_pilot.py",
-      "line": 321,
+      "line": 355,
       "role": "construction",
       "source": "execute"
     },
     {
       "path": "tests/catalog_actions_native_installed_pilot.py",
-      "line": 322,
+      "line": 356,
       "role": "construction",
       "source": "execute"
     },
     {
       "path": "tests/catalog_actions_native_installed_pilot.py",
-      "line": 336,
+      "line": 370,
       "role": "construction",
       "source": "execute"
     },
     {
       "path": "tests/catalog_actions_native_installed_pilot.py",
-      "line": 339,
+      "line": 373,
       "role": "construction",
       "source": "execute"
     },
     {
       "path": "tests/catalog_actions_native_installed_pilot.py",
-      "line": 331,
+      "line": 365,
       "role": "construction",
       "source": "execute"
     },
@@ -1095,6 +1143,12 @@
     },
     {
       "path": "tests/t8_mounted_pilot.py",
+      "line": 49,
+      "role": "Load",
+      "source": "Command.for_script"
+    },
+    {
+      "path": "tests/t8_mounted_pilot.py",
       "line": 53,
       "role": "Load",
       "source": "pane.return_code"
@@ -1190,5 +1244,11 @@
       "source": "task.execute"
     }
   ],
-  "limitations": "Lexical references; dynamic resolution requires the recorded semantic read."
+  "command_fields": [
+    "script: str",
+    "env: Mapping[str, str]",
+    "cwd: str | None",
+    "shell: str = field(default_factory=lambda: TerminalEnvironment.login_shell(os.environ), kw_only=True)"
+  ],
+  "limitations": "Lexical references; dynamic receiver resolution is qualified by semantic read. Dependency declaration read uses installed ACP SDK and ChildOutcome, not a full dependency-root census."
 }
