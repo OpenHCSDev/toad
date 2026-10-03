@@ -4,16 +4,19 @@ UiSettings owns column enablement, column width and scrollbar choice. Current
 App and MainScreen reactive fields copy those facts; three session constructors
 also have to remember to bind them. IDEN-5 and IMPL-12 describe the duplication.
 
-Use the existing Conversation renderer and its existing PreferenceChanged
-subscription to read the original settings at initialization and on declared
-preference changes. Delete App/MainScreen copies, bindings, three copying
-effects and the unused Conversation.column variable. CSS remains a rendering
+Use the existing Conversation renderer to read original settings at
+initialization. The existing descriptor effect mechanism invalidates layout
+on all original WorkspaceSessions views when any of the three values changes. Delete App/MainScreen copies, bindings, three copying
+effects in favor of one shared invalidation effect, and the unused
+Conversation.column variable. CSS remains a rendering
 resource; scrollbar class names derive from the original Scrollbar family.
 No new type, registry, timer, compatibility facade or native runtime changes.
 
 Heis granted the preference declarations/watchers and constructor consumer
 methods; no viewport/frame/style/compose work overlaps. Existing native
-initialize_view and preference handler are the only additional renderer hooks.
+initialize_view and apply_layout_preferences are the only renderer hooks.
+Textual App.query starts from default_screen; explicit WorkspaceSessions.views
+ensures parked views still update while a Settings modal is open.
 
 Before source: NRA Package parsed 289 production and 391 test Python modules,
 zero omissions. Lexical AST references do not prove dynamic resolution; ANSI

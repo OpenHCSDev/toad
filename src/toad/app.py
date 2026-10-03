@@ -23,7 +23,7 @@ from textual.app import App
 from textual.await_complete import AwaitComplete
 from textual.content import Content
 from textual.notifications import Notify
-from textual.reactive import reactive, var
+from textual.reactive import var
 from textual.screen import Screen
 
 from toad import messages
@@ -250,9 +250,6 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
     BINDINGS = [member.binding() for member in ApplicationAction.members_with(KeyboundAction)]
     ALLOW_IN_MAXIMIZED_VIEW = ""
 
-    column: reactive[bool] = reactive(False)
-    column_width: reactive[int] = reactive(100)
-    scrollbar: reactive[str] = reactive("normal")
     project_dir = var(Path)
     show_sessions = var(False, toggle_class="-show-sessions-bar")
 
