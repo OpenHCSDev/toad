@@ -18,7 +18,11 @@ from toad.app import ToadApp
 from toad.tool_output import ToolOutput
 from toad.widgets.tool_content import ToolCallDiff
 from acp import schema as protocol
-from toad.acp.status import ToolCallStatus
+from agent_comms.mro_dispatch import MroDispatch, handles
+from toad.acp.status import (
+    ToolCallStatus, PendingToolCallStatus, InProgressToolCallStatus,
+    CompletedToolCallStatus, FailedToolCallStatus,
+)
 from toad.menus import MenuItem
 from toad.pill import pill
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
@@ -46,7 +50,7 @@ class ToolCallHeader(Static):
     """
 
 
-class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, containers.VerticalGroup):
+class ToolCall(MroDispatch, ConversationBlock, SnapshotPresentation, CategorizedBlock, containers.VerticalGroup):
     DEFAULT_CSS = """
     ToolCall {
         # margin: 0 0 0 0 !important;
@@ -292,10 +296,29 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
                 else "[$text-secondary 30%]▶ "
             )
 
-        header = Content.assemble(expand_icon, "🔧 ", title)
+        parts = [Content.assemble(expand_icon, "🔧 ", title)]
+        self.dispatch_sync(status, parts)
+        return Content.assemble(*parts)
 
-        header += status.header(self)
-        return header
+    @handles(PendingToolCallStatus)
+    def pending_header(self, status, parts):
+        parts.append(Content(' ⌛'))
+
+    @handles(InProgressToolCallStatus)
+    def running_header(self, status, parts):
+        parts.append(Content.assemble(' ', pill(
+            'running', '$warning-muted', '$warning',
+            filled=not self.app.theme.startswith('ansi-'))))
+
+    @handles(CompletedToolCallStatus)
+    def completed_header(self, status, parts):
+        parts.append(Content.from_markup(' [$success]✔'))
+
+    @handles(FailedToolCallStatus)
+    def failed_header(self, status, parts):
+        parts.append(Content.assemble(' ', pill(
+            'failed', '$error-muted', '$error',
+            filled=not self.app.theme.startswith('ansi-'))))
 
     async def watch_expanded(self) -> None:
         await self.output.sync()
