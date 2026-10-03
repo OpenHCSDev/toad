@@ -128,6 +128,7 @@ async def execute(app, pilot, name, *, edited=None, cancel=False, expected=0):
         return
     await until(pilot, lambda: isinstance(app.screen, ActionModal))
     executor = app.screen
+    pane = executor.command_pane
     if cancel:
         await pilot.pause(.5)
         evidence = Path(os.environ['L0A_EVIDENCE'])
@@ -141,6 +142,8 @@ async def execute(app, pilot, name, *, edited=None, cancel=False, expected=0):
         app.save_screenshot(str(Path(os.environ['L0A_EVIDENCE']) / f'command-{name}-exit{expected}.svg'))
         assert await pilot.click(executor.ok_button)
     await until(pilot, lambda: app.screen is modal)
+    assert pane._process is not None and pane._process.returncode is not None
+    assert pane._execute_task.done(), 'Native command reader survives its completed dialog'
 
 
 async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
@@ -282,7 +285,9 @@ async def catalog_only_main():
                 actual_chat = {entry.agent.identity for entry in store.query(AgentItem)
                                if entry.agent.kind.section() is ChatAgentKind}
                 assert actual_chat == expected_chat
-                assert frame(app).count(ChatAgentKind.heading) == bool(expected_chat)
+                chat_headings = [heading for heading in store.query('.heading')
+                                 if ChatAgentKind.heading in str(heading.render())]
+                assert len(chat_headings) == bool(expected_chat)
                 app.save_screenshot(str(evidence / 'catalog-sections.svg'))
                 await open_item(app, pilot, item)
                 modal = app.screen
