@@ -1,0 +1,56 @@
+{
+  "state": "source byte verified; actual App/ACP journey pending",
+  "toad_head": "5cc5b47d8ad66cc5c118cfa6d65233353711cb86",
+  "installed_toad": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad",
+  "toad_assets": 320,
+  "unchanged_dependency_assets": [
+    {
+      "module": "agent_comms",
+      "assets": 339,
+      "inventory": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body399-damage43-20261003/pre400-installed-proof/agent_comms-inventory.json"
+    },
+    {
+      "module": "textual",
+      "assets": 266,
+      "inventory": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body399-damage43-20261003/pre400-installed-proof/textual-inventory.json"
+    },
+    {
+      "module": "textual_diff_view",
+      "assets": 3,
+      "inventory": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body399-damage43-20261003/pre400-installed-proof/textual_diff_view-inventory.json"
+    }
+  ],
+  "package_count": 69,
+  "sdk": "0.12.1",
+  "sources": {
+    "batrachian-toad": {
+      "url": "https://github.com/OpenHCSDev/toad.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "5cc5b47d8ad66cc5c118cfa6d65233353711cb86",
+        "requested_revision": "5cc5b47d8ad66cc5c118cfa6d65233353711cb86"
+      }
+    },
+    "agent-comms": {
+      "url": "https://github.com/OpenHCSDev/agent-comms.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "f4a5827955174d23ca6e6bcf96f2a3abc4af996d",
+        "requested_revision": "f4a5827955174d23ca6e6bcf96f2a3abc4af996d"
+      }
+    },
+    "textual": {
+      "url": "https://github.com/OpenHCSDev/textual.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "21011cf0be9a898160ec0ac80e7829eaf5330f97",
+        "requested_revision": "21011cf0be9a898160ec0ac80e7829eaf5330f97"
+      }
+    }
+  },
+  "native_manifest": "89b56aea0bb128c4bf3e2c979de8a5afa79ac88b1f51a74c49cc1cab46da60d2",
+  "native_tree": "4b7f66f396a342e523d631c753686789b61313c34c30d894ddf24b5a861caa26",
+  "native_trust_reference": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body399-damage43-20261003/pre400-installed-proof/source-proof.json",
+  "native_trust_note": "Borrowed original full-trust proof; no native build/install/copy, only one no-deps Toad wheel replacement.",
+  "code_lease": "Parent explicit style22 sequential400 loan after archived original397/399 metadata and borrower0. No public activation."
+}

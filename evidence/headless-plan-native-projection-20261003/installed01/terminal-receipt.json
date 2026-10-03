@@ -1,0 +1,26 @@
+{
+  "result": "SCOPED_INSTALLED_PLAN_POSITIVES; WHOLE_JOURNEY_FAILED_ON_RETURN_PAINT",
+  "source_head": "5cc5b47d8ad66cc5c118cfa6d65233353711cb86",
+  "actual_handle": 9246,
+  "terminal_exit": 1,
+  "observed_positive_assertion_markers": [
+    "ACP_STDIO_ALL_STATUS_MARKERS_AND_PLAN_SIDEBAR_PAINTED",
+    "ACP_CONTINUOUS_UPDATE_COMPLETION_ANIMATED_STABLE_COMPLETION_RESIZED_AND_PAINTED",
+    "ACP_EMPTY_RESET_INACTIVE_PANEL_REVEAL_AND_ALREADY_COMPLETED_REAPPEARANCE_PAINTED",
+    "PHYSICAL_MALFORMED_STATUS_MISSING_FIELD_WRONG_TYPE_REJECTED_WITH_VISIBLE_NOTES"
+  ],
+  "failure": "Timeout waiting for DETACHED_PLAN_ITEM paint after returning to original tab; stack is Pilot.pause -> _wait_for_screen under existing12s deadline.",
+  "failed_operand": "Official-SDK pending PlanEntry published while native surface detached. Controller latest source and Plan existence assertions passed before paint wait.",
+  "source_classification": "Pending status does not call changed StrikeText.complete scheduling. Original pending marker and Plan content construction are equivalent. NativeSessionSurface.activate and reader-position/scroll-visible preparation remain unchanged; this supports an independent frontend return-path lead, not a certified unrelated cause.",
+  "remaining_scope": "Same-agent/process/editor and sidebar pointer assertions after returned paint were not reached. No failed frame was retained by original runner; raw terminal preserved.",
+  "native_providers": 0,
+  "configured_owner_inputs": 0,
+  "scope": "Actual installed App/Pilot and official SDK ACP subprocess. Not physical st/full-headless/performance acceptance.",
+  "no_unchanged_rerun": true,
+  "cleanup": "cleanup.json records no readable attempt-tagged process; inaccessible processes listed explicitly. TemporaryDirectory fixture retired normally.",
+  "integration_owners": [
+    "Parent informed of actual failure and partial positives",
+    "Heisenberg native return-path source lead delivered",
+    "Former Kepler thread not found by appserver; no delivery claimed"
+  ]
+}
