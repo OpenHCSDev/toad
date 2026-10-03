@@ -4,8 +4,8 @@
   "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
   "processes": [
     {
-      "pid": 1252205,
-      "start_ticks": 46432277,
+      "pid": 1286644,
+      "start_ticks": 46467382,
       "returncode": 0
     }
   ]

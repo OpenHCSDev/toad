@@ -1,5 +1,5 @@
 {
-  "source": "c1d653991a94686a167ed04b1e6f4a99641cd1e9",
+  "source": "ff6c90073e6297dae2cde82bdaf7b22f7fbbe621",
   "parsed": 286,
   "omissions": [],
   "declarations": {
@@ -365,5 +365,28 @@
     }
   ],
   "remaining": "Existing ANSI TerminalExecution still imports Textual; preference theme choices and deferred native compose hooks remain U2/U4/U5. No complete headless import claim.",
-  "limits": "Existing NRA parser enumerates committed Python sources; receiver dynamic resolution and TYPE_CHECKING imports require semantic reading. Unrelated self.delivery/self.controller.app lexical names are listed separately, not erased or counted as this owner. Unchanged ACP external roots remain original SDK/task family."
+  "limits": "Existing NRA parser enumerates committed Python sources; receiver dynamic resolution and TYPE_CHECKING imports require semantic reading. Unrelated self.delivery/self.controller.app lexical names are listed separately, not erased or counted as this owner. Unchanged ACP external roots remain original SDK/task family.",
+  "timestamp_storage_consumers": [
+    {
+      "path": "src/toad/db.py",
+      "line": 49,
+      "call": "Column(primary_key=True, auto_increment=True)"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 59,
+      "call": "Column(storage=TextStorage)"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 63,
+      "call": "Column(storage=TextStorage)"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 68,
+      "call": "Column(storage=SessionMetaStorage)"
+    }
+  ],
+  "removed_timestamp_storage": []
 }

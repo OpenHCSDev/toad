@@ -1,7 +1,7 @@
 {
   "stage": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final",
   "pins": {
-    "toad": "ff6c90073e6297dae2cde82bdaf7b22f7fbbe621",
+    "toad": "c1d653991a94686a167ed04b1e6f4a99641cd1e9",
     "agent_comms": "58686f983377087e85ef20fd2928bcf113ab7acb",
     "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
   },

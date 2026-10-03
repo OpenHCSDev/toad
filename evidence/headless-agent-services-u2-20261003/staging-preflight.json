@@ -26,18 +26,18 @@
     }
   },
   "activation_path": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/activation.json",
-  "activation_sha256": "4987494c53a069780290e571682b3159187c1afd78c8507104d1a0dba9de0a8f",
+  "activation_sha256": "7464199e9f08521a6980611b9155741a801f6af1bc73a8b228a2690d156bdc72",
   "activation": {
     "stage": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final",
     "pins": {
-      "toad": "c1d653991a94686a167ed04b1e6f4a99641cd1e9",
+      "toad": "ff6c90073e6297dae2cde82bdaf7b22f7fbbe621",
       "agent_comms": "58686f983377087e85ef20fd2928bcf113ab7acb",
       "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
     },
     "sdk": "0.12.1",
     "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-960296fdddafb01c/node_modules/@earendil-works/pi-coding-agent",
     "state": "verified-immutable-cohort",
-    "staging_receipt_sha256": "ed025a1b94cc34ae6751bc97a4fc66b050a54446041ab84b8e2f5e5cd0bbec12"
+    "staging_receipt_sha256": "3feccd9a49ffbe05ee335090809769e527561c4046d13f336e4e0d2e80637c47"
   },
   "observed": {
     "python": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/bin/python",
@@ -46,7 +46,7 @@
       "toad": {
         "origin": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/toad/__init__.py",
         "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
-        "source_tree_sha256": "ab876a4cab5eb612524f622fd00a35fa420fa9cdddb42afdf78bb58ebf02b9b5",
+        "source_tree_sha256": "7dec0068c5e2b1c12bdcf355b17a6ab75d6e9d302b452a5b28d1d30b7a92c1bd",
         "distribution": "batrachian-toad",
         "version": "0.6.20",
         "direct_url": {

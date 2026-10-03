@@ -1,53 +1,61 @@
-# U2 original service checkpoint
+# U2 original service checkpoint: scoped ready
 
-Production source: `c1d653991a94686a167ed04b1e6f4a99641cd1e9`. 251 production lines deleted, 247 added across21 files.
-Original declarations moved; caller and obsolete forwarding paths deleted together.
-Patterns: IMPL-13 (shared read/work behavior), IDEN-5 (removed root/app copies),
-TIME-6 (removed delivery intermediary and task facade).
+Source `ff6c90073e6297dae2cde82bdaf7b22f7fbbe621`. **267 production lines deleted, 251 added in22 files.**
 
-## What changed
+The existing AttachedSurfaceBinding acquires the original CoordinationAccess,
+PreparationRuntime and validation worker resources; AgentController receives
+that binding. The original reader family owns service, lock and delivery, reuses
+itself for identical application resources, and keeps in-flight reads on their
+original resource. Content witnesses and publication fences remain after awaits.
+SDK validation and render operations keep their original family/process owners.
+AgentController.app, reader controller/root copies, the delivery intermediary,
+Agent.post_message and execute_render_task forwarding paths are deleted.
 
-The existing attached surface acquires application resources. The operational
-controller receives that binding. One original transcript reader owns its lock,
-service and delivery; reattachment to the same application resources reuses it.
-Each in-flight read retains its original resource, with content and publication
-checks after awaits. SDK validation and worker operations use their original
-families through native process delivery. There is no second app/root mirror.
+The installed journey exposed a pre-existing double timestamp encoder at session
+creation. That custom storage class is deleted; original TimestampText metadata
+and existing TextStorage handle the two original row fields. No SQL format change.
 
-## Actual acceptance
+## Actual installed acceptance
 
-The installed original worker accepted typed SDK data and refused invalid data.
-The installed Toad/ACP/Pi journey reached a native answer, reconnect/saved paint,
-file operations, permission grant, terminal paint and reuse, channel return,
-draft/document/undo preservation, and permission detach/reattach/reject. Original
-reader lock cancellation and service reuse passed before input. One controlled
-localhost request, zero provider errors. This uses Textual Pilot, not st footage.
+Installed03 completed the continuous real Toad/ACP/Pi/Textual journey:
 
-The continuous journey then FAILED at the existing new-session DB timestamp
-encoder. `TypedTable._Field.encode` already returns TimestampText; the local
-storage encodes that string as datetime again. Parent/Mendel have the original
-trace. This failure was present before350. Final driver-end reader assertions,
-new-session title and stop-pending permission checks were not reached.
+- Cancel while awaiting the original reader lock; cancellation releases it and
+  subsequent bind keeps the canonical application service.
+- Native answer visibly painted, original owner idle, reconnect and saved paint.
+- Real registered client file write/read; permission diff/grant.
+- Real PTY wait/output/paint; channel return retains original execution.
+- Draft/document/undo retained; permission future survives detach/reattach/reject.
+- New-session durable title, replacement cancellation and stop-pending cleanup.
+- Final assertions verify the SAME original reader and canonical service.
 
-The earlier run stopped before native input at my incorrect attachment caller;
-that caller was fixed and the original failure retained. No input was replayed.
-Attempted pytest/optional-renderer checks did not run because those dependencies
-were absent. No new environment or native copy was created. No public defaults,
-owner, store or user session was changed. Cleanup found no readable processes
-carrying the owned attempt IDs; inaccessible system processes are listed, not
-silently treated as inspected.
+The affected acceptance body took12.748 seconds, one controlled localhost native
+answer. Actual installed source matches314 package files and the original pins.
+Pilot drives the real Textual application; **this is not a physical st recording**.
+U1's previously accepted physical41MB journey is unchanged and was not repeated.
+Original worker serialization/SDK valid-invalid result check passed. Attempted
+pytest and optional zmqruntime renderer checks did not run: dependencies absent.
 
-## Scope and next work
+Installed01 original caller-migration error and installed02 original timestamp
+failure remain intact. Installed03 uses a distinct private root/input after the
+actual source corrections, not a replay. Original PTY shell completion printed
+OSError(5); its actual lifecycle/output assertions passed, no zero-stderr claim.
+No public/default/owner changes or paid request. Existing env/native reused.
+Owned fixture teardown completed; no readable process carries the owned attempt
+ID. Inaccessible unrelated system processes are listed explicitly.
 
-This checkpoint is the implemented U2 service/resource closure. Full U2
-preferences isolation, U4 frontend views and U5 model extraction remain open.
-Detached geometry belongs to the existing TerminalState/TerminalExecution
-width/height/resize declaration; do not add another dimensions owner. The current
-80x24 detached default is preserved by350. Replaced defaults will be deleted in
-U5, together with configurable detached operation consumers.
+## Ownership evidence and unfinished scope
 
-See RECEIPT.json for exact paths, original negatives, counts and scope; before
-and after maps use the existing NRA AST parser with zero omitted source modules.
-Dynamic receivers/unrelated lexical names remain explicit ambiguities.
+Existing NRA AST parser:286 committed production modules, zero omissions, one
+original declaration per12 moved/shared owner classes, removed facade consumers
+absent. Unrelated similarly named attributes remain explicit lexical ambiguity.
+Patterns: IMPL-13 shared read/work behavior; IDEN-5 removed mirrors; TIME-6 removed
+facades; BOUND-2 original timestamp boundary no longer bypassed/re-decoded.
 
-No CI wait; parent review/publication remains separate.
+This useful U2 resource/service checkpoint can ship independently. Remaining:
+preferences/theme core isolation, U4 frontend view registration, U5 terminal
+model extraction. U5 must make original TerminalState/TerminalExecution own
+configurable detached dimensions and delete repeated defaults; no new dimensions
+class, field mirror or per-consumer default. Current80x24 behavior is preserved.
+
+`RECEIPT.json` lists every changed production file, exact pins, raw receipts and
+proof limits. The candidate is inactive; parent owns review/publication. CI deferred.
