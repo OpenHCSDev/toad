@@ -1,0 +1,12 @@
+{
+  "owner": "Schrodinger receiving349 merged context551 and project345",
+  "core": "f34cd8ea57345f002f99e5de7a0c54c32cf996dc",
+  "toad": "431e87d9965ca1e620a4a403e7e3d714c109be3f",
+  "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-960296fdddafb01c/node_modules/@earendil-works/pi-coding-agent",
+  "prefix": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001",
+  "public_writes": 0,
+  "provider_calls": 0,
+  "new_environment": false,
+  "new_native_build": false
+}

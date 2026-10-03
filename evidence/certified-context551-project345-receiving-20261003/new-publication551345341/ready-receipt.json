@@ -1,0 +1,51 @@
+{
+  "state": "FROZEN READY for parent-only NEW quiet index publication, receiving349",
+  "core": "f34cd8ea57345f002f99e5de7a0c54c32cf996dc",
+  "toad": "431e87d9965ca1e620a4a403e7e3d714c109be3f",
+  "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0",
+  "sdk": "0.12.1",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-960296fdddafb01c/node_modules/@earendil-works/pi-coding-agent",
+  "package_count": 69,
+  "prefix": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001",
+  "source_proof": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/certified-context551-project345-receiving-20261003/source-proof.json",
+  "source_proof_sha256": "d3e83184f8b3d4b31ef8d6c1013e337630a54d97bd2a25744d36249aaa052927",
+  "activation_sha256": "e1d30aefdbdf5e232f2e1698ed6d486a1ec741d26fd91fa9187ddd3782592a60",
+  "cohort": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/certified-context551-project345-receiving-20261003/new-publication551345341/review-plan.json",
+  "cohort_sha256": "266045745746ca7e2f7ece69552974008784f4303d3d17429dc68696cfb39125",
+  "operator_manifest_sha256": "03e3fd9d32966df2ea2e507efb911b4e1c9f1b0dc52b193486745315fd712c3e",
+  "operator_members": 51,
+  "execution_artifacts": {
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/certified-context551-project345-receiving-20261003/new-publication551345341/operator-manifest.json": "03e3fd9d32966df2ea2e507efb911b4e1c9f1b0dc52b193486745315fd712c3e",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/certified-context551-project345-receiving-20261003/new-publication551345341/review-plan.json": "266045745746ca7e2f7ece69552974008784f4303d3d17429dc68696cfb39125",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/certified-context551-project345-receiving-20261003/new-publication551345341/runtime-installation.json": "717ca469bd2330bcf868ceaf572e8b128795ef3dd54885497f8e16c4680aabae",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/certified-context551-project345-receiving-20261003/new-publication551345341/declaration-relation.json": "e4bff9368f15e6bc16d5bbb32c8a798ef490ffdd9ea9a4dd4ba836395deb7507",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/certified-context551-project345-receiving-20261003/new-publication551345341/execute-index-publication.py": "9a68b47bf0cf6f5f5548ea226bb6a033113b1cb8c13114609c7e4b77f389c1ed"
+  },
+  "command": "env -u PYTHONPATH -u PYTHONHOME /home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001/bin/python -I /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/certified-context551-project345-receiving-20261003/new-publication551345341/execute-index-publication.py --execute",
+  "receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/certified-context551-project345-receiving-20261003/new-publication551345341/publication-receipt.json",
+  "receipt_exists": false,
+  "originals": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/certified-context551-project345-receiving-20261003/new-publication551345341/publication-receipt.originals",
+  "schema_relation": "Whole declared NativeSchema equal; derived private checkpoint declarations differ; original index writer owns reset/rebuild through inherited descriptor. Runtime/native/input/UNKNOWN unchanged, no native carry/reset/replay. Products differ.",
+  "private_directory_mode": "0o700",
+  "reused_proofs": [
+    "551 original retained writer/inherited descriptor/CLI manifest/protected25 files",
+    "345 installed different-cwd project-dir physical saved-history startup",
+    "341 installed native06 and actual41MB physical saved-history startup",
+    "309 accepted context inspection unchangedAPI"
+  ],
+  "public_effects": 0,
+  "provider_calls": 0,
+  "new_environment": false,
+  "new_native_build": false,
+  "new_physical_journey": false,
+  "guards": "Existing publisher checks original canonical audience/idle/clients/route/defaults and obtains original EX lifetime before fence. Source interpreter validates old marker/schema before reset; target verifies original inherited bus descriptor. Changed metadata forbids old-runtime recovery. Parent only executes once; existing receipt/originals prohibit repeats.",
+  "protected_prefixes": [
+    "current553/runtime-summary-generation-policy520-installed-20261002",
+    "previous334/runtime-native-read532-534-retirement325-20261002"
+  ],
+  "excluded_scopes": [
+    "unmerged554",
+    "341 broader U1 goals",
+    "S2/S4/fullsmoothness/fulllatency closure"
+  ]
+}
