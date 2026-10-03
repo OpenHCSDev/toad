@@ -49,6 +49,50 @@ permission/PTY and explorer evidence from #356 remains preserved.
 Before/after source evidence uses the existing NRA AST parser over production,
 tests and the relevant dependency roots. Dynamic receiver ambiguity is reported
 separately. After implementation, batch affected sanity and one installed
-application publication/header path. No provider inputs, authentication,
-public stores, new worktree or environment; CI deferred. No full headless or
+application publication/header path. The final affected check sends no prompt/provider request or authentication
+input and changes no public store, worktree or environment; CI deferred. No full headless or
 physical readiness claim from this scoped checkpoint.
+
+## Native lifetime and preserved negative checks
+
+The registered SDK update enters SessionNotificationOwner, validates through
+ApplicationValidationOwner, updates SessionToolCalls and publishes the original
+CoreEvent. Conversation's handler applies status activity, then awaits post;
+CategorizedMount admits the nominal ToolCall and Textual owns mount. Its
+on_mount awaits the original ToolOutput.sync and its on_unmount retires that
+output resource. No active-turn condition exists in post. ManagedTurnBinding
+ignores locally invented activity: only the original backend turn publication
+can make a managed view busy.
+
+CapturedClaim captures only settled output. Accepted saved-source publication
+can replace precisely that captured projection. A notification injected into an
+idle fixture does not prove a real native tool or durable saved result; requiring
+its indefinite DOM retention was the wrong oracle. Final instrumentation calls
+the original ToolCall.on_mount unchanged and records the native header there.
+It does not invent a turn, suppress retirement, or grant source coverage.
+
+Failure delivery belongs to its original subscription/publisher. After posting
+the main error note, Conversation reads that publisher's current surface. A
+surface retired during the await has been replaced with DetachedSurfaceBinding
+(or a different target); its existing capability acquires no old-view native
+work. The attached hook checks original target ownership, then post relies on
+the existing attached contents and native message-pump closing contract. There
+is no independently stored pending failure or copied selected-agent state.
+
+Checks02/03 admitted an idle SDK tool but timed out on DOM retention;03 records
+registered RPC acknowledgement, original call ledger and active exact surface.
+Check04 reserved one private prompt, reached preparation, made ZERO provider
+requests and timed out; that original reservation and raw failure remain, with
+canonical private-process cleanup. No attempt is retried or reclassified.
+Check05 sends no prompt and times out BEFORE feedback acceptance, waiting for
+ACP attachment on old Core85. Its worker was observed waiting on a kernel
+store lock with both BUS and WIRE descriptors; a later dump after runner exit
+was idle. This is not an exact563 deadlock proof and no causal claim is made.
+
+The reused302 holder now normally installs merged Core563 through frozen
+requirements. That merged change closes the certified read descriptor inside
+the joined worker before Future delivery and moves publication off the loop.
+It changes the original startup/publication resource used by this check;
+Toad's six-file projection source, Textual and native package remain unchanged.
+The next affected App/header check sends ZERO provider inputs. Public563
+release is independent of359.

@@ -1,0 +1,2266 @@
+{
+  "packages": [
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "revision": "HEAD",
+      "root": "src/toad",
+      "parsed": 286,
+      "unparsed": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "revision": "HEAD",
+      "root": "tests",
+      "parsed": 390,
+      "unparsed": []
+    },
+    {
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "revision": "85abe4276e91d52a72eec7411ed2314aaccc8c02",
+      "root": "src/agent_comms",
+      "parsed": 311,
+      "unparsed": []
+    }
+  ],
+  "sites": [
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 3,
+      "node": "alias",
+      "source": "StopReason"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 20,
+      "node": "alias",
+      "source": "LogAgentFail"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 56,
+      "node": "AsyncFunctionDef",
+      "source": "async def present_failure(self, failure, view) -> None:\n    \"\"\"An absent frontend keeps the original failure without native work.\"\"\""
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 128,
+      "node": "Attribute",
+      "source": "self.agent.permissions.present"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 302,
+      "node": "Name",
+      "source": "StopReason"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 310,
+      "node": "Name",
+      "source": "LogAgentFail"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 11,
+      "node": "alias",
+      "source": "LogAgentFail"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 177,
+      "node": "Name",
+      "source": "LogAgentFail"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 182,
+      "node": "Name",
+      "source": "LogAgentFail"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 192,
+      "node": "Name",
+      "source": "LogAgentFail"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 245,
+      "node": "Name",
+      "source": "LogAgentFail"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 208,
+      "node": "Name",
+      "source": "LogAgentFail"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 70,
+      "node": "Name",
+      "source": "LogAgentFail"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 188,
+      "node": "alias",
+      "source": "LogAgentFail"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 192,
+      "node": "Name",
+      "source": "LogAgentFail"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 98,
+      "node": "FunctionDef",
+      "source": "def present(self):\n    from toad.core.events import RequestPermission\n    if self.pending:\n        self.agent.events.publish(RequestPermission())"
+    },
+    {
+      "path": "src/toad/acp/sdk_boundary.py",
+      "line": 13,
+      "node": "alias",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "src/toad/acp/sdk_boundary.py",
+      "line": 24,
+      "node": "Name",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "src/toad/acp/sdk_boundary.py",
+      "line": 25,
+      "node": "alias",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "src/toad/acp/sdk_boundary.py",
+      "line": 20,
+      "node": "Name",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "src/toad/acp/sdk_boundary.py",
+      "line": 26,
+      "node": "Name",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "src/toad/acp/status.py",
+      "line": 7,
+      "node": "ClassDef",
+      "source": "class StopReason(DeclaredFamily, affix='StopReason'):\n    completed = False\n    note = ''"
+    },
+    {
+      "path": "src/toad/acp/status.py",
+      "line": 33,
+      "node": "ClassDef",
+      "source": "@dataclass(frozen=True)\nclass ToolCallStatus(DeclaredFamily, affix='ToolCallStatus'):\n    call: ToolCall\n\n    @classmethod\n    def from_acp(cls, call: ToolCall):\n        kind = cls.decode(call.status or PendingToolCallStatus.declared_name)\n        return kind(call)\n    busy = False\n    boundary = Fa"
+    },
+    {
+      "path": "src/toad/acp/status.py",
+      "line": 54,
+      "node": "ClassDef",
+      "source": "class PendingToolCallStatus(ToolCallStatus):\n    busy = True"
+    },
+    {
+      "path": "src/toad/acp/status.py",
+      "line": 58,
+      "node": "ClassDef",
+      "source": "class InProgressToolCallStatus(ToolCallStatus):\n    busy = True"
+    },
+    {
+      "path": "src/toad/acp/status.py",
+      "line": 62,
+      "node": "ClassDef",
+      "source": "class CompletedToolCallStatus(ToolCallStatus):\n    boundary = completed = True"
+    },
+    {
+      "path": "src/toad/acp/status.py",
+      "line": 66,
+      "node": "ClassDef",
+      "source": "class FailedToolCallStatus(ToolCallStatus):\n    boundary = failed = True"
+    },
+    {
+      "path": "src/toad/acp/status.py",
+      "line": 12,
+      "node": "Name",
+      "source": "StopReason"
+    },
+    {
+      "path": "src/toad/acp/status.py",
+      "line": 16,
+      "node": "Name",
+      "source": "StopReason"
+    },
+    {
+      "path": "src/toad/acp/status.py",
+      "line": 20,
+      "node": "Name",
+      "source": "StopReason"
+    },
+    {
+      "path": "src/toad/acp/status.py",
+      "line": 24,
+      "node": "Name",
+      "source": "StopReason"
+    },
+    {
+      "path": "src/toad/acp/status.py",
+      "line": 28,
+      "node": "Name",
+      "source": "StopReason"
+    },
+    {
+      "path": "src/toad/acp/status.py",
+      "line": 47,
+      "node": "FunctionDef",
+      "source": "@classmethod\ndef activity(cls, turns, output, title):\n    if cls.busy:\n        turns.describe(' '.join(title.splitlines()))\n    if cls.boundary:\n        output.boundary()"
+    },
+    {
+      "path": "src/toad/acp/status.py",
+      "line": 54,
+      "node": "Name",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "src/toad/acp/status.py",
+      "line": 58,
+      "node": "Name",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "src/toad/acp/status.py",
+      "line": 62,
+      "node": "Name",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "src/toad/acp/status.py",
+      "line": 66,
+      "node": "Name",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "src/toad/acp/status.py",
+      "line": 38,
+      "node": "Name",
+      "source": "PendingToolCallStatus"
+    },
+    {
+      "path": "src/toad/acp/tool_calls.py",
+      "line": 4,
+      "node": "alias",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "src/toad/acp/tool_calls.py",
+      "line": 4,
+      "node": "alias",
+      "source": "PendingToolCallStatus"
+    },
+    {
+      "path": "src/toad/acp/tool_calls.py",
+      "line": 20,
+      "node": "Name",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "src/toad/acp/tool_calls.py",
+      "line": 33,
+      "node": "Name",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "src/toad/agent.py",
+      "line": 2,
+      "node": "alias",
+      "source": "StopReason"
+    },
+    {
+      "path": "src/toad/agent.py",
+      "line": 45,
+      "node": "Name",
+      "source": "StopReason"
+    },
+    {
+      "path": "src/toad/agent_surface.py",
+      "line": 11,
+      "node": "ClassDef",
+      "source": "class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):\n\n    def __init__(self, target, events):\n        self._target = ref(target)\n        self.subscription = target.subscribe_core(events)\n\n    def prepare(self, controller) -> None:\n        app = self.target.app\n        controller.transcripts = "
+    },
+    {
+      "path": "src/toad/agent_surface.py",
+      "line": 9,
+      "node": "alias",
+      "source": "HelpAgentFail"
+    },
+    {
+      "path": "src/toad/agent_surface.py",
+      "line": 9,
+      "node": "alias",
+      "source": "LogAgentFail"
+    },
+    {
+      "path": "src/toad/agent_surface.py",
+      "line": 27,
+      "node": "AsyncFunctionDef",
+      "source": "async def present_failure(self, failure, view) -> None:\n    if self.owns(view):\n        await self.dispatch(failure, view)"
+    },
+    {
+      "path": "src/toad/agent_surface.py",
+      "line": 31,
+      "node": "Name",
+      "source": "HelpAgentFail"
+    },
+    {
+      "path": "src/toad/agent_surface.py",
+      "line": 37,
+      "node": "Name",
+      "source": "LogAgentFail"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 124,
+      "node": "FunctionDef",
+      "source": "@property\ndef activity(self):\n    return self.state.activity if self.busy else ''"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 12,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 69,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 81,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 48,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 74,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 125,
+      "node": "Attribute",
+      "source": "self.state.activity"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 196,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 275,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 48,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 74,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 91,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 197,
+      "node": "ClassDef",
+      "source": "@dataclass(frozen=True)\nclass AgentFail(CoreEvent):\n    \"\"\"Agent failed to start.\"\"\"\n    message: str\n    details: str = ''"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 204,
+      "node": "ClassDef",
+      "source": "class HelpAgentFail(AgentFail):\n\n    @property\n    @abstractmethod\n    def help_text(self) -> str:\n        ..."
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 226,
+      "node": "ClassDef",
+      "source": "@dataclass(frozen=True)\nclass LogAgentFail(AgentFail):\n    log_path: Annotated[Path, PathText] = field(kw_only=True)"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 15,
+      "node": "alias",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 204,
+      "node": "Name",
+      "source": "AgentFail"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 209,
+      "node": "Name",
+      "source": "HelpAgentFail"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 226,
+      "node": "Name",
+      "source": "AgentFail"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 61,
+      "node": "Name",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 162,
+      "node": "FunctionDef",
+      "source": "def present(self) -> None:\n    \"\"\"A written or restored scene releases its same deferred source work.\"\"\"\n    self.state = PresentedFrame()\n    self.presented.set()\n    callbacks = tuple(self.callbacks)\n    self.callbacks.clear()\n    for owner, callback in callbacks:\n        if owner.is_attached:\n            owner.call_later(callback)"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 110,
+      "node": "Attribute",
+      "source": "frame.present"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 160,
+      "node": "Attribute",
+      "source": "self.present"
+    },
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 154,
+      "node": "FunctionDef",
+      "source": "def present(self, modal) -> None:\n    self._modal = ref(modal)\n    self.view.app.push_screen(modal)"
+    },
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 54,
+      "node": "Attribute",
+      "source": "session.present"
+    },
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 113,
+      "node": "Attribute",
+      "source": "session.present"
+    },
+    {
+      "path": "src/toad/input_history.py",
+      "line": 52,
+      "node": "FunctionDef",
+      "source": "def present(self, prompt, entry: HistoryEntry) -> None:\n    prompt.text = entry.input"
+    },
+    {
+      "path": "src/toad/input_history.py",
+      "line": 76,
+      "node": "FunctionDef",
+      "source": "def present(self, prompt, entry):\n    super().present(prompt, entry)\n    prompt.shell_mode = True"
+    },
+    {
+      "path": "src/toad/input_history.py",
+      "line": 77,
+      "node": "Attribute",
+      "source": "super().present"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 141,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 142,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 144,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 145,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 101,
+      "node": "AsyncFunctionDef",
+      "source": "async def present(self, conversation: Conversation) -> None:\n    if self.directory_watcher is not None:\n        conversation.call_after_refresh(self.directory_watcher.notify_if_visible)\n    if self.shell is not None:\n        conversation._shell = self.shell\n        await self.shell.attach(conversation)\n    if self.agent is not None:\n        conversation.agent = self.agent\n        conversation.bind_agent(self.agent)"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 158,
+      "node": "Attribute",
+      "source": "self.sources.present"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 121,
+      "node": "Name",
+      "source": "present"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 252,
+      "node": "Name",
+      "source": "present"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 254,
+      "node": "Name",
+      "source": "present"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 199,
+      "node": "Name",
+      "source": "present"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 253,
+      "node": "Name",
+      "source": "present"
+    },
+    {
+      "path": "src/toad/shell_output.py",
+      "line": 17,
+      "node": "AsyncFunctionDef",
+      "source": "@abstractmethod\nasync def present(self, conversation: 'Conversation') -> None:\n    ..."
+    },
+    {
+      "path": "src/toad/shell_output.py",
+      "line": 27,
+      "node": "AsyncFunctionDef",
+      "source": "async def present(self, conversation: 'Conversation') -> None:\n    await conversation.post(ShellResult(self.command))"
+    },
+    {
+      "path": "src/toad/shell_output.py",
+      "line": 42,
+      "node": "AsyncFunctionDef",
+      "source": "async def present(self, conversation: 'Conversation') -> None:\n    if self.terminal is not None:\n        return\n    terminal = await conversation.new_terminal()\n    self.terminal = terminal\n    terminal.set_state(self.state)\n    terminal.update_size(terminal.width, terminal.height)\n    terminal.set_write_to_stdin(self.state.write_stdin)\n    terminal.project_state(None, None)\n    if self.finalized:\n        terminal.finalize()"
+    },
+    {
+      "path": "src/toad/shell_source.py",
+      "line": 43,
+      "node": "Attribute",
+      "source": "output.present"
+    },
+    {
+      "path": "src/toad/shell_source.py",
+      "line": 54,
+      "node": "Attribute",
+      "source": "output.present"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 152,
+      "node": "Attribute",
+      "source": "group.present"
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 435,
+      "node": "Attribute",
+      "source": "delivery_failure(error).present"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 174,
+      "node": "AsyncFunctionDef",
+      "source": "async def present(self, view: ChannelView) -> None:\n    row = self.row\n    sidebar = self.query_ancestor(CommsSidebar)\n    if row.is_attached:\n        row.tooltip = f\"{len(view.members)} threads \u00b7 tags: {', '.join(sorted(view.channel.tags)) or 'all'}\"\n        group = self\n        expanded = sidebar.navigation.state.expanded.get(row.target_name, row.target.expanded_by_default)\n        if group.expanded != expanded:\n            group.expanded = expanded\n            group.disclosure.update('\u25be' if expanded else '\u25b8', layout=False)\n        await super()._sync_members()"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 65,
+      "node": "alias",
+      "source": "StopReason"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 67,
+      "node": "alias",
+      "source": "AgentFail"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 378,
+      "node": "alias",
+      "source": "AttachedSurfaceBinding"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1081,
+      "node": "Name",
+      "source": "AgentFail"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1512,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 239,
+      "node": "Attribute",
+      "source": "owner.activity"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1539,
+      "node": "Attribute",
+      "source": "tool_call.activity"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1609,
+      "node": "Attribute",
+      "source": "history.present"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 240,
+      "node": "Attribute",
+      "source": "owner.activity"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 380,
+      "node": "Name",
+      "source": "AttachedSurfaceBinding"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 802,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1109,
+      "node": "Attribute",
+      "source": "message.publisher.controller.surface.present_failure"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 244,
+      "node": "Attribute",
+      "source": "self.owner.activity"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 803,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1256,
+      "node": "Name",
+      "source": "StopReason"
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "line": 180,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "line": 184,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 52,
+      "node": "Attribute",
+      "source": "self.activity"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 76,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 76,
+      "node": "Attribute",
+      "source": "self.activity"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 56,
+      "node": "Attribute",
+      "source": "self.activity"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 61,
+      "node": "Attribute",
+      "source": "self.activity"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 72,
+      "node": "Attribute",
+      "source": "self.activity"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 77,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 80,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 117,
+      "node": "Attribute",
+      "source": "self.activity"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 79,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 83,
+      "node": "Attribute",
+      "source": "self.turns.owner.activity"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 118,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/toad/widgets/session_history_details.py",
+      "line": 33,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_viewport.py",
+      "line": 37,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_viewport.py",
+      "line": 41,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_viewport.py",
+      "line": 36,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_viewport.py",
+      "line": 42,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/toad/widgets/terminal_tool.py",
+      "line": 70,
+      "node": "FunctionDef",
+      "source": "@handles(FailedTerminalOutcome)\ndef present_failure(self, outcome) -> None:\n    self.finalize()\n    self.set_class(True, '-error')\n    self.border_title = Content(f'{self.execution.command} [{outcome.error}]')"
+    },
+    {
+      "path": "src/toad/widgets/terminal_tool.py",
+      "line": 17,
+      "node": "alias",
+      "source": "AttachedSurfaceBinding"
+    },
+    {
+      "path": "src/toad/widgets/terminal_tool.py",
+      "line": 26,
+      "node": "Name",
+      "source": "AttachedSurfaceBinding"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 23,
+      "node": "alias",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 23,
+      "node": "alias",
+      "source": "PendingToolCallStatus"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 23,
+      "node": "alias",
+      "source": "InProgressToolCallStatus"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 24,
+      "node": "alias",
+      "source": "CompletedToolCallStatus"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 24,
+      "node": "alias",
+      "source": "FailedToolCallStatus"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 304,
+      "node": "FunctionDef",
+      "source": "@handles(PendingToolCallStatus)\ndef pending_header(self, status, parts):\n    parts.append(Content(' \u231b'))"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 308,
+      "node": "FunctionDef",
+      "source": "@handles(InProgressToolCallStatus)\ndef running_header(self, status, parts):\n    parts.append(Content.assemble(' ', pill('running', '$warning-muted', '$warning', filled=not self.app.theme.startswith('ansi-'))))"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 314,
+      "node": "FunctionDef",
+      "source": "@handles(CompletedToolCallStatus)\ndef completed_header(self, status, parts):\n    parts.append(Content.from_markup(' [$success]\u2714'))"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 318,
+      "node": "FunctionDef",
+      "source": "@handles(FailedToolCallStatus)\ndef failed_header(self, status, parts):\n    parts.append(Content.assemble(' ', pill('failed', '$error-muted', '$error', filled=not self.app.theme.startswith('ansi-'))))"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 137,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 303,
+      "node": "Name",
+      "source": "PendingToolCallStatus"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 307,
+      "node": "Name",
+      "source": "InProgressToolCallStatus"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 313,
+      "node": "Name",
+      "source": "CompletedToolCallStatus"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 317,
+      "node": "Name",
+      "source": "FailedToolCallStatus"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 113,
+      "node": "Name",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 117,
+      "node": "Name",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 128,
+      "node": "Name",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 139,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 140,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "line": 67,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "line": 71,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "line": 83,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "line": 77,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "line": 75,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 35,
+      "node": "alias",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 142,
+      "node": "Name",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 115,
+      "node": "Name",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "tests/agent_activity_divider_pilot.py",
+      "line": 24,
+      "node": "alias",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "tests/agent_activity_divider_pilot.py",
+      "line": 93,
+      "node": "Name",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "tests/agent_activity_divider_pilot.py",
+      "line": 95,
+      "node": "Name",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "tests/agent_activity_divider_pilot.py",
+      "line": 118,
+      "node": "Name",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "tests/async_tab_activation_pilot.py",
+      "line": 65,
+      "node": "Name",
+      "source": "present"
+    },
+    {
+      "path": "tests/async_tab_activation_pilot.py",
+      "line": 97,
+      "node": "Attribute",
+      "source": "ChannelGroup.present"
+    },
+    {
+      "path": "tests/async_tab_activation_pilot.py",
+      "line": 70,
+      "node": "Name",
+      "source": "present"
+    },
+    {
+      "path": "tests/channel_roster_retention_pilot.py",
+      "line": 98,
+      "node": "Name",
+      "source": "present"
+    },
+    {
+      "path": "tests/channel_roster_retention_pilot.py",
+      "line": 98,
+      "node": "Name",
+      "source": "present"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 39,
+      "node": "alias",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 624,
+      "node": "Name",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "tests/goal_collapse_pilot.py",
+      "line": 40,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/goal_collapse_pilot.py",
+      "line": 44,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/goal_collapse_pilot.py",
+      "line": 48,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/goal_collapse_pilot.py",
+      "line": 49,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/goal_collapse_pilot.py",
+      "line": 86,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/goal_collapse_pilot.py",
+      "line": 66,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/goal_collapse_pilot.py",
+      "line": 81,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/goal_collapse_pilot.py",
+      "line": 59,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/goal_collapse_pilot.py",
+      "line": 64,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/goal_collapse_pilot.py",
+      "line": 65,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/goal_collapse_pilot.py",
+      "line": 98,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/guards/test_acp_specification_ownership.py",
+      "line": 6,
+      "node": "alias",
+      "source": "StopReason"
+    },
+    {
+      "path": "tests/guards/test_acp_specification_ownership.py",
+      "line": 6,
+      "node": "alias",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "tests/guards/test_acp_specification_ownership.py",
+      "line": 14,
+      "node": "Name",
+      "source": "StopReason"
+    },
+    {
+      "path": "tests/guards/test_acp_specification_ownership.py",
+      "line": 14,
+      "node": "Attribute",
+      "source": "schema.StopReason"
+    },
+    {
+      "path": "tests/guards/test_acp_specification_ownership.py",
+      "line": 14,
+      "node": "Name",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "tests/guards/test_acp_specification_ownership.py",
+      "line": 14,
+      "node": "Attribute",
+      "source": "schema.ToolCallStatus"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "line": 20,
+      "node": "alias",
+      "source": "AttachedSurfaceBinding"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "line": 76,
+      "node": "Name",
+      "source": "AttachedSurfaceBinding"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "line": 20,
+      "node": "alias",
+      "source": "AttachedSurfaceBinding"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "line": 76,
+      "node": "Name",
+      "source": "AttachedSurfaceBinding"
+    },
+    {
+      "path": "tests/lazy_tools_pilot.py",
+      "line": 60,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/lazy_tools_pilot.py",
+      "line": 73,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/manual_live_turn_status.py",
+      "line": 57,
+      "node": "Attribute",
+      "source": "row.owner.activity"
+    },
+    {
+      "path": "tests/manual_live_turn_status.py",
+      "line": 68,
+      "node": "Attribute",
+      "source": "view.agent.current_turn.activity"
+    },
+    {
+      "path": "tests/original_turn_resource_real_installed_pilot.py",
+      "line": 50,
+      "node": "Attribute",
+      "source": "view.turns.owner.activity"
+    },
+    {
+      "path": "tests/persistent_workspace_installed_pilot.py",
+      "line": 27,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/persistent_workspace_installed_pilot.py",
+      "line": 40,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/profile_hot_paths_pilot.py",
+      "line": 45,
+      "node": "Attribute",
+      "source": "comms.agents.activity"
+    },
+    {
+      "path": "tests/receiver_inbound_installed_pilot.py",
+      "line": 41,
+      "node": "Attribute",
+      "source": "details.activity"
+    },
+    {
+      "path": "tests/relationship_poll_reflow_pilot.py",
+      "line": 86,
+      "node": "Attribute",
+      "source": "person.activity"
+    },
+    {
+      "path": "tests/retained_input_origin_native_pilot.py",
+      "line": 75,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/retained_input_origin_native_pilot.py",
+      "line": 76,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/retained_input_origin_observer.py",
+      "line": 111,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/retained_input_origin_observer.py",
+      "line": 137,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/right_comms_pilot.py",
+      "line": 202,
+      "node": "Attribute",
+      "source": "original.activity"
+    },
+    {
+      "path": "tests/right_comms_pilot.py",
+      "line": 93,
+      "node": "Attribute",
+      "source": "row.person.activity"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 80,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 80,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 81,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 81,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "line": 85,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "line": 46,
+      "node": "Attribute",
+      "source": "details.activity"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "line": 70,
+      "node": "Attribute",
+      "source": "details.activity"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "line": 59,
+      "node": "Attribute",
+      "source": "details.activity"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "line": 97,
+      "node": "Attribute",
+      "source": "view.activity"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "line": 101,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "line": 99,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "line": 108,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "line": 103,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "line": 103,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "line": 103,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "tests/session_sort_pilot.py",
+      "line": 54,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "tests/session_sort_pilot.py",
+      "line": 69,
+      "node": "Attribute",
+      "source": "comms.agents.activity"
+    },
+    {
+      "path": "tests/session_sort_pilot.py",
+      "line": 198,
+      "node": "Attribute",
+      "source": "comms.agents.activity"
+    },
+    {
+      "path": "tests/session_sort_pilot.py",
+      "line": 70,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "tests/shared_channels_pilot.py",
+      "line": 179,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/shared_channels_pilot.py",
+      "line": 180,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/tab_history_controls_pilot.py",
+      "line": 46,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/tab_history_controls_pilot.py",
+      "line": 47,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/tab_history_controls_pilot.py",
+      "line": 48,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "tests/terminal_attention_installed_journey.py",
+      "line": 78,
+      "node": "Attribute",
+      "source": "(reply := (await connection.receive())).header"
+    },
+    {
+      "path": "tests/terminal_attention_installed_journey.py",
+      "line": 86,
+      "node": "Attribute",
+      "source": "message.header"
+    },
+    {
+      "path": "tests/terminal_attention_installed_journey.py",
+      "line": 88,
+      "node": "Attribute",
+      "source": "message.header"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 25,
+      "node": "alias",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 91,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 92,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 94,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 98,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 93,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 94,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 89,
+      "node": "Name",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 92,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "tests/typed_comms_command_pilot.py",
+      "line": 59,
+      "node": "Attribute",
+      "source": "view.activity"
+    },
+    {
+      "path": "tests/typed_comms_command_pilot.py",
+      "line": 62,
+      "node": "Attribute",
+      "source": "view.activity"
+    },
+    {
+      "path": "tests/typed_comms_command_pilot.py",
+      "line": 65,
+      "node": "Attribute",
+      "source": "view.activity"
+    },
+    {
+      "path": "tests/worker_native_size_pilot.py",
+      "line": 24,
+      "node": "alias",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "tests/worker_native_size_pilot.py",
+      "line": 64,
+      "node": "Name",
+      "source": "ToolCallStatus"
+    },
+    {
+      "path": "src/agent_comms/acp_extension.py",
+      "line": 68,
+      "node": "FunctionDef",
+      "source": "def present(self, receiver, body: str) -> None:\n    receiver.delivery_unknown(self, body)"
+    },
+    {
+      "path": "src/agent_comms/acp_extension.py",
+      "line": 73,
+      "node": "FunctionDef",
+      "source": "def present(self, receiver, body: str) -> None:\n    receiver.delivery_blocked(self.description, body)"
+    },
+    {
+      "path": "src/agent_comms/activity.py",
+      "line": 232,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/activity.py",
+      "line": 211,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/activity.py",
+      "line": 238,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/activity.py",
+      "line": 233,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/activity.py",
+      "line": 236,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/activity.py",
+      "line": 235,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/agent_activity.py",
+      "line": 82,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/agent_activity.py",
+      "line": 103,
+      "node": "Attribute",
+      "source": "self.activity"
+    },
+    {
+      "path": "src/agent_comms/agent_activity.py",
+      "line": 116,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/agent_activity.py",
+      "line": 121,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/agent_activity.py",
+      "line": 120,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/agent_activity.py",
+      "line": 146,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/agent_activity.py",
+      "line": 147,
+      "node": "Attribute",
+      "source": "self.activity"
+    },
+    {
+      "path": "src/agent_comms/agent_activity.py",
+      "line": 147,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/agent_activity.py",
+      "line": 96,
+      "node": "Attribute",
+      "source": "self.activity"
+    },
+    {
+      "path": "src/agent_comms/agent_activity.py",
+      "line": 117,
+      "node": "Attribute",
+      "source": "self.activity"
+    },
+    {
+      "path": "src/agent_comms/agent_activity.py",
+      "line": 160,
+      "node": "Attribute",
+      "source": "self.activity"
+    },
+    {
+      "path": "src/agent_comms/bus_display_index.py",
+      "line": 55,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/bus_display_index.py",
+      "line": 70,
+      "node": "Attribute",
+      "source": "self.activity"
+    },
+    {
+      "path": "src/agent_comms/bus_display_index.py",
+      "line": 65,
+      "node": "Attribute",
+      "source": "self.activity"
+    },
+    {
+      "path": "src/agent_comms/cli_commands.py",
+      "line": 404,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/cli_commands.py",
+      "line": 405,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/cli_commands.py",
+      "line": 407,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/cli_commands.py",
+      "line": 403,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/compaction_journal.py",
+      "line": 62,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/compaction_journal.py",
+      "line": 65,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/compaction_journal.py",
+      "line": 65,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/compaction_records.py",
+      "line": 397,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/compaction_records.py",
+      "line": 399,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/compaction_records.py",
+      "line": 400,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/continued_private_session.py",
+      "line": 39,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/continued_private_session.py",
+      "line": 40,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/continued_private_session.py",
+      "line": 42,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/continued_private_session.py",
+      "line": 64,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/coordinated_runtime_schema.py",
+      "line": 55,
+      "node": "Name",
+      "source": "present"
+    },
+    {
+      "path": "src/agent_comms/coordinated_runtime_schema.py",
+      "line": 61,
+      "node": "Name",
+      "source": "present"
+    },
+    {
+      "path": "src/agent_comms/debt_ratchet.py",
+      "line": 233,
+      "node": "Name",
+      "source": "present"
+    },
+    {
+      "path": "src/agent_comms/debt_ratchet.py",
+      "line": 32,
+      "node": "Name",
+      "source": "present"
+    },
+    {
+      "path": "src/agent_comms/delivery_presentation.py",
+      "line": 5,
+      "node": "FunctionDef",
+      "source": "def present(self, receiver, body: str) -> None:\n    receiver.delivery_refused(self.description, body)"
+    },
+    {
+      "path": "src/agent_comms/display_order.py",
+      "line": 43,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/exporting.py",
+      "line": 38,
+      "node": "FunctionDef",
+      "source": "@abstractmethod\ndef header(self, metadata: Mapping[str, object]) -> bytes:\n    \"\"\"Render the durable metadata record.\"\"\""
+    },
+    {
+      "path": "src/agent_comms/exporting.py",
+      "line": 58,
+      "node": "FunctionDef",
+      "source": "def header(self, metadata: Mapping[str, object]) -> bytes:\n    return (self.json_record(metadata) + '\\n').encode()"
+    },
+    {
+      "path": "src/agent_comms/exporting.py",
+      "line": 67,
+      "node": "FunctionDef",
+      "source": "def header(self, metadata: Mapping[str, object]) -> bytes:\n    return f\"# agent-comms wire export v{metadata['version']} (non-importable text view)\\n# metadata: {self.json_record(metadata)}\\n\".encode()"
+    },
+    {
+      "path": "src/agent_comms/exporting.py",
+      "line": 408,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/exporting.py",
+      "line": 481,
+      "node": "Attribute",
+      "source": "self.format.header"
+    },
+    {
+      "path": "src/agent_comms/exporting.py",
+      "line": 409,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/exporting.py",
+      "line": 427,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/exporting.py",
+      "line": 430,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/fresh_private_session.py",
+      "line": 479,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/fresh_private_session.py",
+      "line": 481,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/fresh_private_session.py",
+      "line": 310,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/fresh_private_session.py",
+      "line": 354,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/fresh_private_session.py",
+      "line": 311,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/fresh_private_session.py",
+      "line": 313,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/fresh_private_session.py",
+      "line": 321,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/fresh_private_session.py",
+      "line": 361,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/fresh_private_session.py",
+      "line": 532,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/fresh_private_session.py",
+      "line": 356,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/fresh_private_session.py",
+      "line": 357,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/history_views.py",
+      "line": 470,
+      "node": "Attribute",
+      "source": "self.agents.activity"
+    },
+    {
+      "path": "src/agent_comms/import_records.py",
+      "line": 203,
+      "node": "FunctionDef",
+      "source": "def header(self, scan):\n    return False"
+    },
+    {
+      "path": "src/agent_comms/import_records.py",
+      "line": 229,
+      "node": "FunctionDef",
+      "source": "def header(self, scan):\n    scan.identity, scan.project = (self.identity, self.project)\n    return True"
+    },
+    {
+      "path": "src/agent_comms/importing.py",
+      "line": 57,
+      "node": "Name",
+      "source": "present"
+    },
+    {
+      "path": "src/agent_comms/importing.py",
+      "line": 502,
+      "node": "Attribute",
+      "source": "CodexRecord.from_wire(record).header"
+    },
+    {
+      "path": "src/agent_comms/native_entries.py",
+      "line": 287,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/native_entries.py",
+      "line": 288,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/native_entries.py",
+      "line": 293,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/native_pi.py",
+      "line": 328,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/native_pi.py",
+      "line": 296,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/native_pi.py",
+      "line": 336,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/native_pi.py",
+      "line": 354,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/native_pi.py",
+      "line": 359,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/native_transcript.py",
+      "line": 126,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/native_transcript.py",
+      "line": 127,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/native_transcript.py",
+      "line": 129,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/native_transcript.py",
+      "line": 134,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/notification_assignment.py",
+      "line": 55,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/notification_assignment.py",
+      "line": 133,
+      "node": "Attribute",
+      "source": "self.activity"
+    },
+    {
+      "path": "src/agent_comms/notification_assignment.py",
+      "line": 122,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/notification_assignment.py",
+      "line": 134,
+      "node": "Attribute",
+      "source": "self.activity"
+    },
+    {
+      "path": "src/agent_comms/notification_assignment.py",
+      "line": 122,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/presentation.py",
+      "line": 448,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/presentation.py",
+      "line": 475,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/presentation.py",
+      "line": 528,
+      "node": "Attribute",
+      "source": "self.activity"
+    },
+    {
+      "path": "src/agent_comms/presentation.py",
+      "line": 537,
+      "node": "Attribute",
+      "source": "self.activity"
+    },
+    {
+      "path": "src/agent_comms/presentation.py",
+      "line": 539,
+      "node": "Attribute",
+      "source": "self.activity"
+    },
+    {
+      "path": "src/agent_comms/presentation.py",
+      "line": 538,
+      "node": "Attribute",
+      "source": "self.activity"
+    },
+    {
+      "path": "src/agent_comms/presentation.py",
+      "line": 512,
+      "node": "Attribute",
+      "source": "self.activity"
+    },
+    {
+      "path": "src/agent_comms/presentation.py",
+      "line": 517,
+      "node": "Attribute",
+      "source": "self.activity"
+    },
+    {
+      "path": "src/agent_comms/presentation.py",
+      "line": 523,
+      "node": "Attribute",
+      "source": "self.activity"
+    },
+    {
+      "path": "src/agent_comms/presentation.py",
+      "line": 512,
+      "node": "Attribute",
+      "source": "self.activity"
+    },
+    {
+      "path": "src/agent_comms/presentation.py",
+      "line": 349,
+      "node": "Attribute",
+      "source": "cached.activity"
+    },
+    {
+      "path": "src/agent_comms/presentation.py",
+      "line": 424,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/presentation.py",
+      "line": 424,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/presentation.py",
+      "line": 410,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/presentation.py",
+      "line": 410,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/private_registry_guard.py",
+      "line": 69,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/private_registry_guard.py",
+      "line": 70,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/private_registry_guard.py",
+      "line": 76,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/private_registry_guard.py",
+      "line": 79,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/private_registry_guard.py",
+      "line": 70,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/private_registry_guard.py",
+      "line": 77,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/recovery_gateway.py",
+      "line": 116,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/recovery_gateway.py",
+      "line": 117,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/recovery_gateway.py",
+      "line": 117,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/recovery_gateway.py",
+      "line": 117,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/recovery_projection.py",
+      "line": 321,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/recovery_projection.py",
+      "line": 328,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/recovery_projection.py",
+      "line": 326,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/recovery_projection.py",
+      "line": 326,
+      "node": "Name",
+      "source": "header"
+    },
+    {
+      "path": "src/agent_comms/relationships.py",
+      "line": 617,
+      "node": "Attribute",
+      "source": "person.activity"
+    },
+    {
+      "path": "src/agent_comms/retained_context.py",
+      "line": 67,
+      "node": "FunctionDef",
+      "source": "def header(self, metadata: Mapping[str, object]) -> bytes:\n    return f'# Authored retained context\\n# metadata: {self.json_record(metadata)}\\n\\n'.encode()"
+    },
+    {
+      "path": "src/agent_comms/thread_management.py",
+      "line": 408,
+      "node": "Attribute",
+      "source": "self.agents.activity"
+    },
+    {
+      "path": "src/agent_comms/thread_status.py",
+      "line": 95,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 274,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 283,
+      "node": "Attribute",
+      "source": "view.activity"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 282,
+      "node": "Attribute",
+      "source": "view.activity"
+    },
+    {
+      "path": "src/agent_comms/turn_lease.py",
+      "line": 101,
+      "node": "FunctionDef",
+      "source": "@property\ndef activity(self) -> str:\n    return self.phase.summary"
+    },
+    {
+      "path": "src/agent_comms/turn_runner.py",
+      "line": 303,
+      "node": "Name",
+      "source": "activity"
+    },
+    {
+      "path": "src/agent_comms/turn_runner.py",
+      "line": 304,
+      "node": "Name",
+      "source": "activity"
+    }
+  ],
+  "limitations": "Lexical attributes include unrelated present/header/activity owners; semantic read identifies actual receivers. Python dynamic dispatch is not resolved by AST."
+}
