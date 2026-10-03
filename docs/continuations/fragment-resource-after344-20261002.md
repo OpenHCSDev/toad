@@ -160,3 +160,22 @@ is repeated row input projection on the native pump and renderer-task factory.
 Use original ThreadRowInput/ThreadRowPresentation/ThreadRowsWork and PreparationRuntime;
 no parallel row cache, status mirror or pool. Shared native geometry work stays
 coordinated with Kepler. All original remaining scope above is retained.
+
+## Scoped resource checkpoint ready; performance continues in PR352
+
+Normally integrated main350/3518b81122 and the full338 scoped qualification
+3d24889 in d9a53a457. The latter merge changes no production source versus
+82863c19d. Original348/338 source work and current core-event ownership are
+retained, with no import aliases. Task behavior is inherited from the moved
+render_backend owner; SDK validation belongs to sdk_boundary. Actual source
+App, CommsChat and history imports, original task inheritance and row resource
+reuse passed after this union. This is not an installed byte-equality claim for
+the whole union.
+
+The resource/presentation checkpoint can ship at its actual scoped strength:
+original04 paging, A/B/A bodies, draft/caret/Undo and original05 concurrent receipt
+updates/typing while the admitted read/worker remained unfinished. Original05's
+final End assertion failed and06 ended observation without a final outcome;
+those raw failures remain. Native writer timing is not pixel timing or a CPU
+gain. PR352 retains the entire performance scope above and the shared End/frame
+closure with Kepler. No repeated04 motion, new environment or provider input.
