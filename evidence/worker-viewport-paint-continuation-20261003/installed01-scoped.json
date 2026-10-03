@@ -1,0 +1,422 @@
+{
+  "qualification": "SCOPED READY: original Worker task custody before eager work and actual saved-history lifetime/input; NOT smoothness/144Hz or CPU gain",
+  "installed": {
+    "core": "f10980921de6080e7a7e89f1959243c1d7666a0a",
+    "toad": "dd90e85e9a2018c18ae1b0aaf85d4cef75784230",
+    "textual": "a312ebe1a402166159434e0dbd4f5d856eaa08b1",
+    "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+    "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-915c78ab702bd8ea/node_modules/@earendil-works/pi-coding-agent",
+    "native_manifest": "915c78ab702bd8ea66500e64ee64d1d623e3e6ee0702831166e6b6be3788391b",
+    "holder": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+    "public_install_changed": false,
+    "new_environment": false,
+    "new_native_copy": false,
+    "purpose": "Heisenberg380/Text37 original worker task custody; changed installed public saved-history input paging/motion/CPU",
+    "allocation_bound_mib": 256
+  },
+  "source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-worker37-380-20261003/source-proof.json",
+  "source_proof_sha256": "b6bc20fbe6f5764eb4dfe8f2f70305bf00214cfb8b85f20796877381cd372214",
+  "original_receipt": "/home/ts/.cache/agent-scratch/worker37-public-input-warm-20261003-01/capture/receipt.json",
+  "original_receipt_sha256": "fac3437ff25997f5a0b8d4b7fd6bd77e7f37b3b14b05ba8e960959939a7d3fb5",
+  "duration_seconds": 104.55956393899396,
+  "capture_completed": true,
+  "completed": true,
+  "operator_exit": {
+    "recorder_pid": 3218731,
+    "exit": 0
+  },
+  "checks": {
+    "warm": {
+      "original_saved_history_loaded": true,
+      "peer_saved_history_loaded": true,
+      "draft_typed": true,
+      "peer_selected": true,
+      "source_retained": true,
+      "editor_retained": true,
+      "history_window_retained": true,
+      "draft_retained": true,
+      "reader_position_retained": true,
+      "ready_body_resources_retained": true,
+      "undo_restored_original_draft": true,
+      "history_scroll_extent": true,
+      "scroll_keys_focus_history": true,
+      "held_page_up_destination_covered": true,
+      "held_page_down_destination_covered": true,
+      "reverse_page_up_destination_covered": true
+    },
+    "input": {
+      "input_remains_focused": true,
+      "original_editor_window_and_mode": true,
+      "draft_and_caret_preserved": true,
+      "input_pageup_moves_history": true,
+      "input_pagedown_moves_history": true,
+      "input_pageup_reaches_original_window": true,
+      "input_pagedown_reaches_original_window": true
+    }
+  },
+  "retained_ready_body_count": 37,
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3030714,
+      "start_time": 48917359
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3030714,
+      "start_time": 48917359
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_unchanged": true,
+  "runtime_unchanged": true,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption"
+  },
+  "terminal_exit": {
+    "pid": 3218872,
+    "start_ticks": 49130481,
+    "custody": "verified launch identity transferred to installed ObservedProcess"
+  },
+  "explicit_ui_exit0_proven": false,
+  "key_windows": [
+    {
+      "action": "input-held-up",
+      "key": "Prior",
+      "start_ns": 491326338099133,
+      "start_video_seconds": 20.36125033197459,
+      "end_ns": 491328124341348,
+      "end_video_seconds": 22.147492546995636
+    },
+    {
+      "action": "input-held-down",
+      "key": "Next",
+      "start_ns": 491348049032985,
+      "start_video_seconds": 42.072184183984064,
+      "end_ns": 491349802996789,
+      "end_video_seconds": 43.826147987972945
+    },
+    {
+      "action": "history-up",
+      "key": "Prior",
+      "start_ns": 491356975870846,
+      "start_video_seconds": 50.99902204499813,
+      "end_ns": 491358755529063,
+      "end_video_seconds": 52.77868026198121
+    },
+    {
+      "action": "history-down",
+      "key": "Next",
+      "start_ns": 491362187308497,
+      "start_video_seconds": 56.21045969601255,
+      "end_ns": 491363930679744,
+      "end_video_seconds": 57.95383094297722
+    },
+    {
+      "action": "reverse",
+      "key": "Prior",
+      "start_ns": 491367181914003,
+      "start_video_seconds": 61.205065201967955,
+      "end_ns": 491368962786702,
+      "end_video_seconds": 62.98593790095765
+    }
+  ],
+  "key_writer_intervals": [
+    {
+      "action": "input-held-up",
+      "intervals": {
+        "count": 77,
+        "median_ms": 17.73,
+        "p95_ms": 47.51,
+        "p99_ms": 115.52,
+        "max_ms": 138.36
+      },
+      "writer_receipts": 78
+    },
+    {
+      "action": "input-held-down",
+      "intervals": {
+        "count": 92,
+        "median_ms": 16.53,
+        "p95_ms": 32.98,
+        "p99_ms": 52.61,
+        "max_ms": 102.33
+      },
+      "writer_receipts": 93
+    },
+    {
+      "action": "history-up",
+      "intervals": {
+        "count": 98,
+        "median_ms": 16.45,
+        "p95_ms": 25.65,
+        "p99_ms": 32.33,
+        "max_ms": 114.66
+      },
+      "writer_receipts": 99
+    },
+    {
+      "action": "history-down",
+      "intervals": {
+        "count": 92,
+        "median_ms": 16.81,
+        "p95_ms": 29.59,
+        "p99_ms": 71.81,
+        "max_ms": 71.92
+      },
+      "writer_receipts": 93
+    },
+    {
+      "action": "reverse",
+      "intervals": {
+        "count": 100,
+        "median_ms": 16.2,
+        "p95_ms": 30.14,
+        "p99_ms": 45.28,
+        "max_ms": 94.21
+      },
+      "writer_receipts": 101
+    }
+  ],
+  "writer_count": 926,
+  "unmatched_enqueues": 0,
+  "profile": {
+    "trace": "cpu-profile.json",
+    "sample_count": 1040,
+    "sampling_errors": 0,
+    "sampling_quality": "no reported sampling errors",
+    "alignment_nominal_uncertainty_seconds": 0.0728140524798073,
+    "trace_to_video_offset_seconds": -0.3573570075095631
+  },
+  "marker_cpu": [
+    {
+      "label": "warm-ready",
+      "video_start_seconds": 6.9738535059732385,
+      "video_end_seconds": 9.580091902986169,
+      "ui_average_cpu_percent": 110.12039433113152
+    },
+    {
+      "label": "sidebar-revealed",
+      "video_start_seconds": 9.580091902986169,
+      "video_end_seconds": 11.102897987002507,
+      "ui_average_cpu_percent": 27.580662069084156
+    },
+    {
+      "label": "warm-start",
+      "video_start_seconds": 11.102897987002507,
+      "video_end_seconds": 16.266966325987596,
+      "ui_average_cpu_percent": 28.85322002328177
+    },
+    {
+      "label": "draft",
+      "video_start_seconds": 16.266966325987596,
+      "video_end_seconds": 17.826104896957986,
+      "ui_average_cpu_percent": 25.01381257967783
+    },
+    {
+      "label": "travel-start",
+      "video_start_seconds": 17.826104896957986,
+      "video_end_seconds": 19.390450286970008,
+      "ui_average_cpu_percent": 33.24074103584013
+    },
+    {
+      "label": "input-held-up",
+      "video_start_seconds": 19.390450286970008,
+      "video_end_seconds": 22.86510575696593,
+      "ui_average_cpu_percent": 75.69095764199857
+    },
+    {
+      "label": "input-held-up-done",
+      "video_start_seconds": 22.86510575696593,
+      "video_end_seconds": 39.58149708696874,
+      "ui_average_cpu_percent": 22.01432071882097
+    },
+    {
+      "label": "input-mid-history-idle-done",
+      "video_start_seconds": 39.58149708696874,
+      "video_end_seconds": 41.14133402198786,
+      "ui_average_cpu_percent": 19.873872264487616
+    },
+    {
+      "label": "input-held-down",
+      "video_start_seconds": 41.14133402198786,
+      "video_end_seconds": 44.53007462696405,
+      "ui_average_cpu_percent": 59.314070750898416
+    },
+    {
+      "label": "input-held-down-done",
+      "video_start_seconds": 44.53007462696405,
+      "video_end_seconds": 47.14748317899648,
+      "ui_average_cpu_percent": 22.159322416426953
+    },
+    {
+      "label": "focused",
+      "video_start_seconds": 47.14748317899648,
+      "video_end_seconds": 49.958825231995434,
+      "ui_average_cpu_percent": 26.321948238586597
+    },
+    {
+      "label": "up",
+      "video_start_seconds": 49.958825231995434,
+      "video_end_seconds": 53.50592861697078,
+      "ui_average_cpu_percent": 68.22468187001603
+    },
+    {
+      "label": "up-done",
+      "video_start_seconds": 53.50592861697078,
+      "video_end_seconds": 55.23277213599067,
+      "ui_average_cpu_percent": 36.48274977211418
+    },
+    {
+      "label": "down",
+      "video_start_seconds": 55.23277213599067,
+      "video_end_seconds": 58.69668332400033,
+      "ui_average_cpu_percent": 61.49118393603751
+    },
+    {
+      "label": "down-done",
+      "video_start_seconds": 58.69668332400033,
+      "video_end_seconds": 60.23269119398901,
+      "ui_average_cpu_percent": 24.739456576013477
+    },
+    {
+      "label": "reverse",
+      "video_start_seconds": 60.23269119398901,
+      "video_end_seconds": 63.682071168965194,
+      "ui_average_cpu_percent": 64.64929976336975
+    },
+    {
+      "label": "reverse-done",
+      "video_start_seconds": 63.682071168965194,
+      "video_end_seconds": 65.2286900409963,
+      "ui_average_cpu_percent": 23.27658135499329
+    },
+    {
+      "label": "end",
+      "video_start_seconds": 65.2286900409963,
+      "video_end_seconds": 68.11543599097058,
+      "ui_average_cpu_percent": 25.634399868356766
+    },
+    {
+      "label": "idle",
+      "video_start_seconds": 68.11543599097058,
+      "video_end_seconds": 84.89502276299754,
+      "ui_average_cpu_percent": 23.123334636990556
+    },
+    {
+      "label": "idle-done",
+      "video_start_seconds": 84.89502276299754,
+      "video_end_seconds": 86.5862136859796,
+      "ui_average_cpu_percent": 29.564964736113602
+    },
+    {
+      "label": "switch-b",
+      "video_start_seconds": 86.5862136859796,
+      "video_end_seconds": 92.39596787199844,
+      "ui_average_cpu_percent": 47.50631285987866
+    },
+    {
+      "label": "b-open",
+      "video_start_seconds": 92.39596787199844,
+      "video_end_seconds": 93.77465841500089,
+      "ui_average_cpu_percent": 108.79888946894268
+    },
+    {
+      "label": "return-a",
+      "video_start_seconds": 93.77465841500089,
+      "video_end_seconds": 98.02968651097035,
+      "ui_average_cpu_percent": 43.477973782414956
+    },
+    {
+      "label": "a-return",
+      "video_start_seconds": 98.02968651097035,
+      "video_end_seconds": 101.83241259097122,
+      "ui_average_cpu_percent": 26.82286282370806
+    }
+  ],
+  "physical_review": {
+    "up": {
+      "capture_origin": 491305.976848801,
+      "held_start": 20.36125033197459,
+      "held_end": 22.147492546995636,
+      "band_start": 20.511250331974587,
+      "band_seconds": 0.8,
+      "encoded_monotonic": 491368.830838621,
+      "ui_pid": 3218873,
+      "ui_alive_after_encoding": true,
+      "assessment": "Personally viewed48 consecutive frames during SAME UI lifetime: readable upward advances in discrete steps; repeated positions remain. No smoothness/144Hz claim.",
+      "before_view_monotonic": 491383.328812251,
+      "ui_alive_before_view": true,
+      "viewed_monotonic": 491398.066548906,
+      "ui_alive_after_view": true
+    },
+    "down": {
+      "timing": "AFTER terminal",
+      "sheet": "/home/ts/.cache/agent-scratch/worker37-public-input-warm-20261003-01/capture/after-exact-input-held-down-frames.png",
+      "band_start_seconds": 42.222184183984,
+      "seconds": 0.8,
+      "assessment": "48 consecutive readable frames moving downward in discrete steps; repeated positions remain."
+    },
+    "reverse": {
+      "timing": "AFTER terminal",
+      "sheet": "/home/ts/.cache/agent-scratch/worker37-public-input-warm-20261003-01/capture/after-exact-reverse-frames.png",
+      "band_start_seconds": 61.35506520196795,
+      "seconds": 0.8,
+      "assessment": "48 consecutive readable frames moving upward in discrete steps; repeated positions remain."
+    },
+    "a_return": {
+      "path": "/home/ts/.cache/agent-scratch/worker37-public-input-warm-20261003-01/capture/phase-a-return.png",
+      "timing": "AFTER terminal",
+      "assessment": "Selected original nra-architecture with saved body/draft/footerNRA visible; sidebar roving peer highlight remains, not allview selected-row claim."
+    },
+    "end_idle": {
+      "path": "/home/ts/.cache/agent-scratch/worker37-public-input-warm-20261003-01/capture/phase-idle-done.png",
+      "timing": "AFTER terminal",
+      "assessment": "Original saved transcript/chrome/editor readable at destination."
+    }
+  },
+  "source_batch": {
+    "owner": "existing Worker._run inside original cancellation/context scope",
+    "production_added": 4,
+    "production_deleted": 0,
+    "file": "src/textual/worker.py",
+    "removed_execution_path": "Worker work runs inside eager task construction before _task assignment; existing lifecycle suspension now makes original task/callback custody complete before work",
+    "consumer_closure": [
+      "WorkerManager.add_worker/start_all",
+      "DOMNode.run_worker",
+      "work decorator",
+      "async work",
+      "thread work",
+      "Worker.run override hook"
+    ],
+    "native_source_sanity": "58 source behavior checks passed2.13s, both eager/ordinary factories and cancel/error/context/manager/decorator"
+  },
+  "prior36_comparison": {
+    "previous_raw": "/home/ts/.cache/agent-scratch/component36-public-input-warm-20261003-01/capture/receipt.json",
+    "same_core_native_and_journey": true,
+    "public_workload_not_frozen": true,
+    "up_p95_ms_before": 43.8,
+    "up_p95_ms_after": 47.51,
+    "up_ui_marker_cpu_before": 74.54,
+    "up_ui_marker_cpu_after": 75.69,
+    "conclusion": "No overall speed/CPU improvement established; writerUp p95 worse. Correct task custody qualifies separately."
+  },
+  "limits": [
+    "Original raw assessment/review untouched; separate receipt records actual motion inspection.",
+    "Writer callbacks are not changed-pixel FPS or key-to-pixel latency.",
+    "Marker CPU includes exports/backgroundthreads beyond actual key-held spans; workload not frozen.",
+    "1040 reported GIL samples/no sampling errors, approximate\u00b10.0728s alignment; released-GIL/native work omitted.",
+    "Up personally viewed while sameUI alive before AND after. Down/reverse/A-return/End reviewed after terminal.",
+    "Actual explicit UI exit0 not established by terminal custody transfer.",
+    "Full144Hz/CPU/layout/paint/firstpaint/cold/warm/IRCbusy/sidebar/animation/runway/velocity/growingEnd/void/focus/TC1/T9/T4 remain active; no unchanged rerun."
+  ]
+}
