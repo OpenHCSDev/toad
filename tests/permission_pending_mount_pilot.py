@@ -21,7 +21,7 @@ async def main():
                           XDG_DATA_HOME=str(root/'data'),XDG_STATE_HOME=str(root/'state'))
         app=ToadApp(project_dir=str(root))
         async with app.run_test(size=(120,40)) as pilot:
-            await app.screen.wait_content_ready()
+            await app.selected_session.wait_content_ready()
             view=app.selected_session.conversation
             agent=Agent(root,AgentDefinition.decode({'name':'RPC','identity':'fixture',
                 'short_name':'fixture','run_command':{'*':'true'},'protocol':'acp'}),'session')
@@ -31,7 +31,6 @@ async def main():
             loop=asyncio.get_running_loop()
             prior_handler=loop.get_exception_handler()
             loop.set_exception_handler(lambda loop, context: errors.append(context))
-            from toad.widgets.conversation import Conversation
             actual_flush=app._flush_next_callbacks
             for outcome in ('cancel','replace'):
                 entered,release=asyncio.Event(),asyncio.Event()
@@ -61,12 +60,9 @@ async def main():
                     await completed_callbacks.wait()
                 else:
                     agent.detach_surface(original)
-                    replacement=Conversation(root)
-                    await original.parent.mount(replacement)
-                    replacement.agent=agent
+                    original.bind_agent(agent)
                     await pilot.pause()
-                    assert request.pending and agent.controller.surface.owns(replacement)
-                    view=replacement
+                    assert request.pending and agent.controller.surface.owns(original)
                 release.set()
                 for worker in workers: await worker.wait()
                 await pilot.pause()
@@ -81,7 +77,6 @@ async def main():
                     await pilot.press('enter')
                     result=await task
                     assert result['result']['outcome']=={'outcome':'selected','optionId':'allow'}
-                    await original.remove()
                     await pilot.pause()
                     assert not isinstance(app.screen,PermissionsScreen)
                 assert app._exception is None
