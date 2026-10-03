@@ -1,0 +1,7 @@
+# Body preparation and readiness custody
+
+MeasuredViewportBody allocated _body_scope, but every body prepare/delivery uses the app-owned PreparedRenderer and original Worker lifetime; none passes this token into RenderPreparation/WorkKey. Its only reads close it and call PreparationRuntime.discard_scope on unmount. That method walks all shared ready entries, although no key can carry this body token. Delete the allocation/import/cache scan/close path. Retain genuine source scopes, runtime bounded shared cache, actual body materialization workers and lifecycle guards.
+
+body_measurement_stale was exactly not BodyMeasurement.ready, exposed beside body_ready and used only by restore reader compensation. Delete both declarations and migrate the sole production consumer plus two existing pilot diagnostics to original body_ready. This removes a second public question with the same implementation; no new flag or readiness copy. No behavior/demand/anchor/paint budget is relaxed.
+
+Before source query uses existing refactor-audit Package.load across production/tests; body-lifetime-before.json names all declarations/reads and parse omissions. Tests and actual installed verification come last with the coherent native Styles geometry family, not a standalone repeated movie for this deletion. Existing38movie qualifies38, not these newbytes. No CPU improvement claim from removed work without changed-workflow measurement.
