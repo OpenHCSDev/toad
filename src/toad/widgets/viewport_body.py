@@ -224,7 +224,7 @@ class RenderedBody(BodyMeasurement):
         # An offscreen widget's last committed size is not a new width demand.
         # Measurement and actual size commits invalidate this resource below.
         return (body.native_body_ready() and self.style_revision == body._subtree_style_revision
-                and self.paint_state == body._resolved_paint_state())
+                and self.paint_state.same_paint(body._resolved_paint_state()))
 
     def style_updated(self, body):
         return self if self.ready(body) else self.invalidated()

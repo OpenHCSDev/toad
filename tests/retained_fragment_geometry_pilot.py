@@ -208,6 +208,11 @@ async def main():
                 # only original style writes invalidate the resource.
                 member.notify_style_update()
                 assert member._body_measurement is resource and member.body_ready
+                # Hiding and revealing the owning window changes resolver
+                # dependencies, not these already captured paint values.
+                for shown in (False, True):
+                    window.display = shown
+                    assert member._body_measurement is resource and member.body_ready
                 children = tuple(member.children)
                 restored_calls = Counter()
                 identity = id(member)

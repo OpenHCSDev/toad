@@ -13,6 +13,7 @@ import time
 import traceback
 import os
 from pathlib import Path
+from functools import partial
 from threading import Event
 import tempfile
 from unittest.mock import patch
@@ -20,7 +21,6 @@ from unittest.mock import patch
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.thread_execution import ExternalThreadExecution
-from agent_comms.comms import wire
 from toad.app import ToadApp
 from toad.navigation_target import NavigationContext, channel_target
 from toad.widgets.comms_chat import CommsChatView
@@ -29,6 +29,7 @@ from toad.transcript_preparation import PageRequest
 sys.path.insert(0, str(Path(__file__).resolve().parent / 'tools'))
 from record_installed_tui import (ObserveJourney, InputWarmJourney, ProcessOwner,
                                  marker_command, phase_events, main as record_main)
+from runtime_fixture import private_native_wire
 
 
 async def until(condition):
@@ -99,10 +100,12 @@ async def exercise(app, pilot, root):
     await until(lambda: history.checkpoint_available and bool(history.rows))
     await pilot.pause()
     assert history in chat.window.histories
+    first_receipt = f'RECEIPT-DURING-TAIL-READ {root}'
+    final_receipt = f'RECEIPT-REVOKES-ORIGINAL-READ {root}'
     # Tail replacement started from the original initial source. An
     # already-painted later receipt survives its older read watermark.
     history.reader.restart()
-    await pending_read(chat, pilot, 'RECEIPT-DURING-TAIL-READ')
+    await pending_read(chat, pilot, first_receipt)
 
     # Actual earlier pages evict the original tail. A send from that
     # reader position restarts the source and rejects the older read.
@@ -120,9 +123,9 @@ async def exercise(app, pilot, root):
         history.finish_source_work(operation)
     assert history.has_newer
     history.reader.restart()
-    await pending_read(chat, pilot, 'RECEIPT-REVOKES-ORIGINAL-READ')
+    await pending_read(chat, pilot, final_receipt)
     await until(lambda: history.checkpoint_available)
-    assert history.rows[-1][0].body == 'RECEIPT-REVOKES-ORIGINAL-READ'
+    assert history.rows[-1][0].body == final_receipt
 
     chat.window.release_anchor()
     # Each older-page publication preserves the actual reader anchor. A
@@ -139,20 +142,19 @@ async def exercise(app, pilot, root):
     await until(lambda: history.checkpoint_available and not history.has_newer
                 and chat.window.follows_tail)
     await pilot.pause()
-    assert history.rows[-1][0].body == 'RECEIPT-REVOKES-ORIGINAL-READ'
+    assert history.rows[-1][0].body == final_receipt
     assert chat.window.follows_tail, "End must retain the original Window's tail anchor"
     assert app._exception is None, repr(app._exception)
     print('PASS: receipt/typing/restart/End on original native window', flush=True)
     return history
 
 
-def seed_channel(comms, project):
-    """Seed fresh wire originals in the existing fixture's private bus."""
+def prepare_channel(comms, project, retained_source):
+    """Attach certified retained history; new receipts use the live private bus."""
     comms.registry.declare(Thread('edge-reader', frozenset({'edge'}), str(project),
                                  process_identity=ProcessIdentity.capture(os.getpid()),
                                  execution=ExternalThreadExecution))
-    for index in range(140):
-        comms.messaging.send('edge-reader', '#edge', f'History {index}: ' + 'body ' * 40)
+    return comms.views.attach_history(retained_source)
 
 
 async def exercise_with_evidence(app, pilot, root, *, journey=exercise):
@@ -180,11 +182,19 @@ async def exercise_with_evidence(app, pilot, root, *, journey=exercise):
 
 
 async def exercise_retained(app, pilot, root):
-    await exercise_native_destination(app, pilot, root)
-    return await exercise(app, pilot, root)
+    keys = ProcessOwner()
+    try:
+        await exercise_native_destination(
+            app, pilot, root, press=partial(HistorySourceLifetimeJourney.press, keys),
+        )
+        return await exercise(app, pilot, root)
+    finally:
+        cleanup = await asyncio.to_thread(keys.cleanup)
+        (root / 'destination-key-cleanup.json').write_text(json.dumps(cleanup, indent=2) + '\n')
+        assert not cleanup['remaining_owned_pids'] and not cleanup['errors'], cleanup
 
 
-async def exercise_native_destination(app, pilot, root):
+async def exercise_native_destination(app, pilot, root, *, press):
     """Use the copied original native source, not a synthetic transcript page."""
     view = app.selected_session.conversation
     window = view.window
@@ -192,8 +202,8 @@ async def exercise_native_destination(app, pilot, root):
     window.focus()
     async with asyncio.timeout(8):
         while not any(history.has_newer for history in window.histories):
-            await pilot.press('home')
-            await pilot.pause(.05)
+            await press('Home')
+            await asyncio.sleep(.05)
     history = next(history for history in window.histories if history.has_newer)
     assert isinstance(history, TranscriptHistory) and history.loader is not None
     await until(lambda: history.state.accepts_source_work)
@@ -215,17 +225,17 @@ async def exercise_native_destination(app, pilot, root):
 
     with patch.object(reader, 'get', held_read):
         window.focus()
-        await pilot.press('end')
         try:
+            await press('End')
             await until(entered.is_set)
             operation = history.state
             assert not operation.accepts_source_work
             # Native End deliberately focuses the editor. Restore the original
             # scroll target before the user's revoking Home key.
             window.focus()
-            await pilot.pause()
-            assert app.focused is window
-            await pilot.press('home')
+            await until(lambda: app.focused is window)
+            await press('Home')
+            await until(lambda: not window.follows_tail)
             revoked_revision = window.scroll_revision
             assert not window.follows_tail
         finally:
@@ -236,7 +246,8 @@ async def exercise_native_destination(app, pilot, root):
             revoked_revision, window.scroll_revision, window.follows_tail,
         )
     window.focus()
-    await pilot.press('end')
+    await until(lambda: app.focused is window)
+    await press('End')
     await until(lambda: history.checkpoint_available and not history.has_newer
                 and window.follows_tail)
     await pilot.pause()
@@ -254,6 +265,7 @@ async def exercise_native_destination(app, pilot, root):
 
 
 async def main():
+    retained_source = Path(os.environ['TOAD_HISTORY_LIFETIME_SOURCE'])
     scratch = Path(__file__).resolve().parents[1] / '.artifacts' / 'history-lifetime338'
     scratch.mkdir(parents=True, exist_ok=True)
     directory = os.environ.get('TOAD_HISTORY_LIFETIME_DIRECTORY') or tempfile.mkdtemp(prefix='private-', dir=scratch)
@@ -263,11 +275,11 @@ async def main():
     root.mkdir(parents=True, exist_ok=True)
     os.environ.update(AGENT_COMMS_ROOT=str(root / 'wire'), XDG_CONFIG_HOME=str(root / 'config'),
                       XDG_STATE_HOME=str(root / 'state'), XDG_DATA_HOME=str(root / 'data'))
-    comms = wire(root / 'wire')
+    comms = private_native_wire(root / 'wire')
+    await asyncio.to_thread(prepare_channel, comms, root, retained_source)
     app = ToadApp(project_dir=str(root))
     headless = os.environ.get('L0A_HEADLESS', '1') != '0'
     async with app.run_test(headless=headless, size=(100, 32)) as pilot:
-        await asyncio.to_thread(seed_channel, comms, root)
         history = await exercise_with_evidence(app, pilot, root)
         if not headless:
             # The existing recorder owns the physical window and quits through
@@ -280,6 +292,14 @@ async def main():
 
 class HistorySourceLifetimeJourney(ObserveJourney):
     """The existing recorder waits for its source fixture's actual outcome."""
+
+    @classmethod
+    async def press(cls, owner, *keys):
+        # The recorder already owns the isolated display and focused st window.
+        # A physical key does not promise that unrelated widget queues or all
+        # animations are idle while the original source read is held.
+        await asyncio.to_thread(owner.run, ['xdotool', 'key', *keys],
+                                os.environ.copy(), timeout=8)
 
     @classmethod
     def script(cls, args):
@@ -328,7 +348,6 @@ async def retained_app(project):
     root = Path(os.environ['TOAD_HISTORY_LIFETIME_DIRECTORY'])
     output = Path(os.environ['TOAD_VIDEO_OUTPUT'])
     async with app.run_test(headless=False, size=(160, 44)) as pilot:
-        await asyncio.to_thread(seed_channel, wire(Path(os.environ['AGENT_COMMS_ROOT'])), project)
         # The original marker is appended only after its native screenshot and
         # DTO have completed. Do not race Pilot input with the recorder's keys.
         # The recorder's original ProcessOwner already bounds this child. Its
@@ -344,9 +363,18 @@ async def retained_app(project):
 
 
 async def record_retained(service, project, evidence, environment, *, recording_args,
-                          recording_timeout, recording_output,
+                          recording_timeout, recording_output, retained_channel_source,
                           journey=RetainedHistorySourceJourney):
     """Existing original-turn fixture callback; owns no second App or root."""
+    # The existing archive owner retains original identities/provenance without
+    # republishing them, reserving sequences or waking their former recipients.
+    source = await asyncio.to_thread(prepare_channel, service, project,
+                                     retained_channel_source)
+    (evidence / 'retained-channel-source.json').write_text(json.dumps({
+        'original_root': source.original_root, 'snapshot_root': source.root,
+        'wire_root_id': source.wire_root_id, 'bytes': source.size,
+        'boundary': 'HistoryViews.attach_history; immutable display, no delivery authority',
+    }, indent=2) + '\n')
     env = dict(environment, L0A_HEADLESS='0', TOAD_HISTORY_LIFETIME_DIRECTORY=str(project),
                XDG_STATE_HOME=str(evidence / 'ui-state'))
     env.pop('NO_COLOR', None)
