@@ -1,0 +1,2 @@
+PASS headless saved preferences and original theme string
+PASS real saved settings unchanged; all kinds/bounds; mounted editing/effects; new declaration; save/reopen; original untouched
