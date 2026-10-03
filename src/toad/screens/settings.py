@@ -4,10 +4,18 @@ from textual import on, containers, getters, lazy
 from textual.app import ComposeResult
 from textual.screen import ModalScreen, ScreenResultType
 from textual.widgets import Input, Footer
+from textual.content import Content
+from agent_comms.mro_dispatch import handles
+from toad.core.projection import MroProjection
+from toad.settings import (
+    BoundSetting, Group, SettingsGroup, BooleanSetting, StringSetting,
+    TextSetting, PathSetting, IntegerSetting, NumberSetting, ChoiceSetting,
+)
+from toad.setting_widgets import InputEditor, TextEditor, BooleanEditor, ChoiceEditor
 from toad.app import ToadApp
 
 
-class SettingsScreen(ModalScreen):
+class SettingsScreen(MroProjection, ModalScreen):
     BINDINGS = [
         ("escape", "dismiss", "Dismiss settings"),
         ("ctrl+s", "screen.focus('#search')", "Focus search"),
@@ -24,8 +32,76 @@ class SettingsScreen(ModalScreen):
             with lazy.Reveal(
                 containers.VerticalScroll(can_focus=False, id="settings-container")
             ):
-                yield from self.app.settings.form()
+                yield from self.form(self.app.settings)
         yield Footer()
+
+    def form(self, group: SettingsGroup, title: str = ""):
+        for node in group.nodes():
+            if node.editable:
+                yield self.dispatch_sync(node, group, title)
+
+    @handles(Group)
+    def group_form(self, node, group, title):
+        from textual.widgets import Static
+
+        return containers.VerticalGroup(
+            containers.VerticalGroup(
+                Static(node.title, classes="title"),
+                Static(node.help, classes="help"), classes="heading",
+            ),
+            containers.VerticalGroup(
+                *self.form(node.__get__(group), node.title),
+                id="setting-group", classes="setting-group",
+            ), classes="setting-object",
+        )
+
+    def description(self, kind):
+        return Content.assemble(
+            Content.from_markup(kind.help),
+            (f"\ndefault: {kind.display(kind.default)}", "$text-secondary"),
+        )
+
+    def row(self, bound, editor, title, description):
+        from textual.widgets import Static
+
+        return containers.VerticalGroup(
+            Static(bound.kind.title, classes="title"),
+            Static(description, classes="help"), editor,
+            classes="setting", name=f"{title.lower()} {bound.kind.title.lower()}",
+        )
+
+    def leaf(self, kind, group, title, editor):
+        bound = BoundSetting(kind, group)
+        return self.row(bound, editor(bound), title, self.description(kind))
+
+    @handles(BooleanSetting)
+    def boolean_form(self, kind, group, title):
+        return self.leaf(kind, group, title, BooleanEditor)
+
+    @handles(StringSetting, PathSetting)
+    def input_form(self, kind, group, title):
+        return self.leaf(kind, group, title, InputEditor)
+
+    @handles(TextSetting)
+    def text_form(self, kind, group, title):
+        bound = BoundSetting(kind, group)
+        return self.row(bound, TextEditor(bound), title, Content.from_markup(kind.help))
+
+    @handles(IntegerSetting)
+    def integer_form(self, kind, group, title):
+        bound = BoundSetting(kind, group)
+        return self.row(bound, InputEditor(bound, type="integer"),
+                        title, self.description(kind))
+
+    @handles(NumberSetting)
+    def number_form(self, kind, group, title):
+        bound = BoundSetting(kind, group)
+        return self.row(bound, InputEditor(bound, type="number"),
+                        title, self.description(kind))
+
+    @handles(ChoiceSetting)
+    def choice_form(self, kind, group, title):
+        return self.leaf(kind, group, title, ChoiceEditor)
 
     def filter_settings(self, search_term: str) -> None:
         if search_term:

@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+from importlib.resources import files
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
@@ -48,7 +49,7 @@ class ExtendedSettings(ToadSettings):
 
 
 class SettingsApp(ToadApp):
-    CSS_PATH = Path(__file__).resolve().parents[1] / "src/toad/toad.tcss"
+    CSS_PATH = files("toad").joinpath("toad.tcss")
 
     def _handle_exception(self, error: Exception) -> None:
         import traceback
@@ -136,8 +137,8 @@ async def main() -> None:
             app = SettingsApp()
             async with app.run_test(size=(120, 40)) as pilot:
                 await pilot.pause()
-                for bound in kinds.leaves():
-                    assert bound.kind.widget(bound) is not None
+                for node in kinds.nodes():
+                    assert app.screen.dispatch_sync(node, kinds, "") is not None
                 assert app.settings.document() == raw
                 expected = len(
                     [

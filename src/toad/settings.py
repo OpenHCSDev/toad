@@ -13,7 +13,6 @@ from agent_comms.field_codec import FieldCodec, WireValue
 from agent_comms.declared_family import DeclaredFamily
 
 if TYPE_CHECKING:
-    from textual.widget import Widget
     from toad.app import ToadApp
     from toad.setting_choices import Choice
 
@@ -77,8 +76,6 @@ class SettingsNode(WireValue, ABC):
     @abstractmethod
     def document_value(self, group: SettingsGroup) -> object: ...
 
-    @abstractmethod
-    def form(self, group: SettingsGroup) -> Widget: ...
 
     @abstractmethod
     def leaves(self, group: SettingsGroup) -> Iterator[BoundSetting]: ...
@@ -114,8 +111,6 @@ class SettingKind[T](SettingsNode):
     @abstractmethod
     def parse(self, raw: object) -> T: ...
 
-    @abstractmethod
-    def widget(self, bound: BoundSetting[T]) -> Widget: ...
 
     def load(self, group: SettingsGroup, raw: object, present: bool) -> None:
         group._values[self.name] = self.parse(raw) if present else self.default
@@ -126,28 +121,6 @@ class SettingKind[T](SettingsNode):
     def leaves(self, group: SettingsGroup) -> Iterator[BoundSetting[T]]:
         yield BoundSetting(self, group)
 
-    def form(self, group: SettingsGroup) -> Widget:
-        from textual.containers import VerticalGroup
-        from textual.widgets import Static
-
-        bound = BoundSetting(self, group)
-        help_text = self.description()
-        title = group._declaration.title if group._declaration else ""
-        return VerticalGroup(
-            Static(self.title, classes="title"),
-            Static(help_text, classes="help"),
-            self.widget(bound),
-            classes="setting",
-            name=f"{title.lower()} {self.title.lower()}",
-        )
-
-    def description(self):
-        from textual.content import Content
-
-        return Content.assemble(
-            Content.from_markup(self.help),
-            (f"\ndefault: {self.display(self.default)}", "$text-secondary"),
-        )
 
     def display(self, value: T) -> str:
         return str(value)
@@ -204,21 +177,6 @@ class Group[G: "SettingsGroup"](SettingsNode):
     def document_value(self, group: SettingsGroup) -> object:
         return self.__get__(group).document()
 
-    def form(self, group: SettingsGroup) -> Widget:
-        from textual.containers import VerticalGroup
-        from textual.widgets import Static
-
-        return VerticalGroup(
-            VerticalGroup(
-                Static(self.title, classes="title"),
-                Static(self.help, classes="help"),
-                classes="heading",
-            ),
-            VerticalGroup(
-                *self.__get__(group).form(), id="setting-group", classes="setting-group"
-            ),
-            classes="setting-object",
-        )
 
     def leaves(self, group: SettingsGroup) -> Iterator[BoundSetting]:
         yield from self.__get__(group).leaves()
@@ -300,10 +258,6 @@ class SettingsGroup(DeclaredFamily, affix="Settings"):
         for node in self.nodes():
             yield from node.leaves(self)
 
-    def form(self) -> Iterator[Widget]:
-        for node in self.nodes():
-            if node.editable:
-                yield node.form(self)
 
     def apply_all(self) -> None:
         for bound in self.leaves():
@@ -317,32 +271,14 @@ class BooleanSetting(SettingKind[bool]):
     def parse(self, raw: object) -> bool:
         return FieldCodec.decode(bool, raw)
 
-    def widget(self, bound: BoundSetting[bool]) -> Widget:
-        from toad.setting_widgets import BooleanEditor
-
-        return BooleanEditor(bound)
-
 
 class StringSetting(SettingKind[str]):
     def parse(self, raw: object) -> str:
         return FieldCodec.decode(str, raw)
 
-    def widget(self, bound: BoundSetting[str]) -> Widget:
-        from toad.setting_widgets import InputEditor
-
-        return InputEditor(bound)
-
 
 class TextSetting(StringSetting):
-    def description(self):
-        from textual.content import Content
-
-        return Content.from_markup(self.help)
-
-    def widget(self, bound: BoundSetting[str]) -> Widget:
-        from toad.setting_widgets import TextEditor
-
-        return TextEditor(bound)
+    """Multiline text; each frontend owns its corresponding editor."""
 
 
 class PathSetting(SettingKind[Path]):
@@ -353,11 +289,6 @@ class PathSetting(SettingKind[Path]):
 
     def document_value(self, group: SettingsGroup) -> str:
         return str(self.__get__(group))
-
-    def widget(self, bound: BoundSetting[Path]) -> Widget:
-        from toad.setting_widgets import InputEditor
-
-        return InputEditor(bound)
 
 
 class Bounded:
@@ -380,21 +311,10 @@ class Bounded:
 
 
 class NumericSetting(Bounded, SettingKind[T], ABC):
-    def widget(self, bound: BoundSetting[T]) -> Widget:
-        from textual.validation import Number
-
-        from toad.setting_widgets import InputEditor
-
-        return InputEditor(
-            bound,
-            type=self.input_type,
-            validators=[Number(minimum=self.minimum, maximum=self.maximum)],
-        )
+    """Numeric declarations compose their original range constraint."""
 
 
 class IntegerSetting(NumericSetting[int]):
-    input_type = "integer"
-
     def parse(self, raw: object) -> int:
         return self.constrain(FieldCodec.decode(int, raw))
 
@@ -403,8 +323,6 @@ class IntegerSetting(NumericSetting[int]):
 
 
 class NumberSetting(NumericSetting[float]):
-    input_type = "number"
-
     def parse(self, raw: object) -> float:
         return self.constrain(float(FieldCodec.decode(float | int, raw)))
 
@@ -425,8 +343,3 @@ class ChoiceSetting(SettingKind[type[C]]):
 
     def display(self, value: type[C]) -> str:
         return value.label()
-
-    def widget(self, bound: BoundSetting[type[C]]) -> Widget:
-        from toad.setting_widgets import ChoiceEditor
-
-        return ChoiceEditor(bound, self.family)

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from textual import on
 from textual.screen import Screen
+from textual.validation import Function
 from textual.widgets import Checkbox, Input, Select, TextArea
 
 from toad.settings import BoundSetting
@@ -13,8 +14,17 @@ class InputEditor(Input):
     def __init__(self, bound: BoundSetting, **kwargs) -> None:
         self.bound = bound
         super().__init__(
-            bound.kind.display(bound.value), name=bound.key, classes="input", **kwargs
+            bound.kind.display(bound.value), name=bound.key, classes="input",
+            validators=[Function(self.valid_text)], **kwargs
         )
+
+    def valid_text(self, text: str) -> bool:
+        """Adapt the native validator result to the original field's parser."""
+        try:
+            self.bound.kind.parse_text(text)
+        except (ValueError, TypeError):
+            return False
+        return True
 
     @on(Input.Blurred)
     @on(Input.Submitted)
@@ -62,8 +72,9 @@ class BooleanEditor(Checkbox):
 
 
 class ChoiceEditor(Select):
-    def __init__(self, bound: BoundSetting, family) -> None:
+    def __init__(self, bound: BoundSetting) -> None:
         self.bound = bound
+        family = bound.kind.family
         super().__init__(
             [(member.label(), member) for member in family.members_with(family)],
             value=bound.value,

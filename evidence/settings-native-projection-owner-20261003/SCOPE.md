@@ -31,3 +31,24 @@ Final one existing settings_tree_pilot installed App journey with original saved
 settings/control/edit/effects/save/reopen and subtype extension; no provider,
 new environment, public settings mutation or repeated catalog/native gate.
 Receiver owns packaging; useful current release does not wait on this draft.
+
+
+## Working whole-family change
+
+The original ContextProjection becomes MroProjection in core/projection.py;
+NativeDetail and SegmentNodes migrate, and SettingsScreen inherits that SAME
+returned-value dispatch behavior. No second handler selection/registry or class.
+Model descriptor forms/widgets/descriptions are deleted. SettingsScreen owns all
+Group/scalar/Text/Boolean/Choice/Path/numeric forms and native help. Its recursion
+borrows group/title context, never probes private group declaration fields.
+
+ChoiceEditor obtains membership from its original BoundSetting.kind.family;
+its duplicate family argument is deleted. InputEditor also deletes copied Number
+min/max validators: native Function asks original kind.parse_text. This preserves
+native validation feedback while the original field owns range/parse decisions.
+No scalar limits are copied into a competing native validator. Numeric input
+keyboard grammar remains a Textual concern, declared by native nominal handlers.
+
+Effects, timers, choices/themes, save lifecycle and source values remain original.
+The old settings journey's model.widget call and source-tree CSS path migrate to
+existing SettingsScreen projection and installed resources; no alternate fixture.
