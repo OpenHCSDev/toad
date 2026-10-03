@@ -132,9 +132,14 @@ async def exercise(app, pilot, root):
             await pilot.pause(.05)
     chat.window.focus()
     await pilot.press('end')
-    await until(lambda: history.checkpoint_available and not history.has_newer)
+    # Source completion precedes the native layout that applies its anchor.
+    # Require the original Window's settled destination, not just read status.
+    await until(lambda: history.checkpoint_available and not history.has_newer
+                and chat.window.follows_tail)
+    await pilot.pause()
     assert history.rows[-1][0].body == 'RECEIPT-REVOKES-ORIGINAL-READ'
-    assert chat.window.follows_tail and app._exception is None
+    assert chat.window.follows_tail, "End must retain the original Window's tail anchor"
+    assert app._exception is None, repr(app._exception)
     print('PASS: receipt/typing/restart/End on original native window', flush=True)
     return history
 
@@ -154,7 +159,8 @@ async def exercise_with_evidence(app, pilot, root):
         history = await exercise(app, pilot, root)
     except BaseException as error:
         outcome = {'status': 'failed', 'error': repr(error),
-                   'traceback': traceback.format_exc()}
+                   'traceback': traceback.format_exc(),
+                   'application_exception': repr(app._exception)}
         exporter = Path(__file__).resolve().parents[1] / 'tools/performance/capture_state.py'
         spec = importlib.util.spec_from_file_location('history_failure_capture', exporter)
         module = importlib.util.module_from_spec(spec)
