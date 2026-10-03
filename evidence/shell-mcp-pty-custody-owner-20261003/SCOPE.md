@@ -37,3 +37,33 @@ Parent588 display capture and notification logging gap are separate.
 Final one affected installed retained shell/App/PTY and existing package MCP
 journey after complete source closure, reusing a released matched holder.
 No provider, current default edit, new helper fleet or unchanged settings gate.
+
+## Published source closure
+
+Five production files now use one existing PtyProcess acquisition owner; it
+opens the original PTY, connects its reader, registers the original AttachedChild
+under AsyncExitStack and publishes that same resource only after acquisition.
+Cancellation during spawn joins the same acquisition before descriptors release.
+Interactive Shell borrows the original TerminalOperation task/readiness/outcome;
+MCP borrows the same PtyProcess resource without acquiring shell semantics.
+No raw process/PID/FD/task/finished/active copies remain in either consumer.
+Three existing fixture consumers now inspect original acquired custody instead
+of deleted private subprocess fields.
+
+Current-main production delta: five files, 223 added / 369 deleted. Core's
+separate contribution adds 14 lines to the existing ChildCommand family.
+MCP preserves its 120-second forwarding budget and separate 2-second completion
+wait, output cap, sanitized environment, exact argument vector and human-only
+challenge. Its controller predicate is borrowed from the original modal; PTY
+geometry is borrowed from the original TerminalState. No default geometry copy.
+
+After source evidence parses 289 Toad modules, 391 test modules and 311 Core
+modules with zero omissions. TerminalOperation has two lexical declarations:
+Toad's acquired PTY operation and Core's completed compaction operation; these
+are distinct existing domain facts, not competing process ownership. All other
+selected owner definitions occur once. Receiver identities and dynamic dispatch
+are read semantically; AST is not a dynamic-resolution proof.
+
+Final installed checks remain pending the released matching package holder and
+Core controlling-terminal contribution. No speed/frame/publication/provider or
+full headless completion is claimed from this source checkpoint.

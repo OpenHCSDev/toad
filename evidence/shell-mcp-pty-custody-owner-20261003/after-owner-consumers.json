@@ -1,0 +1,656 @@
+{
+  "revision": "cd87fb57f2d17b94b368da9572ed625d4b333526",
+  "roots": [
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "revision": "cd87fb57f2d17b94b368da9572ed625d4b333526",
+      "root": "src/toad",
+      "modules": 289,
+      "parse_omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "revision": "cd87fb57f2d17b94b368da9572ed625d4b333526",
+      "root": "tests",
+      "modules": 391,
+      "parse_omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/comms-cleanup-live-integration-20260929",
+      "revision": "a3a1b8f69f61acb0b01e92a0ac5a9ed161b28f9f",
+      "root": "src/agent_comms",
+      "modules": 311,
+      "parse_omissions": []
+    }
+  ],
+  "definitions": {
+    "AttachedSurfaceBinding": [
+      "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/agent_surface.py:13"
+    ],
+    "LocalDecisionPTY": [
+      "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/mcp_decision.py:32"
+    ],
+    "Shell": [
+      "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/shell.py:20"
+    ],
+    "ShellOperationalSource": [
+      "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/shell_source.py:10"
+    ],
+    "SurfaceBinding": [
+      "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/surface_binding.py:7"
+    ],
+    "PtyProcess": [
+      "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/terminal_execution.py:184"
+    ],
+    "TerminalOperation": [
+      "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/terminal_execution.py:248",
+      "/home/ts/wt/comms-cleanup-live-integration-20260929/src/agent_comms/compaction_states.py:75"
+    ],
+    "NewTerminalOperation": [
+      "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/terminal_execution.py:277"
+    ],
+    "ActiveTerminalOperation": [
+      "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/terminal_execution.py:301"
+    ],
+    "TerminalExecution": [
+      "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/terminal_execution.py:364"
+    ],
+    "TerminalChildStdio": [
+      "/home/ts/wt/comms-cleanup-live-integration-20260929/src/agent_comms/child_process.py:926"
+    ],
+    "AttachedChild": [
+      "/home/ts/wt/comms-cleanup-live-integration-20260929/src/agent_comms/child_process.py:934"
+    ],
+    "ChildCommand": [
+      "/home/ts/wt/comms-cleanup-live-integration-20260929/src/agent_comms/child_process.py:1420"
+    ],
+    "ControllingTerminalCommand": [
+      "/home/ts/wt/comms-cleanup-live-integration-20260929/src/agent_comms/child_process.py:1436"
+    ]
+  },
+  "sites": [
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/acp/maintenance_ingress.py",
+      "sites": [
+        {
+          "line": 16,
+          "import": "agent_comms.child_process",
+          "names": [
+            "AttachedChild"
+          ]
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/acp/terminal_controller.py",
+      "sites": [
+        {
+          "line": 28,
+          "import": "toad.terminal_execution",
+          "names": [
+            "TerminalExecution"
+          ]
+        },
+        {
+          "line": 43,
+          "call": "TerminalExecution"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/acp/terminal_owner.py",
+      "sites": [
+        {
+          "line": 12,
+          "import": "toad.surface_binding",
+          "names": [
+            "SurfaceBinding"
+          ]
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/agent_surface.py",
+      "sites": [
+        {
+          "line": 7,
+          "import": "toad.surface_binding",
+          "names": [
+            "SurfaceBinding"
+          ]
+        },
+        {
+          "line": 13,
+          "declaration": "AttachedSurfaceBinding",
+          "bases": [
+            "SurfaceBinding",
+            "MroDispatch"
+          ]
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/mcp_decision.py",
+      "sites": [
+        {
+          "line": 18,
+          "import": "toad.terminal_execution",
+          "names": [
+            "PtyProcess"
+          ]
+        },
+        {
+          "line": 32,
+          "declaration": "LocalDecisionPTY",
+          "bases": []
+        },
+        {
+          "line": 82,
+          "call": "PtyProcess.acquire"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/screens/action_modal.py",
+      "sites": [
+        {
+          "line": 14,
+          "import": "toad.terminal_execution",
+          "names": [
+            "TerminalExecution"
+          ]
+        },
+        {
+          "line": 88,
+          "call": "TerminalExecution"
+        },
+        {
+          "line": 58,
+          "call": "TerminalExecution"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/screens/mcp_decision.py",
+      "sites": [
+        {
+          "line": 13,
+          "import": "toad.mcp_decision",
+          "names": [
+            "LocalDecisionPTY"
+          ]
+        },
+        {
+          "line": 37,
+          "call": "LocalDecisionPTY"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/session_presentation.py",
+      "sites": [
+        {
+          "line": 13,
+          "import": "toad.agent_surface",
+          "names": [
+            "AttachedSurfaceBinding"
+          ]
+        },
+        {
+          "line": 107,
+          "call": "AttachedSurfaceBinding"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/shell.py",
+      "sites": [
+        {
+          "line": 8,
+          "import": "agent_comms.child_process",
+          "names": [
+            "ControllingTerminalCommand"
+          ]
+        },
+        {
+          "line": 9,
+          "import": "toad.surface_binding",
+          "names": [
+            "SurfaceBinding"
+          ]
+        },
+        {
+          "line": 16,
+          "import": "toad.shell_source",
+          "names": [
+            "ShellOperationalSource"
+          ]
+        },
+        {
+          "line": 17,
+          "import": "toad.terminal_execution",
+          "names": [
+            "PtyProcess"
+          ]
+        },
+        {
+          "line": 20,
+          "declaration": "Shell",
+          "bases": [
+            "ShellOperationalSource"
+          ]
+        },
+        {
+          "line": 151,
+          "call": "ControllingTerminalCommand"
+        },
+        {
+          "line": 154,
+          "call": "PtyProcess.acquire"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/shell_source.py",
+      "sites": [
+        {
+          "line": 4,
+          "import": "toad.surface_binding",
+          "names": [
+            "SurfaceBinding"
+          ]
+        },
+        {
+          "line": 7,
+          "import": "toad.terminal_execution",
+          "names": [
+            "TerminalOperation",
+            "NewTerminalOperation"
+          ]
+        },
+        {
+          "line": 10,
+          "declaration": "ShellOperationalSource",
+          "bases": [
+            "ABC"
+          ]
+        },
+        {
+          "line": 18,
+          "call": "NewTerminalOperation"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/surface_binding.py",
+      "sites": [
+        {
+          "line": 7,
+          "declaration": "SurfaceBinding",
+          "bases": [
+            "DeclaredFamily"
+          ]
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/terminal_execution.py",
+      "sites": [
+        {
+          "line": 20,
+          "import": "agent_comms.child_process",
+          "names": [
+            "AttachedChild",
+            "TerminalChildStdio"
+          ]
+        },
+        {
+          "line": 184,
+          "declaration": "PtyProcess",
+          "bases": []
+        },
+        {
+          "line": 248,
+          "declaration": "TerminalOperation",
+          "bases": [
+            "DeclaredFamily"
+          ]
+        },
+        {
+          "line": 277,
+          "declaration": "NewTerminalOperation",
+          "bases": [
+            "TerminalOperation"
+          ]
+        },
+        {
+          "line": 301,
+          "declaration": "ActiveTerminalOperation",
+          "bases": [
+            "TerminalOperation"
+          ]
+        },
+        {
+          "line": 364,
+          "declaration": "TerminalExecution",
+          "bases": []
+        },
+        {
+          "line": 193,
+          "call": "pty.openpty"
+        },
+        {
+          "line": 287,
+          "call": "ActiveTerminalOperation"
+        },
+        {
+          "line": 375,
+          "call": "NewTerminalOperation"
+        },
+        {
+          "line": 202,
+          "call": "asyncio.get_running_loop().connect_read_pipe"
+        },
+        {
+          "line": 440,
+          "call": "PtyProcess.acquire"
+        },
+        {
+          "line": 209,
+          "call": "TerminalChildStdio"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/command_pane.py",
+      "sites": [
+        {
+          "line": 7,
+          "import": "toad.terminal_execution",
+          "names": [
+            "TerminalExecution"
+          ]
+        },
+        {
+          "line": 99,
+          "call": "TerminalExecution"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "sites": [
+        {
+          "line": 97,
+          "import": "toad.shell",
+          "names": [
+            "Shell"
+          ]
+        },
+        {
+          "line": 382,
+          "import": "toad.agent_surface",
+          "names": [
+            "AttachedSurfaceBinding"
+          ]
+        },
+        {
+          "line": 2020,
+          "import": "toad.agent_surface",
+          "names": [
+            "AttachedSurfaceBinding"
+          ]
+        },
+        {
+          "line": 384,
+          "call": "AttachedSurfaceBinding"
+        },
+        {
+          "line": 2025,
+          "call": "Shell"
+        },
+        {
+          "line": 2029,
+          "call": "AttachedSurfaceBinding"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/terminal_tool.py",
+      "sites": [
+        {
+          "line": 10,
+          "import": "toad.terminal_execution",
+          "names": [
+            "TerminalExecution"
+          ]
+        },
+        {
+          "line": 17,
+          "import": "toad.agent_surface",
+          "names": [
+            "AttachedSurfaceBinding"
+          ]
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/clipboard_native_pilot.py",
+      "sites": [
+        {
+          "line": 48,
+          "call": "pty.openpty"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/e2e_pty.py",
+      "sites": [
+        {
+          "line": 90,
+          "call": "pty.openpty"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/late_native_after_join_pilot.py",
+      "sites": [
+        {
+          "line": 20,
+          "import": "toad.agent_surface",
+          "names": [
+            "AttachedSurfaceBinding"
+          ]
+        },
+        {
+          "line": 76,
+          "call": "AttachedSurfaceBinding"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/late_native_application_pilot.py",
+      "sites": [
+        {
+          "line": 20,
+          "import": "toad.agent_surface",
+          "names": [
+            "AttachedSurfaceBinding"
+          ]
+        },
+        {
+          "line": 76,
+          "call": "AttachedSurfaceBinding"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/maintenance_cancel_process_group_pilot.py",
+      "sites": [
+        {
+          "line": 26,
+          "import": "agent_comms.child_process",
+          "names": [
+            "AttachedChild"
+          ]
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/mcp_decision_pty_pilot.py",
+      "sites": [
+        {
+          "line": 23,
+          "import": "toad.mcp_decision",
+          "names": [
+            "LocalDecisionPTY"
+          ]
+        },
+        {
+          "line": 215,
+          "call": "LocalDecisionPTY"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/renderer_cli_pty_pilot.py",
+      "sites": [
+        {
+          "line": 41,
+          "call": "pty.openpty"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/t8_mounted_pilot.py",
+      "sites": [
+        {
+          "line": 17,
+          "import": "toad.terminal_execution",
+          "names": [
+            "TerminalExecution"
+          ]
+        },
+        {
+          "line": 23,
+          "call": "TerminalExecution"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/terminal_attention_installed_journey.py",
+      "sites": [
+        {
+          "line": 272,
+          "call": "pty.openpty"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/terminal_crash_check.py",
+      "sites": [
+        {
+          "line": 4,
+          "call": "pty.openpty"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/test_client_session.py",
+      "sites": [
+        {
+          "line": 8,
+          "import": "toad.terminal_execution",
+          "names": [
+            "TerminalExecution"
+          ]
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/comms-cleanup-live-integration-20260929",
+      "path": "src/agent_comms/child_process.py",
+      "sites": [
+        {
+          "line": 926,
+          "declaration": "TerminalChildStdio",
+          "bases": [
+            "ChildStdio"
+          ]
+        },
+        {
+          "line": 934,
+          "declaration": "AttachedChild",
+          "bases": [
+            "ChildProcess"
+          ]
+        },
+        {
+          "line": 1420,
+          "declaration": "ChildCommand",
+          "bases": [
+            "DeclaredFamily"
+          ]
+        },
+        {
+          "line": 1436,
+          "declaration": "ControllingTerminalCommand",
+          "bases": [
+            "ChildCommand"
+          ]
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/comms-cleanup-live-integration-20260929",
+      "path": "src/agent_comms/compaction_states.py",
+      "sites": [
+        {
+          "line": 75,
+          "declaration": "TerminalOperation",
+          "bases": []
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/comms-cleanup-live-integration-20260929",
+      "path": "src/agent_comms/native_custody.py",
+      "sites": [
+        {
+          "line": 13,
+          "import": "child_process",
+          "names": [
+            "AttachedChild"
+          ]
+        }
+      ]
+    }
+  ],
+  "limits": "Lexical AST with semantically read receiver/ownership relationships; dynamic aliases and dispatch are not resolved. Third-party stdlib/SDK sources are read semantically, not claimed as parsed roots. No parse omission counted as zero."
+}
