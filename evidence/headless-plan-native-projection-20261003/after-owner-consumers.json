@@ -1,0 +1,601 @@
+{
+  "head": "1fe944dcce480d11e6a3241080dcd66ff48fa8a7",
+  "roots": {
+    "src/toad": {
+      "parsed": 289,
+      "unparsed": []
+    },
+    "tests": {
+      "parsed": 392,
+      "unparsed": []
+    }
+  },
+  "references": [
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 14,
+      "kind": "ImportFrom",
+      "source": "from toad.plan import PlanItem"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 186,
+      "kind": "FunctionDef",
+      "source": "def publish_plan(self, entries: list[PlanItem]) -> None:"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 75,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 186,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 20,
+      "kind": "ImportFrom",
+      "source": "from toad.plan import decode_plan"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 54,
+      "kind": "Attribute",
+      "source": "self.agent.controller.publish_plan"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 54,
+      "kind": "Name",
+      "source": "decode_plan"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 14,
+      "kind": "ImportFrom",
+      "source": "from toad.plan import PlanItem"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 54,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 13,
+      "kind": "ClassDef",
+      "source": "class PlanStatus(DeclaredFamily, affix='PlanStatus'):"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 23,
+      "kind": "ClassDef",
+      "source": "class PendingPlanStatus(PlanStatus):"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 29,
+      "kind": "ClassDef",
+      "source": "class InProgressPlanStatus(PlanStatus):"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 35,
+      "kind": "ClassDef",
+      "source": "class CompletedPlanStatus(PlanStatus):"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 44,
+      "kind": "ClassDef",
+      "source": "@dataclass(frozen=True)"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 55,
+      "kind": "FunctionDef",
+      "source": "def decode_plan(entries: list[PlanEntry]) -> list[PlanItem]:"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 20,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 23,
+      "kind": "Name",
+      "source": "PlanStatus"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 25,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 29,
+      "kind": "Name",
+      "source": "PlanStatus"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 31,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 35,
+      "kind": "Name",
+      "source": "PlanStatus"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 39,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 16,
+      "kind": "Name",
+      "source": "complete"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 36,
+      "kind": "Name",
+      "source": "complete"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 50,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 55,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 47,
+      "kind": "Name",
+      "source": "PlanStatus"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 57,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 52,
+      "kind": "Name",
+      "source": "PlanStatus"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 478,
+      "kind": "Attribute",
+      "source": "self.query_one(SessionThreadSidebar).update_plan"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 374,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.committed_presentation import checkpoint_plan"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1525,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.plan import Plan"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 10,
+      "kind": "ImportFrom",
+      "source": "from toad.plan import PlanItem, PlanStatus"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 11,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.strike_text import StrikeText"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 78,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 55,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 76,
+      "kind": "Name",
+      "source": "complete"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 87,
+      "kind": "Attribute",
+      "source": "status.complete"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 60,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 69,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 69,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 65,
+      "kind": "Name",
+      "source": "PlanStatus"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 73,
+      "kind": "Attribute",
+      "source": "entry.status.complete"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 89,
+      "kind": "Attribute",
+      "source": "text.complete"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 86,
+      "kind": "Name",
+      "source": "StrikeText"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 85,
+      "kind": "Attribute",
+      "source": "status.marker"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 89,
+      "kind": "Attribute",
+      "source": "previous.complete"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 7,
+      "kind": "ImportFrom",
+      "source": "from toad.plan import PlanItem"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 8,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.plan import Plan"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 73,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 78,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_sidebar.py",
+      "line": 5,
+      "kind": "ImportFrom",
+      "source": "from toad.plan import PlanItem"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_sidebar.py",
+      "line": 6,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.plan import Plan"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_sidebar.py",
+      "line": 35,
+      "kind": "FunctionDef",
+      "source": "def update_plan(self, entries: list[PlanItem]) -> None:"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_sidebar.py",
+      "line": 35,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/widgets/strike_text.py",
+      "line": 9,
+      "kind": "ClassDef",
+      "source": "class StrikeText(Widget):"
+    },
+    {
+      "path": "src/toad/widgets/strike_text.py",
+      "line": 32,
+      "kind": "FunctionDef",
+      "source": "def complete(self, *, animated: bool=False) -> None:"
+    },
+    {
+      "path": "src/toad/widgets/strike_text.py",
+      "line": 39,
+      "kind": "FunctionDef",
+      "source": "def strike(self) -> None:"
+    },
+    {
+      "path": "src/toad/widgets/strike_text.py",
+      "line": 66,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/strike_text.py",
+      "line": 35,
+      "kind": "Attribute",
+      "source": "self.call_after_refresh"
+    },
+    {
+      "path": "src/toad/widgets/strike_text.py",
+      "line": 35,
+      "kind": "Attribute",
+      "source": "self.strike"
+    },
+    {
+      "path": "src/toad/widgets/strike_text.py",
+      "line": 74,
+      "kind": "Attribute",
+      "source": "self.query_one(StrikeText).strike"
+    },
+    {
+      "path": "src/toad/widgets/strike_text.py",
+      "line": 69,
+      "kind": "Name",
+      "source": "StrikeText"
+    },
+    {
+      "path": "src/toad/widgets/strike_text.py",
+      "line": 74,
+      "kind": "Name",
+      "source": "StrikeText"
+    },
+    {
+      "path": "tests/acp_specification_server.py",
+      "line": 11,
+      "kind": "ImportFrom",
+      "source": "from acp_plan_server import PlanPeer"
+    },
+    {
+      "path": "tests/guards/test_plan_presentation.py",
+      "line": 7,
+      "kind": "ImportFrom",
+      "source": "from toad.plan import PlanItem, PlanStatus"
+    },
+    {
+      "path": "tests/guards/test_plan_presentation.py",
+      "line": 40,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.plan import Plan"
+    },
+    {
+      "path": "tests/guards/test_plan_presentation.py",
+      "line": 42,
+      "kind": "Name",
+      "source": "PlanStatus"
+    },
+    {
+      "path": "tests/guards/test_plan_presentation.py",
+      "line": 44,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "path": "tests/guards/test_plan_presentation.py",
+      "line": 53,
+      "kind": "Name",
+      "source": "PlanStatus"
+    },
+    {
+      "path": "tests/guards/test_plan_presentation.py",
+      "line": 58,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 18,
+      "kind": "ImportFrom",
+      "source": "from toad.plan import PlanStatus"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 20,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.plan import Plan"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 21,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.strike_text import StrikeText"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 83,
+      "kind": "Name",
+      "source": "StrikeText"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 111,
+      "kind": "Name",
+      "source": "StrikeText"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 112,
+      "kind": "Name",
+      "source": "StrikeText"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 72,
+      "kind": "Name",
+      "source": "PlanStatus"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 74,
+      "kind": "Attribute",
+      "source": "entry.status.marker"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 67,
+      "kind": "Name",
+      "source": "StrikeText"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 81,
+      "kind": "Name",
+      "source": "StrikeText"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 110,
+      "kind": "Name",
+      "source": "StrikeText"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 82,
+      "kind": "Name",
+      "source": "StrikeText"
+    },
+    {
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 21,
+      "kind": "ImportFrom",
+      "source": "from toad.plan import PlanItem, PendingPlanStatus, InProgressPlanStatus"
+    },
+    {
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 22,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.plan import Plan"
+    },
+    {
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 104,
+      "kind": "Attribute",
+      "source": "first_bar.update_plan"
+    },
+    {
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 93,
+      "kind": "Attribute",
+      "source": "bar.update_plan"
+    },
+    {
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 103,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 103,
+      "kind": "Name",
+      "source": "InProgressPlanStatus"
+    },
+    {
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 93,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 93,
+      "kind": "Name",
+      "source": "PendingPlanStatus"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 18,
+      "kind": "ImportFrom",
+      "source": "from toad.plan import PlanItem, PendingPlanStatus, InProgressPlanStatus"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 19,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.plan import Plan"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 106,
+      "kind": "Attribute",
+      "source": "sidebar.update_plan"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 105,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 105,
+      "kind": "Name",
+      "source": "InProgressPlanStatus"
+    }
+  ],
+  "ownership": {
+    "admitted_plan": "AgentController.plan_entries retains original decoded PlanItem list; CoreEventStream publishes that source to original native recipients.",
+    "status": "PlanStatus owns external declared identity, complete and marker text.",
+    "native_layout": "Plan owns Content construction and previous-status intent needed for animation.",
+    "native_completion": "StrikeText.complete owns refresh scheduling and completion style; strike/render own timer and paint.",
+    "source_format": "PlanItem fields and FieldCodec nominal status identity are unchanged. No durable/runtime store change."
+  },
+  "limitations": [
+    "Lexical AST evidence does not prove dynamic receiver resolution. Related native compose/complete references are read semantically, not counted as unrelated owners. Official ACP SDK owns PlanEntry external boundary. OutputStream native lifetime remains unfinished separate scope."
+  ]
+}

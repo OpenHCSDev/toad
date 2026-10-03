@@ -24,7 +24,6 @@ from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 from toad.widgets.side_bar import SideBarCollapsible
 from toad.widgets.thread_comms import ThreadCommsSidebar
-from textual.content import Content
 
 
 def rich_count(screens):
@@ -91,7 +90,7 @@ async def main():
                 screens.append(screen)
                 await pilot.pause(.02)
                 bar = await reveal(screen, pilot)
-                bar.update_plan([PlanItem(Content(f"Plan {index}"), "high", PendingPlanStatus)])
+                bar.update_plan([PlanItem(f"Plan {index}", "high", PendingPlanStatus)])
                 assert len(bar.panels) == 5
                 assert rich_count(screens) == 5, f"Retained rich panels after {len(screens)} tabs"
                 references.extend(ref(panel.widget) for panel in bar.panels)
@@ -101,7 +100,7 @@ async def main():
                                          "rss_bytes": psutil.Process().memory_info().rss,
                                          "tasks": len(asyncio.all_tasks())})
             assert not first_bar.panels
-            latest = [PlanItem(Content("Source update while inactive"), "high", InProgressPlanStatus)]
+            latest = [PlanItem("Source update while inactive", "high", InProgressPlanStatus)]
             first_bar.update_plan(latest)
             for screen in reversed(screens):
                 started = time.perf_counter()

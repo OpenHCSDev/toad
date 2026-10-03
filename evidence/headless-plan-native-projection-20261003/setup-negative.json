@@ -1,0 +1,8 @@
+{
+  "attempt": "Accidentally invoked default agent-comms-acp --help while locating its Python interpreter",
+  "handle": 87036,
+  "retirement": "Owned process received Ctrl+C, tool returned terminal, readable process census found no remaining matching --help process",
+  "result": "stdin reader registration PermissionError before any client protocol request",
+  "scope": "No client RPC or provider request was supplied; startup log writes were not certified absent. No user owner or UI was signaled.",
+  "correction": "Resolve executable path without launching it; inspect MessagePump source using its sibling Python"
+}
