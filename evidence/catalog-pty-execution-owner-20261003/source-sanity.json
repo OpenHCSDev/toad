@@ -1,17 +1,17 @@
 {
   "result": "pass-source-only",
-  "product": "39af5e889abb0a95f7bec0693291ae6cb8e93ca7",
+  "product": "39781c5f6fe0d93b03faa7c554f70acf56e402bd",
   "parsed_roots": {
     "src/toad": 288,
     "tests": 391
   },
   "parse_omissions": [],
-  "changed_module_compile": 6,
+  "changed_module_compile": 7,
   "pane_retired_process_master_task_return_code_sites": [],
   "production_delta": {
-    "files": 4,
-    "added": 91,
-    "deleted": 200,
+    "files": 5,
+    "added": 100,
+    "deleted": 207,
     "new_classes": 0
   },
   "concrete_risk": "All changed constructor/import/execute consumers and the original resource/writer boundary must compile; lexical census supplements semantic reads, not dynamic proof.",
@@ -21,5 +21,6 @@
     "available_ram_gib": 20.0,
     "scope": "Existing shared candidate only; bounded private local commands, no new env/provider/native copies."
   },
-  "retired_cooked_query_sites": []
+  "retired_cooked_query_sites": [],
+  "invocation_owner": "Command.script; for_script retains exact text, for_argv compiles typed executable/args once; no stored args or whitespace dispatch"
 }

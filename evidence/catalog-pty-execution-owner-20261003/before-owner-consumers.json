@@ -1280,5 +1280,11 @@
       "source": "task.execute"
     }
   ],
-  "limitations": "Lexical references; dynamic resolution requires the recorded semantic read."
+  "command_fields": [
+    "command: str",
+    "args: list[str]",
+    "env: Mapping[str, str]",
+    "cwd: str"
+  ],
+  "limitations": "Lexical references; dynamic receiver resolution is qualified by semantic read. Dependency declaration read uses installed ACP SDK and ChildOutcome, not a full dependency-root census."
 }
