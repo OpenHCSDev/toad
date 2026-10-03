@@ -154,12 +154,10 @@ def seed_channel(comms, project):
         comms.messaging.send('edge-reader', '#edge', f'History {index}: ' + 'body ' * 40)
 
 
-async def exercise_with_evidence(app, pilot, root):
+async def exercise_with_evidence(app, pilot, root, *, journey=exercise):
     """One acceptance and failure-export lifetime for both physical entries."""
     try:
-        if app.selected_session.conversation.agent is not None:
-            await exercise_native_destination(app, pilot, root)
-        history = await exercise(app, pilot, root)
+        history = await journey(app, pilot, root)
     except BaseException as error:
         outcome = {'status': 'failed', 'error': repr(error),
                    'traceback': traceback.format_exc(),
@@ -178,6 +176,11 @@ async def exercise_with_evidence(app, pilot, root):
         pending = root / 'journey-result.pending'
         pending.write_text(json.dumps(outcome) + '\n')
         pending.replace(root / 'journey-result.json')
+
+
+async def exercise_retained(app, pilot, root):
+    await exercise_native_destination(app, pilot, root)
+    return await exercise(app, pilot, root)
 
 
 async def exercise_native_destination(app, pilot, root):
@@ -231,6 +234,7 @@ async def exercise_native_destination(app, pilot, root):
     app.save_screenshot(str(root / 'native-end.svg'))
     (root / 'native-end.json').write_text(json.dumps({
         'source': view.agent.session_id, 'revoked_revision': revoked_revision,
+        'monotonic': time.monotonic(),
         'final_revision': window.scroll_revision, 'follows_tail': window.follows_tail,
         'has_newer': history.has_newer, 'application_exception': repr(app._exception),
         'provider_inputs': 0,
@@ -323,7 +327,7 @@ async def retained_app(project):
         # teardown must never kill the recorder, Xvfb or physical key driver.
         while not any(event['label'] == 'source-start' for event in phase_events(output)):
             await asyncio.sleep(.05)
-        history = await exercise_with_evidence(app, pilot, root)
+        history = await exercise_with_evidence(app, pilot, root, journey=exercise_retained)
         while not app._exit:
             await asyncio.sleep(.05)
     assert not history.reader._pending
