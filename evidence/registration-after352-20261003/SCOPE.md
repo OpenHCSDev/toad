@@ -52,3 +52,15 @@ Keep this as a negative physical-return qualification, not Ready or a gain.
 Warm/start and return PNGs were viewed during active clients; no moving-frame
 inspection or smoothness acceptance is claimed. All owned clients closed,
 cleanup empty, original owner unchanged. No unchanged recapture.
+
+Same original02 movie at33.2s was subsequently viewed by Kepler and shows
+native A, its saved body and retained draft. The A-return PNG predates the
+writer which first replaces B. Thus no persistent stale Presented scene or
+lost-damage defect is demonstrated by that PNG/metadata pair. The measured
+click-finish to next-writer gap is about1.789s. Existing profile observations
+in that gap include page mount, App registration and stylesheet application;
+those observations do not allocate CPU duration. Source suspension already
+parks and generation-revokes history before cancel/join; an already admitted
+native mount can still finish in that lifetime. No new hidden-view guard or
+compositor invalidation copy is justified. Delayed replacement remains an
+active performance gap; original01/02 raw failures are preserved.
