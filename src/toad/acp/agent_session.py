@@ -5,10 +5,11 @@ import os
 from dataclasses import replace
 import toad
 from toad import constants, jsonrpc
-from toad.acp import api, messages
+from toad.core import events as core_events
+from toad.acp import api
 from acp import schema
 from toad.acp.client_session import ClientSessionRequest
-from toad.agent import AgentReady, UnsupportedResumeAgentFail
+from toad.core.events import AgentReady, UnsupportedResumeAgentFail
 from toad.db import DB, SessionMeta
 from agent_comms.acp_failure import ACPFailure
 from agent_comms.input_attempt import NotSentInput
@@ -60,7 +61,8 @@ class AgentSession:
             await DB().session_update_last_used(self.pk)
 
     def coordinated_title(self, title):
-        self.agent.post_message(messages.SessionInfoUpdate(self.pending_name or title))
+        from toad.core.events import SessionInfoUpdate
+        self.agent.events.publish(SessionInfoUpdate(self.pending_name or title))
         if self.pending_name is not None:
             self.rename_coordination(self.pending_name)
             self.pending_name = None
@@ -73,7 +75,7 @@ class AgentSession:
                 await self.initialize()
                 if self.agent.controller.session.bound:
                     if not self.supports_load:
-                        self.agent.post_message(
+                        self.agent.events.publish(
                             UnsupportedResumeAgentFail(
                                 "Resume not supported",
                                 f"{self.agent.definition.name} does not currently support resuming sessions.",
@@ -94,7 +96,7 @@ class AgentSession:
                 self.agent.process.session_failed(failure)
                 return
         self.settled.set()
-        self.agent.post_message(AgentReady(reconnected=self.reconnecting))
+        self.agent.events.publish(AgentReady(reconnected=self.reconnecting))
 
 
     @property
@@ -301,9 +303,7 @@ class AgentSession:
             thread=replace(self.agent.coordination.thread, name=result.current),
             title=display_name,
         )
-        self.agent.post_message(
-            messages.CommsUpdated(self.agent.coordination, self.agent, self.agent.session_id)
-        )
+        self.agent.events.publish(core_events.CommsUpdated(self.agent.coordination, self.agent.session_id))
 
 
     async def set_mode(self, mode_id: str) -> str | None:

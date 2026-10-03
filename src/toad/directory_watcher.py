@@ -8,7 +8,8 @@ import rich.repr
 
 import threading
 
-from textual.message import Message
+from toad.core.events import CoreEventStream
+from toad.core.source_events import DirectoryChanged
 from textual.dom import NoScreen
 from textual.widget import Widget
 
@@ -25,13 +26,6 @@ from watchdog.events import (
 )
 from watchdog.observers import Observer
 from watchdog.observers.polling import PollingObserver
-
-
-class DirectoryChanged(Message):
-    """The directory was changed."""
-
-    def can_replace(self, message: Message) -> bool:
-        return isinstance(message, DirectoryChanged)
 
 
 class _PathEventDispatcher(FileSystemEventHandler):
@@ -250,6 +244,8 @@ class DirectoryWatcher(threading.Thread):
         """
         self._path = path.resolve()
         self._widget = widget
+        self.events = CoreEventStream(self)
+        widget.subscribe_core(self.events)
         self._stop_event = threading.Event()
         self._observation: _PathObservation | None = None
         self._dirty = False
@@ -296,7 +292,7 @@ class DirectoryWatcher(threading.Thread):
             if not self._dirty:
                 return
             self._dirty = False
-        self._widget.post_message(DirectoryChanged())
+        self.events.publish(DirectoryChanged())
 
     def __rich_repr__(self) -> rich.repr.Result:
         yield self._path
@@ -324,3 +320,4 @@ class DirectoryWatcher(threading.Thread):
     def stop(self) -> None:
         """Stop the watcher."""
         self._stop_event.set()
+        self._widget.retire_core_observations(self.events)

@@ -1,4 +1,5 @@
 """Compact projection of the model's active channel members above the composer."""
+from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 
 from toad.navigation_target import ThreadTarget
 
@@ -9,12 +10,12 @@ from textual.content import Content
 from textual.style import Style
 from textual.widgets import Static
 
-from toad.widgets.comms_sidebar import SelectTarget
+from toad.core.input_events import SelectTarget
 
 
-class ParticipantNames(Static):
+class ParticipantNames(CoreEventReceiver, Static):
     def action_open_thread(self, name: str) -> None:
-        self.post_message(SelectTarget(ThreadTarget(name)))
+        self.publish_core(SelectTarget(ThreadTarget(name)))
 
 
 class ChannelParticipants(VerticalScroll):

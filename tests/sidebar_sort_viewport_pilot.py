@@ -1,4 +1,5 @@
 """Sorting stays on the visible right edge while long sidebar rows scroll."""
+from toad.core import events as core_events
 from runtime_fixture import coordination_update
 
 import asyncio
@@ -48,7 +49,7 @@ async def main() -> None:
                 panels = bar.query_one("#sidebar-panels")
                 for width in (40, 25, 15):
                     app.sidebar_layout.width(identity, width)
-                    app.sidebar_layout_changed.publish(None)
+                    app.events.publish(core_events.SidebarLayoutChanged())
                     await pilot.pause()
                     assert panels.max_scroll_x > 0
                     for x in (0, panels.max_scroll_x, 0):

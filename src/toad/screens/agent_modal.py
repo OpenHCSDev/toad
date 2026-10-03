@@ -14,7 +14,7 @@ import toad
 from textual.binding import Binding
 from toad.agent_schema import AgentDefinition, OS
 from toad.catalog_actions import LaunchAction
-from toad.messages import LaunchAgent
+from toad.core.session_requests import LaunchAgent
 from toad.app import ToadApp
 
 

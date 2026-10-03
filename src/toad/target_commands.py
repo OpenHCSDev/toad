@@ -1,6 +1,7 @@
 """One contextual command projection for pointer menus and slash discovery."""
 
 from __future__ import annotations
+from toad.core import session_requests
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -267,7 +268,7 @@ class CloseViewCommand(ViewCommand, declared_name="close_view"):
         )
 
     def execute(self, ctx: TargetContext) -> None:
-        ctx.app.post_message(messages.SessionArchive(ctx.mode))
+        ctx.app.session_navigation.events.publish(session_requests.SessionArchive(ctx.mode))
 
 
 @dataclass(frozen=True)

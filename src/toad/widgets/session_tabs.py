@@ -1,3 +1,6 @@
+from toad.core import events as core_events
+from toad.core_event_carrier import CoreEventMessage
+from toad.core import session_requests
 import asyncio
 from collections.abc import Iterable
 from functools import partial
@@ -15,8 +18,11 @@ from textual.renderables.bar import Bar
 from textual.widget import Widget
 
 from toad import messages
+from agent_comms.mro_dispatch import handles
+from toad.core.events import SessionChangedEvent
+from toad.core_event_carrier import CoreEventReceiver
 from toad.app import ToadApp
-from toad.session_tracker import OpenTab, SessionDetails
+from toad.session_tracker import OpenTab
 from toad.sidebar_preparation import PreparedTab, TabRosterWork
 from toad.widgets.activity_spinner import FRAMES, animated_label
 
@@ -28,7 +34,7 @@ class SessionLabel(widgets.Label):
         if self.id is not None:
             if event.button == 2:
                 event.stop()
-                self.app.post_message(messages.SessionArchive(self.id))
+                self.app.session_navigation.events.publish(session_requests.SessionArchive(self.id))
             elif event.button == 1:
                 # A second message-pump hop lets the old screen's pending
                 # full-layout timer run ahead of the user's tab click. The
@@ -61,7 +67,7 @@ class SessionTabClose(widgets.Static, can_focus=True):
         self.tooltip = "Close tab (or middle-click its label)"
 
     def action_close_tab(self) -> None:
-        self.app.post_message(messages.SessionArchive(self.mode_name))
+        self.app.session_navigation.events.publish(session_requests.SessionArchive(self.mode_name))
 
     def on_click(self, event: events.Click) -> None:
         if event.button in {1, 2}:
@@ -120,7 +126,7 @@ class Underline(Widget):
         self.post_message(self.Clicked(event.screen_offset))
 
 
-class SessionsTabs(Widget):
+class SessionsTabs(CoreEventReceiver, Widget):
 
     ALLOW_SELECT = False
     app: getters.app[ToadApp] = getters.app(ToadApp)
@@ -177,17 +183,15 @@ class SessionsTabs(Widget):
         # Metadata can arrive after compose built the labels. Keep that exact
         # rendered snapshot as the cache, then reconcile the mounted widgets.
         self.current_session = self.app.selected_mode
-        self.app.session_selected_signal.subscribe(self, self.handle_mode_change)
-        self.app.session_update_signal.subscribe(
-            self, self.handle_session_update_signal
-        )
-        self.app.open_tabs_changed.subscribe(self, self._tabs_changed)
+        self.observe_core(self.app.events)
+        self.subscribe_core(self.app.session_tracker.events)
         self.call_later(self._sync_tabs)
         self.update_underline(self.current_session, animate=False)
         self.call_after_refresh(self.update_underline, self.current_session)
         self._sync_spinner(self.app.open_tabs)
 
-    def handle_mode_change(self, mode: str) -> None:
+    @handles(core_events.SessionSelected)
+    async def handle_mode_change(self, event: CoreEventMessage) -> None:
         if self.screen.is_active:
             self.call_later(self._sync_tabs)
 
@@ -254,13 +258,13 @@ class SessionsTabs(Widget):
                 yield SessionTabClose(session.mode_name)
         yield Underline()
 
-    async def handle_session_update_signal(
-        self, update: tuple[str, SessionDetails | None]
-    ) -> None:
+    @handles(SessionChangedEvent)
+    async def handle_session_update(self, event: CoreEventMessage) -> None:
         if self.screen.is_active:
             await self._sync_tabs()
 
-    async def _tabs_changed(self, _update: None) -> None:
+    @handles(core_events.OpenTabsChanged)
+    async def _tabs_changed(self, event: CoreEventMessage) -> None:
         if self.screen.is_active:
             await self._sync_tabs()
 

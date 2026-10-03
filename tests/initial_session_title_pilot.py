@@ -138,23 +138,23 @@ async def check_title(title: str | None) -> None:
         agent.session.capabilities["loadSession"] = True
         agent.session.pending_name = "My pending title"
         saved = AsyncMock(return_value=7)
-        updates = Mock()
+        updates = []
         with (
             patch.object(agent, "request", return_value=nullcontext()),
             patch("toad.acp.agent_session.api.session_new", return_value=Response(payload)),
             patch.object(DB, "session_new", new=saved),
             patch.object(DB, "session_update_title", new=AsyncMock()),
             patch.object(agent, "_rename_coordination_thread"),
-            patch.object(agent, "post_message", new=updates),
+            agent.events.subscribe(lambda event, _subscription: updates.append(event)),
         ):
             await agent.session.new()
         assert saved.call_args.args[0] == "My pending title"
-        from toad.acp.messages import SessionInfoUpdate
+        from toad.core.events import SessionInfoUpdate
 
         assert [
-            call.args[0].title
-            for call in updates.call_args_list
-            if isinstance(call.args[0], SessionInfoUpdate)
+            event.title
+            for event in updates
+            if isinstance(event, SessionInfoUpdate)
         ] == ["My pending title"]
         assert Agent._initial_session_title({"sessionId": "generic"}) is None
 

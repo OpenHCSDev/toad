@@ -1,6 +1,6 @@
 """One session owns SDK tool-call assembly for updates and permission admission."""
 from acp.schema import ToolCall
-from toad.acp import messages
+from toad.core import events
 from toad.acp.status import ToolCallStatus, PendingToolCallStatus
 
 
@@ -17,7 +17,7 @@ class SessionToolCalls:
     def begin(self, value):
         current = ToolCall(**{name: getattr(value, name) for name in ToolCall.model_fields})
         self.calls[value.tool_call_id] = current
-        self.agent.post_message(messages.ToolCall(ToolCallStatus.from_acp(current)))
+        self.agent.events.publish(events.ToolCall(ToolCallStatus.from_acp(current)))
 
     def merge(self, value):
         tool_id = value.tool_call_id
@@ -29,9 +29,8 @@ class SessionToolCalls:
         return current
 
     def update(self, value):
-        known = value.tool_call_id in self.calls
         current = self.merge(value)
-        self.agent.post_message(messages.ToolCallUpdate(ToolCallStatus.from_acp(current), value) if known else messages.ToolCall(ToolCallStatus.from_acp(current)))
+        self.agent.events.publish(events.ToolCall(ToolCallStatus.from_acp(current)))
 
     def permission(self, value):
         return self.merge(value)

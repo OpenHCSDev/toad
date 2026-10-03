@@ -1,6 +1,7 @@
 """Thread menu declarations own presentation, input collection and execution."""
 
 from __future__ import annotations
+from toad.core import events as core_events
 
 import asyncio
 from abc import abstractmethod
@@ -61,12 +62,12 @@ class ThreadActions:
             app.notify(f"An action for @{subject} is already in progress", title="Session action")
             return
         self.requests[subject] = ThreadActionExecution(self, action, selected, subject, actor, session_modes)
-        app.thread_actions_changed.publish(None)
+        app.events.publish(core_events.ThreadActionsChanged())
 
     def finished(self, execution: ThreadActionExecution) -> None:
         if self.requests.get(execution.subject) is execution:
             del self.requests[execution.subject]
-        self.app.thread_actions_changed.publish(None)
+        self.app.events.publish(core_events.ThreadActionsChanged())
 
     async def close(self) -> None:
         # Domain writes already accepted at their sink must finish, not be
@@ -158,7 +159,7 @@ class StartAction(ThreadAction[OwnerStartResult]):
             title="Session action",
         )
         if result.launched:
-            from toad.acp.messages import CommsUpdated
+            from toad.core.events import CommsUpdated
             from agent_comms.acp_extension import TranscriptChangedUpdate
 
             for mode_name in ctx.session_modes:
@@ -166,7 +167,7 @@ class StartAction(ThreadAction[OwnerStartResult]):
                 if screen is not None and screen.conversation.agent is not None:
                     await screen.conversation.agent.session.reconnect()
                     agent = screen.conversation.agent
-                    screen.conversation.post_message(CommsUpdated(TranscriptChangedUpdate(None), agent, agent.session_id))
+                    agent.events.publish(CommsUpdated(TranscriptChangedUpdate(None), agent.session_id))
 
 
 class FinishedAction(ThreadAction[None]):

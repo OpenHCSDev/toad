@@ -61,7 +61,7 @@ class Plan(ConversationBlock, containers.Grid):
         id: str | None = None,
         classes: str | None = None,
     ):
-        self.previous_statuses: dict[Content, type[PlanStatus]] = {}
+        self.previous_statuses: dict[str, type[PlanStatus]] = {}
         super().__init__(name=name, id=id, classes=classes)
         self.set_reactive(Plan.entries, entries)
 

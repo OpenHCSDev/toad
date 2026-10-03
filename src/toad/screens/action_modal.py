@@ -13,11 +13,14 @@ from toad.app import ToadApp
 from toad.widgets.command_pane import CommandPane
 from toad.agent_schema import AgentDefinition
 from toad.catalog_actions import CatalogCommandAction
+from toad.core.source_events import CommandComplete
+from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
+from agent_comms.mro_dispatch import handles
 
 UV_INSTALL = "curl -LsSf https://astral.sh/uv/install.sh | sh"
 
 
-class ActionModal(ModalScreen):
+class ActionModal(CoreEventReceiver, ModalScreen):
     """Executes an action command."""
 
     CSS_PATH = "store.tcss"
@@ -63,9 +66,9 @@ class ActionModal(ModalScreen):
         self.ok_button.disabled = False
         self.ok_button.focus()
 
-    @on(CommandPane.CommandComplete)
-    def on_command_complete(self, event: CommandPane.CommandComplete) -> None:
-        self.operation.command_complete(self, event.return_code)
+    @handles(CommandComplete)
+    def on_command_complete(self, event: CoreEventMessage) -> None:
+        self.operation.command_complete(self, event.event.return_code)
 
     def on_mount(self) -> None:
         self.ok_button.loading = True

@@ -338,8 +338,8 @@ class SourcePublicationRequests:
         if self.pending.empty():
             self.pending.put_nowait(publication)
         view = self.owner.view
-        view.app.coordination_observed.unsubscribe(view)
-        view.app.coordination_observed.subscribe(view, self.resume)
+        view.retire_core_observations(view.app.coordination_access.events)
+        view.observe_core_callback(view.app.coordination_access.events, self.resume)
 
     def resume(self, _event=None) -> bool:
         """Resume retained work only at an existing source/preparation signal."""
@@ -347,7 +347,7 @@ class SourcePublicationRequests:
             return False
         if self.worker is None or self.worker.is_finished:
             view = self.owner.view
-            view.app.coordination_observed.unsubscribe(view)
+            view.retire_core_observations(view.app.coordination_access.events)
             self.worker = view.run_worker(self.publish, group="transcript-source")
         return True
 
@@ -360,7 +360,7 @@ class SourcePublicationRequests:
     def cancel(self) -> Worker[None] | None:
         view = self.owner.view
         if view is not None:
-            view.app.coordination_observed.unsubscribe(view)
+            view.retire_core_observations(view.app.coordination_access.events)
         while not self.pending.empty():
             self.pending.get_nowait()
         worker, self.worker = self.worker, None
@@ -695,7 +695,7 @@ class TranscriptPresentation:
             except WorkerCancelled:
                 pass
 
-    def covered(self, message) -> AwaitComplete:
+    def covered(self, coverage, history) -> AwaitComplete:
         from toad.widgets.conversation import Contents
         from toad.widgets.session_details import SessionDetails
         from toad.widgets.committed_presentation import (
@@ -711,20 +711,19 @@ class TranscriptPresentation:
         contents = view.query_one_optional(Contents)
         if (
             contents is not None
-            and message.history is not None
-            and message.history.is_attached
-            and message.history.parent is contents
+            and history.is_attached
+            and history.parent is contents
         ):
             candidates = retirement_candidates(
                 contents.children,
                 CommitEvidence(
                     frozenset(),
-                    frozenset(message.sequences) | message.history.covered_sequences(
+                    frozenset(coverage.sequences) | history.covered_sequences(
                         frozenset(sequence for child in contents.children
                                   if isinstance(child, CommitParticipant)
                                   for sequence in child.commit_claim.required_sequences)),
-                    message.history,
-                    message.native_inputs,
+                    history,
+                    coverage.native_inputs,
                 ),
             )
             protected = protected_blocks(view, candidates)

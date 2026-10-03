@@ -12,7 +12,7 @@ from toad.tab_order import TabOrder
 def test_tab_order_branches_closure_and_new_kind():
     app = App()
     focused = []
-    order = TabOrder(app, lambda mode, index: focused.append((mode, index)))
+    order = TabOrder(lambda mode, index: focused.append((mode, index)))
     for mode in ("first", "second", "third"):
         order.open(mode)
         order.record_visit(mode)

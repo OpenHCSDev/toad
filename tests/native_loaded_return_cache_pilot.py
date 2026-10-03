@@ -24,7 +24,7 @@ from toad.widgets.transcript_history import TranscriptFragmentView, TranscriptHi
 from textual.widget import Widget
 from textual._styles_cache import StylesCache
 from textual.content import Content
-from toad.acp.messages import UpdateStatusLine
+from toad.core.events import UpdateStatusLine
 from toad.acp.agent import Agent
 from toad.render_tasks import TranscriptRenderTask
 from toad.session_observation import GoalObservation
@@ -450,9 +450,9 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
         assert sources[1].conversation.turns.owner.busy
         assert sources[1].conversation.prompt.agent_busy
         assert sources[1].conversation.prompt.prompt_text_area.agent_busy
-        # A status event queued by the departing source may reach the shared
-        # widget after it is rebound. Its content has no destination identity.
-        sources[1].conversation.post_message(UpdateStatusLine(Content("STALE_BETA_STATUS")))
+        # The departing source's publication belongs to its original subscription.
+        # Returning to another owner cannot transfer it or its context measurement.
+        agents[0].events.publish(UpdateStatusLine())
         await pilot.pause()
         assert sources[1].conversation.status == agents[1].context_measurement.status()
         assert "STALE_BETA_STATUS" not in "\n".join(

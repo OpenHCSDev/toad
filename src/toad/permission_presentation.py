@@ -32,7 +32,8 @@ class PermissionPresentation(DeclaredFamily, affix="PermissionPresentation"):
     def admit(cls, kind, title, content): ...
 
     async def present(self, view, request):
-        if not request.pending or not request.controller.agent.controller.surface.owns(view):
+        if (not request.pending or request.projected_on(view)
+                or not request.controller.agent.controller.surface.owns(view)):
             return
         view.refresh_bindings()
         binding = request.controller.agent.controller.surface

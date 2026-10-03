@@ -1,11 +1,12 @@
 """Goal text uses the same mention syntax and navigation as wire messages."""
+from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 
 from toad.navigation_target import ThreadTarget
 
 from agent_comms.mentions import MentionCandidate, ThreadMention
 from textual.widgets import Static
 
-from toad.widgets.comms_sidebar import SelectTarget
+from toad.core.input_events import SelectTarget
 from toad.widgets.inline_message import inline_message
 
 
@@ -19,7 +20,7 @@ def goal_mention_candidates(app) -> tuple[MentionCandidate, ...]:
     )
 
 
-class GoalText(Static):
+class GoalText(CoreEventReceiver, Static):
     def __init__(self, text: str = "", **kwargs):
         self.goal_text = text
         super().__init__(text, markup=False, **kwargs)
@@ -36,7 +37,7 @@ class GoalText(Static):
         self.update(inline_message(text, mentions))
 
     def action_open_target(self, target: str) -> None:
-        self.post_message(SelectTarget(ThreadTarget(target)))
+        self.publish_core(SelectTarget(ThreadTarget(target)))
 
     def action_open_url(self, url: str) -> None:
         self.app.open_url(url)

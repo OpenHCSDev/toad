@@ -1,4 +1,5 @@
 """Real pointer/keyboard resize from either edge, with hover and slider parity."""
+from toad.core import events as core_events
 
 import asyncio
 import os
@@ -28,7 +29,7 @@ async def main() -> None:
             for side in ("left", "right"):
                 app.sidebar_layout.move("channels-sidebar", side)
                 app.sidebar_layout.width("channels-sidebar", 30)
-                app.sidebar_layout_changed.publish(None)
+                app.events.publish(core_events.SidebarLayoutChanged())
                 await pilot.pause()
                 slider = bar.query_one("#sidebar-width-slider", SidebarSlider)
                 handle = bar.query_one(SidebarResizeHandle)

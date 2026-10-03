@@ -313,6 +313,8 @@ class ToadSettings(SettingsGroup):
     def __init__(self, *args: Any, report_error: Callable[[atomic.AtomicWriteError], None] = raise_save_error,
                  **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
+        from toad.core.events import CoreEventStream
+        self.events = CoreEventStream(self)
         self.report_error = report_error
         self.save_lock = asyncio.Lock()
 
@@ -329,8 +331,9 @@ class ToadSettings(SettingsGroup):
 
     @staticmethod
     def apply_change(app: ToadApp, change: PreferenceChange) -> None:
+        from toad.core.preference_events import PreferenceChanged
         change.apply(app)
-        app.settings_changed_signal.publish(change)
+        app.settings.events.publish(PreferenceChanged(change.field))
 
     @staticmethod
     def report_failure(app: ToadApp, error: atomic.AtomicWriteError) -> None:

@@ -17,7 +17,8 @@ from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 
-from toad.widgets.agent_response import AgentResponse, ResponseDelivery
+from toad.response_delivery import ResponseDelivery
+from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.comms_chat import CommsChatView, session_thread_name
 from toad.widgets.incoming_message import IncomingMessage

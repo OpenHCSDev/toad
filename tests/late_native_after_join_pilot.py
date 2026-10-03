@@ -22,7 +22,7 @@ from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
 from toad.transcript_publication import CheckpointPublication
 from toad.widgets.agent_response import AgentResponse
-from toad.acp.messages import Update, CommsUpdated
+from toad.core.events import Update, CommsUpdated
 from toad.widgets.transcript_history import TranscriptHistory
 
 TOKEN = 'ORIGINAL_AFTER_JOIN_NATIVE_RESPONSE'
@@ -73,7 +73,7 @@ async def main():
                     view._dispatch_message = hold_original
                     agent = Agent(root, AgentDefinition('custody','custody',{}), 'late-native')
                     view.set_reactive(type(view).agent, agent)
-                    agent.controller.surface = AttachedSurfaceBinding(view)
+                    agent.controller.surface = AttachedSurfaceBinding(view, agent.events)
                     agent.coordination = CoordinationChangedUpdate(thread.incarnation, str(root/'wire'),
                         os.getpid(), str(root), None, None, thread.name, None)
                     binding = agent.presentation.managed_turns()

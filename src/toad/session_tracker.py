@@ -4,8 +4,7 @@ from time import time
 from operator import attrgetter
 from typing import Iterable, Literal, Sequence
 
-from textual.signal import Signal
-from textual.widget import Widget
+from toad.core.events import CoreEventStream, SessionChangedEvent, SessionClosedEvent
 from agent_comms.presentation import CoordinationSnapshot
 
 
@@ -96,12 +95,6 @@ class SidebarState:
     channel_scroll_y: float = 0
     panel_scroll_y: float = 0
 
-    def restore_scroll(self, channel: Widget, panels: Widget) -> bool:
-        before = channel.scroll_y, panels.scroll_y
-        channel.scroll_to(y=self.channel_scroll_y, animate=False, immediate=True)
-        panels.scroll_to(y=self.panel_scroll_y, animate=False, immediate=True)
-        return before != (channel.scroll_y, panels.scroll_y)
-
 
 @dataclass
 class SessionDetails:
@@ -123,15 +116,25 @@ class SessionDetails:
     created_at: float = field(default_factory=time)
     """Creation time for local sessions without a wire identity."""
 
+    @property
+    def initial_title(self) -> str | None:
+        """The workspace placeholder is not an authored session name."""
+        return None if self.title == "New Session" else self.title
+
+    def bind_initial_identity(self, session_id: str | None) -> None:
+        """An existing native identity names an otherwise unnamed admission."""
+        if session_id is not None and self.title == "New Session":
+            self.title = session_id
+
 
 
 class SessionTracker:
     """Tracks concurrent agent settings"""
 
-    def __init__(self, signal: Signal[tuple[str, SessionDetails | None]]) -> None:
+    def __init__(self) -> None:
         self.sessions: dict[str, SessionDetails] = {}
         self._session_index = 0
-        self.signal = signal
+        self.events = CoreEventStream(self)
 
     @property
     def session_count(self) -> int:
@@ -144,12 +147,18 @@ class SessionTracker:
             index=self._session_index, mode_name=mode_name, title=title
         )
         self.sessions[mode_name] = session_meta
+        self.events.publish(SessionChangedEvent(mode_name))
         return session_meta
 
     def close_session(self, mode_name: str) -> None:
         if mode_name in self.sessions:
             del self.sessions[mode_name]
-            self.signal.publish((mode_name, None))
+            self.events.publish(SessionClosedEvent(mode_name))
+
+    def bind_identity(self, mode_name: str, previous: str, current: str) -> None:
+        details = self.sessions[mode_name]
+        if details.title in {"New Session", previous}:
+            self.update_session(mode_name, title=current)
 
     def get_session(self, mode_name: str) -> SessionDetails | None:
         return self.sessions.get(mode_name, None)
@@ -175,7 +184,7 @@ class SessionTracker:
             session_details.title, session_details.subtitle, session_details.path,
         )
         if after != before:
-            self.signal.publish((mode_name, session_details))
+            self.events.publish(SessionChangedEvent(mode_name))
         return session_details
 
     @property

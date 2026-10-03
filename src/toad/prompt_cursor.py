@@ -87,11 +87,11 @@ class HistoryCursor(DeclaredFamily, affix="Cursor"):
 
     @classmethod
     def move(cls, editor: PromptTextArea, select: bool, ordinary) -> None:
-        from toad.messages import HistoryMove
+        from toad.core.input_events import HistoryMove
 
         if editor.selection.is_empty and not select:
             if cls.at_edge(editor):
-                editor.post_message(HistoryMove.for_mode(cls.direction, editor.shell_mode, editor.text))
+                editor.publish_core(HistoryMove.for_mode(cls.direction, editor.shell_mode, editor.text))
                 return
         ordinary(select)
 

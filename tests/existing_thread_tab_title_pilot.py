@@ -14,7 +14,7 @@ from comms_boundary_fixture import coordination_fact
 from runtime_fixture import ToadApp
 
 from toad.acp.agent import Agent
-from toad.agent import AgentReady
+from toad.core.events import AgentReady
 from toad.widgets.comms_sidebar import CommsRow, CommsSidebar
 from toad.widgets.session_tabs import SessionLabel, SessionsTabs
 
@@ -67,7 +67,7 @@ async def main(title: str | None = None, *, cold_metadata: bool = False) -> None
                         worktree=str(project),
                     )
                 )
-                target.post_message(AgentReady())
+                agent.events.publish(AgentReady())
 
             agent.process.session_task = asyncio.create_task(attach())
 

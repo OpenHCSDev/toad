@@ -1,3 +1,7 @@
+from toad.core import input_events
+from toad.core_event_carrier import CoreEventMessage
+from toad.core import session_requests, events as core_events
+from toad.core_event_carrier import CoreEventReceiver
 import asyncio
 from functools import partial
 from pathlib import Path
@@ -20,7 +24,7 @@ from textual.widgets import (
 )
 
 from toad import messages
-from toad.acp import messages as acp_messages
+
 from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
 from toad.navigation_target import NavigationContext, NavigationOwner
@@ -28,7 +32,8 @@ from toad.screens.session_view import SessionView
 from toad.session_tracker import SidebarState
 from toad.widgets.comms_chat import resolve_session_thread, session_thread_name
 from toad.widgets.comms_fork_dialog import ForkDialog
-from toad.widgets.comms_sidebar import CommsSidebar, CoordinationStatus, SelectTarget
+from toad.core.input_events import SelectTarget
+from toad.widgets.comms_sidebar import CommsSidebar, CoordinationStatus
 from toad.widgets.conversation import Conversation, ThreadLoading
 from toad.widgets.footer import Footer
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
@@ -37,7 +42,8 @@ from toad.widgets.recovery_view import RecoveryView
 from toad.widgets.thread_comms import ThreadCommsSidebar
 from toad.widgets.comms_chat import resolve_session_thread, session_thread_name
 from toad.widgets.comms_fork_dialog import ForkDialog
-from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
+from toad.core.input_events import SelectTarget
+from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.navigation_target import NavigationContext, NavigationOwner
 from toad.session_tracker import SidebarState
@@ -102,7 +108,7 @@ class MCPInventoryProvider(Provider):
                            help="Read-only package snapshot")
 
 
-class MainScreen(SessionView, NavigationOwner, can_focus=False):
+class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=False):
     footer_compact = True
 
     AUTO_FOCUS = "Conversation Prompt TextArea"
@@ -153,7 +159,6 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         project_path: Path,
         agent: AgentDefinition | None = None,
         agent_session_id: str | None = None,
-        agent_session_title: str | None = None,
         session_pk: int | None = None,
         initial_prompt: str | None = None,
     ) -> None:
@@ -161,7 +166,6 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         self.set_reactive(MainScreen.project_path, project_path)
         self._agent = agent
         self._agent_session_id = agent_session_id
-        self._agent_session_title = agent_session_title
         self.initial_coordination_root: str | None = None
         self._identity_wire: Comms | None = None
         self._comms_thread = (
@@ -218,7 +222,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             pass
         # Hidden screens may defer sidebar geometry until they resume. Rebind
         # the header before the resumed screen's first paint, not on a timer.
-        self._align_tabs_with_sidebar(False)
+        self.screen.align_tabs_to_sidebars()
         if conversation := self.query_one_optional(Conversation):
             if watcher := conversation._directory_watcher:
                 self.call_after_refresh(watcher.notify_if_visible)
@@ -241,7 +245,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         with self._context():
             return Conversation(
                 self.project_path, self._agent, self._agent_session_id,
-                self._session_pk, self._agent_session_title,
+                self._session_pk, self.app.session_tracker.sessions[self.id].initial_title,
                 initial_prompt=self._initial_prompt,
             )
 
@@ -301,14 +305,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             pass
         if self.id is not None:
             self.app.session_navigation.sync_identity(self.id, previous, thread_name)
-            details = self.app.session_tracker.get_session(self.id)
-            if (
-                details is not None
-                and details.title in {"New Session", previous}
-                and self._agent_session_title in {None, "New Session", previous}
-            ):
-                self._agent_session_title = thread_name
-                self.app.session_tracker.update_session(self.id, title=thread_name)
+            self.app.session_tracker.bind_identity(self.id, previous, thread_name)
         self._sync_thread_sidebar()
         if self.id is not None:
             self.app.session_navigation.sync_recovery(self.id, self.coordination_root)
@@ -334,19 +331,18 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         return self._agent is not None
 
     def spawn(self, *, project: Path | None = None, session_id: str | None = None,
-              title: str | None = None, root: str | None = None) -> "MainScreen":
+              root: str | None = None) -> "MainScreen":
         """Create a peer of this native source through its actual declaration."""
         app = self.app
         with app._context():
-            peer = MainScreen(project or self.project_path, self._agent, agent_session_id=session_id,
-                              agent_session_title=title).data_bind(column=type(app).column,
+            peer = MainScreen(project or self.project_path, self._agent, agent_session_id=session_id).data_bind(column=type(app).column,
                               column_width=type(app).column_width, scrollbar=type(app).scrollbar)
         peer.initial_coordination_root = root
         return peer
 
-    @on(acp_messages.CommsUpdated)
-    async def on_comms_updated(self, event: acp_messages.CommsUpdated) -> None:
-        await ScreenCommsConsumer(self).dispatch(event.update)
+    @handles(core_events.CommsUpdated)
+    async def on_comms_updated(self, event: CoreEventMessage) -> None:
+        await ScreenCommsConsumer(self).dispatch(event.event.update)
 
     @handles(CoordinationChangedUpdate)
     async def on_coordination_update(self, event: CoordinationChangedUpdate) -> None:
@@ -440,20 +436,20 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         if target and self.id is not None:
             await self.open_sidebar_target(DirectTarget(target))
 
-    @on(SelectTarget)
-    async def on_comms_select_target(self, event: SelectTarget) -> None:
+    @handles(SelectTarget)
+    async def on_comms_select_target(self, event: CoreEventMessage) -> None:
         """Open channels and DMs through Toad's native session modes."""
-        await self.open_sidebar_target(event.target)
+        await self.open_sidebar_target(event.event.target)
 
     def action_session_previous(self) -> None:
         if self.id is not None:
-            self.post_message(messages.SessionNavigate(self.id, -1))
+            self.app.session_navigation.events.publish(session_requests.SessionNavigate(self.id, -1))
 
     def action_session_next(self) -> None:
         if self.id is not None:
-            self.post_message(messages.SessionNavigate(self.id, +1))
+            self.app.session_navigation.events.publish(session_requests.SessionNavigate(self.id, +1))
 
-    @on(messages.ProjectDirectoryUpdated)
+    @handles(input_events.ProjectDirectoryUpdated)
     async def on_project_directory_update(self) -> None:
         if self._project_panel is not None:
             self._project_panel.invalidate()
@@ -479,32 +475,27 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
     async def open_file_preview(self, path: Path) -> None:
         await self.app.session_navigation.preview(path)
 
-    @on(acp_messages.Plan)
-    async def on_acp_plan(self, message: acp_messages.Plan):
-        message.stop()
-
+    @handles(core_events.Plan)
+    async def on_acp_plan(self, message: CoreEventMessage):
         from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 
-        self.query_one(SessionThreadSidebar).update_plan(message.entries)
+        self.query_one(SessionThreadSidebar).update_plan(message.event.entries)
 
-    @on(messages.SessionUpdate)
-    async def on_session_update(self, event: messages.SessionUpdate) -> None:
-        # TODO: May not be required
-        if event.name is not None:
-            self._agent_session_title = event.name
+    @handles(core_events.SessionTitleChanged)
+    def on_session_title_changed(self, message: CoreEventMessage) -> None:
         if self.id is not None:
-            self.app.session_tracker.update_session(
-                self.id,
-                title=event.name,
-                subtitle=event.subtitle,
-                path=event.path,
-            )
+            self.app.session_tracker.update_session(self.id, title=message.event.name)
 
-    @on(messages.SessionClose)
-    async def on_session_close(self, event: messages.SessionClose) -> None:
-        if self.id is None:
-            return
-        await self.app.session_navigation.close(self.id)
+    @handles(core_events.SessionSubtitleChanged)
+    def on_session_subtitle_changed(self, message: CoreEventMessage) -> None:
+        if self.id is not None:
+            self.app.session_tracker.update_session(self.id, subtitle=message.event.subtitle)
+
+    @handles(core_events.SessionPathChanged)
+    def on_session_path_changed(self, message: CoreEventMessage) -> None:
+        if self.id is not None:
+            self.app.session_tracker.update_session(self.id, path=message.event.path)
+
 
     def on_mount(self) -> None:
         # Route discovery already resolved new wire-thread identities off-loop.
@@ -518,9 +509,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             self._content_ready.set()
         else:
             self.screen.frame_presentation.defer(self, self._start_content_hydration)
-        self.app.sidebar_layout_changed.subscribe(
-            self, lambda _event: self._align_tabs_with_sidebar(False)
-        )
+        self.observe_core(self.app.events)
         # Keep the screen-wide navigation row independent of sidebar geometry,
         # including when restoring a previously mounted owner tab.
         for tree in self.query("#project_directory_tree").results(DirectoryTree):
@@ -528,7 +517,8 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         for tree in self.query(DirectoryTree):
             tree.guide_depth = 3
 
-    def _align_tabs_with_sidebar(self, _collapsed: bool) -> None:
+    @handles(core_events.SidebarLayoutChanged)
+    async def layout_observed(self, event: CoreEventMessage) -> None:
         self.screen.align_tabs_to_sidebars()
 
     def channels_context(self) -> tuple[str, str]:

@@ -1,4 +1,5 @@
 """Real saved reply -> physical model/thinking picker -> ACP config -> retained paint."""
+from toad.core import input_events
 import asyncio
 import os
 from pathlib import Path
@@ -17,7 +18,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     release.set()
     hold_next.clear()
     await until(pilot, lambda: view.agent_ready)
-    await view.submit_input(messages.UserInputSubmitted('CONFIGURATION_SAVED_HISTORY'))
+    await view.submit_input(input_events.UserInputSubmitted('CONFIGURATION_SAVED_HISTORY'))
     await until(pilot, lambda: response_painted(app, view, 'NATIVE_RESPONSE_1'), 30)
     await until(pilot, lambda: not comms.registry.require('beta').executing)
     view.prompt.text = 'CONFIGURATION_UNSENT_DRAFT'

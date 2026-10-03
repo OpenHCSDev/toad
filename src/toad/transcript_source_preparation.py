@@ -5,10 +5,10 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from textual.worker import WorkerCancelled
-from textual.message import Message
+from toad.core_event_carrier import CoreEventReceiver
 from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript
 from toad.transcript_preparation import PreparedPageSource, TranscriptPageBuffer
-from toad.widgets.committed_presentation import TranscriptCoverage
+from toad.core.source_events import TranscriptCoverage, TranscriptSourceWorkFinished
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -34,15 +34,7 @@ class HistorySourceSnapshot:
         return self == owner.source_snapshot()
 
 
-class TranscriptSourceWorkFinished(Message):
-    """The original pager released its admitted mutation resource."""
-
-    def __init__(self, history):
-        super().__init__()
-        self.history = history
-
-
-class TranscriptSourcePreparation:
+class TranscriptSourcePreparation(CoreEventReceiver):
     """Shared source preparation; native widget and operational session stay separate."""
 
     def __init__(self, *args, source_state: TranscriptState, loader, through, **kwargs):
@@ -88,14 +80,14 @@ class TranscriptSourcePreparation:
         snapshot = self.source_snapshot()
 
         def resume(_event) -> None:
-            self.app.coordination_observed.unsubscribe(self)
+            self.retire_core_observations(self.app.coordination_access.events)
             if snapshot.current(self) and self._source_state is operation:
                 operation.schedule(self, work)
             else:
                 self.finish_source_work(operation)
 
-        self.app.coordination_observed.unsubscribe(self)
-        self.app.coordination_observed.subscribe(self, resume)
+        self.retire_core_observations(self.app.coordination_access.events)
+        self.observe_core_callback(self.app.coordination_access.events, resume)
 
     def finish_source_work(self, operation: WorkingTranscript) -> None:
         # Retirement or replacement revokes this exact admission. A cancelled
@@ -106,11 +98,11 @@ class TranscriptSourcePreparation:
             if self.state.accepts_publication:
                 self.window.check_follow()
                 self._scroll_changed()
-                self.post_message(TranscriptSourceWorkFinished(self))
+                self.publish_core(TranscriptSourceWorkFinished())
 
     async def retire_source(self, *, parked: bool = False) -> None:
         """End pager mutations before any of its bodies transfer to the shelf."""
-        self.app.coordination_observed.unsubscribe(self)
+        self.retire_core_observations(self.app.coordination_access.events)
         source = self._source_state.retirement_source()
         self._source_state = (ParkedSourceTranscript(source) if parked
                               else RetiredSourceTranscript(source))
@@ -129,7 +121,7 @@ class TranscriptSourcePreparation:
         self._prefetch_intent = None
         self.window.histories.add(self)
         if self._source_state.reports_coverage:
-            self.post_message(TranscriptCoverage(tuple(self.coverage_events), self))
+            self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
         self.window.check_follow()
         self._scroll_changed()
         self.prepare_scroll()

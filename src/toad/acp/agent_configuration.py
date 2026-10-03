@@ -11,7 +11,7 @@ from agent_comms.acp_failure import ACPFailure
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.mro_dispatch import MroDispatch, handles
 from toad import jsonrpc
-from toad.acp import api, messages
+from toad.acp import api
 
 
 class SelectChoices(MroDispatch):
@@ -141,4 +141,5 @@ class AgentConfiguration:
         self.publish()
 
     def publish(self):
-        self.agent.post_message(messages.ConfigurationChanged(self.agent))
+        from toad.core.events import ConfigurationChanged
+        self.agent.events.publish(ConfigurationChanged())

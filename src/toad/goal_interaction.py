@@ -7,7 +7,6 @@ from weakref import ref
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.goal_actions import ClearGoalAction, GoalAction
-from textual.app import ScreenStackError, UnknownModeError
 
 if TYPE_CHECKING:
     from toad.goal_display import GoalDisplay

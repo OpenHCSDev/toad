@@ -1,4 +1,5 @@
 """Continuous native saved context -> real adaptive summary -> painted reply."""
+from toad.core import input_events
 import asyncio
 import json
 import os
@@ -25,7 +26,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     hold_next.clear()
     await until(pilot, lambda: view.agent_ready)
     for index in (1, 2):
-        await view.submit_input(messages.UserInputSubmitted(
+        await view.submit_input(input_events.UserInputSubmitted(
             f"SAVED_CONTEXT_{index} " + "retained sample " * 400))
         await until(pilot, lambda: response_painted(app, view, f"NATIVE_RESPONSE_{index}"), 30)
         await until(pilot, lambda: not comms.registry.require("beta").executing)
@@ -38,7 +39,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     entered.clear()
     release.clear()
     hold_next.set()
-    await view.submit_input(messages.UserInputSubmitted("COMPACT_AND_REPLY_ONCE"))
+    await view.submit_input(input_events.UserInputSubmitted("COMPACT_AND_REPLY_ONCE"))
     try:
         assert await asyncio.to_thread(entered.wait, 20), "Real summary did not reach loopback"
         await until(pilot, lambda: "Compacting context" in paint(app), 20)

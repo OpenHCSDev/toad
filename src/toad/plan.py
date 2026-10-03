@@ -4,15 +4,16 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import ClassVar
+from typing import ClassVar, TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
-from textual.app import ComposeResult
-from textual.content import Content
-from textual.widget import Widget
-
 from acp.schema import PlanEntry
-from toad.widgets.strike_text import StrikeText
+
+if TYPE_CHECKING:
+    from textual.app import ComposeResult
+    from textual.content import Content
+    from textual.widget import Widget
+    from toad.widgets.strike_text import StrikeText
 
 
 class PlanStatus(DeclaredFamily, affix="PlanStatus"):
@@ -34,23 +35,27 @@ class PlanStatus(DeclaredFamily, affix="PlanStatus"):
     def compose(
         cls, owner: Widget, item: PlanItem, previous: type[PlanStatus] | None
     ) -> ComposeResult:
+        from textual.content import Content
         from toad.widgets.plan import NonSelectableStatic
+        from toad.widgets.strike_text import StrikeText
 
         classes = f"priority-{item.priority} status-{cls.declared_name}"
         yield NonSelectableStatic(cls.marker(), classes=f"status {classes}")
-        yield (text := StrikeText(item.content, classes=f"plan {classes}"))
+        yield (text := StrikeText(Content(item.content), classes=f"plan {classes}"))
         cls.decorate(text, owner, previous)
 
 
 class PendingPlanStatus(PlanStatus):
     @classmethod
     def marker(cls) -> Content:
+        from textual.content import Content
         return Content(" • ")
 
 
 class InProgressPlanStatus(PlanStatus):
     @classmethod
     def marker(cls) -> Content:
+        from textual.content import Content
         return Content("👉 ")
 
 
@@ -59,6 +64,7 @@ class CompletedPlanStatus(PlanStatus):
 
     @classmethod
     def marker(cls) -> Content:
+        from textual.content import Content
         return Content(" ✔ ")
 
     @classmethod
@@ -71,14 +77,14 @@ class CompletedPlanStatus(PlanStatus):
 
 @dataclass(frozen=True)
 class PlanItem:
-    content: Content
+    content: str
     priority: str
     status: type[PlanStatus]
 
     @classmethod
     def from_acp(cls, content: str, priority: str, status: str, **_extensions) -> PlanItem:
         """Bind SDK-validated external fields once; metadata is not presentation."""
-        return cls(Content(content), priority, PlanStatus.decode(status))
+        return cls(content, priority, PlanStatus.decode(status))
 
 
 def decode_plan(entries: list[PlanEntry]) -> list[PlanItem]:

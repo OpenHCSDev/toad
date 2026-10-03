@@ -1,5 +1,5 @@
 """Slow owner/history and sidebar reads must not hold navigation or draft input."""
-from toad.acp.messages import CommsUpdated
+from toad.core.events import CommsUpdated
 
 import asyncio
 import os
@@ -17,7 +17,7 @@ from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from runtime_fixture import ToadApp
 
 from toad.acp.agent import Agent
-from toad.agent import AgentReady
+from toad.core.events import AgentReady
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.conversation import ThreadLoading
 
@@ -70,7 +70,7 @@ async def main():
                 page = TranscriptPage((AssistantTranscript('LOADED-HISTORY-END'),),
                                       cursor, cursor, False, False)
                 await target.transcript.snapshot(page)
-                target.post_message(AgentReady())
+                agent.events.publish(AgentReady())
 
             agent.process.session_task = asyncio.create_task(attach())
 

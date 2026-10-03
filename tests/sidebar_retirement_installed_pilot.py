@@ -138,7 +138,7 @@ async def main():
                     app.save_screenshot("sidebar-return.svg", path="evidence/sidebar-retirement")
                     del tree, relationships
                 else:
-                    assert bar.query_one(Plan).entries[0].content.plain == f"Plan {screens.index(screen)}"
+                    assert bar.query_one(Plan).entries[0].content == f"Plan {screens.index(screen)}"
                     assert f"Plan {screens.index(screen)}" in viewport_text(bar), "Plan text not painted on return"
                 if screen is screens[tabs // 2]:
                     await pilot.resize_terminal(106, 37)

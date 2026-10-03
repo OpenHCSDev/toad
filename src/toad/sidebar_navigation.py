@@ -138,7 +138,11 @@ class SidebarNavigation:
         if not self.sidebar.projection.has_snapshot():
             return False
         if self.restoring and self.sidebar.is_attached and self.sidebar.screen is self.sidebar.app.screen:
-            return self.state.restore_scroll(*self.scroll_containers)
+            channel, panels = self.scroll_containers
+            before = channel.scroll_y, panels.scroll_y
+            channel.scroll_to(y=self.state.channel_scroll_y, animate=False, immediate=True)
+            panels.scroll_to(y=self.state.panel_scroll_y, animate=False, immediate=True)
+            return before != (channel.scroll_y, panels.scroll_y)
         return False
 
     def mode_changed(self, mode_name: str) -> None:

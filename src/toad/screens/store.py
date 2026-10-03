@@ -1,7 +1,9 @@
-from toad.settings import PreferenceChange
+from toad.core import session_requests, input_events
+from toad.core.preference_events import PreferenceChanged
+from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
+from agent_comms.mro_dispatch import handles
 from toad.preferences import LauncherSettings
 from contextlib import suppress
-from dataclasses import dataclass
 from itertools import zip_longest
 from pathlib import Path
 from random import shuffle
@@ -16,7 +18,6 @@ from textual import on
 from textual.app import ComposeResult
 from textual.content import Content
 from textual.css.query import NoMatches
-from textual.message import Message
 from textual.reactive import reactive
 from textual import containers
 from textual import widgets
@@ -50,12 +51,7 @@ QR = """\
 ▀▀▀▀▀▀▀ ▀▀▀  ▀   ▀▀▀▀▀▀▀▀"""
 
 
-@dataclass
-class ChangeDirectory(Message):
-    path: str
-
-
-class DirectoryDisplay(containers.HorizontalGroup):
+class DirectoryDisplay(CoreEventReceiver, containers.HorizontalGroup):
 
     BINDINGS = [("escape", "dismiss", "Dismiss")]
 
@@ -111,7 +107,7 @@ class DirectoryDisplay(containers.HorizontalGroup):
             )
             return
         self.condensed_path.path = format_path(path, directory=True)
-        self.post_message(ChangeDirectory(str(path)))
+        self.publish_core(input_events.ChangeDirectory(str(path)))
 
     def action_dismiss(self) -> None:
         self.edit = False
@@ -157,7 +153,7 @@ class AgentItem(containers.VerticalGroup):
         yield widgets.Static(agent.description, id="description")
 
 
-class LauncherGridSelect(GridSelect):
+class LauncherGridSelect(CoreEventReceiver, GridSelect):
 
     HELP = """\
 ## Launcher
@@ -193,7 +189,7 @@ Your favorite agents.
             return
         agent_item = self.children[self.highlighted]
         assert isinstance(agent_item, LauncherItem)
-        self.post_message(StoreScreen.OpenAgentDetails(agent_item._agent.identity))
+        self.publish_core(input_events.OpenAgentDetails(agent_item._agent.identity))
 
     def action_remove(self) -> None:
         agents = self.app.settings.launcher.agents.splitlines()
@@ -211,7 +207,7 @@ Your favorite agents.
             return
         child = self.children[self.highlighted]
         assert isinstance(child, LauncherItem)
-        self.screen.post_message(messages.LaunchAgent(child.agent.identity))
+        self.app.session_navigation.events.publish(session_requests.LaunchAgent(child.agent.identity))
 
 
 class Launcher(containers.VerticalGroup):
@@ -317,7 +313,7 @@ class AgentGridSelect(GridSelect):
         if not isinstance(child, AgentItem):
             self.app.open_url("https://github.com/sponsors/willmcgugan")
             return
-        self.post_message(messages.LaunchAgent(child.agent.identity))
+        self.app.session_navigation.events.publish(session_requests.LaunchAgent(child.agent.identity))
 
 
 class Container(containers.VerticalScroll):
@@ -328,7 +324,7 @@ class Container(containers.VerticalScroll):
         return super().allow_focus() and self.show_vertical_scrollbar
 
 
-class StoreScreen(Screen):
+class StoreScreen(CoreEventReceiver, Screen):
     BINDING_GROUP_TITLE = "Screen"
     CSS_PATH = "store.tcss"
     FOCUS_GROUP = Binding.Group("Focus")
@@ -367,10 +363,6 @@ class StoreScreen(Screen):
     project_dir: reactive[Path] = reactive(Path)
 
     app = getters.app(ToadApp)
-
-    @dataclass
-    class OpenAgentDetails(Message):
-        identity: str
 
     def __init__(
         self, name: str | None = None, id: str | None = None, classes: str | None = None
@@ -496,11 +488,11 @@ class StoreScreen(Screen):
         assert isinstance(event.widget, AgentItem)
         await self.show_agent(event.widget.agent)
 
-    @on(OpenAgentDetails)
+    @handles(input_events.OpenAgentDetails)
     @work
-    async def open_agent_detail(self, message: OpenAgentDetails) -> None:
+    async def open_agent_detail(self, message: CoreEventMessage) -> None:
         try:
-            agent = self._agents[message.identity]
+            agent = self._agents[message.event.identity]
         except KeyError:
             return
         await self.show_agent(agent)
@@ -519,16 +511,16 @@ class StoreScreen(Screen):
         modal_response = await self.app.push_screen_wait(AgentModal(agent))
         await self.app.settings.save()
         if modal_response is not None:
-            self.post_message(modal_response)
+            self.app.session_navigation.events.publish(modal_response)
 
-    @on(ChangeDirectory)
-    def on_change_directory(self, event: ChangeDirectory) -> None:
-        self.project_dir = Path(event.path)
+    @handles(input_events.ChangeDirectory)
+    def on_change_directory(self, event: CoreEventMessage) -> None:
+        self.project_dir = Path(event.event.path)
         self.app.project_dir = self.project_dir
 
     @work
     async def on_mount(self) -> None:
-        self.app.settings_changed_signal.subscribe(self, self._preferences_changed)
+        self.observe_core(self.app.settings.events)
         try:
             self._agents = await read_agents()
         except Exception as error:
@@ -543,8 +535,9 @@ class StoreScreen(Screen):
                 first_grid = self.container.query(GridSelect).first()
                 first_grid.focus(scroll_visible=False)
 
-    async def _preferences_changed(self, change: PreferenceChange) -> None:
-        if change.field is LauncherSettings.agents:
+    @handles(PreferenceChanged)
+    async def _preferences_changed(self, message: CoreEventMessage) -> None:
+        if message.event.field is LauncherSettings.agents:
             await self.launcher.recompose()
 
             def focus_screen():
@@ -585,8 +578,8 @@ class StoreScreen(Screen):
 
         session = await self.app.push_screen_wait(SessionResumeModal())
         if session is not None:
-            self.post_message(
-                messages.LaunchAgent(
+            self.app.session_navigation.events.publish(
+                session_requests.LaunchAgent(
                     session.agent_identity,
                     session.agent_session_id,
                     pk=session.id,

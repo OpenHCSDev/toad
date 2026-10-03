@@ -5,22 +5,26 @@ from __future__ import annotations
 import asyncio
 import weakref
 from collections.abc import Collection
-from abc import ABC, abstractmethod
+from abc import abstractmethod
+from dataclasses import dataclass, field
+from agent_comms.declared_family import DeclaredFamily
 from typing import TYPE_CHECKING
 
-from toad.widgets.agent_response import AgentResponse, ResponseDelivery, UnroutedResponse
-from toad.widgets.agent_thought import AgentThought
+from toad.response_delivery import ResponseDelivery, UnroutedResponse
 
 if TYPE_CHECKING:
+    from toad.widgets.agent_response import AgentResponse
+    from toad.widgets.agent_thought import AgentThought
     from toad.widgets.conversation import Conversation
     from textual.widget import Widget
 
 
-class OutputStream(ABC):
+@dataclass
+class OutputStream(DeclaredFamily, affix="Stream"):
     """One declared live output case and the block receiving its fragments."""
 
-    def __init__(self) -> None:
-        self.block: AgentResponse | AgentThought | None = None
+    def __post_init__(self) -> None:
+        self.block = None  # The bounded native rendering resource is not wire data.
 
     async def before_append(self, output: LiveOutput) -> None:
         pass
@@ -52,11 +56,10 @@ class OutputStream(ABC):
         pass
 
 
+@dataclass
 class ResponseStream(OutputStream):
-    def __init__(self, delivery: ResponseDelivery = UnroutedResponse(), *, turn_id: str | None = None) -> None:
-        super().__init__()
-        self.delivery = delivery
-        self.turn_id = turn_id
+    delivery: ResponseDelivery = field(default_factory=UnroutedResponse)
+    turn_id: str | None = field(default=None, kw_only=True)
 
     async def before_append(self, output: LiveOutput) -> None:
         await output.finish(ThoughtStream)
@@ -65,6 +68,7 @@ class ResponseStream(OutputStream):
         return self.delivery == incoming.delivery and self.turn_id == incoming.turn_id
 
     def create(self, fragment: str) -> AgentResponse:
+        from toad.widgets.agent_response import AgentResponse
         return AgentResponse(fragment, delivery=self.delivery)
 
 
@@ -76,17 +80,17 @@ class CompleteResponseStream(ResponseStream):
         return block
 
 
+@dataclass
 class CompactionStream(OutputStream):
     """A provisional summary body belongs to its selected native operation."""
 
-    def __init__(self, operation_id: str):
-        super().__init__()
-        self.operation_id = operation_id
+    operation_id: str
 
     def matches(self, incoming: CompactionStream) -> bool:
         return self.operation_id == incoming.operation_id
 
     def create(self, fragment: str) -> AgentResponse:
+        from toad.widgets.agent_response import AgentResponse
         from toad.widgets.message_filter import OtherCategory
         return AgentResponse("## Compaction summary · draft\n\n" + fragment,
                              category=OtherCategory)
@@ -106,6 +110,7 @@ class ThoughtStream(OutputStream):
         return True
 
     def create(self, fragment: str) -> AgentThought:
+        from toad.widgets.agent_thought import AgentThought
         return AgentThought(fragment)
 
     async def settle(self) -> None:

@@ -5,7 +5,8 @@ from textual.app import ComposeResult
 from textual.containers import VerticalGroup
 
 from toad.block_navigation import ConversationBlock
-from toad.widgets.agent_response import AgentResponse, ResponseDelivery
+from toad.response_delivery import ResponseDelivery
+from toad.widgets.agent_response import AgentResponse
 from toad.widgets.message_divider import MessageClock
 from toad.widgets.message_filter import CategorizedBlock, OutboundCategory
 from toad.widgets.message_notifications import MessageNotifications

@@ -18,7 +18,7 @@ from comms_boundary_fixture import coordination_fact
 from runtime_fixture import ToadApp, wait_channel_roster
 
 from toad.acp.agent import Agent
-from toad.agent import AgentReady
+from toad.core.events import AgentReady
 from toad.navigation_preparation import ThreadNavigationRequest
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.widgets.conversation import Conversation
@@ -77,7 +77,7 @@ async def main():
         async def start(agent, target):
             agent.attach_surface(target)
             agent.process.session_task = asyncio.create_task(asyncio.sleep(0))
-            target.post_message(AgentReady())
+            agent.events.publish(AgentReady())
 
         app = FrameApp(project_dir=str(root))
         with patch.object(Agent, "start", start):

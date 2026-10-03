@@ -1,4 +1,5 @@
 """A new input intent is one declaration, with inherited request/execution behavior."""
+from toad.core import input_events
 from types import SimpleNamespace
 from agent_comms.acp_extension import QueuePromptRequest
 from toad import messages
@@ -13,7 +14,7 @@ def test_new_case_needs_no_selector_or_caller_edit():
         def matches(cls, event, view):
             return event.body.startswith('DECLARED_ANNOTATED_INPUT:')
 
-    case = InputSubmission.from_event(messages.UserInputSubmitted('DECLARED_ANNOTATED_INPUT:hello'), SimpleNamespace())
+    case = InputSubmission.from_event(input_events.UserInputSubmitted('DECLARED_ANNOTATED_INPUT:hello'), SimpleNamespace())
     assert type(case) is AnnotatedInputSubmission
     assert InputSubmission.decode(AnnotatedInputSubmission.declared_name) is AnnotatedInputSubmission
     request = case.request

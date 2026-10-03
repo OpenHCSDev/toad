@@ -1,4 +1,5 @@
 """One compact, linked header for incoming and outgoing routed messages."""
+from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 
 from toad.navigation_target import linked_target
 from toad.block_content import BlockContent
@@ -9,11 +10,11 @@ from textual.style import Style
 from textual.widgets import Static
 from textual import events
 
-from toad.widgets.comms_sidebar import SelectTarget
+from toad.core.input_events import SelectTarget
 from toad.pill import pill
 
 
-class RouteHeader(BlockContent, Static, can_focus=True):
+class RouteHeader(CoreEventReceiver, BlockContent, Static, can_focus=True):
     DEFAULT_CSS = """
     RouteHeader {
         width: 1fr; height: auto; margin: 0; padding: 0 1;
@@ -47,7 +48,7 @@ class RouteHeader(BlockContent, Static, can_focus=True):
         )
 
     def action_open_target(self, target: str) -> None:
-        self.post_message(SelectTarget(linked_target(target)))
+        self.publish_core(SelectTarget(linked_target(target)))
 
     def action_open_primary(self) -> None:
         if self.incoming:

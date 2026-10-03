@@ -8,29 +8,25 @@ from textual import events
 from textual.app import ComposeResult, ScreenStackError, UnknownModeError
 from textual.binding import BindingType
 from textual.containers import HorizontalGroup, VerticalGroup, VerticalScroll
-from textual.message import Message
 from textual.reactive import var
 from textual.widgets import Static
 
 from toad.goal_interaction import GoalInteraction
+from toad.core.input_events import GoalControlActivated
+from toad.core_event_carrier import CoreEventReceiver
 from toad.widgets.goal_text import GoalText
 
 
-class GoalControl(Static, can_focus=True):
+class GoalControl(CoreEventReceiver, Static, can_focus=True):
     BINDINGS: ClassVar[list[BindingType]] = [("enter,space", "activate", "Select")]
     DEFAULT_CSS = """
     GoalControl { width: auto; height: 1; margin-right: 2; color: $text-secondary; pointer: pointer; }
     GoalControl:hover, GoalControl:focus { text-style: underline; }
     """
 
-    class Activated(Message):
-        def __init__(self, action: type[GoalInteraction]):
-            super().__init__()
-            self.action = action
-
     def action_activate(self):
         if not self.disabled:
-            self.post_message(self.Activated(GoalInteraction.decode(self.id.removeprefix("goal-"))))
+            self.publish_core(GoalControlActivated(GoalInteraction.decode(self.id.removeprefix("goal-"))))
 
     def on_click(self, event: events.Click):
         event.stop()

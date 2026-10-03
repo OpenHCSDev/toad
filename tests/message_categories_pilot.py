@@ -31,8 +31,9 @@ from runtime_fixture import ToadApp
 from textual.widgets import Checkbox
 
 from runtime_fixture import ToadApp
-from toad.acp.messages import CoordinationUpdate
-from toad.widgets.agent_response import AgentResponse, ResponseDelivery
+
+from toad.response_delivery import ResponseDelivery
+from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.incoming_message import IncomingMessage
 from toad.widgets.message_filter import all_categories, MessageCategory

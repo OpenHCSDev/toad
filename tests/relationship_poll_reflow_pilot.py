@@ -43,9 +43,10 @@ async def main():
             await container.mount(tree)
             panel.collapsed = False
             await pilot.pause()
-            for signal in (app.coordination_observed, app.open_tabs_changed,
-                           app.mode_change_signal, app.thread_actions_changed):
-                signal.unsubscribe(tree)
+            tree.retire_core_observations(app.coordination_access.events)
+            for subscription in tuple(tree._core_subscriptions):
+                if subscription.stream is app.events:
+                    tree.retire_core(subscription)
             # Use the production async read/apply path with a typed test source.
             # Suppress only external observation delivery while advancing it by
             # explicit source revisions, so each measured poll is deterministic.

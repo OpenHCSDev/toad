@@ -1,14 +1,12 @@
 """Original wire identity is the join for both DM and IRC feedback."""
 
 from agent_comms.message_reference import MessageReference
-from textual.message import Message
+from toad.core.source_events import MessageHandlingRequested
+from toad.core_event_carrier import CoreEventReceiver
 
 
-class WireMessageHandling:
+class WireMessageHandling(CoreEventReceiver):
     show_header: bool
-
-    class Requested(Message):
-        """Ask the mounted transcript source to publish original handling."""
 
     @property
     def message_reference(self) -> MessageReference:
@@ -20,7 +18,7 @@ class WireMessageHandling:
 
     def on_mount(self) -> None:
         if self.handling_references:
-            self.post_message(self.Requested())
+            self.publish_core(MessageHandlingRequested())
 
     @classmethod
     def within(cls, contents):

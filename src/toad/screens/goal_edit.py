@@ -10,11 +10,13 @@ from textual.containers import HorizontalGroup, Vertical
 from textual.screen import ModalScreen
 from textual.widgets import Button, Static
 
-from toad.messages import UserInputSubmitted
+from toad.core.input_events import UserInputSubmitted
+from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
+from agent_comms.mro_dispatch import handles
 from toad.widgets.channel_prompt import ChannelPrompt
 
 
-class GoalEdit(ModalScreen[str | None]):
+class GoalEdit(CoreEventReceiver, ModalScreen[str | None]):
     BINDINGS = [("escape", "cancel", "Cancel")]
     AUTO_FOCUS = "ChannelTextArea"
     DEFAULT_CSS = """
@@ -62,10 +64,10 @@ class GoalEdit(ModalScreen[str | None]):
     def on_mount(self) -> None:
         self.editor.text = self.goal.text
 
-    @on(UserInputSubmitted)
-    async def submit(self, event: UserInputSubmitted) -> None:
+    @handles(UserInputSubmitted)
+    async def submit(self, event: CoreEventMessage) -> None:
         event.stop()
-        await self.save(event.body)
+        await self.save(event.event.body)
 
     async def save(self, text: str) -> None:
         if not text.strip() or self.saving:

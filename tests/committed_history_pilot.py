@@ -13,7 +13,7 @@ from textual.content import Content
 from thread_activation_pilot import FrameApp
 
 from toad.acp.agent import Agent
-from toad.acp.messages import CommsUpdated
+from toad.core.events import CommsUpdated
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.transcript_history import TranscriptHistory
 
@@ -106,9 +106,7 @@ async def main():
             conversation.busy_count = 1
             app.frames = []
             conversation.post_message(
-                CommsUpdated(
-                    TurnSettledUpdate("cancelled-turn"), agent=agent, sequence=1
-                )
+                CommsUpdated(TurnSettledUpdate('cancelled-turn'), sequence=1)
             )
             conversation.post_message(CommsUpdated(TranscriptChangedUpdate(None)))
             async with asyncio.timeout(5):

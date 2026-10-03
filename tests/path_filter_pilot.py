@@ -1,4 +1,5 @@
 """Cross-project filters terminate and hidden project views defer filesystem refreshes."""
+from toad.core import input_events
 
 import asyncio
 import os
@@ -62,7 +63,7 @@ async def main():
                 return original()
 
             tree.reload = reload
-            old_screen.post_message(messages.ProjectDirectoryUpdated())
+            old_screen.publish_core(input_events.ProjectDirectoryUpdated())
             await pilot.pause()
             assert not calls and tree._directory_dirty
             await app.switch_mode(owner)
