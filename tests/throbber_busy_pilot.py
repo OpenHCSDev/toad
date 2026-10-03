@@ -49,6 +49,14 @@ async def main():
             patch.object(indicator, "automatic_refresh", wraps=indicator.automatic_refresh) as tick,
             patch.object(indicator, "refresh", wraps=indicator.refresh) as refresh,
         ):
+            # Paint changes must retain the original fixed-width/row proof.
+            revision = indicator._geometry_revision
+            indicator.styles.background = "red"
+            indicator.styles.opacity = 0.8
+            await pilot.pause()
+            assert indicator._geometry_revision == revision
+            assert geometry() == baseline
+            assert arrange.call_count == 0
             for count in (0, 1, 2, 1, 0):
                 indicator.busy = count > 0
                 await pilot.pause(0.2)

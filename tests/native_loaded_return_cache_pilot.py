@@ -266,7 +266,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                  for history_view in view.window.histories for node in history_view.walk_children()],
                 [(type(node).__name__, node.size, node.virtual_size, node.display, node.loading)
                  for node in view.window.ancestors_with_self if isinstance(node, Widget)],
-                [(node.body_dormant, node._body_measurement, node.body_measurement_stale)
+                [(node.body_dormant, node._body_measurement, not node.body_ready)
                  for node in view.query(TranscriptFragmentView)],
             )
             editor = view.prompt.prompt_text_area

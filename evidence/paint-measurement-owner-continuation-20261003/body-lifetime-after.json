@@ -1,0 +1,9 @@
+{
+  "modules": {
+    "src/toad": 287,
+    "tests": 391
+  },
+  "parse_omissions": [],
+  "references": [],
+  "scope": "Declared source/tests only; arbitraryexternal dynamic reads not proven. Original source-scoped work/nativeWorker lifecycle retained."
+}
