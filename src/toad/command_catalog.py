@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 
 from toad.slash_command import AgentAdvertisedCommand, CommandPresentation, LocalCommand, SlashCommand
 from toad.target_commands import TargetContext, ThreadCommand
-from toad.thread_actions import ThreadAction
 
 if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation
@@ -21,9 +20,10 @@ class CommandCatalog:
     def entries(self) -> tuple[CommandPresentation, ...]:
         # Local declaration spelling remains authoritative when unavailable.
         commands = {command.command: command for command in self.advertised}
-        for action in ThreadAction.menu():
-            command = ThreadCommand(action)
-            commands[command.command] = command
+        if self.context is not None:
+            for definition in self.context.current().available_actions():
+                command = ThreadCommand(definition)
+                commands[command.command] = command
         for member in SlashCommand.members_with(LocalCommand):
             command = member()
             commands[command.command] = command
@@ -31,13 +31,13 @@ class CommandCatalog:
 
     @property
     def commands(self) -> list[SlashCommand]:
-        actions = self.context.current().available_actions() if self.context is not None else ()
+        actions = ()
         return [choice for command in self.entries
                 for choice in command.completion(self.context, actions)]
 
     @property
     def target_choices(self):
-        actions = self.context.current().available_actions() if self.context is not None else ()
+        actions = ()
         return tuple(choice for command in self.entries
                      for choice in command.target_choices(self.context, actions))
 

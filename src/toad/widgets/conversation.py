@@ -1645,7 +1645,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
 
     def command_target_context(self):
         from toad.screens.main import MainScreen
-        from toad.target_commands import ThreadContext
+        from toad.target_commands import TargetContext
         nav = self.query_ancestor(MainScreen).navigation_context
         comms = self.app.coordination_access.service
         from agent_comms.errors import UnregisteredThreadError
@@ -1653,7 +1653,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             comms.registry.require(nav.actor)
         except UnregisteredThreadError:
             return None
-        return ThreadContext(self.app, comms, nav.actor, nav.actor, nav.project_path, nav.owner_mode)
+        return TargetContext(self.app, comms, nav.actor, nav.actor, nav.project_path, nav.owner_mode)
 
     def update_slash_commands(self) -> None:
         """Update slash commands, which may have changed since mounting."""
