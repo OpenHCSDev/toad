@@ -25,21 +25,27 @@ async def main():
         async with app.run_test(size=(100, 35)) as pilot:
             await pilot.pause()
             first_mode = app.selected_mode
-            first = app.screen
-            await first.conversation.contents.mount(AgentResponse("Style target"))
+            first = app.workspace_screen
+            session = app.selected_session
+            await session.conversation.contents.mount(AgentResponse("Style target"))
             target = Static("Scoped selector target", id="style-target")
             component = ComponentProbe("Component target")
-            await first.conversation.contents.mount(target, component)
-            second = (await app.session_navigation.new(app.session_navigation.default_source)).mode_name
-            await app.switch_mode(first_mode)
+            await session.mount(target, component)
+            # Logical tabs share one WorkspaceScreen. The store is a separate
+            # native mode, so returning through the application selection owner
+            # acquires the actual ScreenResume style-refresh contract.
+            async def resume_workspace():
+                await app.select_session("store")
+                await app.select_session(first_mode)
+
+            await resume_workspace()
             await pilot.pause()
             assert first._resume_style is not None
             rules_before = id(app.stylesheet.rules_map)
             app.stylesheet.reparse()
             assert id(app.stylesheet.rules_map) != rules_before
             with patch.object(first, "update_node_styles", wraps=first.update_node_styles) as styled:
-                await app.switch_mode(second)
-                await app.switch_mode(first_mode)
+                await resume_workspace()
                 await pilot.pause()
                 styled.assert_not_called()
 
@@ -49,8 +55,7 @@ async def main():
             )
             app.stylesheet.parse()
             with patch.object(first, "update_node_styles", wraps=first.update_node_styles) as styled:
-                await app.switch_mode(second)
-                await app.switch_mode(first_mode)
+                await resume_workspace()
                 await pilot.pause()
                 styled.assert_not_called()
 
@@ -62,16 +67,14 @@ async def main():
             )
             app.stylesheet.parse()
             with patch.object(first, "update_node_styles", wraps=first.update_node_styles) as styled:
-                await app.switch_mode(second)
-                await app.switch_mode(first_mode)
+                await resume_workspace()
                 await pilot.pause()
                 assert target.styles.color.hex == "#335577"
 
             del app.stylesheet.source[("benchmark", "Comma.DEFAULT_CSS")]
             app.stylesheet.parse()
             with patch.object(first, "update_node_styles", wraps=first.update_node_styles) as styled:
-                await app.switch_mode(second)
-                await app.switch_mode(first_mode)
+                await resume_workspace()
                 await pilot.pause()
                 assert target.styles.color.hex != "#335577"
 
@@ -81,8 +84,7 @@ async def main():
             )
             app.stylesheet.parse()
             with patch.object(first, "update_node_styles", wraps=first.update_node_styles) as styled:
-                await app.switch_mode(second)
-                await app.switch_mode(first_mode)
+                await resume_workspace()
                 await pilot.pause()
                 assert first.query_one(AgentResponse).styles.color.hex == "#FFAA22"
             assert app._exception is None
@@ -92,8 +94,7 @@ async def main():
                 read_from=("benchmark", "Component.DEFAULT_CSS"), is_default_css=True,
             )
             app.stylesheet.parse()
-            await app.switch_mode(second)
-            await app.switch_mode(first_mode)
+            await resume_workspace()
             await pilot.pause()
             assert component.get_component_styles("probe-label").color.hex == "#ABCDEF"
 
@@ -101,8 +102,7 @@ async def main():
             # completed revision must not be repeated on the next activation.
             first.add_class("revision-applied")
             with patch.object(first, "update_node_styles", wraps=first.update_node_styles) as styled:
-                await app.switch_mode(second)
-                await app.switch_mode(first_mode)
+                await resume_workspace()
                 await pilot.pause()
                 styled.assert_not_called()
 
@@ -113,8 +113,7 @@ async def main():
             app.stylesheet.source[key] = value
             app.stylesheet.parse()
             with patch.object(first, "update_node_styles", wraps=first.update_node_styles) as styled:
-                await app.switch_mode(second)
-                await app.switch_mode(first_mode)
+                await resume_workspace()
                 await pilot.pause()
                 assert styled.call_count > 0
         await asyncio.get_running_loop().shutdown_default_executor()
