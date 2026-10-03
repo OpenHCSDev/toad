@@ -18,3 +18,22 @@ All unfinished CPU/raster/firstpaint/cold/warm/runway/velocity/growingEnd/void/
 focus/busy/sidebar/animation/TC1/T9/T4 scope remains active. Target configurable
 144Hz (6.944ms/frame), actual input responsiveness; delivery timestamps and
 recording FPS do not establish smoothness. Reuse existing checkouts and holder.
+
+## Current owner-to-paint correction
+
+Installed01 failed: the DTO selects session-1 with native-editor focus, but the
+A-return pixels still show #openhcs. All26 retained bodies become not-ready,
+8 visible, and the original frame is Pending. Native damage still contains the
+whole screen; no lost-damage or source-identity bypass is justified. Preserve
+the raw movie/profile/receipt at the path in installed01-negative.json.
+
+PaintState owns inherited paint values AND resolver dependency lineage. Those
+are different questions: an ancestor display edit changes lineage without
+changing colors, opacity or text style. Its same_paint method now answers the
+paint question for RenderedBody and native Widget.visual_style. Dependency
+resolution retains the original parent/style-key/epoch checks. The unused
+visual-style counter is deleted. All three body implementations inherit this
+retained resource behavior; own style, width, source, stream custody and final
+disposal remain invalidating. Source native72 checks and the existing body
+family experiment passed. Actual changed installed return remains required;
+this draft is not Ready and has no speed/smoothness claim.

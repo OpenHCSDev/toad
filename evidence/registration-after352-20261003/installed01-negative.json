@@ -1,0 +1,33 @@
+{
+  "raw": "/home/ts/.cache/agent-scratch/registration364-text33-public-channel-20261003-01/capture/receipt.json",
+  "capture_completed": true,
+  "completed": false,
+  "duration_seconds": 51.378605042991694,
+  "error": "RuntimeError: Installed journey failed: channel_messages_published, returned_saved_body_ready",
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2079381,
+      "start_time": 47568545
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2079381,
+      "start_time": 47568545
+    },
+    "original_owner_alive": true
+  },
+  "physical_assessment": "A-return screenshot still paints #openhcs although original DTO selects session-1 and native editor. This is a failed owner-to-paint return, not performance acceptance. Later channel-return contains readable messages. PNG assessment was after interaction, not moving-frame inspection. Original raw receipt remains unchanged.",
+  "cause_boundary": "Retained-body ready compares whole PaintState including dependency lineage. Native paint comparison is moved to PaintState; source checks do not qualify physical correction."
+}
