@@ -1,0 +1,91 @@
+{
+  "state": "Ready-scoped-actual-saved-settings-installed-App",
+  "source_head": "3e204cca5f0bf48134f1ce5d026b338e4d5a60fc",
+  "production_files": 5,
+  "production_added_lines": 116,
+  "production_deleted_lines": 110,
+  "terminal": {
+    "exit_code": 0,
+    "elapsed_seconds": 5.626891147985589,
+    "inner_app_deadline_seconds": 45,
+    "source_head": "3e204cca5f0bf48134f1ce5d026b338e4d5a60fc",
+    "actual_saved_settings": "/home/ts/.config/toad/toad.json",
+    "original_sha256_before": "dc7757bf1a59dc9df0b20a575d6453def6b0283742bced0aa3d910edec2b79a2",
+    "original_sha256_after": "dc7757bf1a59dc9df0b20a575d6453def6b0283742bced0aa3d910edec2b79a2",
+    "driver": "tests/settings_tree_pilot.py",
+    "log": "evidence/settings-native-projection-owner-20261003/installed03.log"
+  },
+  "installed_receipt": {
+    "result": "pass-installed-settings-app",
+    "installed_toad": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/toad/__init__.py",
+    "source_settings": "/home/ts/.config/toad/toad.json",
+    "source_sha256": "dc7757bf1a59dc9df0b20a575d6453def6b0283742bced0aa3d910edec2b79a2",
+    "original_document_roundtrip": true,
+    "all_original_field_kinds_and_bounds": true,
+    "model_values_unchanged_on_form_initialization": true,
+    "boolean_theme_native_effects": true,
+    "numeric_focus_blur_success_and_refusal": true,
+    "inherited_uppercase_descriptor_native_editor": true,
+    "save_reopen_same_original_values": true,
+    "providers": 0,
+    "native_pi_inputs": 0,
+    "scope": "Installed original App/Pilot/settings/edit/effects/save/reopen, not physical st/ACP/Pi/performance"
+  },
+  "candidate_source_proof": "installed03-source-proof.json",
+  "candidate_pins": {
+    "agent_comms": "e7b063e29e4f02a63837f38091f093be5cf3ff8b",
+    "toad": "4fd34f7301765d30217702a6e648f5dda0b60c58",
+    "textual": "2d1e2efaecf1f1e01c249aa75fe727c530f4a4e8",
+    "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+  },
+  "native_manifest": "2bfb6ba8fd3b3b3bc03dd122e0a67cb69fdc7cef86704a706396024b1561c292",
+  "native_tree": "419453f846ef43a7e847508475685ddd0075a42792f6731d6d5f65f3c60cf74c",
+  "cleanup": {
+    "source_assets_after": 928,
+    "source_mismatches": [],
+    "owned_driver_processes_remaining": [],
+    "owned_temporary_settings_roots_remaining": [],
+    "actual_original_settings_unchanged": true,
+    "actual_original_sha256": "dc7757bf1a59dc9df0b20a575d6453def6b0283742bced0aa3d910edec2b79a2",
+    "provider_calls": 0,
+    "native_pi_inputs": 0
+  },
+  "preserved_negative": {
+    "log": "installed01.log",
+    "stage": "BEFORE App/private root",
+    "cause": "Existing pilot ToolCall DTO constructors lacked official SDK.12.1 required title",
+    "correction": "All three fixture constructors now use the required original title, no product/package change"
+  },
+  "remaining_scope": "Separate remaining headless families: shell/MCP original PTY custody and native theme/render palette. No full U2/U4/U5/physical/provider/performance claim.",
+  "visual_evidence": {
+    "original_svg": [
+      {
+        "path": "evidence/settings-native-projection-owner-20261003/installed03/settings-initial.svg",
+        "text_elements": 168,
+        "original_controls": {
+          "Search settings": false,
+          "Column width": false,
+          "Experiment": false,
+          "fresh": false,
+          "Dismiss settings": false
+        }
+      },
+      {
+        "path": "evidence/settings-native-projection-owner-20261003/installed03/settings-subtype-edited.svg",
+        "text_elements": 161,
+        "original_controls": {
+          "Search settings": false,
+          "Column width": false,
+          "Experiment": true,
+          "fresh": true,
+          "Dismiss settings": true
+        }
+      }
+    ],
+    "qualification": "Original Text39 SVG contains actual controls/text; native export omits existing App.ansi_theme and Rich uses SVG_EXPORT_THEME. Cairo PNG black export is retained, not evidence of a blank App. No readable physical/PNG claim; Kepler owns Text40 correction separately."
+  },
+  "remaining_acceptance": null,
+  "preserved_fixture_positive": "installed02-terminal.json/installed02/receipt.json; repository saved fixture only",
+  "production_head": "fcef3086ea1fd8668ac19003f3ac640211da32fc",
+  "source_head_qualification": "Actual03 driver checkout3e204cca; product unchanged from reviewedfcef, fixture titles fromf205. Installed complete package pins are separate candidate_pins; Coree7 is PRE586."
+}
