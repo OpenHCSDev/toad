@@ -1,0 +1,17 @@
+{
+  "state": "FROZEN590591592/Toad392 Text40/native2b; parent-only NEW preserve publication",
+  "target_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "source_prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "native_schema_equal": true,
+  "derived_checkpoint_schema_equal": true,
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-2bfb6ba8fd3b3b3b/node_modules/@earendil-works/pi-coding-agent",
+  "operator_manifest": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/page-snapshot592-shell392-receiving-20261003/new-publication590591592392/operator-manifest.json",
+  "operator_manifest_sha256": "d3cafd49602d5c3f7e0d832af9b7df8faacaf7f35783ced537094ab3f3882e9e",
+  "source_proof_sha256": "50dbf1bb4a74f4df78c9bc275d0bd2ae6c3d6d4ddb15f6ca8b6bba34f3042b35",
+  "activation_sha256": "7c87c40b694f15ddd9f9a218ce39594a87caab3eee1ed9e2f9f9cf4418103ffe",
+  "runtime_sha256": "717ca469bd2330bcf868ceaf572e8b128795ef3dd54885497f8e16c4680aabae",
+  "public_effects": 0,
+  "new_publication_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/page-snapshot592-shell392-receiving-20261003/new-publication590591592392/publication-receipt.json",
+  "unchanged_journeys_repeated": false,
+  "parent_public_execution": true
+}
