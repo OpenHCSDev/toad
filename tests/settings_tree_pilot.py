@@ -13,6 +13,8 @@ from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from toad.app import ToadApp
+from toad.acp.status import ToolCallStatus
+from acp.schema import ToolCall
 from toad.preferences import ToadSettings, UiSettings
 from toad.screens.settings import SettingsScreen
 from toad.setting_choices import BothExpansion, Expansion, FailExpansion
@@ -69,11 +71,12 @@ async def main() -> None:
     current = ToadSettings(raw)
     assert current.document() == raw
     assert not current.changed
-    assert current.tools.expand.should_expand("failed")
-    assert BothExpansion.should_expand("completed") and BothExpansion.should_expand(
-        "failed"
-    )
-    assert not BothExpansion.should_expand("pending")
+    failed = ToolCallStatus.from_acp(ToolCall(tool_call_id="private-failed", status="failed"))
+    completed = ToolCallStatus.from_acp(ToolCall(tool_call_id="private-completed", status="completed"))
+    pending = ToolCallStatus.from_acp(ToolCall(tool_call_id="private-pending", status="pending"))
+    assert current.tools.expand.should_expand(failed)
+    assert BothExpansion.should_expand(completed) and BothExpansion.should_expand(failed)
+    assert not BothExpansion.should_expand(pending)
     fixtures = [
         (BooleanSetting(title="b", default=False), True, "true"),
         (IntegerSetting(title="i", default=2, minimum=1), 3, False),
@@ -151,6 +154,10 @@ async def main() -> None:
                 async with asyncio.timeout(5):
                     while len(app.screen.query(".setting")) != expected:
                         await pilot.pause(0.05)
+                if evidence_path := os.environ.get("TOAD_SETTINGS_EVIDENCE"):
+                    evidence = Path(evidence_path)
+                    evidence.mkdir(parents=True, exist_ok=True)
+                    app.save_screenshot(str(evidence / "settings-initial.svg"))
                 assert not app.settings.changed, (
                     "Editor initialization changed preferences"
                 )
@@ -217,6 +224,24 @@ async def main() -> None:
                     and reopened.ui.column_width == 120
                 )
                 assert not reopened.changed
+                if evidence_path := os.environ.get("TOAD_SETTINGS_EVIDENCE"):
+                    evidence = Path(evidence_path)
+                    app.save_screenshot(str(evidence / "settings-subtype-edited.svg"))
+                    (evidence / "receipt.json").write_text(json.dumps({
+                        "result": "pass-installed-settings-app",
+                        "installed_toad": __import__("toad").__file__,
+                        "source_settings": str(source),
+                        "source_sha256": hashlib.sha256(original).hexdigest(),
+                        "original_document_roundtrip": True,
+                        "all_original_field_kinds_and_bounds": True,
+                        "model_values_unchanged_on_form_initialization": True,
+                        "boolean_theme_native_effects": True,
+                        "numeric_focus_blur_success_and_refusal": True,
+                        "inherited_uppercase_descriptor_native_editor": True,
+                        "save_reopen_same_original_values": True,
+                        "providers": 0, "native_pi_inputs": 0,
+                        "scope": "Installed original App/Pilot/settings/edit/effects/save/reopen, not physical st/ACP/Pi/performance",
+                    }, indent=2) + "\n")
     assert (
         hashlib.sha256(source.read_bytes()).digest()
         == hashlib.sha256(original).digest()
@@ -227,4 +252,4 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(asyncio.wait_for(main(), 45))

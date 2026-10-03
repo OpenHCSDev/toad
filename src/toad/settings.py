@@ -76,7 +76,6 @@ class SettingsNode(WireValue, ABC):
     @abstractmethod
     def document_value(self, group: SettingsGroup) -> object: ...
 
-
     @abstractmethod
     def leaves(self, group: SettingsGroup) -> Iterator[BoundSetting]: ...
 
@@ -111,7 +110,6 @@ class SettingKind[T](SettingsNode):
     @abstractmethod
     def parse(self, raw: object) -> T: ...
 
-
     def load(self, group: SettingsGroup, raw: object, present: bool) -> None:
         group._values[self.name] = self.parse(raw) if present else self.default
 
@@ -120,7 +118,6 @@ class SettingKind[T](SettingsNode):
 
     def leaves(self, group: SettingsGroup) -> Iterator[BoundSetting[T]]:
         yield BoundSetting(self, group)
-
 
     def display(self, value: T) -> str:
         return str(value)
@@ -257,7 +254,6 @@ class SettingsGroup(DeclaredFamily, affix="Settings"):
     def leaves(self) -> Iterator[BoundSetting]:
         for node in self.nodes():
             yield from node.leaves(self)
-
 
     def apply_all(self) -> None:
         for bound in self.leaves():
