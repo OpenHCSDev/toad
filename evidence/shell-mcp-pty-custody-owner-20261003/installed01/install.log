@@ -1,0 +1,11 @@
+Using Python 3.14.2 environment at: /home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002
+Resolved 69 packages in 277ms
+   Building agent-comms @ git+https://github.com/OpenHCSDev/agent-comms.git@a3a1b8f69f61acb0b01e92a0ac5a9ed161b28f9f
+      Built agent-comms @ git+https://github.com/OpenHCSDev/agent-comms.git@a3a1b8f69f61acb0b01e92a0ac5a9ed161b28f9f
+Prepared 2 packages in 223ms
+Uninstalled 2 packages in 24ms
+Installed 2 packages in 10ms
+ - agent-comms==0.1.0 (from git+https://github.com/OpenHCSDev/agent-comms.git@5025c4ba84c5623f475706475fb7743ce0e8f156)
+ + agent-comms==0.1.0 (from git+https://github.com/OpenHCSDev/agent-comms.git@a3a1b8f69f61acb0b01e92a0ac5a9ed161b28f9f)
+ - batrachian-toad==0.6.20 (from git+https://github.com/OpenHCSDev/toad.git@38ede873b675756d995e0da5e7c4d89bf9e36819)
+ + batrachian-toad==0.6.20 (from file:///home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/shell-mcp-392/toad/batrachian_toad-0.6.20-py3-none-any.whl)

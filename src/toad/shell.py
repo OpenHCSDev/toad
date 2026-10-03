@@ -2,14 +2,10 @@ from __future__ import annotations
 
 import asyncio
 import codecs
-import fcntl
 import os
-import platform
-import pty
-import struct
-import termios
-from contextlib import suppress
+from contextlib import AsyncExitStack
 import logging
+from agent_comms.child_process import ControllingTerminalCommand
 from toad.surface_binding import SurfaceBinding
 from toad.core.source_events import CurrentWorkingDirectoryChanged
 
@@ -18,19 +14,7 @@ from toad.terminal_environment import TerminalEnvironment
 from toad import ansi
 from toad.shell_output import ShellCommandOutput, ShellTerminalOutput
 from toad.shell_source import ShellOperationalSource
-
-IS_MACOS = platform.system() == "Darwin"
-
-
-def resize_pty(fd, cols, rows):
-    """Resize the pseudo-terminal"""
-    # Pack the dimensions into the format expected by TIOCSWINSZ
-    try:
-        size = struct.pack("HHHH", rows, cols, 0, 0)
-        fcntl.ioctl(fd, termios.TIOCSWINSZ, size)
-    except OSError:
-        # Possibly file descriptor closed
-        pass
+from toad.terminal_execution import Command, PtyProcess, TerminalCompletion
 
 
 class Shell(ShellOperationalSource):
@@ -53,8 +37,6 @@ class Shell(ShellOperationalSource):
         self.shell_start = start
         self.hide_start = hide_start
 
-        self._ready_event: asyncio.Event = asyncio.Event()
-
         self._hide_echo: set[bytes] = set()
         """A set of byte strings to remove from output."""
 
@@ -62,55 +44,28 @@ class Shell(ShellOperationalSource):
         self._pending_directory: str | None = None
         """Hide all output."""
 
-        self._pid: int | None = None
-        """Shell process id"""
-
-    @property
-    def is_finished(self) -> bool:
-        return self._finished
-
     @property
     def pending_directory(self) -> str | None:
         return self._pending_directory
 
-    def _is_busy(self) -> bool:
-        """Check if the shell is busy.
-
-        Called from a thread by `is_busy`.
-
-        Returns:
-            `True` if a command is running, or `False` if the shell is waiting for input.
-
-        """
-        if self._pid is None:
-            return False
+    async def is_busy(self) -> bool:
+        """Observe the children of this SAME acquired shell incarnation."""
+        custody = await self._operation.custody()
         import psutil
 
-        try:
-            shell_process = psutil.Process(self._pid)
-            children = shell_process.children(recursive=True)
-        except psutil.NoSuchProcess, psutil.AccessDenied:
-            return False
-        else:
-            return bool(children)
+        def children():
+            if not custody.child.alive():
+                return False
+            try:
+                return bool(psutil.Process(custody.child.pid).children(recursive=True))
+            except psutil.NoSuchProcess, psutil.AccessDenied:
+                return False
 
-    async def is_busy(self) -> bool:
-        """Is there a process running in the shell?
-
-        Returns:
-            `True` if a command is running, or `False` if the shell is waiting for input.
-        """
-        return await asyncio.to_thread(self._is_busy)
-
-    async def wait_for_ready(self) -> None:
-        await self._ready_event.wait()
+        return await asyncio.to_thread(children)
 
     async def send(self, command: str, width: int, height: int) -> None:
-        await self._ready_event.wait()
+        await self.wait_for_ready()
         self._terminal_size = width, height
-        if self.master is None:
-            print("TTY FD not set")
-            return
 
         if self.output is not None:
             self.output.finalize()
@@ -119,10 +74,7 @@ class Shell(ShellOperationalSource):
         self.outputs.append(command_output)
         await self._present(command_output)
 
-        try:
-            await asyncio.to_thread(resize_pty, self.master, width, max(height, 1))
-        except OSError:
-            pass
+        self._operation.resize(width, max(height, 1))
 
         if self._pending_directory is not None:
             import shlex
@@ -148,18 +100,15 @@ class Shell(ShellOperationalSource):
             )
 
     async def send_input(self, text: str, paste: bool = False) -> None:
-        await self._ready_event.wait()
-        if self.master is None:
-            return
+        await self.wait_for_ready()
         if paste and self.output is not None and self.output.state.bracketed_paste:
             text = f"\x1b[200~{text}\x1b[201~"
         await self.write(f"{text}\n", hide_echo=True)
 
     def start(self, binding: SurfaceBinding) -> None:
-        assert self._task is None
         self.surface = binding
         binding.prepare_shell(self)
-        self._task = asyncio.create_task(self.run(), name=repr(self))
+        self._operation = self._operation.start(self)
         logging.getLogger(__name__).debug("shell starting")
 
     async def interrupt(self) -> None:
@@ -176,124 +125,88 @@ class Shell(ShellOperationalSource):
         self._terminal_size = width, height
         if self.output is not None:
             self.output.state.update_size(width, height)
-        if self.master is None:
-            return
-        with suppress(OSError):
-            resize_pty(self.master, width, max(height, 1))
+        self._operation.resize(width, max(height, 1))
 
     async def write(
         self, text: str | bytes, hide_echo: bool = False, hide_output: bool = False
     ) -> int:
-        if self.master is None:
-            return 0
         text_bytes = text.encode("utf-8", "ignore") if isinstance(text, str) else text
 
         if hide_echo:
             for line in text_bytes.split(b"\n"):
                 if line:
                     self._hide_echo.add(line)
-        try:
-            result = await asyncio.to_thread(os.write, self.master, text_bytes)
-        except OSError:
-            return 0
+        result = await self._operation.write(text_bytes)
         self._hide_output = hide_output
         return result
 
-    async def _run_pty(self) -> None:
+    async def _run_pty(self, ready):
         current_directory = self.working_directory
-
-        master, slave = pty.openpty()
-        self.master = master
-
-        flags = fcntl.fcntl(master, fcntl.F_GETFL)
-        fcntl.fcntl(master, fcntl.F_SETFL, flags | os.O_NONBLOCK)
-
-        env = TerminalEnvironment.for_child(os.environ)
-
-        shell = self.shell or TerminalEnvironment.login_shell(env)
-
-        def setup_pty():
-            os.setsid()
-            fcntl.ioctl(slave, termios.TIOCSCTTY, 0)
-
-        try:
-            _process = await asyncio.create_subprocess_shell(
-                shell,
-                stdin=slave,
-                stdout=slave,
-                stderr=slave,
-                env=env,
-                cwd=current_directory,
-                preexec_fn=setup_pty,
-            )
-        except Exception as error:
-            os.close(slave)
-            self.surface.shell_failed(error)
-            return
-        self._process = _process
-        self._pid = _process.pid
-
-        os.close(slave)
-        BUFFER_SIZE = 64 * 1024
-        reader = asyncio.StreamReader(BUFFER_SIZE)
-        protocol = asyncio.StreamReaderProtocol(reader)
-
-        loop = asyncio.get_event_loop()
-        transport, _ = await loop.connect_read_pipe(
-            lambda: protocol, os.fdopen(master, "rb", 0)
+        command = Command.for_script(
+            self.shell or TerminalEnvironment.login_shell(os.environ),
+            cwd=current_directory,
         )
+        # Existing typed child initialization performs TTY acquisition AFTER
+        # exec, in the SAME identity-bound child, never Python preexec_fn.
+        launch = ControllingTerminalCommand(command.shell_command)
+        BUFFER_SIZE = 64 * 1024
+        async with AsyncExitStack() as custody:
+            acquired = await PtyProcess.acquire(
+                launch.argv(), env=command.env, cwd=command.cwd,
+                width=self._terminal_size[0], height=max(self._terminal_size[1], 1),
+                custody=custody, buffer_size=BUFFER_SIZE,
+            )
+            ready.set_result(acquired)
+            if shell_start := self.shell_start.strip():
+                shell_start = self.shell_start.strip()
+                if not shell_start.endswith("\n"):
+                    shell_start += "\n"
+                await self.write(shell_start, hide_echo=False, hide_output=self.hide_start)
 
-        self._transport = transport
-        self._ready_event.set()
+            unicode_decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
 
-        if shell_start := self.shell_start.strip():
-            shell_start = self.shell_start.strip()
-            if not shell_start.endswith("\n"):
-                shell_start += "\n"
-            await self.write(shell_start, hide_echo=False, hide_output=self.hide_start)
+            while True:
+                data = await shell_read(acquired.reader, BUFFER_SIZE)
 
-        unicode_decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
+                for string_bytes in list(self._hide_echo):
+                    remove_bytes = string_bytes
+                    if remove_bytes in data:
+                        remove_start = data.index(remove_bytes)
+                        try:
+                            next_line = data.index(b"\n", remove_start + len(remove_bytes))
+                        except ValueError:
+                            data = data.replace(remove_bytes, b"\x1b[2K")
+                        else:
+                            data = data[:remove_start] + b"\x1b[2K" + data[next_line + 1 :]
 
-        while True:
-            data = await shell_read(reader, BUFFER_SIZE)
+                        self._hide_echo.discard(string_bytes)
 
-            for string_bytes in list(self._hide_echo):
-                remove_bytes = string_bytes
-                if remove_bytes in data:
-                    remove_start = data.index(remove_bytes)
-                    try:
-                        next_line = data.index(b"\n", remove_start + len(remove_bytes))
-                    except ValueError:
-                        data = data.replace(remove_bytes, b"\x1b[2K")
-                    else:
-                        data = data[:remove_start] + b"\x1b[2K" + data[next_line + 1 :]
+                if line := unicode_decoder.decode(data, final=not data):
+                    if self.output is None or self.output.finalized:
+                        self.output = ShellTerminalOutput(ansi.TerminalState(
+                            self.write, width=self._terminal_size[0], height=self._terminal_size[1]
+                        ))
+                        self.outputs.append(self.output)
+                    output = self.output
+                    scrollback, alternate = await output.state.write(
+                        line, hide_output=self._hide_output
+                    )
+                    new_directory = output.state.current_directory
+                    if new_directory:
+                        output.finalized = True
+                    await self._present(output)
+                    output.project(scrollback, alternate)
+                    if new_directory == self._pending_directory:
+                        self._pending_directory = None
+                    if new_directory and new_directory != current_directory:
+                        current_directory = self.working_directory = new_directory
+                        self.events.publish(CurrentWorkingDirectoryChanged(new_directory))
+                    if output.finalized and output.state.scrollback_buffer.is_blank:
+                        output.finalize()
+                        self.outputs.remove(output)
+                        self.output = None
 
-                    self._hide_echo.discard(string_bytes)
+                if not data:
+                    break
 
-            if line := unicode_decoder.decode(data, final=not data):
-                if self.output is None or self.output.finalized:
-                    self.output = ShellTerminalOutput(ansi.TerminalState(
-                        self.write, width=self._terminal_size[0], height=self._terminal_size[1]
-                    ))
-                    self.outputs.append(self.output)
-                output = self.output
-                scrollback, alternate = await output.state.write(
-                    line, hide_output=self._hide_output
-                )
-                new_directory = output.state.current_directory
-                if new_directory:
-                    output.finalized = True
-                await self._present(output)
-                output.project(scrollback, alternate)
-                if new_directory == self._pending_directory:
-                    self._pending_directory = None
-                if new_directory and new_directory != current_directory:
-                    current_directory = self.working_directory = new_directory
-                    self.events.publish(CurrentWorkingDirectoryChanged(new_directory))
-                if output.finalized and output.state.scrollback_buffer.is_blank:
-                    output.finalize()
-                    self.outputs.remove(output)
-                    self.output = None
-
-            if not data:
-                break
+            return TerminalCompletion.capture(await acquired.child.wait())

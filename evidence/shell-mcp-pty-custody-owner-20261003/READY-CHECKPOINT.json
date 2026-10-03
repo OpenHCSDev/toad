@@ -1,0 +1,60 @@
+{
+  "state": "three-consumer-installed-passed; paired-child-command-entry-closure-pending",
+  "installed_source_head": "742083719237dd61ecf3b404678e4a7b6d832e3e",
+  "driver_head": "33730a8f59930b06810ee16e6663fcbc416f90c6",
+  "production": {
+    "files": 5,
+    "added": 223,
+    "deleted": 369,
+    "new_toad_classes": 0
+  },
+  "owner": "Existing PtyProcess/AttachedChild owns PTY reader/FD/process scope; Shell borrows original TerminalOperation; LocalDecisionPTY borrows same acquired resource; SurfaceBinding remains native presentation owner.",
+  "source_proof": "installed01/source-proof.json",
+  "source_evidence": [
+    "before-owner-consumers.json",
+    "after-owner-consumers.json"
+  ],
+  "actual_checks": [
+    {
+      "receipt": "installed02/shell-terminal.json",
+      "result": "pass",
+      "facts": "installed02/shell/shell-publication.json",
+      "scope": "Actual installed App/Pilot + real interactive PTY, tab clicks, original resource/model/task, busy input/focus, detached output, reattach/body paint, directory, editor/draft/undo, logical close."
+    },
+    {
+      "receipt": "installed02/mcp-terminal.json",
+      "result": "pass",
+      "log": "installed02/mcp.log",
+      "scope": "Actual App/Pilot + real pinned native package CLI + PTY, declaration-discovered five decisions, challenge key/paste, ledger/refreshed inventory, stale refusal, resize/cancel/reap. No MCP server or provider."
+    },
+    {
+      "receipt": "installed02/terminal-terminal.json",
+      "result": "pass",
+      "log": "installed02/terminal.log",
+      "scope": "Existing registered ACP handlers in actual App + real streaming PTY; 13 projections, output/alternate/clear/currentness, detach/reattach, signal/result/release; PTY masters0->0. No ACP socket/native owner/provider."
+    }
+  ],
+  "negative_preserved": {
+    "receipt": "installed01/shell-terminal.json",
+    "log": "installed01/shell.log",
+    "cause": "Fixture asserted before existing Widget.focus App.call_later callback; driver now awaits native callback before unchanged assertion. Production unchanged."
+  },
+  "open_findings": [
+    {
+      "owner": "Arendt/Core590",
+      "source": "Existing ChildCommand.argv self-executes -m after package imported module; canonical decoder/argv must use original module once. Actual warning is retained in shell-publication terminal paint, no filtering.",
+      "current_status": "Producer owns narrow shared-family source correction; meaningful changed installed shell check follows."
+    },
+    {
+      "owner": "Heis/Kepler existing performance lane",
+      "source": "MCP gate crossed existing100s faulthandler threshold but terminal0 before125s bound; raw stack trace retained. No latency/performance claim."
+    }
+  ],
+  "cleanup": "installed02/cleanup.json",
+  "provider_calls": 0,
+  "new_environment": false,
+  "new_native_copy": false,
+  "full_headless_claim": false,
+  "public_installation_claim": false,
+  "physical_recording_claim": false
+}
