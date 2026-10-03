@@ -35,5 +35,9 @@
   "provider_calls": 0,
   "full_headless": false,
   "performance": false,
-  "remaining_family_mirrors": "No original column/width/scrollbar App/MainScreen mirrors or constructor-binding decisions remain. Native CSS/max_width resources derive from original UiSettings; unrelated native operational/reactive state is outside this family."
+  "remaining_family_mirrors": "No original column/width/scrollbar App/MainScreen mirrors or constructor-binding decisions remain. Native CSS/max_width resources derive from original UiSettings; unrelated native operational/reactive state is outside this family.",
+  "current_main_union": "main-union.json",
+  "release_core": "80dfd0d02d3767e02ea08e164c80787ce3b55239",
+  "release_textual": "c4e5fd22e94e2d9c53502f7f80cd19757b1d80a0",
+  "joined_scope": "Original native preference family and exact affected drivers unchanged; original installed69 receipts preserved, source union qualified by accepted393/592 evidence; no repeat App claim or new install."
 }

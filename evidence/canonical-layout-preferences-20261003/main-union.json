@@ -1,0 +1,15 @@
+{
+  "normal_main_merge": "f495fa9f16cc57cc8bbbf0bc3ca17dbf5bb842d7",
+  "merged_main": "3674b02d2",
+  "accepted_core_pin": "80dfd0d02d3767e02ea08e164c80787ce3b55239",
+  "accepted_textual_pin": "c4e5fd22e94e2d9c53502f7f80cd19757b1d80a0",
+  "native_preference_family_and_affected_drivers_byte_equal_to_installed_aa9": true,
+  "core_declared_family_field_codec_mro_dispatch_unchanged": true,
+  "dependency_delta": "Textual Widget._get_box_model forwards original NativeBoxModel via BoxModelRequest. No preference/descriptor/DOM query/style/class API change; qualified Text41/393 evidence already accepted.",
+  "production_delta_vs_current_main": {
+    "added": 26,
+    "deleted": 48,
+    "files": 6
+  },
+  "new_validation": "No repeated actualApp run; exact changed preference family and drivers unchanged, existing dependencies unchanged at called APIs. No new installed/runtime claim for joined metadata."
+}

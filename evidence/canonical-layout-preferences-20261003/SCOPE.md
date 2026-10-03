@@ -58,3 +58,14 @@ Two proof metadata construction failures are retained: extra local fields,
 then Python tuple pairs instead of wire arrays. Existing FieldCodec corrected
 artifact encoding only; no production change or application rerun. Owned394
 children zero; affected installed source unchanged afterward.
+
+## Current main integration
+
+Normally merged main3674/393 at f495fa9f. Release metadata retains accepted
+Core80df/Textc4; qualified485 fixture Core5cf/Text0ab receipts remain historical
+validation provenance, not new release pins. All six production preference
+files and affected drivers byte-identical to installed aa9. Current-main delta
+remains26+/48-. Original Core codec/family/dispatcher and Textual DOM/query/
+style APIs unchanged. Text41 Widget change only forwards original box request
+context; accepted393 evidence owns that behavior. No repeated App/provider run
+or new donor installation. See main-union.json.
