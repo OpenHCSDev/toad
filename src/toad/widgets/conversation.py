@@ -575,8 +575,8 @@ class ConversationSessionBinding(containers.Vertical):
             return
         if self._agent_data is not None:
 
-            async def start_agent() -> None:
-                """Start the agent after refreshing the UI."""
+            def start_agent() -> None:
+                """Admit operational startup after the source's written frame."""
                 assert self._agent_data is not None
                 from toad.acp.agent import Agent
 
@@ -588,7 +588,7 @@ class ConversationSessionBinding(containers.Vertical):
                 )
                 self._native_agent_started_here = True
                 self.bind_agent(self.agent)
-                await self.agent.start()
+                self.agent.controller.start_operation(self.agent.start())
                 self.publish_core(core_events.SessionSubtitleChanged(self.agent_title))
 
             from toad.screens.workspace import WorkspaceScreen
