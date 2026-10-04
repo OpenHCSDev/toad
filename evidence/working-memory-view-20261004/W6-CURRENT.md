@@ -20,9 +20,9 @@ Mendel granted the one shared helper signature change: NativeBackendFixture.nati
 
 `authentic-gui-continuation-operands.json` binds the original source/request/span addresses, current control, helper checkpoint and planned scratch/output. This is source preparation only; it has not been collected or run. Future acceptance is one bounded registered App with ZERO additional input, provider call or native prompt.
 
-No package/import/execution purpose is active. After ordinary444 actual whole preparation handback, Bohr must issue a fresh specific eligible-holder purpose and Sch must renew exact7a artifact execution against those literal issued bytes. Restore the actual issued floor, not an assumed historical436 floor. Public334 and other owners' candidates remain untouched.
+No package/import/execution purpose is active. Ordinary444 immediate preparation is now independently closed, but its actual candidate is HELD/FROZEN Parent. Parent disposition must establish an eligible holder; Bohr then issues a fresh specific actual-floor purpose and Sch renews exact7a execution against those literal bytes. Public334 and frozen candidates remain untouched.
 
-Product src, pyproject and lock are unchanged versus bee4062; existing Coreab640355 and Toad57bf319 wheels remain valid. The Toad union contains441, not442/ec36. No wheel rebuild, SDK repetition or native artifact change is needed for these test-source changes.
+The approved89342db6 test-source checkpoint changed no product bytes: Coreab640355 and Toad57bf319 were exact then. The later current-main union below retains442/444 and requires the new Toad178b319 wheel. Coreab640 remains exact. No SDK or native artifact change.
 
 DefaultOFF/external disclosure and actual Codex exclusion remain intact. W7 empirical thresholds, W8, historical App acceptance and the full authentic GUI correction remain unfinished.
 
