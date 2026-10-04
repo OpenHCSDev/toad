@@ -530,9 +530,9 @@ class ConversationSessionBinding(containers.Vertical):
 
     async def release_native_session(self) -> None:
         """Acquire native custody before joining this surface's publications."""
-        window = self.window
+        viewport = self.window.document_viewport
         await self._release_source_resources()
-        await window.document_viewport.close()
+        await viewport.close()
         self.agent = None
         self._initial_prompt = None
 
