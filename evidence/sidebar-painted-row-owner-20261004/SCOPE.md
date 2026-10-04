@@ -4,7 +4,7 @@ Full performance remains active: rapid/reverse/End/growing history, preparation 
 
 ## What changed
 
-Current normal-main delta: 12 production files, 100 additions and 164 deletions. Release, sidebar/tab and session-opening changes are source-only, not Ready; final counts derive Git, not earlier four-file checkpoints.
+Current normal-main delta: 13 production files, 122 additions and 171 deletions. Release, sidebar/tab and session-opening changes are source-only, not Ready; final counts derive Git, not earlier four-file checkpoints.
 
 - Existing `SidebarVisibilityObserver.painted_rows` now owns busy-row selection from the original compositor's visible scene. Left channel projection and right relationship animation both consume it. Removed the separate projection selector and the right panel's walk/update of every busy retained row. Original native attachment, pruning/closing and nearest tree ownership remain; no new roster/cache/map/timer or rate policy.
 - `NativeSessionAdmission.tab` selects the original matching `ThreadView` before reading its declaration-owned presentation. Previously each native tab interpreted the entire snapshot roster, although only that one label was used. All `SessionAdmissions.tabs` / `app.open_tabs` consumers benefit. Unread indexing, fallback title, session admission and closure are unchanged. Sch granted exactly this seam; F1 action/deletion hooks are untouched.
@@ -153,3 +153,23 @@ retired rows already release that original prepared resource; action_status and
 native busy inputs keep PreparedThreadRow's original declared semantics. No extra
 busy store or new polling/animation rate. Affected installed row checks remain
 pending; this changes source ownership, not measured performance.
+
+## Native55 paired resource and original code lease
+
+Kepler froze native55 at bb936deb08cff0b676385007df52759c84356b78
+(production a3fe919a4fed230de0380f2587208f909849379f). Its source-qualified normal
+filewheel is /home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text55-filewheel-bb936deb-20261004/textual-8.2.8-py3-none-any.whl,
+SHA256 b064011ef5988c395f375ada87e602de61c14f9fa3491315754850d1e97b9611.
+The owning source inventory binds all266 assets; native controls14PASS and its
+hosted debt ratchet passed. This records the owner's artifact report, not a new
+installation/verification by Heisenberg. Genuine BodyMeasurement invalidation and
+content refresh calls stay intact; no Toad notify ABI migration is required.
+
+Hosted426 ratchet111379645079 passed at0dfda70b. Later frame-custody and
+prepared-status additions require their exact-head hosted result; prior SUCCESS
+is not relabeled as the later head's result. No App or physical qualification yet.
+F4 remains actual exclusive style22 purpose; no package/source-import borrower is
+created by this publication. Following actual handback, the affected App checks
+must cover callback-source activation/closure, busy rows offscreen/return and
+native/shared tab labels, then the meaningful configured switch/sidebar/motion
+journey. Existing source and native controls do not replace that user path.
