@@ -9,7 +9,8 @@ class SidebarHeader(HorizontalGroup):
     CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
 
     def on_mount(self) -> None:
-        viewport = next((node for node in self.ancestors if isinstance(node, SidebarViewport)), None)
+        viewport = next((node for node in self.walk_ancestors()
+                         if isinstance(node, SidebarViewport)), None)
         if viewport is not None:
             viewport.align_header(self)
 
@@ -33,8 +34,7 @@ class SidebarViewport(VerticalScroll):
         # The content still owns its full intrinsic width. Counter only its
         # horizontal scroll for these one-line headers, without pinning y or
         # creating a second read/presentation authority.
-        header.styles.width = width
-        header.offset = (int(self.scroll_x), 0)
+        header.set_styles(width=width, offset=(int(self.scroll_x), 0))
 
     def _align_headers(self) -> None:
         if self.is_mounted:

@@ -1,0 +1,499 @@
+{
+  "roots": [
+    {
+      "root": "src/toad",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "parsed": 393,
+      "omissions": []
+    },
+    {
+      "root": "tools",
+      "parsed": 41,
+      "omissions": []
+    },
+    {
+      "root": "Text51/src/textual",
+      "parsed": 249,
+      "omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 156,
+      "syntax": "Load",
+      "source": "self.retire"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 163,
+      "syntax": "Load",
+      "source": "self.retire"
+    },
+    {
+      "path": "src/toad/acp/terminal_controller.py",
+      "line": 54,
+      "syntax": "Load",
+      "source": "self.retire"
+    },
+    {
+      "path": "src/toad/acp/terminal_owner.py",
+      "line": 63,
+      "syntax": "Load",
+      "source": "terminals.retire"
+    },
+    {
+      "path": "src/toad/agent_surface.py",
+      "line": 94,
+      "syntax": "Load",
+      "source": "screen.retire"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 490,
+      "syntax": "Load",
+      "source": "self.workspace_sessions.retire"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 198,
+      "syntax": "Load",
+      "source": "self.presentation.retire"
+    },
+    {
+      "path": "src/toad/screens/permissions.py",
+      "line": 228,
+      "syntax": "Load",
+      "source": "self.retire"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 79,
+      "syntax": "Store",
+      "source": "self.state"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 143,
+      "syntax": "Store",
+      "source": "self.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 163,
+      "syntax": "Store",
+      "source": "self.state"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 170,
+      "syntax": "Store",
+      "source": "self.state"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 179,
+      "syntax": "Store",
+      "source": "self.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 187,
+      "syntax": "Store",
+      "source": "self.view"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 192,
+      "syntax": "Load",
+      "source": "self.view.presentation.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 203,
+      "syntax": "Load",
+      "source": "self.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 209,
+      "syntax": "Store",
+      "source": "self.view"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 230,
+      "syntax": "Load",
+      "source": "owner.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 231,
+      "syntax": "Store",
+      "source": "self.view"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 259,
+      "syntax": "Load",
+      "source": "owner.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 284,
+      "syntax": "Store",
+      "source": "self.view"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 149,
+      "syntax": "Load",
+      "source": "screen.app.workspace_chrome.native.activate"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 152,
+      "syntax": "Load",
+      "source": "screen.app.workspace_chrome.native.retire"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 162,
+      "syntax": "Load",
+      "source": "screen.app.workspace_chrome.native.dispose"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 168,
+      "syntax": "Load",
+      "source": "self.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 171,
+      "syntax": "Load",
+      "source": "self.remove_native_tree"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 174,
+      "syntax": "Load",
+      "source": "self.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 192,
+      "syntax": "Load",
+      "source": "self.view"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 213,
+      "syntax": "Load",
+      "source": "self.view"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 215,
+      "syntax": "Load",
+      "source": "self.view"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 217,
+      "syntax": "Load",
+      "source": "owner.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 222,
+      "syntax": "Store",
+      "source": "owner.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 233,
+      "syntax": "Load",
+      "source": "owner.state"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 235,
+      "syntax": "Store",
+      "source": "owner.state"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 275,
+      "syntax": "Load",
+      "source": "self.view"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 277,
+      "syntax": "Store",
+      "source": "self.view"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 282,
+      "syntax": "Load",
+      "source": "self.view"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 192,
+      "syntax": "Load",
+      "source": "self.view"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 201,
+      "syntax": "Load",
+      "source": "self.view"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 201,
+      "syntax": "Load",
+      "source": "self.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 227,
+      "syntax": "Load",
+      "source": "owner.state"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 253,
+      "syntax": "Load",
+      "source": "self.view"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 278,
+      "syntax": "Load",
+      "source": "owner.remove_native_tree"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 197,
+      "syntax": "Load",
+      "source": "view.retained_native_presentations"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 228,
+      "syntax": "Load",
+      "source": "owner.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 228,
+      "syntax": "Load",
+      "source": "owner.state"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 229,
+      "syntax": "Load",
+      "source": "owner.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 234,
+      "syntax": "Load",
+      "source": "owner.state"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 266,
+      "syntax": "Load",
+      "source": "owner.evict"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 276,
+      "syntax": "Load",
+      "source": "owner.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 283,
+      "syntax": "Load",
+      "source": "self.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 283,
+      "syntax": "Load",
+      "source": "self.view"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 226,
+      "syntax": "Load",
+      "source": "owner.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 283,
+      "syntax": "Load",
+      "source": "self.view"
+    },
+    {
+      "path": "src/toad/shell_source.py",
+      "line": 58,
+      "syntax": "Load",
+      "source": "self._operation.retire"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 416,
+      "syntax": "Load",
+      "source": "self._operation.retire"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 185,
+      "syntax": "Load",
+      "source": "self.retire"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 233,
+      "syntax": "Load",
+      "source": "self.preparation.retire"
+    },
+    {
+      "path": "src/toad/transcript_filter.py",
+      "line": 302,
+      "syntax": "Load",
+      "source": "retired.retire"
+    },
+    {
+      "path": "src/toad/transcript_filter.py",
+      "line": 193,
+      "syntax": "Load",
+      "source": "filtering.retire"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 525,
+      "syntax": "Load",
+      "source": "self.output.retire"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1058,
+      "syntax": "Load",
+      "source": "self.output.retire"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1768,
+      "syntax": "Load",
+      "source": "self.goal_controls.activate"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 158,
+      "syntax": "Load",
+      "source": "self.document_viewport.membership.retire"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 188,
+      "syntax": "Load",
+      "source": "self.presentation.retire"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 228,
+      "syntax": "Load",
+      "source": "self.output.retire"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 567,
+      "syntax": "Load",
+      "source": "self._body_measurement.retire"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 788,
+      "syntax": "Load",
+      "source": "self.retire"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 576,
+      "syntax": "Load",
+      "source": "BodyMeasurement.retire"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 578,
+      "syntax": "Load",
+      "source": "BodyMeasurement.retire"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 580,
+      "syntax": "Load",
+      "source": "BodyMeasurement.retire"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 583,
+      "syntax": "Load",
+      "source": "BodyMeasurement.retire"
+    },
+    {
+      "path": "src/toad/workspace_sessions.py",
+      "line": 138,
+      "syntax": "Load",
+      "source": "self.retire"
+    },
+    {
+      "path": "src/toad/workspace_sessions.py",
+      "line": 154,
+      "syntax": "Load",
+      "source": "self.source.retire"
+    },
+    {
+      "path": "tests/external_cli_native_installed_pilot.py",
+      "line": 219,
+      "syntax": "Load",
+      "source": "cli.retire"
+    },
+    {
+      "path": "tests/external_cli_native_installed_pilot.py",
+      "line": 263,
+      "syntax": "Load",
+      "source": "cli.retire"
+    },
+    {
+      "path": "tests/external_cli_native_installed_pilot.py",
+      "line": 265,
+      "syntax": "Load",
+      "source": "peer.retire"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 91,
+      "syntax": "Load",
+      "source": "view.output.retire"
+    }
+  ],
+  "limits": [
+    "Static named sites are source evidence; dynamic external aliases/overrides not proved",
+    "Actual admitted screen remains separate from logical WorkspaceSource selection",
+    "Actor/weakref absence and transient eviction snapshot remain legitimate"
+  ]
+}

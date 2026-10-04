@@ -1,0 +1,2384 @@
+{
+  "head": "4153f19702035e5454aee531620e0d82cf97d66f",
+  "roots": [
+    {
+      "root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad",
+      "head": "HEAD",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests",
+      "head": "HEAD",
+      "parsed": 393,
+      "omissions": []
+    },
+    {
+      "root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools",
+      "head": "HEAD",
+      "parsed": 41,
+      "omissions": []
+    },
+    {
+      "root": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual",
+      "head": "2e8ce3336b7b2ff83eb98cc545c08265b2a70856",
+      "parsed": 249,
+      "omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 51,
+      "kind": "Attribute",
+      "source": "task.execute"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/agent_session.py",
+      "line": 264,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/agent_session.py",
+      "line": 141,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/agent_session.py",
+      "line": 267,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/maintenance_ingress.py",
+      "line": 63,
+      "kind": "FunctionDef",
+      "source": "def admission("
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/maintenance_ingress.py",
+      "line": 87,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/maintenance_ingress.py",
+      "line": 233,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/maintenance_ingress.py",
+      "line": 134,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/sdk_boundary.py",
+      "line": 70,
+      "kind": "FunctionDef",
+      "source": "def execute(self) -> SessionUpdateValidation:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/command_catalog.py",
+      "line": 58,
+      "kind": "AsyncFunctionDef",
+      "source": "async def execute(cls, text: str, conversation: Conversation) -> bool:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/conversation_submission.py",
+      "line": 34,
+      "kind": "AsyncFunctionDef",
+      "source": "async def execute(self, owner): ..."
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/conversation_submission.py",
+      "line": 49,
+      "kind": "AsyncFunctionDef",
+      "source": "async def execute(self, owner):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/conversation_submission.py",
+      "line": 60,
+      "kind": "AsyncFunctionDef",
+      "source": "async def execute(self, owner):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/conversation_submission.py",
+      "line": 71,
+      "kind": "AsyncFunctionDef",
+      "source": "async def execute(self, owner):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/conversation_submission.py",
+      "line": 102,
+      "kind": "AsyncFunctionDef",
+      "source": "async def execute(self, owner):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/conversation_submission.py",
+      "line": 227,
+      "kind": "Attribute",
+      "source": "InputSubmission.from_event(event, self.view).execute"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/conversation_submission.py",
+      "line": 105,
+      "kind": "Attribute",
+      "source": "CommandCatalog.execute"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/events.py",
+      "line": 104,
+      "kind": "ClassDef",
+      "source": "class SidebarLayoutChanged(CoreEvent):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/session_requests.py",
+      "line": 69,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/session_requests.py",
+      "line": 28,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/session_requests.py",
+      "line": 29,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/session_requests.py",
+      "line": 50,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/session_requests.py",
+      "line": 50,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/session_requests.py",
+      "line": 59,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/session_requests.py",
+      "line": 79,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/session_requests.py",
+      "line": 87,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/session_requests.py",
+      "line": 98,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/session_requests.py",
+      "line": 98,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/session_requests.py",
+      "line": 40,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/session_requests.py",
+      "line": 30,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/session_requests.py",
+      "line": 31,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/db.py",
+      "line": 171,
+      "kind": "Attribute",
+      "source": "db.execute"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/db.py",
+      "line": 97,
+      "kind": "Attribute",
+      "source": "db.execute"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/db.py",
+      "line": 98,
+      "kind": "Attribute",
+      "source": "db.execute"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/db.py",
+      "line": 113,
+      "kind": "Attribute",
+      "source": "db.execute"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/db.py",
+      "line": 114,
+      "kind": "Attribute",
+      "source": "db.execute"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/db.py",
+      "line": 126,
+      "kind": "Attribute",
+      "source": "db.execute"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/db.py",
+      "line": 191,
+      "kind": "Attribute",
+      "source": "db.execute"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/mounted_message_history.py",
+      "line": 258,
+      "kind": "Attribute",
+      "source": "self.prefetch_distance"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/mounted_message_history.py",
+      "line": 261,
+      "kind": "Attribute",
+      "source": "self.prefetch_distance"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/preferences.py",
+      "line": 65,
+      "kind": "Name",
+      "source": "PresentationBudget"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/render_backend.py",
+      "line": 24,
+      "kind": "FunctionDef",
+      "source": "def execute(self) -> ResultT:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/render_processes.py",
+      "line": 103,
+      "kind": "Attribute",
+      "source": "task.execute"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/render_protocol.py",
+      "line": 91,
+      "kind": "FunctionDef",
+      "source": "def execute(self, service: RenderService) -> RenderReply: ..."
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/render_protocol.py",
+      "line": 132,
+      "kind": "FunctionDef",
+      "source": "def execute(self, service):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/render_protocol.py",
+      "line": 137,
+      "kind": "FunctionDef",
+      "source": "def execute(self, service):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/render_protocol.py",
+      "line": 142,
+      "kind": "FunctionDef",
+      "source": "def execute(self, service):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/render_protocol.py",
+      "line": 148,
+      "kind": "FunctionDef",
+      "source": "def execute(self, service):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/render_protocol.py",
+      "line": 154,
+      "kind": "FunctionDef",
+      "source": "def execute(self, service):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/render_protocol.py",
+      "line": 160,
+      "kind": "FunctionDef",
+      "source": "def execute(self, service):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/render_service.py",
+      "line": 126,
+      "kind": "Attribute",
+      "source": "command.task.execute"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/render_tasks.py",
+      "line": 30,
+      "kind": "FunctionDef",
+      "source": "def execute(self) -> PreparedPatch:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/render_tasks.py",
+      "line": 47,
+      "kind": "FunctionDef",
+      "source": "def execute(self) -> PreparedMarkdown:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/render_tasks.py",
+      "line": 63,
+      "kind": "FunctionDef",
+      "source": "def execute(self) -> PreparedRichContent:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/render_tasks.py",
+      "line": 78,
+      "kind": "FunctionDef",
+      "source": "def execute(self) -> tuple[PreparedThreadRow, ...]:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/render_tasks.py",
+      "line": 93,
+      "kind": "FunctionDef",
+      "source": "def execute(self) -> tuple[PreparedTab, ...]:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/render_zmq.py",
+      "line": 108,
+      "kind": "Attribute",
+      "source": "command.execute"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/render_zmq.py",
+      "line": 112,
+      "kind": "Attribute",
+      "source": "command.execute"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/screens/action_modal.py",
+      "line": 95,
+      "kind": "Attribute",
+      "source": "self.command_pane.execute"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/screens/action_modal.py",
+      "line": 92,
+      "kind": "Attribute",
+      "source": "self.command_pane.execute"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/screens/comms.py",
+      "line": 197,
+      "kind": "Attribute",
+      "source": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/screens/comms.py",
+      "line": 186,
+      "kind": "Attribute",
+      "source": "sidebar._apply_layout"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/screens/main.py",
+      "line": 514,
+      "kind": "Attribute",
+      "source": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/screens/workspace.py",
+      "line": 130,
+      "kind": "FunctionDef",
+      "source": "def on_resize(self, _event: Resize) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/screens/workspace.py",
+      "line": 134,
+      "kind": "Attribute",
+      "source": "sidebar._apply_layout"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/session_navigation.py",
+      "line": 68,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/session_navigation.py",
+      "line": 147,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/session_navigation.py",
+      "line": 69,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/session_navigation.py",
+      "line": 77,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/session_navigation.py",
+      "line": 82,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/session_navigation.py",
+      "line": 148,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/session_navigation.py",
+      "line": 149,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/session_navigation.py",
+      "line": 155,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/session_navigation.py",
+      "line": 77,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/session_navigation.py",
+      "line": 78,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/session_navigation.py",
+      "line": 69,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/session_navigation.py",
+      "line": 80,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/session_navigation.py",
+      "line": 81,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/session_navigation.py",
+      "line": 151,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/session_navigation.py",
+      "line": 153,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/session_navigation.py",
+      "line": 154,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/setting_effects.py",
+      "line": 22,
+      "kind": "Attribute",
+      "source": "history.prepare_scroll"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/target_commands.py",
+      "line": 97,
+      "kind": "FunctionDef",
+      "source": "def execute(self, ctx: TargetContext) -> None: ..."
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/target_commands.py",
+      "line": 130,
+      "kind": "FunctionDef",
+      "source": "def execute(self, ctx):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/target_commands.py",
+      "line": 150,
+      "kind": "FunctionDef",
+      "source": "def execute(self, ctx: TargetContext) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/target_commands.py",
+      "line": 163,
+      "kind": "FunctionDef",
+      "source": "def execute(self, ctx: TargetContext) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/target_commands.py",
+      "line": 111,
+      "kind": "Attribute",
+      "source": "self.execute"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/target_commands.py",
+      "line": 75,
+      "kind": "Attribute",
+      "source": "command.execute"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_filter.py",
+      "line": 109,
+      "kind": "Attribute",
+      "source": "owner.prefetch_distance"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_preparation.py",
+      "line": 146,
+      "kind": "AsyncFunctionDef",
+      "source": "async def execute(self, runtime: PreparationRuntime) -> PreparedTranscriptPage:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 102,
+      "kind": "FunctionDef",
+      "source": "def on_resize(self) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 206,
+      "kind": "FunctionDef",
+      "source": "def prepare_scroll(self) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 211,
+      "kind": "FunctionDef",
+      "source": "def prefetch_distance(self) -> int:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 66,
+      "kind": "Name",
+      "source": "WorkingTranscript"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 84,
+      "kind": "Attribute",
+      "source": "self.prepare_scroll"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 100,
+      "kind": "Attribute",
+      "source": "self.prepare_scroll"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 148,
+      "kind": "Name",
+      "source": "WorkingTranscript"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 166,
+      "kind": "Name",
+      "source": "WorkingTranscript"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 203,
+      "kind": "Attribute",
+      "source": "self.prepare_scroll"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 214,
+      "kind": "Attribute",
+      "source": "self.window.document_viewport.lookahead.ahead_rows"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_state.py",
+      "line": 146,
+      "kind": "ClassDef",
+      "source": "class WorkingTranscript(SuspendedTranscript):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_state.py",
+      "line": 22,
+      "kind": "AsyncFunctionDef",
+      "source": "async def execute(self, owner, work):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_state.py",
+      "line": 186,
+      "kind": "AsyncFunctionDef",
+      "source": "async def execute(self, owner, work):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_state.py",
+      "line": 86,
+      "kind": "Name",
+      "source": "WorkingTranscript"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_state.py",
+      "line": 209,
+      "kind": "Attribute",
+      "source": "self.execute"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 33,
+      "kind": "AsyncFunctionDef",
+      "source": "async def execute(self, execution: TerminalExecution, *, final: bool = True) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 104,
+      "kind": "Attribute",
+      "source": "command_pane.execute"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 380,
+      "kind": "Attribute",
+      "source": "CommandCatalog.execute"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/comms_transfer.py",
+      "line": 115,
+      "kind": "AsyncFunctionDef",
+      "source": "async def execute(self, selected: RouteSelection, request: TransferRequest) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/comms_transfer.py",
+      "line": 112,
+      "kind": "Attribute",
+      "source": "self.execute"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/condensed_path.py",
+      "line": 91,
+      "kind": "FunctionDef",
+      "source": "def on_resize(self) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1850,
+      "kind": "FunctionDef",
+      "source": "def on_resize(self) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/goal_bar.py",
+      "line": 203,
+      "kind": "FunctionDef",
+      "source": "def on_resize(self) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 80,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 81,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/mandelbrot.py",
+      "line": 163,
+      "kind": "FunctionDef",
+      "source": "def on_resize(self) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 32,
+      "kind": "ClassDef",
+      "source": "class PresentationBudget:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 101,
+      "kind": "ClassDef",
+      "source": "class PreparationDemand(ABC):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 178,
+      "kind": "ClassDef",
+      "source": "class DirectionalPreparation:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 67,
+      "kind": "FunctionDef",
+      "source": "def runway_rows(self, viewport_rows: int) -> int:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 120,
+      "kind": "Name",
+      "source": "PreparationDemand"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 132,
+      "kind": "Name",
+      "source": "PreparationDemand"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 162,
+      "kind": "Name",
+      "source": "PreparationDemand"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 225,
+      "kind": "FunctionDef",
+      "source": "def delivered(self, seconds: float) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 239,
+      "kind": "FunctionDef",
+      "source": "def ahead_rows(self, viewport_rows: int) -> int:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 245,
+      "kind": "FunctionDef",
+      "source": "def admission(self, budget: PresentationBudget, viewport_rows: int) -> int:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 42,
+      "kind": "Name",
+      "source": "reserve_batches"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 135,
+      "kind": "Name",
+      "source": "PreparationDemand"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 168,
+      "kind": "Name",
+      "source": "PreparationDemand"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 196,
+      "kind": "Name",
+      "source": "PresentationBudget"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 192,
+      "kind": "Attribute",
+      "source": "self.delivery_seconds"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 193,
+      "kind": "Name",
+      "source": "PreparationDemand"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 226,
+      "kind": "Attribute",
+      "source": "self.delivery_seconds"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 245,
+      "kind": "Name",
+      "source": "PresentationBudget"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 253,
+      "kind": "Name",
+      "source": "PreparationDemand"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 237,
+      "kind": "Attribute",
+      "source": "self.delivery_seconds"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 242,
+      "kind": "Attribute",
+      "source": "self.budget.runway_rows"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 62,
+      "kind": "Attribute",
+      "source": "self.reserve_batches"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 95,
+      "kind": "Attribute",
+      "source": "self.runway_rows"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 243,
+      "kind": "Attribute",
+      "source": "self.budget.reserve_batches"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 250,
+      "kind": "Attribute",
+      "source": "self.ahead_rows"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 531,
+      "kind": "FunctionDef",
+      "source": "def _resize(self, screen_x: int) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 763,
+      "kind": "FunctionDef",
+      "source": "def _order_sidebars(self) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 775,
+      "kind": "FunctionDef",
+      "source": "def _apply_layout(self) -> bool:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 853,
+      "kind": "FunctionDef",
+      "source": "def on_resize(self) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 858,
+      "kind": "FunctionDef",
+      "source": "def on_sidebar_slider(self, event: SidebarSlider.Changed) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 848,
+      "kind": "Attribute",
+      "source": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 687,
+      "kind": "Attribute",
+      "source": "self._apply_layout"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 785,
+      "kind": "Attribute",
+      "source": "app.workspace_chrome.sidebar_geometry"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 885,
+      "kind": "Attribute",
+      "source": "self._apply_layout"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 557,
+      "kind": "Attribute",
+      "source": "self._resize"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 562,
+      "kind": "Attribute",
+      "source": "self._resize"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 850,
+      "kind": "Attribute",
+      "source": "self._apply_layout"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 851,
+      "kind": "Attribute",
+      "source": "self._order_sidebars"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 854,
+      "kind": "Attribute",
+      "source": "self._apply_layout"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 872,
+      "kind": "Attribute",
+      "source": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 928,
+      "kind": "Attribute",
+      "source": "self._apply_layout"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 540,
+      "kind": "Attribute",
+      "source": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 820,
+      "kind": "Attribute",
+      "source": "self._apply_layout"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 855,
+      "kind": "Attribute",
+      "source": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 929,
+      "kind": "Attribute",
+      "source": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 863,
+      "kind": "Attribute",
+      "source": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 991,
+      "kind": "Attribute",
+      "source": "child._apply_layout"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/sidebar_viewport.py",
+      "line": 26,
+      "kind": "FunctionDef",
+      "source": "def on_resize(self) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/sidebar_viewport.py",
+      "line": 29,
+      "kind": "FunctionDef",
+      "source": "def align_header(self, header: SidebarHeader) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/sidebar_viewport.py",
+      "line": 39,
+      "kind": "FunctionDef",
+      "source": "def _align_headers(self) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/sidebar_viewport.py",
+      "line": 23,
+      "kind": "Attribute",
+      "source": "self._align_headers"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/sidebar_viewport.py",
+      "line": 24,
+      "kind": "Attribute",
+      "source": "self._align_headers"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/sidebar_viewport.py",
+      "line": 27,
+      "kind": "Attribute",
+      "source": "self._align_headers"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/sidebar_viewport.py",
+      "line": 14,
+      "kind": "Attribute",
+      "source": "viewport.align_header"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/sidebar_viewport.py",
+      "line": 42,
+      "kind": "Attribute",
+      "source": "self.align_header"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "line": 243,
+      "kind": "FunctionDef",
+      "source": "def execute(self) -> tuple[TranscriptFragment, ...]:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 323,
+      "kind": "AsyncFunctionDef",
+      "source": "async def prepare_adjacent(self, preparation, demand, count: int, keep_going) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 696,
+      "kind": "FunctionDef",
+      "source": "def prepare_scroll(self) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 843,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 360,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 452,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 497,
+      "kind": "Attribute",
+      "source": "self.prepare_scroll"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 707,
+      "kind": "Attribute",
+      "source": "self.budget.reserve_batches"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 799,
+      "kind": "Attribute",
+      "source": "window.document_viewport.lookahead.admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 314,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 316,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 316,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 401,
+      "kind": "Name",
+      "source": "PresentationBudget"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 404,
+      "kind": "Name",
+      "source": "PresentationBudget"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 619,
+      "kind": "Attribute",
+      "source": "operation.execute"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 735,
+      "kind": "Attribute",
+      "source": "lookahead.admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 1009,
+      "kind": "Attribute",
+      "source": "self._source_state.execute"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 372,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 453,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 775,
+      "kind": "Attribute",
+      "source": "self.prefetch_distance"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 866,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 1006,
+      "kind": "Attribute",
+      "source": "self.reserve_source_work().execute"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 708,
+      "kind": "Attribute",
+      "source": "lookahead.ahead_rows"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 737,
+      "kind": "Attribute",
+      "source": "page.prepare_adjacent"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 780,
+      "kind": "Attribute",
+      "source": "self.prefetch_distance"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 889,
+      "kind": "FunctionDef",
+      "source": "def admission(self, *, required=(), ahead=()):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 816,
+      "kind": "Name",
+      "source": "DirectionalPreparation"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 904,
+      "kind": "Attribute",
+      "source": "self.admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1114,
+      "kind": "Name",
+      "source": "PreparationDemand"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 812,
+      "kind": "Name",
+      "source": "PresentationBudget"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 813,
+      "kind": "Name",
+      "source": "PresentationBudget"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 959,
+      "kind": "Attribute",
+      "source": "history.prepare_scroll"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 941,
+      "kind": "Attribute",
+      "source": "history.prepare_scroll"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1035,
+      "kind": "Attribute",
+      "source": "self.lookahead.admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1061,
+      "kind": "Attribute",
+      "source": "self.lookahead.delivered"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/worker_static.py",
+      "line": 75,
+      "kind": "FunctionDef",
+      "source": "def on_resize(self, _event: events.Resize) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/work_preparation.py",
+      "line": 105,
+      "kind": "AsyncFunctionDef",
+      "source": "async def execute(self, runtime: PreparationRuntime) -> ResultT:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/work_preparation.py",
+      "line": 150,
+      "kind": "AsyncFunctionDef",
+      "source": "async def execute(self, runtime: PreparationRuntime) -> ResultT:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/work_preparation.py",
+      "line": 162,
+      "kind": "AsyncFunctionDef",
+      "source": "async def execute(self, runtime: PreparationRuntime) -> ResultT:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/work_preparation.py",
+      "line": 330,
+      "kind": "Attribute",
+      "source": "work.execute"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/workspace_chrome.py",
+      "line": 38,
+      "kind": "FunctionDef",
+      "source": "def sidebar_geometry(self, sidebar):"
+    },
+    {
+      "root": "tests",
+      "path": "tests/admission_scope_installed_pilot.py",
+      "line": 31,
+      "kind": "Attribute",
+      "source": "scope.admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/admission_scope_installed_pilot.py",
+      "line": 32,
+      "kind": "Attribute",
+      "source": "scope.admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/admission_scope_installed_pilot.py",
+      "line": 39,
+      "kind": "Attribute",
+      "source": "scope.admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/admission_scope_installed_pilot.py",
+      "line": 57,
+      "kind": "Attribute",
+      "source": "scope.admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/agent_selection_configured_installed_pilot.py",
+      "line": 200,
+      "kind": "Attribute",
+      "source": "db.execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/attachment_request_pilot.py",
+      "line": 150,
+      "kind": "Attribute",
+      "source": "DeferredInputSubmission(\"old request\").execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 297,
+      "kind": "Attribute",
+      "source": "db.execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 321,
+      "kind": "Attribute",
+      "source": "db.execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 55,
+      "kind": "Attribute",
+      "source": "db.execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 118,
+      "kind": "AsyncFunctionDef",
+      "source": "async def execute(app, pilot, name, *, edited=None, cancel=False, expected=0, input_text=None):"
+    },
+    {
+      "root": "tests",
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 202,
+      "kind": "Name",
+      "source": "execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 204,
+      "kind": "Name",
+      "source": "execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 208,
+      "kind": "Name",
+      "source": "execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 209,
+      "kind": "Name",
+      "source": "execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 210,
+      "kind": "Name",
+      "source": "execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 211,
+      "kind": "Name",
+      "source": "execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 214,
+      "kind": "Name",
+      "source": "execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 215,
+      "kind": "Name",
+      "source": "execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 345,
+      "kind": "Name",
+      "source": "execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 347,
+      "kind": "Name",
+      "source": "execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 350,
+      "kind": "Name",
+      "source": "execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 351,
+      "kind": "Name",
+      "source": "execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 352,
+      "kind": "Name",
+      "source": "execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 354,
+      "kind": "Name",
+      "source": "execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 355,
+      "kind": "Name",
+      "source": "execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 369,
+      "kind": "Name",
+      "source": "execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 372,
+      "kind": "Name",
+      "source": "execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 364,
+      "kind": "Name",
+      "source": "execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/guards/test_agent_controller.py",
+      "line": 52,
+      "kind": "Attribute",
+      "source": "scope.admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_prefetch_pilot.py",
+      "line": 44,
+      "kind": "Attribute",
+      "source": "history.prefetch_distance"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_prefetch_pilot.py",
+      "line": 88,
+      "kind": "Attribute",
+      "source": "filtered.prefetch_distance"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_prefetch_pilot.py",
+      "line": 89,
+      "kind": "Attribute",
+      "source": "filtered.prefetch_distance"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_prefetch_pilot.py",
+      "line": 56,
+      "kind": "Attribute",
+      "source": "history.prefetch_distance"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_prefetch_pilot.py",
+      "line": 50,
+      "kind": "Attribute",
+      "source": "history.prefetch_distance"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_prefetch_pilot.py",
+      "line": 100,
+      "kind": "Attribute",
+      "source": "filtered.prefetch_distance"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_scroll_frames_pilot.py",
+      "line": 101,
+      "kind": "Attribute",
+      "source": "operation.execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 71,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 88,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 101,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 84,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 84,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 100,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 100,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/input_failure_pilot.py",
+      "line": 96,
+      "kind": "Attribute",
+      "source": "ImmediateInputSubmission(\"the local failure prompt\").execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/markdown_process_lifecycle_pilot.py",
+      "line": 31,
+      "kind": "Attribute",
+      "source": "task.execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/model_picker_pilot.py",
+      "line": 148,
+      "kind": "Attribute",
+      "source": "CommandCatalog.execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/model_picker_pilot.py",
+      "line": 157,
+      "kind": "Attribute",
+      "source": "CommandCatalog.execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/model_picker_pilot.py",
+      "line": 172,
+      "kind": "Attribute",
+      "source": "CommandCatalog.execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/navigation_preparation_pilot.py",
+      "line": 42,
+      "kind": "AsyncFunctionDef",
+      "source": "async def admission() -> None:"
+    },
+    {
+      "root": "tests",
+      "path": "tests/navigation_preparation_pilot.py",
+      "line": 192,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 275,
+      "kind": "Attribute",
+      "source": "history.reserve_source_work().execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/original_turn_resource_real_installed_pilot.py",
+      "line": 62,
+      "kind": "Attribute",
+      "source": "db.execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/projected_history_budget_pilot.py",
+      "line": 43,
+      "kind": "Name",
+      "source": "PresentationBudget"
+    },
+    {
+      "root": "tests",
+      "path": "tests/projected_history_budget_pilot.py",
+      "line": 116,
+      "kind": "Name",
+      "source": "PresentationBudget"
+    },
+    {
+      "root": "tests",
+      "path": "tests/projected_history_budget_pilot.py",
+      "line": 80,
+      "kind": "Attribute",
+      "source": "overlay.reserve_source_work().execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/projected_history_budget_pilot.py",
+      "line": 94,
+      "kind": "Attribute",
+      "source": "overlay.reserve_source_work().execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 63,
+      "kind": "Name",
+      "source": "WorkingTranscript"
+    },
+    {
+      "root": "tests",
+      "path": "tests/render_families_pilot.py",
+      "line": 49,
+      "kind": "FunctionDef",
+      "source": "def execute(self):"
+    },
+    {
+      "root": "tests",
+      "path": "tests/render_families_pilot.py",
+      "line": 115,
+      "kind": "Attribute",
+      "source": "decoded.task.execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/render_families_pilot.py",
+      "line": 214,
+      "kind": "Attribute",
+      "source": "AcknowledgeRender(client, request).execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/render_families_pilot.py",
+      "line": 195,
+      "kind": "Attribute",
+      "source": "SubmitRender(client, request, CountRenderTask(17)).execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/render_families_pilot.py",
+      "line": 199,
+      "kind": "Attribute",
+      "source": "SubmitRender(client, uuid4(), CountRenderTask(4)).execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/render_families_pilot.py",
+      "line": 203,
+      "kind": "Attribute",
+      "source": "PollRender(foreign, request).execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/render_families_pilot.py",
+      "line": 206,
+      "kind": "Attribute",
+      "source": "PollRender(client, request).execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/render_families_pilot.py",
+      "line": 212,
+      "kind": "Attribute",
+      "source": "PollRender(client, request).execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/render_families_pilot.py",
+      "line": 209,
+      "kind": "Attribute",
+      "source": "PollRender(client, request).execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/render_runtime_pilot.py",
+      "line": 30,
+      "kind": "Attribute",
+      "source": "task.execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/render_runtime_pilot.py",
+      "line": 96,
+      "kind": "Attribute",
+      "source": "task.execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 81,
+      "kind": "Name",
+      "source": "delivered"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 85,
+      "kind": "Name",
+      "source": "delivered"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 90,
+      "kind": "Name",
+      "source": "delivered"
+    },
+    {
+      "root": "tests",
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 505,
+      "kind": "Attribute",
+      "source": "lookahead.ahead_rows"
+    },
+    {
+      "root": "tests",
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 443,
+      "kind": "Attribute",
+      "source": "lookahead.ahead_rows"
+    },
+    {
+      "root": "tests",
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 482,
+      "kind": "Attribute",
+      "source": "lookahead.ahead_rows"
+    },
+    {
+      "root": "tests",
+      "path": "tests/sidebar_custody_installed_journey.py",
+      "line": 29,
+      "kind": "FunctionDef",
+      "source": "def execute(self, ctx):"
+    },
+    {
+      "root": "tests",
+      "path": "tests/sidebar_drag_resize_pilot.py",
+      "line": 32,
+      "kind": "Attribute",
+      "source": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "root": "tests",
+      "path": "tests/sidebar_edge_anchor_installed_pilot.py",
+      "line": 111,
+      "kind": "Attribute",
+      "source": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "root": "tests",
+      "path": "tests/sidebar_sort_viewport_pilot.py",
+      "line": 52,
+      "kind": "Attribute",
+      "source": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "root": "tests",
+      "path": "tests/submission_native_installed_pilot.py",
+      "line": 62,
+      "kind": "Attribute",
+      "source": "original_scope.admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/submission_native_installed_pilot.py",
+      "line": 88,
+      "kind": "Attribute",
+      "source": "scope.admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/submission_native_installed_pilot.py",
+      "line": 126,
+      "kind": "Attribute",
+      "source": "agent.queue_attachment.scope.admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/t8_mounted_pilot.py",
+      "line": 52,
+      "kind": "Attribute",
+      "source": "pane.execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/t8_mounted_pilot.py",
+      "line": 82,
+      "kind": "Attribute",
+      "source": "copied.execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/t8_mounted_pilot.py",
+      "line": 78,
+      "kind": "Attribute",
+      "source": "copied.execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/t8_mounted_pilot.py",
+      "line": 103,
+      "kind": "Attribute",
+      "source": "copied.execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/test_conversation_submission.py",
+      "line": 24,
+      "kind": "Attribute",
+      "source": "AnnotatedInputSubmission.execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/test_conversation_submission.py",
+      "line": 24,
+      "kind": "Attribute",
+      "source": "OrdinaryInputSubmission.execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/test_session_updates.py",
+      "line": 17,
+      "kind": "Attribute",
+      "source": "ValidateSessionUpdateTask(session_id, update, metadata).execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/test_t8_boundaries.py",
+      "line": 28,
+      "kind": "Attribute",
+      "source": "db.execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/test_t8_boundaries.py",
+      "line": 36,
+      "kind": "Attribute",
+      "source": "db.execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/test_t8_boundaries.py",
+      "line": 80,
+      "kind": "Attribute",
+      "source": "db.execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/test_t8_boundaries.py",
+      "line": 102,
+      "kind": "Attribute",
+      "source": "holder.execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/tools/merged_selector_fixture_recording.py",
+      "line": 95,
+      "kind": "Attribute",
+      "source": "db.execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/transcript_prefetch_pilot.py",
+      "line": 28,
+      "kind": "FunctionDef",
+      "source": "def execute():"
+    },
+    {
+      "root": "tests",
+      "path": "tests/transcript_prefetch_pilot.py",
+      "line": 30,
+      "kind": "Attribute",
+      "source": "task.execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/transcript_prefetch_pilot.py",
+      "line": 31,
+      "kind": "Name",
+      "source": "execute"
+    },
+    {
+      "root": "tests",
+      "path": "tests/transcript_source_lifetime_pilot.py",
+      "line": 80,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/transcript_source_lifetime_pilot.py",
+      "line": 90,
+      "kind": "Name",
+      "source": "admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/ui_sidebar_geometry_pilot.py",
+      "line": 83,
+      "kind": "Attribute",
+      "source": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "root": "tests",
+      "path": "tests/ui_sidebar_geometry_pilot.py",
+      "line": 87,
+      "kind": "Attribute",
+      "source": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "root": "tests",
+      "path": "tests/ui_sidebar_geometry_pilot.py",
+      "line": 95,
+      "kind": "Attribute",
+      "source": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "root": "tests",
+      "path": "tests/ui_sidebar_geometry_pilot.py",
+      "line": 53,
+      "kind": "Attribute",
+      "source": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "root": "tests",
+      "path": "tests/ui_sidebar_geometry_pilot.py",
+      "line": 103,
+      "kind": "Attribute",
+      "source": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "root": "tests",
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 90,
+      "kind": "Attribute",
+      "source": "lookahead.delivery_seconds"
+    },
+    {
+      "root": "tests",
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 104,
+      "kind": "Attribute",
+      "source": "lookahead.delivery_seconds"
+    },
+    {
+      "root": "tests",
+      "path": "tests/viewport_rapid_scroll_pilot.py",
+      "line": 112,
+      "kind": "Attribute",
+      "source": "viewport.lookahead.admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/viewport_rapid_scroll_pilot.py",
+      "line": 22,
+      "kind": "Attribute",
+      "source": "window.document_viewport.lookahead.admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/viewport_runway_pilot.py",
+      "line": 65,
+      "kind": "Attribute",
+      "source": "viewport.budget.runway_rows"
+    },
+    {
+      "root": "tests",
+      "path": "tests/viewport_runway_pilot.py",
+      "line": 85,
+      "kind": "Attribute",
+      "source": "viewport.lookahead.ahead_rows"
+    },
+    {
+      "root": "tests",
+      "path": "tests/work_preparation_pilot.py",
+      "line": 107,
+      "kind": "FunctionDef",
+      "source": "def delivered(value):"
+    },
+    {
+      "root": "tests",
+      "path": "tests/work_preparation_pilot.py",
+      "line": 113,
+      "kind": "Name",
+      "source": "delivered"
+    },
+    {
+      "root": "tests",
+      "path": "tests/work_preparation_pilot.py",
+      "line": 40,
+      "kind": "Attribute",
+      "source": "task.execute"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/capture_state.py",
+      "line": 367,
+      "kind": "Name",
+      "source": "WorkingTranscript"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/capture_state.py",
+      "line": 436,
+      "kind": "Attribute",
+      "source": "manager.lookahead.delivery_seconds"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/capture_state.py",
+      "line": 429,
+      "kind": "Attribute",
+      "source": "manager.lookahead.ahead_rows"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/capture_state.py",
+      "line": 430,
+      "kind": "Attribute",
+      "source": "manager.budget.runway_rows"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/capture_state.py",
+      "line": 432,
+      "kind": "Attribute",
+      "source": "manager.lookahead.admission"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/scroll_travel_observation.py",
+      "line": 39,
+      "kind": "Attribute",
+      "source": "DocumentViewport.admission"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/scroll_travel_observation.py",
+      "line": 38,
+      "kind": "Name",
+      "source": "DirectionalPreparation"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/scroll_travel_observation.py",
+      "line": 50,
+      "kind": "Name",
+      "source": "DirectionalPreparation"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/scroll_travel_observation.py",
+      "line": 51,
+      "kind": "Name",
+      "source": "DirectionalPreparation"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/sidebar_validation_driver.py",
+      "line": 273,
+      "kind": "Name",
+      "source": "execute"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/sidebar_validation_driver.py",
+      "line": 279,
+      "kind": "Name",
+      "source": "execute"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widgets/_rich_log.py",
+      "line": 132,
+      "kind": "FunctionDef",
+      "source": "def on_resize(self, event: Resize) -> None:"
+    }
+  ],
+  "limits": "Static named declarations, imports and consumers; external dynamic overrides/aliases are not proved."
+}
