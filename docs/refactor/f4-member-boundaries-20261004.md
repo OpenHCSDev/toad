@@ -24,7 +24,7 @@ last. No provider/input/public actions, old branch deletion or evidence cleanup.
 
 Normal F1 join 5f3dc1fe keeps current main dependency pins while production
 consumer changes are composed. Final paired source pin/resolution follows Core
-review. The current paired pin is Core e9d7dc09988dfab965dfa12bfc66797057716dce,
+review. The current paired pin is Core22d97b6e5829fef8228ef5d7401cdffa9541a6f0,
 including the original collector and per-file measure. Normal uv lock resolution
 changed only Core and nominal-refactor-audit; Textual's newer original main pin
 2fac5395d37454296e9fa9b0cd342b820bacc25a and Diff8fa are retained.
@@ -55,3 +55,7 @@ is published, not installed or Ready. The same original collector parsed all 288
 Toad production modules without omissions: only those two mechanisms remain.
 Normal F1 head1715113fb9f464a65a33fc3be2db29e021bc0dec is joined, retaining
 participants, original thread/channel hooks and the corrected dialog consumer.
+Core normally joins F1's62dca291 editor/catalog codec correction. Required F4
+exemptions are qualified by original package/module; nested same-name facades
+are counted. F1's newer reconnect work remains its owner in thread_actions,
+session_admission and session_navigation; this pin update adds no frontend edit.
