@@ -1,0 +1,487 @@
+{
+  "roots": [
+    {
+      "root": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "rev": "9dedc56eb43fd8023039607077faa8a14fecbd10",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "root": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "rev": "3d6d4146fa04b0b0d46445b98b0c9bcc2761ef25",
+      "parsed": 249,
+      "omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "file": "src/toad/settings.py",
+      "line": 200,
+      "expression": "self._present",
+      "operation": "Store"
+    },
+    {
+      "file": "src/toad/settings.py",
+      "line": 105,
+      "expression": "group._present",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/settings.py",
+      "line": 237,
+      "expression": "self._parent._present",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/settings.py",
+      "line": 244,
+      "expression": "self._present",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/settings.py",
+      "line": 214,
+      "expression": "self._present",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/shell.py",
+      "line": 75,
+      "expression": "self._present",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/shell.py",
+      "line": 197,
+      "expression": "self._present",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 51,
+      "expression": "self._loaded",
+      "operation": "Store"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 52,
+      "expression": "self._context_nodes",
+      "operation": "Store"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 114,
+      "expression": "self.intent.selected",
+      "operation": "Store"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 248,
+      "expression": "self.intent.selected",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 236,
+      "expression": "self._restore_reader",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 251,
+      "expression": "self.intent.selected",
+      "operation": "Store"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 301,
+      "expression": "self._restore_reader",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 376,
+      "expression": "self._context_nodes",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 408,
+      "expression": "self.intent.selected",
+      "operation": "Store"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 109,
+      "expression": "self._context_nodes",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 110,
+      "expression": "self._loaded",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 200,
+      "expression": "self._present",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 209,
+      "expression": "self.intent.selected",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 217,
+      "expression": "self._context_nodes",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 218,
+      "expression": "self._loaded",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 249,
+      "expression": "self._context_nodes",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 260,
+      "expression": "self._restore_cursor",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 276,
+      "expression": "self._present",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 291,
+      "expression": "self._context_nodes",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 292,
+      "expression": "self._loaded",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 309,
+      "expression": "self.intent.selected",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 365,
+      "expression": "self._context_nodes",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 367,
+      "expression": "self.intent.selected",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 384,
+      "expression": "self._loaded",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 386,
+      "expression": "self._loaded",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 406,
+      "expression": "self.intent.selected",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 168,
+      "expression": "self._present",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 250,
+      "expression": "self._context_nodes",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 255,
+      "expression": "self._context_nodes",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 241,
+      "expression": "self._context_nodes",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 381,
+      "expression": "self._context_nodes",
+      "operation": "Load"
+    },
+    {
+      "file": "src/toad/widgets/project_directory_tree.py",
+      "line": 81,
+      "expression": "self.cursor_line",
+      "operation": "Store"
+    },
+    {
+      "file": "src/textual/widgets/_directory_tree.py",
+      "line": 370,
+      "expression": "self.cursor_line",
+      "operation": "Store"
+    },
+    {
+      "file": "src/textual/widgets/_directory_tree.py",
+      "line": 274,
+      "expression": "self.cursor_line",
+      "operation": "Load"
+    },
+    {
+      "file": "src/textual/widgets/_directory_tree.py",
+      "line": 328,
+      "expression": "self.cursor_line",
+      "operation": "Store"
+    },
+    {
+      "file": "src/textual/widgets/_directory_tree.py",
+      "line": 275,
+      "expression": "self.cursor_line",
+      "operation": "Load"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 971,
+      "expression": "self.cursor_line",
+      "operation": "Load"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 972,
+      "expression": "self.cursor_line",
+      "operation": "Store"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1178,
+      "expression": "self.cursor_line",
+      "operation": "Store"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1491,
+      "expression": "self.cursor_line",
+      "operation": "Store"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1498,
+      "expression": "self.cursor_line",
+      "operation": "Store"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1503,
+      "expression": "self.cursor_line",
+      "operation": "Store"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1512,
+      "expression": "self.cursor_line",
+      "operation": "Store"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 989,
+      "expression": "self.cursor_line",
+      "operation": "Load"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1009,
+      "expression": "Tree.cursor_line",
+      "operation": "Load"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1293,
+      "expression": "self.cursor_line",
+      "operation": "Load"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1473,
+      "expression": "self.cursor_line",
+      "operation": "Load"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1474,
+      "expression": "self.cursor_line",
+      "operation": "Store"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1476,
+      "expression": "self.cursor_line",
+      "operation": "Store"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1477,
+      "expression": "self.cursor_line",
+      "operation": "Load"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1481,
+      "expression": "self.cursor_line",
+      "operation": "Load"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1482,
+      "expression": "self.cursor_line",
+      "operation": "Store"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1484,
+      "expression": "self.cursor_line",
+      "operation": "Store"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1485,
+      "expression": "self.cursor_line",
+      "operation": "Load"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1489,
+      "expression": "self.cursor_line",
+      "operation": "Load"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1490,
+      "expression": "self.cursor_line",
+      "operation": "Store"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1492,
+      "expression": "self.cursor_line",
+      "operation": "Load"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1496,
+      "expression": "self.cursor_line",
+      "operation": "Load"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1497,
+      "expression": "self.cursor_line",
+      "operation": "Store"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1499,
+      "expression": "self.cursor_line",
+      "operation": "Load"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1504,
+      "expression": "self.cursor_line",
+      "operation": "Load"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1513,
+      "expression": "self.cursor_line",
+      "operation": "Load"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1532,
+      "expression": "self.cursor_line",
+      "operation": "Load"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1295,
+      "expression": "self.cursor_line",
+      "operation": "Store"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1296,
+      "expression": "self.cursor_line",
+      "operation": "Load"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1297,
+      "expression": "self.cursor_line",
+      "operation": "Store"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1424,
+      "expression": "self.cursor_line",
+      "operation": "Load"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1518,
+      "expression": "self.cursor_line",
+      "operation": "Load"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1535,
+      "expression": "self.cursor_line",
+      "operation": "Load"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1464,
+      "expression": "self.cursor_line",
+      "operation": "Store"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 976,
+      "expression": "self.cursor_line",
+      "operation": "Load"
+    }
+  ],
+  "limit": "Lexical receiver names do not prove dynamic dispatch; native Tree semantics read directly."
+}

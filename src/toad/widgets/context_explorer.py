@@ -48,7 +48,6 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         self._inspection: ContextInspection | None = None
         self._native = None
         self._observed_revision = None
-        self._loaded: set[str] = set()
         self._context_nodes = {}
 
     def compose(self):
@@ -107,7 +106,6 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             return
         self.workers.cancel_node(self)
         self._context_nodes.clear()
-        self._loaded.clear()
         self.owner, self.wire_root = owner, root
         self._inspection, self._native = None, None
         self._observed_revision = None
@@ -210,30 +208,60 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             return
         self.workers.cancel_group(self, "context-search")
         tree = self.query_one(Tree)
-        # These groups have no context payload. Preserve their original native
-        # disclosure resources when a contributor publication rebuilds members,
-        # including while the reader is navigating away from a recorded request.
-        groups = {node.label.plain: node.is_expanded for node in tree.root.children}
-        self._context_nodes.clear()
-        self._loaded.clear()
-        with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
-            tree.clear()
+        groups = []
+        if native is not None:
+            groups.extend((
+                ("Current Core instructions · before next input", inspection.contributors(native), True),
+                ("Current native base · before next input and provider hooks", inspection.active(native), True),
+            ))
+        groups.append(("Recorded requests · source evidence, not today's base", inspection.recorded(), False))
+        # Keep native TreeNodes: Tree._build rebases its cursor by node identity.
+        # Contributor publication must not destroy an unrelated recorded reader.
+        with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected,
+                          Tree.NodeHighlighted):
             tree.root.set_label("Context")
             tree.root.expand()
-            if native is not None:
-                label = "Current Core instructions · before next input"
-                core = tree.root.add(label, expand=groups.get(label, True))
-                for model in inspection.contributors(native):
-                    self._add(core, model)
-                label = "Current native base · before next input and provider hooks"
-                active = tree.root.add(label, expand=groups.get(label, True))
-                for model in inspection.active(native):
-                    self._add(active, model)
-            label = "Recorded requests · source evidence, not today's base"
-            recorded = tree.root.add(label, expand=groups.get(label, False))
-            for model in inspection.recorded():
-                self._add(recorded, model)
+            labels = {label for label, _, _ in groups}
+            for node in tuple(tree.root.children):
+                if node.data is not None or node.label.plain not in labels:
+                    self._retire(node)
+            for index, (label, models, expanded) in enumerate(groups):
+                group = next((node for node in tree.root.children
+                              if node.label.plain == label), None)
+                if group is None:
+                    group = tree.root.add(label, before=index, expand=expanded)
+                self._reconcile(group, models)
         self._restore_reader("Select a context segment to inspect.")
+
+    def _reconcile(self, parent, models):
+        previous = {node.data.key: node for node in parent.children}
+        for index, model in enumerate(models):
+            node = previous.pop(model.key, None)
+            if node is None:
+                self._add(parent, model, before=index)
+                continue
+            original = node.data
+            if original != model:
+                node.data = model
+                if self.intent.selected is original:
+                    self.intent.selected = model
+                    self._show_detail(model)
+            if node.label.plain != model.label:
+                node.set_label(model.label)
+            # Children and allow_expand own lazy materialization, including
+            # an already-inspected empty leaf. No separate loaded-key roster.
+            if node.children or not node.allow_expand or node.is_expanded:
+                self._reconcile(node, model.children())
+                node.allow_expand = bool(node.children)
+        for node in previous.values():
+            self._retire(node)
+
+    def _retire(self, node):
+        for child in tuple(node.children):
+            self._retire(child)
+        if node.data is not None:
+            self._context_nodes.pop(node.data.key)
+        node.remove()
 
     def _restore_reader(self, placeholder):
         with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
@@ -252,12 +280,15 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             # A rematerialized selected request still belongs to its original
             # Tree path. Reveal that path before moving its native cursor;
             # group disclosure is a rendering resource, not source authority.
-            ancestor = self._context_nodes[selected.key].parent
-            with self.prevent(Tree.NodeExpanded):
-                while ancestor is not None:
-                    ancestor.expand()
-                    ancestor = ancestor.parent
-            self.call_after_refresh(self._restore_cursor, model)
+            # A retained native cursor already belongs to human navigation.
+            # Restore only after an actual projection replacement/remount.
+            if self.query_one(Tree).cursor_node is None:
+                ancestor = self._context_nodes[selected.key].parent
+                with self.prevent(Tree.NodeExpanded):
+                    while ancestor is not None:
+                        ancestor.expand()
+                        ancestor = ancestor.parent
+                self.call_after_refresh(self._restore_cursor, model)
         else:
             # A pending/unavailable original observation cannot revoke the
             # reader's choice. Reuse it when its node is materialized again.
@@ -289,7 +320,6 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             return
         tree = self.query_one(Tree)
         self._context_nodes.clear()
-        self._loaded.clear()
         with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
             tree.clear()
             description = selected.search_description() if selected is not None else "Current public context"
@@ -362,17 +392,19 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
                 self.notify(f"Exported selected public text and source to {destination}")
 
     def _restore_cursor(self, model):
+        tree = self.query_one(Tree)
         node = self._context_nodes.get(model.key)
         if (self._owns_node(node) and node.data is model
-                and self.intent.selected is model):
+                and self.intent.selected is model
+                and (tree.cursor_node is None or tree.cursor_node is node)):
             # Restoring this exact reader choice owns its detail publication.
             # A second queued highlight must not cancel/re-read the same source.
             with self.prevent(Tree.NodeHighlighted):
-                self.query_one(Tree).move_cursor(node, animate=False)
+                tree.move_cursor(node, animate=False)
             self._show_detail(model)
 
-    def _add(self, parent, model):
-        node = parent.add(model.label, model, allow_expand=True)
+    def _add(self, parent, model, *, before=None):
+        node = parent.add(model.label, model, before=before, allow_expand=True)
         self._context_nodes[model.key] = node
         return node
 
@@ -381,9 +413,8 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
                 and self._context_nodes.get(node.data.key) is node)
 
     def _expand(self, node):
-        if not self._owns_node(node) or node.data.key in self._loaded:
+        if not self._owns_node(node) or node.children or not node.allow_expand:
             return
-        self._loaded.add(node.data.key)
         for model in node.data.children():
             self._add(node, model)
         node.allow_expand = bool(node.children)

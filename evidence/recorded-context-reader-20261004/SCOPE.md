@@ -181,3 +181,29 @@ bind_owned own its startup. No fork, input, provider or priming operation.
 Native Return selects the original revealed member once. Final recorded
 text/search/exact contributor/full read/copy/export/footer are not claimed
 until this actual journey reaches and verifies them. Prior negatives remain.
+
+## Native Tree resource lifetime closure
+
+The source risk is broader than one control coordinate: contributor changes
+called tree.clear, destroying the native cursor node and every unchanged
+recorded branch, then scheduled cursor restoration from reader intent.
+Textual Tree._build already rebases cursor_line from its retained cursor_node.
+ContextExplorer now reconciles the original members in place. Native group
+disclosure, child materialization and cursor identity survive unrelated updates.
+Actual removed nodes retire through the same owner. The separate _loaded roster
+and its consumers are deleted: native children/allow_expand own materialization.
+
+Only a real projection replacement/remount restores a missing native cursor.
+A delayed restoration cannot override an already-acquired human cursor. Search
+result/error, detail/full/copy/export still use the original selected reader and
+backend source membership. No source-text cache, provenance copy, retry, delay
+or coordinate guard. The relative physical control borrows cursor_line from
+the same native Tree; all reveal callers use it.
+
+Original09 did not retain callback-level timestamps, so this source closure is
+not a claim that a particular contributor callback caused its one-line overrun.
+The possible lazy geometry ordering in Textual relative-key methods is shared
+directly with its owner; TreeNode.line alone is a cached field, not a solution.
+Qualified615 receiving source is normally joined. One affected native/recorded
+reader journey will use the explicitly granted previous485 candidate, original
+c603p01 request/fork/incarnation and no new input/provider/fork.
