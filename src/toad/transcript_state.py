@@ -20,6 +20,10 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     reports_coverage: ClassVar[bool] = False
     accepts_source_work: ClassVar[bool] = False
 
+    def blocks_visible_read(self, owner) -> bool:
+        """An unpublished source must settle before its cursor is read."""
+        return True
+
     async def execute(self, owner, work):
         raise RuntimeError("The transcript source has no admitted operation")
 
@@ -83,6 +87,9 @@ class LiveTranscript(TranscriptState):
     reports_coverage = True
     accepts_source_work = True
 
+    def blocks_visible_read(self, owner) -> bool:
+        return owner.has_newer or not owner.checkpoint_available
+
     def reserve(self, owner) -> "WorkingTranscript":
         return WorkingTranscript(self, owner)
 
@@ -101,6 +108,10 @@ class LiveTranscript(TranscriptState):
 @dataclass(frozen=True)
 class SuspendedTranscript(TranscriptState):
     source: TranscriptState
+
+    def blocks_visible_read(self, owner) -> bool:
+        """Retained or retiring custody has no current paint obligation."""
+        return False
 
     @property
     def reports_coverage(self) -> bool:
@@ -154,6 +165,10 @@ class WorkingTranscript(SuspendedTranscript):
         # The inherited source snapshot stays immutable. Only this operation's
         # bounded pending resource changes, never a second history-level flag.
         self.pending_request: ViewportRequest = IdleViewportRequest()
+
+    def blocks_visible_read(self, owner) -> bool:
+        """An admitted source operation must settle before its cursor is read."""
+        return True
 
     def progressed(self, owner) -> bool:
         """Source publication or original reader intent may need another edge.
