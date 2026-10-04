@@ -110,3 +110,14 @@ Physical05 marker-label grammar and06 generic focus-click failures remain raw.
 Physical07 focused Tree and revealed from a real materialized line, then lost
 the recorded group during navigation; whole journey failed. All original inputs
 and saved/public source hashes stayed unchanged and owned children retired.
+
+## Accepted crash fix and delivery order
+
+Normal joined receiving4162420 with the accepted415 selected_categories/mount
+family and merged Text49 metadata. No local SeekingFilter patch. The physical
+journey now performs ordinary declared menus, tags/rename/delete and slash
+controls before current-preview and recorded reading. Reached capture phases
+are retained on later failure, without turning partial phases into readiness.
+417 must not hold the accepted right-sidebar crash fix. The previous334 code
+loan was normally restored and closed; parent explicitly granted the next
+sequential loan with the retained Text49 wheel, unchangedCore039/d5/69.

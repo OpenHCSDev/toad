@@ -61,7 +61,38 @@ def load_recorder():
                 return "\n".join((
                     mark + "saved --wait-history-seconds 12 --wait-history-thread configured-source",
                     "key ctrl+b", "sleep 1", mark + "roster",
-                    click("phase-roster-state.pickle", "right_sidebar"),
+                    "sleep 1", mark + "menus-ready",
+                    click("phase-menus-ready-state.pickle", "thread", "configured-source", 3),
+                    "sleep 1", mark + "thread-menu",
+                    click("phase-thread-menu-state.pickle", "menu_action", "thread-tags"),
+                    "sleep 1", mark + "thread-tags-form",
+                    click("phase-thread-tags-form-state.pickle", "widget", "Input#command-field-tags"),
+                    "key Home shift+End BackSpace", "type --clearmodifiers " + shlex.quote(os.environ["TOAD_CONTEXT_AUDIT_TAGS"]),
+                    mark + "thread-tags-review",
+                    click("phase-thread-tags-review-state.pickle", "widget", "Button#command-apply"),
+                    "sleep 2", mark + "tag-applied",
+                    click("phase-tag-applied-state.pickle", "channel", "#review417", 3),
+                    "sleep 1", mark + "tag-menu",
+                    click("phase-tag-menu-state.pickle", "menu_action", "rename-tag"),
+                    "sleep 1", mark + "rename-form",
+                    click("phase-rename-form-state.pickle", "widget", "Input#command-field-new-name"),
+                    "key Home shift+End BackSpace", "type --clearmodifiers review417-renamed",
+                    mark + "rename-review",
+                    click("phase-rename-review-state.pickle", "widget", "Button#command-apply"),
+                    "sleep 2", mark + "renamed",
+                    click("phase-renamed-state.pickle", "channel", "#review417-renamed"),
+                    "sleep 2", mark + "channel-open",
+                    click("phase-channel-open-state.pickle", "editor"),
+                    "type --clearmodifiers '/pin-channel '", "key Return", "sleep 2", mark + "slash-executed",
+                    click("phase-slash-executed-state.pickle", "channel", "#review417-renamed", 3),
+                    "sleep 1", mark + "delete-menu",
+                    click("phase-delete-menu-state.pickle", "menu_action", "delete-tag"),
+                    "sleep 1", mark + "delete-review",
+                    click("phase-delete-review-state.pickle", "widget", "Button#command-apply"),
+                    "sleep 2", mark + "deleted",
+                    click("phase-deleted-state.pickle", "thread", "configured-source"),
+                    "sleep 1", mark + "menus-returned",
+                    click("phase-menus-returned-state.pickle", "right_sidebar"),
                     "sleep 7", mark + "context-open",
                     click("phase-context-open-state.pickle", "context_tree"),
                     "key End space End", "sleep 1", mark + "recorded-request",
@@ -94,36 +125,7 @@ def load_recorder():
                     "sleep 2", mark + "exact-contributor",
                     selected("exact-contributor", "TOAD_RECORDED_COORDINATION_NODE"),
                     "sleep 2", mark + "recorded-coordination",
-                    click("phase-recorded-coordination-state.pickle", "right_sidebar"),
-                    "sleep 1", mark + "menus-ready",
-                    click("phase-menus-ready-state.pickle", "thread", "configured-source", 3),
-                    "sleep 1", mark + "thread-menu",
-                    click("phase-thread-menu-state.pickle", "menu_action", "thread-tags"),
-                    "sleep 1", mark + "thread-tags-form",
-                    click("phase-thread-tags-form-state.pickle", "widget", "Input#command-field-tags"),
-                    "key Home shift+End BackSpace", "type --clearmodifiers " + shlex.quote(os.environ["TOAD_CONTEXT_AUDIT_TAGS"]),
-                    mark + "thread-tags-review",
-                    click("phase-thread-tags-review-state.pickle", "widget", "Button#command-apply"),
-                    "sleep 2", mark + "tag-applied",
-                    click("phase-tag-applied-state.pickle", "channel", "#review417", 3),
-                    "sleep 1", mark + "tag-menu",
-                    click("phase-tag-menu-state.pickle", "menu_action", "rename-tag"),
-                    "sleep 1", mark + "rename-form",
-                    click("phase-rename-form-state.pickle", "widget", "Input#command-field-new-name"),
-                    "key Home shift+End BackSpace", "type --clearmodifiers review417-renamed",
-                    mark + "rename-review",
-                    click("phase-rename-review-state.pickle", "widget", "Button#command-apply"),
-                    "sleep 2", mark + "renamed",
-                    click("phase-renamed-state.pickle", "channel", "#review417-renamed"),
-                    "sleep 2", mark + "channel-open",
-                    click("phase-channel-open-state.pickle", "editor"),
-                    "type --clearmodifiers '/pin-channel '", "key Return", "sleep 2", mark + "slash-executed",
-                    click("phase-slash-executed-state.pickle", "channel", "#review417-renamed", 3),
-                    "sleep 1", mark + "delete-menu",
-                    click("phase-delete-menu-state.pickle", "menu_action", "delete-tag"),
-                    "sleep 1", mark + "delete-review",
-                    click("phase-delete-review-state.pickle", "widget", "Button#command-apply"),
-                    "sleep 2", mark + "deleted", "",
+                    "",
                 ))
             query = os.environ.get("TOAD_CONTEXT_AUDIT_QUERY", "")
             if os.environ.get("TOAD_CONTEXT_AUDIT_SOURCE_ONLY") == "1":
@@ -408,6 +410,14 @@ async def run(options):
         receipt.update(state="FAILED_NO_REPLAY", error=repr(error))
         raise
     finally:
+        if options.recorded_audit:
+            # Preserve reached visible controls even when a later recorded
+            # source step fails. Captured phases are evidence, not readiness.
+            receipt["captured_phases"] = [path.stem.removeprefix("phase-")
+                for path in sorted((base / "capture").glob("phase-*.png"),
+                                   key=lambda path: path.stat().st_mtime)]
+            receipt["menu_original_tags_restored"] = (
+                service.registry.require(previous.name).tags == tags_before)
         if owner is not None:
             # Capture the original retained resource even if recorder/control
             # failure occurred before the success assertions.
