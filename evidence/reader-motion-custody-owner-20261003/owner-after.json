@@ -1,0 +1,93 @@
+{
+  "head": "b6b58956f0c44ed83e70d5bfe6b97e36d0d72369",
+  "modules": 288,
+  "unparsed": [],
+  "sites": [
+    {
+      "path": "src/toad/transcript_filter.py",
+      "line": 115,
+      "kind": "call",
+      "source": "owner.projected_source"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 57,
+      "kind": "declaration",
+      "source": "source_snapshot"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 66,
+      "kind": "declaration",
+      "source": "reserve_source_work"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 74,
+      "kind": "call",
+      "source": "self.reserve_source_work"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 56,
+      "kind": "declaration",
+      "source": "_translate_motion"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 71,
+      "kind": "declaration",
+      "source": "_translate_motion"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 50,
+      "kind": "call",
+      "source": "cls._translate_motion"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 465,
+      "kind": "declaration",
+      "source": "projected_source"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 547,
+      "kind": "declaration",
+      "source": "on_mount"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 552,
+      "kind": "declaration",
+      "source": "_finish_mount"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 989,
+      "kind": "declaration",
+      "source": "_finish_mount"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 993,
+      "kind": "call",
+      "source": "self.reserve_source_work"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 618,
+      "kind": "call",
+      "source": "self.reserve_source_work"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 1006,
+      "kind": "call",
+      "source": "self.reserve_source_work"
+    }
+  ],
+  "removed_consumers": [],
+  "dynamic_limits": "No claim about external aliases/subclasses or runtime receiver resolution; native unchanged from before249 parsed modules."
+}
