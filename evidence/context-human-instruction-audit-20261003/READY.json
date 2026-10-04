@@ -3,8 +3,8 @@
   "frontend_source_head": "4297f73a21880693e200b49d2210356b8e7e5100",
   "installed_frontend_head": "0de3ab02c154b375f3cad7be10b02eb274ea5c4b",
   "installed_core": "dbcf3ae4a47b629c85027c0def993a9614fadc6c",
-  "final_core_pin": "b0e5b57be2b3d78bc3b2fb2f960c78aabfa84a5c",
-  "final_core_delta": "dbcf\u2192b0: CLI captured-text completeness and two original manifest computed properties; stack/native-turn-context.mjs records transformed input captured_text for future native producer. Current context/source API unchanged; immutable native89 did not compile or qualify that future producer change.",
+  "final_core_pin": "0e28f21cd41e6af8391b2940bf6ae51cdab6b5e3",
+  "final_core_delta": "Merged603 qualifies actual recorded SDK producer/readings with d5. Current inspected frontend source byte-identical to accepted898; original03/05 installed-native89 evidence scope unchanged, no claim of new installed paired603-d5 UI.",
   "native": "89b56aea0bb128c4bf3e2c979de8a5afa79ac88b1f51a74c49cc1cab46da60d2",
   "textual": "c26499bf66768027ce0128532fb2d43db3e214e0",
   "packages": 69,
@@ -111,7 +111,7 @@
     "authenticated_file_original_equal": true
   },
   "remaining": {
-    "historical_original_request": "Exact original captured values/recovery needs matched future native artifact and separately qualified production path; current base is never substituted",
+    "historical_original_request": "Backend603 matchedd5 now accepted actual sealed request; full recorded SDK segment UI projection/search remains separate frontend consumer scope. Current preview never substitutes for original request.",
     "context_footer": "Context unavailable footer persists while explorer current values work; precise original facts sent Mendel runtime status owner, no frontend status copy/label workaround",
     "public_delivery": "Parent owns publication; no default/package/owner/public change by this frontend gate"
   },
@@ -121,5 +121,131 @@
     "/home/ts/.cache/agent-scratch/context406-instruction-audit-20261003-03",
     "/home/ts/.cache/agent-scratch/context406-instruction-audit-20261003-04",
     "/home/ts/.cache/agent-scratch/context406-instruction-audit-20261003-05"
-  ]
+  ],
+  "joined_main414_core603": {
+    "previous_ready": "89821663bea4cf8fa97b75a048d9e7b5db071d6b",
+    "joined_source": "a50e5d9a487d0fb01f066cdd96d97d0a3d2ca05d",
+    "main": "12198e663795d6b8f754599e9e13255cac9fa054",
+    "normal_merge": true,
+    "conflicts": [
+      "pyproject.toml",
+      "uv.lock"
+    ],
+    "core_pin": "0e28f21cd41e6af8391b2940bf6ae51cdab6b5e3",
+    "textual_pin": "7ccfcf6af55ac6e743220aa0d2286b9763ccee27",
+    "lock": "normal uv lock resolved99 incl optional/dev packages2.12s; changed only Core source plus its declared requires-dist Git pin against currentmain; no environment install",
+    "qualified_frontend_bytes": {
+      "src/toad/core/context_inspection.py": {
+        "sha256": "9796c99cd70c837abe4c7805bb623a0d8a717bb42901c979746eff64400b0d3a",
+        "equal_qualified_previous_head": true
+      },
+      "src/toad/widgets/context_explorer.py": {
+        "sha256": "bfe8f4ae7323ca6da506b0e0b6ad0d096bb2348c71e39c6f75f5112218f617a7",
+        "equal_qualified_previous_head": true
+      },
+      "tests/cold_context_installed_physical.py": {
+        "sha256": "349900762f4d86c868c2e7d41fd4e98ffa6fbe79ce94d3481179a39d1ce75aa2",
+        "equal_qualified_previous_head": true
+      },
+      "tools/performance/capture_state.py": {
+        "sha256": "7c55f3d9bce4c39928d2f81b070ea1f85bf9029c058d59fd78b393819b9f8d2f",
+        "equal_qualified_previous_head": true
+      },
+      "tools/performance/click_history.py": {
+        "sha256": "e328c2412d1fb0f87adacd064550ff8d68133b7c1a3e031a0a8e1e542bc20193",
+        "equal_qualified_previous_head": true
+      }
+    },
+    "existing_physical_evidence": [
+      {
+        "path": "evidence/context-human-instruction-audit-20261003/installed-current/physical01/terminal-receipt.json",
+        "sha256": "ac18ee2800900c6937eb7cd4ac1580b0b0de6e532a7f53529477e8189f1475da"
+      },
+      {
+        "path": "evidence/context-human-instruction-audit-20261003/installed-current/physical01/capture-receipt.json",
+        "sha256": "c851ab2fd30309d7964381387ee0571c227590ffe7023747da4b6c6b83765309"
+      },
+      {
+        "path": "evidence/context-human-instruction-audit-20261003/installed-current/physical01/recorder.log",
+        "sha256": "406a620b1300efbcd084a745a14cf424635ed7e180e8b98f6273ec3bf71ebfe3"
+      },
+      {
+        "path": "evidence/context-human-instruction-audit-20261003/installed-current/physical05/terminal-receipt.json",
+        "sha256": "cbdb4841dbdbfd6e9bad47a95967c9b86fea8a22d4fe2f4937a787502348d3f9"
+      },
+      {
+        "path": "evidence/context-human-instruction-audit-20261003/installed-current/physical05/capture-receipt.json",
+        "sha256": "5750f62ef72758aedbe34be719ff563b6d829a2baec78fda16a4be0cf5eb3ba7"
+      },
+      {
+        "path": "evidence/context-human-instruction-audit-20261003/installed-current/physical05/recorder.log",
+        "sha256": "391c5cc8ae9b1439bf3cc39198ca377320f42535342ad6890aea4bf7f375900c"
+      },
+      {
+        "path": "evidence/context-human-instruction-audit-20261003/installed-current/physical05/phase-authenticated-source.png",
+        "sha256": "92c5dc3b266e095f9357c9626c0787bc83123cbdb983b5a38e48df60be3c48de"
+      },
+      {
+        "path": "evidence/context-human-instruction-audit-20261003/installed-current/physical03/phase-instruction.png",
+        "sha256": "095868096eebc93c8187eb9a0a4a1edb2dc681f77070ef0f8cbec9821a91e73b"
+      },
+      {
+        "path": "evidence/context-human-instruction-audit-20261003/installed-current/physical03/terminal-receipt.json",
+        "sha256": "ca4ae427195deb554b0d9d89ae45585ffb95cfc0c41236a3cc52891d03471975"
+      },
+      {
+        "path": "evidence/context-human-instruction-audit-20261003/installed-current/physical03/capture-receipt.json",
+        "sha256": "121e6185807b9ea06cc3e52fa2d70106c19ee20a17bcf3383e58b3c84e850d02"
+      },
+      {
+        "path": "evidence/context-human-instruction-audit-20261003/installed-current/physical03/recorder.log",
+        "sha256": "581490d146af7ad651203a4494d726b4b4b1d9428707086c5eb82939d6620072"
+      },
+      {
+        "path": "evidence/context-human-instruction-audit-20261003/installed-current/physical03/phase-full-read.png",
+        "sha256": "7c5672af947b328a10ad0b5fb3db7a486a5a9c149310af9277956b0c5200d4eb"
+      },
+      {
+        "path": "evidence/context-human-instruction-audit-20261003/installed-current/physical04/terminal-receipt.json",
+        "sha256": "b5823596fe0ad15ae7960d7a53781abca4d58899eb579ca1b5d6d5d9c91d1a45"
+      },
+      {
+        "path": "evidence/context-human-instruction-audit-20261003/installed-current/physical04/capture-receipt.json",
+        "sha256": "7a9f4b8b4848a72fc2235093193e65cf6f89259b840784b29729ded04df86fea"
+      },
+      {
+        "path": "evidence/context-human-instruction-audit-20261003/installed-current/physical04/recorder.log",
+        "sha256": "3e56cd22f05548bf269dc61e63418e84ecb8e8964d900dee7f99b21f846fb784"
+      },
+      {
+        "path": "evidence/context-human-instruction-audit-20261003/installed-current/physical02/terminal-receipt.json",
+        "sha256": "a0d45f46d416eb7dfd30943712a6fe6ce1a682a885c1de0e758efeda149c9371"
+      },
+      {
+        "path": "evidence/context-human-instruction-audit-20261003/installed-current/physical02/capture-receipt.json",
+        "sha256": "f8c9a10281e0a8017045579f3ba6cbd37d7edf27369ea48bb49fe19f2bc6b39e"
+      },
+      {
+        "path": "evidence/context-human-instruction-audit-20261003/installed-current/physical02/recorder.log",
+        "sha256": "d38dd50311a63351a5761815161541a6bc29658f37a17885ed8ad41299808fd1"
+      }
+    ],
+    "core_current_api": "context, context_source and context_reference consumer signatures unchanged; observation/source membership remains original backend-owned; ContextSourceText still existing FieldCodec response",
+    "new_recorded_source": "603 original onContextReady sealed provider request, one selected-request SDK read and root/child relation now backend qualified. No current preview substitution or new frontend source codec.",
+    "accepted_backend_proof": {
+      "path": "/home/ts/wt/comms-retained-human-main-20261001/evidence/context-source603-configured-publication-20261003/configured-receipt.json",
+      "sha256": "ca0a8545c889a4dd9a540516cd16385ab3a4f9c061a61535cd21bf16cbca62ed",
+      "scope": "CONFIGURED_MODEL_ON_CONTEXT_READY_PUBLISHED_AND_READ_PASS",
+      "request_id": "f948ca63-c6b5-4ca5-a4d5-f7c624762478",
+      "native": "d5efa0d56e7ad3962bf3efc009adf1569167a260f1ceb46824c9271a0e7542a2",
+      "original_source_unchanged": true,
+      "root_read": true,
+      "system_read": true
+    },
+    "new_frontend_runs": 0,
+    "provider_calls": 0,
+    "new_env_native_wt": false,
+    "package_borrow": null,
+    "remaining_gap": "Current instructions/authenticated-file frontend scope is Ready and source-identical. Recorded manifest nodes currently present source metadata and authenticated source references; full sealed SDK segment read/search through context_recorded_segment is a subsequent frontend consumer gap, not proven by old03/05. The matched603 d5 backend is accepted; no provider input required to continue that scope. Footer status remains original606 owner, no mirror."
+  }
 }
