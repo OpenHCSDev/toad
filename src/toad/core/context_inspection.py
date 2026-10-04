@@ -421,7 +421,6 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
 
     name = ""
     root = None
-    native_present = False
 
     @classmethod
     def for_owner(cls, name: str, root: str | None) -> InspectionState:
@@ -476,7 +475,8 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
     def search_current(self, captured) -> bool:
         return False
 
-    def contains_native(self, native) -> bool:
+    def contains_native(self, matches) -> bool:
+        """Ask the acquired native resource; unread states own no such resource.""""
         return False
 
     @property
@@ -561,7 +561,7 @@ class HoldingInspection(InspectionState):
         return await self.inspection.find(sources, query)
 
     def native_matches(self, current):
-        return not current.native_present
+        return not current.contains_native(bool)
 
     def search_current(self, captured) -> bool:
         return self.same_source(captured.inspection) and captured.native_matches(self)
@@ -574,7 +574,6 @@ class HoldingInspection(InspectionState):
 @dataclass(frozen=True)
 class NativeInspection(HoldingInspection):
     native: NativeContextData
-    native_present = True
 
     def receive_inspection(self, acquired) -> InspectionState:
         if self.same_source(acquired.inspection):
@@ -610,11 +609,11 @@ class NativeInspection(HoldingInspection):
     def current_roots(self):
         return (*self.inspection.contributors(self.native), *self.inspection.active(self.native))
 
-    def contains_native(self, native) -> bool:
-        return self.native is native
+    def contains_native(self, matches) -> bool:
+        return matches(self.native)
 
     def native_matches(self, current):
-        return current.contains_native(self.native)
+        return current.contains_native(lambda native: native is self.native)
 
     @property
     def status(self):

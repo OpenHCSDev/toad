@@ -135,7 +135,7 @@ class ContextTreeTarget(NativeFocusTarget):
     @classmethod
     def reveal(cls, snapshot, args):
         focused = snapshot['metadata']['screen']['focused']
-        if (focused['class'], focused['id']) != ('Tree', 'context-tree'):
+        if (focused['class'], focused['id']) != ('ContextTree', 'context-tree'):
             raise ValueError('Reveal requires the actually focused native context Tree')
         context = cls.selected_view(snapshot)['context']
         node, = (node for node in context['nodes'] if node['key'] == args.name)
@@ -163,7 +163,7 @@ class ContextTreeTarget(NativeFocusTarget):
                 raise ValueError("Selected original context node has no visible native target")
             return node["target"]
         tree, = (node for node in snapshot["metadata"]["navigation_targets"]["widgets"]
-                 if node["class"] == "Tree" and node["id"] == "context-tree")
+                 if node["class"] == "ContextTree" and node["id"] == "context-tree")
         return tree
 
 

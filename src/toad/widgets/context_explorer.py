@@ -28,6 +28,166 @@ class ContextTreeIntent:
     selected: ContextNode | None = None
     query: str = ""
 
+    def search_current(self, query, selected):
+        return self.query == query and self.selected is selected
+
+    def rebind(self, original, model, show_detail):
+        if self.selected is original:
+            self.selected = model
+            show_detail(model)
+
+    def restore(self, nodes, restore_node):
+        if self.selected is None:
+            return False
+        node = nodes.get(self.selected.key)
+        if node is None:
+            return False
+        self.selected = node.data
+        restore_node(node, self.selected)
+        return True
+
+    def with_selected(self, model, consume):
+        if self.selected is model:
+            consume(model)
+
+
+class ContextTree(Tree[ContextNode]):
+    """Native nodes, disclosure and cursor share the Tree's mounted lifetime."""
+
+    def __init__(self, intent, show_detail, show_placeholder):
+        self.intent = intent
+        self.show_detail = show_detail
+        self.show_placeholder = show_placeholder
+        self.context_nodes = {}
+        super().__init__("Context", id="context-tree")
+
+    def clear(self):
+        self.context_nodes.clear()
+        return super().clear()
+
+    def on_unmount(self):
+        self.context_nodes.clear()
+
+    def present(self, groups):
+        # Reconcile the original TreeNodes so Tree._build rebases its cursor.
+        with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected,
+                          Tree.NodeHighlighted):
+            self.root.set_label("Context")
+            self.root.expand()
+            labels = {label for label, _, _ in groups}
+            for node in tuple(self.root.children):
+                if self.owns_node(node) or node.label.plain not in labels:
+                    self._retire(node)
+            for index, (label, models, expanded) in enumerate(groups):
+                group = next((node for node in self.root.children
+                              if node.label.plain == label), None)
+                if group is None:
+                    group = self.root.add(label, before=index, expand=expanded)
+                self._reconcile(group, models)
+        self.restore_reader("Select a context segment to inspect.")
+
+    def search_results(self, matches, description, query):
+        with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
+            self.clear()
+            self.root.set_label(f"{description} · {query}")
+            self.root.expand()
+            for model in matches:
+                self._add(self.root, model)
+        self.restore_reader("Select a matching original source to read its full public text.")
+
+    def _reconcile(self, parent, models):
+        previous = {node.data.key: node for node in parent.children}
+        for index, model in enumerate(models):
+            node = previous.pop(model.key, None)
+            if node is None:
+                self._add(parent, model, before=index)
+                continue
+            original = node.data
+            if original != model:
+                node.data = model
+                self.intent.rebind(original, model, self.show_detail)
+            if node.label.plain != model.label:
+                node.set_label(model.label)
+            # Native disclosure remembers inspected empty leaves as well as
+            # materialized children; unopened nodes remain lazy.
+            if node.children or not node.allow_expand or node.is_expanded:
+                self._reconcile(node, model.children())
+                node.allow_expand = bool(node.children)
+        for node in previous.values():
+            self._retire(node)
+
+    def _retire(self, node):
+        for child in tuple(node.children):
+            self._retire(child)
+        if self.owns_node(node):
+            self.context_nodes.pop(node.data.key)
+        node.remove()
+
+    def restore_reader(self, placeholder):
+        with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
+            pending = list(self.context_nodes.values())
+            while pending:
+                node = pending.pop()
+                if node.data.key in self.intent.expanded:
+                    self._expand(node)
+                    node.expand()
+                    pending.extend(node.children)
+        if not self.intent.restore(self.context_nodes, self._reveal_restored):
+            self.show_placeholder(placeholder)
+
+    def _reveal_restored(self, node, model):
+        # Preserve an actual human cursor. Reveal only a rematerialized choice.
+        if self.cursor_node is None:
+            ancestor = node.parent
+            with self.prevent(Tree.NodeExpanded):
+                while ancestor is not None:
+                    ancestor.expand()
+                    ancestor = ancestor.parent
+            self.call_after_refresh(self.intent.with_selected, model, self._restore_cursor)
+
+    def _restore_cursor(self, model):
+        node = self.context_nodes.get(model.key)
+        if (self.owns_node(node) and node.data is model
+                and (self.cursor_node is None or self.cursor_node is node)):
+            with self.prevent(Tree.NodeHighlighted):
+                self.move_cursor(node, animate=False)
+            self.show_detail(model)
+
+    def _add(self, parent, model, *, before=None):
+        node = parent.add(model.label, model, before=before, allow_expand=True)
+        self.context_nodes[model.key] = node
+        return node
+
+    def owns_node(self, node):
+        if node is None:
+            return False
+        if node.data is None:
+            return False
+        return self.is_attached and self.context_nodes.get(node.data.key) is node
+
+    def _expand(self, node):
+        if not self.owns_node(node) or node.children:
+            return
+        # TreeNode owns whether this native disclosure still admits expansion.
+        if node.allow_expand:
+            for model in node.data.children():
+                self._add(node, model)
+            node.allow_expand = bool(node.children)
+
+    @on(Tree.NodeExpanded, "#context-tree")
+    def node_expanded(self, event):
+        if self.owns_node(event.node):
+            self.intent.expanded.add(event.node.data.key)
+            self._expand(event.node)
+
+    @on(Tree.NodeCollapsed, "#context-tree")
+    def node_collapsed(self, event):
+        if self.owns_node(event.node):
+            self.intent.expanded.discard(event.node.data.key)
+
+    def selected(self, model):
+        return self.owns_node(self.cursor_node) and self.cursor_node.data is model
+
 
 class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
     DEFAULT_CSS = """
@@ -45,7 +205,6 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         super().__init__()
         self.state = InspectionState.for_owner(owner, root)
         self.intent = intent
-        self._context_nodes = {}
 
     def compose(self):
         yield Static("Context · select a segment to inspect", markup=False,
@@ -56,7 +215,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             yield Button("Search", id="context-find")
             yield Button("Read full", id="context-read-full")
             yield Button("Copy", id="context-copy")
-        yield Tree[ContextNode]("Context", id="context-tree")
+        yield ContextTree(self.intent, self._show_detail, self._show_placeholder)
         yield TextArea("No context selected.", read_only=True, soft_wrap=True,
                        show_line_numbers=False, id="context-detail")
         yield Input(placeholder="Export to a new text file · path", id="context-export-path")
@@ -105,10 +264,9 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         if self.state.bound_to(owner, root):
             return
         self.workers.cancel_node(self)
-        self._context_nodes.clear()
         self.state = InspectionState.for_owner(owner, root)
         self.intent.selected = None
-        self.query_one(Tree).clear()
+        self.query_one(ContextTree).clear()
         self.query_one(TextArea).load_text("No context selected.")
         self.action_refresh()
 
@@ -180,91 +338,15 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             updated.present(self._present)
         self.query_one(".context-status", Static).update(updated.status)
 
+    def _show_placeholder(self, placeholder):
+        self.query_one(TextArea).load_text(placeholder)
+
     def _present(self, captured: HoldingInspection):
         if self.intent.query:
             self._search(captured, self.intent.query, self.intent.selected)
             return
         self.workers.cancel_group(self, "context-search")
-        tree = self.query_one(Tree)
-        groups = captured.groups()
-        # Keep native TreeNodes: Tree._build rebases its cursor by node identity.
-        # Contributor publication must not destroy an unrelated recorded reader.
-        with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected,
-                          Tree.NodeHighlighted):
-            tree.root.set_label("Context")
-            tree.root.expand()
-            labels = {label for label, _, _ in groups}
-            for node in tuple(tree.root.children):
-                if node.data is not None or node.label.plain not in labels:
-                    self._retire(node)
-            for index, (label, models, expanded) in enumerate(groups):
-                group = next((node for node in tree.root.children
-                              if node.label.plain == label), None)
-                if group is None:
-                    group = tree.root.add(label, before=index, expand=expanded)
-                self._reconcile(group, models)
-        self._restore_reader("Select a context segment to inspect.")
-
-    def _reconcile(self, parent, models):
-        previous = {node.data.key: node for node in parent.children}
-        for index, model in enumerate(models):
-            node = previous.pop(model.key, None)
-            if node is None:
-                self._add(parent, model, before=index)
-                continue
-            original = node.data
-            if original != model:
-                node.data = model
-                if self.intent.selected is original:
-                    self.intent.selected = model
-                    self._show_detail(model)
-            if node.label.plain != model.label:
-                node.set_label(model.label)
-            # Children and allow_expand own lazy materialization, including
-            # an already-inspected empty leaf. No separate loaded-key roster.
-            if node.children or not node.allow_expand or node.is_expanded:
-                self._reconcile(node, model.children())
-                node.allow_expand = bool(node.children)
-        for node in previous.values():
-            self._retire(node)
-
-    def _retire(self, node):
-        for child in tuple(node.children):
-            self._retire(child)
-        if node.data is not None:
-            self._context_nodes.pop(node.data.key)
-        node.remove()
-
-    def _restore_reader(self, placeholder):
-        with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
-            # Restore expansions without fetching referenced files or rebuilding text.
-            pending = list(self._context_nodes.values())
-            while pending:
-                node = pending.pop()
-                if node.data.key in self.intent.expanded:
-                    self._expand(node)
-                    node.expand()
-                    pending.extend(node.children)
-        selected = self.intent.selected
-        if selected is not None and selected.key in self._context_nodes:
-            model = self._context_nodes[selected.key].data
-            self.intent.selected = model
-            # A rematerialized selected request still belongs to its original
-            # Tree path. Reveal that path before moving its native cursor;
-            # group disclosure is a rendering resource, not source authority.
-            # A retained native cursor already belongs to human navigation.
-            # Restore only after an actual projection replacement/remount.
-            if self.query_one(Tree).cursor_node is None:
-                ancestor = self._context_nodes[selected.key].parent
-                with self.prevent(Tree.NodeExpanded):
-                    while ancestor is not None:
-                        ancestor.expand()
-                        ancestor = ancestor.parent
-                self.call_after_refresh(self._restore_cursor, model)
-        else:
-            # A pending/unavailable original observation cannot revoke the
-            # reader's choice. Reuse it when its node is materialized again.
-            self.query_one(TextArea).load_text(placeholder)
+        self.query_one(ContextTree).present(captured.groups())
 
     @on(Input.Changed, "#context-search")
     def query_changed(self, event):
@@ -289,29 +371,19 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             return
         if not self._searching(captured, query, selected):
             return
-        tree = self.query_one(Tree)
-        self._context_nodes.clear()
-        with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
-            tree.clear()
-            description = selected.search_description() if selected is not None else "Current public context"
-            tree.root.set_label(f"{description} · {query}")
-            tree.root.expand()
-            for model in matches:
-                self._add(tree.root, model)
+        description = selected.search_description() if selected is not None else "Current public context"
+        self.query_one(ContextTree).search_results(matches, description, query)
         status.update(f"{len(matches)} matching sources · first 100 shown · {description}")
-        self._restore_reader("Select a matching original source to read its full public text.")
 
     def _searching(self, captured, query, selected):
-        return (self.is_attached and not get_current_worker().is_cancelled
-                and self.state.search_current(captured)
-                and self.intent.query == query
-                and self.intent.selected is selected)
+        return (self._reading(captured) and self.state.search_current(captured)
+                and self.intent.search_current(query, selected))
 
     @on(Button.Pressed, "#context-read-full")
     @work(group="context-full-read", exclusive=True, exit_on_error=False)
     async def action_read_full(self):
-        node = self.query_one(Tree).cursor_node
-        if not self._owns_node(node):
+        node = self.query_one(ContextTree).cursor_node
+        if not self.query_one(ContextTree).owns_node(node):
             return
         model = node.data
         try:
@@ -327,8 +399,8 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
     @on(Button.Pressed, "#context-copy")
     @work(group="context-copy", exclusive=True, exit_on_error=False)
     async def action_copy(self):
-        node = self.query_one(Tree).cursor_node
-        if self._owns_node(node):
+        node = self.query_one(ContextTree).cursor_node
+        if self.query_one(ContextTree).owns_node(node):
             model = node.data
             try:
                 detail = await model.read()
@@ -343,8 +415,8 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
     @on(Button.Pressed, "#context-export")
     @work(group="context-export", exclusive=True, exit_on_error=False)
     async def action_export(self):
-        node = self.query_one(Tree).cursor_node
-        if not self._owns_node(node):
+        node = self.query_one(ContextTree).cursor_node
+        if not self.query_one(ContextTree).owns_node(node):
             return
         model = node.data
         destination = self.query_one("#context-export-path", Input).value.strip()
@@ -360,59 +432,17 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             if self.is_attached:
                 self.notify(f"Exported selected public text and source to {destination}")
 
-    def _restore_cursor(self, model):
-        tree = self.query_one(Tree)
-        node = self._context_nodes.get(model.key)
-        if (self._owns_node(node) and node.data is model
-                and self.intent.selected is model
-                and (tree.cursor_node is None or tree.cursor_node is node)):
-            # Restoring this exact reader choice owns its detail publication.
-            # A second queued highlight must not cancel/re-read the same source.
-            with self.prevent(Tree.NodeHighlighted):
-                tree.move_cursor(node, animate=False)
-            self._show_detail(model)
-
-    def _add(self, parent, model, *, before=None):
-        node = parent.add(model.label, model, before=before, allow_expand=True)
-        self._context_nodes[model.key] = node
-        return node
-
-    def _owns_node(self, node):
-        return (self.is_attached and node is not None and node.data is not None
-                and self._context_nodes.get(node.data.key) is node)
-
-    def _expand(self, node):
-        if not self._owns_node(node) or node.children or not node.allow_expand:
-            return
-        for model in node.data.children():
-            self._add(node, model)
-        node.allow_expand = bool(node.children)
-
-    @on(Tree.NodeExpanded, "#context-tree")
-    def node_expanded(self, event):
-        if self._owns_node(event.node):
-            self.intent.expanded.add(event.node.data.key)
-            self._expand(event.node)
-
-    @on(Tree.NodeCollapsed, "#context-tree")
-    def node_collapsed(self, event):
-        if self._owns_node(event.node):
-            self.intent.expanded.discard(event.node.data.key)
-
     @on(Tree.NodeHighlighted, "#context-tree")
     def node_highlighted(self, event):
         event.stop()
-        if self._owns_node(event.node):
+        if self.query_one(ContextTree).owns_node(event.node):
             if self.intent.selected is not event.node.data:
                 self.workers.cancel_group(self, "context-search")
             self.intent.selected = event.node.data
             self._show_detail(event.node.data)
 
     def _selected(self, model):
-        if not self.is_attached:
-            return False
-        node = self.query_one(Tree).cursor_node
-        return node is not None and node.data is model and self._owns_node(node)
+        return self.query_one(ContextTree).selected(model) if self.is_attached else False
 
     @work(group="context-detail", exclusive=True, exit_on_error=False)
     async def _show_detail(self, model):

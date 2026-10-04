@@ -307,7 +307,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                         # same label is visible; ask the original line owner.
                         materialized = {tree.get_node_at_line(line): line
                                         for line in range(tree.last_line + 1)}
-                        for model in node._context_nodes.values():
+                        for model in tree.context_nodes.values():
                             target = None
                             line = materialized.get(model, -1)
                             label_region = tree._get_label_region(line) if line >= 0 else None
@@ -327,7 +327,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                         view["context"] = {
                             "cursor_line": tree.cursor_line,
                             "owner": node.state.name, "root": node.state.root,
-                            "native_present": node.state.native_present,
+                            "native_present": node.state.contains_native(bool),
                             "status": str(node.query_one(".context-status", Static).content),
                             "detail": detail.text,
                             "selected": node.intent.selected.key if node.intent.selected is not None else None,
