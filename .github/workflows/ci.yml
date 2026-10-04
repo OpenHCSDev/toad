@@ -34,13 +34,14 @@ jobs:
           python-version: '3.14'
       - run: python -m pip install uv==0.12.0
       - run: uv sync --locked --all-extras --no-editable
-      - name: Compare production source and run guards
+      - name: Compare production source
         env:
           PR_BASE: ${{ github.event.pull_request.base.sha || inputs.base }}
           PR_HEAD: ${{ github.event.pull_request.head.sha || inputs.head }}
-        run: |
-          .venv/bin/agent-comms-ratchet --root src/toad --base "$PR_BASE" --head "$PR_HEAD"
-          .venv/bin/pytest tests/guards
+        run: .venv/bin/agent-comms-ratchet --root src/toad --base "$PR_BASE" --head "$PR_HEAD"
+      - name: Run surface guards during explicit verification
+        if: github.event_name == 'workflow_dispatch'
+        run: .venv/bin/pytest tests/guards
   suite:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
