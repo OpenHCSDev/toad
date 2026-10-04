@@ -5,7 +5,7 @@
 This branch normally joins actual ToAd main
 `cb9bd5c89e821f45b53d465d38d11894336fa406`. Its `src/tests/tools` are
 byte-identical to that merge. The only product metadata difference is the
-accepted Core `ad7e582f3e7536d3b76f95ec6da1e1fd8122ee20` source pin and
+actual merged Core `a38c06de24315fa868de45786e01fefadb0aaef1` source pin and
 three existing lock references; the dependency graph is unchanged.
 ParentDocs432 remains Draft and is excluded. W6/Core627/native7a/schema10,
 unqualified443/prefetch and other unfinished source are excluded.
@@ -33,17 +33,19 @@ Old 8ac represents the historical 22-check artifact and is not this source.
 
 ## Original canonical and native owners
 
-All 51 ordinary canonical members match exact Coread7 Git bytes/modes/blobs.
-The only change against public440 is retained_index_writer.py; no reset is
-selected. Global extension activation is outside the ordinary51.
+All 51 ordinary canonical members match exact Corea38 Git bytes/modes/blobs.
+Changes against public440 are retained_index_writer.py and
+publish_retained_summary.py. The latter adds original InstalledSource.command_arguments
+only; require_original/publication semantics are unchanged. No reset is selected. Global extension activation is outside the ordinary51.
 The immutable086 manifest/tree and all three forced package resources match.
 No native trust execution or old SDK/App qualification is repeated here.
 
 `MERGED-RECEIVING-COMMAND-PLAN.json` proposes exact future command/path operands
 using target Python `-I -B -c`, explicit trusted canonical-directory admission
 and runpy. This avoids the preserved old436 isolated-script import failure.
-No canonical files, typed cohort, runtime plan or receipt have been created
-for execution. Their exact target/source relation and once-only freeze follow
+The51 canonical source files have been prepared from exact Corea38 Git in a new
+own directory; earlier ad7 source/manifest remain held. No typed cohort, runtime
+plan or receipt has been created for execution. Their exact target/source relation and once-only freeze follow
 an actual receiving grant. Parent alone owns fresh admission/publication and
 identity/default acceptance; no old operation is repeated.
 
@@ -80,3 +82,14 @@ App/SDK/provider/input/movie, canonical control copies or public guard attempt.
 Publish this exact source checkpoint, request the fresh receiving purpose,
 then stage retained qualified wheels and freeze a new own cohort/once-operation
 for Parent review. Full performance and unfinished W6 do not hold this delivery.
+
+## Actual merged Core662 source update
+
+Corea38 was normally selected after actual662 main merge. All347 retained5f
+assets and full runtime/stack/.pi/pyproject/README remain byte-equal. Exactly
+publish_retained_summary.py changes among canonical51:19 original
+InstalledSource.command_arguments lines. The new a38 manifest records actualGit
+bytes and modes; it does not claim equality with the earlier ad7 canonical member.
+Receiving pin and three existing lock references now name actuala38, with no
+resolve, build or installed control repeat. Bohr binds this updated tuple to
+the fresh ordinary444 preparation grant before any prefix/import/stage access.

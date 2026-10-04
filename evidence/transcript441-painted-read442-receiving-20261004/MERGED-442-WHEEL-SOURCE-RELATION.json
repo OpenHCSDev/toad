@@ -1,11 +1,11 @@
 {
   "state": "MERGED_SOURCE_AND_RETAINED_WHEEL_EQUAL; awaiting fresh eligible receiving purpose",
-  "receiving_product_source": "cbd97c60cc1feb85962fff9ca98a58d2f881ae8a",
+  "receiving_product_source": "6da629a40e51f49e3899521b9b1a38f29b56370b",
   "actual_Toad_main": "cb9bd5c89e821f45b53d465d38d11894336fa406",
-  "Core_source_pin": "ad7e582f3e7536d3b76f95ec6da1e1fd8122ee20",
+  "Core_source_pin": "a38c06de24315fa868de45786e01fefadb0aaef1",
   "wheel_relations": {
     "core": {
-      "source_git": "ad7e582f3e7536d3b76f95ec6da1e1fd8122ee20",
+      "source_git": "a38c06de24315fa868de45786e01fefadb0aaef1",
       "original_wheel": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/c4-queued-reservation656-wheel-20261004/agent_comms-0.1.0-py3-none-any.whl",
       "wheel_sha256": "5f1667ce64c58d67e153850be91dfb669ea9e347218f8d845937a1c12c778a9c",
       "wheel_bytes": 881624,
@@ -2802,7 +2802,7 @@
       ]
     },
     "toad": {
-      "source_git": "cbd97c60cc1feb85962fff9ca98a58d2f881ae8a",
+      "source_git": "6da629a40e51f49e3899521b9b1a38f29b56370b",
       "original_wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript442-checkpoint-source-lifetime-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
       "wheel_sha256": "ec36aaa4546d7c8a00bbb0775eba2aa00b7e2634217a1e9fbdf75a2b18512676",
       "wheel_bytes": 2247108,
@@ -7634,7 +7634,7 @@
     "archive_origin": "Retained original file wheels; preserve actual build source and ArchiveDirectURL, never fabricate VCS origin"
   },
   "canonical": {
-    "source": "ad7e582f3e7536d3b76f95ec6da1e1fd8122ee20",
+    "source": "a38c06de24315fa868de45786e01fefadb0aaef1",
     "members": [
       {
         "source": "tools/cutover/carry_history_provenance.py",
@@ -7757,9 +7757,9 @@
       },
       {
         "source": "tools/cutover/publish_retained_summary.py",
-        "git_blob": "4700d5d4f55dc18d509d7530c3d0b6391b58fef8",
-        "sha256": "c146d510f445fddab2bfa4489bd7fad5530e7f9e77e73ad96c108b7647115830",
-        "bytes": 23103,
+        "git_blob": "76fec064531a198fdc475c7933a37261ad2fc0f9",
+        "sha256": "025babf120563228d99920617d34f2e4142307d38e049405d4af49b2ecd7a960",
+        "bytes": 24056,
         "git_mode": "100644"
       },
       {
@@ -7996,11 +7996,19 @@
     ],
     "members_count": 51,
     "excluded_global_extension_activation": true,
+    "changed_vs_ad7": [
+      "tools/cutover/publish_retained_summary.py"
+    ],
     "changed_vs_public440": [
-      "tools/cutover/retained_index_writer.py"
+      "tools/cutover/retained_index_writer.py",
+      "tools/cutover/publish_retained_summary.py"
     ],
     "reset_not_selected": true,
-    "new_operator_copies": 0
+    "new_operator_copies": 51,
+    "source_prepared_members": 51,
+    "prepared_source_manifest": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/manifest.json",
+    "prepared_source_manifest_sha256": "a51d2ef3a47654e9a74e9538b703ae2650748e6844d1cd80595a7e8103a01010",
+    "copies_scope": "Exact original source preparation only; no installed imports/cohort/operator execution"
   },
   "native_manifest_sha256": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
   "native_tree": "dbc88ed9231d1275da3ce218aa8919a247e41ce1f010ce765e7ac0960193f4ac",
