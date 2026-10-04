@@ -2,7 +2,10 @@
 
 Source preparation only. The existing436 stage,115 operands,274 preceding
 keepers,activation,Ready8796 and all installed prefixes remain immutable.
-Parent owns the original436 publication independently of this draft.
+Parent has now consumed the original436 operation once and verified its identity
+readback. Style22 is actual public runtime,not a private staging or restore slot.
+That publication is independent of this draft; its ordinary UI acceptance remains
+Parent-owned. No current public guard is retried here.
 
 ## Pinned source window
 
@@ -72,6 +75,29 @@ Existing Bohr70/71 records confirm nine old source copies were retired with
 published Git keepers retained. Their exact paths and receipt hashes are recorded
 in source-relations.json. This checkpoint adds no inventory,cleanup grant or
 reclaimed-byte credit and requires none of those retired copies.
+
+## Canonical source and new operation preparation
+
+`canonical-source-plan.json` binds the new ordinary51 tool set to exact Core5c
+Git blobs/modes/hashes in a separate owned output. Core now has52 cutover files;
+the additional global_extension_activation module is not imported by the ordinary
+publisher and is explicitly outside this operation. No global-extension install
+member is selected. The51 member names come from the original producer set;
+every current byte comes from Core5c,not the frozen436 copies.
+
+Native manifest,cohort_schema,local_route and native_package source bytes remain
+equal to the436 Core source. This is a source relation,not an installed Native,
+checkpoint or fullcohort gate. The current publisher uses its original typed
+ReviewedRetainedSummaryCohort/InstalledSource/ReviewedArtifact owners and original
+RetainedOwnerLaunch acquisition. PreserveRuntimeInstallation and
+PreserveOwnerRuntime retain original state; no reset/carry/replay is introduced.
+
+The new receipt/preimage locations are reserved in the source plan only. No
+receipt or preimage is created. Target,package grant,activation,installed source
+proof and reviewed cohort remain unbound until Bohr adjudicates a specific
+eligible closed holder and grants its actual next purpose. After staging,the
+original owners will qualify the candidate and freeze a fresh Parent-reviewed
+once-only command. The consumed436 command is never reused.
 
 There is no build,package install,application import,dependency resolution,
 operator copy,new grant or public operation in this source checkpoint. Actual
