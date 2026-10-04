@@ -84,7 +84,7 @@ async def row_publication() -> None:
                     await held.entered.wait()
                 workers = [worker for worker in history.workers
                            if worker.node is history and worker.group == "message-style"]
-                assert len(workers) == 1 and not workers[0].is_done
+                assert len(workers) == 1 and not workers[0].is_finished
                 first = workers[0]
                 assert tuple(message.view_key for message, _ in history.rows) == keys
                 assert all(type(widget) is WireMarkdownMessage for _, widget in history.rows)
@@ -103,7 +103,7 @@ async def row_publication() -> None:
                 displayed = tuple(body for body in bodies if body in visible)
                 assert displayed and all(body.body_ready for body in displayed)
                 app.observed_body = displayed[-1]
-                assert not first.is_done and not held.release.is_set()
+                assert not first.is_finished and not held.release.is_set()
                 checks.append("actual resize/current-source native display admission before old Unmount ends")
                 editor = chat.prompt.prompt_text_area
                 app.screen.set_focus(editor, scroll_visible=False)
@@ -112,7 +112,7 @@ async def row_publication() -> None:
                 screen.call_later(pumped.set)
                 async with asyncio.timeout(5):
                     await pumped.wait()
-                assert "style-pump" in editor.text and not first.is_done
+                assert "style-pump" in editor.text and not first.is_finished
                 checks.append("editor input and same CommsScreen pump remain admitted during style worker")
                 admitted.clear()
                 screen.call_later(start_style)
@@ -121,7 +121,7 @@ async def row_publication() -> None:
                 second = next(worker for worker in history.workers
                               if worker.node is history and worker.group == "message-style"
                               and worker is not first)
-                assert not second.is_done
+                assert not second.is_finished
             finally:
                 app.observed_body = None
                 held.release.set()
