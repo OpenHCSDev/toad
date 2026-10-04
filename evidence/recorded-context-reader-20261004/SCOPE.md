@@ -92,3 +92,21 @@ seed input, manual enrollment or provider prompt. Original c603p01 sealed reques
 and old input remain operands, not synthetic copies. Footer acceptance compares
 actual visible ContextMeasurement with canonical AgentInfo publication from the
 existing606 StatsRequest/AgentEventConsumer path. No segment-derived totals.
+
+## Native group disclosure resource
+
+ContextExplorer._present borrows the existing Tree's group disclosure before
+replacing contributor members. The three group nodes have no context payload;
+their native disclosure is a bounded rendering resource. Previously each
+publication reset that resource to the constructor default, so keyboard movement
+away from the request could hide the recorded branch. No persistent group map,
+semantic state, context text or second registry is added. Search retains its
+separate current/selected scope and original membership fence.
+
+Physical04 EOF detail remains unclassified. The original controller stderr has
+no native exception/cancellation timeline; missing-child selection and teardown
+permit cancellation but do not prove it. No backend patch or native-fault claim.
+Physical05 marker-label grammar and06 generic focus-click failures remain raw.
+Physical07 focused Tree and revealed from a real materialized line, then lost
+the recorded group during navigation; whole journey failed. All original inputs
+and saved/public source hashes stayed unchanged and owned children retired.

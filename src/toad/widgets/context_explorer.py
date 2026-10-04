@@ -210,6 +210,10 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             return
         self.workers.cancel_group(self, "context-search")
         tree = self.query_one(Tree)
+        # These groups have no context payload. Preserve their original native
+        # disclosure resources when a contributor publication rebuilds members,
+        # including while the reader is navigating away from a recorded request.
+        groups = {node.label.plain: node.is_expanded for node in tree.root.children}
         self._context_nodes.clear()
         self._loaded.clear()
         with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
@@ -217,13 +221,16 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             tree.root.set_label("Context")
             tree.root.expand()
             if native is not None:
-                core = tree.root.add("Current Core instructions · before next input", expand=True)
+                label = "Current Core instructions · before next input"
+                core = tree.root.add(label, expand=groups.get(label, True))
                 for model in inspection.contributors(native):
                     self._add(core, model)
-                active = tree.root.add("Current native base · before next input and provider hooks", expand=True)
+                label = "Current native base · before next input and provider hooks"
+                active = tree.root.add(label, expand=groups.get(label, True))
                 for model in inspection.active(native):
                     self._add(active, model)
-            recorded = tree.root.add("Recorded requests · source evidence, not today's base")
+            label = "Recorded requests · source evidence, not today's base"
+            recorded = tree.root.add(label, expand=groups.get(label, False))
             for model in inspection.recorded():
                 self._add(recorded, model)
         self._restore_reader("Select a context segment to inspect.")
