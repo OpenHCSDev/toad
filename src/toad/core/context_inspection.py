@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Awaitable, Callable
 from agent_comms.field_codec import FieldCodec
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.coordinator import Coordination
+from agent_comms.working_memory_annotations import WorkingMemoryAnnotations
 from agent_comms.mro_dispatch import handles
 from toad.core.projection import MroProjection
 from agent_comms.native_turn_context import NativeContextData
@@ -445,8 +446,8 @@ class ContextInspection:
     def read(cls, comms, owner):
         thread = comms.registry.require(owner)
         manifests = comms.bus.log.context_manifests(owner, comms.registry)
-        with Coordination(str(comms.root / "coordination.sqlite3")) as store:
-            annotations = store.annotations.for_context(manifests, JevClassifier.version())
+        annotations = WorkingMemoryAnnotations.for_context(
+            comms.root / "coordination.sqlite3", manifests, JevClassifier.version())
         return cls(thread, manifests, SessionRevision.observe(thread.session_file), comms, annotations)
 
     def same_native_source(self, other: ContextInspection):
