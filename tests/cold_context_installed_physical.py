@@ -244,9 +244,32 @@ async def check_reader_lifetime(command, declared, system_key):
                 assert tree.get_node_at_line(tree.cursor_line) is original
                 assert tree.context_nodes[system_key] is original
                 assert explorer.intent.selected is original.data
+            # The disposable native Tree must release its nodes on unmount.
+            # The existing reader intent belongs to the enclosing view and is
+            # lent to the replacement widget through the original constructor.
+            parent, intent = explorer.parent, explorer.intent
+            bound_name, bound_root = explorer.state.name, explorer.state.root
+            await explorer.remove()
+            from toad.core.context_inspection import DetachedInspection
+
+            assert isinstance(explorer.state, DetachedInspection)
+            assert not tree.context_nodes
+            assert intent.selected.key == system_key
+            replacement = ContextExplorer(bound_name, bound_root, intent=intent)
+            await parent.mount(replacement)
+            replacement.action_refresh()
+            while not replacement.state.contains_native(bool):
+                await pilot.pause()
+                await asyncio.sleep(.05)
+            await pilot.pause()
+            replacement_tree = replacement.query_one(Tree)
+            assert replacement.intent.selected.key == system_key
+            assert replacement_tree.cursor_node.data is replacement.intent.selected
+            assert replacement_tree.context_nodes[system_key] is replacement_tree.cursor_node
             assert app._exception is None
             return {"native_tree_node_retained": True, "selected_original": system_key,
-                    "contributor_remove_and_return": True, "actual_registered_acp_app": True}
+                    "contributor_remove_and_return": True, "actual_registered_acp_app": True,
+                    "retirement_and_remount": True}
 
 
 async def run(options):
@@ -310,15 +333,17 @@ async def run(options):
             XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(base / "state"),
             XDG_DATA_HOME=str(base / "data"), TOAD_TEST_ATTEMPT="Einstein-cold595-physical01")
         if options.recorded_audit:
+            from agent_comms.turn_context import SystemLayerSegment, TranscriptSegment, CoordinationSegment
+
             if options.recorded_reader_only:
                 environment['TOAD_RECORDED_READER_ONLY'] = '1'
             manifest, = (m for m in manifests_before if m.request_id == options.request_id)
             recorded = next(n for n in inspection.recorded() if n.manifest == manifest)
-            system, = (n for n in recorded.children() if n.segment.kind == "system_layer")
-            transcript, = (n for n in recorded.children() if n.segment.kind == "transcript")
+            system, = (n for n in recorded.children() if n.segment.kind is SystemLayerSegment)
+            transcript, = (n for n in recorded.children() if n.segment.kind is TranscriptSegment)
             coordination, = (leaf for member in transcript.children() if isinstance(member, RecordedSegmentNode)
                              for leaf in member.children() if isinstance(leaf, RecordedSegmentNode)
-                             and leaf.segment.kind == "coordination")
+                             and leaf.segment.kind is CoordinationSegment)
             assert 'review417' not in tags_before and 'review417-renamed' not in tags_before
             environment.update(TOAD_RECORDED_CONTEXT_AUDIT="1",
                 TOAD_RECORDED_REQUEST_NODE=recorded.key, TOAD_RECORDED_SYSTEM_NODE=system.key,
