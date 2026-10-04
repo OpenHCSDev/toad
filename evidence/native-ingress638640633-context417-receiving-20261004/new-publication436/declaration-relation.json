@@ -1,0 +1,16 @@
+{
+  "whole_declared_native_schema_equal": true,
+  "product_equal": false,
+  "source_core": "d41601c16d74e9e3e4195b6527fb218b8fe14af9",
+  "target_core": "1a520528dfa8d5e5e1ebb13913fed3ccb3514376",
+  "original_checkpoint_schema": "c4ff566ee8f2c15407d486291971c9ef52efb99801150311a9f0fe40cd8ce8d2",
+  "target_checkpoint_schema": "c4ff566ee8f2c15407d486291971c9ef52efb99801150311a9f0fe40cd8ce8d2",
+  "changed_derived_checkpoint": false,
+  "runtime_carry_reset_required": false,
+  "runtime_member": "PreserveRuntimeInstallation",
+  "owner_member": "PreserveOwnerRuntime",
+  "original_stores_opened": false,
+  "native_unchanged": false,
+  "source_native_manifest": "2ea0a4d4ff2e362864c156e4b11642775b3f2a96e7f01522b346b6f6d9526936",
+  "target_native_manifest": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872"
+}

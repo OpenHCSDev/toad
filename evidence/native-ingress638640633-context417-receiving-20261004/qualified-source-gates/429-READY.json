@@ -1,0 +1,141 @@
+{
+  "state": "SCOPED READY; full structural/performance work remains active",
+  "installed_product_head": "4e2ad921800b33ee86b65960f564434e91579c8f",
+  "determining_product_files": [
+    "src/toad/acp/agent.py",
+    "src/toad/acp/agent_process.py",
+    "src/toad/screens/comms.py",
+    "src/toad/widgets/comms_chat.py",
+    "src/toad/widgets/conversation.py"
+  ],
+  "current_product_byte_equal_installed": true,
+  "app": {
+    "result": "pass",
+    "installed_toad": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/__init__.py",
+    "startup_owner_pump_input_resize_while_preflight_pending": true,
+    "startup_hidden_return_same_operational_owner": true,
+    "close_revokes_pending_startup_without_runner": true,
+    "hydration_owner_pump_input_resize_paint_while_navigation_pending": true,
+    "hidden_hydration_preserves_selected_focus": true,
+    "whole_app_close": true,
+    "provider_calls": 0,
+    "native_inputs": 0,
+    "scope": "Original App, Agent/preflight, native mount/worker/input pumps and compositor; controlled pending work, no terminal movie or smoothness claim"
+  },
+  "app_terminal": {
+    "case": "blank_presentation_pilot.py",
+    "risk": "Actual Conversation startup/preflight and CommsScreen hydration/navigation pending, native input/resize, hidden return/focus and whole App close",
+    "exit_code": 0,
+    "duration_seconds": 20.20678544207476,
+    "log": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/blank_presentation_pilot.py.log"
+  },
+  "core_qualified_source": "7a5c5fc2e79f2e32e4f340eaba573bf1bfec69bf",
+  "text_qualified_source": "bb936deb08cff0b676385007df52759c84356b78",
+  "native_manifest": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
+  "source_assets": 927,
+  "packages": 69,
+  "source_overlay": false,
+  "new_env_or_native_build": false,
+  "original_negatives": [
+    "01 invalid authored dictionary AgentDefinition; pre-startup failure, supervisor124",
+    "02 actualstartup/input/resize/hide/return/close reached; unmounted chat paint oracle failed exit1 19.5566s",
+    "03 control intercepted ordinary mode-switch navigation as well as hydration; supervisor124; actor registry mismatch logs retained"
+  ],
+  "classification": "04 changed fixture registers actual project actor, borrows actual admitted actor for CommsKey, and controls only original comms-content worker after native chat Mount. Product bytes never changed for these fixture corrections. Native paint is compositor proof, not terminal writer or smoothness.",
+  "limits": [
+    "No physical movie, measured FPS or CPU gain",
+    "No public086 motion or native-first-paint claim",
+    "Private protocol/registered thread and actual App used; no provider/native child input",
+    "Original multiprocessing resource-tracker warning retained; actual final allUID borrower census0refs0gaps"
+  ],
+  "keepers": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/source-proof.json",
+      "sha256": "404577cbf221a5a3168dc225ce0c23a1d8c6fbcc5fb03fd71f9094da50fd5710"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/wheel-proof.json",
+      "sha256": "208fcf25a77fee3e73ebc5cfdd73ce32b40d0cf93f3e86c1e81d8d8644206f6e"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/borrowed-artifacts.json",
+      "sha256": "2f4fbb15f68cd7b40864c0c26455748eff7200112b82c668d29d36edc0ecd3cc"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/startup-app/receipt.json",
+      "sha256": "9f9e08622ec1d850be5882cef85496f6228c7383eb52f40d9a0d79e82ca41dc9"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/app-results.json",
+      "sha256": "e025013020d999d2c310bab81449e0a41adb236b6e5c10abad30f1802ee17f97"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/blank_presentation_pilot.py.log",
+      "sha256": "130d43d1c83d61eea3b47956c0c1b075cffa2d8aa80c5cf757209ff2a1692e29"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/code-handback.json",
+      "sha256": "fe82120935cfc044dd77951cdd7c6395d492689c0f43b7ba2d181463d78c5cda"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/final-borrowers.json",
+      "sha256": "9bced2a3c9448e7c6e90dfb33bb3c7d2261d01823148a64fd151453618810ee7"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/original-floor-verification.json",
+      "sha256": "7b8b9a11e17f674ed4cd2a6125d66062c9c6989e76046ccead44e88a636c069b"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/app01-invalid-definition/app-results.json",
+      "sha256": "032d1ffe92040bd0f8eccddc145caf5bf50c2a82424f08c02b863dc25861d71d"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/app01-invalid-definition/blank_presentation_pilot.py.log",
+      "sha256": "c892d76bcc4fe4a4e24c89af38218a1d701fb4b8aafbae2e22a9eeaf73dd0ea0"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/app02-unmounted-paint-oracle/app-results.json",
+      "sha256": "4517c2c6a9639dbae99feef34bc257f26398997cfc20162dcf272f36cd5a6821"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/app02-unmounted-paint-oracle/blank_presentation_pilot.py.log",
+      "sha256": "7bf45bfbe22e608c31260bf0489f48c86f6801a06db7e358b00e65db42d17178"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/app03-global-navigation-control/app-results.json",
+      "sha256": "e081f49b921ded911df021372f31f8e656712493c12d831151ab5e60e8feb42c"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/app03-global-navigation-control/blank_presentation_pilot.py.log",
+      "sha256": "767c1bff91ac849ddc94c6f3334f2dd1162c9a860826728b15b42438840c4b77"
+    }
+  ],
+  "whole_code_handback": {
+    "state": "WHOLE Heisenberg429 style22 CODE/package/import/read/execution handback; original floor restored",
+    "time": 1791105807.4088225,
+    "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+    "original_floor": "Core611d416/Toad9138/Texta52/NRA d392/native2ea",
+    "original_archive_members_verified": 1459,
+    "all_original_bytes_readlinks_equal": true,
+    "all69_versions_equal": true,
+    "pip_check": "pass",
+    "original_activation_and_origins_equal": true,
+    "candidate_product_head": "4e2ad921800b33ee86b65960f564434e91579c8f",
+    "installed_actual_app_exit": 0,
+    "installed_actual_app_duration_seconds": 20.20678544207476,
+    "provider_calls": 0,
+    "native_inputs": 0,
+    "public_mutations": false,
+    "future_package_import_read_execution_claim": false,
+    "borrowers": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/final-borrowers.json",
+      "sha256": "9bced2a3c9448e7c6e90dfb33bb3c7d2261d01823148a64fd151453618810ee7",
+      "processes": 245,
+      "refs": 0,
+      "gaps": 0
+    },
+    "scratch_disposition": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/scratch-disposition.json",
+    "original_failed03_private_state_retained": "/home/ts/.cache/agent-scratch/startup429-native55-app-20261004-03",
+    "evidence_retained": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004"
+  }
+}

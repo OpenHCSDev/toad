@@ -1,0 +1,9 @@
+{
+  "merged_tool_core": "9dfc1de3ffb9f80d06106c6f1b630ac49dd963af",
+  "prior_reviewed_core": "5e3f68c5825e80ffe52ba431082a8c13a78428f9",
+  "core_package_stack_pyproject_lock_equal": true,
+  "tool_only_delta": "ReviewedRetainedSummaryCohort.require_original removes competing activation storage-location predicate",
+  "core_wheel_reused_sha256": "190ace615cf3c74c0b94b8060a935cd34357a2476217bfed2122626582399f3c",
+  "package_install_repeated": false,
+  "old_prefix_activation_unchanged": true
+}

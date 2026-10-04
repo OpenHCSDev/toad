@@ -1,0 +1,90 @@
+{
+  "state": "Installed original App qualified at scoped strength; physical saved-history motion pending matched original route",
+  "installed_toad_head": "4d51775ac7e5f03e84b2338312cf252019bd5201",
+  "core_source_head": "486b83666509b5db711017916343853bf8b38237",
+  "textual_build_head": "bb936deb08cff0b676385007df52759c84356b78",
+  "native_package_manifest": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
+  "normal_package_count": 69,
+  "installed_source_assets": {
+    "agent_comms": 339,
+    "toad": 319,
+    "textual": 266,
+    "textual_diff_view": 3
+  },
+  "completed_original_cases": [
+    {
+      "case": "blank_presentation_pilot.py",
+      "risk": "Changed session switching: warm A/B/A, original draft Undo, shell/watcher custody and complete disposal",
+      "exit_code": 0,
+      "duration_seconds": 14.394317290978506,
+      "log": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame426-native55-20261004/blank_presentation_pilot.py.log",
+      "log_sha256": "b5608428c68fc96d7da64ba6d156285a4732bfe68190b6a0ed5850a90dac5831"
+    },
+    {
+      "case": "sidebar_drag_resize_pilot.py",
+      "risk": "Changed asynchronous/native style publication: pointer drag and mirrored width/collapse geometry",
+      "exit_code": 0,
+      "duration_seconds": 10.988262036000378,
+      "log": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame426-native55-20261004/sidebar_drag_resize_pilot.py.log",
+      "log_sha256": "0f8045b35cbcf6b6bb1aea2c6cdb01a86aab54771b62a8066fb9607a7090e187"
+    },
+    {
+      "case": "viewport_rapid_scroll_pilot.py",
+      "risk": "Changed frame scheduling: cold body/reversal/End readiness and preserved draft/idle boundedness",
+      "exit_code": 0,
+      "duration_seconds": 39.695415111025795,
+      "log": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame426-native55-20261004/viewport_rapid_scroll_pilot.py.log",
+      "log_sha256": "def7c549cfed16b77833b8f39a10559bdd18d61b436fb5a8d33d9f5052bf94ce"
+    },
+    {
+      "case": "blank_presentation_pilot --frame-only",
+      "exit_code": 0,
+      "duration_seconds": 7.781353428028524,
+      "log": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame426-native55-20261004/frame-admission-app01.log",
+      "risk": "Hidden/inactive source admission retained; current Screen paints during pending source I/O; no global Pilot idle barrier",
+      "log_sha256": "0411f6154d6eecb6d7c1060209ec36316366eb8ced2a3db80ace067721f7d2e0"
+    }
+  ],
+  "preserved_original_failure": {
+    "case": {
+      "case": "native_goal_read_first_paint_pilot.py",
+      "risk": "Changed frame/source admission: actual native/SDK return paints while original goal read remains held",
+      "exit_code": 1,
+      "duration_seconds": 0.11452679894864559,
+      "log": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame426-native55-20261004/native_goal_read_first_paint_pilot.py.log",
+      "log_sha256": "dea54388f8359e27ecbc8ab0c712b51d84e77b17eea76e95760d7c06cdeba270"
+    },
+    "classification": "Runner omitted CORE_FIXTURE_TESTS; failed on import before App/native fixture. Required specialized original fixture contains UNKNOWN compaction outcome and was not borrowed or replayed. No goal-read/native socket acceptance."
+  },
+  "frame_scope": {
+    "result": "pass",
+    "installed_toad": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/__init__.py",
+    "hidden_source_retained_until_selected": true,
+    "native_paint_during_pending_source_callback": true,
+    "inactive_workspace_retained_until_return": true,
+    "provider_calls": 0,
+    "native_inputs": 0,
+    "scope": "Original installed App, source selection and native compositor; synchronous test driver, no terminal writer or physical motion claim"
+  },
+  "source_proof": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame426-native55-20261004/source-proof.json",
+    "sha256": "f48b3cfef8b6e9d9b2e8bcfcca87bb984aed0810acb647f9f6916cb80ea9a381"
+  },
+  "current_public_route_dependency": "Actual original public route Native2ea vs staged matching F1/Core486b Native086. No public motion/client launched, override or overlay. Existing native package remains immutable.",
+  "debt": {
+    "toad_source_head": "4d51775ac7e5f03e84b2338312cf252019bd5201",
+    "result": "SUCCESS",
+    "job": "https://github.com/OpenHCSDev/toad/actions/runs/37186372067/job/111389038873",
+    "native_current_head": "0017eebee2f7a1e725732f39dacca7b461114696",
+    "result_native": "SUCCESS",
+    "job_native": "https://github.com/OpenHCSDev/textual/actions/runs/37187122559/job/111391316952",
+    "native_source_tests_pyproject_equal_frozen_bb936": true
+  },
+  "claims_not_made": [
+    "terminal presentation rate",
+    "smoothness",
+    "comparative or total CPU gain",
+    "actual held native goal read",
+    "full performance completion"
+  ]
+}

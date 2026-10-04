@@ -1,0 +1,9 @@
+{
+  "core": "1a520528dfa8d5e5e1ebb13913fed3ccb3514376",
+  "wheel": "58a11a611069326b50b97e20f1080ce786b916e90be307495a4e4306157492f6",
+  "source344_plus_forced3_equal": true,
+  "actual_builds_by_original_owner": 1,
+  "old58a_corrected_relation": "Old58a2b alreadyequalsfinal1a: full347 originalproof, newmergedbuildbyteidentical. Old190ace637 differssevenruntimefiles. No furtherbuild/rehashrebase.",
+  "native086_unchanged": true,
+  "declaration_source_in_original_receipt": true
+}
