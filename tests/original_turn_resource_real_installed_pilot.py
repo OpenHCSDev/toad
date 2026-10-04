@@ -27,7 +27,7 @@ from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
 from toad.widgets.transcript_history import TranscriptHistory
 from l0a_native_installed_pilot import until, response_painted
-from runtime_fixture import ToadApp as FixtureApp, stop_test_children
+from runtime_fixture import ToadApp as FixtureApp, stop_test_children, retain_fixture_journals
 from saved_state_user_journey_pilot import screen_paint, submit_editor
 from original_owner_capture import CurrentTypedCapture
 
@@ -323,6 +323,10 @@ async def main(*, readonly_acceptance=None, readonly_capture=None, app_type=Reso
         receipt['children_retired'] = all(not owner.process_alive
             for owner in service.registry.all_threads().values())
         (evidence / 'receipt.json').write_text(json.dumps(receipt, indent=2))
+        if readonly_capture is not None:
+            await asyncio.to_thread(retain_fixture_journals,
+                (item['session_file'] for item in receipt.get('physical_sources', ())),
+                stage=stage, evidence=evidence)
     print('REAL_RESOURCE_CUSTODY_ACCEPTANCE', json.dumps(receipt), flush=True)
 
 
