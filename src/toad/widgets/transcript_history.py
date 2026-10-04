@@ -633,8 +633,8 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         return self.through
 
     @property
-    def checkpoint_available(self) -> bool:
-        return self.state.accepts_source_work and self.filter.checkpoint_available
+    def source_checkpoint_available(self) -> bool:
+        return self.filter.checkpoint_available
 
     def retain_committed(self, through: TranscriptCursor) -> None:
         """Extend access to saved source without moving the displayed page window."""

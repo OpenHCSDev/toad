@@ -1,0 +1,33 @@
+{
+  "tool": "existing refactor-audit Package",
+  "packages": [
+    {
+      "root": "src/toad",
+      "head": "4449e3fc293a8529c1f0c4127d3e9e13d8e67907",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "head": "4449e3fc293a8529c1f0c4127d3e9e13d8e67907",
+      "modules": 394,
+      "omissions": []
+    },
+    {
+      "root": "tools",
+      "head": "4449e3fc293a8529c1f0c4127d3e9e13d8e67907",
+      "modules": 41,
+      "omissions": []
+    }
+  ],
+  "native_dependency_unchanged_original_complete_evidence": {
+    "head": "1bdc18c363cbc0f938537a71aa8ba0225d03e25e",
+    "root": "src/textual",
+    "modules": 249,
+    "omissions": [],
+    "sites": []
+  },
+  "control_call_relation": "history_page_batch_mount_pilot.main -> existing channel_visibility_observation_pilot.checkpoint_checks; same passed originalApp/service/pilot; helper calls originalChannelHistoryReader.read after release; original task acquired before teardown",
+  "dynamic_limits": "External aliases/overrides not proved; AST is not runtime acceptance",
+  "production_equal": "35e72d0f200e7aab3eee283ad6126ce6b8065f5b"
+}

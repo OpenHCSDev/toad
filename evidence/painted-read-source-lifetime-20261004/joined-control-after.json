@@ -1,0 +1,177 @@
+{
+  "source_head": "8a98a037c29f1a8689a8b6230bad424fe02123b2",
+  "product_reference": "4406ea17d1e11ffc72c6baec98ecdae37e532130",
+  "control_sha256": "7725402f9008b30f4bcf01712e12bd3646c4b2e8bc57b143b1919637ef6e1cdd",
+  "product_dependency_delta": "",
+  "packages": [
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "8a98a037c29f1a8689a8b6230bad424fe02123b2",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "8a98a037c29f1a8689a8b6230bad424fe02123b2",
+      "root": "tests",
+      "modules": 394,
+      "omissions": [],
+      "control_sites": [
+        {
+          "line": 102,
+          "access": "history.blocks_visible_read"
+        },
+        {
+          "line": 112,
+          "access": "retired._task"
+        },
+        {
+          "line": 103,
+          "access": "history.publish_committed"
+        },
+        {
+          "line": 104,
+          "access": "history.reserve_source_work"
+        },
+        {
+          "line": 106,
+          "access": "history.blocks_visible_read"
+        },
+        {
+          "line": 121,
+          "access": "history.finish_source_work"
+        },
+        {
+          "line": 125,
+          "access": "history.blocks_visible_read"
+        },
+        {
+          "line": 126,
+          "access": "history.reserve_source_work"
+        },
+        {
+          "line": 138,
+          "access": "history.finish_source_work"
+        },
+        {
+          "line": 143,
+          "access": "history.reserve_source_work"
+        },
+        {
+          "line": 243,
+          "access": "history.blocks_visible_read"
+        },
+        {
+          "line": 243,
+          "access": "projections[-1].view.blocks_visible_read"
+        },
+        {
+          "line": 245,
+          "access": "state.view._task"
+        },
+        {
+          "line": 248,
+          "access": "newer_state.view.blocks_visible_read"
+        },
+        {
+          "line": 249,
+          "access": "stale.remove"
+        },
+        {
+          "line": 254,
+          "access": "history.filter.remove"
+        },
+        {
+          "line": 258,
+          "access": "history.reserve_source_work"
+        },
+        {
+          "line": 142,
+          "access": "history.blocks_visible_read"
+        },
+        {
+          "line": 183,
+          "access": "child._task"
+        },
+        {
+          "line": 239,
+          "access": "overlay.blocks_visible_read"
+        },
+        {
+          "line": 239,
+          "access": "history.blocks_visible_read"
+        },
+        {
+          "line": 248,
+          "access": "stale.view.blocks_visible_read"
+        },
+        {
+          "line": 257,
+          "access": "history.blocks_visible_read"
+        },
+        {
+          "line": 276,
+          "access": "pending.reserve_source_work"
+        },
+        {
+          "line": 277,
+          "access": "pending.blocks_visible_read"
+        },
+        {
+          "line": 334,
+          "access": "history.finish_source_work"
+        },
+        {
+          "line": 215,
+          "access": "child._task"
+        },
+        {
+          "line": 235,
+          "access": "history.finish_source_work"
+        },
+        {
+          "line": 299,
+          "access": "pending._task"
+        },
+        {
+          "line": 319,
+          "access": "pending.remove"
+        },
+        {
+          "line": 288,
+          "access": "pending.blocks_visible_read"
+        },
+        {
+          "line": 300,
+          "access": "pending.remove"
+        },
+        {
+          "line": 306,
+          "access": "pending.blocks_visible_read"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "8a98a037c29f1a8689a8b6230bad424fe02123b2",
+      "root": "tools",
+      "modules": 41,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "1bdc18c363cbc0f938537a71aa8ba0225d03e25e",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": []
+    }
+  ],
+  "before": "joined-control-before.json",
+  "production_owner_evidence": "owner-before.json and owner-after.json",
+  "checks": "Complete source parsing and git diff --check only. No test/App/build/package/native/physical execution.",
+  "limits": [
+    "Lexical AST does not prove external dynamic dispatch, runtime state/paint or writer acknowledgement.",
+    "All Task references are acquired before release/cancel/removal; original native completion remains the join owner."
+  ]
+}

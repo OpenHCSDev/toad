@@ -1,0 +1,780 @@
+{
+  "state": "Frozenprepared444candidate; heldParent; no publication",
+  "count": 129,
+  "artifacts": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/agent_comms-inventory.json",
+      "sha256": "1323e41fa025bdda8ce683e132a141515b3dce25c086f35937ca472ecb768dc7",
+      "bytes": 54082,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/baseline-packages.json",
+      "sha256": "111a7446e7410e32a1c2fff58b43a58572c67553f4d3eecf145ae29d953fc41b",
+      "bytes": 2835,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/candidate-activation.json",
+      "sha256": "23d4367d505a5b2b646c45c9246d47988080a37ba113551aa6361a0026166f66",
+      "bytes": 2404,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/candidate-description-correction.json",
+      "sha256": "0fb9ccc61b9759776526363a2c0d1eae43cba585dae4086982422d2f4da8485e",
+      "bytes": 730,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/manifest.json",
+      "sha256": "a51d2ef3a47654e9a74e9538b703ae2650748e6844d1cd80595a7e8103a01010",
+      "bytes": 26051,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/carry_history_provenance.py",
+      "sha256": "44735bcdd6424af4203ac75e509f8a80cf41641882b249610ccadd0215c527b2",
+      "bytes": 4308,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/checkpoint_schema.py",
+      "sha256": "0d32c74d741572f9f5a242eb34750f7c3353ee88a480957d59380afb1147adee",
+      "bytes": 548,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/cutover_child.py",
+      "sha256": "26b307ce045a4642a8dc2a9c6fef9b94900726250bb663413f256abda11fa1e3",
+      "bytes": 1298,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/execute_retained_summary_foundation.py",
+      "sha256": "49c9a05298b68ccfd91dc75c9de8980e2a0a72e6b670e45d581ccac3ae6e3a19",
+      "bytes": 1794,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/install_retained_index.py",
+      "sha256": "3060f64db3d180452452b5ec12c5cd2730f8f8052ab5676c8807f49c42b3982d",
+      "bytes": 1403,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/install_retained_routing.py",
+      "sha256": "2701b1b5a02b6cd74fe5876a9c91432ebd5344b55ee02434f61b2422c5d16531",
+      "bytes": 5358,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/install_retained_task_source.py",
+      "sha256": "75ddca28e4684173a7b9c8f6bb62dcf2cba5e9896fb9376cb0b29a314bf839c2",
+      "bytes": 5676,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/launch_thread_retirement.py",
+      "sha256": "ec08c053a8d72449606169794f07e832b35a73197fb572cd8ecc70a4e0f7e1e7",
+      "bytes": 1936,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/native_schema_carry.py",
+      "sha256": "e7faf702b534056696229c145402b935f7872e89ae8432c848cbae5cbe811534",
+      "bytes": 40441,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/native_schema_carry_controls.py",
+      "sha256": "887cf058454efd12329488fc4e3269ef1e1f17c67d8a6b32a50fd5df184fc9a1",
+      "bytes": 15645,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/old_thread_client_probe.py",
+      "sha256": "04b8aa84f8a4018c36b44632569502430f2c3a245e560140fb3ac226ec8af5e2",
+      "bytes": 2738,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/original_input_consumer_installed_pilot.py",
+      "sha256": "fdd705768adb45c73457104da9eb2ffedf581a76fffdd22c4f8ab4f60566aeb2",
+      "bytes": 2371,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/original_owner_capture.py",
+      "sha256": "d014a6828d518517e5bc93c3909bf227bd2197158f26fb75528c13c0d8934a80",
+      "bytes": 3049,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/original_owner_capture_installed_pilot.py",
+      "sha256": "3b8256606bd1d3754edda46b0232cd6bcf9e66912157cb52f8e1f6984e4d8587",
+      "bytes": 4206,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/owner_read_projection.py",
+      "sha256": "4ca5fb3d2714863ba6ddd7b01f23cd3ddccd790f612f4edd7086b4b7935876a0",
+      "bytes": 1110,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/phased_owner_kernel.py",
+      "sha256": "2f20e6e0e7a81921bd1d400cc464aa6e2080b62ba5b802026961449b839f90db",
+      "bytes": 945,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/publish_openhcs_recovery.py",
+      "sha256": "27516db16a4bec25bb37fb394e1c7bc04c567eb0a780fb1e0ed62235ca0ed9ff",
+      "bytes": 21793,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/publish_retained_summary.py",
+      "sha256": "025babf120563228d99920617d34f2e4142307d38e049405d4af49b2ecd7a960",
+      "bytes": 24056,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/read_original_owner.py",
+      "sha256": "3e61cfce03adfa059020d81c40ac5f3ef90bab1c09f602ebd614bc56c54ff053",
+      "bytes": 1519,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/read_original_task_preimage.py",
+      "sha256": "39e1b27473ce2548d3d91a0eecc01f40e8fe01c96b29727d8d7568a55c76e197",
+      "bytes": 1416,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/restart_original_thread_format.py",
+      "sha256": "19b738c2e7b398aa2fb22bcfa66d175a895312b011c234ee10a540cf68310e65",
+      "bytes": 1563,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/restart_retained_routing.py",
+      "sha256": "29ed16765498a0092df8ed4d9efa44f5bda49962f8704a9381f5aa226517abae",
+      "bytes": 1289,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/restart_thread_format.py",
+      "sha256": "f07914f665ed6a15410fead47e3fb45759fb6f319013a170e869f5931ea782c7",
+      "bytes": 4312,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/restore_stopped_owners.py",
+      "sha256": "7336914c1141c60f7769c60f45dae2279c003f4a55a1c43bb4ed4a95199f2f97",
+      "bytes": 1029,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/retained_index_cutover.py",
+      "sha256": "cfb681ea376ad06b86606e8940666932a15f29bc97b8d748d55089fd2dbe3ab9",
+      "bytes": 3194,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/retained_index_installed_pilot.py",
+      "sha256": "b4d5a234d0f4fd3ac4511b7100698352d6252c6bcb09016ee458ed304b3daf39",
+      "bytes": 2953,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/retained_index_writer.py",
+      "sha256": "7b5ea337d2bc7e30933914c9f819a0015f283b076f8db699d1a6a35095c542d4",
+      "bytes": 2231,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/retained_routing_cutover.py",
+      "sha256": "8e4b35be880c4a363a28c4f488a31ed6dc1308c8719e3266350df663bd47004a",
+      "bytes": 1549,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/retained_routing_installed_pilot.py",
+      "sha256": "8a7aab641de626a1d1a729aba8aa056b04d311fa116893f7c746d2c4a861665f",
+      "bytes": 6095,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/retained_routing_writer.py",
+      "sha256": "0b9cd2180ac03e4b1ff9f1c8c2f9977b0e777fe3f70028cb0fd5c6b02fe2aa37",
+      "bytes": 2271,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/retained_summary_reset.py",
+      "sha256": "86d28cc9f9c74c9156ee258d061168a17003ab94f6c9ba1fdaac2dd01eb8dd12",
+      "bytes": 8554,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/retained_summary_reset_controls.py",
+      "sha256": "9eacb251632d155f6db1c58999f311614781d566f10374d8b62698342b02a56a",
+      "bytes": 5204,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/retained_summary_stage_controls.py",
+      "sha256": "9c93c95987f9eabf3dcc261d8e509c7f7f47f1d8e82ab7c0d550f2e8c4aa15dc",
+      "bytes": 3953,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/retained_task_installed_pilot.py",
+      "sha256": "77625f058aa23cfcc313abe03bd4247763e9e9745a08849424e1102f856f3712",
+      "bytes": 5466,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/retained_task_source_carry.py",
+      "sha256": "fb8601288e574c14837df65840262f805c556ba0b9f9fc8511d18f95ab1a2b3e",
+      "bytes": 3143,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/retained_task_writer.py",
+      "sha256": "661cbc8aa52921375f995bacf519fd41d35af459dbaf5a76031eace671f8213f",
+      "bytes": 2277,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/routing_carry.py",
+      "sha256": "b5b502926276f78ca378828123bd26bcfe63dafe7a09be0f513d688901643188",
+      "bytes": 11450,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/routing_recovery.py",
+      "sha256": "af599ee91746123ed33606691973ef3a2a0e77e2d994cd158a1c5ddef2c2aafc",
+      "bytes": 2347,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/runtime_installation.py",
+      "sha256": "9a2a9c7ee38cc64993d6cf1c3b706e77c62668dd51d6a553a86aa01022234524",
+      "bytes": 3391,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/seed_original_owner_capture.py",
+      "sha256": "08adc6657fa631c56f2e68aa49e68ab005cee63e2caff5795d221bf1d7fbb2cf",
+      "bytes": 1659,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/seed_original_task_carry.py",
+      "sha256": "d844fb0a5a02927ea7026467317110b75f42d91c00fc5b0bebeddfe921611fe1",
+      "bytes": 1776,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/seed_retained_index_fixture.py",
+      "sha256": "29c2811f32d269c62f9d2752829cd9cac6a362ff22f08595180e43ea5d219513",
+      "bytes": 1394,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/seed_retained_routing_fixture.py",
+      "sha256": "1f0aaeaee108ebdd8989897c8eb865c51e2b1fb217af81611cb05b1e66befea7",
+      "bytes": 3352,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/seed_thread_retirement_fixture.py",
+      "sha256": "01c532fbd479e93fa11a4e7f3a825fe368d91a6a9893abb730bc641f74d18252",
+      "bytes": 9641,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/task_envelope_promotion.py",
+      "sha256": "d1d1b16a99c44fb7afab68c2021b83faa57df805b3e9fc7e4c82004037a9eef4",
+      "bytes": 3492,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/thread_format_retirement.py",
+      "sha256": "ff4ddbc314afd01e9c069a4cec5df83b204bb6fab35bcf2f5e5055b5e148de35",
+      "bytes": 1105,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/thread_retirement_cutover.py",
+      "sha256": "65c3c3305e1dc78530256f944d1aa67a2357b537c1273cc66a44e5bbd0e52338",
+      "bytes": 5931,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/thread_retirement_installed_pilot.py",
+      "sha256": "89b2eb21cad8222e7ed1a4fd5d5e2dc2fc81ab65ac3136196b0790921e447f6d",
+      "bytes": 11211,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/user_task_installed_pilot.py",
+      "sha256": "75c8cfd6a4819d16dbc87fffe0013ad526c6ede6492e083c26a0629a51c08057",
+      "bytes": 2405,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/validate_retained_routing.py",
+      "sha256": "d144e501120982e21ace4ea513cd2f2e3f9c720889ea5762f275feadb7638d96",
+      "bytes": 1379,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/canonical-source-preparation-a38c06de/tools/cutover/validate_thread_retirement.py",
+      "sha256": "8461b3cc18060e334adb8a02c938c68cf0417bcac28a01d396f15365b063a3bb",
+      "bytes": 756,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/forced-native-assets.json",
+      "sha256": "a54f24b95c394da97755915a55b651b82e7c7abebd51f486750a13fd3b14bbda",
+      "bytes": 1049,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/gate-original-relations.json",
+      "sha256": "ceed057cfcd0d71ef677aca17728bcd94f99fa0a73a93da7e3941f5d7a3dfa6c",
+      "bytes": 15353,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/install-command.json",
+      "sha256": "9199630c90f98ad890468c9fcaa3e70c2670713fc229746977dc229232a68e4b",
+      "bytes": 541,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/install-terminal.json",
+      "sha256": "9f6306a3b15dd78936ec0ec732afa4eac086a715953b9d0160e1138cd8be48eb",
+      "bytes": 641,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/install.log",
+      "sha256": "ed1378403dee8baf886c6ffbb158c4220a902cc5ebab8c61c256a449bf91d8d1",
+      "bytes": 1335,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/new-publication444/declaration-relation.json",
+      "sha256": "d49de49f36824b769f12b95a72e2fb154eefa2ca975739792e10d6c5fab22a51",
+      "bytes": 965,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/new-publication444/execute-parent-command.txt",
+      "sha256": "00f535faf33a30dd13c724490176f9b9fa144ea809829c9875b4d0dae9b66d6f",
+      "bytes": 1149,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/new-publication444/once-operands.json",
+      "sha256": "4d6ecf537f48ea6d8a5781dc5232bdd23701610549877a20a935ba35520e9567",
+      "bytes": 2616,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/new-publication444/original-declaration.json",
+      "sha256": "a55fdea16c7340284545edf8c158b0f3f75c1e308175f7b6abd7578ffc54f684",
+      "bytes": 76452,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/new-publication444/preparation-receipt.json",
+      "sha256": "15f2b4b680b33b6539f6fe51dd3391957940c96a318d1c7a39d75e620461057b",
+      "bytes": 1511,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/new-publication444/preparation.log",
+      "sha256": "8c9d560daee2db4534d41ea32a53a1f9af3421e74209ace392d36716ec07e16b",
+      "bytes": 1512,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/new-publication444/prepare_review.py",
+      "sha256": "3902597acb42edd7ce9690f328d14db9cdd0df253ba57c1a918590ccbf8f3456",
+      "bytes": 4324,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/new-publication444/readback-parent-command.txt",
+      "sha256": "b0668dff2f4ac595325d2dee3aec4e688fcbebf2ae72347bdc10cf0a4c67ba7c",
+      "bytes": 542,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/new-publication444/readback_publication.py",
+      "sha256": "764bd0471fe3373dcc1b9097251dafdd8333fcc69872ad06e972636bbd0de78f",
+      "bytes": 3760,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/new-publication444/review-plan.json",
+      "sha256": "3bfeb12bda43ddcd7550487407375a7b5fa499021bc92c7a20e964843205e891",
+      "bytes": 12245,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/new-publication444/runtime-installation.json",
+      "sha256": "717ca469bd2330bcf868ceaf572e8b128795ef3dd54885497f8e16c4680aabae",
+      "bytes": 2918,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/new-publication444/target-declaration.json",
+      "sha256": "a55fdea16c7340284545edf8c158b0f3f75c1e308175f7b6abd7578ffc54f684",
+      "bytes": 76452,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/ownership.json",
+      "sha256": "943c93ee47aac8e42222cbb3d0410acd6463cc9b13d4afa33483b6b864bd21c3",
+      "bytes": 3966,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/pip-check.log",
+      "sha256": "f1adb6b266644df99dbf72f7539b1f892fa4785d688090b61820bd674819a04c",
+      "bytes": 203,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/preparation-negative.json",
+      "sha256": "374a0d76ab468e1ee29faa79c1dd0c714d1958444823962149dfba57e3be2e5a",
+      "bytes": 325,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/protected-original390.json",
+      "sha256": "d10aa43b30767d507bdfd7643521023076a8959d47c8fcc2e9ca84b269076e6b",
+      "bytes": 88586,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/417-reader13-terminal.json",
+      "sha256": "4fafc68653effcd2b7dc90ef41fad37812fbeef58b3f052b7a30b7dd95dcaf7c",
+      "bytes": 2108,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/417-recorded14-terminal.json",
+      "sha256": "38e10b67db032655ad341d004554e5a76ebdd4a4e9d6d06840ae274fec882bc0",
+      "bytes": 41049,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/422-SCOPED-READY.json",
+      "sha256": "feec53af541b617ceef802ff43eb1c9e58d7f58632da6873665e5ef763a4d9db",
+      "bytes": 44602,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/426-APP-QUALIFIED.json",
+      "sha256": "06e36b9349e5e1f2fffde80f1b7e403f46995689643724d1256c413bd71eeb44",
+      "bytes": 5031,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/426-SCOPED-READY.json",
+      "sha256": "e39eed98a1c6d61b0fc9e586ea367535cd351722da4269a2cb5af3f0cfe89472",
+      "bytes": 8568,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/427-historical-consumer-receipt.json",
+      "sha256": "ed5b309d18b10d260bbb0fff4eaaa190026309f56781a027dc4bbac0d39bc06c",
+      "bytes": 832,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/429-INSTALLED-APP.json",
+      "sha256": "9f9e08622ec1d850be5882cef85496f6228c7383eb52f40d9a0d79e82ca41dc9",
+      "bytes": 730,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/429-READY.json",
+      "sha256": "b96ef809564c49fcd47bbfd80c2c3a88fcec14c5b9627bf2ce8e12db7f5923e8",
+      "bytes": 8279,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/430-SCOPED-READY.json",
+      "sha256": "19e0e99ddcc82a62b73b86b3787acdedf9f7d8510499fee86ab7b9a5888051cf",
+      "bytes": 5697,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/430-installed-app-terminal.json",
+      "sha256": "3191e810ee21effc21145de91108f905058d6d5ea8ef8de661e87a119e452b55",
+      "bytes": 327,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/432-SCOPED-READY.json",
+      "sha256": "e7dbf47b8c4f04c53f82942122bc8df63bf0178f3f75372978398fde8e268f9b",
+      "bytes": 8822,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/439-READY.json",
+      "sha256": "acf098c5992eb598b2e7e71a5211b95d4ef321df3c9571b894c2db5221868711",
+      "bytes": 4397,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/439-installed03-App.json",
+      "sha256": "8f1b1a6a32bce8265191e4ba701c5ef91accd280171e6a95d1a463d8cf1aaf63",
+      "bytes": 1086,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/439-installed03-terminal.json",
+      "sha256": "8c23a77134c061235237a1bfdfec246864a7c07d97209ef44b6f404e160a8d25",
+      "bytes": 608,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/442-App29-receipt.json",
+      "sha256": "288e941442ae15ca44424f33f40fcd198394e1264fabb7397273df56f7155736",
+      "bytes": 2186,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/442-App29-terminal.json",
+      "sha256": "84bcf66a2947b67e66cb58a45739d14f6c94b4d858a49b613aa642a493164c7f",
+      "bytes": 1212,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/442-BOTH-LEAVES-READY.json",
+      "sha256": "54f8916dfd34410ef7d50657d5b866297f721c8806981226d165fc61cc0ad6da",
+      "bytes": 12277,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/442-code-handback.json",
+      "sha256": "414b6ef4bcbd43e7b0879bf423593cb25c929d195c34ea39bcf4f6669f34e173",
+      "bytes": 1139,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/442-independent-handback-readback.json",
+      "sha256": "865c545a8dabd7aa124a0cb68d7ec3f3ebd522c71e791597df7528c422aa70a0",
+      "bytes": 2992,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/53-SCOPED-INSTALLED-READY.json",
+      "sha256": "56ad1141a4725708647420da832bc6ca07b3465246c7aae079e67f11d5bd7773",
+      "bytes": 3801,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/58-SCOPED-READY.json",
+      "sha256": "4d66bede0e9ae5f33601fdc47dced38b0522fca29f6b0980b8c4736da8330677",
+      "bytes": 7597,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/616-READY.json",
+      "sha256": "2fcc01694ac5eb9f4a1a9ae4ec52e393b2f6d5fb111a39174875a1bfe19892e1",
+      "bytes": 4195,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/633-READY.md",
+      "sha256": "e85bb24f37b81f7c747359cfe9206395fd3a5c2bbee40567ef121a37ae9804ab",
+      "bytes": 4029,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/637-current-preview-app.json",
+      "sha256": "2c8b4c75860231dabb89d3459389aa436f576a25b01cc8f11da1a33c8b4d8916",
+      "bytes": 747,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/637-current-preview-terminal.json",
+      "sha256": "d563c70131bb2c211d4629e389fe26b6c5ba416ec33c4a9d2dfdc23be66b497b",
+      "bytes": 448,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/638-EXECUTION-HANDBACK01.json",
+      "sha256": "6bb4baa6e91a1ad25cf61ab70fc39f61c22013a1994c129bdd7443ab38d52b27",
+      "bytes": 1069,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/640-EXECUTION-HANDBACK01.json",
+      "sha256": "7353e378c78b406d2b02991a44870cbaae2f59913b1f46be02da496b6c3f1eeb",
+      "bytes": 8347,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/640-EXECUTION-HANDBACK02.json",
+      "sha256": "b500637e38c70b79f1edcb0aa15827c286822ab5485a0494331536dccbf9c43a",
+      "bytes": 2952,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/640-EXECUTION-HANDBACK03.json",
+      "sha256": "b615d1e0a7485cfdef584527ca15d0b2f64031c435950995d9ad6c00694ab0bc",
+      "bytes": 2007,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/654-SCOPED-READY.json",
+      "sha256": "ed8f30fea9a6626bd74e1e08654afe01e8ea18fdfd665d441ff15458a56d9554",
+      "bytes": 2695,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/654-installed03-App.json",
+      "sha256": "0283de6afc3ece67590de19a7077ca770cf79513074282cbae917bc0f2348fa8",
+      "bytes": 859,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/654-installed03-terminal.json",
+      "sha256": "6da56b7228738d9d67757b438cfb201c89b75daf3fd83e123f1a7d76ab9571a9",
+      "bytes": 314,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/655-EXECUTION-HANDBACK.json",
+      "sha256": "165d440ba61bc4a274c014a9ea1de5d99b6591a4871df1574f77f4f7d18fbb6b",
+      "bytes": 3387,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/656-EXECUTION-HANDBACK01.json",
+      "sha256": "3b215e0b2401577ba423f35bdf977f494bf030e510f8efc6b10ff17584d4bd4c",
+      "bytes": 2989,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/656-EXECUTION-HANDBACK02.json",
+      "sha256": "38fd329ec30355b6a685aa68d02c307c5e4914a92df4e07af0aa94572bf501f1",
+      "bytes": 2410,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/F1-channel08-receipt.json",
+      "sha256": "b6dcd1f7ec9cc3ce41b18e656834a775af93bd6db18c7c12c5b115301199e24f",
+      "bytes": 9962,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/F1-native-delete10-receipt.json",
+      "sha256": "9a63d88b97da718dfa0cfaa15729a4719edef99739c1bfb9672aec7b5d01dbf8",
+      "bytes": 292,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/F1-start07-receipt.json",
+      "sha256": "cb04a18074b2e5aa0b8f28aba635f792c4202ddfb00e774c0d5e33c97ddb136f",
+      "bytes": 301,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/F4-app06-physical-receipt.json",
+      "sha256": "c5aa90eec5d7d59b0733561b4be66ec0f0d3c196757f8e22cc9446b735648d96",
+      "bytes": 847,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/F4-app06-terminal-receipt.json",
+      "sha256": "e83fa26a7392e47637944482cd1b404fda2a1ea4851cc981cb0a6f195a4db0f0",
+      "bytes": 4419,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/F4-core-installed-receipt.json",
+      "sha256": "58442920b84b2c05ccd708d1352edf90d1d6adef0184826e201adcb5d99e7721",
+      "bytes": 2469,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/qualified-source-gates/F4-paired-installed-final.json",
+      "sha256": "c3980f0606a8b61a0145b6a8ec8251062948582dc00a4d26be530705588e1fb7",
+      "bytes": 850,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/refactor_audit-inventory.json",
+      "sha256": "b5831ab38127f3351c738fc05e287b8766e0adbd7aa796e5ddc15936adf7bc50",
+      "bytes": 1529,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/retained-wheel-install.txt",
+      "sha256": "487cf154ed763652c30a6b365e95a1d7add3f9d1c44d8c3bc550da986dc6f78c",
+      "bytes": 309,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/source-proof.json",
+      "sha256": "bc8fce2a4f208048c4bce4748bbff530084ab60da00acbf52286689f635e3d71",
+      "bytes": 9799,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/source-verification.log",
+      "sha256": "2c327179f255f382c958f42f9ffcbc5922216f45db50bad99b518a6331b095a1",
+      "bytes": 325,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/textual-inventory.json",
+      "sha256": "deb6201c25ca3f9d0dc333e65157c13cc97139569e88d513802beaba2c9559be",
+      "bytes": 39856,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/textual_diff_view-inventory.json",
+      "sha256": "ec4c5f0a4025898ce5d6dd8233c3c7786f860bced717e16d59516d40b8269396",
+      "bytes": 460,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/toad-inventory.json",
+      "sha256": "3fb5356a622ad3a6cbfc9d284143550f04bb5bb3f0562b0a99ffcf75173b2338",
+      "bytes": 48133,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/unchanged-keepers-after.json",
+      "sha256": "c8d9abdbcc067b63e8dfd8851267c10eb737e0c8700e6742f8b31e420c6abb8c",
+      "bytes": 85,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/unchanged-keepers-before.json",
+      "sha256": "8b68d0fc25042b79ca7ea68b344effcc883be578e19ba822a9e7955644218974",
+      "bytes": 659488,
+      "mode": "0o644"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/verify_candidate.py",
+      "sha256": "f045d0be58bcd6799dae9e332ecdff4a1e0d86e121c39855903ac99872ebc68e",
+      "bytes": 9202,
+      "mode": "0o644"
+    }
+  ]
+}
