@@ -1,0 +1,43 @@
+{
+  "prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "core": "8f16339673835114f526d7431032576099764af5",
+  "toad": "0b99b39b816085ebbff96c37d2ea54644cb6aeb3",
+  "textual": "b263e4e707846025fd6b70448749c7a36c0a2d81",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-086d511f2026b10d/node_modules/@earendil-works/pi-coding-agent",
+  "archive_artifacts": [
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/original-settlement615-wheels/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "04016102e2d13ae5a5d4fabc3ada865dd39dbb8a22277d39e514202bfe0c4424"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame418-stage-20261004/live611-toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "5fa15f7d2e59cd919feedf8e49c9154dad218015356665aa525bbd82e53b4f3b"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text50-filewheel-ff5cc9c7-20261003/textual-8.2.8-py3-none-any.whl",
+      "sha256": "ddd4ae0e0a5fae1dc7465b4772e7f8bd31630d35c118a85cbc53a3cf423adbb3"
+    }
+  ],
+  "grant_status": "EXPLICIT_BOHR_SOLE_SCH_PACKAGE_GRANT",
+  "archive_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/released485-current416-package-next615-20261004/current416485-package-code-archive.json",
+  "builds": 0,
+  "new_vcs_clones": 0,
+  "public_writes": 0,
+  "gate_files": [
+    "603-configured.json",
+    "607-READY.json",
+    "609-installed.json",
+    "413-installed.json",
+    "406-READY.json",
+    "606-installed.json",
+    "415-READY.json",
+    "610-SDK-READY.json",
+    "611-READY.json",
+    "418-READY.json",
+    "608-COMPILED-READY.json",
+    "614-READY.json",
+    "615-READY.json"
+  ],
+  "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released485-current416-Sch615-package-only-grant.json",
+  "grant_sha256": "f914ec879863c089a3c9d3d4c7f30905efff7289d722aa85e7ec7aa507f18e9f"
+}

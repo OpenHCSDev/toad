@@ -1,0 +1,5 @@
+{
+  "result": "Normal source merge conflict onlypinlines, resolvedtoaccepted616/Text51; first evidencewrite failed missing sparse-owned directory after pins were resolved",
+  "effects": "Sourceonly; no package/publiceffects; priorcandidate and negative rawphysical10 preserved",
+  "correction": "mkdir owned evidencepath only, normalmerge committed/pushed"
+}

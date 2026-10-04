@@ -1,0 +1,47 @@
+{
+  "prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "core": "966e761d7932b4b3a2a54852789dccbf372d6097",
+  "toad": "7b75c6591c68243386545a11a52a212a14cbac63",
+  "textual": "2fac5395d37454296e9fa9b0cd342b820bacc25a",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-086d511f2026b10d/node_modules/@earendil-works/pi-coding-agent",
+  "archive_artifacts": [
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/original-batch616-wheels/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "aa1ec28ed8f7c47bc10ce26d4364ed7d13aed3a02ddb1ed4d7e09b743c0aad80"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sidebar420-source-20261004/final-toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "423b879d6576b7a781f1f84b6a505c800b237773fc461a1fd6859090b90e1562"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text51-filewheel-e23e6365de-20261004/textual-8.2.8-py3-none-any.whl",
+      "sha256": "dcd0d3cc11a6332866326afa0c76fb18c5df0439bf354d40fbcf9c48bf72fe77"
+    }
+  ],
+  "grant_status": "EXPLICIT_BOHR_SOLE_SCH_PACKAGE_GRANT",
+  "archive_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/released485-current416-package-next615-20261004/current416485-package-code-archive.json",
+  "builds": 0,
+  "new_vcs_clones": 0,
+  "public_writes": 0,
+  "gate_files": [
+    "603-configured.json",
+    "607-READY.json",
+    "609-installed.json",
+    "413-installed.json",
+    "406-READY.json",
+    "606-installed.json",
+    "415-READY.json",
+    "610-SDK-READY.json",
+    "611-READY.json",
+    "418-READY.json",
+    "608-COMPILED-READY.json",
+    "614-READY.json",
+    "615-READY.json",
+    "616-READY.json",
+    "420-READY.json"
+  ],
+  "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released485-current416-Sch615-package-only-grant.json",
+  "grant_sha256": "f914ec879863c089a3c9d3d4c7f30905efff7289d722aa85e7ec7aa507f18e9f",
+  "actual_417_whole_handback": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/recorded-context-reader-20261004/code-handback615-after-physical10.json",
+  "unqualified417_product_included": false
+}
