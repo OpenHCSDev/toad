@@ -221,10 +221,11 @@ async def check_reader_lifetime(command, declared, system_key):
             explorer = view.query_one(ContextExplorer)
             explorer.query_ancestor(SideBarCollapsible).collapsed = False
             explorer.action_refresh()
-            while explorer._native is None:
+            while not explorer.state.native_present:
                 await pilot.pause()
                 await asyncio.sleep(.05)
-            inspection, native = explorer._inspection, explorer._native
+            acquired = explorer.state
+            native = acquired.native
             assert native.contributors, 'This original configured source must expose contributors'
             tree = explorer.query_one(Tree)
             request_key = system_key.rsplit('/', 1)[0]
@@ -237,7 +238,7 @@ async def check_reader_lifetime(command, declared, system_key):
             await pilot.pause()
             assert explorer.intent.selected is original.data
             for acquired in (replace(native, contributors=native.contributors[1:]), native):
-                explorer._present(inspection, acquired)
+                explorer._contributors_acquired(explorer.state, acquired)
                 await pilot.pause()
                 assert tree.cursor_node is original
                 assert tree.get_node_at_line(tree.cursor_line) is original

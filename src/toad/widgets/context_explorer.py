@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
-from functools import partial
 from pathlib import Path
 
 from acp.exceptions import RequestError
@@ -12,9 +11,10 @@ from textual.containers import Horizontal, Vertical
 from textual.widgets import Button, Input, Static, TextArea, Tree
 from textual.worker import Worker, WorkerCancelled, WorkerState, get_current_worker
 from agent_comms.mro_dispatch import handles
-from agent_comms.coordinator import Coordination
 
-from toad.core.context_inspection import ContextInspection, ContextNode
+from toad.core.context_inspection import (
+    ContextNode, DetachedInspection, HoldingInspection, InspectionState,
+)
 from toad.core.events import CoordinationObserved, SessionSelected
 from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 from toad.screens.session_view import SessionView
@@ -43,11 +43,8 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
     BINDINGS = [("r", "refresh", "Refresh context")]
     def __init__(self, owner: str, root: str | None, *, intent: ContextTreeIntent):
         super().__init__()
-        self.owner, self.wire_root = owner, root
+        self.state = InspectionState.for_owner(owner, root)
         self.intent = intent
-        self._inspection: ContextInspection | None = None
-        self._native = None
-        self._observed_revision = None
         self._context_nodes = {}
 
     def compose(self):
@@ -92,8 +89,8 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         if self._working("context-read"):
             return
         access = self.app.coordination_access
-        if self._observed_revision != access.revision:
-            self._read(self.owner, self.wire_root)
+        if not self.state.observed_at(access.revision):
+            self._read()
 
     @on(Worker.StateChanged)
     def context_read_finished(self, event):
@@ -101,14 +98,15 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
                 and event.state == WorkerState.SUCCESS):
             self._observed()
 
+    def on_unmount(self):
+        self.state = DetachedInspection()
+
     def set_identity(self, owner, root):
-        if (owner, root) == (self.owner, self.wire_root):
+        if self.state.bound_to(owner, root):
             return
         self.workers.cancel_node(self)
         self._context_nodes.clear()
-        self.owner, self.wire_root = owner, root
-        self._inspection, self._native = None, None
-        self._observed_revision = None
+        self.state = InspectionState.for_owner(owner, root)
         self.intent.selected = None
         self.query_one(Tree).clear()
         self.query_one(TextArea).load_text("No context selected.")
@@ -116,105 +114,79 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
 
     def action_refresh(self):
         if self.presentation_visible():
-            self._read(self.owner, self.wire_root, force=True)
+            self._read(force=True)
 
-    def _reading(self, owner, root):
+    def _reading(self, captured):
         return (self.is_attached and not get_current_worker().is_cancelled
-                and (owner, root) == (self.owner, self.wire_root))
+                and self.state.bound_to(captured.name, captured.root))
 
     def _working(self, group):
         return any(worker.node is self and worker.group == group
                    and not worker.is_finished for worker in self.workers)
 
     @work(group="context-read", exclusive=True, exit_on_error=False)
-    async def _read(self, owner, root, *, force=False):
+    async def _read(self, *, force=False):
         status = self.query_one(".context-status", Static)
-        revision = self.app.coordination_access.revision
-        self._observed_revision = revision
-        if not owner or root is None:
-            status.update("No managed thread context available")
-            return
+        access = self.app.coordination_access
+        previous = self.state
+        self.state = previous.observe(access.revision)
         try:
-            service = self.app.coordination_access.service
-            if str(service.root.resolve()) != str(root):
-                status.update("Selected context belongs to another wire root")
+            acquired = await self.state.acquire(access.service, access.revision)
+            if not self._reading(previous):
                 return
-            inspection = await Coordination.run_worker(partial(ContextInspection.read, service, owner))
-            if not self._reading(owner, root):
-                return
-            previous = self._inspection
-            same_source = (previous is not None
-                           and inspection.same_native_source(previous))
-            changed_manifests = (previous is None
-                                 or inspection.manifests != previous.manifests)
-            changed_contributors = False
-            if same_source and self._native is not None:
-                original = self._native
-                refreshed = await Coordination.run_worker(partial(
-                    original.with_current_contributors, service, inspection.owner))
-                if not self._reading(owner, root):
-                    return
-                if self._native is original:
-                    changed_contributors = refreshed.contributors != original.contributors
-                    if changed_contributors:
-                        self._native = refreshed
-            if not same_source:
-                self.workers.cancel_group(self, "context-native")
-                self._native = None
-            self._inspection = inspection
-            if not same_source or changed_manifests or changed_contributors:
-                self._present(inspection, self._native)
-            if force or not same_source:
-                status.update(f"{owner} · recorded manifests available\nReading native context…")
-                self._read_native(inspection, owner, root)
-            elif (changed_manifests and self._native is None
-                  and not self._working("context-native")):
-                # An original SDK manifest is context evidence; an unrelated
-                # roster status change is not permission to poll native again.
-                self._read_native(inspection, owner, root)
+            self.state = self.state.receive_inspection(acquired)
+            status.update(self.state.status)
+            self.state.present(lambda current: self._inspection_acquired(previous, current, force))
+            await self.state.refresh_contributors(self._contributors_acquired)
         except asyncio.CancelledError:
             raise
         except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
-            if self._reading(owner, root):
+            if self._reading(previous):
                 status.update(f"Context unavailable: {error}")
 
+    def _inspection_acquired(self, previous, current, force):
+        if previous.inspection_differs(current.inspection):
+            self._present(current)
+        if previous.needs_native(current.inspection, force):
+            source_changed = not previous.same_source(current.inspection)
+            if source_changed:
+                self.workers.cancel_group(self, "context-native")
+            if force or source_changed or not self._working("context-native"):
+                self.query_one(".context-status", Static).update(current.status)
+                current.prepare_native(self._read_native)
+
+    def _contributors_acquired(self, expected, native):
+        updated = self.state.with_contributors(expected, native)
+        if updated is not self.state:
+            self.state = updated
+            updated.present(self._present)
+
     @work(group="context-native", exclusive=True, exit_on_error=False)
-    async def _read_native(self, inspection, owner, root):
-        native = None
-        unavailable = ""
+    async def _read_native(self, captured: HoldingInspection):
         try:
-            native = await inspection.native()
+            native = await captured.inspection.native()
         except asyncio.CancelledError:
             raise
         except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
-            unavailable = str(error)
-        if (not self._reading(owner, root) or self._inspection is None
-                or not inspection.same_native_source(self._inspection)):
-            return
-        if native != self._native:
-            self._native = native
-            # Use the latest original manifest observation, not the earlier
-            # capture whose native request was pending while it was appended.
-            self._present(self._inspection, native)
-        self.query_one(".context-status", Static).update(
-            f"{owner} · current Core instructions and native base before future input/provider hooks\n"
-            f"Segment counts: estimates ({native.counter}) · provider totals unavailable"
-            if native is not None else
-            f"{owner} · recorded manifests only\nCurrent detail unavailable: {unavailable}")
+            if self._reading(captured):
+                self._native_acquired(self.state.native_failed(captured.inspection, error))
+        else:
+            if self._reading(captured):
+                self._native_acquired(self.state.with_native(captured.inspection, native))
 
-    def _present(self, inspection, native):
+    def _native_acquired(self, updated):
+        if updated is not self.state:
+            self.state = updated
+            updated.present(self._present)
+        self.query_one(".context-status", Static).update(updated.status)
+
+    def _present(self, captured: HoldingInspection):
         if self.intent.query:
-            self._search(inspection, native, self.intent.query, self.intent.selected)
+            self._search(captured, self.intent.query, self.intent.selected)
             return
         self.workers.cancel_group(self, "context-search")
         tree = self.query_one(Tree)
-        groups = []
-        if native is not None:
-            groups.extend((
-                ("Current Core instructions · before next input", inspection.contributors(native), True),
-                ("Current native base · before next input and provider hooks", inspection.active(native), True),
-            ))
-        groups.append(("Recorded requests · source evidence, not today's base", inspection.recorded(), False))
+        groups = captured.groups()
         # Keep native TreeNodes: Tree._build rebases its cursor by node identity.
         # Contributor publication must not destroy an unrelated recorded reader.
         with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected,
@@ -303,20 +275,19 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
     @on(Button.Pressed, "#context-find")
     def action_search(self, event):
         event.stop()
-        if self._inspection is not None:
-            self._present(self._inspection, self._native)
+        self.state.present(self._present)
 
     @work(group="context-search", exclusive=True, exit_on_error=False)
-    async def _search(self, inspection, native, query, selected):
+    async def _search(self, captured: HoldingInspection, query, selected):
         status = self.query_one(".context-status", Static)
         status.update("Searching original public context…")
         try:
-            matches = await inspection.find(native, query, selected)
+            matches = await captured.find(query, selected)
         except (OSError, ValueError, RuntimeError, RequestError) as error:
-            if self._searching(inspection, native, query, selected):
+            if self._searching(captured, query, selected):
                 status.update(f"Context search unavailable: {error}")
             return
-        if not self._searching(inspection, native, query, selected):
+        if not self._searching(captured, query, selected):
             return
         tree = self.query_one(Tree)
         self._context_nodes.clear()
@@ -330,11 +301,9 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         status.update(f"{len(matches)} matching sources · first 100 shown · {description}")
         self._restore_reader("Select a matching original source to read its full public text.")
 
-    def _searching(self, inspection, native, query, selected):
+    def _searching(self, captured, query, selected):
         return (self.is_attached and not get_current_worker().is_cancelled
-                and self._inspection is not None
-                and inspection.same_native_source(self._inspection)
-                and self._native is native
+                and self.state.search_current(captured)
                 and self.intent.query == query
                 and self.intent.selected is selected)
 

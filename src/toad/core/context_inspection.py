@@ -4,11 +4,12 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from abc import ABC
-from dataclasses import dataclass
+from dataclasses import dataclass, field, replace
 from functools import partial
 from typing import TYPE_CHECKING, Awaitable, Callable
 
 from agent_comms.field_codec import FieldCodec
+from agent_comms.declared_family import DeclaredFamily
 from agent_comms.coordinator import Coordination
 from agent_comms.mro_dispatch import handles
 from toad.core.projection import MroProjection
@@ -62,10 +63,8 @@ class ContextNode(ABC):
             yield match
 
     @staticmethod
-    def search_roots(inspection, native):
-        if native is None:
-            raise ValueError("Current native context is not loaded; a selected recorded request can be read separately")
-        return (*inspection.contributors(native), *inspection.active(native))
+    def search_roots(current_roots):
+        return current_roots()
 
     def search_description(self):
         return "Current public context"
@@ -103,7 +102,7 @@ class ReferenceNode(ContextNode):
         original = await self.read_source(self.source)
         return f"{original.description}\n\n{original.text}"
 
-    def search_roots(self, inspection, native):
+    def search_roots(self, current_roots):
         return (self,)
 
     def search_description(self):
@@ -155,7 +154,7 @@ class RecordedTurnNode(ContextNode):
                                          self.inspection, i)
                      for i in range(len(self.manifest.segments)))
 
-    def search_roots(self, inspection, native):
+    def search_roots(self, current_roots):
         return (self,)
 
     def search_description(self):
@@ -357,13 +356,15 @@ class ContextInspection:
         return tuple(RecordedTurnNode(f"turn/{identity}", manifest, self)
                      for identity, manifest in reversed(turns.items()))
 
-    async def find(self, native, query: str, selected: ContextNode | None = None, *, limit=100):
-        """Bound result widgets, while searching the original available public text."""
+    def changed_since(self, previous: ContextInspection) -> bool:
+        """Whether the original recorded request observations changed."""
+        return self.manifests != previous.manifests
+
+    async def find(self, roots: tuple[ContextNode, ...], query: str, *, limit=100):
+        """Bound result widgets while reading the selected original public sources."""
         normalized = query.casefold()
-        roots = selected.search_roots if selected is not None else ContextNode.search_roots
-        nodes = await Coordination.run_worker(partial(roots, self, native))
         matches = []
-        for node in nodes:
+        for node in roots:
             async for match in node.find(normalized, limit=limit - len(matches)):
                 matches.append(match)
                 if len(matches) == limit:
@@ -413,3 +414,223 @@ class ContextInspection:
         return tuple(SegmentNodes(f"core/{context.identity.session_id}/{i}/{segment.declared_name}",
                      partial(self.current_source, context, len(context.segments) + i)).dispatch_sync(segment)
                      for i, segment in enumerate(context.contributors))
+
+
+class InspectionState(DeclaredFamily, affix="Inspection"):
+    """One inspection lifetime; Textual owns workers and Tree resources separately."""
+
+    name = ""
+    root = None
+    native_present = False
+
+    @classmethod
+    def for_owner(cls, name: str, root: str | None) -> InspectionState:
+        # Decode the original optional managed route once, at attachment.
+        return ReadingOwnerInspection(name, root) if name and root is not None else DetachedInspection()
+
+    def bound_to(self, name, root) -> bool:
+        return (self.name, self.root) == (name, root)
+
+    def observed_at(self, revision) -> bool:
+        return True
+
+    def observe(self, revision) -> InspectionState:
+        return self
+
+    async def acquire(self, service, revision) -> InspectionState:
+        if str(service.root.resolve()) != self.root:
+            raise ValueError("Selected context belongs to another wire root")
+        inspection = await Coordination.run_worker(partial(ContextInspection.read, service, self.name))
+        return HoldingInspection(inspection, revision)
+
+    def receive_inspection(self, acquired) -> InspectionState:
+        return acquired
+
+    def inspection_differs(self, inspection) -> bool:
+        return True
+
+    def needs_native(self, inspection, force) -> bool:
+        return True
+
+    def same_source(self, inspection) -> bool:
+        return False
+
+    def present(self, consumer) -> None:
+        """A detached or unacquired owner has no inspection to present."""
+
+    async def refresh_contributors(self, consumer) -> None:
+        """Only an acquired native preview owns current contributor refresh."""
+
+    def with_contributors(self, expected, native) -> InspectionState:
+        return self
+
+    def with_native(self, inspection, native) -> InspectionState:
+        return self
+
+    def native_failed(self, inspection, error) -> InspectionState:
+        return self
+
+    def prepare_native(self, consumer) -> None:
+        """An owner without an inspection cannot admit native context work."""
+
+    def search_current(self, captured) -> bool:
+        return False
+
+    def contains_native(self, native) -> bool:
+        return False
+
+    @property
+    def status(self):
+        return "No managed thread context available"
+
+
+class DetachedInspection(InspectionState):
+    async def acquire(self, service, revision) -> InspectionState:
+        return self
+
+
+@dataclass(frozen=True)
+class ReadingOwnerInspection(InspectionState):
+    name: str = field()
+    root: str = field()
+
+    def observed_at(self, revision) -> bool:
+        return False
+
+    def observe(self, revision) -> InspectionState:
+        return ObservedOwnerInspection(self.name, self.root, revision)
+
+
+@dataclass(frozen=True)
+class ObservedOwnerInspection(ReadingOwnerInspection):
+    revision: int
+
+    def observed_at(self, revision) -> bool:
+        return self.revision == revision
+
+
+@dataclass(frozen=True)
+class HoldingInspection(InspectionState):
+    inspection: ContextInspection
+    revision: int
+
+    @property
+    def name(self):
+        return self.inspection.owner.name
+
+    @property
+    def root(self):
+        return str(self.inspection.service.root)
+
+    def observed_at(self, revision) -> bool:
+        return self.revision == revision
+
+    def observe(self, revision) -> InspectionState:
+        return replace(self, revision=revision)
+
+    def same_source(self, inspection) -> bool:
+        return inspection.same_native_source(self.inspection)
+
+    def inspection_differs(self, inspection) -> bool:
+        return not self.same_source(inspection) or inspection.changed_since(self.inspection)
+
+    def needs_native(self, inspection, force) -> bool:
+        return force or self.inspection_differs(inspection)
+
+    def present(self, consumer) -> None:
+        consumer(self)
+
+    def groups(self):
+        return (("Recorded requests · source evidence, not today's base", self.inspection.recorded(), False),)
+
+    def prepare_native(self, consumer) -> None:
+        consumer(self)
+
+    def with_native(self, inspection, native) -> InspectionState:
+        return NativeInspection(self.inspection, self.revision, native) if self.same_source(inspection) else self
+
+    def native_failed(self, inspection, error) -> InspectionState:
+        return UnavailableNativeInspection(self.inspection, self.revision, str(error)) if self.same_source(inspection) else self
+
+    def current_roots(self):
+        raise ValueError("Current native context is not loaded; a selected recorded request can be read separately")
+
+    async def find(self, query, selected):
+        roots = selected.search_roots if selected is not None else ContextNode.search_roots
+        sources = await Coordination.run_worker(partial(roots, self.current_roots))
+        return await self.inspection.find(sources, query)
+
+    def native_matches(self, current):
+        return not current.native_present
+
+    def search_current(self, captured) -> bool:
+        return self.same_source(captured.inspection) and captured.native_matches(self)
+
+    @property
+    def status(self):
+        return f"{self.name} · recorded manifests available\nReading native context…"
+
+
+@dataclass(frozen=True)
+class NativeInspection(HoldingInspection):
+    native: NativeContextData
+    native_present = True
+
+    def receive_inspection(self, acquired) -> InspectionState:
+        if self.same_source(acquired.inspection):
+            return NativeInspection(acquired.inspection, acquired.revision, self.native)
+        return acquired
+
+    def needs_native(self, inspection, force) -> bool:
+        return force or not self.same_source(inspection)
+
+    def with_native(self, inspection, native) -> InspectionState:
+        if not self.same_source(inspection) or native == self.native:
+            return self
+        return NativeInspection(self.inspection, self.revision, native)
+
+    async def refresh_contributors(self, consumer) -> None:
+        native = await Coordination.run_worker(partial(self.native.with_current_contributors,
+            self.inspection.service, self.inspection.owner))
+        consumer(self, native)
+
+    def with_contributors(self, expected, native) -> InspectionState:
+        if (self.same_source(expected.inspection) and self.native is expected.native
+                and native.contributors != self.native.contributors):
+            return NativeInspection(self.inspection, self.revision, native)
+        return self
+
+    def groups(self):
+        return (
+            ("Current Core instructions · before next input", self.inspection.contributors(self.native), True),
+            ("Current native base · before next input and provider hooks", self.inspection.active(self.native), True),
+            *super().groups(),
+        )
+
+    def current_roots(self):
+        return (*self.inspection.contributors(self.native), *self.inspection.active(self.native))
+
+    def contains_native(self, native) -> bool:
+        return self.native is native
+
+    def native_matches(self, current):
+        return current.contains_native(self.native)
+
+    @property
+    def status(self):
+        return (f"{self.name} · current Core instructions and native base before future input/provider hooks\n"
+                f"Segment counts: estimates ({self.native.counter}) · provider totals unavailable")
+
+
+@dataclass(frozen=True)
+class UnavailableNativeInspection(HoldingInspection):
+    error: str
+
+    def receive_inspection(self, acquired) -> InspectionState:
+        if self.same_source(acquired.inspection):
+            return UnavailableNativeInspection(acquired.inspection, acquired.revision, self.error)
+        return acquired
+
+    @property
+    def status(self):
+        return f"{self.name} · recorded manifests only\nCurrent detail unavailable: {self.error}"
