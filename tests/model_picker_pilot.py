@@ -13,6 +13,7 @@ from acp.schema import SessionConfigOptionSelect, SessionConfigSelectOption
 from toad.acp.status import EndTurnStopReason
 from toad.agent import AgentBase
 from toad.app import ToadApp
+from toad.command_catalog import CommandCatalog
 from toad.db import DB
 from toad.widgets.prompt import AgentInfo
 
@@ -144,7 +145,7 @@ async def main():
             assert not picker.is_open and conversation.prompt.prompt_text_area.has_focus
             assert await db.recent_models("picker-test") == before
 
-            await conversation.command_catalog.execute("/model", conversation)
+            await CommandCatalog.execute("/model", conversation)
             await pilot.pause()
             await pilot.press(*"glm")
             await pilot.pause()
@@ -153,7 +154,7 @@ async def main():
             await pilot.pause()
             assert not picker.is_open
 
-            await conversation.command_catalog.execute("/model", conversation)
+            await CommandCatalog.execute("/model", conversation)
             await pilot.pause()
             assert picker.search_input.has_focus and not picker.search_input.value
             await pilot.press(*"gpt 5.4")
@@ -168,7 +169,7 @@ async def main():
             assert (await db.recent_models("picker-test"))[0] == gpt
             assert conversation.prompt.text == "Keep this unfinished draft"
 
-            await conversation.command_catalog.execute("/model", conversation)
+            await CommandCatalog.execute("/model", conversation)
             await pilot.pause()
             await until(lambda: picker.recent_ids[0] == gpt)
             assert ids()[0] == gpt

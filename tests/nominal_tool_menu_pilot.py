@@ -7,7 +7,7 @@ import tempfile
 from pathlib import Path
 
 from runtime_fixture import ToadApp
-from toad.thread_actions import StopAction
+from agent_comms.cli_commands import StopCliCommand
 from toad.widgets.comms_menu import ContextMenuItem
 from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
 
@@ -46,7 +46,7 @@ async def main():
             await pilot.pause()
             item = next(
                 item for item in app.screen.query(ContextMenuItem)
-                if item.action == StopAction.declared_name
+                if item.action == StopCliCommand.declared_name
             )
             assert await pilot.click(item)
             async with asyncio.timeout(10):

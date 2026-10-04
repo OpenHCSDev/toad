@@ -1,3 +1,4 @@
+from runtime_fixture import request_target
 """Mounted cooperative default-root write admission, without a provider or live route.
 
 Run with Toad src/tests and the paired PR116 source on PYTHONPATH. The
@@ -10,7 +11,7 @@ from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import channel_target
 
-from toad.thread_actions import StartAction
+from agent_comms.cli_commands import StartCliCommand
 import asyncio
 from contextlib import asynccontextmanager
 import os
@@ -109,21 +110,21 @@ async def main() -> None:
                                 await release.wait()
                         return await original_to_thread(operation, *args, **kwargs)
 
-                    def safe_spy(_action, ctx):
+                    def safe_spy(command, comms):
                         from agent_comms.owner_lifecycle import OwnerStartResult
-                        invoked.append(ctx.subject)
-                        return OwnerStartResult(ctx.subject, 0, False)
+                        invoked.append(command.name)
+                        return {'thread': command.name, 'pid': 0, 'launched': False}
 
                     route = ActiveRoute(private, private_id, sandbox / "unused-package")
                     with (
                         patch("asyncio.to_thread", delayed_dispatch),
-                        patch.object(StartAction, "apply", safe_spy),
+                        patch.object(StartCliCommand, "apply", safe_spy),
                         patch.object(
                             cohort_foreground, "_trusted_package", lambda _: None
                         ),
                     ):
                         ack = asyncio.create_task(view.message_history.mark_page(page))
-                        app.thread_actions.invoke(StartAction(), "peer", "user")
+                        request_target(app, StartCliCommand, "peer", "user")
                         async with asyncio.timeout(8):
                             await entered_ack.wait()
                             await entered_action.wait()

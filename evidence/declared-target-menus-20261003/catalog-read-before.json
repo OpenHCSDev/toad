@@ -1,0 +1,314 @@
+{
+  "head": "7dd65babe95c47f4c8ff2d7043ad90236d0c506f",
+  "parsed": 288,
+  "omissions": [],
+  "resolution": "lexical AST; dynamic dispatch and framework callback binding read semantically",
+  "sites": [
+    {
+      "path": "src/toad/command_catalog.py",
+      "line": 15,
+      "kind": "ClassDef",
+      "source": "@dataclass(frozen=True)"
+    },
+    {
+      "path": "src/toad/command_catalog.py",
+      "line": 20,
+      "kind": "FunctionDef",
+      "source": "@property"
+    },
+    {
+      "path": "src/toad/command_catalog.py",
+      "line": 33,
+      "kind": "FunctionDef",
+      "source": "@property"
+    },
+    {
+      "path": "src/toad/command_catalog.py",
+      "line": 39,
+      "kind": "FunctionDef",
+      "source": "@property"
+    },
+    {
+      "path": "src/toad/command_catalog.py",
+      "line": 44,
+      "kind": "AsyncFunctionDef",
+      "source": "async def execute(self, text: str, conversation: Conversation) -> bool:"
+    },
+    {
+      "path": "src/toad/command_catalog.py",
+      "line": 22,
+      "kind": "Name",
+      "source": "commands"
+    },
+    {
+      "path": "src/toad/command_catalog.py",
+      "line": 24,
+      "kind": "Attribute",
+      "source": "self.context.current().available_actions"
+    },
+    {
+      "path": "src/toad/command_catalog.py",
+      "line": 29,
+      "kind": "Name",
+      "source": "commands"
+    },
+    {
+      "path": "src/toad/command_catalog.py",
+      "line": 35,
+      "kind": "Attribute",
+      "source": "self.entries"
+    },
+    {
+      "path": "src/toad/command_catalog.py",
+      "line": 26,
+      "kind": "Name",
+      "source": "commands"
+    },
+    {
+      "path": "src/toad/command_catalog.py",
+      "line": 41,
+      "kind": "Attribute",
+      "source": "self.entries"
+    },
+    {
+      "path": "src/toad/command_catalog.py",
+      "line": 46,
+      "kind": "Attribute",
+      "source": "self.entries"
+    },
+    {
+      "path": "src/toad/command_catalog.py",
+      "line": 30,
+      "kind": "Name",
+      "source": "commands"
+    },
+    {
+      "path": "src/toad/command_catalog.py",
+      "line": 42,
+      "kind": "Attribute",
+      "source": "command.target_choices"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "line": 104,
+      "kind": "Attribute",
+      "source": "view.command_catalog"
+    },
+    {
+      "path": "src/toad/slash_command.py",
+      "line": 51,
+      "kind": "FunctionDef",
+      "source": "def target_choices(self, context: TargetContext | None, available_actions):"
+    },
+    {
+      "path": "src/toad/slash_command_results.py",
+      "line": 26,
+      "kind": "Name",
+      "source": "commands"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 39,
+      "kind": "FunctionDef",
+      "source": "def available_actions(self):"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 60,
+      "kind": "FunctionDef",
+      "source": "def command_choices(self):"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 75,
+      "kind": "FunctionDef",
+      "source": "def target_choices(self, context: TargetContext | None, available_actions):"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 89,
+      "kind": "FunctionDef",
+      "source": "@abstractmethod"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 127,
+      "kind": "FunctionDef",
+      "source": "def execute(self, ctx):"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 147,
+      "kind": "FunctionDef",
+      "source": "def execute(self, ctx: TargetContext) -> None:"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 160,
+      "kind": "FunctionDef",
+      "source": "def execute(self, ctx: TargetContext) -> None:"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 62,
+      "kind": "Attribute",
+      "source": "CommandCatalog((), self).target_choices"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 102,
+      "kind": "Attribute",
+      "source": "conversation.command_target_context"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 108,
+      "kind": "Attribute",
+      "source": "self.execute"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 109,
+      "kind": "Attribute",
+      "source": "conversation.update_slash_commands"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 62,
+      "kind": "Name",
+      "source": "CommandCatalog"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 67,
+      "kind": "Attribute",
+      "source": "command.execute"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 48,
+      "kind": "Attribute",
+      "source": "self.command_choices"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 80,
+      "kind": "Attribute",
+      "source": "self.target_choices"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 80,
+      "kind": "Name",
+      "source": "available_actions"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 33,
+      "kind": "AsyncFunctionDef",
+      "source": "async def execute(self, execution: TerminalExecution, *, final: bool=True) -> None:"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 104,
+      "kind": "Attribute",
+      "source": "command_pane.execute"
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 370,
+      "kind": "FunctionDef",
+      "source": "def command_target_context(self):"
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 187,
+      "kind": "Attribute",
+      "source": "self.update_slash_commands"
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 319,
+      "kind": "Attribute",
+      "source": "self.update_slash_commands"
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 378,
+      "kind": "Attribute",
+      "source": "self.command_catalog"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1646,
+      "kind": "FunctionDef",
+      "source": "def command_target_context(self):"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1658,
+      "kind": "FunctionDef",
+      "source": "def update_slash_commands(self) -> None:"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1663,
+      "kind": "FunctionDef",
+      "source": "@property"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1663,
+      "kind": "Name",
+      "source": "CommandCatalog"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1558,
+      "kind": "Attribute",
+      "source": "self.update_slash_commands"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1660,
+      "kind": "Attribute",
+      "source": "self.command_catalog"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1665,
+      "kind": "Name",
+      "source": "CommandCatalog"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1687,
+      "kind": "Attribute",
+      "source": "self.command_catalog"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1751,
+      "kind": "Attribute",
+      "source": "self.update_slash_commands"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1666,
+      "kind": "Attribute",
+      "source": "self.command_target_context"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1836,
+      "kind": "Attribute",
+      "source": "self.update_slash_commands"
+    },
+    {
+      "path": "src/toad/widgets/slash_complete.py",
+      "line": 117,
+      "kind": "Attribute",
+      "source": "self.query_ancestor(Conversation).update_slash_commands"
+    }
+  ]
+}

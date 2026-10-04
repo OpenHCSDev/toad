@@ -153,13 +153,13 @@ async def reveal_session_details(app, pilot, target=None):
 async def wait_fork_dialog(app, pilot, *, seconds=20):
     """Await the original mounted, focused and physically hittable dialog."""
     from textual.widgets import Input
-    from toad.widgets.comms_fork_dialog import ForkDialog
+    from toad.widgets.comms_command_dialog import CommandDialog
 
     async with asyncio.timeout(seconds):
         while True:
             dialog = app.screen
-            if isinstance(dialog, ForkDialog) and dialog.is_mounted and dialog.is_attached:
-                entry = dialog.query_one_optional('#fork-name', Input)
+            if isinstance(dialog, CommandDialog) and dialog.is_mounted and dialog.is_attached:
+                entry = dialog.query_one_optional('#command-field-name', Input)
                 if (entry is not None and entry.is_mounted and entry.is_attached
                         and dialog.focused is entry and app.focused is entry
                         and entry.region.width > 0 and entry.region.height > 0
@@ -192,3 +192,15 @@ def coordination_update(root, name):
     return CoordinationChangedUpdate(thread.incarnation, str(root), thread.pid,
         thread.worktree or "", thread.model, thread.thinking_level,
         thread.title or thread.name, None)
+
+
+def request_target(app, command, subject, actor):
+    """Existing native control fixtures borrow the backend declaration query."""
+    from agent_comms.cli_commands import TargetActionsCliCommand, TargetEditCliCommand
+    from toad.thread_actions import ThreadAction
+    comms = app.coordination_access.service
+    definition = next(item for item in TargetActionsCliCommand(
+        target=subject, project=str(app.project_dir)).apply(comms)['actions']
+        if item['command'] == command.declared_name)
+    app.thread_actions.invoke(ThreadAction(definition, TargetEditCliCommand(
+        target=subject, operation=command.declared_name, arguments={})), subject, actor)

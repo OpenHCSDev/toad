@@ -1,0 +1,24 @@
+{
+  "before": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/declared-target-menus-20261003/before.json",
+    "sha256": "ad60aa47fbc0417253f7e4dfc9b88328c5e21f03bd7d8b3fcccb578a093d7b92"
+  },
+  "candidate": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/declared-target-menus-20261003/candidate.json",
+    "sha256": "5a397059a556c7b169a11be210d4af9bdd03ad787884846d0609ff28ce71b5a4",
+    "wheels": [
+      {
+        "path": "/home/ts/wt/comms-retained-human-main-20261001/.artifacts/declared-target-actions-20261003/wheel/agent_comms-0.1.0-py3-none-any.whl",
+        "sha256": "22c32e202fa9a876a234832e17b9dbd83731160015b678346828a301954f21a1"
+      },
+      {
+        "path": ".artifacts/declared-target-menus-20261003/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+        "sha256": "6f568d931293bec3edfc715cb7216a83c7bdb6a06ad71d6d7c3aacc12225918f"
+      }
+    ]
+  },
+  "restored": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/declared-target-menus-20261003/restored.json",
+    "sha256": "fd8ca4ba0561e82b5e1677d00a87f0c03ef520750af8df7da333a57869ead17a"
+  }
+}

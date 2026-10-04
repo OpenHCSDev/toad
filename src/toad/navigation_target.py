@@ -47,8 +47,8 @@ class NavigationTarget(DeclaredFamily, affix="Target"):
     expanded_by_default: ClassVar[bool] = False
 
     def menu_context(self, sidebar, *, mode_name=None, channel=None):
-        from toad.target_commands import ThreadContext
-        return ThreadContext(sidebar.app, sidebar.observation.service, self.name,
+        from toad.target_commands import TargetContext
+        return TargetContext(sidebar.app, sidebar.observation.service, self.name,
                              sidebar.session_thread, sidebar.app.project_dir, mode_name, channel)
 
     def show_menu(self, sidebar, offset, **kwargs) -> None:
@@ -108,8 +108,8 @@ class ChannelLike:
     """Shared channel-row capability; consumers never enumerate row kinds."""
 
     def menu_context(self, sidebar, **kwargs):
-        from toad.target_commands import ChannelContext
-        return ChannelContext(sidebar.app, sidebar.observation.service, self.name,
+        from toad.target_commands import TargetContext
+        return TargetContext(sidebar.app, sidebar.observation.service, self.name,
                               sidebar.session_thread, sidebar.app.project_dir)
 
 
