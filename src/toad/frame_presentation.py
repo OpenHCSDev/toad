@@ -110,10 +110,9 @@ class PresentedFrame(FrameState):
         frame.present()
 
     def defer(self, frame, owner, callback):
-        if frame.screen.app._atomic_mode_switch:
-            super().defer(frame, owner, callback)
-        else:
-            owner.call_after_refresh(callback)
+        super().defer(frame, owner, callback)
+        if not frame.screen.app._atomic_mode_switch:
+            owner.call_after_refresh(frame.release, owner, callback)
 
 
 class ClosedFrame(FrameState):
@@ -149,7 +148,23 @@ class FramePresentation:
         self.state.begin(self)
 
     def defer(self, owner: Widget, callback: Callable[[], object]) -> None:
-        self.state.defer(self, owner, callback)
+        if (owner, callback) not in self.callbacks:
+            self.state.defer(self, owner, callback)
+
+    def release(self, owner: Widget, callback: Callable[[], object]) -> None:
+        """Release one owned operation only from a presented scene.
+
+        An earlier after-refresh callback may arrive after this scene began
+        another publication. Keep its work for that publication's writer
+        receipt; closing removes the resource before either callback arrives.
+        """
+        key = owner, callback
+        if not self.ready or key not in self.callbacks:
+            return
+        del self.callbacks[key]
+        if owner.is_attached:
+            # The original message pump rejects work once its owner closes.
+            owner.call_later(callback)
 
     def displayed(self):
         self.state.displayed(self)
@@ -163,12 +178,8 @@ class FramePresentation:
         """A written or restored scene releases its same deferred source work."""
         self.state = PresentedFrame()
         self.presented.set()
-        callbacks = tuple(self.callbacks)
-        self.callbacks.clear()
-        for owner, callback in callbacks:
-            if owner.is_attached:
-                # The existing message pump rejects work once its owner closes.
-                owner.call_later(callback)
+        for owner, callback in tuple(self.callbacks):
+            self.release(owner, callback)
 
     def suspend(self):
         self.state.suspend(self)

@@ -192,7 +192,6 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
             "dirty_regions": [tuple(region) for region in compositor._dirty_regions],
             "subtree_cache_entries": len(compositor._subtree_geometry),
             "layers_cached": compositor._layers is not None,
-            "visible_layers_cached": compositor._layers_visible is not None,
             "cuts_cached": compositor._cuts is not None,
             "maps": {},
         }

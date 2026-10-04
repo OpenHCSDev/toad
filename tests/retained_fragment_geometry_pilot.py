@@ -74,6 +74,22 @@ async def main():
             await pilot.pause()
             bodies = history.fragment_views
             assert len(bodies) == 4 and all(body.body_ready for body in bodies), [(type(body).__name__, body.body_ready, type(body._body_measurement).__name__, body.is_mounted, body.size, [type(child).__name__ for child in body.children]) for body in bodies]
+            # Body registration and retirement cohorts defer the same window
+            # request repeatedly. The real frame owns one pending operation,
+            # including after the initial scene has already been presented.
+            released = []
+            delivered = asyncio.Event()
+
+            def observe_release():
+                released.append(app.screen.frame_presentation.ready)
+                delivered.set()
+
+            for body in bodies:
+                app.screen.frame_presentation.defer(window, observe_release)
+            async with asyncio.timeout(10):
+                await delivered.wait()
+            await pilot.pause()
+            assert released == [True], released
             scene = app.screen._compositor
 
             def compare():
