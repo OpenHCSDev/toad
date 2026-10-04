@@ -34,10 +34,12 @@ async def row_publication() -> None:
     from time import monotonic
     from textual import events
     from textual.geometry import Size
+    from textual.worker import WorkerState
     from retained_tool_text_pilot import PublicationApp, PendingUnmount
     from runtime_fixture import private_native_wire, refresh_comms
     from toad.screens.comms import CommsScreen
     from toad.transcript_state import ParkedSourceTranscript
+    from toad.mounted_message_history import IrcMessageStyle, HISTORY_PAGE_SIZE
 
     started = monotonic()
     checks = []
@@ -68,13 +70,25 @@ async def row_publication() -> None:
             keys = tuple(message.view_key for message, _ in history.rows)
             screen = chat.query_ancestor(CommsScreen)
             old_rows = tuple(history.rows)
+            page = await history.reader.page(limit=HISTORY_PAGE_SIZE)
+            await history.mount_page(page, older=True)
+            old_rows = tuple(history.rows)
+            keys = tuple(message.view_key for message, _ in old_rows)
+            history.window.scroll_end(animate=False)
+            assert page.display_scope is not None
+            receipt_sequence = old_rows[0][0].seq
+            assert history.channel_receipts[receipt_sequence] is page
             held = PendingUnmount()
             await old_rows[-1][1].mount(held)
             await pilot.pause()
             admitted = asyncio.Event()
+            admitted_workers = []
 
             def start_style():
                 screen.action_message_style()
+                admitted_workers.append(next(worker for worker in history.workers
+                    if worker.node is history and worker.group == "message-style"
+                    and worker not in admitted_workers))
                 admitted.set()
 
             try:
@@ -82,15 +96,28 @@ async def row_publication() -> None:
                 async with asyncio.timeout(8):
                     await admitted.wait()
                     await held.entered.wait()
-                workers = [worker for worker in history.workers
-                           if worker.node is history and worker.group == "message-style"]
-                assert len(workers) == 1 and not workers[0].is_finished
-                first = workers[0]
+                first = admitted_workers[0]
+                async with asyncio.timeout(8):
+                    await first.wait()
+                assert first.is_finished and not held.release.is_set()
                 assert tuple(message.view_key for message, _ in history.rows) == keys
                 assert all(type(widget) is WireMarkdownMessage for _, widget in history.rows)
                 assert not history.window.history_mutating() and app._batch_count == 0
                 assert held not in app.screen._compositor.full_map
-                checks.append("new rows commit; pending old native Unmount owns no Window/App paint fence")
+                assert history.channel_receipts[receipt_sequence] is page
+                checks.append("source completes and authenticated receipt survives style commit before old Unmount")
+                reader = history.reader
+                reader.restart()
+                read = await reader.read(history.follows_tail)
+                assert read.replace_tail and read.page is not None
+                async with asyncio.timeout(8):
+                    assert await history.publish(read)
+                assert reader.source is not read.request and not reader.source.loading
+                assert reader.source.display_identity == read.request.kind.display_identity(read.page)
+                assert (history.has_older, history.has_newer) == (read.page.has_older, read.page.has_newer)
+                assert not held.release.is_set()
+                keys = tuple(message.view_key for message, _ in history.rows)
+                checks.append("actual replacement read commits authenticated source and both bounds before old Unmount")
                 history.window.scroll_end(animate=False)
                 app.displayed.clear()
                 size = Size(108, 36)
@@ -103,7 +130,7 @@ async def row_publication() -> None:
                 displayed = tuple(body for body in bodies if body in visible)
                 assert displayed and all(body.body_ready for body in displayed)
                 app.observed_body = displayed[-1]
-                assert not first.is_finished and not held.release.is_set()
+                assert first.is_finished and not held.release.is_set()
                 checks.append("actual resize/current-source native display admission before old Unmount ends")
                 editor = chat.prompt.prompt_text_area
                 app.screen.set_focus(editor, scroll_visible=False)
@@ -112,16 +139,16 @@ async def row_publication() -> None:
                 screen.call_later(pumped.set)
                 async with asyncio.timeout(5):
                     await pumped.wait()
-                assert "style-pump" in editor.text and not first.is_finished
+                assert "style-pump" in editor.text and first.is_finished
                 checks.append("editor input and same CommsScreen pump remain admitted during style worker")
                 admitted.clear()
                 screen.call_later(start_style)
                 async with asyncio.timeout(5):
                     await admitted.wait()
-                second = next(worker for worker in history.workers
-                              if worker.node is history and worker.group == "message-style"
-                              and worker is not first)
-                assert not second.is_finished
+                second = admitted_workers[-1]
+                async with asyncio.timeout(5):
+                    await second.wait()
+                assert second.is_finished and not held.release.is_set()
             finally:
                 app.observed_body = None
                 held.release.set()
@@ -169,6 +196,58 @@ async def row_publication() -> None:
             await pilot.pause()
             assert history.rows and "style-pump" in editor.text
             checks.append("original source park/resume retains admitted native rows and draft")
+
+            entered = asyncio.Event()
+            release = asyncio.Event()
+
+            class AcquiringRow(IRCMessage):
+                async def on_mount(self):
+                    entered.set()
+                    await release.wait()
+
+            class AcquiringStyle(IrcMessageStyle):
+                row_type = AcquiringRow
+
+            replacement = await history.reader.page(limit=HISTORY_PAGE_SIZE)
+            for acknowledgement in tuple(history.workers):
+                if acknowledgement.node is chat and acknowledgement.group == "comms-painted-read":
+                    await acknowledgement.wait()
+            committed = tuple(history.rows)
+            receipts = dict(history.channel_receipts)
+            historical = dict(history.historical_receipts)
+            tail = history.tail_receipt
+            bounds = history.has_older, history.has_newer
+            style = history.style
+
+            async def acquire():
+                async with history.window.history_lock:
+                    await history._mount_page(replacement, older=False,
+                                              retained=(), style=AcquiringStyle())
+
+            worker = history.run_worker(acquire, group="message-style")
+            try:
+                async with asyncio.timeout(8):
+                    await entered.wait()
+                assert tuple(history.rows) == committed
+                assert history.channel_receipts == receipts and history.historical_receipts == historical
+                assert history.tail_receipt is tail and (history.has_older, history.has_newer) == bounds
+                assert history.style is style
+                parking = asyncio.create_task(history.retire_source(parked=True))
+                # Source retirement publishes its disposition before joining
+                # the real acquiring worker; the native Mount must still exit.
+                await asyncio.sleep(0)
+                assert isinstance(history.state, ParkedSourceTranscript)
+            finally:
+                release.set()
+            async with asyncio.timeout(8):
+                await parking
+            assert worker.state is WorkerState.CANCELLED and tuple(history.rows) == committed
+            assert history.channel_receipts == receipts and history.historical_receipts == historical
+            assert history.tail_receipt is tail and (history.has_older, history.has_newer) == bounds
+            assert history.style is style and not history.query(AcquiringRow)
+            assert not history.window.history_mutating() and app._batch_count == 0
+            history.resume_source()
+            checks.append("interrupted real native Mount preserves committed rows, style, bounds and receipt resources")
             assert app._exception is None
         assert app._exception is None
         checks.append("whole original App/runtime cleanup")

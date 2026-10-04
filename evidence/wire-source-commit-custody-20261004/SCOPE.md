@@ -45,12 +45,24 @@ AST names do not prove dynamic dispatch, external aliases or callbacks.
 
 ## Remaining acceptance
 
-Close the existing affected App control once after coherent source: interrupted
+The existing `message_dividers_pilot.py --row-publication` control is migrated,
+not executed. Its old waiting-worker assertions were an old completion contract:
+it now awaits the same admitted native source worker before releasing the original
+pending `Unmount`. It also exercises a real registered replacement read and an
+actual native row `Mount` suspended across original source park/cancellation.
+No mounted-event answer, backend actor, display or teardown result is substituted.
+
+Close this affected App control once after coherent source: interrupted
 native acquisition preserving committed rows/receipts/bounds; page source progress
 and authenticated receipt continuity while old `Unmount` remains pending; replacement
 trim bounds; actual visible acknowledgement and stale acknowledgement rejection;
 editor/resize/park/whole-close. A fresh named holder purpose is required before an
 installed run. No accepted #432 rerun or holder access is implied by this checkpoint.
+
+Production checkpoint `f9270c4f0fde2de5f49db5bcbf9590711f966174` has exact automatic
+Debt ratchet SUCCESS, run `37213588265`, job `111469503458`. Changed-file syntax and
+diff whitespace pass. `owner-after.json` closes the same full production/test/native
+source census with zero omissions. Source evidence does not qualify an installed App.
 
 Full scrolling/runway/sidebar/thread-open performance remains active. No runtime
 failure, CPU dominance, measured speed improvement, smoothness or FPS is claimed.
