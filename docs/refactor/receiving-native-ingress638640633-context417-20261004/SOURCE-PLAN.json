@@ -11,7 +11,7 @@
     "src/agent_comms/registry_document.py",
     "src/agent_comms/turn_inputs.py"
   ],
-  "core_build_owner": "Mendel existing goal-ledgerWT, SINGLE normal current-main-equivalent filewheel from publishedb421; Sch will not duplicatebuild",
+  "core_build_owner": "Mendel completed ONE cached normalhatch actualmerged1a build; artifactloan closed, retainedwheelREAD keeper required",
   "toad_source": "b8784052878fb2e0690e2368f0b34125fc80562c",
   "textual": "180cbd9471bd6674647590108ca2fe5a627eb24f",
   "audit": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10",
@@ -28,12 +28,24 @@
     "path": "/home/ts/wt/nra-skill-publish-20261002/.artifacts/family-flattened-collector-20261004/wheels/nominal_refactor_audit-0.1.0-py3-none-any.whl",
     "sha256": "8d489731728ebf9f7e0f90ef2b14e7e3b5d2f90ed82bd8b1482d735f82869886"
   },
-  "package_write_authority": "NONE until Bohr actual433floorarchive/readback/freshspecificnewpurpose",
+  "package_write_authority": "NONE until Bohr actual433floorarchive/readback/freshspecificnewpurpose; package433114 freeze remains unchanged",
   "protected433_head": "b8784052878fb2e0690e2368f0b34125fc80562c",
   "protected433_ready": "9b29dd6e8f22e709b3fa3ccbdd1571147a5c33fed48675b0c67a3aed16e48e6d",
   "new_environments": 0,
   "new_native_builds": 0,
   "new_vcs_source_clones": 0,
   "new_App_SDK_provider_movie": 0,
-  "retained_to_ad_319_exact": true
+  "retained_to_ad_319_exact": true,
+  "core_wheel": {
+    "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/merged-core633-1a520528-wheel-20261004/agent_comms-0.1.0-py3-none-any.whl",
+    "sha256": "58a11a611069326b50b97e20f1080ce786b916e90be307495a4e4306157492f6",
+    "bytes": 880764,
+    "build_head": "1a520528dfa8d5e5e1ebb13913fed3ccb3514376",
+    "receipt": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/merged-core633-1a520528-wheel-20261004/wheel-source-receipt.json",
+    "receipt_sha256": "8aa8d689f28c965533fd23eab9113b56b585a7f91de9cac95195530ce2c2ab2b",
+    "source_files": 344,
+    "forced_assets": 3
+  },
+  "normally_joined_to_ad_main": "b522a9eff8661a664430456f70ca1cc53e162674",
+  "old58a_correction": "Mendel actualfull347proof demonstrates retained2b/old58a ALREADY equalsmerged1a incl637; earlier incompatible claim was wrong. New explicitactualmergedbuild isbyteidentical, exactartifactpath/receipt used. Old190ace637 stilldoesnotrepresent7runtimefiles."
 }
