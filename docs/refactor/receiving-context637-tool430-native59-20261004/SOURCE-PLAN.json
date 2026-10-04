@@ -1,5 +1,5 @@
 {
-  "state": "NORMAL MERGED637/430/417/59 SOURCE/PINS CHECKPOINT; combined ToAd wheel pending, not staged/operator Ready",
+  "state": "NORMAL MERGED SOURCE AND EXACT COMBINED FILEWHEEL READY; package grant/stage/fullcohort remain",
   "source_main": "57ebe1c91f587fb4337ab0548f0ada3c665582eb",
   "core_pin": "5e3f68c5825e80ffe52ba431082a8c13a78428f9",
   "textual_pin": "180cbd9471bd6674647590108ca2fe5a627eb24f",
@@ -37,7 +37,7 @@
       "forced_assets": 0
     }
   ],
-  "new_build_needed": true,
+  "new_build_needed": false,
   "source_update": "Only Core/Text revision identities in pyproject and lock; original Core project and Text Poetry metadata unchanged; parsed lock differs only those identities; no dependency resolve/VCS clone",
   "private_preparation_negative": "First source-plan inspection assumed Text PEP621 project; KeyError before any file mutation. Corrected to original Text tool.poetry metadata; no product failure/check or package launch.",
   "qualified_scopes": {
@@ -72,7 +72,7 @@
     "639 private study",
     "unqualified followups"
   ],
-  "remaining_step": "ONE direct normal combined ToAd wheel, then Bohr actual closed-holder purpose/archive/readback/fresh grant before filewheel stage. Parent owns new guarded operator/default acceptance; no old frozen operator authority.",
+  "remaining_step": "Bohr fresh specific actual closed-holder grant (matching currentfloor archive/readback), then one normal retained filewheel stage; no repeat App/movie/provider/Core/native build. Parent default acceptance after new full cohort/operator freeze.",
   "package_writes": 0,
   "public_effects": 0,
   "new_envs": 0,
@@ -85,5 +85,24 @@
     "reason": "Normal accepted417 adds exactly core/context_inspection.py and widgets/context_explorer.py; original430 wheel does not represent combined source and will not be stacked"
   },
   "combined_to_ad_wheel_plan": "ONE normal filewheel directly from this published owned checkout; original319assets exact finalunion; unchanged Core/Text/NRA/dependencies retained",
-  "merge_conflict": "Normal417 merge had exactly one pyproject Text revision conflict; chose actualmerged180 over sourceequalqualified1bd. Core merged5e preserved; uv lock normal automatic merge retained both actualsource identities. No reset/force/rebase."
+  "merge_conflict": "Normal417 merge had exactly one pyproject Text revision conflict; chose actualmerged180 over sourceequalqualified1bd. Core merged5e preserved; uv lock normal automatic merge retained both actualsource identities. No reset/force/rebase.",
+  "combined_to_ad_wheel": {
+    "source_head": "19f882815f9c83155b0587fe746c2ada435955f7",
+    "actual_merged_main": "57ebe1c91f587fb4337ab0548f0ada3c665582eb",
+    "wheel": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "5002977faca18b0f807999dced9e05f76144c039fd0cab719848bf4d544a7742",
+    "bytes": 2245559,
+    "assets": 319,
+    "all_assets_exact": true,
+    "inventory_sha256": "94f12a0219f1c981fcd75b836d343aa96c338be9377e5de355d1b79b4f3f9503",
+    "build_backend": "hatchling==1.28.0",
+    "backend": "/home/ts/.cache/uv/archive-v0/RgcgNn7xR1Zs9HSF",
+    "builds": 1,
+    "source_clones": 0,
+    "new_envs": 0,
+    "package_writes": 0,
+    "native_builds": 0,
+    "native_copies": 0,
+    "scope": "One complete normal ToAd637/430/417/Text59 receiving wheel from published own source; not installed or live Ready."
+  }
 }
