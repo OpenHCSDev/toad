@@ -636,10 +636,8 @@ class MeasuredViewportBody(ViewportBody):
     def capture_native_paint(self, current):
         """Capture once for retirement and preceding-source publication."""
         if (not current.ready(self) or not self.is_attached or self.lock.is_locked
-                or (self.screen.focused is not None
-                    and self in self.screen.focused.walk_ancestors(with_self=True))
                 or any(self in endpoint.walk_ancestors(with_self=True)
-                       for endpoint in self.screen.selections)
+                       for endpoint in self.screen._interaction_widgets())
                 or any(not child.body_ready for child in walk_depth_first(self, with_root=False)
                        if isinstance(child, ViewportBody))):
             return BodyMeasurement.prepare_publication(
@@ -1061,10 +1059,7 @@ class DocumentViewport:
     def protected(self) -> set[Widget]:
         screen = self.window.screen
         protected = set()
-        endpoints = set(screen.selections)
-        if screen.focused is not None:
-            endpoints.add(screen.focused)
-        for endpoint in endpoints:
+        for endpoint in screen._interaction_widgets():
             for node in endpoint.walk_ancestors(with_self=True):
                 if not isinstance(node, Widget) or node is self.window:
                     break

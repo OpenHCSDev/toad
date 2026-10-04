@@ -117,11 +117,7 @@ class RetainedTextToolOutputPart(TextToolOutputPart):
     def update_widget(self, previous: ToolOutputPart, widget: Widget) -> bool:
         if previous.retained_text is None or type(widget) is not TextContent:
             return False
-        state = widget.screen._select_state
-        if widget.text_selection is not None or (state is not None and (
-            state.start.content_widget is widget
-            or (state.end is not None and state.end.content_widget is widget)
-        )):
+        if widget in widget.screen._interaction_widgets():
             return False
         widget.update(self.retained_text)
         return True

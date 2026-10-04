@@ -1,0 +1,1906 @@
+{
+  "source_tree": "03a010a9fcfd58e1e7418610f5c45e2520b290a0",
+  "packages": [
+    {
+      "root": "src/toad",
+      "revision": "03a010a9fcfd58e1e7418610f5c45e2520b290a0",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "root": "src/textual",
+      "revision": "1bdc18c363cbc0f938537a71aa8ba0225d03e25e",
+      "modules": 249,
+      "omissions": []
+    }
+  ],
+  "native_interface_declarations": [
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 2089,
+      "kind": "FunctionDef",
+      "name": "_interaction_widgets",
+      "source": "def _interaction_widgets(self) -> Iterator[Widget]:\n        \"\"\"Borrow current interaction custody without projecting sel"
+    }
+  ],
+  "native_interface_present": true,
+  "status": "Exact native1bd declaration and all five Toad consumers read; installed App pending",
+  "production_sha256": {
+    "src/toad/tool_output.py": "d2f3b55fadf7ed2f4097d47385f2798da5f54f9b7bf2d595b26c632f41ab9417",
+    "src/toad/widgets/committed_presentation.py": "3aef493b54c40ee2f3f6d73b48e78c2109e68bfb547f76c6656bcb91d3adfd4a",
+    "src/toad/widgets/history_anchor.py": "db7da2eacbe9255d7f693f18ee7eaee2647f9652827cbbe8c62664daa25d4292",
+    "src/toad/widgets/viewport_body.py": "7be9e73acc2f877d38698822c13da6135bf43fa0a39795145bf7ec539f61cc68"
+  },
+  "sites": [
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/agent_configuration.py",
+      "line": 101,
+      "kind": "Attribute",
+      "name": "selections",
+      "source": "self.selections"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/agent_configuration.py",
+      "line": 101,
+      "kind": "Name",
+      "name": "selections",
+      "source": "selections"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/agent_configuration.py",
+      "line": 118,
+      "kind": "Attribute",
+      "name": "selections",
+      "source": "self.selections"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/agent_configuration.py",
+      "line": 136,
+      "kind": "Name",
+      "name": "selections",
+      "source": "selections"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/agent_configuration.py",
+      "line": 140,
+      "kind": "Attribute",
+      "name": "selections",
+      "source": "self.selections"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/agent_configuration.py",
+      "line": 140,
+      "kind": "Name",
+      "name": "selections",
+      "source": "selections"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/agent_configuration.py",
+      "line": 137,
+      "kind": "Name",
+      "name": "selections",
+      "source": "selections"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/agent_configuration.py",
+      "line": 122,
+      "kind": "Attribute",
+      "name": "selections",
+      "source": "self.selections"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/agent_configuration.py",
+      "line": 107,
+      "kind": "Attribute",
+      "name": "selections",
+      "source": "self.selections"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/mounted_message_history.py",
+      "line": 199,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/mounted_message_history.py",
+      "line": 199,
+      "kind": "Attribute",
+      "name": "protect_history",
+      "source": "self.window.protect_history"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/mounted_message_history.py",
+      "line": 204,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/mounted_message_history.py",
+      "line": 224,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/mounted_message_history.py",
+      "line": 238,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/mounted_message_history.py",
+      "line": 208,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/screens/store.py",
+      "line": 472,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/screens/store.py",
+      "line": 474,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/screens/store.py",
+      "line": 475,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/setting_choices.py",
+      "line": 130,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/tool_output.py",
+      "line": 53,
+      "kind": "FunctionDef",
+      "name": "update_widget",
+      "source": "def update_widget(self, previous: ToolOutputPart, widget: Widget) -> bool:\n        return False"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/tool_output.py",
+      "line": 117,
+      "kind": "FunctionDef",
+      "name": "update_widget",
+      "source": "def update_widget(self, previous: ToolOutputPart, widget: Widget) -> bool:\n        if previous.retained_text is None or "
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/tool_output.py",
+      "line": 120,
+      "kind": "Attribute",
+      "name": "_interaction_widgets",
+      "source": "widget.screen._interaction_widgets"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_publication.py",
+      "line": 729,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_publication.py",
+      "line": 729,
+      "kind": "Name",
+      "name": "protected_blocks",
+      "source": "protected_blocks"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_publication.py",
+      "line": 731,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/committed_presentation.py",
+      "line": 188,
+      "kind": "FunctionDef",
+      "name": "protected_blocks",
+      "source": "def protected_blocks(view: Conversation, candidates: Iterable[Widget]) -> set[Widget]:\n    endpoints = set(view.screen._"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/committed_presentation.py",
+      "line": 192,
+      "kind": "Name",
+      "name": "protected_presentations",
+      "source": "protected_presentations"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/committed_presentation.py",
+      "line": 189,
+      "kind": "Attribute",
+      "name": "_interaction_widgets",
+      "source": "view.screen._interaction_widgets"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/committed_presentation.py",
+      "line": 213,
+      "kind": "Name",
+      "name": "protected_blocks",
+      "source": "protected_blocks"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 145,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 145,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 153,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 153,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 158,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 146,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 146,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 154,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 154,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 159,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 511,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 511,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.app.focused"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 513,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 512,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 512,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 236,
+      "kind": "FunctionDef",
+      "name": "protect_history",
+      "source": "def protect_history(\n        self, items, *, older: bool, fallback: Widget,\n    ) -> tuple[Widget, set[Widget]]:\n       "
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 256,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 256,
+      "kind": "Name",
+      "name": "protected_presentations",
+      "source": "protected_presentations"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 259,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 256,
+      "kind": "Attribute",
+      "name": "_interaction_widgets",
+      "source": "self.screen._interaction_widgets"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 257,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 258,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 15,
+      "kind": "FunctionDef",
+      "name": "protected_presentations",
+      "source": "def protected_presentations(items: Iterable[\"Widget\"], endpoints: Iterable[\"Widget\"]) -> set[\"Widget\"]:\n    \"\"\"Resolve n"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 20,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 28,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 25,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 240,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 240,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.app.focused"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 241,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 241,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 80,
+      "kind": "Attribute",
+      "name": "update_widget",
+      "source": "parts[0].update_widget"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 865,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 865,
+      "kind": "Attribute",
+      "name": "protect_history",
+      "source": "window.protect_history"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 892,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 931,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 870,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 901,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 902,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 913,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 938,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 636,
+      "kind": "FunctionDef",
+      "name": "capture_native_paint",
+      "source": "def capture_native_paint(self, current):\n        \"\"\"Capture once for retirement and preceding-source publication.\"\"\"\n   "
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1059,
+      "kind": "FunctionDef",
+      "name": "protected",
+      "source": "def protected(self) -> set[Widget]:\n        screen = self.window.screen\n        protected = set()\n        for endpoint i"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1061,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1069,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 249,
+      "kind": "Attribute",
+      "name": "capture_native_paint",
+      "source": "body.capture_native_paint"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 633,
+      "kind": "Attribute",
+      "name": "capture_native_paint",
+      "source": "self.capture_native_paint"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1062,
+      "kind": "Attribute",
+      "name": "_interaction_widgets",
+      "source": "screen._interaction_widgets"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 628,
+      "kind": "Attribute",
+      "name": "protected",
+      "source": "self._body_viewport.protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1087,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1068,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1087,
+      "kind": "Attribute",
+      "name": "protected",
+      "source": "self.protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1110,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 681,
+      "kind": "Attribute",
+      "name": "protected",
+      "source": "self._body_viewport.protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1066,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 640,
+      "kind": "Attribute",
+      "name": "_interaction_widgets",
+      "source": "self.screen._interaction_widgets"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1089,
+      "kind": "Name",
+      "name": "protected",
+      "source": "protected"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 226,
+      "kind": "FunctionDef",
+      "name": "references_retired",
+      "source": "def references_retired(self, owner: Widget, retired: set[Widget]) -> bool:\n        return not retired.isdisjoint((owner,"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 544,
+      "kind": "Attribute",
+      "name": "references_retired",
+      "source": "resource.references_retired"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 1301,
+      "kind": "FunctionDef",
+      "name": "focused",
+      "source": "def focused(self) -> Widget | None:\n        \"\"\"The widget that is focused on the currently active screen, or `None`.\n\n  "
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 656,
+      "kind": "Attribute",
+      "name": "mouse_captured",
+      "source": "self.mouse_captured"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 1309,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 1309,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.screen.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 1312,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 3255,
+      "kind": "Attribute",
+      "name": "mouse_captured",
+      "source": "self.mouse_captured"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 3983,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 3983,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 3234,
+      "kind": "Attribute",
+      "name": "mouse_captured",
+      "source": "self.mouse_captured"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 3251,
+      "kind": "Attribute",
+      "name": "mouse_captured",
+      "source": "self.mouse_captured"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 3253,
+      "kind": "Attribute",
+      "name": "mouse_captured",
+      "source": "self.mouse_captured"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 3986,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 4442,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.screen.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 1310,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 1310,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 1379,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "screen.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 1379,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "screen.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 3254,
+      "kind": "Attribute",
+      "name": "mouse_captured",
+      "source": "self.mouse_captured"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 3993,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 4175,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 4187,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 4425,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.screen.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 4181,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 4188,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/await_remove.py",
+      "line": 60,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "screen.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/await_remove.py",
+      "line": 60,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "screen.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/await_remove.py",
+      "line": 61,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "screen.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/command.py",
+      "line": 202,
+      "kind": "FunctionDef",
+      "name": "focused",
+      "source": "def focused(self) -> Widget | None:\n        \"\"\"The currently-focused widget in the currently-active screen in the applic"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/command.py",
+      "line": 207,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.__screen.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/css/query.py",
+      "line": 472,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/css/query.py",
+      "line": 472,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self._node.screen.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/css/query.py",
+      "line": 473,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/css/query.py",
+      "line": 475,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/css/query.py",
+      "line": 476,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/demo/demo_app.py",
+      "line": 78,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.screen.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/demo/demo_app.py",
+      "line": 85,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.screen.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 2089,
+      "kind": "FunctionDef",
+      "name": "_interaction_widgets",
+      "source": "def _interaction_widgets(self) -> Iterator[Widget]:\n        \"\"\"Borrow current interaction custody without projecting sel"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 224,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 249,
+      "kind": "Name",
+      "name": "selections",
+      "source": "selections"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 258,
+      "kind": "Name",
+      "name": "_select_state",
+      "source": "_select_state"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 424,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 424,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 769,
+      "kind": "Attribute",
+      "name": "selections",
+      "source": "self.selections"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 770,
+      "kind": "Attribute",
+      "name": "_select_state",
+      "source": "self._select_state"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 779,
+      "kind": "Attribute",
+      "name": "selections",
+      "source": "self.selections"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 908,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1119,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1495,
+      "kind": "Attribute",
+      "name": "selections",
+      "source": "self.selections"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 2152,
+      "kind": "Attribute",
+      "name": "selections",
+      "source": "self.selections"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 426,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 429,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 877,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 878,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 882,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 971,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 983,
+      "kind": "Attribute",
+      "name": "selections",
+      "source": "self.selections"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1009,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1048,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1115,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1152,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1504,
+      "kind": "Attribute",
+      "name": "_select_state",
+      "source": "self._select_state"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1756,
+      "kind": "Attribute",
+      "name": "mouse_captured",
+      "source": "self.app.mouse_captured"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1946,
+      "kind": "Attribute",
+      "name": "_select_state",
+      "source": "self._select_state"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 2091,
+      "kind": "Attribute",
+      "name": "selections",
+      "source": "self.selections"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 2092,
+      "kind": "Attribute",
+      "name": "_select_state",
+      "source": "self._select_state"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 2094,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 2094,
+      "kind": "Attribute",
+      "name": "mouse_captured",
+      "source": "self.app.mouse_captured"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 2149,
+      "kind": "Attribute",
+      "name": "_select_state",
+      "source": "self._select_state"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 2152,
+      "kind": "Attribute",
+      "name": "selections",
+      "source": "select_state.selections"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 425,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 425,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 800,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 800,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 890,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 973,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 987,
+      "kind": "Attribute",
+      "name": "selections",
+      "source": "self.selections"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1010,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1096,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1124,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1126,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1127,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1501,
+      "kind": "Attribute",
+      "name": "_select_state",
+      "source": "self._select_state"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1502,
+      "kind": "Attribute",
+      "name": "references_retired",
+      "source": "self._select_state.references_retired"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1757,
+      "kind": "Attribute",
+      "name": "mouse_captured",
+      "source": "self.app.mouse_captured"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1848,
+      "kind": "Attribute",
+      "name": "_select_state",
+      "source": "self._select_state"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 2135,
+      "kind": "Attribute",
+      "name": "_select_state",
+      "source": "self._select_state"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 389,
+      "kind": "Name",
+      "name": "selections",
+      "source": "selections"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 391,
+      "kind": "Name",
+      "name": "selections",
+      "source": "selections"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 801,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 885,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1130,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1136,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1139,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1502,
+      "kind": "Attribute",
+      "name": "_select_state",
+      "source": "self._select_state"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1576,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 2093,
+      "kind": "Attribute",
+      "name": "_walk_involved_widgets",
+      "source": "self._select_state._walk_involved_widgets"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 436,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1096,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1125,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1131,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1134,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1497,
+      "kind": "Attribute",
+      "name": "selections",
+      "source": "self.selections"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1960,
+      "kind": "Attribute",
+      "name": "_select_state",
+      "source": "self._select_state"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1979,
+      "kind": "Attribute",
+      "name": "_select_state",
+      "source": "self._select_state"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 2054,
+      "kind": "Attribute",
+      "name": "mouse_captured",
+      "source": "self.app.mouse_captured"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 2093,
+      "kind": "Attribute",
+      "name": "_select_state",
+      "source": "self._select_state"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 2055,
+      "kind": "Attribute",
+      "name": "mouse_captured",
+      "source": "self.app.mouse_captured"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1133,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1979,
+      "kind": "Attribute",
+      "name": "_select_state",
+      "source": "self._select_state"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 2014,
+      "kind": "Attribute",
+      "name": "mouse_captured",
+      "source": "self.app.mouse_captured"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 2039,
+      "kind": "Attribute",
+      "name": "_select_state",
+      "source": "self._select_state"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 2051,
+      "kind": "Attribute",
+      "name": "_select_state",
+      "source": "self._select_state"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1145,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/selection.py",
+      "line": 171,
+      "kind": "FunctionDef",
+      "name": "_walk_involved_widgets",
+      "source": "def _walk_involved_widgets(self) -> Iterator[Widget]:\n        \"\"\"Original containers and content referenced by the point"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/selection.py",
+      "line": 184,
+      "kind": "FunctionDef",
+      "name": "references_retired",
+      "source": "def references_retired(self, widgets: set[Widget]) -> bool:\n        \"\"\"Whether removing these resources retires the poin"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/selection.py",
+      "line": 188,
+      "kind": "FunctionDef",
+      "name": "selections",
+      "source": "def selections(self) -> dict[Widget, Selection]:\n        \"\"\"Project the completed pointer intent into original content r"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/selection.py",
+      "line": 199,
+      "kind": "Name",
+      "name": "selections",
+      "source": "selections"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/selection.py",
+      "line": 201,
+      "kind": "Name",
+      "name": "selections",
+      "source": "selections"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/selection.py",
+      "line": 200,
+      "kind": "Name",
+      "name": "selections",
+      "source": "selections"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/selection.py",
+      "line": 316,
+      "kind": "Name",
+      "name": "selections",
+      "source": "selections"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/selection.py",
+      "line": 318,
+      "kind": "Name",
+      "name": "selections",
+      "source": "selections"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/selection.py",
+      "line": 182,
+      "kind": "Attribute",
+      "name": "_walk_involved_widgets",
+      "source": "self._walk_involved_widgets"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/selection.py",
+      "line": 186,
+      "kind": "Attribute",
+      "name": "_walk_involved_widgets",
+      "source": "self._walk_involved_widgets"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 1007,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 1805,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 1806,
+      "kind": "Name",
+      "name": "selections",
+      "source": "selections"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 1004,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 1004,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "self.screen.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 1802,
+      "kind": "Attribute",
+      "name": "mouse_captured",
+      "source": "app.mouse_captured"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 1805,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "old_screen.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 1829,
+      "kind": "Name",
+      "name": "selections",
+      "source": "selections"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 4899,
+      "kind": "Attribute",
+      "name": "mouse_captured",
+      "source": "self.app.mouse_captured"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 774,
+      "kind": "Attribute",
+      "name": "selections",
+      "source": "self.screen.selections"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 1805,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "old_screen.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 1808,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 1830,
+      "kind": "Attribute",
+      "name": "selections",
+      "source": "new_screen.selections"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 1831,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 2163,
+      "kind": "Attribute",
+      "name": "mouse_captured",
+      "source": "self.app.mouse_captured"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 1830,
+      "kind": "Attribute",
+      "name": "selections",
+      "source": "new_screen.selections"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 1830,
+      "kind": "Name",
+      "name": "selections",
+      "source": "selections"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 1832,
+      "kind": "Name",
+      "name": "focused",
+      "source": "focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 4339,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "screen.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 1806,
+      "kind": "Attribute",
+      "name": "selections",
+      "source": "old_screen.selections"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 4342,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "screen.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 4340,
+      "kind": "Attribute",
+      "name": "focused",
+      "source": "screen.focused"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widgets/_selection_list.py",
+      "line": 240,
+      "kind": "Name",
+      "name": "selections",
+      "source": "selections"
+    }
+  ],
+  "limits": [
+    "Static named declarations and attribute sites include unrelated same-name owners; dynamic aliases and overrides are not resolved.",
+    "The pending-gesture/capture gap is source evidence, not a new runtime failure or CPU measurement.",
+    "Native64 controls and Debt are historical; the new interaction projection and joined installed App are not implied by them."
+  ]
+}
