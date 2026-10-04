@@ -1,0 +1,24 @@
+{
+  "before_head": "def085715407853692df15ce097890a823947351",
+  "before_tools_modules": 41,
+  "parse_omissions": [],
+  "before_sites": [
+    {
+      "path": "tools/performance/capture_state.py",
+      "line": 195,
+      "kind": "Constant",
+      "source": "'visible_layers_cached'"
+    },
+    {
+      "path": "tools/performance/capture_state.py",
+      "line": 195,
+      "kind": "Attribute",
+      "source": "compositor._layers_visible"
+    }
+  ],
+  "semantic_change": "Delete obsolete diagnostic field for native50 removed row index; existing native layers/cuts/maps/frame diagnostics unchanged",
+  "coverage": "existing Package parser tools root; complete production source families in prior frame and native50 owner receipts; all-root rg found no other field reader",
+  "dynamic_limit": "external consumers of diagnostic JSON not proved",
+  "after_changed_module_sites": [],
+  "after_changed_module_parse_omissions": []
+}

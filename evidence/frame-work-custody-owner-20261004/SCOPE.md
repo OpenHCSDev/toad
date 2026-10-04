@@ -73,3 +73,14 @@ changes. Native18 affected controls qualified; first incorrect overlap-fixture
 negative retained by its owner. The supplied normal standalone wheel and266
 source inventory join this one changed physical workflow. Existing App result
 above was with Text49, and is kept as that exact source pair, not renamed Text50.
+
+## Native diagnostic consumer closure
+
+Complete source-consumer reading found capture_state still exporting
+compositor._layers_visible, the row index removed by joined Text50. Deleted the
+one obsolete visible_layers_cached diagnostic rather than supplying a false
+value or reviving the index. Native layers/cuts/maps and actual frame records
+remain original observations. Existing Package AST tools-root parse has zero
+omissions; before/after consumer evidence is native50-export-consumer.json.
+The next needed physical workflow's required native exports validate this seam;
+no extra App check or recording for this one removed private diagnostic.
