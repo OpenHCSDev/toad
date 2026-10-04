@@ -191,9 +191,7 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
             if not self.rows:
                 self.style = style
                 return
-            page = MessagePage(tuple(message for message, _ in self.rows),
-                               self.has_older, self.has_newer)
-            await self._mount_page(page, older=False, retained=(), style=style)
+            await self._mount_page(None, older=False, retained=(), style=style)
         self.window.scroll_end(animate=False)
 
     async def mount_page(self, page: MessagePage, *, older: bool) -> None:
@@ -202,7 +200,7 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
                                    retained=tuple(self.rows), style=self.style)
 
     async def _mount_page(
-        self, page: MessagePage, *, older: bool,
+        self, page: MessagePage | None, *, older: bool,
         retained: tuple[tuple[WireMessage, Widget], ...], style: WireMessageStyle,
         read: HistoryReadResult | None = None,
     ) -> None:
@@ -213,8 +211,10 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
                 or not root_is_current(self.reader.comms.root)):
             return
         mounted = {message.view_key for message, _ in retained}
+        messages = (tuple(message for message, _ in self.rows)
+                    if page is None else page.messages)
         pairs = [(message, self.view.message_block(message, style=style))
-                 for message in page.messages if message.view_key not in mounted]
+                 for message in messages if message.view_key not in mounted]
         retained_widgets = {widget for _, widget in retained}
         removed = tuple(widget for _, widget in self.rows if widget not in retained_widgets)
         if pairs or removed:
@@ -231,16 +231,17 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
             # Native AwaitRemove already owns completion and error delivery.
             # A committed source must not wait for an old row's Unmount.
         else:
-            if read is not None and read.replace_tail:
-                self.has_older = page.has_older
-            if older:
-                self.has_older = page.has_older
-            else:
-                self.has_newer = page.has_newer
+            if page is not None:
+                if read is not None and read.replace_tail:
+                    self.has_older = page.has_older
+                if older:
+                    self.has_older = page.has_older
+                else:
+                    self.has_newer = page.has_newer
             self.view.conversation_kind.remember_page(self, page, older)
 
     async def insert_page(
-        self, page: MessagePage, pairs: list[tuple[WireMessage, Widget]], *, older: bool,
+        self, page: MessagePage | None, pairs: list[tuple[WireMessage, Widget]], *, older: bool,
         protected: set[Widget], retained: tuple[tuple[WireMessage, Widget], ...],
         removed: tuple[Widget, ...], style: WireMessageStyle,
         snapshot: HistorySourceSnapshot,
@@ -265,13 +266,15 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
             if read is not None and read.replace_tail:
                 self.has_older = page.has_older
             if older:
-                self.has_older = page.has_older
+                if page is not None:
+                    self.has_older = page.has_older
                 edge = -1
             else:
                 self.rows.sort(key=lambda pair: pair[0].view_order)
                 order = {widget: message.view_order for message, widget in self.rows}
                 self.sort_children(key=lambda widget: order.get(widget, (2, 0, 0)))
-                self.has_newer = page.has_newer
+                if page is not None:
+                    self.has_newer = page.has_newer
                 edge = 0
             # Native prune retires the old scene synchronously. Transfer the
             # complete row association/order before awaiting its completion.

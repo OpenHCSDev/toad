@@ -94,7 +94,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
         }
         cls.remember_tail(history, page, older, mounted)
         cls.remember_mounted(history, page, mounted)
-        if page.historical_display is not None:
+        if page is not None and page.historical_display is not None:
             history.historical_receipts.update(
                 (message.view_key, page) for message in page.messages if message.view_key in mounted
             )
@@ -190,7 +190,7 @@ class ChannelConversation(ConversationKind):
         history.channel_receipts = {
             seq: source for seq, source in history.channel_receipts.items() if ("", seq) in mounted
         }
-        if cls.current_identity(page) is not None:
+        if page is not None and cls.current_identity(page) is not None:
             history.channel_receipts.update(
                 (message.seq, page) for message in page.messages if message.view_key in mounted
             )
@@ -321,7 +321,7 @@ class DmConversation(ConversationKind):
         original = history.tail_receipt
         if original is not None and ("", original.newest_seq) not in mounted:
             history.tail_receipt = None
-        if not older and cls.current_identity(page) is not None:
+        if page is not None and not older and cls.current_identity(page) is not None:
             history.tail_receipt = page if page.messages else None
 
     @classmethod

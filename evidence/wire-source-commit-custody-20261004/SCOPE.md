@@ -22,6 +22,11 @@ it does not qualify these new bytes. No package, App, provider or recording was 
   receipt relations. Channel/DM leaves use their existing `current_identity` owner
   to admit authenticated backend pages. Synthetic style/send row pages preserve
   preceding receipt resources instead of replacing them with unauthenticated pages.
+- Style-only replacement borrows the original mounted message cohort directly;
+  it supplies no backend `MessagePage`. Combined archived/live rows can have equal
+  sequences, while a genuine backend page requires ascending unique sequences
+  within its source. That competing synthetic page construction is deleted.
+  Absence of a new page is an operation input, not a retained flag or receipt copy.
 - Historical/channel pruning moved from paint observation and pre-acquisition tail
   replacement to row commit. DM tail authority survives only while its original
   newest row is committed. No frontend read ledger or second receipt store is added.
@@ -50,6 +55,8 @@ not executed. Its old waiting-worker assertions were an old completion contract:
 it now awaits the same admitted native source worker before releasing the original
 pending `Unmount`. It also exercises a real registered replacement read and an
 actual native row `Mount` suspended across original source park/cancellation.
+The same private App attaches an original archived wire with overlapping message
+sequences and restyles the complete actual history through the original controller.
 No mounted-event answer, backend actor, display or teardown result is substituted.
 
 Close this affected App control once after coherent source: interrupted
@@ -59,10 +66,12 @@ trim bounds; actual visible acknowledgement and stale acknowledgement rejection;
 editor/resize/park/whole-close. A fresh named holder purpose is required before an
 installed run. No accepted #432 rerun or holder access is implied by this checkpoint.
 
-Production checkpoint `f9270c4f0fde2de5f49db5bcbf9590711f966174` has exact automatic
+Earlier production checkpoint `f9270c4f0fde2de5f49db5bcbf9590711f966174` has exact automatic
 Debt ratchet SUCCESS, run `37213588265`, job `111469503458`. Changed-file syntax and
 diff whitespace pass. `owner-after.json` closes the same full production/test/native
 source census with zero omissions. Source evidence does not qualify an installed App.
+The subsequent synthetic-page deletion changes production; the earlier green run
+is not the qualification of that new head. Its exact automatic ratchet must follow.
 
 Full scrolling/runway/sidebar/thread-open performance remains active. No runtime
 failure, CPU dominance, measured speed improvement, smoothness or FPS is claimed.

@@ -248,6 +248,25 @@ async def row_publication() -> None:
             assert not history.window.history_mutating() and app._batch_count == 0
             history.resume_source()
             checks.append("interrupted real native Mount preserves committed rows, style, bounds and receipt resources")
+
+            archive = private_native_wire(root / "archive")
+            archive.registry.declare(Thread("peer", frozenset(), str(root)))
+            for index in range(2):
+                archive.messaging.send_message("peer", "#all", f"archived row {index}")
+            comms.views.attach_history(archive.root)
+            history.reader.restart()
+            read = await history.reader.read(history.follows_tail)
+            assert await history.publish(read)
+            async with asyncio.timeout(8):
+                while history.has_older:
+                    await history._load_page(True)
+            original = tuple(message.view_key for message, _ in history.rows)
+            assert any(source for source, _ in original)
+            assert len({message.seq for message, _ in history.rows}) < len(original)
+            await history.toggle_style()
+            assert tuple(message.view_key for message, _ in history.rows) == original
+            assert "style-pump" in editor.text
+            checks.append("real attached history and live rows sharing sequence numbers restyle without synthetic backend page")
             assert app._exception is None
         assert app._exception is None
         checks.append("whole original App/runtime cleanup")
