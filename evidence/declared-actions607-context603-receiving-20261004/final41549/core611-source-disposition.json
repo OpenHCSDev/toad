@@ -1,0 +1,14 @@
+{
+  "core": "d41601c16d74e9e3e4195b6527fb218b8fe14af9",
+  "original_core": "03954605c0f1c75e60e1f09618e619edcedcd8cc",
+  "Core_Python_pyproject_uv_and_canonical_tools_zero_delta": true,
+  "native": "2ea0a4d4ff2e362864c156e4b11642775b3f2a96e7f01522b346b6f6d9526936",
+  "newCorebuild": false,
+  "retainedCorewheel": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/input-drain611-wheels/agent_comms-0.1.0-py3-none-any.whl",
+  "retainedCorewheelSHA": "4e3ff32503360fe7975ec71da19479774c0ff04ac6b0a2aa09ee38a1521219ba",
+  "source_pin_update": "Existing three metadata references only; unchanged declared Core dependency graph, no resolve/clone/install farm",
+  "original_D5_gates_historical_scope_retained": true,
+  "610_actual_SDK_projection_API_values_order_digest_equivalence_retained": true,
+  "608_not_folded": true,
+  "private_print_only_failure": "Core diff and wheel SHA assertions passed, then reporting called st_size integer as function; no package/source effect from that read-only call"
+}

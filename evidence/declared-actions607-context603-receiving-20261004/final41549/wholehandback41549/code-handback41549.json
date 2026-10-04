@@ -1,0 +1,114 @@
+{
+  "state": "WHOLE_CODE_HANDOFF_QUALIFIED_41549_417_NOT_READY",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "restored_to_ad": "2420f4c71b6c15ee5cb67f5c30c4b38b57815d89",
+  "restored_source_assets": 319,
+  "pins": {
+    "agent_comms": "03954605c0f1c75e60e1f09618e619edcedcd8cc",
+    "toad": "2420f4c71b6c15ee5cb67f5c30c4b38b57815d89",
+    "textual": "3d6d4146fa04b0b0d46445b98b0c9bcc2761ef25"
+  },
+  "native": "d5efa0d56e7ad3962bf3efc009adf1569167a260f1ceb46824c9271a0e7542a2",
+  "packages": 69,
+  "source_proof": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/recorded-context-reader-20261004/restored41549-source-proof.json",
+  "source_proof_sha256": "12f52fe317c6e288ec1b43278f4b1c0f2c3faa60201e06663dc28dbec089d013",
+  "truthful_direct_url": {
+    "url": "file:///home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/final41549/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "archive_info": {}
+  },
+  "preflight": {
+    "selection": "AGENT_COMMS_RUNTIME_ROOT",
+    "bin_directory": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin",
+    "launcher": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/toad",
+    "launcher_sha256": "770edf280e54f364674a773ceff563177a7b5a9793a802816c4f7c898a175083",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/toad",
+        "resolved_path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/toad",
+        "sha256": "770edf280e54f364674a773ceff563177a7b5a9793a802816c4f7c898a175083"
+      },
+      "acp": {
+        "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/agent-comms-acp",
+        "sha256": "90e15ffd2edd07c60553a038e973a908660018ad44047e5b9ea511c6cef1dc22"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/toad",
+        "sha256": "770edf280e54f364674a773ceff563177a7b5a9793a802816c4f7c898a175083"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-acp",
+        "sha256": "0ed5ad356c6d43f3cd31ae5bac5e3709f4a1f81a5d9df41dc02c9860ab9df237"
+      }
+    },
+    "activation_path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/activation.json",
+    "activation_sha256": "70bf14f5b876f64b0715b391dcd9189a3d09f4b5b30d5cd0f6078863e63a5dd8",
+    "activation": {
+      "stage": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+      "pins": {
+        "agent_comms": "03954605c0f1c75e60e1f09618e619edcedcd8cc",
+        "toad": "2420f4c71b6c15ee5cb67f5c30c4b38b57815d89",
+        "textual": "3d6d4146fa04b0b0d46445b98b0c9bcc2761ef25"
+      },
+      "sdk": "0.12.1",
+      "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-d5efa0d56e7ad396/node_modules/@earendil-works/pi-coding-agent",
+      "state": "verified-immutable-cohort",
+      "staging_receipt_sha256": "12f52fe317c6e288ec1b43278f4b1c0f2c3faa60201e06663dc28dbec089d013"
+    },
+    "observed": {
+      "python": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+      "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "880f09da142b42324250da01dfe7484b8ffe88855fa34b339067d8198a3b4d3c",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "file:///home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/final41549/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+            "archive_info": {}
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "6927710db3d269466c9c3c992ad38d74cf3317d913574f93d8ae534503c79745",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "file:///home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text49-filewheel-cb12189d-20261003/textual-8.2.8-py3-none-any.whl",
+            "archive_info": {}
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "8148d82af1c2725a2305e12be517f967e84f4581a4096020c4411902a7d923bf",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "file:///home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/selected609-receiving416-20261004/core-wheel/agent_comms-0.1.0-py3-none-any.whl",
+            "archive_info": {}
+          }
+        }
+      }
+    }
+  },
+  "owned_cleanup": {
+    "remaining": [],
+    "errors": [],
+    "native_child_retired": true
+  },
+  "physical08_terminal": "/home/ts/.cache/agent-scratch/recorded-context417-physical08/terminal-receipt.json",
+  "physical08_elapsed": 135.66226790391374,
+  "physical08_scope": "readable declared menus/tag rename/delete/channel slash + current context mounted; recorded search/full reader/nested contributor NOT passed",
+  "original_tags_restored": true,
+  "original_inputs_unchanged": true,
+  "private_saved_source_unchanged": true,
+  "public_saved_source_unchanged": true,
+  "future_package_claim": false,
+  "handoff_monotonic": 553919.987589735
+}

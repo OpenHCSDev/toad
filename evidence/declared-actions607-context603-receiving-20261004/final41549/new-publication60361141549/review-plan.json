@@ -1,0 +1,58 @@
+{
+  "target": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "source_interpreter": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+  "current_prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "original_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-89b56aea0bb128c4/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-2ea0a4d4ff2e3628/node_modules/@earendil-works/pi-coding-agent",
+  "activation": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/activation.json",
+    "sha256": "a9e63d320c73ddc2ef36952ed1b13969fd63774bd7dfcc84deae4726172a772d"
+  },
+  "source_proof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/final41549/source-proof.json",
+    "sha256": "56f27cbc32b757f81711f466c9c34d2326e9ca261a1ecc2b6040bab295976946"
+  },
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/final41549/qualified-source-gates/603-configured.json",
+      "sha256": "ca0a8545c889a4dd9a540516cd16385ab3a4f9c061a61535cd21bf16cbca62ed"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/final41549/qualified-source-gates/607-READY.json",
+      "sha256": "b5ca56c82fbbdc85fd880c6833bad183f53b698d68fe1f10486f01391114d332"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/final41549/qualified-source-gates/609-installed.json",
+      "sha256": "ee0d123ffea995c0a2170fc17b88b42bb82ff3fc90e815c714ebfd7e6820f74d"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/final41549/qualified-source-gates/413-installed.json",
+      "sha256": "530a65c5b06ecbe94dacc80f2702108271209834a8e68a442158d42869e25a3a"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/final41549/qualified-source-gates/406-READY.json",
+      "sha256": "bae5ffd9fdd36a8a60162da1c2d8fe46e4c50e9ad98ad455795a63c13c81e122"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/final41549/qualified-source-gates/606-installed.json",
+      "sha256": "8051135ec87dc48a38a32bf704d9b40218c8a9e65fa61d3c3dbf57ae212c320e"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/final41549/qualified-source-gates/415-READY.json",
+      "sha256": "caf5ebaa4817987b844f841dcdc92d1baddb44c9f5bd797ceffeb1b34f1932b2"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/final41549/qualified-source-gates/610-SDK-READY.json",
+      "sha256": "ce9e77085bba52e6377fc4704518f40c89208952ad5966910d75398fcc6918be"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/final41549/qualified-source-gates/611-READY.json",
+      "sha256": "867a30cc22220d5f28b8b9f69078ad1bc4b88fbafa5dce7bdd753897d8864bbb"
+    }
+  ]
+}
