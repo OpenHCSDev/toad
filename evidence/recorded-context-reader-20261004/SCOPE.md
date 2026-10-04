@@ -141,3 +141,17 @@ activation from restored41549-source-proof.json and preflight passed. Whole
 CODE handback recorded in code-handback41549.json; no future package claim.
 417 remains a source draft, preserving the search and rendering-resource
 closure and all negatives. Accepted415 sidebar crash delivery is independent.
+
+## Remaining controller source finding (not rerun)
+
+Original08 revealed-member state already selected the exact system key. Its
+Core members were coordination+user_input, with system native line23/y29. The
+following recorded-system state added unavailable_awareness; the request moved
+to line23/y30 and the extra pointer click selected/collapsed that request. The
+cursor had already selected the right resource; repeating selection by a
+previous pixel introduced the race. The controller now uses native Return
+once after native keyboard reveal, deleting that extra pointer selection.
+Actual menus remain pointer-controlled. This changed control is published but
+NOT run after the explicit package handback; no further loan or replay assumed.
+Producer awareness availability and the recorded-search EOF remain separate
+source questions for the existing backend owner, with no native-fault claim.

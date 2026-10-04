@@ -41,8 +41,9 @@ def load_recorder():
                     "--select-context", state, kind))
             if os.environ.get("TOAD_RECORDED_CONTEXT_AUDIT") == "1":
                 def selected(phase, field):
-                    # Reveal by the original materialized Tree line, then acquire
-                    # fresh clipped geometry before the actual pointer selection.
+                    # Native cursor navigation reveals/highlights the member.
+                    # Select that cursor once; a subsequent pointer click may
+                    # target another row after contributor publication reflows.
                     member = field.removeprefix("TOAD_RECORDED_").removesuffix("_NODE").lower()
                     revealed = "revealed-" + phase + "-" + member
                     focused = "focused-" + phase + "-" + member
@@ -56,7 +57,7 @@ def load_recorder():
                         "exec --sync " + shlex.join((sys.executable, str(Path(__file__).resolve()),
                             "--reveal-context", "phase-" + focused + "-state.pickle", os.environ[field])),
                         "sleep .2", mark + revealed,
-                        select("phase-" + revealed + "-state.pickle", "exact:" + os.environ[field])))
+                        "key Return"))
                 export = os.environ["TOAD_CONTEXT_AUDIT_EXPORT"]
                 return "\n".join((
                     mark + "saved --wait-history-seconds 12 --wait-history-thread configured-source",
