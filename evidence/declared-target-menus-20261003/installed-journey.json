@@ -1,0 +1,287 @@
+{
+  "result": "PASS",
+  "scope": "installed App native widget + same-root CLI; no provider/native input/public writes",
+  "physical_linux_driver": true,
+  "seconds": 25.585601437021978,
+  "checks": [
+    "native-right-click-thread-tags-original-membership",
+    "native-right-click-rename-observed-current-sidebar",
+    "builtin-applicability-owned-by-backend",
+    "native-reviewable-delete-original-tags-updated",
+    "native-saved-view-delete-original-catalog",
+    "slash-single-acquisition-refresh-and-native-enter-execution",
+    "same-private-bus-cli-change-visible-in-open-native-app",
+    "hidden-backend-change-original-tab-return-fresh-slash-execution",
+    "save-reopen-original-registry-tags-no-frontend-copy",
+    "all-observed-catalog-reads-off-ui-loop"
+  ],
+  "before": {
+    "root_id": "759eb9b4616042d7b2df177d7b46ed30",
+    "incarnation": {
+      "name": "tagged",
+      "created_at": 1791071798.6475432
+    },
+    "inputs": 0
+  },
+  "after": {
+    "incarnation": {
+      "name": "tagged",
+      "created_at": 1791071798.6475432
+    },
+    "tags": [
+      "cli-tag",
+      "first",
+      "hidden-tag"
+    ]
+  },
+  "catalog_reads": [
+    {
+      "thread": 140247459428032,
+      "target": "project"
+    },
+    {
+      "thread": 140247451035328,
+      "target": "project"
+    },
+    {
+      "thread": 140247451035328,
+      "target": "project"
+    },
+    {
+      "thread": 140247451035328,
+      "target": "project"
+    },
+    {
+      "thread": 140247852816064,
+      "target": "project"
+    },
+    {
+      "thread": 140247451035328,
+      "target": "tagged"
+    },
+    {
+      "thread": 140247852816064,
+      "target": "project"
+    },
+    {
+      "thread": 140247459428032,
+      "target": "project"
+    },
+    {
+      "thread": 140247459428032,
+      "target": "project"
+    },
+    {
+      "thread": 140247459428032,
+      "target": "project"
+    },
+    {
+      "thread": 140247451035328,
+      "target": "project"
+    },
+    {
+      "thread": 140247425857216,
+      "target": "project"
+    },
+    {
+      "thread": 140247852816064,
+      "target": "#second"
+    },
+    {
+      "thread": 140247852816064,
+      "target": "project"
+    },
+    {
+      "thread": 140247425857216,
+      "target": "project"
+    },
+    {
+      "thread": 140247852816064,
+      "target": "#all"
+    },
+    {
+      "thread": 140247451035328,
+      "target": "project"
+    },
+    {
+      "thread": 140247459428032,
+      "target": "#renamed"
+    },
+    {
+      "thread": 140247852816064,
+      "target": "project"
+    },
+    {
+      "thread": 140247852816064,
+      "target": "project"
+    },
+    {
+      "thread": 140247451035328,
+      "target": "#projection"
+    },
+    {
+      "thread": 140247451035328,
+      "target": "project"
+    },
+    {
+      "thread": 140247852816064,
+      "target": "project"
+    },
+    {
+      "thread": 140247451035328,
+      "target": "project"
+    },
+    {
+      "thread": 140247451035328,
+      "target": "#first"
+    },
+    {
+      "thread": 140247459428032,
+      "target": "#first"
+    },
+    {
+      "thread": 140247451035328,
+      "target": "#first"
+    },
+    {
+      "thread": 140247451035328,
+      "target": "#first"
+    },
+    {
+      "thread": 140247425857216,
+      "target": "#first"
+    },
+    {
+      "thread": 140247459428032,
+      "target": "#first"
+    },
+    {
+      "thread": 140247451035328,
+      "target": "#first"
+    },
+    {
+      "thread": 140247425857216,
+      "target": "#first"
+    },
+    {
+      "thread": 140247459428032,
+      "target": "#first"
+    },
+    {
+      "thread": 140247451035328,
+      "target": "#first"
+    },
+    {
+      "thread": 140247425857216,
+      "target": "project"
+    },
+    {
+      "thread": 140247451035328,
+      "target": "#first"
+    },
+    {
+      "thread": 140247852816064,
+      "target": "#all"
+    },
+    {
+      "thread": 140247451035328,
+      "target": "#first"
+    },
+    {
+      "thread": 140247425857216,
+      "target": "#all"
+    },
+    {
+      "thread": 140247852816064,
+      "target": "#first"
+    },
+    {
+      "thread": 140247414318784,
+      "target": "#all"
+    },
+    {
+      "thread": 140247459428032,
+      "target": "#all"
+    },
+    {
+      "thread": 140247451035328,
+      "target": "#first"
+    },
+    {
+      "thread": 140247459428032,
+      "target": "#all"
+    },
+    {
+      "thread": 140247414318784,
+      "target": "#first"
+    },
+    {
+      "thread": 140247459428032,
+      "target": "#first"
+    },
+    {
+      "thread": 140247451035328,
+      "target": "#all"
+    },
+    {
+      "thread": 140247451035328,
+      "target": "#first"
+    },
+    {
+      "thread": 140247451035328,
+      "target": "#first"
+    },
+    {
+      "thread": 140247414318784,
+      "target": "#all"
+    },
+    {
+      "thread": 140247459428032,
+      "target": "#first"
+    },
+    {
+      "thread": 140247425857216,
+      "target": "#first"
+    },
+    {
+      "thread": 140247414318784,
+      "target": "#all"
+    },
+    {
+      "thread": 140247425857216,
+      "target": "#first"
+    },
+    {
+      "thread": 140247459428032,
+      "target": "project"
+    },
+    {
+      "thread": 140247414318784,
+      "target": "project"
+    },
+    {
+      "thread": 140247459428032,
+      "target": "project"
+    },
+    {
+      "thread": 140247425857216,
+      "target": "project"
+    },
+    {
+      "thread": 140247425857216,
+      "target": "tagged"
+    },
+    {
+      "thread": 140247451035328,
+      "target": "project"
+    }
+  ],
+  "ui_thread": 140247948679040,
+  "source": {
+    "toad": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/__init__.py",
+    "core": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/agent_comms/__init__.py",
+    "python": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python"
+  },
+  "provider_calls": 0,
+  "native_inputs": 0
+}

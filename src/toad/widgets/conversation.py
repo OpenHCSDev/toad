@@ -1638,27 +1638,43 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         self.prompt.ask(ask)
         return ask
 
-    def command_target_context(self):
+    async def command_target_context(self):
         from toad.screens.main import MainScreen
-        from toad.target_commands import ThreadContext
-        nav = self.query_ancestor(MainScreen).navigation_context
-        comms = self.app.coordination_access.service
-        from agent_comms.errors import UnregisteredThreadError
-        try:
-            comms.registry.require(nav.actor)
-        except UnregisteredThreadError:
-            return None
-        return ThreadContext(self.app, comms, nav.actor, nav.actor, nav.project_path, nav.owner_mode)
+        from toad.target_commands import TargetContext
+        screen = self.query_ancestor(MainScreen)
+        nav = screen.navigation_context
+        comms = await self.app.preparation.run_thread(lambda: self.app.coordination_access.service)
+        if not self.is_attached or screen.navigation_context != nav:
+            raise ValueError('Command view changed during discovery')
+        return TargetContext(self.app, comms, nav.actor, nav.actor, nav.project_path, nav.owner_mode)
 
-    def update_slash_commands(self) -> None:
+    @work(group='command-catalog', exclusive=True, exit_on_error=False)
+    async def update_slash_commands(self) -> None:
         """Update slash commands, which may have changed since mounting."""
-        self.prompt.slash_commands = self.command_catalog.commands
+        try:
+            catalog = await self.read_command_catalog()
+        except (OSError, ValueError) as error:
+            self.prompt.slash_commands = []
+            self.flash(str(error), style='error')
+        else:
+            self.prompt.slash_commands = catalog.commands
 
-    @property
-    def command_catalog(self) -> CommandCatalog:
+    async def read_command_catalog(self) -> CommandCatalog:
+        from toad.screens.session_view import SessionView
+        source = self.query_ancestor(SessionView)
+        navigation = source.navigation_context
         agent = self.agent
-        return CommandCatalog(agent.presentation.commands if agent is not None else (),
-                              self.command_target_context())
+        context = await self.command_target_context()
+        catalog = await CommandCatalog.read(self.app,
+            agent.presentation.commands if agent is not None else (), context)
+        if (not self.is_attached or source.navigation_context != navigation
+                or agent is not self.agent):
+            raise ValueError('Command view changed during discovery')
+        return catalog
+
+    @handles(core_events.CoordinationObserved)
+    async def _command_source_changed(self, event: CoreEventMessage) -> None:
+        self.update_slash_commands()
 
     async def on_mount(self) -> None:
         self.set_interval(1, lambda: self.goal_controls.poll())
@@ -1679,10 +1695,11 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         self.trap_focus()
         self.watch(self.window, "scroll_y", self._history_scroll_changed, init=False)
         self.prompt.focus()
-        self.prompt.slash_commands = self.command_catalog.commands
+        self.update_slash_commands()
         self.call_after_refresh(self.post_welcome)
         self.observe_core(self.app.settings.events)
         self.observe_core(self.app.events)
+        self.observe_core(self.app.coordination_access.events)
 
         self.input_histories.shell.complete.add_words(
             self.app.settings.shell.allow_commands.split()

@@ -12,7 +12,7 @@ from agent_comms.goal_actions import OwnerInvocable, PausedGoalAction, SetGoalAc
 from agent_comms.goal_attempts import GoalAttemptStore
 from agent_comms.input_disposition import InputDispositions
 from toad.app import ToadApp
-from toad.thread_actions import StartAction, StopAction
+from agent_comms.cli_commands import StartCliCommand, StopCliCommand
 from toad.widgets.comms_menu import ContextMenuItem
 from toad.widgets.comms_sidebar import ChannelGroup, CommsRow
 from l0a_native_installed_pilot import main as native_fixture, response_painted, until
@@ -116,8 +116,8 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     member = next(row for row in sidebar.query(CommsRow) if row.target_name == "beta")
     assert await pilot.click(member, button=3)
     await until(pilot, lambda: bool(app.screen.query(ContextMenuItem)))
-    assert not any(item.action == StartAction.declared_name for item in app.screen.query(ContextMenuItem))
-    stop = next(item for item in app.screen.query(ContextMenuItem) if item.action == StopAction.declared_name)
+    assert not any(item.action == StartCliCommand.declared_name for item in app.screen.query(ContextMenuItem))
+    stop = next(item for item in app.screen.query(ContextMenuItem) if item.action == StopCliCommand.declared_name)
     assert await pilot.click(stop)
     await until(pilot, lambda: comms.registry.status("beta").stopped)
     await until(pilot, lambda: not comms.registry.require("beta").process_alive)
@@ -126,7 +126,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     member = next(row for row in sidebar.query(CommsRow) if row.target_name == "beta")
     assert await pilot.click(member, button=3)
     await until(pilot, lambda: bool(app.screen.query(ContextMenuItem)))
-    start = next(item for item in app.screen.query(ContextMenuItem) if item.action == StartAction.declared_name)
+    start = next(item for item in app.screen.query(ContextMenuItem) if item.action == StartCliCommand.declared_name)
     app.save_screenshot(str(evidence / "stopped-start-menu.svg"))
     assert await pilot.click(start)
     await until(pilot, lambda: comms.registry.require("beta").process_alive)

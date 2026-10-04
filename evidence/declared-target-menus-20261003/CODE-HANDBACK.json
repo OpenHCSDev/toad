@@ -1,0 +1,10 @@
+{
+  "time": 1791072142.9229505,
+  "readable_command_references": [],
+  "unreadable_or_exited_cmdline": 0,
+  "scope": "cmdline census only; unreadable environments/maps not claimed",
+  "restored": "original Core dbcf / Toad union975; all original package asset hashes and 69 versions equal before.json",
+  "native_text_dependencies_activation": "unchanged",
+  "owned_fixture_session": 17863,
+  "owned_fixture_terminal": 0
+}

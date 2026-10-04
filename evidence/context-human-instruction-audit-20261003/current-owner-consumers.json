@@ -1,0 +1,644 @@
+{
+  "frontend_head": "4297f73a21880693e200b49d2210356b8e7e5100",
+  "core_head": "dbcf3ae4a47b629c85027c0def993a9614fadc6c",
+  "scope": "Original context/source/reader owner with whole declared consumer roots",
+  "roots": [
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "head": "4297f73a21880693e200b49d2210356b8e7e5100",
+      "root": "src/toad",
+      "parsed": 289,
+      "unparsed": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "head": "4297f73a21880693e200b49d2210356b8e7e5100",
+      "root": "tests",
+      "parsed": 392,
+      "unparsed": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "head": "4297f73a21880693e200b49d2210356b8e7e5100",
+      "root": "tools",
+      "parsed": 41,
+      "unparsed": []
+    },
+    {
+      "repo": "/home/ts/wt/comms-async-bus-read-publication-custody-20261002",
+      "head": "dbcf3ae4a47b629c85027c0def993a9614fadc6c",
+      "root": "src/agent_comms",
+      "parsed": 311,
+      "unparsed": []
+    }
+  ],
+  "references": [
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 15,
+      "kind": "ImportFrom",
+      "source": "from agent_comms.native_turn_context import NativeContextData"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 20,
+      "kind": "ImportFrom",
+      "source": "from agent_comms.turn_context import ("
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 30,
+      "kind": "ClassDef",
+      "source": "class ContextNode(ABC):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 70,
+      "kind": "ClassDef",
+      "source": "class ReferenceNode(ContextNode):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 90,
+      "kind": "ClassDef",
+      "source": "class ManifestNode(ContextNode):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 115,
+      "kind": "ClassDef",
+      "source": "class RecordedTurnNode(ContextNode):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 137,
+      "kind": "ClassDef",
+      "source": "class NativeSegmentNode(ContextNode):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 165,
+      "kind": "ClassDef",
+      "source": "class NativeMessageNode(NativeSegmentNode):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 204,
+      "kind": "ClassDef",
+      "source": "class NativeMessagesNode(NativeSegmentNode):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 244,
+      "kind": "ClassDef",
+      "source": "class ContextInspection:"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 44,
+      "kind": "FunctionDef",
+      "source": "def public_text(self) -> str:"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 81,
+      "kind": "FunctionDef",
+      "source": "def public_text(self):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 160,
+      "kind": "FunctionDef",
+      "source": "def public_text(self):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 175,
+      "kind": "FunctionDef",
+      "source": "def public_text(self):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 207,
+      "kind": "FunctionDef",
+      "source": "def public_text(self):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 295,
+      "kind": "AsyncFunctionDef",
+      "source": "async def current_source(self, context, position, source):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 301,
+      "kind": "AsyncFunctionDef",
+      "source": "async def recorded_source(self, manifest, position, source):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 79,
+      "kind": "Call",
+      "source": "return self.source.public_description()"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 82,
+      "kind": "Call",
+      "source": "return self.source.public_description()"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 143,
+      "kind": "Call",
+      "source": "return self.segment.public_description()"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 161,
+      "kind": "Call",
+      "source": "return self.segment.public_text()"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 196,
+      "kind": "Call",
+      "source": "return NativeSegmentNode(self.key, segment, self.read_source)"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 200,
+      "kind": "Call",
+      "source": "return NativeMessagesNode(self.key, segment, self.read_source)"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 76,
+      "kind": "Call",
+      "source": "return f\"Source \u00b7 {self.source.public_description()}\""
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 125,
+      "kind": "Call",
+      "source": "return tuple(ManifestNode(f\"{self.key}/{i}\", segment,"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 155,
+      "kind": "Call",
+      "source": "source.public_description()"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 158,
+      "kind": "Call",
+      "source": "return f\"{self.label}\\n\\n{self.public_text()}\\n\\nSources:\\n{sources}\""
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 234,
+      "kind": "Call",
+      "source": "return tuple(NativeMessageNode(f\"{self.key}/message/{i}\", segment=self.segment,"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 268,
+      "kind": "Call",
+      "source": "return tuple(RecordedTurnNode(f\"turn/{identity}\", manifest, self)"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 50,
+      "kind": "Call",
+      "source": "if query in self.public_text().casefold():"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 100,
+      "kind": "Call",
+      "source": "*(ManifestNode(f\"{self.key}/contributor/{i}\", child, self.read_source)"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 102,
+      "kind": "Call",
+      "source": "*(ReferenceNode(f\"{self.key}/source/{i}\", source, self.read_source)"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 147,
+      "kind": "Call",
+      "source": "*(ManifestNode(f\"{self.key}/contributor/{i}\", child, self.read_source)"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 149,
+      "kind": "Call",
+      "source": "*(ReferenceNode(f\"{self.key}/source/{i}\", source, self.read_source)"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 297,
+      "kind": "Call",
+      "source": "observation=FieldCodec.encode(context.observation()), segment=position,"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 318,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.context_explorer import ContextExplorer"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 17,
+      "kind": "ImportFrom",
+      "source": "from toad.core.context_inspection import ContextInspection, ContextNode"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 25,
+      "kind": "ClassDef",
+      "source": "class ContextTreeIntent:"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 32,
+      "kind": "ClassDef",
+      "source": "class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 118,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.context_explorer import ContextExplorer, ContextTreeIntent"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 121,
+      "kind": "Call",
+      "source": "return ContextExplorer(screen._comms_thread, screen.coordination_root, intent=intent)"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 120,
+      "kind": "Call",
+      "source": "intent = self.intents.setdefault(key, ContextTreeIntent())"
+    },
+    {
+      "path": "tools/performance/click_history.py",
+      "line": 124,
+      "kind": "ClassDef",
+      "source": "class ContextTreeTarget(NativeFocusTarget):"
+    },
+    {
+      "path": "src/agent_comms/cli_commands.py",
+      "line": 760,
+      "kind": "ImportFrom",
+      "source": "from .native_turn_context import NativeContextData"
+    },
+    {
+      "path": "src/agent_comms/input_origin.py",
+      "line": 15,
+      "kind": "ImportFrom",
+      "source": "from .turn_context import Provenance"
+    },
+    {
+      "path": "src/agent_comms/input_origin.py",
+      "line": 49,
+      "kind": "FunctionDef",
+      "source": "def public_description(self) -> str:"
+    },
+    {
+      "path": "src/agent_comms/input_origin.py",
+      "line": 52,
+      "kind": "FunctionDef",
+      "source": "def public_text(self, comms) -> str:"
+    },
+    {
+      "path": "src/agent_comms/native_turn_context.py",
+      "line": 8,
+      "kind": "ImportFrom",
+      "source": "from .turn_context import ("
+    },
+    {
+      "path": "src/agent_comms/native_turn_context.py",
+      "line": 42,
+      "kind": "ClassDef",
+      "source": "class NativeContextData(PiResponseData):"
+    },
+    {
+      "path": "src/agent_comms/native_turn_context.py",
+      "line": 49,
+      "kind": "FunctionDef",
+      "source": "def with_current_contributors(self, comms, owner):"
+    },
+    {
+      "path": "src/agent_comms/native_turn_context.py",
+      "line": 55,
+      "kind": "FunctionDef",
+      "source": "def inspection_segments(self) -> tuple[ContextSegment, ...]:"
+    },
+    {
+      "path": "src/agent_comms/native_turn_context.py",
+      "line": 59,
+      "kind": "FunctionDef",
+      "source": "def observation(self) -> PreviewProvenance:"
+    },
+    {
+      "path": "src/agent_comms/native_turn_context.py",
+      "line": 77,
+      "kind": "Call",
+      "source": "return ContextSourceText(selected.public_description(), selected.public_text(comms))"
+    },
+    {
+      "path": "src/agent_comms/native_turn_context.py",
+      "line": 90,
+      "kind": "Call",
+      "source": "return segment.public_text()"
+    },
+    {
+      "path": "src/agent_comms/native_turn_context.py",
+      "line": 72,
+      "kind": "Call",
+      "source": "if observation != self.observation():"
+    },
+    {
+      "path": "src/agent_comms/native_turn_context.py",
+      "line": 77,
+      "kind": "Call",
+      "source": "return ContextSourceText(selected.public_description(), selected.public_text(comms))"
+    },
+    {
+      "path": "src/agent_comms/native_turn_context.py",
+      "line": 77,
+      "kind": "Call",
+      "source": "return ContextSourceText(selected.public_description(), selected.public_text(comms))"
+    },
+    {
+      "path": "src/agent_comms/optional_awareness_projection.py",
+      "line": 58,
+      "kind": "ImportFrom",
+      "source": "from .turn_context import ("
+    },
+    {
+      "path": "src/agent_comms/pi_commands.py",
+      "line": 16,
+      "kind": "ImportFrom",
+      "source": "from .native_turn_context import NativeContextData"
+    },
+    {
+      "path": "src/agent_comms/retained_context.py",
+      "line": 13,
+      "kind": "ImportFrom",
+      "source": "from .turn_context import ContextSegment, OwnerProvenance, WireProvenance"
+    },
+    {
+      "path": "src/agent_comms/runtime_requests.py",
+      "line": 23,
+      "kind": "ImportFrom",
+      "source": "from .turn_context import ContextManifest, ContextSourceText, PreviewProvenance, Provenance, RecordedContextTurn"
+    },
+    {
+      "path": "src/agent_comms/runtime_requests.py",
+      "line": 355,
+      "kind": "ClassDef",
+      "source": "class ContextSourceRuntimeRequest(ContextRuntimeRequest):"
+    },
+    {
+      "path": "src/agent_comms/runtime_requests.py",
+      "line": 385,
+      "kind": "ClassDef",
+      "source": "class ContextReferenceRuntimeRequest(RecordedContextRuntimeRequest):"
+    },
+    {
+      "path": "src/agent_comms/runtime_requests.py",
+      "line": 402,
+      "kind": "Call",
+      "source": "segment = manifest.selected_segment(self.segment, self.contributors)"
+    },
+    {
+      "path": "src/agent_comms/runtime_requests.py",
+      "line": 409,
+      "kind": "Call",
+      "source": "text = await segment.public_text(read_reference)"
+    },
+    {
+      "path": "src/agent_comms/runtime_requests.py",
+      "line": 410,
+      "kind": "Call",
+      "source": "return FieldCodec.encode(ContextSourceText(segment.public_description(), text))"
+    },
+    {
+      "path": "src/agent_comms/runtime_requests.py",
+      "line": 410,
+      "kind": "Call",
+      "source": "return FieldCodec.encode(ContextSourceText(segment.public_description(), text))"
+    },
+    {
+      "path": "src/agent_comms/selected_pi_summary_rpc.py",
+      "line": 144,
+      "kind": "FunctionDef",
+      "source": "def observation(progress):"
+    },
+    {
+      "path": "src/agent_comms/task_sources.py",
+      "line": 15,
+      "kind": "ImportFrom",
+      "source": "from .turn_context import Provenance, WireProvenance"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 26,
+      "kind": "ClassDef",
+      "source": "class Provenance(DeclaredFamily, affix=\"Provenance\"):"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 141,
+      "kind": "ClassDef",
+      "source": "class ContextSourceText:"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 237,
+      "kind": "ClassDef",
+      "source": "class ContextSegment(DeclaredFamily, affix=\"Segment\"):"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 30,
+      "kind": "FunctionDef",
+      "source": "def public_description(self) -> str: ..."
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 32,
+      "kind": "FunctionDef",
+      "source": "def public_text(self, comms) -> str:"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 60,
+      "kind": "FunctionDef",
+      "source": "def public_description(self) -> str:"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 63,
+      "kind": "FunctionDef",
+      "source": "def public_text(self, comms) -> str:"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 75,
+      "kind": "FunctionDef",
+      "source": "def public_description(self) -> str:"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 83,
+      "kind": "FunctionDef",
+      "source": "def public_description(self) -> str:"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 86,
+      "kind": "FunctionDef",
+      "source": "def public_text(self, comms) -> str:"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 96,
+      "kind": "FunctionDef",
+      "source": "def public_description(self) -> str:"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 110,
+      "kind": "FunctionDef",
+      "source": "def public_description(self) -> str:"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 123,
+      "kind": "FunctionDef",
+      "source": "def public_description(self) -> str:"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 136,
+      "kind": "FunctionDef",
+      "source": "def public_description(self) -> str:"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 186,
+      "kind": "FunctionDef",
+      "source": "def public_description(self) -> str:"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 189,
+      "kind": "FunctionDef",
+      "source": "def selected_contributor(self, positions: tuple[int, ...]) -> SegmentManifest:"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 228,
+      "kind": "AsyncFunctionDef",
+      "source": "async def public_text(self, read_reference) -> str:"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 247,
+      "kind": "FunctionDef",
+      "source": "def public_description(self) -> str:"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 253,
+      "kind": "FunctionDef",
+      "source": "def public_text(self) -> str:"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 333,
+      "kind": "FunctionDef",
+      "source": "def public_description(self) -> str:"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 350,
+      "kind": "FunctionDef",
+      "source": "def public_text(self) -> str:"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 369,
+      "kind": "FunctionDef",
+      "source": "def public_text(self) -> str:"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 597,
+      "kind": "FunctionDef",
+      "source": "def selected_segment(self, position: int, contributors: tuple[int, ...] = ()) -> SegmentManifest:"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 334,
+      "kind": "Call",
+      "source": "return self.measured_manifest().public_description()"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 600,
+      "kind": "Call",
+      "source": "return self.segments[position].selected_contributor(contributors)"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 620,
+      "kind": "Call",
+      "source": "return ContextSourceText(source.public_description(), source.public_text(comms))"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 620,
+      "kind": "Call",
+      "source": "return ContextSourceText(source.public_description(), source.public_text(comms))"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 620,
+      "kind": "Call",
+      "source": "return ContextSourceText(source.public_description(), source.public_text(comms))"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 202,
+      "kind": "Call",
+      "source": "public = {value.public_text() for value in matched}"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 38,
+      "kind": "Call",
+      "source": "raise ValueError(f\"Original text is not retained by {self.public_description()}\")"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 618,
+      "kind": "Call",
+      "source": "if source not in self.selected_segment(segment).source_membership():"
+    },
+    {
+      "path": "src/agent_comms/turn_context.py",
+      "line": 232,
+      "kind": "Call",
+      "source": "return \"\\n\".join([await child.public_text(read_reference) for child in self.contributors])"
+    }
+  ],
+  "limits": "Lexical AST cannot establish dynamic aliases or MRO resolution; original classes, callbacks and request bindings were read semantically. Native89 does not qualify future captured SDK request values/recovery."
+}

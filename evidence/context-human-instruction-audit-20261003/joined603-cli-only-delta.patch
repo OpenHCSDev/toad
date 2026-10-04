@@ -1,0 +1,42 @@
+diff --git a/src/agent_comms/cli_commands.py b/src/agent_comms/cli_commands.py
+index 4d1b3f18..2eaa80f2 100644
+--- a/src/agent_comms/cli_commands.py
++++ b/src/agent_comms/cli_commands.py
+@@ -771,7 +771,8 @@ class ContextCliCommand(CliCommand):
+                 raise ValueError("No original context manifest exists for the requested turn")
+             if self.diff:
+                 return selected[-1].changed_from_history(manifests)
+-            return {"manifests": FieldCodec.encode(selected), "text_recorded": False}
++            return {"manifests": FieldCodec.encode(selected),
++                    "text_recorded": all(manifest.public_text_recorded for manifest in selected)}
+         owner = ctx.registry.require(self.thread)
+         launch = PrivateNkLaunch.from_environment(
+             ctx.root, ctx.owners.restart_environment(os.environ)
+diff --git a/src/agent_comms/turn_context.py b/src/agent_comms/turn_context.py
+index e5cfc6fd..0db0a2a6 100644
+--- a/src/agent_comms/turn_context.py
++++ b/src/agent_comms/turn_context.py
+@@ -232,6 +232,12 @@ class SegmentManifest:
+             return "\n".join([await child.public_text(read_reference) for child in self.contributors])
+         return await read_reference(self)
+ 
++    @property
++    def public_text_recorded(self) -> bool:
++        return bool(self.captured_text) or (
++            bool(self.contributors) and all(child.public_text_recorded for child in self.contributors)
++        )
++
+ 
+ @dataclass(frozen=True, kw_only=True)
+ class ContextSegment(DeclaredFamily, affix="Segment"):
+@@ -589,6 +595,10 @@ class ContextManifest:
+     # never observed dispatch. It grants neither admission nor replay.
+     request_id: str | None = field(default=None, metadata={"wire_omit_default": True})
+ 
++    @property
++    def public_text_recorded(self) -> bool:
++        return bool(self.segments) and all(segment.public_text_recorded for segment in self.segments)
++
+     def require_request_id(self) -> str:
+         if not self.request_id:
+             raise ValueError("Original request ID was not captured by this historical context")

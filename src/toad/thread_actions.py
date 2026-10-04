@@ -4,32 +4,14 @@ from __future__ import annotations
 from toad.core import events as core_events
 
 import asyncio
-from abc import abstractmethod
 from dataclasses import dataclass
-from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar
+from typing import TYPE_CHECKING
 
-from agent_comms.command import Command
-from agent_comms.comms import Comms
-from agent_comms.declared_family import DeclaredFamily
-from agent_comms.owner_lifecycle import OwnerStartResult
-from agent_comms.thread_management import ForkSpec
-from agent_comms.thread_status import ThreadStatus
-from agent_comms.threads import Thread
-from agent_comms.tools import (
-    CommsAckTool,
-    CommsArchiveTool,
-    CommsForkTool,
-    CommsStartTool,
-    CommsStopTool,
-    ToolRequest,
-)
+from agent_comms.cli_commands import TargetActionsCliCommand, TargetEditCliCommand
 from toad.comms_root import RouteSelection
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
-
-Result = TypeVar("Result")
 
 
 class ThreadActions:
@@ -76,174 +58,69 @@ class ThreadActions:
 
 
 class ThreadActionExecution:
-    def __init__(self, owner: ThreadActions, action: ThreadAction, selected: RouteSelection,
-                 subject: str, actor: str, session_modes: tuple[str, ...]) -> None:
+    """An accepted UI operation owns only its task and captured route resource."""
+    def __init__(self, owner, action, selected, subject, actor, session_modes):
         self.owner, self.action, self.selected = owner, action, selected
         self.subject, self.actor, self.session_modes = subject, actor, session_modes
         self.task = asyncio.create_task(self.run(), name="thread-action")
 
-    async def run(self) -> None:
+    def apply(self):
+        access = self.owner.app.coordination_access
+        comms = access.require(self.selected)
+        return access.write(self.selected, self.action.request.apply, comms)
+
+    async def run(self):
         app = self.owner.app
         try:
-            comms = app.coordination_access.require(self.selected)
-            ctx = ThreadActionContext(comms, self.subject, self.actor, app.project_dir, self.session_modes)
-            result = await asyncio.to_thread(app.coordination_access.write, self.selected, self.action.apply, ctx)
-            await self.action.completed(app, ctx, result)
+            result = await app.preparation.run_thread(self.apply)
+            # Original start result owns whether a connection changed. This is
+            # native connection resource refresh, never backend status mutation.
+            await self.action.completed(app, self.session_modes, result)
         except Exception as error:
             app.notify(str(error), title=f"Session action: {self.subject}", severity="error")
         finally:
             self.owner.finished(self)
+            app.coordination_access.refresh()
 
 
 @dataclass(frozen=True)
-class ThreadActionContext:
-    comms: Comms
-    subject: str
-    actor: str
-    project: Path
-    session_modes: tuple[str, ...]
+class ThreadAction:
+    """A native edit resource borrowing one backend-declared command projection."""
+    definition: dict
+    request: TargetEditCliCommand
 
+    @property
+    def pending(self):
+        return self.definition['label'] + '…'
 
-class ChannelAction:
-    """A thread action whose declared scope also includes channel views."""
-
-
-class ThreadAction(DeclaredFamily, Command, Generic[Result], affix="Action"):
-    """One UI command; actual domain owners enforce all mutation authority."""
-
-    tool: ClassVar[type[ToolRequest]]
-    pending: ClassVar[str]
-
-    @classmethod
-    def menu_label(cls) -> str:
-        return cls.tool.action_label or cls.tool.label
+    async def completed(self, app, session_modes, result):
+        from agent_comms.cli_commands import CliCommand
+        command = CliCommand.decode(self.request.operation)
+        for thread in command.reconnect_targets(result):
+            for mode in session_modes:
+                source = app.session_navigation.source(mode)
+                if source is not None and source.conversation.agent is not None:
+                    await source.conversation.agent.session.reconnect()
+        app.notify(self.definition['label'], title=self.request.target)
 
     @classmethod
-    def available(cls, thread, status: ThreadStatus) -> bool:
-        return cls.tool.available_for_thread(thread, status)
+    def collect(cls, ctx, definition):
+        from toad.widgets.comms_command_dialog import CommandDialog
 
-    @classmethod
-    def menu(cls) -> tuple[type[ThreadAction], ...]:
-        return tuple(sorted(cls.members_with(cls), key=lambda action: action.tool.action_order))
-
-    @classmethod
-    def available_menu(cls, thread, status: ThreadStatus) -> tuple[type[ThreadAction], ...]:
-        """Project one captured registry state through the action declarations."""
-        return tuple(action for action in cls.menu() if action.available(thread, status))
-
-    @classmethod
-    def request(
-        cls, app: ToadApp, subject: str, actor: str, session_modes: tuple[str, ...] = ()
-    ) -> None:
-        app.thread_actions.invoke(cls(), subject, actor, session_modes)
-
-    @abstractmethod
-    def apply(self, ctx: ThreadActionContext) -> Result:
-        """Perform this command on the worker thread within route admission."""
-
-    @abstractmethod
-    async def completed(self, app: ToadApp, ctx: ThreadActionContext, result: Result) -> None:
-        """Present the typed result on the UI loop."""
-
-
-class StartAction(ThreadAction[OwnerStartResult]):
-    tool = CommsStartTool
-    pending = "Starting…"
-
-    def apply(self, ctx: ThreadActionContext) -> OwnerStartResult:
-        return ctx.comms.owners.start(ctx.subject)
-
-    async def completed(self, app: ToadApp, ctx: ThreadActionContext, result: OwnerStartResult) -> None:
-        app.notify(
-            f"{'Starting' if result.launched else 'Already running'} @{result.thread}",
-            title="Session action",
-        )
-        if result.launched:
-            from toad.core.events import CommsUpdated
-            from agent_comms.acp_extension import TranscriptChangedUpdate
-
-            for mode_name in ctx.session_modes:
-                screen = app.session_navigation.source(mode_name)
-                if screen is not None and screen.conversation.agent is not None:
-                    await screen.conversation.agent.session.reconnect()
-                    agent = screen.conversation.agent
-                    agent.events.publish(CommsUpdated(TranscriptChangedUpdate(None), agent.session_id))
-
-
-class FinishedAction(ThreadAction[None]):
-    """Shared notification for commands without a domain return value."""
-
-    completed_label: ClassVar[str]
-
-    async def completed(self, app: ToadApp, ctx: ThreadActionContext, result: None) -> None:
-        app.notify(f"{self.completed_label} @{ctx.subject}", title="Session action")
-
-
-class StopAction(FinishedAction):
-    tool = CommsStopTool
-    pending = "Stopping…"
-    completed_label = "Stopped"
-
-    def apply(self, ctx: ThreadActionContext) -> None:
-        ctx.comms.owners.stop(ctx.subject)
-
-
-class ArchiveAction(FinishedAction):
-    tool = CommsArchiveTool
-    pending = "Archiving…"
-    completed_label = "Archived"
-
-    def apply(self, ctx: ThreadActionContext) -> None:
-        ctx.comms.threads.archive(ctx.subject)
-
-
-class AcknowledgeAction(ChannelAction, FinishedAction):
-    tool = CommsAckTool
-    pending = "Acknowledging…"
-
-    def apply(self, ctx: ThreadActionContext) -> None:
-        ctx.comms.views.mark_user_view_read(ctx.subject, worktree=str(ctx.project))
-
-    async def completed(self, app: ToadApp, ctx: ThreadActionContext, result: None) -> None:
-        app.notify(f"Marked {ctx.subject} read", title="Session action")
-
-
-@dataclass(frozen=True)
-class ForkAction(ThreadAction[Thread]):
-    tool = CommsForkTool
-    pending = "Forking…"
-    spec: ForkSpec
-
-    @classmethod
-    def request(
-        cls, app: ToadApp, subject: str, actor: str, session_modes: tuple[str, ...] = ()
-    ) -> None:
-        from toad.comms_root import current_root, root_is_current
-        from toad.widgets.comms_fork_dialog import ForkDialog
-
-        selected_root = current_root()
-
-        def accepted(spec: ForkSpec | None) -> None:
-            if spec is None:
+        def accepted(arguments):
+            if arguments is None:
                 return
-            if not root_is_current(selected_root):
-                app.notify("Comms route changed; reopen the thread before forking", severity="error")
-                return
-            app.thread_actions.invoke(cls(spec), subject, actor, session_modes)
-
-        async def collect():
             try:
-                selected = RouteSelection.capture(selected_root)
-                comms = app.coordination_access.require(selected)
-                parent = await asyncio.to_thread(comms.registry.require, subject)
-                if root_is_current(selected_root):
-                    app.push_screen(ForkDialog(parent), accepted)
-            except (OSError, ValueError, RuntimeError) as error:
-                app.notify(str(error), title="Fork", severity="error")
-        app.run_worker(collect(), name="fork-dialog", exit_on_error=False)
+                ctx.current()
+                request = TargetEditCliCommand(target=ctx.subject,
+                    operation=definition['command'], arguments=arguments,
+                    confirmed=bool(definition['confirmation']), channel=ctx.channel)
+                ctx.app.thread_actions.invoke(cls(definition, request), ctx.subject, ctx.actor,
+                    (ctx.mode,) if ctx.mode is not None else ())
+            except (OSError, ValueError) as error:
+                ctx.app.notify(str(error), title=definition['label'], severity='error')
 
-    def apply(self, ctx: ThreadActionContext) -> Thread:
-        return ctx.comms.threads.fork(self.spec)
-
-    async def completed(self, app: ToadApp, ctx: ThreadActionContext, result: Thread) -> None:
-        app.notify(f"forked {result.name} from {ctx.subject}", title="Comms")
+        if definition['parameters']['properties'] or definition['confirmation']:
+            ctx.app.push_screen(CommandDialog(definition, ctx.subject), accepted)
+        else:
+            accepted({})
