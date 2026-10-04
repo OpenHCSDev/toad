@@ -1,0 +1,39 @@
+{
+  "prefix": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534",
+  "core": "d41601c16d74e9e3e4195b6527fb218b8fe14af9",
+  "toad": "3e7a2e142102aaa3c2900ef733992810834aff03",
+  "textual": "b263e4e707846025fd6b70448749c7a36c0a2d81",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-2ea0a4d4ff2e3628/node_modules/@earendil-works/pi-coding-agent",
+  "archive_artifacts": [
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/input-drain611-wheels/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "4e3ff32503360fe7975ec71da19479774c0ff04ac6b0a2aa09ee38a1521219ba"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame418-stage-20261004/live611-toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "5fa15f7d2e59cd919feedf8e49c9154dad218015356665aa525bbd82e53b4f3b"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text50-filewheel-ff5cc9c7-20261003/textual-8.2.8-py3-none-any.whl",
+      "sha256": "ddd4ae0e0a5fae1dc7465b4772e7f8bd31630d35c118a85cbc53a3cf423adbb3"
+    }
+  ],
+  "gate_files": [
+    "603-configured.json",
+    "607-READY.json",
+    "609-installed.json",
+    "413-installed.json",
+    "406-READY.json",
+    "606-installed.json",
+    "415-READY.json",
+    "610-SDK-READY.json",
+    "611-READY.json",
+    "418-READY.json"
+  ],
+  "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released534-current401-Sch418-package-only-grant.json",
+  "grant_sha256": "2d6353f5e27f28dce51c0390f04ee5e392c6940a77627a1561e26b755d525c82",
+  "package_archive_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/released534-current401-package-next418-20261004/current401534-package-code-archive.json",
+  "builds": 0,
+  "new_vcs_clones": 0,
+  "public_writes": 0
+}

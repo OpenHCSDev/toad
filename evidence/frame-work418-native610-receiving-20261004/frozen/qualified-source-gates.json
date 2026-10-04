@@ -1,0 +1,22 @@
+{
+  "state": "Distinct original affected accepted scopes retained; no unchanged journey rerun",
+  "files": [
+    "603-configured.json",
+    "607-READY.json",
+    "609-installed.json",
+    "413-installed.json",
+    "406-READY.json",
+    "606-installed.json",
+    "415-READY.json",
+    "610-SDK-READY.json",
+    "611-READY.json",
+    "418-READY.json"
+  ],
+  "new_source_union": "merged418/Text50/Core611/native2ea",
+  "excluded": [
+    "417",
+    "608/086",
+    "614"
+  ],
+  "physical_ready_scope": "Original418 same declaredCore611/native2ea input-warm qualification; ordinarydefault assembly remains parent acceptance"
+}
