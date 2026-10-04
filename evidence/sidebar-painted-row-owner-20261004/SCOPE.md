@@ -121,3 +121,24 @@ family closed.
 ## Integration boundary
 
 The release-only source approved for Sch is the two-file family at e523a93f9 (Conversation and OperationalSessionPresentation). It includes acquisition of the actual cached viewport before the first await. Full #426 also carries unqualified row/tab/ancestry and session-opening changes; its one affected qualification must cover row offscreen/reentry and labels as well as switching/first paint. F1 may integrate only the release family for its changed whole-App native-delete case. Its original09 negative remains immutable; no callback-only shutdown acceptance.
+
+## Deferred work belongs to the selected scene
+
+Removing the global navigation hold exposed its accidental role in callback
+custody: a hidden new SessionView can mount under an already-Presented departing
+frame. FramePresentation.release now derives the callback's session from original
+native ancestry and takes that SessionView's existing current-source relation.
+Hidden work stays in the original callback resource until that view's publication;
+detached owners are retired. Workspace chrome without a session ancestor keeps
+its own current-screen contract. WorkspaceSessions.select already begins the new
+frame synchronously before assigning LoadingWorkspaceSource, so an older queued
+callback or writer receipt cannot certify the newly selected source.
+
+All original hydration, actor-start, navigation, viewport register/resume/restored
+callbacks consume this one release owner with unchanged APIs; no new callback
+queue, view registry, flag or capture authority. Native admission and logical
+selection remain distinct facts: this does not create or infer an admitted actor,
+and each operation retains its original attachment/source checks. Final affected
+App qualification must cover hidden cold mounts, current activation, retained
+returns and departure/closure during pending source work. This source edge was
+not proved as the cause of the old film; no runtime/performance claim.
