@@ -100,3 +100,10 @@ Coredbcf/Text48/native89; it is not called current default. Four production file
 now remove24/add35 lines. Text49's frozen original ordering change is available
 for the next joined physical motion/profile, no new environment/native build.
 Draft, not Ready: source/App behavior is qualified, new motion/latency is not.
+
+Next installed pair uses approved retained Core605 db620 wheel and frozen Text49
+cb121 filewheel. This changes the actual runtime from prior Coredbcf/Text48 App
+comparator; its result is kept truthful. Normal package metadata pins Text49;
+its dependency metadata is unchanged, and the lock's original source references
+move together. No VCS clone/build or dependency resolve is performed for staging.
+Kepler owns native original ordering, Heisenberg owns sole joined real journey.
