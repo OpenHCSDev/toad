@@ -308,7 +308,7 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
         self.temporary_background_screen: Screen | None = None
 
         super().__init__()
-        self.subscribe_core(self.session_navigation.events)
+        self.session_navigation.bind_events()
         self.project_dir = Path(project_dir or "./").expanduser().resolve()
 
 

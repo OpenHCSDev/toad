@@ -7,7 +7,7 @@ import asyncio
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from agent_comms.cli_commands import TargetActionsCliCommand, TargetEditCliCommand
+from agent_comms.cli_commands import TargetAction, TargetEdit
 from toad.comms_root import RouteSelection
 
 if TYPE_CHECKING:
@@ -25,7 +25,7 @@ class ThreadActions:
     def pending(self) -> dict[str, str]:
         return {name: execution.action.pending for name, execution in self.requests.items()}
 
-    def invoke(self, action: ThreadAction, subject: str, actor: str, session_modes: tuple[str, ...] = ()) -> None:
+    def invoke(self, action: ThreadAction, subject: str) -> None:
         app = self.app
         source_root = app.screen.coordination_root
         if source_root is None:
@@ -43,7 +43,7 @@ class ThreadActions:
         if subject in self.requests:
             app.notify(f"An action for @{subject} is already in progress", title="Session action")
             return
-        self.requests[subject] = ThreadActionExecution(self, action, selected, subject, actor, session_modes)
+        self.requests[subject] = ThreadActionExecution(self, action, selected, subject)
         app.events.publish(core_events.ThreadActionsChanged())
 
     def finished(self, execution: ThreadActionExecution) -> None:
@@ -59,9 +59,9 @@ class ThreadActions:
 
 class ThreadActionExecution:
     """An accepted UI operation owns only its task and captured route resource."""
-    def __init__(self, owner, action, selected, subject, actor, session_modes):
+    def __init__(self, owner, action, selected, subject):
         self.owner, self.action, self.selected = owner, action, selected
-        self.subject, self.actor, self.session_modes = subject, actor, session_modes
+        self.subject = subject
         self.task = asyncio.create_task(self.run(), name="thread-action")
 
     def apply(self):
@@ -75,7 +75,7 @@ class ThreadActionExecution:
             result = await app.preparation.run_thread(self.apply)
             # Original start result owns whether a connection changed. This is
             # native connection resource refresh, never backend status mutation.
-            await self.action.completed(app, self.session_modes, result)
+            await self.action.completed(app, self.selected, result)
         except Exception as error:
             app.notify(str(error), title=f"Session action: {self.subject}", severity="error")
         finally:
@@ -86,22 +86,18 @@ class ThreadActionExecution:
 @dataclass(frozen=True)
 class ThreadAction:
     """A native edit resource borrowing one backend-declared command projection."""
-    definition: dict
-    request: TargetEditCliCommand
+    definition: TargetAction
+    request: TargetEdit
 
     @property
     def pending(self):
-        return self.definition['label'] + '…'
+        return self.definition.label + '…'
 
-    async def completed(self, app, session_modes, result):
-        from agent_comms.cli_commands import CliCommand
-        command = CliCommand.decode(self.request.operation)
-        for thread in command.reconnect_targets(result):
-            for mode in session_modes:
-                source = app.session_navigation.source(mode)
-                if source is not None and source.conversation.agent is not None:
-                    await source.conversation.agent.session.reconnect()
-        app.notify(self.definition['label'], title=self.request.target)
+    async def completed(self, app, selected, result):
+        await app.session_navigation.retire_missing()
+        await app.session_navigation.reconnect(
+            selected, self.request.declaration.reconnect_targets(result))
+        app.notify(self.definition.label, title=self.request.target)
 
     @classmethod
     def collect(cls, ctx, definition):
@@ -112,15 +108,13 @@ class ThreadAction:
                 return
             try:
                 ctx.current()
-                request = TargetEditCliCommand(target=ctx.subject,
-                    operation=definition['command'], arguments=arguments,
-                    confirmed=bool(definition['confirmation']), channel=ctx.channel)
-                ctx.app.thread_actions.invoke(cls(definition, request), ctx.subject, ctx.actor,
-                    (ctx.mode,) if ctx.mode is not None else ())
+                request = TargetEdit(declaration=definition.declaration, target=ctx.subject,
+                    arguments=arguments, confirmed=bool(definition.edited(arguments).confirmation()), channel=ctx.channel)
+                ctx.app.thread_actions.invoke(cls(definition, request), ctx.subject)
             except (OSError, ValueError) as error:
-                ctx.app.notify(str(error), title=definition['label'], severity='error')
+                ctx.app.notify(str(error), title=definition.label, severity='error')
 
-        if definition['parameters']['properties'] or definition['confirmation']:
+        if definition.editable_fields or definition.confirmation:
             ctx.app.push_screen(CommandDialog(definition, ctx.subject), accepted)
         else:
             accepted({})
