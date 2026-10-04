@@ -16,14 +16,18 @@ boundaries; shared method changes coordinate before editing. External Textual,
 ACP, Markdown and SQLite values use existing FieldCodec at their true boundary.
 Only actual codec/schema mechanism modules can be exempt by name.
 
-Original NRA collector publication remains pending in NRA, never copied here.
+Original NRA collector publication is pinned through Core #622 at
+9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10; it is never copied here.
 Every touched file must not grow; unrelated reductions cannot offset increases.
 Source first; one final batch of affected checks and installed application path
 last. No provider/input/public actions, old branch deletion or evidence cleanup.
 
 Normal F1 join 5f3dc1fe keeps current main dependency pins while production
 consumer changes are composed. Final paired source pin/resolution follows Core
-review; the old main pin is not claimed to implement unpublished F1/F4 APIs.
+review. The current paired pin is Core e9d7dc09988dfab965dfa12bfc66797057716dce,
+including the original collector and per-file measure. Normal uv lock resolution
+changed only Core and nominal-refactor-audit; Textual's newer original main pin
+2fac5395d37454296e9fa9b0cd342b820bacc25a and Diff8fa are retained.
 
 ## Working source batch
 
@@ -46,5 +50,8 @@ directly rather than naming and decoding it. No alternate parser or new store.
 
 Named true mechanisms after reading: db.py's SQLite storage schema and
 agent_schema.py's original TOML/metadata FieldRepresentation. No domain/control
-module is blanket exempt. Required original collector/package handoff remains
-pending; source is published, not installed or Ready.
+module is blanket exempt. Required collector/package handoff is complete; source
+is published, not installed or Ready. The same original collector parsed all 288
+Toad production modules without omissions: only those two mechanisms remain.
+Normal F1 head1715113fb9f464a65a33fc3be2db29e021bc0dec is joined, retaining
+participants, original thread/channel hooks and the corrected dialog consumer.
