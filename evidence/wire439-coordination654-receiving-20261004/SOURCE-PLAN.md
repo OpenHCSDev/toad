@@ -1,6 +1,7 @@
 # Ordinary receiving successor: wire439 and coordination654/656
 
-Source preparation only. The existing436 stage,115 operands,274 preceding
+Historical be105 source-only checkpoint; its granted candidate realization is
+now documented in READY.md. The existing436 stage,115 operands,274 preceding
 keepers,activation,Ready8796 and all installed prefixes remain immutable.
 Parent has now consumed the original436 operation once and verified its identity
 readback. Style22 is actual public runtime,not a private staging or restore slot.
