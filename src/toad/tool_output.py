@@ -20,6 +20,7 @@ from rich.text import Text
 from textual.content import Content
 from textual.css.query import NoMatches
 from textual.widget import Widget
+from textual.await_complete import AwaitComplete
 
 from acp import schema
 from agent_comms.mro_dispatch import MroDispatch, handles
@@ -116,11 +117,7 @@ class RetainedTextToolOutputPart(TextToolOutputPart):
     def update_widget(self, previous: ToolOutputPart, widget: Widget) -> bool:
         if previous.retained_text is None or type(widget) is not TextContent:
             return False
-        state = widget.screen._select_state
-        if widget.text_selection is not None or (state is not None and (
-            state.start.content_widget is widget
-            or (state.end is not None and state.end.content_widget is widget)
-        )):
+        if widget in widget.screen._interaction_widgets():
             return False
         widget.update(self.retained_text)
         return True
@@ -351,8 +348,6 @@ class ToolOutput:
         self._view = ref(view)
         self.parts: tuple[ToolOutputPart, ...] = ()
         self.suppress_auto_expansion = False
-        self._mounted: tuple[ToolOutputPart, ...] | None = None
-        self._lock = asyncio.Lock()
         self.hydration: ToolHydration = IdleToolHydration()
         self._warming: tuple[ToolOutputPart, ...] = ()
         self._theme: tuple[bool, bool] | None = None
@@ -383,42 +378,37 @@ class ToolOutput:
         dimensions = [size for part in self.parts if (size := part.preview_dimensions) is not None]
         return bool(dimensions) and sum(size[0] for size in dimensions) <= 16000 and sum(size[1] for size in dimensions) <= 200
 
-    async def sync(self) -> None:
-        from toad.widgets.conversation import Window
+    @property
+    def displayed_parts(self) -> tuple[ToolOutputPart, ...]:
+        return self.parts if self.view.expanded else ()
 
-        async with self._lock:
-            view = self.view
-            parts = self.parts
-            body = view.query_one_optional("#tool-content", Widget)
-            if body is None:
-                return
-            if view.expanded and not view.content_presentable and not body.children:
-                self.prepare_hidden()
-                if not self.hydration.pending:
-                    self.hydration = WaitingToolHydration()
-                    try:
-                        view.query_ancestor(Window).pending_tool_content.add(view)
-                    except NoMatches:
-                        pass
-                    view.call_after_refresh(self.hydrate)
-                return
-            self.hydration = IdleToolHydration()
-            try:
-                view.query_ancestor(Window).pending_tool_content.discard(view)
-            except NoMatches:
-                pass
-            if not view.expanded:
-                self.cancel_preparation()
-                if body.children:
-                    await body.remove_children()
-                self._mounted = None
-            elif self._mounted != parts:
-                retained = len(parts) == len(self._mounted or ()) == len(body.children) == 1
-                if not retained or not parts[0].update_widget(self._mounted[0], body.children[0]):
-                    with view.app.batch_update():
-                        await body.remove_children()
-                        await body.mount_all(widget for part in parts for widget in part.compose(view))
-                self._mounted = parts
+    def sync(self) -> AwaitComplete:
+        """Admit the original body writer without awaiting it on a caller pump."""
+        from toad.widgets.conversation import Window
+        from toad.widgets.tool_call import ToolContent
+
+        view = self.view
+        body = view.query_one_optional("#tool-content", ToolContent)
+        if body is None:
+            return AwaitComplete()
+        if view.expanded and not view.content_presentable and not body.children:
+            self.prepare_hidden()
+            if not self.hydration.pending:
+                self.hydration = WaitingToolHydration()
+                try:
+                    view.query_ancestor(Window).pending_tool_content.add(view)
+                except NoMatches:
+                    pass
+                view.call_after_refresh(self.hydrate_if_visible)
+            return AwaitComplete()
+        self.hydration = IdleToolHydration()
+        try:
+            view.query_ancestor(Window).pending_tool_content.discard(view)
+        except NoMatches:
+            pass
+        if not view.expanded:
+            self.cancel_preparation()
+        return body.sync()
 
     def prepare_hidden(self) -> None:
         view = self.view
@@ -483,4 +473,3 @@ class ToolOutput:
             self.view.query_ancestor(Window).pending_tool_content.discard(self.view)
         except NoMatches:
             pass
-        self._mounted = None

@@ -253,10 +253,7 @@ class HistoryWindow(VerticalScroll):
                         and clip.overlaps(viewport)):
                     retained.append(item)
         anchor = retained[0 if older else -1] if retained else fallback
-        endpoints = set(self.screen.selections)
-        if self.screen.focused is not None:
-            endpoints.add(self.screen.focused)
-        protected = protected_presentations(items, endpoints)
+        protected = protected_presentations(items, self.screen._interaction_widgets())
         protected.update(retained)
         protected.add(anchor)
         return anchor, protected

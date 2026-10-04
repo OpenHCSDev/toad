@@ -1528,7 +1528,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             await self.post(ToolCall(tool_call, id=message.event.tool_id), new_block=True)
         else:
             if existing_tool_call is not None:
-                await existing_tool_call.update_tool_call(tool_call)
+                existing_tool_call.update_tool_call(tool_call)
 
     @handles(core_events.AvailableCommandsUpdate)
     async def on_acp_available_commands_update(
