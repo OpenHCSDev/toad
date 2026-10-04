@@ -1,0 +1,16 @@
+{
+  "command": [
+    "/usr/bin/python",
+    "tests/test_fixture_journal_retention.py",
+    "-v",
+    "JournalRetention.test_verified_copy_preserves_mode_times_and_original_path",
+    "JournalRetention.test_discarded_file_mode_refuses_and_removes_owned_partial"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 0.1522805840941146,
+  "runtime_fixture_sha256": "987399f81781f57e5cca89dc0e5214c59663d97a01bcb5bad18f35d7f8eb686f",
+  "control_sha256": "1888e92c3a75bced4bc3a9e7c101908e8d2125c2196011894b37a287f89e287d",
+  "scope": "Only the new returned original receipt consumer contract checked on actual success and unsupported mode refusal. Original sole finalizer now prints that returned receipt; no copied decision/parser/store. Prior metadata control source unchanged except returns. No whole-suite/App/HDD/holder operation.",
+  "remaining": [],
+  "scratch_removed": true
+}

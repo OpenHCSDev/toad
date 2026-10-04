@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/usr/bin/python",
+    "tests/test_fixture_journal_retention.py",
+    "-v"
+  ],
+  "exit_code": 1,
+  "elapsed_seconds": 0.176488594035618,
+  "runtime_fixture_sha256": "3b7fd6be15658d1ca1710a5c70f002498c42ca29497e4604fd18ce6dc36b45a0",
+  "control_sha256": "79cbccc55aadec48d5bcff9d3eabcf3060ba27b3149bd83b1dddfbaae9c1fe23",
+  "scope": "Offline authored local-filesystem copy/mode/timestamp/private-access/refusal/owned cleanup. Mount/device/census prerequisites authored; no actual HDD/borrower-census/original journal/App/native/provider/holder operation.",
+  "scratch": "/home/ts/.cache/agent-scratch/heis-fixture-journal-metadata-offline-20261004",
+  "remaining": [],
+  "scratch_removed": true
+}
