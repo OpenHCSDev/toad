@@ -42,8 +42,24 @@ production defer consumers inherit this change without local queues or guards.
 One production file11 deleted/22 added; no native/capture/provider edit.
 
 AST after288 Toad modules/zero omissions; owner-before also249 native/zero
-omissions. Source WIP, not Ready: no changed installed App/film qualification yet.
+omissions. Source WIP, not Ready: the affected installed App passed; physical motion qualification remains.
 415/49 source/film remains frozen and can ship independently. Next batch prevents
 duplicate viewport admission scheduling and stale scene callback release through
 the real App's frame lifetime; the next changed saved-history journey measures
 actual consequences. No speed/dominance claim from this source correction.
+
+## Installed checkpoint
+
+Original App runner exited0 on installed e0a9/Core609039/nativeD5/Text49.
+Four body deferrals delivered one callback through the original refresh boundary.
+All three body implementations retained painted rows through reentry, source
+publication, style/resize changes, worker custody and native interaction.
+INSTALLED-CHECK.json binds original log/exit/receipt and exact package proof.
+This confirms affected lifecycle behavior, not terminal motion or CPU gain.
+
+Before launching a physical UI, the existing route probe found native89 on the
+actual public route; Core609 requires nativeD5. Native trust rejects this with
+NativePiUnavailable caused by NativePackageError(tree commitment mismatch).
+No recorder/UI/input was started. The receiving owner has the exact dependency.
+Native50's disjoint point-hit family will join the one changed physical workflow
+when its retained wheel and the matched original route are available.

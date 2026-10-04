@@ -1,0 +1,37 @@
+{
+  "state": "affected installed App passed; physical motion qualification not run",
+  "source_head": "e0a9cfc6c2a43d914a3bc4d96c58414e7cabcdc2",
+  "production_head": "bc6decd00f867e90cf7b78690015ac8b4672c1d8",
+  "observed_at": "2026-10-04T01:07:40.408975+00:00",
+  "originals": {
+    "source-proof.json": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame418-stage-20261004/source-proof.json",
+      "sha256": "23617c62992d615c5b3588fbab0b3d89a3d726224af2df940222d96747fb587d"
+    },
+    "fragment-app.log": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame418-stage-20261004/fragment-app.log",
+      "sha256": "e2cccb9131e5ffa3babe8aa272beb89c58a8b729c8dd2c84b40a9dc28c64508b"
+    },
+    "fragment-app.exit": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame418-stage-20261004/fragment-app.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "fragment-app/receipt.json": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame418-stage-20261004/fragment-app/receipt.json",
+      "sha256": "00e20212099197c1722691a471b6ae3975b6de6e5327afcfde314c5a98139844"
+    }
+  },
+  "checks": {
+    "original_App_exit": 0,
+    "four_deferred_body_callbacks_delivered_once": true,
+    "all_three_body_implementations": true,
+    "retained_rows_source_style_resize_interaction": true
+  },
+  "scope": "original installed App lifecycle/callback resource, not physical terminal motion or CPU improvement",
+  "physical_dependency": {
+    "actual_original_route_native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-89b56aea0bb128c4/node_modules/@earendil-works/pi-coding-agent",
+    "approved_candidate_native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-d5efa0d56e7ad396/node_modules/@earendil-works/pi-coding-agent",
+    "actual_probe_error": "NativePiUnavailable: Pinned native Pi package differs from reviewed fork; caused by NativePackageError: Native package tree differs from pinned artifact",
+    "boundary": "existing route/runtime probe before any recorder or UI launch; not an application paint failure"
+  }
+}
