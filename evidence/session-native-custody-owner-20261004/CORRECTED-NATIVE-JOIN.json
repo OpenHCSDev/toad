@@ -1,0 +1,22 @@
+{
+  "status": "NORMAL_MAIN_AND_CORRECTED_NATIVE_SOURCE_JOIN; changed installed native confirmation pending",
+  "prior_qualified_toad_head": "617e295f10fe23d13af6dce0764f5927ccdad3ef",
+  "original_installed_toad_head": "9138bc6a3fb2d5e7d5fa517f139272a900192a50",
+  "joined_main": "077b6d14ccd9272957781a43e1a3fcb41146de9c",
+  "toad_src_tests_tools_diff_vs_prior": [],
+  "core_source_pin": "966e761d7932b4b3a2a54852789dccbf372d6097",
+  "core_scope": "Current main421 metadata carried normally. Original422 film used Core611d416/native2ea; no new installed Core/native claim.",
+  "textual_source_pin": "a818dcfd4a4a874af085f705559e134a00b7d189",
+  "textual_wheel": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text53-filewheel-a818dcfd-20261004/textual-8.2.8-py3-none-any.whl",
+  "textual_wheel_sha256": "dfbd8fcbd37221f3c7934a8e7d7cd141bb592b1f0e35e9f034bffafe8e7f2a5a",
+  "native_source_controls": {
+    "receipt": "/home/ts/wt/textual-native-subtree-strips-20261002/evidence/native-style-cohort-lifetime-20261004/F0-CORRECTION-READY.json",
+    "sha256": "19f13d001ea3b555b3ad1c7608e5c2185351ba5e0638f0ce83e66de154dc2a2d",
+    "result": "35 mounted App/layer/style/cache controls pass; hosted Debt SUCCESS; positive packaged debt deltas none"
+  },
+  "lock_package_name_version_cohort_unchanged": true,
+  "original_scoped_ready_sha256": "feec53af541b617ceef802ff43eb1c9e58d7f58632da6873665e5ef763a4d9db",
+  "original_scoped_ready_unchanged": true,
+  "remaining": "Sch F1 has exclusive style22 package/import/execution custody. Receiving owner must confirm changed installed layer/style resources after actual handback. No repeat422 movie; no smoothness, overall CPU gain, full physical return or 144Hz claim.",
+  "package_write_or_launch": false
+}
