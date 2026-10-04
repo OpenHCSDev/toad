@@ -1,0 +1,13 @@
+test_discarded_file_mode_refuses_and_removes_owned_partial (__main__.JournalRetention.test_discarded_file_mode_refuses_and_removes_owned_partial) ... ok
+test_discarded_timestamp_refuses_and_removes_owned_partial (__main__.JournalRetention.test_discarded_timestamp_refuses_and_removes_owned_partial) ... ok
+test_existing_shared_directory_is_never_chmodded (__main__.JournalRetention.test_existing_shared_directory_is_never_chmodded) ... ok
+test_mount_replaced_before_commit_retains_original (__main__.JournalRetention.test_mount_replaced_before_commit_retains_original) ... ok
+test_original_mode_change_before_commit_refuses_without_reverting_it (__main__.JournalRetention.test_original_mode_change_before_commit_refuses_without_reverting_it) ... ok
+test_private_access_revoked_after_copy_retains_original (__main__.JournalRetention.test_private_access_revoked_after_copy_retains_original) ... ok
+test_unsupported_directory_modes_refuse_before_any_private_copy (__main__.JournalRetention.test_unsupported_directory_modes_refuse_before_any_private_copy) ... ok
+test_verified_copy_preserves_mode_times_and_original_path (__main__.JournalRetention.test_verified_copy_preserves_mode_times_and_original_path) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.047s
+
+OK

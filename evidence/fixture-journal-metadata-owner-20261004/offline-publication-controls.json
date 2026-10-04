@@ -1,0 +1,16 @@
+{
+  "command": [
+    "/usr/bin/python",
+    "tests/test_fixture_journal_retention.py",
+    "-v",
+    "JournalRetention.test_existing_destination_is_not_replaced",
+    "JournalRetention.test_other_partial_is_not_deleted"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 0.23660330707207322,
+  "runtime_fixture_sha256": "3b7fd6be15658d1ca1710a5c70f002498c42ca29497e4604fd18ce6dc36b45a0",
+  "control_sha256": "243a36b584872d88caecb5de8f11501598f1bfe7f213104957c77061eb2f9605",
+  "scope": "After changed authored lstat/device adapter, these two cases now reach original exclusive destination/partial publication. Initial generic safety passes were earlier preflight refusals; not credited as acquired publication coverage. No whole-suite repeat.",
+  "remaining": [],
+  "scratch_removed": true
+}
