@@ -373,25 +373,34 @@ class RuntimeSelection:
         if env.get("AGENT_COMMS_RUNTIME_ROOT"):
             env["AGENT_COMMS_RUNTIME_ROOT"] = str(self.bin_directory.resolve())
 
-    def publish_verified_stage(self, staging_receipt, owner, env, command):
-        """Publish a verified cohort and require the existing recorder preflight.
+    def verify_stage(self, staging_receipt, owner, env, command):
+        """Borrow candidate identity without publishing or rewriting its floor.
 
-        This artifact records immutable package identity. Live activation belongs
-        to the canonical route and launcher, never to this metadata's state.
+        CohortActivation and InstalledSourceProof own their original relation.
+        The existing activation remains a separate floor observation during a
+        sequential package loan; it is never relabelled as this candidate.
         """
-        verified = json.loads(Path(staging_receipt).read_text())
-        stage = self.bin_directory.parent.resolve()
-        if Path(verified["stage"]).resolve() != stage:
+        from agent_comms.field_codec import FieldCodec
+        from publish_retained_summary import CohortActivation, InstalledSourceProof
+
+        activation = FieldCodec.decode(CohortActivation,
+            json.loads(Path(staging_receipt).read_text()))
+        proof = FieldCodec.decode(InstalledSourceProof,
+            json.loads(activation.staging_receipt.read_text()))
+        proof.require_activation(activation)
+        if activation.stage.resolve() != self.bin_directory.parent.resolve():
             raise ValueError("Verified staging receipt belongs to another candidate")
-        activation = {
-            key: verified[key] for key in ("stage", "pins", "sdk", "native_package")
+        observed = self.receipt(owner, env, command)
+        for module, package in observed["observed"]["packages"].items():
+            source = next(source for source in proof.sources if source.module == module)
+            source.require_package(module, Path(package["origin"]).parent,
+                                   package["direct_url"], proof.archive_artifacts)
+        observed["verified_candidate"] = {
+            "path": str(Path(staging_receipt).resolve()),
+            "sha256": digest(Path(staging_receipt)),
+            "activation": FieldCodec.encode(activation),
         }
-        activation["state"] = "verified-immutable-cohort"
-        activation["staging_receipt_sha256"] = digest(Path(staging_receipt))
-        pending = stage / ".activation.json.pending"
-        pending.write_text(json.dumps(activation, indent=2) + "\n")
-        pending.replace(stage / "activation.json")
-        return self.receipt(owner, env, command)
+        return observed
 
     def receipt(self, owner, env, command):
         observed = self.from_environment(command, env)

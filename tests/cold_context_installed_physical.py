@@ -390,7 +390,7 @@ async def run(options):
         if options.staging_receipt:
             probe_owner = recorder.ProcessOwner()
             try:
-                probe = recorder.RuntimeSelection.from_environment(command, environment).publish_verified_stage(
+                probe = recorder.RuntimeSelection.from_environment(command, environment).verify_stage(
                     options.staging_receipt, probe_owner, environment, command)
                 (base / "installed-preflight.json").write_text(json.dumps(probe, indent=2) + "\n")
             finally:
