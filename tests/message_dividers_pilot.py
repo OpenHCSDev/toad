@@ -53,7 +53,7 @@ async def row_publication() -> None:
         comms.registry.declare(Thread("peer", frozenset(), str(root)))
         for index in range(24):
             comms.messaging.send_message("peer", "#all", f"original row {index}")
-        app = PublicationApp(project_dir=str(root), session_thread_name=me)
+        app = PublicationApp(project_dir=str(root))
         async with app.run_test(size=(110, 35)) as pilot:
             await app.selected_session.wait_content_ready()
             await pilot.pause()
