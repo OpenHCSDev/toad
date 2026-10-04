@@ -12,6 +12,7 @@ from agent_comms.field_codec import FieldCodec
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.coordinator import Coordination
 from agent_comms.working_memory_annotations import WorkingMemoryAnnotations
+from agent_comms.importing import ImportedSessionMetadata
 from agent_comms.mro_dispatch import handles
 from toad.core.projection import MroProjection
 from agent_comms.native_turn_context import NativeContextData
@@ -20,7 +21,7 @@ from agent_comms.runtime import RuntimeConnection, socket_path
 from agent_comms.selected_source import SessionRevision, SessionObservation
 from agent_comms.threads import Thread
 from agent_comms.turn_context import (
-    ContextManifest, ContextSegment, ContextSourceText, NativeMessages, Provenance,
+    CodexRolloutProvenance, ContextManifest, ContextSegment, ContextSourceText, NativeMessages, Provenance,
     SegmentManifest,
 )
 from agent_comms.working_memory_labels import JevClassifier, ModelLabel
@@ -441,6 +442,7 @@ class ContextInspection:
     source: SessionObservation
     service: Comms
     annotations: tuple[ModelLabel, ...] = ()
+    imported_sources: tuple[CodexRolloutProvenance, ...] = ()
 
     @classmethod
     def read(cls, comms, owner):
@@ -448,7 +450,8 @@ class ContextInspection:
         manifests = comms.bus.log.context_manifests(owner, comms.registry)
         annotations = WorkingMemoryAnnotations.for_context(
             comms.root / "coordination.sqlite3", manifests, JevClassifier.version())
-        return cls(thread, manifests, SessionRevision.observe(thread.session_file), comms, annotations)
+        imported = ImportedSessionMetadata.sources_for_owner(comms.registry, thread)
+        return cls(thread, manifests, SessionRevision.observe(thread.session_file), comms, annotations, imported)
 
     def same_native_source(self, other: ContextInspection):
         """Compare original SDK source/launch facts, not roster presentation."""
@@ -466,7 +469,18 @@ class ContextInspection:
 
     def changed_since(self, previous: ContextInspection) -> bool:
         """Whether the original recorded request observations changed."""
-        return (self.manifests, self.annotations) != (previous.manifests, previous.annotations)
+        return (self.manifests, self.annotations, self.imported_sources) != (
+            previous.manifests, previous.annotations, previous.imported_sources)
+
+    def imported(self):
+        return tuple(ReferenceNode(
+            f"imported/{source.sha256}/{source.offset}/{source.instruction}", source,
+            self.imported_source) for source in self.imported_sources)
+
+    async def imported_source(self, source):
+        return await Coordination.run_worker(partial(
+            ImportedSessionMetadata.public_source_text,
+            self.service.registry, self.owner, source, self.service))
 
     def working_memory(self):
         sections = {}
@@ -684,6 +698,7 @@ class HoldingInspection(InspectionState):
 
     def groups(self):
         return (*self.inspection.working_memory(),
+                ("Imported instructions · historical, not current", self.inspection.imported(), False),
                 ("Recorded requests · source evidence, not today's base", self.inspection.recorded(), False))
 
     def prepare_native(self, consumer) -> None:
