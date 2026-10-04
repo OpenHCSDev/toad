@@ -317,34 +317,23 @@ def test_authored_import_registered_app_and_local_user_correction(tmp_path, monk
     asyncio.run(mounted())
 
 
-def test_authentic_recorded_annotation_gui_correction(tmp_path, monkeypatch):
-    """One separately granted localhost input authors the request being audited.
-
-    Controlled model rows address that request's original assembly spans.
-    Human corrections must traverse the mounted GUI and original ACP/RPC.
-    """
-    import os
+async def inspect_authentic_annotation_gui(controller, session, *, project, session_file,
+                                          system_file, original_file, monkeypatch):
+    """Audit one authentic recorded source through the original mounted GUI."""
     from importlib.resources import files
     from pathlib import Path
     import shlex
     import sys
-
-    from acp.agent.router import build_agent_router
     from agent_comms.coordination_tables.annotations import AnnotationRequestsRow, SpanAnnotationsRow
     from agent_comms.coordinator import Coordination
-    from agent_comms.native_package import verify_native_package
     from agent_comms.thread_identity import ThreadRole
     from agent_comms.turn_context import ContextSpan, FileProvenance
     from agent_comms.working_memory_annotations import WorkingMemoryAnnotations
-    from agent_comms.working_memory_labels import (
-        AnswerProbability, HumanLabel, JevClassifier, ModelLabel, QuestionVersion,
-    )
+    from agent_comms.working_memory_labels import AnswerProbability, HumanLabel, JevClassifier, ModelLabel, QuestionVersion
     from agent_comms.working_memory_policy import DisabledAnnotationPolicy
-    from agent_comms.working_memory_questions import (
-        CommitmentSpan, KindQuestion, OtherSpan, RuleSpan,
-    )
+    from agent_comms.working_memory_questions import CommitmentSpan, KindQuestion, OtherSpan, RuleSpan
     from textual.widgets import Button, TextArea
-    from native_backend_fixture import native_backend_fixture
+    from native_proof_cases import read_proof_rows
     from l0a_native_installed_pilot import until
     from runtime_fixture import ToadApp
     from toad.agent_schema import AgentDefinition
@@ -352,6 +341,157 @@ def test_authentic_recorded_annotation_gui_correction(tmp_path, monkeypatch):
     from toad.widgets.comms_menu import ContextMenu, ContextMenuItem
     from toad.widgets.context_explorer import ContextExplorer, ContextTree
     from toad.widgets.side_bar import SideBar, SideBarCollapsible, SideBarToggle
+    service = controller._comms
+    owner = service.registry.require(session)
+    assert isinstance(controller.annotations.policy, DisabledAnnotationPolicy)
+    assert not controller.annotations.tasks
+    original_source = FileProvenance(str(system_file), hashlib.sha256(original_file).hexdigest())
+    authored = original_file.decode()
+    monkeypatch.setattr(ToadApp, "CSS_PATH", files("toad").joinpath("toad.tcss"))
+    with WorkingMemoryAnnotations.reading(service.root / "coordination.sqlite3") as db:
+        assert tuple(SpanAnnotationsRow.select(db)) == ()
+    history = service.bus.log.context_manifests(session, service.registry)
+    (sealed,) = (manifest for manifest in history if manifest.request_id)
+    manifest = ContextManifest.for_request(history, sealed.turn, sealed.require_request_id())
+    assert manifest.thread == owner.incarnation
+    inspection = ContextInspection.read(service, session)
+    (request,) = inspection.recorded()
+    assert request.manifest == manifest
+    (system,) = (source for root in request.children()
+                 for source in root.original_segments()
+                 if source.segment.kind is SystemLayerSegment)
+    original = await system.source_text()
+    # Ranges come from the sealed emitted assembly; no substring
+    # search or today's file reread supplies request attribution.
+    file_ranges = tuple(coordinates
+        for coordinates in system.segment.source_spans
+        if original_source in coordinates.provenance)
+    assert "".join(coordinates.public_text(original.text)
+                  for coordinates in file_ranges) == authored
+    spans = tuple(ContextSpan(system.segment.sha256, sentence)
+        for coordinates in file_ranges
+        for sentence in coordinates.sentences(original.text))
+    assert len(spans) == 2
+    assert all(system.segment.contains_span(span) for span in spans)
+    # Sentence coordinates exclude whitespace-only separators;
+    # the original file ranges above still attest those bytes.
+    assert tuple(span.coordinates.public_text(original.text) for span in spans) == (
+        "Keep the authored source unchanged.",
+        "Deliver the authored answer.",
+    )
+    classifier = JevClassifier.version()
+    question = QuestionVersion.current(KindQuestion)
+    labels = tuple(ModelLabel(span, question, RuleSpan, classifier,
+        (AnswerProbability(RuleSpan, .7), AnswerProbability(CommitmentSpan, .2),
+         AnswerProbability(OtherSpan, .1)), .8,
+        f"authored-local-control-{index}", classifier.pin)
+        for index, span in enumerate(spans))
+    with Coordination(str(service.root / "coordination.sqlite3")) as store:
+        with store.session.transaction() as db:
+            for label in labels:
+                SpanAnnotationsRow(label=label, created_at_ms=store.session.now()).insert(db)
+    assert all(label.working_memory_section == "Unclassified" for label in labels)
+    native_before_gui = session_file.read_bytes()
+    definition = AgentDefinition.decode({"name": "Authored W6 annotation source",
+        "identity": "agent-comms.openhcs.dev", "short_name": "comms", "protocol": "acp",
+        "run_command": {"*": shlex.join((sys.executable, "-m", "agent_comms.acp"))}})
+    app = ToadApp(agent_data=definition, project_dir=str(project),
+                  agent_session_id=session)
+    async with app.run_test(size=(130, 44)) as pilot:
+        await app.selected_session.wait_content_ready()
+        conversation = app.selected_session.conversation
+        await until(pilot, lambda: conversation.agent is not None)
+        agent = conversation.agent
+        await agent.session.settled.wait()
+        assert agent.ready and agent.session_id == session
+        await pilot.pause()
+        fact = app.coordination_facts[app.selected_session]
+        assert fact.thread == owner.incarnation
+        assert Path(fact.wire_root).resolve() == service.root.resolve()
+        panel, = (bar for bar in app.selected_session.query(SideBar) if bar.right)
+        assert await pilot.click(panel.query_one(SideBarToggle))
+        await panel.wait_content_ready()
+        explorer = app.selected_session.query_one(ContextExplorer)
+        explorer.query_ancestor(SideBarCollapsible).collapsed = False
+        explorer.action_refresh()
+        tree = explorer.query_one(ContextTree)
+        for label, answer in zip(labels, (RuleSpan, CommitmentSpan), strict=True):
+            current = ContextInspection.read(service, session)
+            (model,) = (annotation for _, groups, _ in current.working_memory()
+                        for group in groups for annotation in group.children()
+                        if annotation.annotation.span == label.span)
+            await until(pilot, lambda: any(
+                group.data.reader_path(model.key)
+                for group in tree.context_nodes.values()))
+            await select_context_source(pilot, tree, model.key)
+            await pilot.press("enter")
+            span_text = label.span.coordinates.public_text(original.text)
+            await until(pilot, lambda: span_text in explorer.query_one(TextArea).text)
+            assert original_source.public_description() in explorer.query_one(TextArea).text
+            button = explorer.query_one("#context-correct", Button)
+            button.scroll_visible(animate=False, immediate=True)
+            await pilot.wait_for_scheduled_animations()
+            assert await pilot.click(button)
+            await until(pilot, lambda: isinstance(app.screen, ContextMenu))
+            menu = app.screen
+            (item,) = (item for item in menu.query(ContextMenuItem)
+                       if item.action == answer.declared_name)
+            assert await pilot.click(item)
+            await until(pilot, lambda: app.screen is not menu)
+            await until(pilot, lambda: any(
+                isinstance(node.data, AnnotationNode)
+                and isinstance(node.data.annotation, HumanLabel)
+                and node.data.annotation.span == label.span
+                and node.data.annotation.answer is answer
+                for node in tree.context_nodes.values()))
+            rows = await Coordination.run_worker(partial(
+                WorkingMemoryAnnotations.labels,
+                service.root / "coordination.sqlite3", label.span, question, classifier))
+            effective = SpanAnnotationsRow.effective(rows)
+            assert isinstance(effective, HumanLabel) and effective.answer is answer
+            assert service.registry.require(effective.author.name).role is ThreadRole.USER
+            assert effective.span == label.span
+            groups = ContextInspection.read(service, session).working_memory()
+            (section,) = (title for title, sources, _ in groups
+                         for source in sources for annotation in source.children()
+                         if annotation.annotation == effective)
+            assert section == effective.working_memory_section
+            (refreshed,) = (node for node in tree.context_nodes.values()
+                            if isinstance(node.data, AnnotationNode)
+                            and node.data.annotation == effective)
+            await select_context_source(pilot, tree, refreshed.data.key)
+            await pilot.press("enter")
+            await until(pilot, lambda: effective.public_description()
+                        in explorer.query_one(TextArea).text)
+            assert span_text in explorer.query_one(TextArea).text
+            print(f"W6 GUI: original USER correction visible in {section}", flush=True)
+    assert service.bus.log.context_manifests(session, service.registry) == history
+    assert session_file.read_bytes() == native_before_gui
+    assert system_file.read_bytes() == original_file
+    assert len(read_proof_rows(session_file)) == 1
+    assert not controller.annotations.tasks
+    with WorkingMemoryAnnotations.reading(service.root / "coordination.sqlite3") as db:
+        assert tuple(AnnotationRequestsRow.select(db)) == ()
+    print(json.dumps({"original_request": manifest.require_request_id(),
+        "original_turn": FieldCodec.encode(manifest.turn),
+        "actual_span_coordinates": [FieldCodec.encode(span) for span in spans],
+        "stored_native_input_proofs": len(read_proof_rows(session_file)),
+        "external_annotations": 0, "scope": "Authentic AnnotationNode GUI, not W7 calibration"}),
+        flush=True)
+
+
+def test_authentic_recorded_annotation_gui_correction(tmp_path, monkeypatch):
+    """One separately granted localhost input authors the request being audited.
+
+    Controlled model rows address that request's original assembly spans.
+    Human corrections must traverse the mounted GUI and original ACP/RPC.
+    """
+    import os
+    from pathlib import Path
+    from acp.agent.router import build_agent_router
+    from agent_comms.native_package import verify_native_package
+    from agent_comms.working_memory_policy import DisabledAnnotationPolicy
+    from native_backend_fixture import native_backend_fixture
 
     package = Path(os.environ["PI_COMPACTION_TEST_PACKAGE"])
     assert package.resolve() == Path(os.environ["AC_NATIVE_COPIED_PACKAGE"]).resolve()
@@ -360,13 +500,11 @@ def test_authentic_recorded_annotation_gui_correction(tmp_path, monkeypatch):
     authored = "Keep the authored source unchanged.\nDeliver the authored answer.\n"
     system_file.write_text(authored)
     original_file = system_file.read_bytes()
-    original_source = FileProvenance(str(system_file), hashlib.sha256(original_file).hexdigest())
     for name, directory in (("XDG_CONFIG_HOME", "config"), ("XDG_STATE_HOME", "state"),
                             ("XDG_DATA_HOME", "data"), ("XDG_CACHE_HOME", "cache")):
         monkeypatch.setenv(name, str(tmp_path / directory))
     monkeypatch.setenv("TOAD_TEST_ATTEMPT", str(tmp_path))
     monkeypatch.setenv("AGENT_COMMS_DEBUG_LOG", str(tmp_path / "owner-debug.log"))
-    monkeypatch.setattr(ToadApp, "CSS_PATH", files("toad").joinpath("toad.tcss"))
     for key in ("PYTHONPATH", "AGENT_COMMS_ANNOTATION_POLICY", "PI_PROMPT", "PI_AGENT_ID",
                 "PI_PARENT_ID", "PI_TASK", "AGENT_COMMS_THREAD", "AGENT_COMMS_STARTUP_INPUT_KEY"):
         monkeypatch.delenv(key, raising=False)
@@ -377,8 +515,6 @@ def test_authentic_recorded_annotation_gui_correction(tmp_path, monkeypatch):
             # original W1 assembly path, not an AGENTS.md discovery bypass.
             options = ("--no-tools", "--system-prompt", str(system_file))
             async with native.open_owner(runtime_enabled=True, native_options=options) as (controller, session):
-                service = controller._comms
-                owner = service.registry.require(session)
                 assert isinstance(controller.annotations.policy, DisabledAnnotationPolicy)
                 router = build_agent_router(controller)
                 print("W6 GUI: issuing one original authored localhost ACP input", flush=True)
@@ -389,136 +525,101 @@ def test_authentic_recorded_annotation_gui_correction(tmp_path, monkeypatch):
                 assert response.stop_reason == "end_turn"
                 assert native.provider.posts == 1 and len(native.saved_inputs()) == 1
                 assert not controller.annotations.tasks
-                history = service.bus.log.context_manifests(session, service.registry)
-                (sealed,) = (manifest for manifest in history if manifest.request_id)
-                manifest = ContextManifest.for_request(history, sealed.turn, sealed.require_request_id())
-                assert manifest.thread == owner.incarnation
-                inspection = ContextInspection.read(service, session)
-                (request,) = inspection.recorded()
-                assert request.manifest == manifest
-                (system,) = (source for root in request.children()
-                             for source in root.original_segments()
-                             if source.segment.kind is SystemLayerSegment)
-                original = await system.source_text()
-                # Ranges come from the sealed emitted assembly; no substring
-                # search or today's file reread supplies request attribution.
-                file_ranges = tuple(coordinates
-                    for coordinates in system.segment.source_spans
-                    if original_source in coordinates.provenance)
-                assert "".join(coordinates.public_text(original.text)
-                              for coordinates in file_ranges) == authored
-                spans = tuple(ContextSpan(system.segment.sha256, sentence)
-                    for coordinates in file_ranges
-                    for sentence in coordinates.sentences(original.text))
-                assert len(spans) == 2
-                assert all(system.segment.contains_span(span) for span in spans)
-                # Sentence coordinates exclude whitespace-only separators;
-                # the original file ranges above still attest those bytes.
-                assert tuple(span.coordinates.public_text(original.text) for span in spans) == (
-                    "Keep the authored source unchanged.",
-                    "Deliver the authored answer.",
-                )
-                classifier = JevClassifier.version()
-                question = QuestionVersion.current(KindQuestion)
-                labels = tuple(ModelLabel(span, question, RuleSpan, classifier,
-                    (AnswerProbability(RuleSpan, .7), AnswerProbability(CommitmentSpan, .2),
-                     AnswerProbability(OtherSpan, .1)), .8,
-                    f"authored-local-control-{index}", classifier.pin)
-                    for index, span in enumerate(spans))
-                with Coordination(str(service.root / "coordination.sqlite3")) as store:
-                    with store.session.transaction() as db:
-                        for label in labels:
-                            SpanAnnotationsRow(label=label, created_at_ms=store.session.now()).insert(db)
-                assert all(label.working_memory_section == "Unclassified" for label in labels)
-                native_after_input = native.session.read_bytes()
-                definition = AgentDefinition.decode({"name": "Authored W6 annotation source",
-                    "identity": "agent-comms.openhcs.dev", "short_name": "comms", "protocol": "acp",
-                    "run_command": {"*": shlex.join((sys.executable, "-m", "agent_comms.acp"))}})
-                app = ToadApp(agent_data=definition, project_dir=str(native.project),
-                              agent_session_id=session)
-                async with app.run_test(size=(130, 44)) as pilot:
-                    await app.selected_session.wait_content_ready()
-                    conversation = app.selected_session.conversation
-                    await until(pilot, lambda: conversation.agent is not None)
-                    agent = conversation.agent
-                    await agent.session.settled.wait()
-                    assert agent.ready and agent.session_id == session
-                    await pilot.pause()
-                    fact = app.coordination_facts[app.selected_session]
-                    assert fact.thread == owner.incarnation
-                    assert Path(fact.wire_root).resolve() == service.root.resolve()
-                    panel, = (bar for bar in app.selected_session.query(SideBar) if bar.right)
-                    assert await pilot.click(panel.query_one(SideBarToggle))
-                    await panel.wait_content_ready()
-                    explorer = app.selected_session.query_one(ContextExplorer)
-                    explorer.query_ancestor(SideBarCollapsible).collapsed = False
-                    explorer.action_refresh()
-                    tree = explorer.query_one(ContextTree)
-                    for label, answer in zip(labels, (RuleSpan, CommitmentSpan), strict=True):
-                        current = ContextInspection.read(service, session)
-                        (model,) = (annotation for _, groups, _ in current.working_memory()
-                                    for group in groups for annotation in group.children()
-                                    if annotation.annotation.span == label.span)
-                        await until(pilot, lambda: any(
-                            group.data.reader_path(model.key)
-                            for group in tree.context_nodes.values()))
-                        await select_context_source(pilot, tree, model.key)
-                        await pilot.press("enter")
-                        span_text = label.span.coordinates.public_text(original.text)
-                        await until(pilot, lambda: span_text in explorer.query_one(TextArea).text)
-                        assert original_source.public_description() in explorer.query_one(TextArea).text
-                        button = explorer.query_one("#context-correct", Button)
-                        button.scroll_visible(animate=False, immediate=True)
-                        await pilot.wait_for_scheduled_animations()
-                        assert await pilot.click(button)
-                        await until(pilot, lambda: isinstance(app.screen, ContextMenu))
-                        menu = app.screen
-                        (item,) = (item for item in menu.query(ContextMenuItem)
-                                   if item.action == answer.declared_name)
-                        assert await pilot.click(item)
-                        await until(pilot, lambda: app.screen is not menu)
-                        await until(pilot, lambda: any(
-                            isinstance(node.data, AnnotationNode)
-                            and isinstance(node.data.annotation, HumanLabel)
-                            and node.data.annotation.span == label.span
-                            and node.data.annotation.answer is answer
-                            for node in tree.context_nodes.values()))
-                        rows = await Coordination.run_worker(partial(
-                            WorkingMemoryAnnotations.labels,
-                            service.root / "coordination.sqlite3", label.span, question, classifier))
-                        effective = SpanAnnotationsRow.effective(rows)
-                        assert isinstance(effective, HumanLabel) and effective.answer is answer
-                        assert service.registry.require(effective.author.name).role is ThreadRole.USER
-                        assert effective.span == label.span
-                        groups = ContextInspection.read(service, session).working_memory()
-                        (section,) = (title for title, sources, _ in groups
-                                     for source in sources for annotation in source.children()
-                                     if annotation.annotation == effective)
-                        assert section == effective.working_memory_section
-                        (refreshed,) = (node for node in tree.context_nodes.values()
-                                        if isinstance(node.data, AnnotationNode)
-                                        and node.data.annotation == effective)
-                        await select_context_source(pilot, tree, refreshed.data.key)
-                        await pilot.press("enter")
-                        await until(pilot, lambda: effective.public_description()
-                                    in explorer.query_one(TextArea).text)
-                        assert span_text in explorer.query_one(TextArea).text
-                        print(f"W6 GUI: original USER correction visible in {section}", flush=True)
-                assert service.bus.log.context_manifests(session, service.registry) == history
-                assert native.session.read_bytes() == native_after_input
-                assert system_file.read_bytes() == original_file
+                await inspect_authentic_annotation_gui(controller, session,
+                    project=native.project, session_file=native.session,
+                    system_file=system_file, original_file=original_file, monkeypatch=monkeypatch)
                 assert native.provider.posts == 1 and len(native.saved_inputs()) == 1
-                assert not controller.annotations.tasks
-                with WorkingMemoryAnnotations.reading(service.root / "coordination.sqlite3") as db:
-                    assert tuple(AnnotationRequestsRow.select(db)) == ()
-                print(json.dumps({"original_request": manifest.require_request_id(),
-                    "original_turn": FieldCodec.encode(manifest.turn),
-                    "actual_span_coordinates": [FieldCodec.encode(span) for span in spans],
-                    "localhost_posts": native.provider.posts, "native_inputs": len(native.saved_inputs()),
-                    "external_annotations": 0, "scope": "Authentic AnnotationNode GUI, not W7 calibration"}),
-                    flush=True)
 
     asyncio.run(mounted())
+
+
+def test_authentic_recorded_annotation_gui_continuation(tmp_path, monkeypatch):
+    """Reacquire authentic01's original stopped source; never issue another input."""
+    import os
+    from pathlib import Path
+    from unittest.mock import patch
+
+    from agent_comms.coordinator import Coordination
+    from agent_comms.native_package import verify_native_package
+    from agent_comms.thread_identity import ThreadIncarnation
+    from delivery_owner_fixture import canonical_agent
+    from native_backend_fixture import NativeBackendFixture
+
+    accepted = Path(__file__).resolve().parents[1] / (
+        "evidence/working-memory-view-20261004/authentic01/private-fixture-readback.json")
+    receipt = json.loads(accepted.read_text())
+    fixture = Path(receipt["fixture"])
+    service = Comms(fixture / "wire")
+    original_owner = service.registry.require(receipt["thread"])
+    incarnation = FieldCodec.decode(ThreadIncarnation, receipt["incarnation"])
+    assert original_owner.incarnation == incarnation
+    session_file = Path(receipt["native_session"])
+    system_file = Path(receipt["source"])
+    original_file = system_file.read_bytes()
+    original_native = session_file.read_bytes()
+    proof_file = Path(str(session_file) + ".input-proof")
+    original_proof = proof_file.read_bytes()
+    assert hashlib.sha256(original_file).hexdigest() == receipt["source_sha256"]
+    assert hashlib.sha256(original_native).hexdigest() == receipt["native_session_sha256"]
+    assert hashlib.sha256(original_proof).hexdigest() == receipt["input_proof_sha256"]
+    assert original_owner.session_file == str(session_file)
+    history = service.bus.log.context_manifests(original_owner.name, service.registry)
+    (sealed,) = (manifest for manifest in history if manifest.request_id == receipt["request"])
+    assert sealed.thread == incarnation and FieldCodec.encode(sealed.turn) == receipt["turn"]
+    ContextManifest.for_request(history, sealed.turn, receipt["request"])
+    with service.bus.log.locked():
+        metadata = service.bus.log.read_metadata_unlocked()
+    assert metadata.private
+    package = Path(os.environ["PI_COMPACTION_TEST_PACKAGE"])
+    assert package.resolve() == Path(os.environ["AC_NATIVE_COPIED_PACKAGE"]).resolve()
+    verify_native_package(package)
+    environment = {
+        "AGENT_COMMS_ROOT": str(service.root),
+        "AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID": metadata.root_id,
+        "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE": str(package),
+        "AGENT_COMMS_NATIVE_CONFIG_DIR": str(fixture / "config"),
+        "PI_CODING_AGENT_DIR": str(fixture / "config"),
+    }
+    for name, directory in (("XDG_CONFIG_HOME", "config"), ("XDG_STATE_HOME", "state"),
+                            ("XDG_DATA_HOME", "data"), ("XDG_CACHE_HOME", "cache")):
+        monkeypatch.setenv(name, str(tmp_path / directory))
+    monkeypatch.setenv("TOAD_TEST_ATTEMPT", str(tmp_path))
+    monkeypatch.setenv("AGENT_COMMS_DEBUG_LOG", str(tmp_path / "owner-debug.log"))
+    for key in ("PYTHONPATH", "AGENT_COMMS_ANNOTATION_POLICY", "PI_PROMPT", "PI_AGENT_ID",
+                "PI_PARENT_ID", "PI_TASK", "AGENT_COMMS_THREAD", "AGENT_COMMS_STARTUP_INPUT_KEY"):
+        monkeypatch.delenv(key, raising=False)
+
+    async def mounted():
+        with patch.dict(os.environ, environment):
+            controller = canonical_agent(service, auto_wake=False, runtime_enabled=True,
+                agent_bin="pi", agent_args=NativeBackendFixture.native_arguments(
+                    options=("--no-tools", "--system-prompt", str(system_file))))
+            controller.on_connect(None)
+            try:
+                def acquire():
+                    service.threads.restore_stopped(service.registry.snapshot(),
+                                                    (original_owner.name,))
+                    return service.owners.acquire_thread(original_owner.name, owner_pid=os.getpid())
+
+                owned = await Coordination.run_worker(acquire)
+                assert owned.incarnation == incarnation and owned.session_file == str(session_file)
+                await controller.sessions.bind_owned(owned, owned.name)
+                print("W6 GUI: acquired preserved authentic request; ZERO new input", flush=True)
+                await inspect_authentic_annotation_gui(controller, owned.name,
+                    project=Path(owned.worktree), session_file=session_file,
+                    system_file=system_file, original_file=original_file, monkeypatch=monkeypatch)
+            finally:
+                await controller.shutdown()
+                assert not controller.turns.turn_tasks and not controller.inputs.backend_inboxes
+                assert not controller.turns.persistent_backends
+        assert service.bus.log.context_manifests(original_owner.name, service.registry) == history
+        assert session_file.read_bytes() == original_native
+        assert proof_file.read_bytes() == original_proof
+        assert system_file.read_bytes() == original_file
+        assert not tuple((service.root / "runtime").glob("*.sock"))
+
+    asyncio.run(mounted())
+
 
 
 def test_decoded_current_contributor_and_recorded_child_labels(tmp_path):
