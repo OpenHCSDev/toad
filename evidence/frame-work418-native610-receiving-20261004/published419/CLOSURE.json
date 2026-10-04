@@ -1,0 +1,93 @@
+{
+  "state": "Published419; originalidentityreadback and scoped ordinarydefault savedhistory/rightsidebar acceptance complete",
+  "ready_head": "f86b81820db100542d3aec35bf05a61ec68c1597",
+  "product_source_head": "3e7a2e142102aaa3c2900ef733992810834aff03",
+  "core": "d41601c16d74e9e3e4195b6527fb218b8fe14af9",
+  "textual": "b263e4e707846025fd6b70448749c7a36c0a2d81",
+  "native_manifest": "2ea0a4d4ff2e362864c156e4b11642775b3f2a96e7f01522b346b6f6d9526936",
+  "live_prefix": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534",
+  "owners": 19,
+  "thread_births_preserved": true,
+  "stored_settings_preserved": true,
+  "raw_phase_preserved": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "actual_st_exit": 0,
+  "encoder_returncode_distinct": 255,
+  "scope": "Ordinary installed saved-history/right-sidebar opening/hydration and visible native point action. Full movement/CPU/FPS and category changes not qualified by this observe run. Original 418 motion/resource gate remains separate.",
+  "category_attempt_original_negative": "Category click aborted by absent original UI identity before dispatch; subsequent export and isolated-display screenshot refused. No category action or category filtering claim; no repeat launch.",
+  "runtime_and_owner_unchanged": true,
+  "cleanup_remaining": [],
+  "cleanup_errors": [],
+  "image_review_authority": "Parent personally reviewed originalimages; archive performs byteexact readback only",
+  "new_provider_calls": 0,
+  "new_inputs": 0,
+  "publication_readback_UI_repeated": false,
+  "later615_not_in419": true,
+  "protected_roles": "Current534LIVE;334previous;485returned; purpose/archive/grant required before reuse",
+  "original_files": {
+    "after-reviewed.png": {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published419-20261004/after-reviewed.png",
+      "sha256": "738e9323bda1bbd7a974f5d9308991446b1849d16935f44e0306c5eceb3af1a7",
+      "bytes": 53861
+    },
+    "default-acceptance.json": {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published419-20261004/default-acceptance.json",
+      "sha256": "b9fe92d8da74b82c22ea76c41a9464019f6e7aefdd8d1705f3b45413a8abca7f",
+      "bytes": 2175
+    },
+    "default-original-receipt.json": {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published419-20261004/default-original-receipt.json",
+      "sha256": "0fd782da936d5907a21c3d02b3b94e9e2a9b36025af43e380a09d5e493275daa",
+      "bytes": 29343
+    },
+    "publication-original-readback.json": {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published419-20261004/publication-original-readback.json",
+      "sha256": "ef3034c9454bad544b5e011cb18b0c78c72a1bc754a8ee62909d1a529d16dae7",
+      "bytes": 18347
+    },
+    "publication-original-receipt.json": {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published419-20261004/publication-original-receipt.json",
+      "sha256": "b3118f3e675be9dde2f75b6857ae2ad3eb5847717a30837a9ec5adb41b6362f5",
+      "bytes": 39864
+    },
+    "publication-stderr.txt": {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published419-20261004/publication-stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "publication-stdout.txt": {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published419-20261004/publication-stdout.txt",
+      "sha256": "4362dad3162e99d9ef84d963e62cf249792dbdfaf56c2351f3fa4a25231a9cea",
+      "bytes": 70
+    },
+    "publication-terminal.json": {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published419-20261004/publication-terminal.json",
+      "sha256": "a8a657dbaff60252bf9822b723c9c04e04d12190f276111e61742b8c08595750",
+      "bytes": 287
+    },
+    "readback-stderr.txt": {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published419-20261004/readback-stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "readback-stdout.txt": {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published419-20261004/readback-stdout.txt",
+      "sha256": "f58637f84fa591c3ed1e001be2a3b6244f13247c54e8fdecd14810370bba17ff",
+      "bytes": 1062
+    },
+    "readback-terminal.json": {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published419-20261004/readback-terminal.json",
+      "sha256": "bcfff508d420b12d2db11bb4b63391b612f2178f315b2271b788a869eb547c45",
+      "bytes": 115
+    },
+    "right-sidebar-reviewed.png": {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published419-20261004/right-sidebar-reviewed.png",
+      "sha256": "2af4b595b3109eab6b863ed0089dabc8a8099d62c2a81367b4255a65f55d1339",
+      "bytes": 47091
+    },
+    "ui-identity.json": {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published419-20261004/ui-identity.json",
+      "sha256": "4d4ca87a678cbec7dbea18e7c39ee4e81e00f2894e02ed65521d45107db8fdfe",
+      "bytes": 127
+    }
+  }
+}

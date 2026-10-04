@@ -1,0 +1,698 @@
+{
+  "owner": "parent419-default-frame-point-acceptance",
+  "purpose": "installed TUI physical interaction video review",
+  "output": "/home/ts/.cache/agent-scratch/published419-helper-default-20261004/capture",
+  "command": [
+    "/home/ts/bin/toad-comms",
+    "openhcs-helper"
+  ],
+  "terminal_command": [
+    "st",
+    "-e",
+    "/home/ts/bin/toad-comms",
+    "openhcs-helper"
+  ],
+  "fps": 60,
+  "screen": [
+    1280,
+    800
+  ],
+  "profiling_requested": false,
+  "state_capture_requested": true,
+  "ui_config": {
+    "source": "/home/ts/.config/toad/toad.json",
+    "home": "/home/ts/.cache/agent-scratch/published419-helper-default-20261004/capture/ui-config",
+    "initial_sha256": "dc7757bf1a59dc9df0b20a575d6453def6b0283742bced0aa3d910edec2b79a2"
+  },
+  "private_root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+  "capture_target": "existing_thread",
+  "physical_journey": "observe",
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "openhcs-helper",
+    "identity": {
+      "pid": 291126,
+      "start_time": 55742382
+    },
+    "original_owner_alive": true
+  },
+  "recorder_argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/record_installed_tui.py",
+    "--capture-target",
+    "existing_thread",
+    "--journey",
+    "observe",
+    "--owner",
+    "parent419-default-frame-point-acceptance",
+    "--output",
+    "/home/ts/.cache/agent-scratch/published419-helper-default-20261004/capture",
+    "--capture-state",
+    "--startup-wait",
+    "10",
+    "--tail-seconds",
+    "65",
+    "--max-duration",
+    "100",
+    "--",
+    "/home/ts/bin/toad-comms",
+    "openhcs-helper"
+  ],
+  "recorder_source_sha256": "995fd1a81a6609a15c8bcc53b104adbad218fd9ca2977a7d9b71d37b2a01e70b",
+  "started_utc": "2026-10-04T02:50:48.744737+00:00",
+  "assessment": "unreviewed",
+  "capture_completed": true,
+  "completed": true,
+  "review_timing": "inline",
+  "review": {
+    "start_seconds": 0,
+    "seconds": 3,
+    "fps": 8,
+    "frames_limit": 24,
+    "slowdown": 8,
+    "timestamp_basis": "source video seconds"
+  },
+  "runtime_before": {
+    "selection": "PATH agent-comms-acp",
+    "bin_directory": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin",
+    "launcher": "/home/ts/.agent-comms/stack/bin/toad-comms",
+    "launcher_sha256": "139697cd787f598b06c989e41ab6d09632fda135aa5db9354e4e60ea04e3069e",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/bin/toad-comms",
+        "resolved_path": "/home/ts/.agent-comms/stack/bin/toad-comms",
+        "sha256": "139697cd787f598b06c989e41ab6d09632fda135aa5db9354e4e60ea04e3069e"
+      },
+      "acp": {
+        "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin/agent-comms-acp",
+        "sha256": "a7d4832e3e9e4eeca56bac53074f73ed12d22612c4d950f2c6b5a65afcc132fb"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin/toad",
+        "sha256": "809584453697fa8415a2e469e038c2256ddfdeb63dbdecf634bd947fbcac7f86"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin/agent-comms-acp",
+        "sha256": "a7d4832e3e9e4eeca56bac53074f73ed12d22612c4d950f2c6b5a65afcc132fb"
+      }
+    },
+    "activation_path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/activation.json",
+    "activation_sha256": "2006edec168978e59a7e418479a1d6943d7cd9c8d5e93d789de5775790885b21",
+    "activation": {
+      "stage": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534",
+      "pins": {
+        "agent_comms": "d41601c16d74e9e3e4195b6527fb218b8fe14af9",
+        "toad": "3e7a2e142102aaa3c2900ef733992810834aff03",
+        "textual": "b263e4e707846025fd6b70448749c7a36c0a2d81"
+      },
+      "sdk": "0.12.1",
+      "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-2ea0a4d4ff2e3628/node_modules/@earendil-works/pi-coding-agent",
+      "state": "Normal69 qualified418/Text50; retainedCore611/native2ea and original reviewed file wheels; original138.053s scope retained",
+      "staging_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame-work418-native610-receiving-20261004/source-proof.json",
+      "bins": {
+        "python": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin/python",
+        "toad": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin/toad",
+        "agent-comms": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin/agent-comms",
+        "agent-comms-acp": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin/agent-comms-acp",
+        "agent-comms-agent": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin/agent-comms-agent",
+        "pi-comms-native": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin/pi-comms-native"
+      },
+      "native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-2ea0a4d4ff2e3628/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+      "native_manifest": "2ea0a4d4ff2e362864c156e4b11642775b3f2a96e7f01522b346b6f6d9526936",
+      "native_tree": "61015ef9b5738be236d9de4dd2d59d24857a6f3b77baa69caa5332addaec280b",
+      "native_configuration_note": "Released receiving holder /home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534; original activation/source/native and saved-source qualification proof archived. Public source, named rollback and other borrowed holders are untouched. Core/native and frontend follow this complete installed proof; no provider/public changes from packaging and no environment/native build."
+    },
+    "observed": {
+      "python": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin/python",
+      "prefix": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "3cec0106d27d4513fdc59bde9d56abc6e7f997e769b9c3ba005001775ddc0d57",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "file:///home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame418-stage-20261004/live611-toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+            "archive_info": {}
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "a6def9a04fce38768cf63e6a24cb201e7cd410d48ca679076945d1b949842966",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "file:///home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text50-filewheel-ff5cc9c7-20261003/textual-8.2.8-py3-none-any.whl",
+            "archive_info": {}
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "8148d82af1c2725a2305e12be517f967e84f4581a4096020c4411902a7d923bf",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "file:///home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/input-drain611-wheels/agent_comms-0.1.0-py3-none-any.whl",
+            "archive_info": {}
+          }
+        }
+      },
+      "route": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-2ea0a4d4ff2e3628/node_modules/@earendil-works/pi-coding-agent"
+      },
+      "native_launch": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-2ea0a4d4ff2e3628/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "display": ":2105",
+  "ui_identity": {
+    "pid": 367630,
+    "start_ticks": 55789022
+  },
+  "window": "2097158",
+  "capture_launch_monotonic": 557891.254016715,
+  "interaction_deadline_monotonic": 557975.254016715,
+  "finish_deadline_monotonic": 557991.254016715,
+  "finalize_seconds": 16,
+  "terminal_pid": 367629,
+  "state_captures": {
+    "before": {
+      "started_seconds": 10.256310677039437,
+      "manifest": {
+        "pid": 367630,
+        "created": 1791082250.22,
+        "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+        "rss_before": 192262144,
+        "started_ns": 1791082262393757737,
+        "profile_seconds": 0,
+        "gil_only": false,
+        "native": false,
+        "receipts": {
+          "/home/ts/.cache/agent-scratch/published419-helper-default-20261004/capture/before-state": "complete",
+          "/home/ts/.cache/agent-scratch/published419-helper-default-20261004/capture/before-screen": "complete"
+        },
+        "finished_ns": 1791082262558609131
+      },
+      "finished_seconds": 10.650343423010781
+    },
+    "observers": {
+      "started_seconds": 10.65044131805189,
+      "manifest": {
+        "pid": 367630,
+        "created": 1791082250.22,
+        "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+        "rss_before": 194248704,
+        "started_ns": 1791082262795264988,
+        "profile_seconds": 0,
+        "gil_only": false,
+        "native": false,
+        "receipts": {
+          "/home/ts/.cache/agent-scratch/published419-helper-default-20261004/capture/observers-state": "complete"
+        },
+        "finished_ns": 1791082262859613342
+      },
+      "finished_seconds": 10.938166695064865
+    },
+    "after": {
+      "started_seconds": 76.25240614498034,
+      "manifest": {
+        "pid": 367630,
+        "created": 1791082250.22,
+        "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+        "rss_before": 259256320,
+        "started_ns": 1791082328395518773,
+        "profile_seconds": 0,
+        "gil_only": false,
+        "native": false,
+        "receipts": {
+          "/home/ts/.cache/agent-scratch/published419-helper-default-20261004/capture/after-state": "complete",
+          "/home/ts/.cache/agent-scratch/published419-helper-default-20261004/capture/after-screen": "complete"
+        },
+        "finished_ns": 1791082328560250591
+      },
+      "finished_seconds": 76.63936123100575
+    }
+  },
+  "terminal_processes": {
+    "367629": {
+      "start_ticks": 55789014,
+      "command": "st -e /home/ts/bin/toad-comms openhcs-helper "
+    },
+    "367630": {
+      "start_ticks": 55789022,
+      "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                   "
+    },
+    "367800": {
+      "start_ticks": 55789220,
+      "command": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+    },
+    "367807": {
+      "start_ticks": 55789346,
+      "command": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=11) --multiprocessing-fork "
+    },
+    "367808": {
+      "start_ticks": 55789346,
+      "command": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=22) --multiprocessing-fork "
+    },
+    "368849": {
+      "start_ticks": 55789881,
+      "command": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork "
+    }
+  },
+  "duration_seconds": 76.63936633104458,
+  "capture_returncode": 255,
+  "runtime_after": {
+    "selection": "PATH agent-comms-acp",
+    "bin_directory": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin",
+    "launcher": "/home/ts/.agent-comms/stack/bin/toad-comms",
+    "launcher_sha256": "139697cd787f598b06c989e41ab6d09632fda135aa5db9354e4e60ea04e3069e",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/bin/toad-comms",
+        "resolved_path": "/home/ts/.agent-comms/stack/bin/toad-comms",
+        "sha256": "139697cd787f598b06c989e41ab6d09632fda135aa5db9354e4e60ea04e3069e"
+      },
+      "acp": {
+        "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin/agent-comms-acp",
+        "sha256": "a7d4832e3e9e4eeca56bac53074f73ed12d22612c4d950f2c6b5a65afcc132fb"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin/toad",
+        "sha256": "809584453697fa8415a2e469e038c2256ddfdeb63dbdecf634bd947fbcac7f86"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin/agent-comms-acp",
+        "sha256": "a7d4832e3e9e4eeca56bac53074f73ed12d22612c4d950f2c6b5a65afcc132fb"
+      }
+    },
+    "activation_path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/activation.json",
+    "activation_sha256": "2006edec168978e59a7e418479a1d6943d7cd9c8d5e93d789de5775790885b21",
+    "activation": {
+      "stage": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534",
+      "pins": {
+        "agent_comms": "d41601c16d74e9e3e4195b6527fb218b8fe14af9",
+        "toad": "3e7a2e142102aaa3c2900ef733992810834aff03",
+        "textual": "b263e4e707846025fd6b70448749c7a36c0a2d81"
+      },
+      "sdk": "0.12.1",
+      "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-2ea0a4d4ff2e3628/node_modules/@earendil-works/pi-coding-agent",
+      "state": "Normal69 qualified418/Text50; retainedCore611/native2ea and original reviewed file wheels; original138.053s scope retained",
+      "staging_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame-work418-native610-receiving-20261004/source-proof.json",
+      "bins": {
+        "python": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin/python",
+        "toad": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin/toad",
+        "agent-comms": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin/agent-comms",
+        "agent-comms-acp": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin/agent-comms-acp",
+        "agent-comms-agent": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin/agent-comms-agent",
+        "pi-comms-native": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin/pi-comms-native"
+      },
+      "native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-2ea0a4d4ff2e3628/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+      "native_manifest": "2ea0a4d4ff2e362864c156e4b11642775b3f2a96e7f01522b346b6f6d9526936",
+      "native_tree": "61015ef9b5738be236d9de4dd2d59d24857a6f3b77baa69caa5332addaec280b",
+      "native_configuration_note": "Released receiving holder /home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534; original activation/source/native and saved-source qualification proof archived. Public source, named rollback and other borrowed holders are untouched. Core/native and frontend follow this complete installed proof; no provider/public changes from packaging and no environment/native build."
+    },
+    "observed": {
+      "python": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin/python",
+      "prefix": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "3cec0106d27d4513fdc59bde9d56abc6e7f997e769b9c3ba005001775ddc0d57",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "file:///home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame418-stage-20261004/live611-toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+            "archive_info": {}
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "a6def9a04fce38768cf63e6a24cb201e7cd410d48ca679076945d1b949842966",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "file:///home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text50-filewheel-ff5cc9c7-20261003/textual-8.2.8-py3-none-any.whl",
+            "archive_info": {}
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "8148d82af1c2725a2305e12be517f967e84f4581a4096020c4411902a7d923bf",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "file:///home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/input-drain611-wheels/agent_comms-0.1.0-py3-none-any.whl",
+            "archive_info": {}
+          }
+        }
+      },
+      "route": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-2ea0a4d4ff2e3628/node_modules/@earendil-works/pi-coding-agent"
+      },
+      "native_launch": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-2ea0a4d4ff2e3628/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "runtime_unchanged": true,
+  "terminal_exit": {
+    "pid": 367629,
+    "start_ticks": 55789014,
+    "returncode": 0
+  },
+  "video": {
+    "streams": [
+      {
+        "index": 0,
+        "codec_name": "h264",
+        "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+        "profile": "Constrained Baseline",
+        "codec_type": "video",
+        "codec_tag_string": "avc1",
+        "codec_tag": "0x31637661",
+        "mime_codec_string": "avc1.42c028",
+        "width": 1280,
+        "height": 800,
+        "coded_width": 1280,
+        "coded_height": 800,
+        "has_b_frames": 0,
+        "pix_fmt": "yuv420p",
+        "level": 40,
+        "chroma_location": "left",
+        "field_order": "progressive",
+        "is_avc": "true",
+        "nal_length_size": "4",
+        "id": "0x1",
+        "r_frame_rate": "60/1",
+        "avg_frame_rate": "60/1",
+        "time_base": "1/15360",
+        "start_pts": 0,
+        "start_time": "0.000000",
+        "duration_ts": 1175552,
+        "duration": "76.533333",
+        "bit_rate": "321217",
+        "bits_per_raw_sample": "8",
+        "extradata_size": 37,
+        "disposition": {
+          "default": 1,
+          "dub": 0,
+          "original": 0,
+          "comment": 0,
+          "lyrics": 0,
+          "karaoke": 0,
+          "forced": 0,
+          "hearing_impaired": 0,
+          "visual_impaired": 0,
+          "clean_effects": 0,
+          "attached_pic": 0,
+          "timed_thumbnails": 0,
+          "non_diegetic": 0,
+          "captions": 0,
+          "descriptions": 0,
+          "metadata": 0,
+          "dependent": 0,
+          "still_image": 0,
+          "multilayer": 0
+        },
+        "tags": {
+          "language": "und",
+          "handler_name": "VideoHandler",
+          "encoder": "Lavc63.1.102 libx264"
+        }
+      }
+    ],
+    "format": {
+      "filename": "/home/ts/.cache/agent-scratch/published419-helper-default-20261004/capture/terminal.mp4",
+      "nb_streams": 1,
+      "nb_programs": 0,
+      "nb_stream_groups": 0,
+      "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+      "format_long_name": "QuickTime / MOV",
+      "start_time": "0.000000",
+      "duration": "76.533333",
+      "size": "3102231",
+      "bit_rate": "324275",
+      "probe_score": 100,
+      "tags": {
+        "major_brand": "iso5",
+        "minor_version": "512",
+        "compatible_brands": "iso5iso6mp41",
+        "encoder": "Lavf63.1.102"
+      }
+    }
+  },
+  "events": [],
+  "frame_review": {
+    "available": true,
+    "trace": "after-state-frames.json",
+    "artifacts": [
+      "frame-delivery.json",
+      "frame-delivery.svg"
+    ],
+    "intervals": {
+      "count": 152,
+      "median_ms": 499.85,
+      "p95_ms": 501.2,
+      "p99_ms": 507.66,
+      "max_ms": 527.27
+    },
+    "scope": "Native writer completion; not changed pixels or terminal presentation FPS. Zero stationary motion is legitimate, not a stall classification."
+  },
+  "journey_review": null,
+  "review_intervals": [
+    {
+      "label": "main",
+      "start": 0,
+      "seconds": 3,
+      "complete": false,
+      "basis": "explicit review start"
+    }
+  ],
+  "artifacts": {
+    "terminal.mp4": {
+      "bytes": 3102231,
+      "sha256": "ff3605541e6dfe61bbaa61526dcc03106d2048b0158c7a5bf8561362d979bd8c"
+    },
+    "before.png": {
+      "bytes": 44899,
+      "sha256": "df40131ee289f8f5858daa88f3f9bd10daf2c8a5b8fa0c882408c4eb10aac40a"
+    },
+    "after.png": {
+      "bytes": 53861,
+      "sha256": "738e9323bda1bbd7a974f5d9308991446b1849d16935f44e0306c5eceb3af1a7"
+    },
+    "before-state.json": {
+      "bytes": 904957,
+      "sha256": "4168e11224f6dccacdff82b65ff792916c10589e191e3ecbe2aec5d3821dbe56"
+    },
+    "before-state.pickle": {
+      "bytes": 349213,
+      "sha256": "2e236d5a649b741ae5c5e923bb6a04ed7fbda99a30b708380ef61f757f244b31"
+    },
+    "before-screen.svg": {
+      "bytes": 36479,
+      "sha256": "fe9dfb15e571c48910b6f7b3a08ee899aa29b28953a0073b22ba99ae9cb5f9ce"
+    },
+    "before-remote.py": {
+      "bytes": 1398,
+      "sha256": "073a9d2fc7eede5908a1fe92d00c19857d173491d21800f74003ce0f7ee1a0a8"
+    },
+    "before-state-metadata.json": {
+      "bytes": 904930,
+      "sha256": "42bfe29fd92ba844184de24f32d413e49bdeab5e1db91df1f668123908f03474"
+    },
+    "before-state-frames.json": {
+      "bytes": 117,
+      "sha256": "456fb326f9923d8477b77ae8dfedba69f7601ee1c6583041134f51d032da9b8e"
+    },
+    "before-manifest.json": {
+      "bytes": 546,
+      "sha256": "e71404265842889ec7ac81dca081f6331994eaaf2b184ee64ccff7bdf902923f"
+    },
+    "before-screen.json": {
+      "bytes": 163,
+      "sha256": "60597bf30ada4f0acb5c054d2cdf2bb0d495be8ffc130e02d730dc103a93c23b"
+    },
+    "before-capture.log": {
+      "bytes": 96,
+      "sha256": "5b1f55f1118042fd7db89503043d51d70ecbb04c71b40dc034742a022ad3ff3a"
+    },
+    "after-screen.svg": {
+      "bytes": 49491,
+      "sha256": "ea05bf8d484a56f49c8b4b141bb66e2257c8dcf02f041d2d6bb3d8a59079662c"
+    },
+    "after-state-metadata.json": {
+      "bytes": 1115395,
+      "sha256": "d7d27f07b0baf17e517c1bbc9385585c2f1f0848e43608e8dd4c5dac1e7f825e"
+    },
+    "after-remote.py": {
+      "bytes": 1396,
+      "sha256": "2744fbc27f1043cdbc88964c89687948fd94319f50c18e3e1bb1fbb07cf1081e"
+    },
+    "after-manifest.json": {
+      "bytes": 544,
+      "sha256": "840348a996fe21a35169790f7c79e749dc2a799aae866845877888c8a82987a9"
+    },
+    "after-state-frames.json": {
+      "bytes": 33436,
+      "sha256": "1ac1a35a76712612e2c43ee86d0451caccd5330f47787c36e8bbf10d53c5cdb2"
+    },
+    "after-capture.log": {
+      "bytes": 95,
+      "sha256": "ec5b27bcfc198926676e2414bc4aca3c390b19cd1219e68bb226d9967d6da708"
+    },
+    "after-state.json": {
+      "bytes": 1115422,
+      "sha256": "ed099fff4a03b0ac39e0ca9fad980c24fa65807c8f1aa8e93ad8747221bc4dbe"
+    },
+    "after-state.pickle": {
+      "bytes": 378476,
+      "sha256": "a69f1e4972dcdfa883892f806e462c3bd36cb50a513dba809f9193725cab238f"
+    },
+    "after-screen.json": {
+      "bytes": 162,
+      "sha256": "f2b3c32bebca74e6761c6cb0ade1b711314fd307d53214d06b0fc49523086fce"
+    },
+    "frame-delivery.json": {
+      "bytes": 34792,
+      "sha256": "1f11c75038919fd970f3df8df110de6d36b81c71d99707810ab60a671e50ee85"
+    },
+    "frame-delivery.svg": {
+      "bytes": 4156,
+      "sha256": "2d2d026a5df2e3c94436e6787806455191b1442cf92903e5c82f53265ad441c9"
+    },
+    "slow.mp4": {
+      "bytes": 80084,
+      "sha256": "624f17b7b27edbd9ad035eb172d5501f30a8ae33889dee10d558406c3388bcd4"
+    },
+    "frames.png": {
+      "bytes": 39925,
+      "sha256": "3c5155e03b04b0aa135e849f0470858f028ddd119999dcc3bee9ee5800068bc5"
+    }
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 367563,
+        "start_ticks": 55788795,
+        "returncode": 0
+      },
+      {
+        "pid": 367627,
+        "start_ticks": 55789001,
+        "returncode": 0
+      },
+      {
+        "pid": 367629,
+        "start_ticks": 55789014,
+        "returncode": 0
+      },
+      {
+        "pid": 367630,
+        "start_ticks": 55789022,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 367792,
+        "start_ticks": 55789097,
+        "returncode": 0
+      },
+      {
+        "pid": 367793,
+        "start_ticks": 55789111,
+        "returncode": 0
+      },
+      {
+        "pid": 367794,
+        "start_ticks": 55789123,
+        "returncode": 255
+      },
+      {
+        "pid": 369611,
+        "start_ticks": 55790125,
+        "returncode": 0
+      },
+      {
+        "pid": 369673,
+        "start_ticks": 55790151,
+        "returncode": 0
+      },
+      {
+        "pid": 369734,
+        "start_ticks": 55790190,
+        "returncode": 0
+      },
+      {
+        "pid": 375739,
+        "start_ticks": 55796723,
+        "returncode": 0
+      },
+      {
+        "pid": 375743,
+        "start_ticks": 55796750,
+        "returncode": 0
+      },
+      {
+        "pid": 375748,
+        "start_ticks": 55796804,
+        "returncode": 0
+      },
+      {
+        "pid": 375785,
+        "start_ticks": 55796989,
+        "returncode": 0
+      },
+      {
+        "pid": 375949,
+        "start_ticks": 55797245,
+        "returncode": 0
+      },
+      {
+        "pid": 375950,
+        "start_ticks": 55797261,
+        "returncode": 0
+      },
+      {
+        "pid": 376414,
+        "start_ticks": 55798058,
+        "returncode": 0
+      }
+    ]
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "openhcs-helper",
+    "identity": {
+      "pid": 291126,
+      "start_time": 55742382
+    },
+    "original_owner_alive": true
+  }
+}
