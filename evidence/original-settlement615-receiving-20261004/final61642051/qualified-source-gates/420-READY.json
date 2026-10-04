@@ -1,0 +1,355 @@
+{
+  "state": "SCOPED_READY; full performance ACTIVE",
+  "source_head": "07fbea5df0bb679266a6c255ebd6503da022feb1",
+  "native_source_head": "e23e6365de7e5a5c03854268ea2b8b8e7738988a",
+  "native_production": "3e3ac956ce00b3d8112e1a47aed3b8aab7d70813",
+  "qualified_sources": [
+    {
+      "module": "agent_comms",
+      "head": "d41601c16d74e9e3e4195b6527fb218b8fe14af9",
+      "files": 342,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "file:///home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/input-drain611-wheels/agent_comms-0.1.0-py3-none-any.whl",
+        "archive_info": {}
+      },
+      "unchanged_from_preimage": true
+    },
+    {
+      "module": "toad",
+      "head": "07fbea5df0bb679266a6c255ebd6503da022feb1",
+      "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sidebar420-source-20261004/final-toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "wheel_sha256": "423b879d6576b7a781f1f84b6a505c800b237773fc461a1fd6859090b90e1562",
+      "files": 319,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "file:///home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sidebar420-source-20261004/final-toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+        "archive_info": {}
+      }
+    },
+    {
+      "module": "textual",
+      "head": "e23e6365de7e5a5c03854268ea2b8b8e7738988a",
+      "wheel": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text51-filewheel-e23e6365de-20261004/textual-8.2.8-py3-none-any.whl",
+      "wheel_sha256": "dcd0d3cc11a6332866326afa0c76fb18c5df0439bf354d40fbcf9c48bf72fe77",
+      "files": 266,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "file:///home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text51-filewheel-e23e6365de-20261004/textual-8.2.8-py3-none-any.whl",
+        "archive_info": {}
+      }
+    }
+  ],
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-2ea0a4d4ff2e3628/node_modules/@earendil-works/pi-coding-agent",
+  "native_manifest": "2ea0a4d4ff2e362864c156e4b11642775b3f2a96e7f01522b346b6f6d9526936",
+  "native_tree": "61015ef9b5738be236d9de4dd2d59d24857a6f3b77baa69caa5332addaec280b",
+  "sdk": "0.12.1",
+  "normal_packages": 69,
+  "qualified_source_proof": "QUALIFIED-SOURCE.json",
+  "raw_capture": "/home/ts/.cache/agent-scratch/sidebar420-native51-public-20261004-02/capture",
+  "raw_keeper_hashes": {
+    "receipt.json": "f9a1d5e5a488f9c2d3fb171c5e2f6291325f95cd2e50a55eee13aae032634de1",
+    "terminal.mp4": "4a9fb9bcee06b8e1e8bd6373c07a9762c6ad7c36ec7c0d84c774834eb8d27699",
+    "events.jsonl": "a99303c532f54f06b7bb55607976e121714cc3c0aca06e6760d90f69428c3729",
+    "driver.log": "b7997150b06426a51f71a35d4b828172b1deac818435a1c7a7ee3d252ef77a80",
+    "scroll-travel.jsonl": "d0cf97dd30d405c4d3c47c7433d5c77ed63e4c6362a00bc807b11f8bdbebd23f",
+    "after-state-frames.json": "5455b10a100012dbe9307ded5403f18ae582aca4d8a7be07aa79cc8b9e9c71fe",
+    "warm-scroll-review.json": "7cd2ea0277fa2fc356153c1c5e35978c0197ca334d9984b285ba935fe00ecb9f",
+    "input-paging-review.json": "5a8ca1394acee269c02cb4555a7921baf8ccc77c0a64395d74aaf0af63e2addd",
+    "frame-delivery.json": "fa341973457ae71b15a05d88b7b42d4b5d5d106281b0bf7bb563dc6e340f4541",
+    "cpu-profile.json": "988edee6f891323ea02e349c3e1bbac7b3d8acbfbd53b80f2226a2846ae4baa8",
+    "profile-review.json": "603e465091caeb824405cbff6ec1da3a53205f8eace6daf053cbe636c04fc8a6"
+  },
+  "duration_seconds": 151.88060032506473,
+  "completed": true,
+  "capture_completed": true,
+  "runtime_unchanged": true,
+  "warm_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_destination_covered": true,
+    "held_page_down_destination_covered": true,
+    "reverse_page_up_destination_covered": true
+  },
+  "input_checks": {
+    "input_remains_focused": true,
+    "original_editor_window_and_mode": true,
+    "draft_and_caret_preserved": true,
+    "input_pageup_moves_history": true,
+    "input_pagedown_moves_history": true,
+    "input_pageup_reaches_original_window": true,
+    "input_pagedown_reaches_original_window": true
+  },
+  "retained_ready_bodies": 42,
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 288457,
+      "start_time": 55741087
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 288457,
+      "start_time": 55741087
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "encoder_returncodes": [
+    255
+  ],
+  "terminal_exit_custody": {
+    "pid": 562863,
+    "start_ticks": 55868623,
+    "custody": "verified launch identity transferred to installed ObservedProcess"
+  },
+  "original_recorder_shell_terminal_exit": 0,
+  "motion_review": "MOTION-REVIEW.json",
+  "idle": {
+    "marker_band": [
+      25.325355260050856,
+      44.56144883099478
+    ],
+    "seconds": 19.236093570943922,
+    "configured_idle_seconds": 15,
+    "scope": "Whole marker span includes residual animation until25.723s and export/settle. Last10s are stationary with zero viewport work; sidebar publications remain legitimate. No stationary FPS classification.",
+    "event_deltas": {
+      "scroll": 55,
+      "observe": 55,
+      "request": 56,
+      "full_admission": 56,
+      "sidebar_publication_start": 19,
+      "sidebar_publication_done": 19
+    },
+    "requested_event_deltas": {
+      "request": 56,
+      "full_admission": 56,
+      "body_retirement_attempt": 0,
+      "body_materialization": 0,
+      "scroll": 55,
+      "sidebar_publication_done": 19
+    },
+    "same_owner_ids": true,
+    "window_ids": [
+      140532194679120,
+      140532194679120
+    ],
+    "scroll_y": [
+      100.00000433123441,
+      100.00000000000001
+    ],
+    "ready_owner_ids": [
+      [
+        140531747788816,
+        140531749077072,
+        140531749091472,
+        140531749081232,
+        140531749079312,
+        140531778122000,
+        140532140759376,
+        140531749087632,
+        140531749091792,
+        140531749089872,
+        140531749083792,
+        140531747783376,
+        140531789724432,
+        140531747791696,
+        140531785550736,
+        140531747789776,
+        140531747793936,
+        140531749088272,
+        140531747783696,
+        140531749086352,
+        140531747792016,
+        140531749090512,
+        140531747796176,
+        140531789712592,
+        140531749084432,
+        140531749088592,
+        140531778114960,
+        140531749090832,
+        140531747796496,
+        140532193136144,
+        140531749084752,
+        140531747784336,
+        140532193138384,
+        140531749080912,
+        140531747796816,
+        140531749089232
+      ],
+      [
+        140531747788816,
+        140531749077072,
+        140531749091472,
+        140531749081232,
+        140531749079312,
+        140531778122000,
+        140532140759376,
+        140531749087632,
+        140531749091792,
+        140531749089872,
+        140531749083792,
+        140531747783376,
+        140531789724432,
+        140531747791696,
+        140531785550736,
+        140531747789776,
+        140531747793936,
+        140531749088272,
+        140531747783696,
+        140531749086352,
+        140531747792016,
+        140531749090512,
+        140531747796176,
+        140531789712592,
+        140531749084432,
+        140531749088592,
+        140531778114960,
+        140531749090832,
+        140531747796496,
+        140532193136144,
+        140531749084752,
+        140531747784336,
+        140532193138384,
+        140531749080912,
+        140531747796816,
+        140531749089232
+      ]
+    ],
+    "visible_owner_ids": [
+      [
+        140531749089872,
+        140531747783376,
+        140531747783696,
+        140531747784336
+      ],
+      [
+        140531749089872,
+        140531747783376,
+        140531747783696,
+        140531747784336
+      ]
+    ],
+    "last_10_seconds": {
+      "band": [
+        34.56144883099478,
+        44.56144883099478
+      ],
+      "event_deltas": {
+        "sidebar_publication_start": 10,
+        "sidebar_publication_done": 10
+      },
+      "requested_event_deltas": {
+        "request": 0,
+        "full_admission": 0,
+        "body_retirement_attempt": 0,
+        "body_materialization": 0,
+        "scroll": 0,
+        "sidebar_publication_done": 10
+      }
+    },
+    "residual_scroll_ends_at_seconds": 25.723
+  },
+  "marker_phase_UI_CPU_percent": {
+    "warm-ready": 89.46757023899625,
+    "sidebar-revealed": 19.410972423523894,
+    "warm-start": 23.286463364062275,
+    "draft": 22.942814712005074,
+    "travel-start": 22.633556680049495,
+    "input-held-up": 77.51359623194665,
+    "input-held-up-done": 18.506876081001046,
+    "input-mid-history-idle-done": 21.810361981463153,
+    "input-held-down": 65.03350378010941,
+    "input-held-down-done": 20.764121896240713,
+    "focused": 20.004633624948056,
+    "up": 78.22567603073725,
+    "up-done": 18.912540614791258,
+    "down": 63.83869261308453,
+    "down-done": 20.777715931313026,
+    "reverse": 66.48036171429476,
+    "reverse-done": 21.121096446873164,
+    "end": 24.010175187654028,
+    "idle": 18.847219277162537,
+    "idle-done": 20.126195335225052,
+    "switch-b": 36.361813608002805,
+    "b-open": 91.3221440518304,
+    "return-a": 35.96641406874326,
+    "a-return": 24.095361694562538,
+    "undo": 65.44090570233159,
+    "channel-open": 78.8407709811283
+  },
+  "marker_phase_fault_deltas": {
+    "input-held-up": {
+      "major_fault_delta": 0,
+      "minor_fault_delta": 10575,
+      "marker_seconds": 3.9992983820848167
+    },
+    "input-held-up-done": {
+      "major_fault_delta": 0,
+      "minor_fault_delta": 10864,
+      "marker_seconds": 19.236093570943922
+    },
+    "input-held-down": {
+      "major_fault_delta": 0,
+      "minor_fault_delta": 11777,
+      "marker_seconds": 4.074822738999501
+    },
+    "reverse": {
+      "major_fault_delta": 0,
+      "minor_fault_delta": 8025,
+      "marker_seconds": 4.136559923994355
+    },
+    "idle": {
+      "major_fault_delta": 0,
+      "minor_fault_delta": 4271,
+      "marker_seconds": 22.231396252056584
+    }
+  },
+  "sampling": {
+    "sample_count": 1368,
+    "sampling_errors": 1,
+    "sampling_quality": "partial; inspect errors and missing thread intervals",
+    "uncertainty_seconds": 0.08735941847320647,
+    "limits": [
+      "Scheduler delays and sampling errors can increase clock uncertainty",
+      "Consistent sampling briefly pauses Python; compare an unprofiled journey for observer overhead",
+      "GIL-owner samples cover Python execution; released-GIL/native work is omitted, so corroborate with kernel CPU counters",
+      "Chrome transitions omit unchanged stack samples; counts below are observed transition groups, not samples, calls, durations or CPU time",
+      "Threads remain separate; recursive frame identities count once per observed stack",
+      "Kernel counter deltas give per-process CPU time at action boundaries",
+      "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
+      "No automatic inference that a UI frame passed or a function is redundant"
+    ]
+  },
+  "installed_App": "INSTALLED-APP.json",
+  "limits": [
+    "Writer completion is not changed pixels/emulator presentation/input-to-pixel latency",
+    "Marker CPU includes exports and observer work; workload differs from418 so no causal overall CPU gain",
+    "Up worst writer gap192.68ms and stepped visual motion remain unresolved",
+    "End includes stationary heartbeat;500ms End gap is not classified as held-scroll stall",
+    "One GIL sampling error retained; missing/released-GIL work is not attributed as CPU time",
+    "Selected sheets reviewed DURING original UI lifetime, not live continuous playback",
+    "Full CPU/raster/cold/warm/velocity/growing-End/void/animation/sidebar/IRC/DM/tab/focus/draft/Undo/TC1/T9/T4 and144Hz remain active"
+  ]
+}

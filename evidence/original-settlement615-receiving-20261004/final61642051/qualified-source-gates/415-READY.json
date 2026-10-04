@@ -1,0 +1,302 @@
+{
+  "state": "SCOPED_READY; full performance ACTIVE",
+  "source_head": "cafa74e7021dbc0c27347ccd8f45aaa2e7563d21",
+  "main_join": "eb529624a8bb927a6a0b89ae3880305e0e4e61ba",
+  "installed_toad": "066739eaf5a7ac5a9afe121eb3b3b2286c2020dc",
+  "product_build_head": "b6b58956f0c44ed83e70d5bfe6b97e36d0d72369",
+  "production_delta": {
+    "files": 4,
+    "deleted": 24,
+    "added": 35
+  },
+  "source_equality_to_installed": {
+    "whole_files": {
+      "src/toad/widgets/history_anchor.py": true,
+      "src/toad/transcript_filter.py": true,
+      "src/toad/widgets/transcript_history.py": true
+    },
+    "conversation_members_ast_equal": {
+      "ConversationSessionBinding._initialize_session": true,
+      "Conversation.watch_visible_categories": true
+    },
+    "entire_union_equal": false,
+    "main_additions": "Normal main retains independently qualified menu/command and context families; Conversation changes outside these two members are inherited main. No recorder diff against main.",
+    "pins_only_resolution": "Keep main Core0e28, frozen changed Text49cb121; historical recorded Core605db620 remains below."
+  },
+  "qualified_runtime": {
+    "sources": [
+      {
+        "module": "agent_comms",
+        "head": "db620680bf6f52133157209b2a7b557eaef988a1",
+        "location": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/agent_comms",
+        "files": 342,
+        "python_files": 311,
+        "byte_equal": true,
+        "direct_url": {
+          "url": "file:///home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/registry605-receiving-20261003/core605-wheel/agent_comms-0.1.0-py3-none-any.whl",
+          "archive_info": {}
+        },
+        "wheel": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/registry605-receiving-20261003/core605-wheel/agent_comms-0.1.0-py3-none-any.whl",
+        "wheel_sha256": "2b2e46758fc0f7244c71cc802009433879cde0c67ef02fc264fce9218550ffdb",
+        "additional_installed_files": []
+      },
+      {
+        "module": "toad",
+        "head": "066739eaf5a7ac5a9afe121eb3b3b2286c2020dc",
+        "location": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad",
+        "files": 319,
+        "python_files": 288,
+        "byte_equal": true,
+        "direct_url": {
+          "url": "file:///home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/reader415-mount-filewheel-20261003/batrachian_toad-0.6.20-py3-none-any.whl",
+          "archive_info": {}
+        },
+        "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/reader415-mount-filewheel-20261003/batrachian_toad-0.6.20-py3-none-any.whl",
+        "wheel_sha256": "0c7c695796ce0d01b14043506040a705a0f622215c673cf508c88603009ec3fb",
+        "additional_installed_files": []
+      },
+      {
+        "module": "textual",
+        "head": "cb12189d515ab9724551e5123fbe2088aed64893",
+        "location": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual",
+        "files": 266,
+        "python_files": 249,
+        "byte_equal": true,
+        "direct_url": {
+          "url": "file:///home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text49-filewheel-cb12189d-20261003/textual-8.2.8-py3-none-any.whl",
+          "archive_info": {}
+        },
+        "wheel": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text49-filewheel-cb12189d-20261003/textual-8.2.8-py3-none-any.whl",
+        "wheel_sha256": "b10f3877a32f201f915cfcc36843b5549a9a1b4e9da890b8badbc48cd254b4f1",
+        "additional_installed_files": []
+      }
+    ],
+    "normal_packages": 69,
+    "native_manifest": "89b56aea0bb128c4bf3e2c979de8a5afa79ac88b1f51a74c49cc1cab46da60d2",
+    "native_tree": "4b7f66f396a342e523d631c753686789b61313c34c30d894ddf24b5a861caa26",
+    "sdk": "0.12.1",
+    "source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/reader415-native49-stage-20261003/source-proof.json",
+    "public_install_changed": false,
+    "no_new_environment_or_native_build": true
+  },
+  "receiving_pins": {
+    "core": "0e28f21cd41e6af8391b2940bf6ae51cdab6b5e3",
+    "textual": "cb12189d515ab9724551e5123fbe2088aed64893"
+  },
+  "actual_app_checks": "INSTALLED-CHECK.json; both final original App cases pass; original failures preserved",
+  "raw_capture": "/home/ts/.cache/agent-scratch/reader415-native49-public-20261003-01/capture",
+  "duration_seconds": 140.72639024304226,
+  "raw_completed": true,
+  "capture_completed": true,
+  "runtime_unchanged": true,
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3410935,
+      "start_time": 54737389
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3410935,
+      "start_time": 54737389
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption"
+  },
+  "terminal_custody": {
+    "pid": 3676727,
+    "start_ticks": 54956905,
+    "custody": "verified launch identity transferred to installed ObservedProcess"
+  },
+  "encoder_returncode": 255,
+  "encoder_scope": "Original encoder255 during graceful shutdown; completed movie and actual UI source/state checks retained. Transferred UI/st custody is not an inferred application exit0.",
+  "warm_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_destination_covered": true,
+    "held_page_down_destination_covered": true,
+    "reverse_page_up_destination_covered": true
+  },
+  "input_checks": {
+    "input_remains_focused": true,
+    "original_editor_window_and_mode": true,
+    "draft_and_caret_preserved": true,
+    "input_pageup_moves_history": true,
+    "input_pagedown_moves_history": true,
+    "input_pageup_reaches_original_window": true,
+    "input_pagedown_reaches_original_window": true
+  },
+  "retained_ready_bodies": 37,
+  "writer": {
+    "flushed": 1368,
+    "unmatched": 0,
+    "enqueue_to_writer": {
+      "count": 1368,
+      "median_ms": 2.33,
+      "p95_ms": 11.75,
+      "p99_ms": 17.47,
+      "max_ms": 272.19
+    },
+    "phases": [
+      {
+        "action": "input-held-up",
+        "intervals": {
+          "count": 99,
+          "median_ms": 12.5,
+          "p95_ms": 30.33,
+          "p99_ms": 123.2,
+          "max_ms": 192.11
+        },
+        "writer_receipts": 100
+      },
+      {
+        "action": "input-held-down",
+        "intervals": {
+          "count": 146,
+          "median_ms": 11.04,
+          "p95_ms": 23.92,
+          "p99_ms": 33.71,
+          "max_ms": 101.43
+        },
+        "writer_receipts": 147
+      },
+      {
+        "action": "up",
+        "intervals": {
+          "count": 147,
+          "median_ms": 11.15,
+          "p95_ms": 22.58,
+          "p99_ms": 32.11,
+          "max_ms": 121.3
+        },
+        "writer_receipts": 148
+      },
+      {
+        "action": "down",
+        "intervals": {
+          "count": 149,
+          "median_ms": 10.23,
+          "p95_ms": 23.39,
+          "p99_ms": 33.24,
+          "max_ms": 54.54
+        },
+        "writer_receipts": 150
+      },
+      {
+        "action": "reverse",
+        "intervals": {
+          "count": 150,
+          "median_ms": 10.28,
+          "p95_ms": 20.73,
+          "p99_ms": 34.67,
+          "max_ms": 131.69
+        },
+        "writer_receipts": 151
+      },
+      {
+        "action": "end",
+        "intervals": {
+          "count": 8,
+          "median_ms": 429.48,
+          "p95_ms": 500.89,
+          "p99_ms": 500.89,
+          "max_ms": 502.96
+        },
+        "writer_receipts": 9
+      }
+    ],
+    "scope": "Native writer completion; not changed pixels or terminal presentation FPS. Zero stationary motion is legitimate, not a stall classification."
+  },
+  "marker_cpu": [
+    {
+      "label": "input-held-up",
+      "start": 21.396316239028238,
+      "end": 25.53916767903138,
+      "ui_cpu_percent": 71.68975385701371
+    },
+    {
+      "label": "input-held-up-done",
+      "start": 25.53916767903138,
+      "end": 44.44273752509616,
+      "ui_cpu_percent": 18.356321204179125
+    },
+    {
+      "label": "input-held-down",
+      "start": 46.20024880010169,
+      "end": 50.11109962302726,
+      "ui_cpu_percent": 69.80578200520021
+    },
+    {
+      "label": "reverse",
+      "start": 77.97302115010098,
+      "end": 82.00029798608739,
+      "ui_cpu_percent": 69.77419518049439
+    },
+    {
+      "label": "idle",
+      "start": 91.05724492506124,
+      "end": 112.43507067102473,
+      "ui_cpu_percent": 19.646525563026618
+    }
+  ],
+  "profile": {
+    "samples": 1352,
+    "errors": 0,
+    "quality": "no reported sampling errors",
+    "alignment_uncertainty_seconds": 0.07642768500139938,
+    "limits": [
+      "Scheduler delays and sampling errors can increase clock uncertainty",
+      "Consistent sampling briefly pauses Python; compare an unprofiled journey for observer overhead",
+      "GIL-owner samples cover Python execution; released-GIL/native work is omitted, so corroborate with kernel CPU counters",
+      "Chrome transitions omit unchanged stack samples; counts below are observed transition groups, not samples, calls, durations or CPU time",
+      "Threads remain separate; recursive frame identities count once per observed stack",
+      "Kernel counter deltas give per-process CPU time at action boundaries",
+      "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
+      "No automatic inference that a UI frame passed or a function is redundant"
+    ]
+  },
+  "motion_review": "MOTION-REVIEW.json",
+  "parent_review": "parent-motion-review.json",
+  "original_keeper_sha256": {
+    "receipt.json": "64088ae216fc6cdcd1bbf306d3cf8c7d84b45600e650587168b3c9bdc71df5aa",
+    "terminal.mp4": "3eea7575acec5fbde6a2b561dd961bd14a6bc1f1124765f826d00e757aea9d92",
+    "events.jsonl": "fff82ffc6909a38b419215772f1d8f525596db8a6d962cefeedc10243f236153",
+    "cpu-profile.json": "d4e460151e711e5acd2bfe455570a361e8bb933eb0ade806a2075652771e08d6",
+    "profile-review.json": "68aca63b3c724d35b59a9e702c5a5012121993e0a63caed8cd63eec0371dda4a",
+    "frame-delivery.json": "59cf4dc292c0ed98296e7d79983695710515df53ef4b4968b31757b42d083ebc",
+    "warm-scroll-review.json": "8d72e8898955ad3367172cb5ba0b165cca8e612c239f6d3dcac71f856107debb",
+    "input-paging-review.json": "5a8ca1394acee269c02cb4555a7921baf8ccc77c0a64395d74aaf0af63e2addd",
+    "live-14-7-frames.png": "c456fa6a8785264b4e1f77f5966f8192899fc161bdfa2fbc6ef9c31d5feef18f",
+    "live-21-12-frames.png": "a2bbd95ac877d0f1d04ba9dc3fd8c17c4f39d287c4a9009cd63e0bc9d2171293"
+  },
+  "limits": [
+    "Writer flush is not changed-pixel/terminal presentation FPS. Recorded60fps may repeat frames.",
+    "Marker CPU includes export tails; workloads are not matched for causal comparison. No overall gain claim.",
+    "Motion remains discrete; worst Up192.11ms, Down101.43ms, reverse131.69ms. Configurable144Hz6.944ms target unmet.",
+    "No fully bracketed personal DURING moving review this run; parent Down review AFTER. No unchanged repeat to repair optics.",
+    "Raw receipt assessment unreviewed remains unmodified; separate original motion assessment above.",
+    "Full CPU/raster/firstpaint/warmcold/runway/velocity/growingEnd/void/IRC/busy/sidebar/animation/focus/TC1T9T4 scope active."
+  ]
+}
