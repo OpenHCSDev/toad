@@ -35,3 +35,7 @@ Original01-09 negatives and source/UNKNOWN custody remain preserved. Same sealed
 Physical10 whole615/419/Text50/native086 handback is complete:927 assets/all69 versions and original activation restored, truthful normal filewheel origin, children absent/cleanup[]errors0. No current borrower claim, package write, run or new loan assumed; frozen485421 remains untouched.
 
 Sch owns channel deletion policy/forms and navigation/view closure in #621/#424. F3 touches no deletion semantics or SessionNavigation/Workspace methods. Its only related behavior is inspection retirement on actual explorer unmount.
+
+## Shared F4 consumer adoption
+
+Exact Mendel425 afab8fe8 was cherry-picked as27a5fc9d4: ManifestNode.label/detail only,2+/2-. They use the existing SegmentManifest.public_description and ContextSegment.public_title. The rest of the complete module AST is unchanged; compilation passed. F4-ADOPTED.md records exact source/API operands. This requires the paired Core622 typed kind relation; old Core615 metadata has not been changed or claimed runnable with this source. Mendel owns F4 installed decoded-label acceptance, independent of417 export/distinct-child acceptance. No package/holder/run change.
