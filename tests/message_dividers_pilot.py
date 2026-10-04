@@ -156,7 +156,10 @@ async def row_publication() -> None:
                 assert isinstance(history.state, ParkedSourceTranscript)
                 assert tuple(history.rows) == committed and not held.release.is_set()
                 assert not history.window.history_mutating() and app._batch_count == 0
-                assert not any(worker.node is history for worker in history.workers)
+                assert all(worker.is_finished for worker in history.workers
+                           if worker.node is history), [
+                               (worker.group, worker.state) for worker in history.workers
+                               if worker.node is history]
                 checks.append("source park joins cancelled row worker while native retirement keeps committed rows")
             finally:
                 held.release.set()
