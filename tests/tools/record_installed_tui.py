@@ -883,6 +883,30 @@ class InputWarmJourney(WarmScrollJourney):
         InputPagingAcceptanceJourney.validate_review(review["input"])
 
 
+class SidebarWarmJourney(InputWarmJourney):
+    """Exercise native sidebar drag and wheel input in the saved-history journey."""
+
+    motion_phases = (*InputWarmJourney.motion_phases, "sidebar-scroll-down", "sidebar-scroll-up")
+
+    @classmethod
+    def opening_commands(cls, args):
+        marker = marker_command()
+        settle = f"sleep {args.navigation_settle_seconds:g}"
+        handle = dict(target="widget", name="SidebarResizeHandle#sidebar-resize-handle",
+                      within="ChannelsSidebar#channels-sidebar")
+        viewport = dict(target="widget", name="SidebarViewport#sidebar-panels",
+                        within="ChannelsSidebar#channels-sidebar")
+        return (*super().opening_commands(args), marker + "sidebar-before",
+                native_click_command("phase-sidebar-before-state.pickle", **handle, drag_columns=8),
+                settle, marker + "sidebar-wide",
+                native_click_command("phase-sidebar-wide-state.pickle", **handle, drag_columns=-8),
+                settle, marker + "sidebar-restored", marker + "sidebar-scroll-down",
+                native_click_command("phase-sidebar-restored-state.pickle", **viewport, wheel=6),
+                settle, marker + "sidebar-down-done", marker + "sidebar-scroll-up",
+                native_click_command("phase-sidebar-down-done-state.pickle", **viewport, wheel=-6),
+                settle, marker + "sidebar-up-done")
+
+
 class ForkCompactionJourney(InputWarmJourney):
     """One fresh configured input on the authorized fork, then original warm paging."""
 
@@ -2035,7 +2059,8 @@ def marker_command():
     return f"exec --sync {shlex.quote(sys.executable)} {shlex.quote(str(Path(__file__).resolve()))} --mark "
 
 
-def native_click_command(state, *, target="history", name=None, original_state=None, focused=False):
+def native_click_command(state, *, target="history", name=None, original_state=None, focused=False,
+                         within=None, drag_columns=None, wheel=None):
     helper = Path(__file__).resolve().parents[2] / "tools/performance/click_history.py"
     argv = [sys.executable, str(helper), "--target", target, "--state", state]
     if name is not None:
@@ -2044,6 +2069,9 @@ def native_click_command(state, *, target="history", name=None, original_state=N
         argv.extend(("--original-state", original_state))
     if focused:
         argv.append("--focused")
+    for option, value in (("--within", within), ("--drag-columns", drag_columns), ("--wheel", wheel)):
+        if value is not None:
+            argv.extend((option, str(value)))
     return "exec --sync " + shlex.join(argv)
 
 

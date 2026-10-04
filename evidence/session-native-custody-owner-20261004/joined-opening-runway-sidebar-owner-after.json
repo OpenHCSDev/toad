@@ -1,0 +1,1307 @@
+{
+  "revision": "HEAD",
+  "roots": [
+    {
+      "root": "src/toad",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "parsed": 393,
+      "omissions": []
+    },
+    {
+      "root": "tools",
+      "parsed": 41,
+      "omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "path": "src/toad/app.py",
+      "line": 577,
+      "syntax": "Attribute",
+      "source": "if viewport is not None and not viewport.visible_bodies_ready:"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 200,
+      "syntax": "AsyncFunctionDef",
+      "source": "async def _load_content(self) -> None:"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 224,
+      "syntax": "AsyncFunctionDef",
+      "source": "async def wait_content_ready(self) -> None:"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 81,
+      "syntax": "Attribute",
+      "source": "self._content_loaded = False"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 82,
+      "syntax": "Attribute",
+      "source": "self._content_loading = False"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 203,
+      "syntax": "Attribute",
+      "source": "self._content_loading = True"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 204,
+      "syntax": "Attribute",
+      "source": "self._content_loaded = True"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 173,
+      "syntax": "Attribute",
+      "source": "if not self._content_loaded:"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 185,
+      "syntax": "Attribute",
+      "source": "self.app.workspace_chrome.layout_sidebars(self.screen)"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 201,
+      "syntax": "Attribute",
+      "source": "if self._content_loading or not self.is_attached:"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 180,
+      "syntax": "Attribute",
+      "source": "if not self._content_loaded and not self._hydrate_queued:"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 182,
+      "syntax": "Attribute",
+      "source": "self.call_later(self._load_content)"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 137,
+      "syntax": "Attribute",
+      "source": "if not self._content_loaded:"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 181,
+      "syntax": "AsyncFunctionDef",
+      "source": "async def prepare_presentation(self) -> None:"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 253,
+      "syntax": "AsyncFunctionDef",
+      "source": "async def wait_content_ready(self) -> None:"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 186,
+      "syntax": "Attribute",
+      "source": "await super().prepare_presentation()"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 188,
+      "syntax": "Attribute",
+      "source": "await sidebar.prepare_presentation()"
+    },
+    {
+      "path": "src/toad/screens/session_view.py",
+      "line": 63,
+      "syntax": "AsyncFunctionDef",
+      "source": "async def prepare_presentation(self) -> None:"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 131,
+      "syntax": "Attribute",
+      "source": "self.app.workspace_chrome.layout_sidebars(self)"
+    },
+    {
+      "path": "src/toad/session_admission.py",
+      "line": 144,
+      "syntax": "Attribute",
+      "source": "await sessions.app.workspace_sessions.require(self.mode).wait_content_ready()"
+    },
+    {
+      "path": "src/toad/thread_navigation.py",
+      "line": 103,
+      "syntax": "Attribute",
+      "source": "await view.wait_content_ready()"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 214,
+      "syntax": "Attribute",
+      "source": "return self.window.document_viewport.lookahead.ahead_rows(rows)"
+    },
+    {
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 240,
+      "syntax": "FunctionDef",
+      "source": "def ahead_rows(self, viewport_rows: int) -> int:"
+    },
+    {
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 249,
+      "syntax": "FunctionDef",
+      "source": "def preparation_count(self, viewport_rows: int) -> int:"
+    },
+    {
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 260,
+      "syntax": "Attribute",
+      "source": "return min(budget.item_limit(0), self.preparation_count(viewport_rows))"
+    },
+    {
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 254,
+      "syntax": "Attribute",
+      "source": "ceil(self.ahead_rows(viewport_rows) / self.viewport.visible_body_rows),"
+    },
+    {
+      "path": "src/toad/widgets/retiring_sidebar.py",
+      "line": 25,
+      "syntax": "AsyncFunctionDef",
+      "source": "async def prepare_presentation(self) -> None:"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 730,
+      "syntax": "AsyncFunctionDef",
+      "source": "async def wait_content_ready(self) -> None:"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 761,
+      "syntax": "FunctionDef",
+      "source": "def _apply_layout(self, resolved) -> bool:"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 685,
+      "syntax": "Attribute",
+      "source": "app.workspace_chrome.layout_sidebars(self.screen)"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 862,
+      "syntax": "Attribute",
+      "source": "changed |= cast(\"ToadApp\", self.app).workspace_chrome.layout_sidebars(self.screen)"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 832,
+      "syntax": "Attribute",
+      "source": "cast(\"ToadApp\", self.app).workspace_chrome.layout_sidebars(self.screen)"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 905,
+      "syntax": "Attribute",
+      "source": "cast(\"ToadApp\", self.app).workspace_chrome.layout_sidebars(self.screen)"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 802,
+      "syntax": "Attribute",
+      "source": "self.call_after_refresh(app.workspace_chrome.layout_sidebars, self.screen)"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 966,
+      "syntax": "Attribute",
+      "source": "cast(\"ToadApp\", self.app).workspace_chrome.layout_sidebars(self.screen)"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 708,
+      "syntax": "Attribute",
+      "source": "count = lookahead.preparation_count(rows)"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1011,
+      "syntax": "FunctionDef",
+      "source": "def visible_bodies_ready(self) -> bool:"
+    },
+    {
+      "path": "src/toad/workspace_chrome.py",
+      "line": 48,
+      "syntax": "FunctionDef",
+      "source": "def layout_sidebars(self, screen) -> bool:"
+    },
+    {
+      "path": "src/toad/workspace_chrome.py",
+      "line": 23,
+      "syntax": "Attribute",
+      "source": "self.app.workspace_chrome.layout_sidebars(self.screen)"
+    },
+    {
+      "path": "src/toad/workspace_chrome.py",
+      "line": 60,
+      "syntax": "Attribute",
+      "source": "changed |= bar._apply_layout(resolved)"
+    },
+    {
+      "path": "src/toad/workspace_sessions.py",
+      "line": 145,
+      "syntax": "Attribute",
+      "source": "await destination.prepare_presentation()"
+    },
+    {
+      "path": "tests/activity_spinners_pilot.py",
+      "line": 108,
+      "syntax": "Attribute",
+      "source": "await right.wait_content_ready()"
+    },
+    {
+      "path": "tests/agent_startup_failure_installed_pilot.py",
+      "line": 38,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/blank_presentation_pilot.py",
+      "line": 374,
+      "syntax": "Attribute",
+      "source": "await sidebar.wait_content_ready()"
+    },
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 352,
+      "syntax": "Attribute",
+      "source": "await irc_app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 478,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 225,
+      "syntax": "Attribute",
+      "source": "await irc_app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 445,
+      "syntax": "Attribute",
+      "source": "await receiver_app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 304,
+      "syntax": "Attribute",
+      "source": "await receiver_app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/channel_disclosure_publication_pilot.py",
+      "line": 40,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/channel_disclosure_publication_pilot.py",
+      "line": 241,
+      "syntax": "Attribute",
+      "source": "await right.wait_content_ready()"
+    },
+    {
+      "path": "tests/checkpoint_source_pivot_pilot.py",
+      "line": 43,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/cold_context_installed_physical.py",
+      "line": 28,
+      "syntax": "Attribute",
+      "source": "class ColdContextJourney(recorder.PhysicalJourney):"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 266,
+      "syntax": "Attribute",
+      "source": "await thread_sidebar.wait_content_ready()"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 417,
+      "syntax": "Attribute",
+      "source": "await local_sidebar.wait_content_ready()"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 116,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 385,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/context_usage_pilot.py",
+      "line": 27,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/core_events_native_installed_pilot.py",
+      "line": 71,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/cursor_extent_pilot.py",
+      "line": 37,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/declared_target_actions_installed_pilot.py",
+      "line": 89,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/editor_key_burst_pilot.py",
+      "line": 29,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/external_cli_native_installed_pilot.py",
+      "line": 156,
+      "syntax": "Attribute",
+      "source": "await channel_screen.wait_content_ready()"
+    },
+    {
+      "path": "tests/external_cli_native_installed_pilot.py",
+      "line": 184,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/external_cli_native_installed_pilot.py",
+      "line": 195,
+      "syntax": "Attribute",
+      "source": "await dm_screen.wait_content_ready()"
+    },
+    {
+      "path": "tests/first_fork_native_installed_pilot.py",
+      "line": 36,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/first_fork_native_installed_pilot.py",
+      "line": 250,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/guards/test_goal_interaction.py",
+      "line": 39,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 37,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/history_frame_publication_pilot.py",
+      "line": 129,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/history_frame_publication_pilot.py",
+      "line": 163,
+      "syntax": "Attribute",
+      "source": "while not view.window.document_viewport.visible_bodies_ready:"
+    },
+    {
+      "path": "tests/history_frame_publication_pilot.py",
+      "line": 145,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/history_page_batch_mount_pilot.py",
+      "line": 47,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/history_reflow_travel_pilot.py",
+      "line": 28,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/history_reflow_travel_pilot.py",
+      "line": 49,
+      "syntax": "Attribute",
+      "source": "while viewport._running or not viewport.visible_bodies_ready:"
+    },
+    {
+      "path": "tests/history_stationary_feedback_pilot.py",
+      "line": 49,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 58,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "line": 63,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "line": 484,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "line": 64,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "line": 64,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/message_categories_pilot.py",
+      "line": 68,
+      "syntax": "Attribute",
+      "source": "await sidebar.wait_content_ready()"
+    },
+    {
+      "path": "tests/native_goal_read_first_paint_pilot.py",
+      "line": 19,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 190,
+      "syntax": "Attribute",
+      "source": "await sources[0].wait_content_ready()"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 241,
+      "syntax": "Attribute",
+      "source": "view.window.document_viewport.visible_bodies_ready,"
+    },
+    {
+      "path": "tests/native_permission_ui.py",
+      "line": 136,
+      "syntax": "Attribute",
+      "source": "await app.screen.wait_content_ready()"
+    },
+    {
+      "path": "tests/native_terminal_retention_pilot.py",
+      "line": 310,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/pending_thread_open_pilot.py",
+      "line": 93,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/pending_thread_open_pilot.py",
+      "line": 77,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/permission_pending_mount_pilot.py",
+      "line": 24,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 103,
+      "syntax": "Attribute",
+      "source": "await sidebar.prepare_presentation()"
+    },
+    {
+      "path": "tests/prepared_height_contract_pilot.py",
+      "line": 32,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/prepared_height_contract_pilot.py",
+      "line": 42,
+      "syntax": "Attribute",
+      "source": "while not view.window.document_viewport.visible_bodies_ready or not history.query(PreparedCodeLabel):"
+    },
+    {
+      "path": "tests/provider_login_installed_physical.py",
+      "line": 30,
+      "syntax": "Attribute",
+      "source": "class ProviderLoginJourney(recorder.PhysicalJourney):"
+    },
+    {
+      "path": "tests/provider_login_installed_physical.py",
+      "line": 37,
+      "syntax": "Attribute",
+      "source": "click = recorder.native_click_command"
+    },
+    {
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 308,
+      "syntax": "Attribute",
+      "source": "await channel.wait_content_ready()"
+    },
+    {
+      "path": "tests/recovery_view_boundaries_pilot.py",
+      "line": 106,
+      "syntax": "Attribute",
+      "source": "await right.wait_content_ready()"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 56,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/restored_inbound_continuous_installed_pilot.py",
+      "line": 163,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 40,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 59,
+      "syntax": "Attribute",
+      "source": "or not viewport.visible_bodies_ready):"
+    },
+    {
+      "path": "tests/retained_history_projection_pilot.py",
+      "line": 43,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/retained_input_origin_observer.py",
+      "line": 184,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/retained_page_end_pilot.py",
+      "line": 20,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/retained_page_scope_pilot.py",
+      "line": 60,
+      "syntax": "Attribute",
+      "source": "await first.wait_content_ready()"
+    },
+    {
+      "path": "tests/right_comms_integration_pilot.py",
+      "line": 31,
+      "syntax": "Attribute",
+      "source": "await sidebar.wait_content_ready()"
+    },
+    {
+      "path": "tests/right_comms_integration_pilot.py",
+      "line": 171,
+      "syntax": "Attribute",
+      "source": "await app.screen.wait_content_ready()"
+    },
+    {
+      "path": "tests/runtime_fixture.py",
+      "line": 113,
+      "syntax": "Attribute",
+      "source": "await sidebar.wait_content_ready()"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 271,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 505,
+      "syntax": "Attribute",
+      "source": "assert lookahead.ahead_rows(window.size.height) == 0"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 443,
+      "syntax": "Attribute",
+      "source": "(y, lookahead.travel_rows, lookahead.ahead_rows(window.size.height))), init=False)"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 482,
+      "syntax": "Attribute",
+      "source": "await until(pilot, lambda: lookahead.ahead_rows(window.size.height) == 0)"
+    },
+    {
+      "path": "tests/sidebar_edge_anchor_installed_pilot.py",
+      "line": 67,
+      "syntax": "Attribute",
+      "source": "await right.wait_content_ready()"
+    },
+    {
+      "path": "tests/sidebar_metadata_reflow_pilot.py",
+      "line": 42,
+      "syntax": "Attribute",
+      "source": "while not viewport.visible_bodies_ready:"
+    },
+    {
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 34,
+      "syntax": "Attribute",
+      "source": "for method in (MainScreen.prepare_presentation, MainScreen.retire_presentation):"
+    },
+    {
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 110,
+      "syntax": "Attribute",
+      "source": "await bar.wait_content_ready()"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 107,
+      "syntax": "Attribute",
+      "source": "await sidebar.prepare_presentation()"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 42,
+      "syntax": "Attribute",
+      "source": "await sidebar.wait_content_ready()"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 109,
+      "syntax": "Attribute",
+      "source": "await sidebar.wait_content_ready()"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 159,
+      "syntax": "Attribute",
+      "source": "await sidebar.wait_content_ready()"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 167,
+      "syntax": "Attribute",
+      "source": "await sidebar.prepare_presentation()"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 168,
+      "syntax": "Attribute",
+      "source": "await sidebar.wait_content_ready()"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 189,
+      "syntax": "Attribute",
+      "source": "await sidebar.wait_content_ready()"
+    },
+    {
+      "path": "tests/snapshot_cancellation_custody_pilot.py",
+      "line": 212,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/source_admission_trace_pilot.py",
+      "line": 19,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/tools/editor_focus_journey.py",
+      "line": 41,
+      "syntax": "Attribute",
+      "source": "class EditorFocusJourney(recorder.PhysicalJourney):"
+    },
+    {
+      "path": "tests/tools/editor_focus_journey.py",
+      "line": 47,
+      "syntax": "Attribute",
+      "source": "history_click = recorder.native_click_command(\"phase-edited-state.pickle\")"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 431,
+      "syntax": "ClassDef",
+      "source": "class PhysicalJourney(DeclaredFamily, affix=\"Journey\"):"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2062,
+      "syntax": "FunctionDef",
+      "source": "def native_click_command(state, *, target=\"history\", name=None, original_state=None, focused=False,"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 538,
+      "syntax": "Name",
+      "source": "class ObserveJourney(PhysicalJourney):"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 546,
+      "syntax": "Name",
+      "source": "class ArchiveJourney(PhysicalJourney):"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 589,
+      "syntax": "Name",
+      "source": "class ScrollJourney(PhysicalJourney):"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 975,
+      "syntax": "Name",
+      "source": "class SavedTabCloseJourney(PhysicalJourney):"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 630,
+      "syntax": "Name",
+      "source": "return native_click_command(\"phase-switch-b-state.pickle\", target=\"thread\", name=args.peer_thread)"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 720,
+      "syntax": "Name",
+      "source": "return native_click_command(\"phase-switch-b-state.pickle\", target=\"channel\", name=args.peer_channel)"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 747,
+      "syntax": "Name",
+      "source": "return native_click_command(\"phase-switch-b-state.pickle\", target=\"peer_tab\","
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 922,
+      "syntax": "Name",
+      "source": "click = native_click_command(\"phase-fork-submit-ready-state.pickle\", target=\"editor\")"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1458,
+      "syntax": "Name",
+      "source": "journey = PhysicalJourney.decode(receipt[\"physical_journey\"])"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 559,
+      "syntax": "Name",
+      "source": "native_click_command(state(\"archive-feed\"), target=\"widget\", name=\"Button#historical-sessions\"),"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 561,
+      "syntax": "Name",
+      "source": "native_click_command(state(\"archive-modal\"), target=\"widget\", name=\"Select#saved-identity\"),"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 565,
+      "syntax": "Name",
+      "source": "native_click_command(state(\"archive-native\"), target=\"widget\", name=\"HistoryWindow#saved-window\"),"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 693,
+      "syntax": "Name",
+      "source": "return (native_click_command(\"phase-draft-state.pickle\"), \"key Prior\","
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 698,
+      "syntax": "Name",
+      "source": "return (native_click_command(\"phase-undo-state.pickle\"), \"key End\","
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 729,
+      "syntax": "Name",
+      "source": "native_click_command(\"phase-lifetime-end-state.pickle\", target=\"peer_tab\","
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 732,
+      "syntax": "Name",
+      "source": "native_click_command(\"phase-channel-return-state.pickle\", target=\"original_tab\","
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 869,
+      "syntax": "Name",
+      "source": "native_click_command(\"phase-undo-state.pickle\", target=\"channel\", name=args.peer_channel),"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 871,
+      "syntax": "Name",
+      "source": "native_click_command(\"phase-channel-open-state.pickle\", target=\"original_tab\","
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 900,
+      "syntax": "Name",
+      "source": "native_click_command(\"phase-sidebar-before-state.pickle\", **handle, drag_columns=8),"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 902,
+      "syntax": "Name",
+      "source": "native_click_command(\"phase-sidebar-wide-state.pickle\", **handle, drag_columns=-8),"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 904,
+      "syntax": "Name",
+      "source": "native_click_command(\"phase-sidebar-restored-state.pickle\", **viewport, wheel=6),"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 906,
+      "syntax": "Name",
+      "source": "native_click_command(\"phase-sidebar-down-done-state.pickle\", **viewport, wheel=-6),"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1544,
+      "syntax": "Name",
+      "source": "journey = PhysicalJourney.decode(capture[\"physical_journey\"])"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2087,
+      "syntax": "Name",
+      "source": "return \"\\n\".join((native_click_command(state), marker_command() + \"focused\", \"sleep 1\","
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2139,
+      "syntax": "Name",
+      "source": "parser.add_argument(\"--journey\", type=PhysicalJourney.decode, default=ScrollJourney,"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 650,
+      "syntax": "Name",
+      "source": "marker + \"warm-start\", native_click_command(\"phase-warm-start-state.pickle\", target=\"editor\"),"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 655,
+      "syntax": "Name",
+      "source": "native_click_command(\"phase-return-a-state.pickle\", target=\"original_tab\","
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 657,
+      "syntax": "Name",
+      "source": "native_click_command(\"phase-a-return-state.pickle\", target=\"editor\"), \"key ctrl+z\", settle,"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 776,
+      "syntax": "Name",
+      "source": "native_click_command(\"phase-before-history-focus-state.pickle\"),"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 943,
+      "syntax": "Name",
+      "source": "native_click_command(\"phase-stationary-loaded-state.pickle\"),"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 946,
+      "syntax": "Name",
+      "source": "native_click_command(\"phase-stationary-done-state.pickle\", target=\"editor\"),"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2140,
+      "syntax": "Name",
+      "source": "help=\"Canonical physical journey: \" + \", \".join(PhysicalJourney.names()))"
+    },
+    {
+      "path": "tests/tools/selector_warm_recording.py",
+      "line": 19,
+      "syntax": "Name",
+      "source": "native_click_command('phase-selector-ready-state.pickle', target='widget', name='AgentInfo'),"
+    },
+    {
+      "path": "tests/tools/sqlite_busy_recording.py",
+      "line": 24,
+      "syntax": "Name",
+      "source": "class SqliteBusyJourney(PhysicalJourney):"
+    },
+    {
+      "path": "tests/tools/sqlite_busy_recording.py",
+      "line": 33,
+      "syntax": "Name",
+      "source": "native_click_command('phase-native-ready-state.pickle'),"
+    },
+    {
+      "path": "tests/transcript_filter_installed_journey.py",
+      "line": 59,
+      "syntax": "Attribute",
+      "source": "await sidebar.wait_content_ready()"
+    },
+    {
+      "path": "tests/transcript_source_lifetime_pilot.py",
+      "line": 42,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/viewport_body_lifetime_pilot.py",
+      "line": 21,
+      "syntax": "Attribute",
+      "source": "if not manager._running and manager.visible_bodies_ready:"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 175,
+      "syntax": "Attribute",
+      "source": "assert viewport.visible_bodies_ready"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 377,
+      "syntax": "Attribute",
+      "source": "assert viewport.visible_bodies_ready"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 39,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 322,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 387,
+      "syntax": "Attribute",
+      "source": "assert not viewport.visible_bodies_ready"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 396,
+      "syntax": "Attribute",
+      "source": "assert not viewport.visible_bodies_ready"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 408,
+      "syntax": "Attribute",
+      "source": "assert child.body_ready and viewport.visible_bodies_ready"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 414,
+      "syntax": "Attribute",
+      "source": "assert viewport.visible_bodies_ready"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 446,
+      "syntax": "Attribute",
+      "source": "assert fragment.body_ready and viewport.visible_bodies_ready"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 50,
+      "syntax": "Attribute",
+      "source": "while viewport._pending or viewport._running or not viewport.visible_bodies_ready:"
+    },
+    {
+      "path": "tests/viewport_bounded_runway_churn_pilot.py",
+      "line": 80,
+      "syntax": "Attribute",
+      "source": "assert viewport.visible_bodies_ready"
+    },
+    {
+      "path": "tests/viewport_bounded_runway_churn_pilot.py",
+      "line": 57,
+      "syntax": "Attribute",
+      "source": "'visible_ready': viewport.visible_bodies_ready,"
+    },
+    {
+      "path": "tests/viewport_bounded_runway_churn_pilot.py",
+      "line": 28,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/viewport_demand_custody_pilot.py",
+      "line": 33,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 33,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 84,
+      "syntax": "Attribute",
+      "source": "while manager._running or not manager.visible_bodies_ready:"
+    },
+    {
+      "path": "tests/viewport_layout_reentry_pilot.py",
+      "line": 20,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/viewport_layout_reentry_pilot.py",
+      "line": 73,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/viewport_layout_reentry_pilot.py",
+      "line": 76,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/viewport_rapid_scroll_pilot.py",
+      "line": 32,
+      "syntax": "Attribute",
+      "source": "if not viewport._running and viewport.visible_bodies_ready:"
+    },
+    {
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "line": 40,
+      "syntax": "Attribute",
+      "source": "and window.document_viewport.visible_bodies_ready"
+    },
+    {
+      "path": "tests/viewport_runway_pilot.py",
+      "line": 26,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/viewport_runway_pilot.py",
+      "line": 85,
+      "syntax": "Attribute",
+      "source": "assert viewport.lookahead.ahead_rows(window.size.height) == window.size.height"
+    },
+    {
+      "path": "tests/viewport_runway_pilot.py",
+      "line": 37,
+      "syntax": "Attribute",
+      "source": "while viewport._running or viewport._pending or not viewport.visible_bodies_ready:"
+    },
+    {
+      "path": "tests/viewport_warm_trim_pilot.py",
+      "line": 35,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/welcome_source_return_pilot.py",
+      "line": 20,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/welcome_source_return_pilot.py",
+      "line": 43,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/worker_native_size_pilot.py",
+      "line": 53,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/workspace_native_paint_retention_pilot.py",
+      "line": 26,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tests/workspace_native_paint_retention_pilot.py",
+      "line": 46,
+      "syntax": "Attribute",
+      "source": "await app.selected_session.wait_content_ready()"
+    },
+    {
+      "path": "tools/performance/capture_state.py",
+      "line": 104,
+      "syntax": "Attribute",
+      "source": "and window.document_viewport.visible_bodies_ready"
+    },
+    {
+      "path": "tools/performance/capture_state.py",
+      "line": 429,
+      "syntax": "Attribute",
+      "source": "\"requested_rows\": manager.lookahead.ahead_rows(node.size.height),"
+    },
+    {
+      "path": "tools/performance/click_history.py",
+      "line": 95,
+      "syntax": "ClassDef",
+      "source": "class WidgetTarget(NativeFocusTarget):"
+    },
+    {
+      "path": "tools/performance/click_history.py",
+      "line": 24,
+      "syntax": "FunctionDef",
+      "source": "def locate(cls, snapshot, args): ..."
+    },
+    {
+      "path": "tools/performance/click_history.py",
+      "line": 33,
+      "syntax": "FunctionDef",
+      "source": "def locate(cls, snapshot, args):"
+    },
+    {
+      "path": "tools/performance/click_history.py",
+      "line": 41,
+      "syntax": "FunctionDef",
+      "source": "def locate(cls, snapshot, args):"
+    },
+    {
+      "path": "tools/performance/click_history.py",
+      "line": 51,
+      "syntax": "FunctionDef",
+      "source": "def locate(cls, snapshot, args):"
+    },
+    {
+      "path": "tools/performance/click_history.py",
+      "line": 59,
+      "syntax": "FunctionDef",
+      "source": "def locate(cls, snapshot, args):"
+    },
+    {
+      "path": "tools/performance/click_history.py",
+      "line": 69,
+      "syntax": "FunctionDef",
+      "source": "def locate(cls, snapshot, args):"
+    },
+    {
+      "path": "tools/performance/click_history.py",
+      "line": 83,
+      "syntax": "FunctionDef",
+      "source": "def locate(cls, snapshot, args):"
+    },
+    {
+      "path": "tools/performance/click_history.py",
+      "line": 99,
+      "syntax": "FunctionDef",
+      "source": "def locate(cls, snapshot, args):"
+    },
+    {
+      "path": "tools/performance/click_history.py",
+      "line": 125,
+      "syntax": "FunctionDef",
+      "source": "def locate(cls, snapshot, args):"
+    },
+    {
+      "path": "tools/performance/click_history.py",
+      "line": 133,
+      "syntax": "FunctionDef",
+      "source": "def locate(cls, snapshot, args):"
+    },
+    {
+      "path": "tools/performance/click_history.py",
+      "line": 174,
+      "syntax": "FunctionDef",
+      "source": "def pixel_at(self, cell: Offset, window: XWindowGeometry) -> Offset:"
+    },
+    {
+      "path": "tools/performance/click_history.py",
+      "line": 211,
+      "syntax": "Attribute",
+      "source": "resource = args.target.locate(snapshot, args)"
+    },
+    {
+      "path": "tools/performance/click_history.py",
+      "line": 220,
+      "syntax": "Attribute",
+      "source": "pixel = grid.pixel_at(cell, client)"
+    },
+    {
+      "path": "tools/performance/click_history.py",
+      "line": 226,
+      "syntax": "Attribute",
+      "source": "end = grid.pixel_at(destination, client)"
+    }
+  ],
+  "limits": "Static named declarations/writes/decisions/consumers. Dynamic overrides, external aliases and runtime resolution not proved."
+}
