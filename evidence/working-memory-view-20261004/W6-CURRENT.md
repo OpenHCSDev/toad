@@ -25,3 +25,12 @@ No package/import/execution purpose is active. After ordinary444 actual whole pr
 Product src, pyproject and lock are unchanged versus bee4062; existing Coreab640355 and Toad57bf319 wheels remain valid. The Toad union contains441, not442/ec36. No wheel rebuild, SDK repetition or native artifact change is needed for these test-source changes.
 
 DefaultOFF/external disclosure and actual Codex exclusion remain intact. W7 empirical thresholds, W8, historical App acceptance and the full authentic GUI correction remain unfinished.
+
+
+## Normal current-main union
+
+Core determininga59ea390 now contains merged maina38; all355 current Git/local/ZIP package assets remain identical to retainedab640. Native producers and7a manifest are unchanged; the auto-merged native driver passed syntax only, with no SDK repeat.
+
+Toad determiningf0711d42 now contains merged442/444 main8224383e. The four imported production files retain the original TranscriptState checkpoint/read owner correction across saved and wire history. W6 context owners and approved control867b remain byte-identical. Source conflicts were only Core pins, resolved to the feature Core union containing actualmain. ONE normal retained-backend1.28 filewheel178b (319 exact assets) replaces obsolete57bf for this cohort. No package or runtime was touched.
+
+`authentic-gui-current-main-operands.json` describes the updated future source tuple; the approved396f61 proposal remains immutable. Actual444 immediate purpose is independently closed but its positive candidate remains HELD/FROZEN Parent. This does not make style22 eligible or restore/free a former436 floor. A future purpose needs Parent disposition, Bohr fresh actual eligible-floor/archive/reference grant and Sch exact new7a renewal. No current access, reservation or run.

@@ -1,0 +1,153 @@
+{
+  "state": "CURRENT-MAIN SOURCE PREPARED ONLY; original GUI continuation unexecuted. No holder or native purpose active.",
+  "original_receipt": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/working-memory-view-20261004/authentic01/private-fixture-readback.json",
+  "original_receipt_sha256": "2acbe536c4e0651fbb51853488831f96c5885db34e664050f791fd6de1107d14",
+  "original_root": "/home/ts/wt/w6gui01/test_authentic_recorded_annota0/wire",
+  "root_identity_owner": "Original locked MessageBus.read_metadata_unlocked().root_id; require private, no initialization/reset.",
+  "thread": "project",
+  "incarnation": {
+    "name": "project",
+    "created_at": 1791153029.938912
+  },
+  "request": "527f6dcf-963f-4a91-95a3-f0d6ca38aff8",
+  "turn": {
+    "kind": "recorded",
+    "identity": {
+      "value": "238119449abd41ed886d492d2315d614"
+    },
+    "occurrence": {
+      "incarnation": {
+        "name": "project",
+        "created_at": 1791153029.938912
+      },
+      "generation": 1
+    }
+  },
+  "original_native_session": "/home/ts/wt/w6gui01/test_authentic_recorded_annota0/sessions/enrolled-7e422edc55c74ca39a05304dd48ffcad.jsonl",
+  "original_native_session_sha256": "f1a5a14a330501014ea61cf02889a1a20e3c5f2a1f2e9140e724314cf18dfa3e",
+  "original_input_proof_sha256": "c6c71f34ec7457b983b06360af7a0f533e5c890c875e0efb387b68e5c04e0d3a",
+  "original_source": "/home/ts/wt/w6gui01/test_authentic_recorded_annota0/authored-system.txt",
+  "original_source_sha256": "d54d5f90cc6903d865fc3b78f6c8c4e4f5d904e15014d2c8bca0570dc28755a8",
+  "original_span_addresses": [
+    {
+      "segment_sha256": "ce6b554c56bd069eba0e464a1e8d78623b58cf6feda8403d95836094d747c354",
+      "coordinates": {
+        "kind": "system_layer",
+        "provenance": [
+          {
+            "kind": "file",
+            "path": "/home/ts/wt/w6gui01/test_authentic_recorded_annota0/authored-system.txt",
+            "sha256": "d54d5f90cc6903d865fc3b78f6c8c4e4f5d904e15014d2c8bca0570dc28755a8"
+          }
+        ],
+        "offset": 0,
+        "length": 35,
+        "sha256": "01df73f0e750a1a10daae2baa8bceff89d536c36d40c5663e13480a0118b0ce4"
+      }
+    },
+    {
+      "segment_sha256": "ce6b554c56bd069eba0e464a1e8d78623b58cf6feda8403d95836094d747c354",
+      "coordinates": {
+        "kind": "system_layer",
+        "provenance": [
+          {
+            "kind": "file",
+            "path": "/home/ts/wt/w6gui01/test_authentic_recorded_annota0/authored-system.txt",
+            "sha256": "d54d5f90cc6903d865fc3b78f6c8c4e4f5d904e15014d2c8bca0570dc28755a8"
+          }
+        ],
+        "offset": 36,
+        "length": 28,
+        "sha256": "28340c84794585e5bb0622cbe58308675c01ef180734cc4175f8a7405ad4d2d4"
+      }
+    }
+  ],
+  "acquisition": "Original ThreadManagement.restore_stopped(snapshot, (original_name,)) -> OwnerLifecycle.acquire_thread(original_name, current process) -> SessionLifecycle.bind_owned(original_thread, original_name), runtime enabled. No claim_thread/fresh fixture/open_owner/attach_session/load_session or live drain in the continuation.",
+  "inspection": "Certified original WireLog.context_manifests -> exact ContextManifest.for_request -> recorded ContextInspection -> authenticated original recorded System source/contains_span. Receipt addresses select existing facts; no constructed manifest or preview substitute.",
+  "gui": "One shared inspect_authentic_annotation_gui body for producer and continuation. Insert two controlled UNCALIBRATED ModelLabels on exact original contained spans; mounted AnnotationNode selection -> GUI declared answers -> original ACP/runtime correction -> USER HumanLabel effective rows -> Obeys/Promised sections and refreshed original source text.",
+  "control_path": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/test_context_manifest_navigation.py",
+  "control_sha256": "867bca92086e8b4a29dc0b090aa3b24a324a99e8376c4ebe679b733cbc25e223",
+  "test_node": "test_authentic_recorded_annotation_gui_continuation",
+  "helper_source_head": "0730dc71e145da4fbb4719ce81c4046b35ff96a7",
+  "helper_path": "/home/ts/wt/comms-field-codec-closure-20260928/tests/native_backend_fixture.py",
+  "helper_sha256": "a4cb188d5b472f5445cc8ba653137075455907c8e06cf0e95eb01793c4ce7575",
+  "helper_change": "Mendel granted @staticmethod/removal of unused self on existing NativeBackendFixture.native_arguments only. Two existing instance callers preserved; continuation borrows same declaration with original isolation flags and explicit --no-tools --system-prompt original file.",
+  "wheels": [
+    {
+      "source": "759c821e4cf937d2872a7f7b7a8613f5eb3119aa",
+      "wheel": "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-w6-attachment-successor-source/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "ab640f006531a4b45515d1c6319217c2ed010532e37c20d42ac7101b9017b072",
+      "bytes": 901520,
+      "assets": 355,
+      "inventory": "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-w6-attachment-successor-source/source-proof.json",
+      "inventory_sha256": "0f84f3ecef6c73336086502ae11aa70f2a94d3b648c39754f14048eb67818469"
+    },
+    {
+      "source": "f0711d42a4ce63c175ea8538d8fd01e9e6eacc6c",
+      "wheel": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-current-main-f071-source/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "178b3f3c8101bc4231933eeb3c89731c3164e7c1c27180a95a49ad664fed1d79",
+      "bytes": 2249407,
+      "assets": 319,
+      "inventory": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-current-main-f071-source/source-proof.json",
+      "inventory_sha256": "0187aaa45c1f1e987755607292d860c28e60fb8a0d16a7fd03e346e18513b701"
+    }
+  ],
+  "wheel_delta": "Core existingab640355 matches all current Git/local/ZIP assets. ONE new normal ToAd178b319 filewheel includes merged442/444 production plus advanced feature Core pin; old57bf is not current full-source-equal. No install or Core/native rebuild.",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+  "native_manifest": "7a2e4aabdbc5af49dd9af942190d92086df2eb3489903674a74af51cf831cd33",
+  "native_tree": "0d7ff54a04d4f0ff175fc889e936ca3cea8b1f98eb8b73ed6215c3373cbd984d",
+  "planned_fixture": "/home/ts/wt/w6gui02",
+  "planned_output": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-authentic-gui-continuation02",
+  "planned_pytest_args": [
+    "-o",
+    "addopts=",
+    "--noconftest",
+    "--basetemp",
+    "/home/ts/wt/w6gui02",
+    "-s",
+    "-q",
+    "--tb=short",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/tests/test_context_manifest_navigation.py::test_authentic_recorded_annotation_gui_continuation"
+  ],
+  "runner": "Original BoundedRun.session/AttachedChild 90s; installed application paths first, system pytest and exact owned test helpers afterward. No source application overlay/test dependency install.",
+  "execution_limits": {
+    "registered_apps": 1,
+    "additional_inputs": 0,
+    "provider_calls": 0,
+    "native_prompts": 0,
+    "forks": 0,
+    "external_annotations": 0
+  },
+  "future_authority": "Ordinary444 immediate preparation purpose independently CLOSED, actual444 positivecandidate HELD/FROZEN Parent; that is not private eligibility/free former436 floor. Parent candidate disposition first; then Bohr fresh named genuinely eligible actual floor/archive/refs purpose. Sch new matching7a renewal must read literal issued bytes. No reservation, package import, stage or execution authorized.",
+  "closure": "Original controller.shutdown owns runtime/native/session/inboxes/tasks. Join App/ACP/socket/worker/process groups; original file/session/input-proof/request history unchanged. Restore exact ACTUALLY ISSUED floor via original installer --no-cache with byte/mode/readlink/origin/protected proof readback; fresh independent Bohr closure and explicit Sch7a execution handback. Do not assume the former436 floor if444 changes the actual holder.",
+  "source_evidence": {
+    "changed_control_parses": true,
+    "fixture_declaration_parses": true,
+    "parse_omissions": 0,
+    "limitations": "Source lexical calls and static signature binding only; no installed collection/App/runtime or dynamic dispatch proof. Existing production Package evidence unchanged."
+  },
+  "unfinished": "Authentic GUI correction remains unqualified. Historical ReferenceNode App read/search/export separately unfinished; original03/04/90s and authentic01 oracle failure immutable. W7 empirical thresholds/W8/external disclosure remain unqualified/defaultOFF.",
+  "exclusions": "No actual Codex/saved/public source, UNKNOWN replay/carry/reset, new provider/config-server/native-input/fork/movie/env/build/copy/SDK rerun or fabricated sealed request.",
+  "previous_approved_operands": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/working-memory-view-20261004/authentic-gui-continuation-operands.json",
+  "previous_approved_sha256": "396f61f0faaaa8582f9896c17d1d7bb7fc251cc1ce05bb172102c312c7f8dc5b",
+  "determining_Toad": "f0711d42a4ce63c175ea8538d8fd01e9e6eacc6c",
+  "determining_Core": "a59ea3901c120988f2f16812b80479478c0569eb",
+  "normal_main_union": {
+    "Toad": "8224383eb0b2db440351bbd398dcf138621bd36d",
+    "Core": "a38c06de24315fa868de45786e01fefadb0aaef1"
+  },
+  "core_source_relation": "/home/ts/wt/comms-field-codec-closure-20260928/evidence/working-memory-20261004/current-main-W6-source-relation.json",
+  "core_source_relation_sha256": "4aee8d1d9977aa3248d4ea8980051325eac1197a32b62dcb295159005a4fb82d",
+  "source_delta_from_approved": {
+    "W6_owner_and_control": "ZERO for context_inspection.py/context_explorer.py/test_context_manifest_navigation.py; control867b unchanged.",
+    "Toad_production": [
+      "src/toad/mounted_message_history.py",
+      "src/toad/transcript_source_preparation.py",
+      "src/toad/transcript_state.py",
+      "src/toad/widgets/transcript_history.py"
+    ],
+    "meaning": "Original merged442 TranscriptState owns checkpoint admission and read fencing across saved/wire sources; migrated original preparation and both resource leaves. No W6 focus/intent/reader workaround.",
+    "Core_packaged_production": "ZERO against original759c/ab640355; current main tools/tests integrated normally. Three native producerfcbd hashes unchanged."
+  },
+  "source_validation": "Current Core retained355 and newToad319 Git/local/ZIP equality. Native contract merged source syntax checked only; no SDK execution. Changed control parses and TOML pins parse. Existing before/after production AST evidence unchanged, except imported merged442 closure already qualified separately; lexical evidence not runtime proof."
+}
