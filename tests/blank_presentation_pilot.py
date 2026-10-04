@@ -334,6 +334,7 @@ async def startup_hydration():
     from agent_comms.threads import Thread
     from runtime_fixture import private_native_wire
     from toad.acp.maintenance_ingress import preflight
+    from toad.agent_schema import AgentDefinition
     from toad.screens.comms import CommsScreen
     from toad.widgets.comms_chat import CommsChatView
     from toad.conversation_kind import ChannelConversation
@@ -376,14 +377,14 @@ async def startup_hydration():
             assert text in editor.text and owner.is_attached
             assert text in "\n".join(strip.text for strip in app.screen._compositor.render_strips())
 
-        data = {"name": "Pending startup", "identity": "pending-startup", "short_name": "pending",
-                "protocol": "acp", "run_command": {"*": "true"}}
+        data = AgentDefinition("pending-startup", "Pending startup", {"*": "true"},
+                               short_name="pending")
         app = InstalledApp(agent_data=data, project_dir=str(root))
         with patch("toad.acp.maintenance_ingress.preflight", held_preflight):
             try:
                 async with app.run_test(size=(100, 35)) as pilot:
                     async with asyncio.timeout(5):
-                        await asyncio.to_thread(entered.wait)
+                        assert await asyncio.to_thread(entered.wait, 5)
                     first = app.selected_session
                     conversation = first.conversation
                     agent = conversation.agent
@@ -402,8 +403,8 @@ async def startup_hydration():
                     assert app._exception is None
             finally:
                 release.set()
-                async with asyncio.timeout(5):
-                    await asyncio.to_thread(finished.wait)
+                if entered.is_set():
+                    assert await asyncio.to_thread(finished.wait, 5)
 
         mounted, continue_mount = asyncio.Event(), asyncio.Event()
 
