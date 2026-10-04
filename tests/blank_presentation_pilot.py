@@ -236,6 +236,95 @@ async def response_projection():
     print("PASS installed response route/header/category/style/native body projection", flush=True)
 
 
+async def frame_admission():
+    """Real App frames retain hidden work and keep pending source I/O off Screen."""
+    from textual.screen import Screen
+
+    with TemporaryDirectory(prefix="toad-frame-admission-", dir=os.environ["TMPDIR"]) as directory:
+        root = Path(directory)
+        os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"),
+                          XDG_CONFIG_HOME=str(root / "config"),
+                          XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
+        app = InstalledApp(project_dir=str(root))
+        async with app.run_test(size=(100, 35)) as pilot:
+            await pilot.pause()
+            first = app.selected_session
+            window = first.conversation.window
+            frame = app.workspace_screen.frame_presentation
+            await app.session_navigation.new(app.session_navigation.default_source)
+            await pilot.pause()
+
+            hidden = asyncio.Event()
+            frame.defer(window, hidden.set)
+            refreshed = asyncio.Event()
+            app.workspace_screen.call_after_refresh(refreshed.set)
+            app.workspace_screen.refresh()
+            async with asyncio.timeout(5):
+                await refreshed.wait()
+            assert not hidden.is_set() and (window, hidden.set) in frame.callbacks
+            await app.select_session(first.id)
+            async with asyncio.timeout(5):
+                await hidden.wait()
+            assert (window, hidden.set) not in frame.callbacks
+
+            entered, release, finished, painted = (asyncio.Event() for _ in range(4))
+
+            async def pending_source():
+                entered.set()
+                try:
+                    await release.wait()
+                finally:
+                    finished.set()
+
+            editor = first.conversation.prompt.prompt_text_area
+            frame.defer(window, pending_source)
+            try:
+                async with asyncio.timeout(5):
+                    await entered.wait()
+                editor.insert("frame while source pending")
+                frame.defer(editor, painted.set)
+                app.workspace_screen.refresh()
+                # Pilot.pause waits on every widget pump, including the deliberately
+                # pending source. Await the actual frame admission instead.
+                async with asyncio.timeout(5):
+                    await painted.wait()
+                assert not finished.is_set() and not app._batch_count
+                assert "frame while source pending" in "\n".join(
+                    strip.text for strip in app.screen._compositor.render_strips())
+            finally:
+                release.set()
+                async with asyncio.timeout(5):
+                    await finished.wait()
+
+            modal = Screen()
+            await app.push_screen(modal)
+            await pilot.pause()
+            inactive = asyncio.Event()
+            frame.defer(window, inactive.set)
+            modal_frame = asyncio.Event()
+            modal.call_after_refresh(modal_frame.set)
+            modal.refresh()
+            async with asyncio.timeout(5):
+                await modal_frame.wait()
+            assert not inactive.is_set() and (window, inactive.set) in frame.callbacks
+            await app.pop_screen()
+            async with asyncio.timeout(5):
+                await inactive.wait()
+            assert (window, inactive.set) not in frame.callbacks
+            assert app._exception is None
+            evidence = Path(os.environ["TOAD_FRAME_EVIDENCE"])
+            evidence.mkdir(parents=True, exist_ok=True)
+            (evidence / "receipt.json").write_text(json.dumps({
+                "result": "pass", "installed_toad": __import__("toad").__file__,
+                "hidden_source_retained_until_selected": True,
+                "native_paint_during_pending_source_callback": True,
+                "inactive_workspace_retained_until_return": True,
+                "provider_calls": 0, "native_inputs": 0,
+                "scope": "Original installed App, source selection and native compositor; synchronous test driver, no terminal writer or physical motion claim",
+            }, indent=2) + "\n")
+    print("PASS original frame/source admission; pending I/O leaves native paint free", flush=True)
+
+
 async def main():
     with TemporaryDirectory(prefix="toad-session-surface-", dir=os.environ["TMPDIR"]) as directory:
         root = Path(directory)
@@ -392,6 +481,7 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(response_projection() if "--response-only" in sys.argv else
+    asyncio.run(frame_admission() if "--frame-only" in sys.argv else
+                response_projection() if "--response-only" in sys.argv else
                 danger_projection() if "--danger-only" in sys.argv else
                 layout_preferences() if "--layout-only" in sys.argv else main())

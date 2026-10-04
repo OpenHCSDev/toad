@@ -544,7 +544,7 @@ class ValidationDriver(LinuxDriver):
                                 for window in screen.query(HistoryWindow)]})
         Path(os.environ["TOAD_VALIDATION_TRACE"] + ".stalled.json").write_text(json.dumps({
             "batch_count": app._batch_count, "current_mode": app.current_mode,
-            "atomic_mode_switch": app._atomic_mode_switch, "pending_mode_switch": app._pending_mode_switch,
+            "workspace_source": type(app.workspace_sessions.source).__name__,
             "screens": screens}, indent=2))
         Path(os.environ["TOAD_VALIDATION_TRACE"]).write_text(json.dumps(list(records)))
 

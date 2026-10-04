@@ -85,7 +85,7 @@ async def select_tab(pilot, app, source):
     raise TimeoutError(
         f"Tab {source.id} was not selected; selected={app.selected_mode}; "
         f"switch_lock={app._mode_switch_lock.locked()}; "
-        f"pending={app._pending_mode_switch}; atomic={app._atomic_mode_switch}; "
+        f"source={type(app.workspace_sessions.source).__name__}; "
         f"error={app._exception!r}"
     )
 

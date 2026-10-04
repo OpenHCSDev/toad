@@ -198,9 +198,6 @@ class SessionsTabs(CoreEventReceiver, Widget):
     def watch_current_session(self, old_session: str, new_session: str) -> None:
         self.query(".-current").remove_class("-current")
         self.query(f"#{new_session}").add_class("-current")
-        if self.app._atomic_mode_switch:
-            self.call_after_refresh(self.update_underline, new_session, False)
-            return
         if old_session:
             self.update_underline(old_session, animate=False)
 

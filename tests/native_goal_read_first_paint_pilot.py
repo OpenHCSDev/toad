@@ -35,7 +35,7 @@ async def held_original_read(app, pilot, agent, comms):
         async with asyncio.timeout(20):
             await entered.wait()
         # Let the existing compositor complete a frame while that read remains
-        # pending. The baseline admission holds both lock and atomic batch.
+        # pending. The original observation read must not withhold the native frame.
         async def first_frame():
             while app.first_paint_at is None:
                 await asyncio.sleep(.01)
@@ -46,7 +46,7 @@ async def held_original_read(app, pilot, agent, comms):
             pass
         receipt = {'first_paint_before_read_release': app.first_paint_at is not None,
                    'native_admission_lock_held': app.workspace_chrome.native._lock.locked(),
-                   'atomic_selection_held': app._atomic_mode_switch,
+                   'paint_batch_held': bool(app._batch_count),
                    'original_goal_read_pending': not observation.task.done(),
                    'source_agent_unchanged': view.agent is agent,
                    'canonical_busy': agent.current_turn.busy,
@@ -61,7 +61,7 @@ async def held_original_read(app, pilot, agent, comms):
         observation.read = original
     assert receipt['first_paint_before_read_release'], receipt
     assert not receipt['native_admission_lock_held'], receipt
-    assert not receipt['atomic_selection_held'], receipt
+    assert not receipt['paint_batch_held'], receipt
     assert receipt['original_goal_read_pending'] and receipt['source_agent_unchanged']
 
 

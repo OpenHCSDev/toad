@@ -300,8 +300,6 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
         self.sidebar_state = SidebarState()
         self.sidebar_layout = SidebarLayout()
         self._mode_switch_lock = asyncio.Lock()
-        self._atomic_mode_switch = False
-        self._pending_mode_switch: str | None = None
         self.tab_order = TabOrder(
             lambda mode, index: self.select_session(mode, history_index=index)
         )
@@ -432,24 +430,10 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
 
 
     def select_session(self, mode: str, *, history_index: int | None = None) -> AwaitComplete:
-        from toad.screens.session_view import SessionView
-
         if mode != self.selected_mode:
             self.navigation_reader.invalidate()
         self.session_navigation.entered(mode, self.selected_mode)
-        if self.is_running and mode != self.selected_mode:
-            # A direct tab/sidebar click has declared its destination, but
-            # AwaitComplete schedules the serialized transition for the next
-            # event-loop turn. Do not let the departing screen's older queued
-            # full-layout timer outrun that explicit navigation request.
-            self._pending_mode_switch = mode
         return AwaitComplete(self._switch_mode_ready(mode, history_index=history_index))
-
-    def delay_update(self, delay: float = 0.05) -> None:
-        # Textual's switch_mode uses a timed repaint mask. This application
-        # already holds a render transaction until the destination is complete.
-        if not self._atomic_mode_switch:
-            super().delay_update(delay)
 
     def _display(self, screen: Screen, renderable) -> None:
 
@@ -483,24 +467,24 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
     async def _switch_mode_ready(self, mode: str, *, history_index: int | None = None) -> None:
         async with self._mode_switch_lock:
             previous = self.selected_mode
-            self._atomic_mode_switch = True
             try:
-                with self.batch_update():
-                    if mode == "store":
-                        await self.workspace_sessions.retire()
-                        await super().switch_mode("store")
-                    else:
-                        if self.current_mode != "workspace":
-                            await super().switch_mode("workspace")
-                        view = await self.workspace_sessions.select(mode)
-                        await self.workspace_screen.prepare_navigation()
-                        await self.workspace_screen.layout_navigation()
-                    if mode != previous:
-                        self.tab_order.record_visit(mode, history_index)
-                        self.events.publish(core_events.SessionSelected(mode))
+                # Source retirement and native preparation may await I/O,
+                # child pumps or compensated layout. Their original owners
+                # fence those mutations; holding a global paint batch here
+                # also withholds the frames those operations may need.
+                if mode == "store":
+                    await self.workspace_sessions.retire()
+                    await super().switch_mode("store")
+                else:
+                    if self.current_mode != "workspace":
+                        await super().switch_mode("workspace")
+                    await self.workspace_sessions.select(mode)
+                    await self.workspace_screen.prepare_navigation()
+                    await self.workspace_screen.layout_navigation()
+                if mode != previous:
+                    self.tab_order.record_visit(mode, history_index)
+                    self.events.publish(core_events.SessionSelected(mode))
             finally:
-                self._atomic_mode_switch = False
-                self._pending_mode_switch = None
                 self.screen.refresh()
 
 

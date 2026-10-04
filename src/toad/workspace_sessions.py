@@ -156,6 +156,23 @@ class WorkspaceSessions:
     def owns(self, view: "SessionView") -> bool:
         return self.source.current(view)
 
+    def release_frame_callback(self, owner, callback) -> bool:
+        """Admit mounted work through its original logical source binding.
+
+        Hidden session mounts retain their same frame callback; workspace
+        chrome has no session binding. Native attachment and writer custody
+        remain with the frame, and the owner's pump executes source I/O.
+        """
+        from toad.screens.session_view import SessionView
+
+        for view in owner.walk_ancestors(with_self=True):
+            if isinstance(view, SessionView):
+                if not self.owns(view):
+                    return False
+                break
+        owner.call_later(callback)
+        return True
+
     async def close(self, identity: str) -> None:
         self.factories.pop(identity, None)
         if view := self.views.pop(identity, None):

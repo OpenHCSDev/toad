@@ -206,15 +206,14 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
             # The navigation/sidebar shell is already visible in its chosen
             # state. Hydrate only the conversation; retain those exact controls
             # and their scroll position throughout the opening transition.
-            with self.app.batch_update():
-                content = self.query_one("#comms-chat-content", containers.Vertical)
-                await content.remove_children()
-                await content.mount(self.create_chat())
-                if self.is_attached:
-                    self._prepare_content()
-                    if self.is_current:
-                        await self.screen.prepare_navigation()
-                        await self.screen.layout_navigation()
+            content = self.query_one("#comms-chat-content", containers.Vertical)
+            await content.remove_children()
+            await content.mount(self.create_chat())
+            if self.is_attached:
+                self._prepare_content()
+                if self.is_current:
+                    await self.screen.prepare_navigation()
+                    await self.screen.layout_navigation()
         except BaseException as error:
             self._content_error = error
             raise
