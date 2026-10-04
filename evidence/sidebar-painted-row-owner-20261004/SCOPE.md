@@ -105,8 +105,15 @@ flags suppress native layout; retained first-paint/held-goal-read checking now
 reads the actual native batch depth. Neither checks nor a film have been run for
 this checkpoint. F4's sole package/import lease remains protected.
 
-Other asynchronous batches found by full source parsing belong to tool subtree
-replacement, message-style replacement and relationship-row publication. They
-are separate mutation owners and are not blindly dropped by the session-opening
-change. Their original tree/reader/source publication semantics remain under
-active source review; this checkpoint does not claim the whole stall family closed.
+Relationship-row publication also no longer holds the App batch while waiting
+for original group member locks, detached ThreadRowsWork preparation or native
+row mounts. SidebarGroup.reconcile_groups retains its source witnesses, one
+prepared cohort and per-group member custody; each row still publishes its actual
+prepared output. Unrelated body/chrome paint can proceed during that work. Source
+generation checks and final snapshot/revision publication remain unchanged.
+
+The remaining asynchronous global batches belong to tool subtree and message-style
+replacement. Those temporarily destroy their old presentations; removing their
+paint fence alone would expose that intermediate tree. They need resource/lifecycle
+closure, not blind unindentation. This checkpoint does not claim the whole stall
+family closed.

@@ -403,54 +403,55 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             )
             if generation != self._generation or not self._visible():
                 return
-            with self.app.batch_update():
-                context = self.query_one(".relationship-context", Static)
-                _update_content(context, Content.assemble((f"For @{snapshot.owner}", "bold"),
-                    " · recent window" if snapshot.history_limited else ""))
-                context.tooltip = snapshot.incoming_basis + f"\nLatest {snapshot.history_messages} wire messages"
-                control = self.query_ancestor(SideBarCollapsible).query_one_optional(RelationshipSort)
-                if control is not None:
-                    control.update_groups(snapshot.groups)
-                groups = {}
-                for model in snapshot.groups:
-                    if generation != self._generation:
-                        return
-                    group = self.groups.get(model.key)
-                    if group is None:
-                        group = self.groups[model.key] = RelationshipRows(
-                            model, self.view_state.expanded.get(model.key, True))
-                        await self.mount(group)
-                        if generation != self._generation:
-                            group.display = False
-                            return
-                    group.display = True
-                    group.expanded = self.view_state.expanded.get(model.key, True)
-                    glyph = "▾" if group.expanded else "▸"
-                    if group.disclosure.content != glyph:
-                        group.disclosure.update(glyph, layout=False)
-                    groups[group] = model
-                await RelationshipRows.reconcile_groups(groups, row_inputs, sources=groups)
-                for group in groups:
+            # Each group owns its prepared rows and native member fence.
+            # Waiting for those workers/mounts must not freeze unrelated paint.
+            context = self.query_one(".relationship-context", Static)
+            _update_content(context, Content.assemble((f"For @{snapshot.owner}", "bold"),
+                " · recent window" if snapshot.history_limited else ""))
+            context.tooltip = snapshot.incoming_basis + f"\nLatest {snapshot.history_messages} wire messages"
+            control = self.query_ancestor(SideBarCollapsible).query_one_optional(RelationshipSort)
+            if control is not None:
+                control.update_groups(snapshot.groups)
+            groups = {}
+            for model in snapshot.groups:
+                if generation != self._generation:
+                    return
+                group = self.groups.get(model.key)
+                if group is None:
+                    group = self.groups[model.key] = RelationshipRows(
+                        model, self.view_state.expanded.get(model.key, True))
+                    await self.mount(group)
                     if generation != self._generation:
                         group.display = False
                         return
+                group.display = True
+                group.expanded = self.view_state.expanded.get(model.key, True)
+                glyph = "▾" if group.expanded else "▸"
+                if group.disclosure.content != glyph:
+                    group.disclosure.update(glyph, layout=False)
+                groups[group] = model
+            await RelationshipRows.reconcile_groups(groups, row_inputs, sources=groups)
+            for group in groups:
                 if generation != self._generation:
+                    group.display = False
                     return
-                widest = Content(f"For @{snapshot.owner} · recent window").cell_length + 4
-                for model in snapshot.groups:
-                    for entry in model.entries:
-                        widest = max(widest, Content(entry.target).cell_length + 8)
-                        if entry.detail:
-                            widest = max(widest, Content(entry.detail).cell_length + 8)
-                if row_inputs.rows:
-                    widest = max(widest, row_inputs.content_width + 8)
-                panel = self.query_ancestor(SideBarCollapsible)
-                width = min(widest, 512)
-                if width != self._horizontal_width:
-                    self._horizontal_width = width
-                    panel.styles.min_width = width
-                self._snapshot, self._revision = snapshot, revision
-                self._sync_spinner()
+            if generation != self._generation:
+                return
+            widest = Content(f"For @{snapshot.owner} · recent window").cell_length + 4
+            for model in snapshot.groups:
+                for entry in model.entries:
+                    widest = max(widest, Content(entry.target).cell_length + 8)
+                    if entry.detail:
+                        widest = max(widest, Content(entry.detail).cell_length + 8)
+            if row_inputs.rows:
+                widest = max(widest, row_inputs.content_width + 8)
+            panel = self.query_ancestor(SideBarCollapsible)
+            width = min(widest, 512)
+            if width != self._horizontal_width:
+                self._horizontal_width = width
+                panel.styles.min_width = width
+            self._snapshot, self._revision = snapshot, revision
+            self._sync_spinner()
         except asyncio.CancelledError:
             raise
         except (OSError, ValueError) as error:

@@ -1,0 +1,120 @@
+{
+  "head": "b03e669f84ff51b10045d8420f0fe1836e984e95",
+  "roots": [
+    {
+      "root": "src/toad",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "parsed": 392,
+      "omissions": []
+    },
+    {
+      "root": "tools",
+      "parsed": 41,
+      "omissions": []
+    }
+  ],
+  "removed_names": {
+    "_atomic_mode_switch": 0,
+    "_pending_mode_switch": 0,
+    "painted_busy_rows": 0,
+    "present_navigation": 0
+  },
+  "current_consumers": [
+    {
+      "path": "src/toad/app.py",
+      "line": 467,
+      "kind": "AsyncFunctionDef",
+      "name": "_switch_mode_ready",
+      "source": "async def _switch_mode_ready(self, mode: str, *, history_index: int | None = None) -> None:"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 436,
+      "kind": "Attribute",
+      "name": "_switch_mode_ready",
+      "source": "return AwaitComplete(self._switch_mode_ready(mode, history_index=history_index))"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 173,
+      "kind": "AsyncFunctionDef",
+      "name": "remove_native_tree",
+      "source": "async def remove_native_tree(self) -> None:"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 171,
+      "kind": "Attribute",
+      "name": "remove_native_tree",
+      "source": "await self.remove_native_tree()"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 176,
+      "kind": "Attribute",
+      "name": "release_native_session",
+      "source": "await conversation.release_native_session()"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 277,
+      "kind": "Attribute",
+      "name": "remove_native_tree",
+      "source": "await owner.remove_native_tree()"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 75,
+      "kind": "Attribute",
+      "name": "painted_rows",
+      "source": "for row in self.sidebar.painted_rows():"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 521,
+      "kind": "AsyncFunctionDef",
+      "name": "_release_source_resources",
+      "source": "async def _release_source_resources(self) -> None:"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 531,
+      "kind": "AsyncFunctionDef",
+      "name": "release_native_session",
+      "source": "async def release_native_session(self) -> None:"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 534,
+      "kind": "Attribute",
+      "name": "_release_source_resources",
+      "source": "await self._release_source_resources()"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1054,
+      "kind": "Attribute",
+      "name": "_release_source_resources",
+      "source": "await self._release_source_resources()"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 33,
+      "kind": "FunctionDef",
+      "name": "painted_rows",
+      "source": "def painted_rows(self):"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 283,
+      "kind": "Attribute",
+      "name": "painted_rows",
+      "source": "for row in self.painted_rows():"
+    }
+  ],
+  "limits": "Entire declared roots parsed; nominal direct source consumers only, external dynamic resolution and aliases not proved. No execution or speed claim. Native dependency ownership was read before the change and remains unchanged by this Toad checkpoint."
+}
