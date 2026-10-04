@@ -126,13 +126,11 @@ class ChannelGroup(SidebarGroup):
         snapshot = self.query_ancestor(CommsSidebar).projection.snapshot
         return snapshot.all_people.values() if snapshot is not None else ()
 
-    async def _reconcile_members(self, captured: ThreadRowsWork) -> None:
-        if not self.is_attached or self._pruning or self._closing:
-            return
+    def thread_row_inputs(self):
         sidebar = self.query_ancestor(CommsSidebar)
         snapshot = sidebar.projection.snapshot
         if not self.is_mounted or snapshot is None:
-            return
+            return {}, self._members, snapshot
         view = next(view for view in snapshot.wire.channels
                     if view.channel.name == self.row.target_name)
         self.sort_control.update_order(view.channel.order)
@@ -145,9 +143,16 @@ class ChannelGroup(SidebarGroup):
             pinned=name in view.pinned_members,
             action_status=app.thread_actions.pending.get(name),
         ) for name in wanted}
-        prepared_rows = await self.prepare_thread_rows(inputs, self._members, captured)
-        if not self.is_attached or self._pruning or self._closing:
+        return inputs, self._members, snapshot
+
+    async def _reconcile_members(self, prepared_rows, source) -> None:
+        if not self.accepts_members():
             return
+        sidebar = self.query_ancestor(CommsSidebar)
+        snapshot = sidebar.projection.snapshot
+        if not self.is_mounted or snapshot is None or snapshot is not source:
+            return
+        app = cast("ToadApp", self.app)
         # A tab may close while immutable row text is being prepared. The
         # shared roster survives that close; project live view routes only
         # after the await, rather than restoring a retired mode from a DTO.
@@ -167,10 +172,10 @@ class ChannelGroup(SidebarGroup):
             row.current = row.mode_name == app.selected_mode
 
         await self.reconcile_rows(
-            wanted if self.expanded else (), self._members, create, update)
+            prepared_rows if self.expanded else (), self._members, create, update)
 
 
-    async def present(self, view: ChannelView, captured: ThreadRowsWork) -> None:
+    def present(self, view: ChannelView) -> None:
         row = self.row
         sidebar = self.query_ancestor(CommsSidebar)
         if row.is_attached:
@@ -183,10 +188,6 @@ class ChannelGroup(SidebarGroup):
                 # owns the layout change, not repainting an unchanged arrow
                 # on every wire snapshot (which reflows the transcript too).
                 group.disclosure.update("▾" if expanded else "▸", layout=False)
-            # Projection publication already owns its lock. The shared base
-            # owns member retirement/mount serialization inside that lifetime.
-            async with self.member_lock:
-                await self._reconcile_members(captured)
 
 
 def _comms_root() -> Path:

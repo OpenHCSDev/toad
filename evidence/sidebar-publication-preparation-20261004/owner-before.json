@@ -1,0 +1,469 @@
+{
+  "roots": [
+    {
+      "root": "src/toad",
+      "revision": "HEAD",
+      "parsed": 288,
+      "omitted": []
+    },
+    {
+      "root": "src/textual",
+      "revision": "b263e4e707846025fd6b70448749c7a36c0a2d81",
+      "parsed": 249,
+      "omitted": []
+    }
+  ],
+  "sites": [
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 73,
+      "kind": "Name",
+      "name": "PreparedThreadRow"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 76,
+      "kind": "Name",
+      "name": "ThreadRowPresentation"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 78,
+      "kind": "Name",
+      "name": "PreparedThreadRow"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 81,
+      "kind": "Name",
+      "name": "PreparedThreadRow"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 82,
+      "kind": "Name",
+      "name": "PreparedThreadRow"
+    },
+    {
+      "path": "src/toad/sidebar_navigation.py",
+      "line": 101,
+      "kind": "Name",
+      "name": "ChannelGroup"
+    },
+    {
+      "path": "src/toad/sidebar_navigation.py",
+      "line": 178,
+      "kind": "Name",
+      "name": "ChannelGroup"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 39,
+      "kind": "ClassDef",
+      "name": "ThreadRowPresentation"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 53,
+      "kind": "ClassDef",
+      "name": "PreparedThreadRow"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 82,
+      "kind": "ClassDef",
+      "name": "ThreadRowsWork"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 66,
+      "kind": "Name",
+      "name": "PreparedThreadRow"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 103,
+      "kind": "FunctionDef",
+      "name": "for_rows"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 54,
+      "kind": "Name",
+      "name": "ThreadRowPresentation"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 88,
+      "kind": "Name",
+      "name": "ThreadRowsWork"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 66,
+      "kind": "Name",
+      "name": "ThreadRowPresentation"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 78,
+      "kind": "Name",
+      "name": "PreparedThreadRow"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 31,
+      "kind": "Name",
+      "name": "ThreadRowPresentation"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 82,
+      "kind": "Name",
+      "name": "PreparedThreadRow"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 83,
+      "kind": "Name",
+      "name": "PreparedThreadRow"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 84,
+      "kind": "Name",
+      "name": "PreparedThreadRow"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 85,
+      "kind": "Name",
+      "name": "ThreadRowPresentation"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 100,
+      "kind": "Name",
+      "name": "ThreadRowPresentation"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 103,
+      "kind": "Name",
+      "name": "ThreadRowPresentation"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 138,
+      "kind": "Name",
+      "name": "ChannelGroup"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 155,
+      "kind": "Name",
+      "name": "ChannelGroup"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 22,
+      "kind": "Name",
+      "name": "ChannelGroup"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 27,
+      "kind": "Name",
+      "name": "ChannelGroup"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 48,
+      "kind": "Name",
+      "name": "ChannelGroup"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 109,
+      "kind": "Name",
+      "name": "ThreadRowsWork"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 142,
+      "kind": "Name",
+      "name": "ChannelGroup"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 163,
+      "kind": "Name",
+      "name": "ChannelGroup"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 135,
+      "kind": "Name",
+      "name": "ChannelGroup"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 67,
+      "kind": "ClassDef",
+      "name": "ChannelGroup"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 67,
+      "kind": "Name",
+      "name": "SidebarGroup"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 129,
+      "kind": "AsyncFunctionDef",
+      "name": "_reconcile_members"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 108,
+      "kind": "Name",
+      "name": "ThreadRowsWork"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 129,
+      "kind": "Name",
+      "name": "ThreadRowsWork"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 173,
+      "kind": "Name",
+      "name": "ThreadRowsWork"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 148,
+      "kind": "Attribute",
+      "name": "prepare_thread_rows"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 188,
+      "kind": "Attribute",
+      "name": "member_lock"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 189,
+      "kind": "Attribute",
+      "name": "_reconcile_members"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 64,
+      "kind": "Name",
+      "name": "ChannelGroup"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 217,
+      "kind": "Name",
+      "name": "ChannelGroup"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 60,
+      "kind": "Name",
+      "name": "PreparedThreadRow"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 51,
+      "kind": "Name",
+      "name": "PreparedThreadRow"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 60,
+      "kind": "Name",
+      "name": "ThreadRowPresentation"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 67,
+      "kind": "Name",
+      "name": "PreparedThreadRow"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 85,
+      "kind": "Name",
+      "name": "PreparedThreadRow"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 35,
+      "kind": "ClassDef",
+      "name": "SidebarGroup"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 97,
+      "kind": "AsyncFunctionDef",
+      "name": "_reconcile_members"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 103,
+      "kind": "AsyncFunctionDef",
+      "name": "prepare_thread_rows"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 56,
+      "kind": "Attribute",
+      "name": "member_lock"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 84,
+      "kind": "Attribute",
+      "name": "member_lock"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 27,
+      "kind": "Name",
+      "name": "SidebarGroup"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 91,
+      "kind": "Attribute",
+      "name": "_reconcile_members"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 108,
+      "kind": "Attribute",
+      "name": "for_rows"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 87,
+      "kind": "Name",
+      "name": "ThreadRowsWork"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 116,
+      "kind": "Name",
+      "name": "ThreadRowsWork"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 106,
+      "kind": "ClassDef",
+      "name": "RelationshipRows"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 106,
+      "kind": "Name",
+      "name": "SidebarGroup"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 121,
+      "kind": "AsyncFunctionDef",
+      "name": "update_group"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 130,
+      "kind": "AsyncFunctionDef",
+      "name": "_reconcile_members"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 121,
+      "kind": "Name",
+      "name": "ThreadRowsWork"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 122,
+      "kind": "Attribute",
+      "name": "member_lock"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 130,
+      "kind": "Name",
+      "name": "ThreadRowsWork"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 460,
+      "kind": "Name",
+      "name": "RelationshipRows"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 458,
+      "kind": "Name",
+      "name": "SidebarGroup"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 469,
+      "kind": "Name",
+      "name": "RelationshipRows"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 144,
+      "kind": "Attribute",
+      "name": "prepare_thread_rows"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 227,
+      "kind": "Name",
+      "name": "RelationshipRows"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 124,
+      "kind": "Attribute",
+      "name": "_reconcile_members"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 494,
+      "kind": "Name",
+      "name": "RelationshipRows"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 396,
+      "kind": "Name",
+      "name": "ThreadRowsWork"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 418,
+      "kind": "Name",
+      "name": "RelationshipRows"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 429,
+      "kind": "Attribute",
+      "name": "update_group"
+    }
+  ],
+  "limits": "Static spellings and declared inheritance; dynamic external aliases/overrides are not resolved."
+}
