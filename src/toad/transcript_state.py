@@ -20,6 +20,10 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     reports_coverage: ClassVar[bool] = False
     accepts_source_work: ClassVar[bool] = False
 
+    def checkpoint_available(self, owner) -> bool:
+        """Source admission and its original resource govern checkpoint custody."""
+        return self.accepts_source_work and owner.source_checkpoint_available
+
     def blocks_visible_read(self, owner) -> bool:
         """An unpublished source must settle before its cursor is read."""
         return True
@@ -88,7 +92,7 @@ class LiveTranscript(TranscriptState):
     accepts_source_work = True
 
     def blocks_visible_read(self, owner) -> bool:
-        return owner.has_newer or not owner.checkpoint_available
+        return owner.has_newer or not self.checkpoint_available(owner)
 
     def reserve(self, owner) -> "WorkingTranscript":
         return WorkingTranscript(self, owner)

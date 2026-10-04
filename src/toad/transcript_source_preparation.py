@@ -63,6 +63,10 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         """Source mutation, remaining tail and filtering govern acknowledgement."""
         return self.state.blocks_visible_read(self)
 
+    @property
+    def checkpoint_available(self) -> bool:
+        return self.state.checkpoint_available(self)
+
     def reserve_source_work(self) -> WorkingTranscript:
         operation = self._source_state.reserve(self)
         self._source_state = operation
