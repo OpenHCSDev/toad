@@ -1,0 +1,7 @@
+# Session native custody — full performance continuation
+
+Stacks qualified420/51 source. Whole CPU/raster/cold/warm/runway/velocity/growingEnd/void/animation/IRC/DM/busy/sidebar/tab/focus/draft/Undo/TC1/T9/T4 and configurable144Hz6.944ms goal remain active. Original420 stepped motion/192.68ms Up gap is retained; no speed gain claimed.
+
+Existing NativeSessionSurface separately stores an admitted screen and its presentation even though MainScreen owns that presentation declaration. Its original methods accept both independently, and global surface removal duplicates resource lifetime decisions with OperationalSessionPresentation.close and WorkspaceSessions.aclose. This batch retains ONE admitted native screen, derives its owner and conversation from that screen's existing presentation, and puts native-tree eviction/removal with existing OperationalSessionPresentation. Logical WorkspaceSource selection remains separate. No new wrapper/state/catalog/cache.
+
+Read complete activation/retirement/eviction/shutdown and all original consumers before changing source. OperationalSessionSources agent/shell/watcher transfer needs continued whole-family reasoning; independent actor/weakref absences are not blindly deleted. TC1/T4 not closed by counts or old file thresholds. Source working checkpoint first; batched affected actual App/real saved-session return verification after coherent implementation, no repeat420 movie.
