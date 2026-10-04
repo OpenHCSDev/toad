@@ -99,16 +99,23 @@ class WidgetTarget(NativeFocusTarget):
     def locate(cls, snapshot, args):
         if not args.name:
             raise ValueError("Widget target requires --name Class or Class#id")
-        kind, _, identifier = args.name.partition("#")
         focused = snapshot["metadata"]["screen"]["focused"]
-        nodes = snapshot["metadata"]["navigation_targets"]["widgets"]
-        candidates = [node for node in nodes
-                      if node["class"] == kind and (not identifier or node["id"] == identifier)
-                      and (not args.focused or (focused is not None
+        candidates = [node for node in cls.named_nodes(snapshot, args.name)
+                      if (not args.focused or (focused is not None
                            and node["object_id"] == focused["object_id"]))]
+        if args.within:
+            parent, = cls.named_nodes(snapshot, args.within)
+            region = Region(*parent["region"])
+            candidates = [node for node in candidates if region.contains_region(Region(*node["region"]))]
         if len(candidates) != 1:
             raise ValueError(f"Expected one visible {args.name}, found {len(candidates)}")
         return candidates[0]
+
+    @staticmethod
+    def named_nodes(snapshot, name):
+        kind, _, identifier = name.partition("#")
+        return [node for node in snapshot["metadata"]["navigation_targets"]["widgets"]
+                if node["class"] == kind and (not identifier or node["id"] == identifier)]
 
 
 class RightSidebarTarget(NativeFocusTarget):
@@ -182,6 +189,10 @@ def main():
     parser.add_argument("--target", type=NativeFocusTarget.decode, default=HistoryTarget,
                         help="Native resource: " + ", ".join(NativeFocusTarget.names()))
     parser.add_argument("--name", help="Native thread/channel name or widget Class#id")
+    parser.add_argument("--within", help="Restrict a widget target to this captured Class#id region")
+    action = parser.add_mutually_exclusive_group()
+    action.add_argument("--drag-columns", type=int, help="Drag from the native target by this many terminal columns")
+    action.add_argument("--wheel", type=int, help="Scroll down (positive) or up (negative) over the native target")
     parser.add_argument("--focused", action="store_true", help="Select only the currently focused widget")
     parser.add_argument("--empty", action="store_true", help="Require empty original editor before a fresh fork input")
     parser.add_argument("--original-state", type=Path, help="This run's initial selected-mode snapshot")
@@ -205,13 +216,29 @@ def main():
     window_id, = subprocess.check_output(
         ["xdotool", "search", "--pid", os.environ["TOAD_VIDEO_TERMINAL"]], text=True, timeout=5).splitlines()
     client = XWindowGeometry.read(window_id)
-    pixel = StTerminalGrid(*metadata["terminal_geometry"]).pixel_at(cell, client)
+    grid = StTerminalGrid(*metadata["terminal_geometry"])
+    pixel = grid.pixel_at(cell, client)
+    gesture = []
+    if args.drag_columns is not None:
+        destination = cell + Offset(args.drag_columns, 0)
+        if destination not in Region(0, 0, grid.columns, grid.rows):
+            raise ValueError("Native drag destination lies outside the owned terminal")
+        end = grid.pixel_at(destination, client)
+        gesture = ["mousedown", "1", "mousemove", "--sync", "--window", window_id,
+                   str(end.x), str(end.y), "mouseup", "1"]
+    elif args.wheel is not None:
+        if not args.wheel:
+            raise ValueError("A native wheel gesture requires nonzero movement")
+        gesture = ["click", "--repeat", str(abs(args.wheel)), "4" if args.wheel < 0 else "5"]
+    else:
+        gesture = ["click", "1"]
     observation = {"ui_identity": FieldCodec.encode(identity), "mode": metadata["current_mode"],
                    "resource_object_id": resource["object_id"], "target": target,
-                   "terminal_geometry": metadata["terminal_geometry"], "pixel": tuple(pixel)}
+                   "terminal_geometry": metadata["terminal_geometry"], "pixel": tuple(pixel),
+                   "gesture": gesture}
     (output / f"{args.target.declared_name}-click-target.json").write_text(json.dumps(observation, indent=2) + "\n")
     subprocess.run(["xdotool", "mousemove", "--sync", "--window", window_id,
-                    str(pixel.x), str(pixel.y), "click", "1"], check=True, timeout=5)
+                    str(pixel.x), str(pixel.y), *gesture], check=True, timeout=5)
 
 
 if __name__ == "__main__":
