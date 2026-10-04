@@ -1,0 +1,28 @@
+{
+  "state": "explicit TWO-file original-owner diff applied in place; not Ready/installed",
+  "original_owner": "e523a93f94c114730ee45ef867e9c90dbc2afc42",
+  "owner_base": "34633149ff3dbcf994e9c1d4a895e470ccad749b",
+  "F1_base": "6b309c2903ccf2bde92e3436b59e87b2997fa633",
+  "determining_diff_sha256": "9b110969494a902cc4e4c62b8ec2e01ca30531793086ea014ff613cfd4ce014a",
+  "actual_diff_byte_equal_original_owner": true,
+  "files": [
+    "src/toad/session_presentation.py",
+    "src/toad/widgets/conversation.py"
+  ],
+  "viewport_acquisition": "original self.window.document_viewport acquired BEFORE first await; same acquired viewport closed after original source joins",
+  "preliminary_descendant_editor_reset": "deleted; original native subtree pruning owns descendants",
+  "F1_typed_bind_admission_reconnect_members_unchanged": true,
+  "pins_unchanged": true,
+  "excluded_426": [
+    "sidebar/tab/ancestry",
+    "4a0352f7 painted-row/spinner"
+  ],
+  "historical_full_union": "19800812f317dc883533d6915694ed04ccc0efa4 remains published and failed/notReady",
+  "whole_file_replacement": false,
+  "original09_cause": "UNKNOWN; separate assertionPASS/wholeFAIL143 preserved",
+  "missing_node_guard_added": false,
+  "new_cache_state_timer_added": false,
+  "remaining": "exact final DebtPASS then ONE changed native-delete WHOLEApp shutdown after actualF4handback/newBohrgrant",
+  "current_style22": "F4solelease; no Sch package/import/run",
+  "ready": false
+}

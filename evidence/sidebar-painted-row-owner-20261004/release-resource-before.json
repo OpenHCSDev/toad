@@ -1,0 +1,130 @@
+{
+  "head": "730a9070b6ffe6f75b9229fd19c82fdf6853c4cc",
+  "parsed_modules": 288,
+  "parse_omissions": [],
+  "declarations": [
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 69,
+      "name": "retire"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 72,
+      "name": "close"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 125,
+      "name": "close"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 151,
+      "name": "retire"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 161,
+      "name": "close"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 166,
+      "name": "evict"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 173,
+      "name": "remove_native_tree"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 199,
+      "name": "retire"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 280,
+      "name": "close"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 521,
+      "name": "release_native_session"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1055,
+      "name": "on_unmount"
+    }
+  ],
+  "consumers": [
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 171,
+      "callee": "self.remove_native_tree"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 176,
+      "callee": "conversation.release_native_session"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 278,
+      "callee": "owner.remove_native_tree"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 259,
+      "callee": "self.sidebar_owner"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 277,
+      "callee": "self.sidebar_owner"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 282,
+      "callee": "self.sidebar_owner"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 303,
+      "callee": "self.sidebar_owner"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 287,
+      "callee": "self.sidebar_owner"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 322,
+      "callee": "self.sidebar_owner"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 376,
+      "callee": "self._sidebar"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 380,
+      "callee": "self._sidebar"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 384,
+      "callee": "self._sidebar"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 39,
+      "callee": "row.sidebar_owner"
+    }
+  ],
+  "scope": "Native resource acquisition/retirement and sidebar weak-parent consumers; same-spelling external dispatch not dynamically proven."
+}
