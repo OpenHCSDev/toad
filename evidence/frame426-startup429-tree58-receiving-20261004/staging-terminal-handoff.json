@@ -1,0 +1,26 @@
+{
+  "state": "Allstaging commands terminal; CODE candidate frozen for parentreview, no concurrentloan inferred",
+  "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "staged_sources": {
+    "agent_comms": "9195325146f70886d7d879edbfcae74b12bd63c8",
+    "toad": "8605373406a99af96510fd50bf5102b84c7cc291",
+    "textual": "456c27e18688e6c829c727f766561c9eb8640803",
+    "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+    "refactor_audit": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10"
+  },
+  "native_manifest": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
+  "native_tree": "dbc88ed9231d1275da3ce218aa8919a247e41ce1f010ce765e7ac0960193f4ac",
+  "source_assets_equal": 937,
+  "forced_native_assets": 3,
+  "packages": 69,
+  "pipcheck": "PASS",
+  "whole_current_import_read_execution_build_claim": "CLOSED; no runninggate/runtime/controller/App created",
+  "package_writer": "No further writes; frozen originalpublicationcandidate under parentreview. Not restoredoldfloor/not an available430codegrant. Laterpurpose requiresparentdisposition/newownergrant.",
+  "original_floor_archives": "Unchanged; original1459 floor andprivate/auth/wire/history/UNKNOWN/native resources protected",
+  "style22_restore_performed": false,
+  "protected428165_and421155_unchanged": true,
+  "LIVE534_unchanged": true,
+  "new_builds": 0,
+  "App_SDK_provider_film_calls": 0,
+  "public_effects": 0
+}
