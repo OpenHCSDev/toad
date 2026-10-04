@@ -1,0 +1,11 @@
+{
+  "head": "a79f7ae1627e52dcb5e7d3e01c0d12cc3d16ba68",
+  "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/f1-two-release-startup-wheels/batrachian_toad-0.6.20-py3-none-any.whl",
+  "sha256": "de8a3c9acc7c9660933c0c712ba2a403f3848f8458e1430afc06ecd5ca580d25",
+  "bytes": 2242533,
+  "tracked_assets_exact": 319,
+  "builder": "existing system hatchling 1.30.1",
+  "declared_hatchling": "1.28.0",
+  "new_env": false,
+  "new_vcs_clone": false
+}

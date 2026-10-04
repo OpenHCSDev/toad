@@ -194,13 +194,13 @@ def coordination_update(root, name):
         thread.title or thread.name, None)
 
 
-def request_target(app, command, subject, actor):
+def request_target(app, command, subject):
     """Existing native control fixtures borrow the backend declaration query."""
-    from agent_comms.cli_commands import TargetActionsCliCommand, TargetEditCliCommand
+    from agent_comms.cli_commands import CliCommand, TargetEdit
     from toad.thread_actions import ThreadAction
     comms = app.coordination_access.service
-    definition = next(item for item in TargetActionsCliCommand(
-        target=subject, project=str(app.project_dir)).apply(comms)['actions']
-        if item['command'] == command.declared_name)
-    app.thread_actions.invoke(ThreadAction(definition, TargetEditCliCommand(
-        target=subject, operation=command.declared_name, arguments={})), subject, actor)
+    definition = next(item for item in CliCommand.target_catalog(
+        comms, subject, project=str(app.project_dir))
+        if item.declaration is command)
+    app.thread_actions.invoke(ThreadAction(definition, TargetEdit(
+        target=subject, declaration=command, arguments={})), subject)

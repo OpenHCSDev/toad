@@ -1,0 +1,752 @@
+{
+  "actual_failed_package": {
+    "head": "89eeada3268de541f47f6eb8f03bb64658090d5e",
+    "parsed_modules": 288,
+    "parse_omissions": [],
+    "related_declarations": [
+      {
+        "path": "src/toad/app.py",
+        "name": "_close_all",
+        "line": 320,
+        "end": 326
+      },
+      {
+        "path": "src/toad/channel_preparation.py",
+        "name": "aclose",
+        "line": 194,
+        "end": 197
+      },
+      {
+        "path": "src/toad/directory_watcher.py",
+        "name": "aclose",
+        "line": 315,
+        "end": 318
+      },
+      {
+        "path": "src/toad/navigation_preparation.py",
+        "name": "aclose",
+        "line": 235,
+        "end": 239
+      },
+      {
+        "path": "src/toad/render_backend.py",
+        "name": "aclose",
+        "line": 96,
+        "end": 97
+      },
+      {
+        "path": "src/toad/render_processes.py",
+        "name": "aclose",
+        "line": 105,
+        "end": 115
+      },
+      {
+        "path": "src/toad/render_runtime.py",
+        "name": "aclose",
+        "line": 110,
+        "end": 117
+      },
+      {
+        "path": "src/toad/render_zmq.py",
+        "name": "aclose",
+        "line": 294,
+        "end": 301
+      },
+      {
+        "path": "src/toad/screens/comms.py",
+        "name": "_load_content",
+        "line": 201,
+        "end": 223
+      },
+      {
+        "path": "src/toad/screens/main.py",
+        "name": "retained_native_presentations",
+        "line": 200,
+        "end": 201
+      },
+      {
+        "path": "src/toad/screens/main.py",
+        "name": "_start_content_hydration",
+        "line": 249,
+        "end": 253
+      },
+      {
+        "path": "src/toad/screens/main.py",
+        "name": "_load_content",
+        "line": 255,
+        "end": 277
+      },
+      {
+        "path": "src/toad/screens/main.py",
+        "name": "close_presentation",
+        "line": 284,
+        "end": 286
+      },
+      {
+        "path": "src/toad/screens/session_view.py",
+        "name": "close_presentation",
+        "line": 77,
+        "end": 78
+      },
+      {
+        "path": "src/toad/screens/session_view.py",
+        "name": "retained_native_presentations",
+        "line": 80,
+        "end": 82
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "name": "retire",
+        "line": 69,
+        "end": 69
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "name": "close",
+        "line": 72,
+        "end": 72
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "name": "close",
+        "line": 125,
+        "end": 134
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "name": "retire",
+        "line": 151,
+        "end": 152
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "name": "close",
+        "line": 161,
+        "end": 164
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "name": "retire",
+        "line": 185,
+        "end": 196
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "name": "activate",
+        "line": 198,
+        "end": 227
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "name": "_evict",
+        "line": 257,
+        "end": 261
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "name": "_remove",
+        "line": 263,
+        "end": 269
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "name": "dispose",
+        "line": 271,
+        "end": 278
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "name": "close",
+        "line": 280,
+        "end": 287
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "name": "release_native_session",
+        "line": 521,
+        "end": 539
+      },
+      {
+        "path": "src/toad/work_preparation.py",
+        "name": "aclose",
+        "line": 345,
+        "end": 350
+      },
+      {
+        "path": "src/toad/work_preparation.py",
+        "name": "aclose",
+        "line": 377,
+        "end": 378
+      },
+      {
+        "path": "src/toad/workspace_sessions.py",
+        "name": "retire",
+        "line": 26,
+        "end": 26
+      },
+      {
+        "path": "src/toad/workspace_sessions.py",
+        "name": "retire",
+        "line": 45,
+        "end": 46
+      },
+      {
+        "path": "src/toad/workspace_sessions.py",
+        "name": "retire",
+        "line": 72,
+        "end": 75
+      },
+      {
+        "path": "src/toad/workspace_sessions.py",
+        "name": "retire",
+        "line": 104,
+        "end": 105
+      },
+      {
+        "path": "src/toad/workspace_sessions.py",
+        "name": "retire",
+        "line": 153,
+        "end": 154
+      },
+      {
+        "path": "src/toad/workspace_sessions.py",
+        "name": "close",
+        "line": 159,
+        "end": 165
+      },
+      {
+        "path": "src/toad/workspace_sessions.py",
+        "name": "aclose",
+        "line": 167,
+        "end": 172
+      },
+      {
+        "path": "src/toad/workspace_sessions.py",
+        "name": "_close_all",
+        "line": 178,
+        "end": 180
+      }
+    ],
+    "related_calls": [
+      {
+        "path": "src/toad/screens/main.py",
+        "line": 188,
+        "callee": "self._start_content_hydration"
+      },
+      {
+        "path": "src/toad/screens/main.py",
+        "line": 253,
+        "callee": "self._load_content"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 149,
+        "callee": "screen.app.workspace_chrome.native.activate"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 152,
+        "callee": "screen.app.workspace_chrome.native.retire"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 162,
+        "callee": "screen.app.workspace_chrome.native.dispose"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 261,
+        "callee": "self._remove"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 266,
+        "callee": "conversation.release_native_session"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 277,
+        "callee": "self._remove"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 183,
+        "callee": "view.retained_native_presentations"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 252,
+        "callee": "self._evict"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 286,
+        "callee": "self._remove"
+      },
+      {
+        "path": "src/toad/workspace_sessions.py",
+        "line": 169,
+        "callee": "self.app.workspace_chrome.native.close"
+      },
+      {
+        "path": "src/toad/workspace_sessions.py",
+        "line": 164,
+        "callee": "view.close_presentation"
+      },
+      {
+        "path": "src/toad/workspace_sessions.py",
+        "line": 171,
+        "callee": "view.close_presentation"
+      }
+    ],
+    "presentation_custody_writes": [
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 79,
+        "target": "self.state"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 143,
+        "target": "self.widget"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 164,
+        "target": "self.state"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 172,
+        "target": "self.owner"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 173,
+        "target": "self.view"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 260,
+        "target": "owner.state"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 269,
+        "target": "owner.widget"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 195,
+        "target": "self.owner"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 196,
+        "target": "self.view"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 278,
+        "target": "owner.state"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 284,
+        "target": "self.owner"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 284,
+        "target": "self.view"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 208,
+        "target": "owner.widget"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 217,
+        "target": "self.owner"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 217,
+        "target": "self.view"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 221,
+        "target": "owner.state"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 276,
+        "target": "self.owner"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 276,
+        "target": "self.view"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 287,
+        "target": "owner.state"
+      }
+    ]
+  },
+  "owned_current_source": {
+    "head": "392c2b99e67897955e7ee96d765d962c236423d8",
+    "parsed_modules": 288,
+    "parse_omissions": [],
+    "related_declarations": [
+      {
+        "path": "src/toad/app.py",
+        "name": "_close_all",
+        "line": 320,
+        "end": 326
+      },
+      {
+        "path": "src/toad/channel_preparation.py",
+        "name": "aclose",
+        "line": 194,
+        "end": 197
+      },
+      {
+        "path": "src/toad/directory_watcher.py",
+        "name": "aclose",
+        "line": 315,
+        "end": 318
+      },
+      {
+        "path": "src/toad/navigation_preparation.py",
+        "name": "aclose",
+        "line": 232,
+        "end": 236
+      },
+      {
+        "path": "src/toad/render_backend.py",
+        "name": "aclose",
+        "line": 96,
+        "end": 97
+      },
+      {
+        "path": "src/toad/render_processes.py",
+        "name": "aclose",
+        "line": 105,
+        "end": 115
+      },
+      {
+        "path": "src/toad/render_runtime.py",
+        "name": "aclose",
+        "line": 110,
+        "end": 117
+      },
+      {
+        "path": "src/toad/render_zmq.py",
+        "name": "aclose",
+        "line": 294,
+        "end": 301
+      },
+      {
+        "path": "src/toad/screens/comms.py",
+        "name": "_load_content",
+        "line": 200,
+        "end": 222
+      },
+      {
+        "path": "src/toad/screens/main.py",
+        "name": "retained_native_presentations",
+        "line": 204,
+        "end": 205
+      },
+      {
+        "path": "src/toad/screens/main.py",
+        "name": "close_presentation",
+        "line": 258,
+        "end": 260
+      },
+      {
+        "path": "src/toad/screens/session_view.py",
+        "name": "close_presentation",
+        "line": 77,
+        "end": 78
+      },
+      {
+        "path": "src/toad/screens/session_view.py",
+        "name": "retained_native_presentations",
+        "line": 80,
+        "end": 82
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "name": "retire",
+        "line": 69,
+        "end": 69
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "name": "close",
+        "line": 72,
+        "end": 72
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "name": "close",
+        "line": 125,
+        "end": 134
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "name": "retire",
+        "line": 151,
+        "end": 152
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "name": "close",
+        "line": 161,
+        "end": 164
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "name": "remove_native_tree",
+        "line": 173,
+        "end": 179
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "name": "retire",
+        "line": 199,
+        "end": 209
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "name": "activate",
+        "line": 211,
+        "end": 241
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "name": "dispose",
+        "line": 271,
+        "end": 278
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "name": "close",
+        "line": 280,
+        "end": 284
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "name": "release_native_session",
+        "line": 521,
+        "end": 539
+      },
+      {
+        "path": "src/toad/work_preparation.py",
+        "name": "aclose",
+        "line": 345,
+        "end": 350
+      },
+      {
+        "path": "src/toad/work_preparation.py",
+        "name": "aclose",
+        "line": 377,
+        "end": 378
+      },
+      {
+        "path": "src/toad/workspace_sessions.py",
+        "name": "retire",
+        "line": 26,
+        "end": 26
+      },
+      {
+        "path": "src/toad/workspace_sessions.py",
+        "name": "retire",
+        "line": 45,
+        "end": 46
+      },
+      {
+        "path": "src/toad/workspace_sessions.py",
+        "name": "retire",
+        "line": 72,
+        "end": 75
+      },
+      {
+        "path": "src/toad/workspace_sessions.py",
+        "name": "retire",
+        "line": 104,
+        "end": 105
+      },
+      {
+        "path": "src/toad/workspace_sessions.py",
+        "name": "retire",
+        "line": 153,
+        "end": 154
+      },
+      {
+        "path": "src/toad/workspace_sessions.py",
+        "name": "close",
+        "line": 159,
+        "end": 165
+      },
+      {
+        "path": "src/toad/workspace_sessions.py",
+        "name": "aclose",
+        "line": 167,
+        "end": 172
+      },
+      {
+        "path": "src/toad/workspace_sessions.py",
+        "name": "_close_all",
+        "line": 178,
+        "end": 180
+      }
+    ],
+    "related_calls": [
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 149,
+        "callee": "screen.app.workspace_chrome.native.activate"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 152,
+        "callee": "screen.app.workspace_chrome.native.retire"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 162,
+        "callee": "screen.app.workspace_chrome.native.dispose"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 171,
+        "callee": "self.remove_native_tree"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 176,
+        "callee": "conversation.release_native_session"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 278,
+        "callee": "owner.remove_native_tree"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 197,
+        "callee": "view.retained_native_presentations"
+      },
+      {
+        "path": "src/toad/workspace_sessions.py",
+        "line": 169,
+        "callee": "self.app.workspace_chrome.native.close"
+      },
+      {
+        "path": "src/toad/workspace_sessions.py",
+        "line": 164,
+        "callee": "view.close_presentation"
+      },
+      {
+        "path": "src/toad/workspace_sessions.py",
+        "line": 171,
+        "callee": "view.close_presentation"
+      }
+    ],
+    "presentation_custody_writes": [
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 79,
+        "target": "self.state"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 143,
+        "target": "self.widget"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 163,
+        "target": "self.state"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 170,
+        "target": "self.state"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 179,
+        "target": "self.widget"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 187,
+        "target": "self.view"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 209,
+        "target": "self.view"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 231,
+        "target": "self.view"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 284,
+        "target": "self.view"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 222,
+        "target": "owner.widget"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 235,
+        "target": "owner.state"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 277,
+        "target": "self.view"
+      }
+    ]
+  },
+  "raw_failure": {
+    "log": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/f1-start-owner-installed03/journey09.log",
+    "sha256": "6d05daec6e93bed1dec6824efd5c49d9e15780cf66c28d91bf1222554bfdcc85",
+    "exception": "NoMatches Window in Conversation.release_native_session during whole App shutdown, AFTER native delete callback acceptance",
+    "accepted_callback": {
+      "result": "PASS",
+      "closed_current_history_and_hidden_native": true,
+      "actor_connection_and_reader_unchanged": true,
+      "input_bytes_unchanged": true,
+      "provider_calls": 0,
+      "native_inputs": 0
+    }
+  },
+  "source_findings": [
+    "Actual89ee global NativeSessionSurface.close removes all retained trees; WorkspaceSessions.aclose subsequently invokes each original presentation close and dispose/_remove. Two native-tree release passes and split owner/view custody remain in that package.",
+    "Actual89ee MainScreen separately schedules _load_content which calls presentation.prepare, after original prepare_presentation already admits that presentation. Native.close releases its lock before per-view close. The old callback can readmit during this crossing; raw09 does not record identities proving that specific interleaving.",
+    "Owned422 source removes global native-tree release pass and independent content hydration worker. WorkspaceSessions.aclose releases admitted binding, then per-view OperationalSessionPresentation.close owns native release once. NativeSessionSurface derives presentation from actual admitted view; logical registry source remains distinct.",
+    "Conversation.release_native_session and document_viewport.close still precede conversation.remove; source does not justify swallowing missing Window or skipping cleanup. No absence guard added."
+  ],
+  "owner": "Heisenberg existing NativeSessionSurface / OperationalSessionPresentation / WorkspaceSessionShutdown / MainScreen admission family",
+  "remaining": "Sch owns current style22 F1 execution and cleanup. Normally join422 source after terminal, then one changed existing native-delete App case must attest acceptance AND whole shutdown. No unchanged89ee rerun, no physical movie/new fixture/provider/package write by Heisenberg.",
+  "dynamic_limits": "AST reports declared methods/callers across full parsed production roots; no runtime owner identity or unlogged callback interleaving inferred.",
+  "prior_installed_scope": {
+    "receipt": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/session-native-custody-owner-20261004/SCOPED-READY.json",
+    "sha256": "feec53af541b617ceef802ff43eb1c9e58d7f58632da6873665e5ef763a4d9db",
+    "scope": "Original422 blank_presentation App passed warm A/B/A, editor and shell shutdown; NOT new native-delete/whole F1 shutdown proof."
+  }
+}

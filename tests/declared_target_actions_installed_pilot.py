@@ -16,10 +16,11 @@ import threading
 
 from agent_comms.channels import SavedView, ViewKind, ViewPredicate, AnyOfMatch
 from agent_comms.cli_commands import CliCommand
+from agent_comms.channel_management import ArchiveThreadsTagDisposition, DeleteThreadsTagDisposition
 from agent_comms.field_codec import FieldCodec
 from agent_comms.thread_status import StoppedThreadStatus
 from agent_comms.threads import Thread
-from textual.widgets import Input, TextArea
+from textual.widgets import Checkbox, Input, Select, TextArea
 from toad.app import ToadApp
 from toad.screens.comms import CommsScreen
 from toad.widgets.comms_chat import CommsChatView
@@ -61,12 +62,24 @@ async def choose(app, pilot, row, operation, fields, evidence):
     dialog = app.screen
     for key, value in fields.items():
         editor = dialog.query_one('#command-field-' + key.replace('_', '-'))
-        assert await pilot.click(editor)
-        if isinstance(editor, TextArea):
+        if isinstance(editor, Select):
+            # Select's container delegates input to its native current/overlay
+            # children; use its declared keyboard selection instead of treating
+            # a container hit as proof that its child was not clicked.
+            choices = next(item.choices for item in dialog.definition.editable_fields if item.name == key)
+            index = next(index for index, (_, declared) in enumerate(choices) if declared == value)
+            editor.focus()
+            await pilot.press('enter', 'home', *('down',) * index, 'enter')
+            assert editor.value == value
+        elif isinstance(editor, TextArea):
+            assert await pilot.click(editor)
             editor.text = value
         else:
+            assert await pilot.click(editor)
             assert isinstance(editor, Input)
             editor.value = value
+    if dialog.query_one('#command-confirmed', Checkbox).display:
+        assert await pilot.click('#command-confirmed')
     app.save_screenshot(str(evidence / (operation + '-review.svg')))
     if type(app._driver).__name__ == 'LinuxDriver':
         assert os.environ['DISPLAY'] != ':0'
@@ -103,6 +116,184 @@ async def slash(chat, pilot, text):
     await pilot.pause()
     await pilot.press('enter')
 
+async def mounted_layers(app, pilot):
+    from toad.widgets.comms_sidebar import CommsSidebar
+    screen = app.screen
+    child = screen.query_one(CommsSidebar)
+    before = child.layers
+    original = screen.styles.inline.get_rule('layers')
+    try:
+        for layers in (('base', 'controls', 'controls'), ()):
+            screen.styles.layers = layers
+            await pilot.pause()
+            assert child.layers == layers
+    finally:
+        screen.styles.set_rule('layers', original)
+        screen.refresh(layout=True)
+    await pilot.pause()
+    assert child.layers == before
+
+
+async def started_target_connections(base):
+    """Use the original SDK/ACP fixture, with no native prompt or model call."""
+    from l0a_native_installed_pilot import main as native_journey
+    from toad.acp.agent_session import AgentSession
+    from toad.conversation_kind import DmConversation
+    from functools import partial
+
+    evidence = base / 'start-connections'
+    evidence.mkdir()
+    os.environ['L0A_EVIDENCE'] = str(evidence)
+    os.environ['TMPDIR'] = str(base)
+    calls = []
+    frames = set()
+    code = AgentSession.reconnect.__code__
+
+    def observe(frame, event, _argument):
+        if event == 'call' and frame.f_code is code and frame not in frames:
+            # Coroutine resumes report another call event for the same frame.
+            # Keep each actual invocation once, without replacing the method.
+            frames.add(frame)
+            calls.append(frame.f_locals['self'].agent)
+
+    async def acceptance(app, pilot, actor, comms, _entered, _release, _hold, requests):
+        from agent_comms.cli_commands import StartCliCommand
+        actor_mode = app.selected_mode
+        actor_source = app.selected_session
+        project = actor_source.project_path
+        original = comms.registry.require('beta')
+        comms.registry.declare(Thread('peer', frozenset({'team'}), str(project),
+            model=original.model, thinking_level=original.thinking_level), StoppedThreadStatus())
+        comms.threads.restore_stopped(comms.registry.snapshot(), ('peer',))
+        # A retained alias must select the same original native B admission.
+        actor_process = actor.process.process
+        actor_session = actor.session
+        actor_contents = actor_source.conversation.contents
+        inputs = comms.root / 'input_dispositions.json'
+        before_inputs = inputs.read_bytes() if inputs.exists() else None
+
+        async def start_from_dm():
+            await app.session_navigation.history(owner_mode=actor_mode, project_path=project,
+                me='beta', target='peer', kind=DmConversation)
+            chat = app.selected_session.query_one(CommsChatView)
+            context = await chat.command_target_context()
+            definition = next(item for item in await app.preparation.run_thread(context.available_actions)
+                              if item.declaration is StartCliCommand)
+            from toad.thread_actions import ThreadAction
+            ThreadAction.collect(context, definition)
+            await app.thread_actions.close()
+
+        threading.setprofile_all_threads(observe)
+        try:
+            await start_from_dm()
+            assert comms.registry.require('peer').process_alive
+            assert calls == [], 'No B source is open; A must not reconnect'
+            await app.preparation.run_thread(partial(comms.threads.rename_managed_thread,
+                'peer', 'peer-current', owner_pid=comms.registry.require('peer').pid))
+            peer_mode = await app.thread_navigation.open(owner_mode=actor_mode,
+                project_path=project, target='peer')
+            peer_source = app.session_navigation.source(peer_mode)
+            await until(pilot, lambda: peer_source.conversation.agent is not None)
+            peer = peer_source.conversation.agent
+            await until(pilot, peer.session.settled.is_set)
+            assert peer.session.connected
+            await peer.stop()
+            await app.preparation.run_thread(comms.owners.stop, 'peer')
+            await start_from_dm()
+            assert calls == [peer], 'Only the already-bound original B source may reconnect'
+            assert peer.session.connected and comms.registry.require('peer').process_alive
+            assert actor.process.process is actor_process and actor_process.returncode is None
+            assert actor.session is actor_session and actor.session.connected
+            assert actor_source.conversation.contents is actor_contents
+            assert app.session_navigation.source(actor_mode) is actor_source
+            # Sidebar actions have no captured view mode. They still refresh
+            # the original already-open native B resource after a fresh start.
+            await peer.stop()
+            await app.preparation.run_thread(comms.owners.stop, 'peer')
+            from toad.target_commands import TargetContext
+            from toad.thread_actions import ThreadAction
+            context = TargetContext(app, comms, 'peer', 'beta', project)
+            definition = next(item for item in await app.preparation.run_thread(context.available_actions)
+                              if item.declaration is StartCliCommand)
+            ThreadAction.collect(context, definition)
+            await app.thread_actions.close()
+            assert calls == [peer, peer] and peer.session.connected
+            assert actor.process.process is actor_process and actor_process.returncode is None
+            assert actor_source.conversation.contents is actor_contents
+            assert (inputs.read_bytes() if inputs.exists() else None) == before_inputs
+            assert requests == []
+            (evidence / 'receipt.json').write_text(json.dumps({
+                'result': 'PASS', 'actor': 'beta', 'peer': 'peer-current',
+                'actor_connection_and_reader_unchanged': True,
+                'no_open_peer_reconnections': 0, 'dm_bound_peer_reconnections': 1,
+                'sidebar_bound_peer_reconnections': 1,
+                'alias_preserved': True, 'provider_calls': 0, 'native_inputs': 0}, indent=2)+'\n')
+        finally:
+            threading.setprofile_all_threads(None)
+
+    await native_journey(acceptance=acceptance, provider_request_budget=0,
+                         fixture_stage=base / 'start-fixture', app_type=ToadApp)
+
+
+async def deleted_native_connections(base):
+    """Delete a stopped B with a hidden native view and selected A-to-B history."""
+    from l0a_native_installed_pilot import main as native_journey
+    from toad.conversation_kind import DmConversation
+    evidence = base / 'native-view-delete'
+    evidence.mkdir()
+    os.environ.update(L0A_EVIDENCE=str(evidence), TMPDIR=str(base))
+
+    async def acceptance(app, pilot, actor, comms, _entered, _release, _hold, requests):
+        actor_mode = app.selected_mode
+        actor_source = app.selected_session
+        project = actor_source.project_path
+        original = comms.registry.require('beta')
+        comms.registry.declare(Thread('peer', frozenset({'native-delete'}), str(project),
+            model=original.model, thinking_level=original.thinking_level), StoppedThreadStatus())
+        comms.threads.restore_stopped(comms.registry.snapshot(), ('peer',))
+        await app.preparation.run_thread(comms.owners.start, 'peer')
+        native_mode = await app.thread_navigation.open(owner_mode=actor_mode,
+            project_path=project, target='peer')
+        native_source = app.session_navigation.source(native_mode)
+        await until(pilot, lambda: native_source.conversation.agent is not None)
+        peer = native_source.conversation.agent
+        await until(pilot, peer.session.settled.is_set)
+        assert peer.session.connected
+        history_mode = await app.session_navigation.history(owner_mode=actor_mode,
+            project_path=project, me='beta', target='peer', kind=DmConversation)
+        assert app.selected_mode == history_mode
+        assert native_mode in app.workspace_sessions.views
+        actor_process = actor.process.process
+        actor_contents = actor_source.conversation.contents
+        inputs = comms.root / 'input_dispositions.json'
+        before_inputs = inputs.read_bytes() if inputs.exists() else None
+        await peer.stop()
+        await app.preparation.run_thread(comms.owners.stop, 'peer')
+        result = await command(comms.root, 'delete-tag', '--name', 'native-delete',
+            '--disposition', FieldCodec.encode(DeleteThreadsTagDisposition), '--confirmed')
+        assert [item['name'] for item in result['removed_threads']] == ['peer']
+        await until(pilot, lambda: all(mode not in app.workspace_sessions.views
+            and app.session_navigation.get(mode) is None for mode in (native_mode, history_mode)))
+        assert not native_source.is_attached
+        assert actor.process.process is actor_process and actor_process.returncode is None
+        assert actor_source.conversation.contents is actor_contents and actor.session.connected
+        assert (inputs.read_bytes() if inputs.exists() else None) == before_inputs
+        assert requests == []
+        (evidence / 'receipt.json').write_text(json.dumps({
+            'result': 'ASSERTIONS_PASS_SHUTDOWN_PENDING',
+            'closed_current_history_and_hidden_native': True,
+            'actor_connection_and_reader_unchanged': True, 'input_bytes_unchanged': True,
+            'provider_calls': 0, 'native_inputs': 0}, indent=2)+'\n')
+
+    await native_journey(acceptance=acceptance, provider_request_budget=0,
+                         fixture_stage=base / 'delete-fixture', app_type=ToadApp)
+    # The callback precedes run_test.__aexit__ and the original SDK fixture's
+    # finally block. Qualify the whole case only after both owners have joined.
+    receipt = json.loads((evidence / 'receipt.json').read_text())
+    receipt.update(result='PASS', whole_app_shutdown_completed=True,
+                   original_sdk_fixture_cleanup_completed=True)
+    (evidence / 'receipt.json').write_text(json.dumps(receipt, indent=2)+'\n')
+
 
 async def journey(args):
     start = time.monotonic()
@@ -115,9 +306,11 @@ async def journey(args):
     os.environ.pop('NO_COLOR', None)
     os.environ.pop('PYTHONPATH', None)
     comms = private_native_wire(base / 'wire')
-    for name in ('viewer', 'tagged'):
+    from toad.widgets.comms_chat import session_thread_name
+    names = ('viewer', 'tagged', session_thread_name(project))
+    for name in names:
         comms.registry.declare(Thread(name, frozenset({'first'}), str(project)), StoppedThreadStatus())
-    comms.threads.restore_stopped(comms.registry.snapshot(), ('viewer', 'tagged'))
+    comms.threads.restore_stopped(comms.registry.snapshot(), names)
     original = comms.registry.require('tagged').incarnation
     comms.channels.set_saved_view(SavedView('projection', ViewKind.PARTICIPANTS,
                                            ViewPredicate(AnyOfMatch, frozenset({'first'}))))
@@ -137,7 +330,10 @@ async def journey(args):
     threading.setprofile_all_threads(observe)
     app = ToadApp(project_dir=str(project))
     async with app.run_test(size=(125, 48), headless=not args.physical) as pilot:
+        owner = app.session_navigation.get(app.selected_mode)
         sidebar = await wait_channel_roster(app, pilot, '#first', '#all')
+        await mounted_layers(app, pilot)
+        checks.append('corrected-mounted-layer-owner-custom-duplicates-empty-restoration')
         row = await reveal_thread_row(app, pilot, 'tagged', '#first')
         await choose(app, pilot, row, 'thread-tags', {'tags': 'first,second'}, base)
         assert comms.registry.require('tagged').tags == frozenset({'first','second'})
@@ -202,6 +398,56 @@ async def journey(args):
         app.save_screenshot(str(base / 'slash-hidden-return.svg'))
         checks.append('hidden-backend-change-original-tab-return-fresh-slash-execution')
         assert comms.registry.require('tagged').incarnation == original
+        # Channel visibility is a reversible catalog preference, independently
+        # of the three tagged-thread outcomes. Hidden admitted channels close
+        # through the same original workspace resource as selected channels.
+        channel_modes = tuple(entry.mode for entry in app.session_navigation.members
+                              if entry.original_channels() == ((str(comms.root), '#first'),))
+        original_registry = comms.registry.snapshot()
+        await command(comms.root, 'archive-channel', '--name', '#first')
+        await until(pilot, lambda: all(app.session_navigation.get(mode) is None for mode in channel_modes))
+        assert comms.registry.snapshot() == original_registry
+        assert comms.channels.catalog.read().resolve('#first').archived
+        await command(comms.root, 'restore-channel', '--name', '#first')
+        await wait_channel_roster(app, pilot, '#first')
+        assert not comms.channels.catalog.read().resolve('#first').archived
+        assert comms.registry.snapshot() == original_registry
+        checks.append('archive-restore-channel-only-preference-no-thread-tag-history-mutation')
+
+        for name, tag in (('archive-a', 'archive-cohort'), ('delete-a', 'delete-cohort'),
+                          ('delete-b', 'delete-cohort')):
+            comms.registry.declare(Thread(name, frozenset({tag}), str(project)), StoppedThreadStatus())
+        comms.threads.restore_stopped(comms.registry.snapshot(), ('archive-a', 'delete-a', 'delete-b'))
+        await wait_channel_roster(app, pilot, '#archive-cohort', '#delete-cohort')
+        sidebar = await wait_channel_roster(app, pilot, '#archive-cohort')
+        await choose(app, pilot, sidebar.projection.channels['#archive-cohort'], 'delete-tag',
+                     {'disposition': ArchiveThreadsTagDisposition.declared_name}, base)
+        assert comms.registry.status('archive-a').declared_name == 'archived'
+        assert comms.registry.require('archive-a').tags == {'archive-cohort'}
+        assert '#archive-cohort' in comms.channels.channels()
+        checks.append('native-form-archive-tagged-threads-preserves-tag-channel-and-history')
+
+        from toad.conversation_kind import DmConversation
+        removed_modes = []
+        for peer in ('delete-a', 'delete-b'):
+            removed_modes.append(await app.session_navigation.history(
+                owner_mode=owner.mode, project_path=project, me='viewer', target=peer, kind=DmConversation))
+        assert app.selected_mode == removed_modes[-1]
+        assert all(mode in app.workspace_sessions.views for mode in removed_modes)
+        inputs = comms.root / 'input_dispositions.json'
+        input_bytes = inputs.read_bytes() if inputs.exists() else None
+        response = await command(comms.root, 'delete-tag', '--name', 'delete-cohort',
+                                 '--disposition', DeleteThreadsTagDisposition.declared_name, '--confirmed')
+        assert {row['name'] for row in response['removed_threads']} == {'delete-a', 'delete-b'}
+        await until(pilot, lambda: all(mode not in app.workspace_sessions.views
+                                      and app.session_navigation.get(mode) is None for mode in removed_modes))
+        assert all(peer not in comms.registry for peer in ('delete-a', 'delete-b'))
+        assert (inputs.read_bytes() if inputs.exists() else None) == input_bytes
+        reopened_mode = await app.session_navigation.history(owner_mode=owner.mode,
+            project_path=project, me='viewer', target='delete-a', kind=DmConversation)
+        assert reopened_mode not in removed_modes
+        assert all(app.session_navigation.get(mode) is None for mode in removed_modes)
+        checks.append('cli-delete-actual-backend-cohort-closes-current-hidden-views-refuses-reopen')
         assert app._exception is None
     reopened = ToadApp(project_dir=str(project))
     async with reopened.run_test(size=(125,48), headless=not args.physical) as pilot:
@@ -235,4 +481,14 @@ if __name__ == '__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--physical',action='store_true')
-    asyncio.run(journey(parser.parse_args()))
+    parser.add_argument('--start-only', action='store_true', help='Original SDK/ACP Start-target resource control')
+    parser.add_argument('--delete-native-only', action='store_true', help='Current history and hidden native view retirement')
+    args = parser.parse_args()
+    if args.start_only:
+        args.output.mkdir(parents=True, exist_ok=False)
+        asyncio.run(started_target_connections(args.output.resolve()))
+    elif args.delete_native_only:
+        args.output.mkdir(parents=True, exist_ok=False)
+        asyncio.run(deleted_native_connections(args.output.resolve()))
+    else:
+        asyncio.run(journey(args))
