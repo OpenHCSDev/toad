@@ -47,7 +47,11 @@ def load_recorder():
                     revealed = "revealed-" + phase + "-" + member
                     focused = "focused-" + phase + "-" + member
                     return "\n".join((
-                        click("phase-" + phase + "-state.pickle", "context_tree"),
+                        # Native focus traversal from the declared search Input
+                        # passes Search / Read full / Copy before Tree. Clicking
+                        # the Tree's center selects/toggles an unrelated row.
+                        click("phase-" + phase + "-state.pickle", "widget", "Input#context-search"),
+                        "key --repeat 4 --repeat-delay 5 Tab",
                         mark + focused,
                         "exec --sync " + shlex.join((sys.executable, str(Path(__file__).resolve()),
                             "--reveal-context", "phase-" + focused + "-state.pickle", os.environ[field])),
@@ -433,7 +437,8 @@ if __name__ == "__main__":
         output = Path(os.environ["TOAD_VIDEO_OUTPUT"])
         state, key = sys.argv[2:]
         snapshot = pickle.loads((output/state).read_bytes())
-        assert snapshot['metadata']['screen']['focused']['class'] == 'Tree', 'Physical reveal requires the actually focused Tree'
+        focused = snapshot['metadata']['screen']['focused']
+        assert (focused['class'], focused['id']) == ('Tree', 'context-tree'), 'Physical reveal requires the actually focused context Tree'
         context = next(v for v in snapshot['views'] if v['mode']==snapshot['metadata']['current_mode'])['context']
         model, = (node for node in context['nodes'] if node['key']==key)
         assert model['line'] >= 0, 'Original member must be expanded in the native Tree first'
