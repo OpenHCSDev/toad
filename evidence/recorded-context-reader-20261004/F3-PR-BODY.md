@@ -49,3 +49,7 @@ Physical10 whole615/419/Text50/native086 handback is complete:927 assets/all69 v
 Sch owns F1 channel policy/forms and existing SessionAdmissions/workspace_sessions/close_presentation retirement of missing current/hidden incarnations. This change touches no deletion/navigation policy. F3 unmount detaches its original state and Tree node resources.
 
 Mendel owns F4's decoded contributor/recorded-label acceptance independently of417 export. ManifestNode.label/detail are the only shared adoption. No other active viewport/paint source is edited.
+
+## Normal main union
+
+Current main34633149 is normally merged at33efa199. Both owner production files are byte-identical to the source-correction receipt; no source result was silently broadened. The sole conflict was the physical click helper: original main wheel/drag/within controls and417 native context reveal/selection/right-click controls are retained together. The helper compiles; no physical gesture was executed. F3-main-union.json names exact parents and source identity. Main determining metadata remains unchanged; a reviewed typedCore622 pair is still needed before App qualification. This source join does not grant a package loan. Imported original evidence whitespace is preserved.
