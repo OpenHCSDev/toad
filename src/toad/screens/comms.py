@@ -182,8 +182,7 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
             self.call_later(self._load_content)
 
     def _prepare_content(self) -> None:
-        for sidebar in self.query(SideBar):
-            sidebar._apply_layout()
+        self.app.workspace_chrome.layout_sidebars(self.screen)
         self.observe_core(self.app.events)
         self.screen.align_tabs_to_sidebars()
         chat = self.query_one(CommsChatView)

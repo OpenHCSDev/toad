@@ -109,7 +109,9 @@ async def main():
             viewport = window.document_viewport
             assert viewport._settle_timer is None
             assert viewport.lookahead.travel_rows == 0
-            assert viewport.lookahead.admission(viewport.budget, window.size.height) == viewport.budget.admission_items
+            # Idle retains its measured baseline runway. Four bodies is an
+            # admission floor, not the row-derived runway's fixed size.
+            assert viewport.lookahead.admission(viewport.budget, window.size.height) <= viewport.budget.item_limit(0)
             assert not viewport._running and not viewport._pending
             before = psutil.Process().cpu_times()
             await pilot.pause(.3)

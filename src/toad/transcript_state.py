@@ -4,6 +4,7 @@ from abc import abstractmethod
 from contextlib import ExitStack
 from dataclasses import dataclass
 from functools import partial
+from time import monotonic
 from typing import ClassVar, TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
@@ -189,7 +190,15 @@ class WorkingTranscript(SuspendedTranscript):
         with ExitStack() as completion:
             completion.callback(owner.finish_source_work, self)
             try:
-                return await work()
+                started = monotonic()
+                result = await work()
+                if (owner._source_state is self
+                        and self.window_before != owner.paging_window()):
+                    # Both wire and native transcript pages deliver through
+                    # this admission. Measure their complete read/prepare/mount
+                    # path, rather than teaching each leaf another horizon.
+                    owner.window.document_viewport.lookahead.delivered(monotonic() - started)
+                return result
             except CoordinationReadUnavailable:
                 # The same admission remains suspended until the existing
                 # observer resumes it. Settling it here would schedule another

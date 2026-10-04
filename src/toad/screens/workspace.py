@@ -128,10 +128,7 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
         await super()._message_loop_exit()
 
     def on_resize(self, _event: Resize) -> None:
-        from toad.widgets.side_bar import SideBar
-
-        for sidebar in self.query(SideBar):
-            sidebar._apply_layout()
+        self.app.workspace_chrome.layout_sidebars(self)
         self.align_tabs_to_sidebars()
 
     def align_tabs_to_sidebars(self) -> None:

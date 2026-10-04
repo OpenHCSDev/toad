@@ -179,8 +179,9 @@ class DirectionalPreparation:
     """Measured travel during preparation, owned by the existing viewport.
 
     Idle expiry measures input cadence, not a renderer's frame rate. Measured
-    foreground body delivery supplies the prediction horizon, including worker
-    waits and native widget construction. Speculative worker batches do not
+    admitted source and foreground body delivery supply the prediction horizon,
+    including source reads, worker waits and native widget construction.
+    Speculative worker batches do not
     overwrite that distinct measurement. The existing
     presentation budget bounds how much of that prediction can be admitted.
     """
@@ -237,18 +238,26 @@ class DirectionalPreparation:
         return self.demand.rows(max(self.budget.lookahead_seconds, self.delivery_seconds))
 
     def ahead_rows(self, viewport_rows: int) -> int:
-        # Resource admission still belongs to PresentationBudget / the viewport
-        # working set; lookahead cannot ask for an entire skipped transcript.
+        # Travel is a demand, not a native retention limit. The existing worker
+        # and presentation owners independently bound its prepared resources.
+        window = self.viewport.window
+        destination = (window.scroll_target_y - window.scroll_y
+                       if window.app.animator.is_being_animated(window, "scroll_y") else 0)
         return max(self.budget.runway_rows(viewport_rows),
-                   ceil(min(viewport_rows * self.budget.reserve_batches, abs(self.travel_rows))))
+                   ceil(abs(self.travel_rows)), ceil(abs(destination)))
+
+    def preparation_count(self, viewport_rows: int) -> int:
+        # Pure preparation can run beyond the smaller native widget working
+        # set. Its retained entries/bytes and concurrent work stay runtime-owned.
+        return min(self.viewport.window.app.preparation.max_entries, max(
+            self.budget.admission_items,
+            ceil(self.ahead_rows(viewport_rows) / self.viewport.visible_body_rows),
+        ))
 
     def admission(self, budget: PresentationBudget, viewport_rows: int) -> int:
         # Rows and source fragments are different units. Use the original
         # native body's measured extent for both page and body lookahead.
-        return min(budget.item_limit(0), max(
-            budget.admission_items,
-            ceil(self.ahead_rows(viewport_rows) / self.viewport.visible_body_rows),
-        ))
+        return min(budget.item_limit(0), self.preparation_count(viewport_rows))
 
     def accepts(self, demand: PreparationDemand) -> bool:
         """Baseline runway survives idle; reversal revokes the original batch."""

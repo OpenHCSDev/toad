@@ -172,8 +172,6 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
         self._initial_prompt = initial_prompt
         self._thread_sidebar_state = SidebarState()
         self._project_panel: ProjectPanel | None = None
-        self._content_loaded = agent is None
-        self._content_loading = False
         self._content_ready = asyncio.Event()
         self._content_error: BaseException | None = None
         from toad.session_presentation import OperationalSessionPresentation
@@ -183,11 +181,17 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
     async def prepare_presentation(self) -> None:
         from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 
-        await self.presentation.prepare(self)
-        await super().prepare_presentation()
-        self._start_content_hydration()
-        if sidebar := self.query_one_optional(SessionThreadSidebar):
-            await sidebar.prepare_presentation()
+        try:
+            await self.presentation.prepare(self)
+            await super().prepare_presentation()
+            if sidebar := self.query_one_optional(SessionThreadSidebar):
+                await sidebar.prepare_presentation()
+            await self.query("#session-opening").remove()
+        except BaseException as error:
+            self._content_error = error
+            raise
+        finally:
+            self._content_ready.set()
 
     async def retire_presentation(self) -> None:
         from toad.widgets.session_thread_sidebar import SessionThreadSidebar
@@ -235,7 +239,7 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
             yield SessionThreadSidebar(self)
             with containers.Vertical(id="session-content"):
                 yield self.presentation.compose_content(self)
-                if not self._content_loaded:
+                if self._agent is not None:
                     yield ThreadLoading(id="session-opening")
 
     def _make_conversation(self) -> Conversation:
@@ -245,36 +249,6 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
                 self._session_pk, self.app.session_tracker.sessions[self.id].initial_title,
                 initial_prompt=self._initial_prompt,
             )
-
-    def _start_content_hydration(self) -> None:
-        if (self.is_current and not self._content_loaded and not self._content_loading
-                and self.is_attached):
-            self._content_loading = True
-            self.run_worker(self._load_content(), group="session-content")
-
-    async def _load_content(self) -> None:
-        try:
-            for sidebar in self.query(SideBar):
-                await sidebar.wait_content_ready()
-            if not self.is_attached or self._closing:
-                return
-            content = self.query_one("#session-content", containers.Vertical)
-            # The lifetime owner serializes initial activation and return.
-            # Hydration must not construct a second rich view beside it.
-            await self.presentation.prepare(self)
-            conversation = self.query_one(Conversation)
-            if not self.is_attached or self._closing:
-                return
-            self._content_loaded = True
-            conversation.display = True
-            await content.query("#session-opening").remove()
-            if self.is_current and self.screen.focused is None:
-                conversation.focus_prompt()
-        except BaseException as error:
-            self._content_error = error
-            raise
-        finally:
-            self._content_ready.set()
 
     async def wait_content_ready(self) -> None:
         await self._content_ready.wait()
@@ -499,10 +473,6 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
                 if self.coordination_root is not None
                 else self._resolve_comms_thread()
             )
-        if self._content_loaded:
-            self._content_ready.set()
-        else:
-            self.screen.frame_presentation.defer(self, self._start_content_hydration)
         self.observe_core(self.app.events)
         # Keep the screen-wide navigation row independent of sidebar geometry,
         # including when restoring a previously mounted owner tab.
@@ -543,7 +513,7 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
 
     def sidebar_focus_target(self) -> Widget | None:
         conversation = self.query_one_optional(Conversation)
-        if conversation is None or not self._content_loaded:
+        if conversation is None:
             return None
         target = conversation.prompt.prompt_text_area
         return target if target.focusable else None

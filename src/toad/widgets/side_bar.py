@@ -676,15 +676,13 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
     def on_mount(self) -> None:
         self.trap_focus()
         app = cast("ToadApp", self.app)
-        if self.id in app.sidebar_layout.placements:
-            self.observe_core(app.events)
         if self._navigation is None:
             self.observe_core(app.settings.events)
             self.collapsed = cast("ToadApp", self.app).settings.sidebar.hide
         else:
             self.collapsed = self.hide
         self.watch_collapsed(self.collapsed)
-        self._apply_layout()
+        app.workspace_chrome.layout_sidebars(self.screen)
         if self._panels_loaded:
             self._panels_ready.set()
         else:
@@ -760,29 +758,15 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
             id="sidebar-layout-actions",
         )
 
-    def _order_sidebars(self) -> None:
-        parent = self.parent
-        if parent is None:
-            return
-        app = cast("ToadApp", self.app)
-        order = {key: index for index, key in enumerate(app.sidebar_layout.ordered())}
-        before = tuple(child.id for child in parent.children)
-        after = tuple(sorted(before, key=lambda identity: order.get(identity, len(order))))
-        if before != after:
-            parent.sort_children(key=lambda child: order.get(child.id, len(order)))
-            parent.refresh(layout=True)
-
-    def _apply_layout(self) -> bool:
+    def _apply_layout(self, resolved) -> bool:
         app = cast("ToadApp", self.app)
         if self.id not in app.sidebar_layout.placements or not self.is_mounted:
             return False
         placement = app.sidebar_layout.get(self.id)
         parent = self.parent
-        if parent is None or not self.display or not all(
-                ancestor.display for ancestor in self.ancestors if isinstance(ancestor, Widget)):
+        if parent is None or not self.presentation_visible:
             self._presented_layout = None
             return False
-        resolved = app.workspace_chrome.sidebar_geometry(self)
         geometry = resolved.bars[self.id]
         width = geometry.width
         key = (placement, geometry, resolved.left_gutter, resolved.right_gutter,
@@ -795,14 +779,12 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
         if toggle := self.query_one_optional(SideBarToggle):
             toggle.right = self.right
             toggle.set_collapsed(self.collapsed)
-        self.styles.width = self.styles.min_width = self.styles.max_width = width
         shared = self is app.workspace_chrome.channels
-        self.styles.dock = placement.side if not shared else "none"
-        self.styles.position = "absolute"
-        self.styles.overlay = "screen"
         offset_x = (geometry.x if shared or placement.side == "left" else
                     geometry.x + width - self.screen.size.width)
-        self.offset = (offset_x, 0)
+        self.set_styles(width=width, min_width=width, max_width=width,
+                        dock=placement.side if not shared else "none",
+                        position="absolute", overlay="screen", offset=(offset_x, 0))
         if handle := self.query_one_optional(SidebarResizeHandle):
             handle.display = not self.collapsed
         if self._panels_loaded and (controls := self.query_one_optional("#sidebar-controls")):
@@ -817,7 +799,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
                 # Reconcile at the committed child frame, not against an
                 # incomplete control tree during a resize/activation callback.
                 self._presented_layout = None
-                self.call_after_refresh(self._apply_layout)
+                self.call_after_refresh(app.workspace_chrome.layout_sidebars, self.screen)
             else:
                 slider.reversed = self.right
                 slider.set_range(15, 50, placement.width_percent)
@@ -845,14 +827,9 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
             )
         return True
 
-    @handles(core_events.SidebarLayoutChanged)
-    async def _layout_changed(self, event: CoreEventMessage) -> None:
-        if self.is_mounted and self.screen.is_current and self._apply_layout():
-            self._order_sidebars()
-
     def on_resize(self) -> None:
-        if self.is_mounted and self.screen.is_current and self._apply_layout():
-            cast("ToadApp", self.app).events.publish(core_events.SidebarLayoutChanged())
+        if self.is_mounted and self.screen.is_current:
+            cast("ToadApp", self.app).workspace_chrome.layout_sidebars(self.screen)
 
     @on(SidebarSlider.Changed)
     def on_sidebar_slider(self, event: SidebarSlider.Changed) -> None:
@@ -882,7 +859,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
         changed = self._presented_collapsed != self.collapsed
         if changed:
             self.watch_collapsed(self.collapsed)
-        changed |= self._apply_layout()
+        changed |= cast("ToadApp", self.app).workspace_chrome.layout_sidebars(self.screen)
         navigation = self.navigation
         for panel in self.query(SideBarCollapsible):
             if str(panel.title) in navigation.panels_collapsed:
@@ -925,7 +902,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
                 panel.widget.sidebar_visibility_changed()
         self._presented_layout = None
         if self.is_mounted and self.id in cast("ToadApp", self.app).sidebar_layout.placements:
-            self._apply_layout()
+            cast("ToadApp", self.app).workspace_chrome.layout_sidebars(self.screen)
             cast("ToadApp", self.app).events.publish(core_events.SidebarLayoutChanged())
 
     def render(self) -> str:
@@ -986,9 +963,9 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
         if not focus and self.is_mounted and self.screen.is_current:
             parent = self.parent
             if isinstance(parent, Widget):
+                cast("ToadApp", self.app).workspace_chrome.layout_sidebars(self.screen)
                 for child in parent.children:
                     if isinstance(child, SideBar):
-                        child._apply_layout()
                         for node in child.walk_children(Widget, with_self=True):
                             node._check_refresh()
                     else:
