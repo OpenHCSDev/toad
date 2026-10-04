@@ -4,7 +4,7 @@ Full performance remains active: rapid/reverse/End/growing history, preparation 
 
 ## What changed
 
-Seven production files in the current source batch, normally joined with merged #422; the release family and sidebar/tab changes are all source-only, not Ready.
+Current normal-main delta: 12 production files, 100 additions and 164 deletions. Release, sidebar/tab and session-opening changes are source-only, not Ready; final counts derive Git, not earlier four-file checkpoints.
 
 - Existing `SidebarVisibilityObserver.painted_rows` now owns busy-row selection from the original compositor's visible scene. Left channel projection and right relationship animation both consume it. Removed the separate projection selector and the right panel's walk/update of every busy retained row. Original native attachment, pruning/closing and nearest tree ownership remain; no new roster/cache/map/timer or rate policy.
 - `NativeSessionAdmission.tab` selects the original matching `ThreadView` before reading its declaration-owned presentation. Previously each native tab interpreted the entire snapshot roster, although only that one label was used. All `SessionAdmissions.tabs` / `app.open_tabs` consumers benefit. Unread indexing, fallback title, session admission and closure are unchanged. Sch granted exactly this seam; F1 action/deletion hooks are untouched.
@@ -117,3 +117,7 @@ replacement. Those temporarily destroy their old presentations; removing their
 paint fence alone would expose that intermediate tree. They need resource/lifecycle
 closure, not blind unindentation. This checkpoint does not claim the whole stall
 family closed.
+
+## Integration boundary
+
+The release-only source approved for Sch is the two-file family at e523a93f9 (Conversation and OperationalSessionPresentation). It includes acquisition of the actual cached viewport before the first await. Full #426 also carries unqualified row/tab/ancestry and session-opening changes; its one affected qualification must cover row offscreen/reentry and labels as well as switching/first paint. F1 may integrate only the release family for its changed whole-App native-delete case. Its original09 negative remains immutable; no callback-only shutdown acceptance.
