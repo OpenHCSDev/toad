@@ -1,0 +1,66 @@
+{
+  "tool": "original refactor-audit Package",
+  "qualified_scope": "AST/source only; no App/provider/native input",
+  "head": "37a73327f245a74fdae0c79c91acbb2c80b568b7",
+  "packages": [
+    {
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": [],
+      "sites": []
+    },
+    {
+      "root": "tests",
+      "modules": 395,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 114,
+          "import": "viewport_recent_tabs_pilot"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 146,
+          "reference": "ReaderCheckpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 18,
+          "import": "viewport_recent_tabs_pilot"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 192,
+          "reference": "ReaderCheckpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 334,
+          "reference": "ReaderCheckpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 345,
+          "reference": "ReaderCheckpoint"
+        },
+        {
+          "path": "tests/viewport_recent_tabs_pilot.py",
+          "line": 56,
+          "declaration": "ReaderCheckpoint"
+        }
+      ]
+    },
+    {
+      "root": "tools",
+      "modules": 41,
+      "omissions": [],
+      "sites": []
+    }
+  ],
+  "src_delta_vs_parent443": "",
+  "native_dependency_before": "retained59 249 modules/zero omissions unchanged/no native edit",
+  "limits": [
+    "Lexical source coverage is not runtime/dynamic receiver proof. Native and source444 evidence remains frozen."
+  ]
+}
