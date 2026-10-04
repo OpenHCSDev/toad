@@ -4,7 +4,7 @@ Full performance remains active: rapid/reverse/End/growing history, preparation 
 
 ## What changed
 
-Current normal-main delta: 13 production files, 122 additions and 171 deletions. Release, sidebar/tab and session-opening changes are source-only, not Ready; final counts derive Git, not earlier four-file checkpoints.
+Current normal-main delta: 14 production files, 132 additions and 169 deletions. Release, sidebar/tab and session-opening changes are source-only, not Ready; final counts derive Git, not earlier four-file checkpoints.
 
 - Existing `SidebarVisibilityObserver.painted_rows` now owns visible-row selection from the original compositor's scene. Left channel projection and right relationship animation both consume it; each original prepared row owns busy eligibility. Removed the separate projection selector and the right panel's walk/update of every busy retained row. Original native attachment, pruning/closing and nearest tree ownership remain; no new roster/cache/map/timer or rate policy.
 - `NativeSessionAdmission.tab` selects the original matching `ThreadView` before reading its declaration-owned presentation. Previously each native tab interpreted the entire snapshot roster, although only that one label was used. All `SessionAdmissions.tabs` / `app.open_tabs` consumers benefit. Unread indexing, fallback title, session admission and closure are unchanged. Sch granted exactly this seam; F1 action/deletion hooks are untouched.
@@ -173,3 +173,23 @@ created by this publication. Following actual handback, the affected App checks
 must cover callback-source activation/closure, busy rows offscreen/return and
 native/shared tab labels, then the meaningful configured switch/sidebar/motion
 journey. Existing source and native controls do not replace that user path.
+
+## Callback admission uses the original source and screen owners
+
+The exact ceb28770 hosted ratchet failed with ForeignAbsenceProbe +2 in
+FramePresentation. That original failure remains recorded; no waiver. The frame
+was reading SessionView.is_current (which recombined logical selection and screen
+activity) while separately checking screen activity itself. WorkspaceScreen now
+owns inactive-scene admission; WorkspaceSessions admits each callback through its
+original WorkspaceSource.current binding and sends it to the owner's native pump.
+FramePresentation owns the writer receipt and same pending callback resource, and
+drops only detached work or work actually dispatched. Hidden mounted callbacks stay
+retained without a copied readiness flag. Selected Loading work still needs its
+own writer receipt because select begins that frame before assigning the source.
+
+The native callback source pass confirmed call_after_refresh is neither a writer
+receipt nor an active-screen guarantee. Native Screen awaits callbacks and may
+drain them while inactive; source I/O stays on owner.call_later, outside that native
+callback lifetime. No native callback change is needed. The release-only e523
+Conversation/session_presentation family is byte-unchanged and remains Sch's
+separate F1 seam. No App/film/package use; actual F4 handback remains required.

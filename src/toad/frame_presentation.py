@@ -157,24 +157,13 @@ class FramePresentation:
         another publication. Keep its work for that publication's writer
         receipt; closing removes the resource before either callback arrives.
         """
-        from toad.screens.session_view import SessionView
-
         key = owner, callback
-        if not self.ready or not self.screen.is_current or key not in self.callbacks:
+        if not self.ready or key not in self.callbacks:
             return
-        if not owner.is_attached:
-            del self.callbacks[key]
-            return
-        for source in owner.walk_ancestors(with_self=True):
-            if isinstance(source, SessionView):
-                if not source.is_current:
-                    # Hidden mounts cannot borrow the departing frame. Their
-                    # selected publication releases this same operation.
-                    return
-                break
+        if owner.is_attached:
+            if not self.screen.release_frame_callback(owner, callback):
+                return
         del self.callbacks[key]
-        # The original message pump rejects work once its owner closes.
-        owner.call_later(callback)
 
     def displayed(self):
         self.state.displayed(self)

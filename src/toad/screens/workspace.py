@@ -165,6 +165,12 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
     def _prepare_compositor_refresh(self) -> bool:
         return self.viewport_presentation.prepare()
 
+    def release_frame_callback(self, owner, callback) -> bool:
+        """Inactive native scenes retain their work for their next frame."""
+        if not self.is_current:
+            return False
+        return self.app.workspace_sessions.release_frame_callback(owner, callback)
+
     def _use_viewport_layout(self) -> bool:
         return self.is_current
 
