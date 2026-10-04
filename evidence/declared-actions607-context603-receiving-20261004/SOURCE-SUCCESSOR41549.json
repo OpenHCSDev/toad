@@ -1,0 +1,18 @@
+{
+  "state": "Source-only successor join; in-flight417/334 imports and original416 assembly frozen",
+  "normal415_merge": "8622069433d348556d9e2c3975fafbcb0282086f",
+  "qualified415_head": "c917a7c48144ce6e3f1daa6b68193451a8c94830",
+  "qualified_vs_main_production_delta": false,
+  "receiving_vs_main_production_delta": false,
+  "core_pin_retained": "03954605c0f1c75e60e1f09618e619edcedcd8cc",
+  "textual49_merge": "3d6d4146fa04b0b0d46445b98b0c9bcc2761ef25",
+  "native_retained_manifest": "d5efa0d56e7ad3962bf3efc009adf1569167a260f1ceb46824c9271a0e7542a2",
+  "conflict_resolved": "pyproject.toml only: retain acceptedCore609; select actualmergedText49. uv.lock merged normally, qualifiedText49 reference updated to actual main revision.",
+  "original_assembly_head": "716832a5883b56adb1f0bd1c5ca543bfe10f50b6",
+  "original_assembly_evidence_head": "3ed4f38f16d8430b25c02e318ff564e73d13374f",
+  "original_assembly_source_proof": "04154735ff030014ac5b0d944665984c876f1dff8f13343154adc007909962e8",
+  "current_package_window": "CLOSED: Einstein417 owns in-flight334 CODE imports until actualterminal+handback",
+  "package_build_install_native_or_public_writes": 0,
+  "qualification": "Original140.726s reader/paint/resource qualification retained, no smoothness/DURING/speed claim. Source-only normal merge, no repeatedfilm/SDK/App ritual.",
+  "source_preparation_correction": "The sparse merge left historical CHECKPOINT.md unmaterialized; first private documentation append refused before commit. Original document restored from HEAD, no installed/package/native/public effect."
+}

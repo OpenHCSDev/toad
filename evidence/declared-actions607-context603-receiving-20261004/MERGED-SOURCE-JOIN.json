@@ -1,0 +1,20 @@
+{
+  "core": "03954605c0f1c75e60e1f09618e619edcedcd8cc",
+  "core607": "33851e9da7d56f62ffee4873bee3a26e6ce678f1",
+  "core603": "0e28f21cd41e6af8391b2940bf6ae51cdab6b5e3",
+  "toad406": "eb529624a8bb927a6a0b89ae3880305e0e4e61ba",
+  "toad413": "77149570ec70679ec42d8f94316c08dbfc391f89",
+  "textual": "7ccfcf6af55ac6e743220aa0d2286b9763ccee27",
+  "native_manifest": "d5efa0d56e7ad3962bf3efc009adf1569167a260f1ceb46824c9271a0e7542a2",
+  "core_dependency_delta_607_to_609": false,
+  "receiving_pin_changes": 3,
+  "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released334-current411-next416-package-only-grant.json",
+  "original411_archive_sha256": "375dcf0ecc9643e41222e62548e88778bf005fd51c27e857d3c969b410460312",
+  "normal_main_ancestor": "eb529624a8bb927a6a0b89ae3880305e0e4e61ba",
+  "package_stage": false,
+  "public_change": false,
+  "excluded": [
+    "608",
+    "610"
+  ]
+}

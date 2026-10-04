@@ -1,0 +1,25 @@
+{
+  "result": "accepted-ordinary-default-saved-history-startup",
+  "command": "/home/ts/bin/toad-comms openhcs-helper",
+  "publisher_duration_seconds": 41.68945503234863,
+  "owner_count": 19,
+  "all_thread_births_settings_preserved": true,
+  "capture_completed": true,
+  "completed": true,
+  "duration_seconds": 23.586318806977943,
+  "runtime_unchanged": true,
+  "terminal_exit": {
+    "pid": 3422623,
+    "start_ticks": 54748620,
+    "returncode": 0
+  },
+  "cleanup_remaining": [],
+  "cleanup_errors": [],
+  "personal_image_review": "after.png personally viewed AFTER terminal: saved messages readable, helper/sidebar/session Ready, focused empty editor, no activity bar; terminal window occupies part of isolated display",
+  "providers": 0,
+  "inputs": 0,
+  "scope": "Ordinary default installed saved-history startup, not fresh delivery, compaction, smoother motion or latency comparison",
+  "raw_recording_disposition": "Dispose completed observe-only media/duplicate exports after concise acceptance; no perpetual media retention",
+  "raw_receipt_sha256": "20fc3fc37628bacfa8bf95b3ba22e38401fdb6e448ef1de30027e2aa7a25162a",
+  "reviewed_image_sha256": "a676f1e8c282ea70ef3af2575afdbcf7df73f8eca7c2bc0508776ba5910d7c87"
+}

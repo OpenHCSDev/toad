@@ -1,0 +1,17 @@
+{
+  "source_head": "2420f4c71b6c15ee5cb67f5c30c4b38b57815d89",
+  "wheel": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/final41549/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+  "sha256": "c6b91a26c6253d3dad32d1d414cbea1678b95f8a9f6e66e88b4f20c79186fde4",
+  "bytes": 2239940,
+  "source_assets": 319,
+  "all_source_assets_exact": true,
+  "SeekingFilter_uses_owner_selected_categories": true,
+  "transcript_mount_bytes_equal_qualified415_source": true,
+  "declared_backend": "hatchling==1.28.0",
+  "existing_backend_module": "/home/ts/.cache/uv/archive-v0/RgcgNn7xR1Zs9HSF/hatchling",
+  "new_environment": false,
+  "VCS_clone": false,
+  "Core_or_native_build": false,
+  "target334_writes": false,
+  "purpose": "Qualified normal4162420 restore wheel with accepted415 filter/mount and existingmenus/currentcontext. 417 draft excluded."
+}

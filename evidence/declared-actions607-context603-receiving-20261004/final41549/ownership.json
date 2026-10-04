@@ -1,0 +1,44 @@
+{
+  "core": "d41601c16d74e9e3e4195b6527fb218b8fe14af9",
+  "operator_core": "d41601c16d74e9e3e4195b6527fb218b8fe14af9",
+  "toad": "19136efa5c2559d08f9674882756722d17eed340",
+  "textual": "3d6d4146fa04b0b0d46445b98b0c9bcc2761ef25",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-2ea0a4d4ff2e3628/node_modules/@earendil-works/pi-coding-agent",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "archive_artifacts": [
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/input-drain611-wheels/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "4e3ff32503360fe7975ec71da19479774c0ff04ac6b0a2aa09ee38a1521219ba"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/final41549/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "c6b91a26c6253d3dad32d1d414cbea1678b95f8a9f6e66e88b4f20c79186fde4"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text49-filewheel-cb12189d-20261003/textual-8.2.8-py3-none-any.whl",
+      "sha256": "b10f3877a32f201f915cfcc36843b5549a9a1b4e9da890b8badbc48cd254b4f1"
+    }
+  ],
+  "purpose": "416 accepted currentcontext/menus +41549 real sidebar crash fix, normal611/610 matching2ea. No417/608/418 product.",
+  "excluded": [
+    "608",
+    "610",
+    "live485",
+    "fallback534",
+    "style22",
+    "540"
+  ],
+  "no_new_environment": true,
+  "no_new_native": true,
+  "gate_files": [
+    "603-configured.json",
+    "607-READY.json",
+    "609-installed.json",
+    "413-installed.json",
+    "406-READY.json",
+    "606-installed.json",
+    "415-READY.json",
+    "610-SDK-READY.json",
+    "611-READY.json"
+  ]
+}

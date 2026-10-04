@@ -1,0 +1,9 @@
+{
+  "state": "REFUSED_BEFORE_PUBLICATION",
+  "reason": "require_no_clients: exact ProcessIdentity(pid=3400017,start_time=54729117)",
+  "publication_receipt_exists": false,
+  "publication_originals_exists": false,
+  "side_effect_boundary": "publish operation.require_selection refused before receipt creation and restart_owners",
+  "subsequent_client_exists": false,
+  "disposition": "Fresh guarded admission permitted; no input/provider/restart replay occurred"
+}
