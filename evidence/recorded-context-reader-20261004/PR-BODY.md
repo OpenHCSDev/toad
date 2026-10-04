@@ -4,7 +4,7 @@ Source checkpoint; **draft, not Ready**. Existing ContextInspection/ContextNode/
 
 - Deleted 33 production lines across the two owned files; added152. Async search, full read/copy/export use the same original selected-source reader. Search result/error publication follows the selected observation.
 - Native Tree disclosure survives member publication. Original08 proves the next control issue: keyboard reveal selected the right system member, then contributor availability changed row geometry and a redundant pixel click selected the root. That extra click is deleted; native Return selects the original cursor once. This control change has not been rerun.
-- Normal merged accepted4162420 (415 filter/mount fix + Text49). No separate SeekingFilter patch.
+- Normal merged actual416516c at af1cf53d: ZERO production delta from reviewed b9bb; Core611d416 dependency pin, accepted415 filter/mount fix + Text49. No separate SeekingFilter patch.
 
 ## Actual installed scope
 
@@ -20,4 +20,4 @@ No new prompt, fork, priming or provider call. Original input/manifest/public an
 
 Contributor membership can change by design during the original nonblocking awareness acquisition; this permits the observed row shift without proving a lock failure. No producer/611/runtime patch or EOF attribution is inferred. The controller selects the original native cursor once, rather than repeating selection at a stale pixel.
 
-Remaining: matched configured recorded-system search/full read and exact contributor acceptance after the published control correction. No new loan or run is authorized before delivery; no unchanged capture/provider repeat requested.
+Remaining: matched configured recorded-system search/full read and exact contributor acceptance after the published control correction. Previous485 exclusive package loan explicitly granted after CURRENT414 archive/readback and fresh borrower clearance. Physical09 is the one remaining changed-control journey; recorded scope stays unqualified until its terminal result. Same original request/fork/incarnation; no new input/provider/fork. Live334 remains untouched.

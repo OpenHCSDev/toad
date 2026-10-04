@@ -159,3 +159,25 @@ source publishes no segment. Native preview observation fences SDK data, while
 contributors are assembled separately. This permits the observed row shift but
 does not establish its exact lock/error cause. No611 or runtime fix is inferred.
 The recorded-search EOF remains unclassified, with no native-fault claim.
+
+## Current normal main join and remaining qualification
+
+Normal merged actual416516c at af1cf53d. Compared with reviewed b9bb, there
+is no production-source change; pyproject/lock now pin accepted Core611d416.
+Text49 and the recorded-reader owner/control closure are unchanged.
+
+Bohr granted the previous485 holder after verifying all1449 CURRENT414 archive
+members and fresh191 all-UID processes with zero references or permission gaps.
+Installed only the normal417 file wheel plus retained Core611 and Text49 wheels.
+All339 Core/319 Toad/266 Textual/3 diff assets match their declared sources; the
+same69 distributions and SDK0.12.1 remain. Existing stage-publication/runtime
+preflight passed. Native2ea is the existing immutable qualified artifact; no
+Core/native build, clone, new environment or live334 write.
+
+The one remaining changed-control physical09 borrows original c603p01 request
+f948ca63-c6b5-4ca5-a4d5-f7c624762478, the same saved fork and incarnation.
+Current original launch capture and canonical stopped restoration/acquisition/
+bind_owned own its startup. No fork, input, provider or priming operation.
+Native Return selects the original revealed member once. Final recorded
+text/search/exact contributor/full read/copy/export/footer are not claimed
+until this actual journey reaches and verifies them. Prior negatives remain.
