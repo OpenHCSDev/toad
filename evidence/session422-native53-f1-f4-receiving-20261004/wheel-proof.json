@@ -1,0 +1,12 @@
+{
+  "head": "bf3e95c16e9b9e971956cf5e062167a8c2d4727f",
+  "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/session422-native53-f1-f4-receiving-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+  "sha256": "f46388433b6c9db1fe62446f13475091d40ea67681646988a68c1eb7a8787b7c",
+  "bytes": 2242647,
+  "tracked_assets_exact": 319,
+  "builder": "existing system hatchling 1.30.1",
+  "declared_hatchling": "1.28.0",
+  "new_env": false,
+  "new_vcs_clone": false,
+  "source": "existing owned published receiving WT; qualified F1/F4/422 union"
+}
