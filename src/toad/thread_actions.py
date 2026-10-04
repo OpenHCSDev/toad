@@ -111,7 +111,7 @@ class ThreadAction:
             try:
                 ctx.current()
                 request = TargetEdit(declaration=definition.declaration, target=ctx.subject,
-                    arguments=arguments, confirmed=bool(definition.confirmation), channel=ctx.channel)
+                    arguments=arguments, confirmed=bool(definition.edited(arguments).confirmation()), channel=ctx.channel)
                 ctx.app.thread_actions.invoke(cls(definition, request), ctx.subject, ctx.actor,
                     (ctx.mode,) if ctx.mode is not None else ())
             except (OSError, ValueError) as error:

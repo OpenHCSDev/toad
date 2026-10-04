@@ -6,7 +6,7 @@ from agent_comms.cli_commands import TargetAction
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalScroll
 from textual.screen import ModalScreen
-from textual.widgets import Button, Input, Static, TextArea
+from textual.widgets import Button, Checkbox, Input, Select, Static, TextArea
 
 
 class CommandDialog(ModalScreen[dict[str, str]]):
@@ -26,20 +26,26 @@ class CommandDialog(ModalScreen[dict[str, str]]):
     def compose(self) -> ComposeResult:
         with Vertical(id='command-box'):
             yield Static(f"{self.definition.label} — {self.target}", markup=False)
-            if self.definition.confirmation:
-                yield Static(self.definition.confirmation, markup=False)
+            yield Static(self.definition.confirmation, markup=False, id='command-confirmation')
             with VerticalScroll(id='command-fields'):
                 for parameter in self.definition.editable_fields:
                     key = parameter.name
                     yield Static(parameter.description, markup=False)
-                    widget = TextArea if parameter.multiline else Input
-                    yield widget(parameter.editor_default, name=key,
-                                 id='command-field-' + key.replace('_', '-'))
+                    if parameter.choices:
+                        yield Select(parameter.choices, value=parameter.editor_default,
+                                     allow_blank=False, name=key,
+                                     id='command-field-' + key.replace('_', '-'))
+                    else:
+                        widget = TextArea if parameter.multiline else Input
+                        yield widget(parameter.editor_default, name=key,
+                                     id='command-field-' + key.replace('_', '-'))
+            yield Checkbox('I confirm this operation', id='command-confirmed')
             yield Button('Apply', id='command-apply', variant='primary')
             yield Button('Cancel', id='command-cancel')
 
     def on_mount(self):
-        fields = list(self.query('Input, TextArea'))
+        self.update_confirmation()
+        fields = list(self.query('Input, TextArea, Select'))
         (fields[0] if fields else self.query_one('#command-cancel', Button)).focus()
 
     def on_input_submitted(self, event: Input.Submitted):
@@ -54,8 +60,34 @@ class CommandDialog(ModalScreen[dict[str, str]]):
             self.action_cancel()
 
     def action_submit(self):
-        self.dismiss({**{editor.name: editor.value for editor in self.query(Input)},
-                      **{editor.name: editor.text for editor in self.query(TextArea)}})
+        arguments = self.arguments()
+        try:
+            confirmation = self.definition.edited(arguments).confirmation()
+        except (KeyError, ValueError, TypeError) as error:
+            self.notify(str(error), severity='error')
+            return
+        if confirmation and not self.query_one('#command-confirmed', Checkbox).value:
+            self.notify('Confirm the declared operation before applying it.', severity='warning')
+            return
+        self.dismiss(arguments)
+
+    def arguments(self):
+        return {**{editor.name: editor.value for editor in self.query(Input)},
+                **{editor.name: editor.text for editor in self.query(TextArea)},
+                **{editor.name: str(editor.value) for editor in self.query(Select)}}
+
+    def update_confirmation(self):
+        try:
+            confirmation = self.definition.edited(self.arguments()).confirmation()
+        except (KeyError, ValueError, TypeError):
+            confirmation = self.definition.confirmation
+        self.query_one('#command-confirmation', Static).update(confirmation)
+        confirmed = self.query_one('#command-confirmed', Checkbox)
+        confirmed.display = bool(confirmation)
+        confirmed.value = False
+
+    def on_select_changed(self, event: Select.Changed):
+        self.update_confirmation()
 
     def action_cancel(self):
         self.dismiss(None)
