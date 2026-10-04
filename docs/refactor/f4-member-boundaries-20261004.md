@@ -129,3 +129,29 @@ are exact; pip check passes. All package/import/execution claims are released to
 Bohr for a fresh sequential lease. Native086 READ custody is returned unchanged.
 No protected fixture/auth/session/history/input/UNKNOWN data was restored or
 deleted.
+
+## Final main integration and ratchet correction
+
+Normal F1/main31c93c7c41a542c352f6b78eb4ae0d8d73f92a61 is joined. The exact
+two release files session_presentation.py and widgets/conversation.py equal
+that accepted main/e523 source. HistoricalSessions equals qualified11e, and
+standalone427 is preserved. The ManifestNode two methods and all owned F4
+constructor/consumer changes are untouched. F1's actual whole native-delete10
+qualification remains independent; no saved-App repeat or holder loan.
+
+Core622421cbaf069bbc21cfb10c0d7b98cc42635605c6a normally joins main486b8366
+and removes the false package-tail mechanism exemption. Six original mechanisms
+are matched by complete Git paths; nested repeated package tails and Textual
+vendored paths count. Existing real Git guards pass4/7.65s with the genuine
+original audit wheel; no copied scanner or aggregate offsets. Core exact Debt
+passes37186256251. This final source-only correction changes debt_ratchet.py
+and its guards; product families remain the accepted saved-App source.
+
+Normal uv lock metadata resolution updates only the declared Core Git source
+from497352d0 to421cbaf0. No installed package, new runtime environment, native
+artifact, prompt or App run. The earlier --no-build metadata attempt correctly
+refused missing build metadata; ordinary uv lock completed through its original
+backend. Current source proof remains explicitly the original497/11e installed
+receipt, with Core ratchet and one APPEND instruction asset changed since that
+cut plus independently qualified F1's two frontend release files. No latest
+source inventory is relabeled installed.
