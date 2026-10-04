@@ -984,8 +984,14 @@ class ProjectedTranscriptHistory(TranscriptHistory):
         # A slow/held row batch must not strand the page's own message pump in
         # Compose, where input-settlement barriers would wait on its startup.
         self.pages[0].stop = self.pages[0].start
-        self.reserve_source_work()
         self.add_class("filtered-history-results")
+
+    async def _finish_mount(self) -> None:
+        # WorkingTranscript captures the actual window reader. Acquire that
+        # operation only after the shared on_mount has bound native ancestry,
+        # before observers may request another edge from this empty cohort.
+        self.reserve_source_work()
+        await super()._finish_mount()
 
     @property
     def older_page_available(self) -> bool:

@@ -11,23 +11,21 @@ from textual.containers import VerticalGroup
 from textual.widgets import Static
 
 from toad.widgets.history_anchor import (
-    HistoryAnchor, OffsetReaderPosition, TailReaderPosition, WindowRestoration,
+    HistoryAnchor, HistoryWindow, OffsetReaderPosition, TailReaderPosition, WindowRestoration,
 )
 
 
 class Probe(ToadApp):
-    CSS = "#geometry-records > Static { height: 1; }"
+    CSS = "#geometry-window { height: 1fr; } #geometry-records > Static { height: 1; }"
 
 
 async def exercise(app):
     async with app.run_test(size=(100, 35)) as pilot:
         await pilot.pause()
-        view = app.selected_session.conversation
-        await view.contents.remove_children()
-        await view.contents.mount(VerticalGroup(*(
+        window = HistoryWindow(VerticalGroup(*(
             Static(f"Record {index}", id=f"record-{index}") for index in range(2000)
-        ), id="geometry-records"))
-        window = view.window
+        ), id="geometry-records"), id="geometry-window")
+        await app.screen.mount(window)
         window.scroll_end(animate=False, immediate=True)
         await pilot.pause()
         # Compensation translates the same running curve. A saved reader

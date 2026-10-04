@@ -71,3 +71,14 @@ projection now takes the canonical owner.selected_categories before suspension;
 no duplicate snapshot selection field or tuple-index decoding was added. All
 snapshot and projection consumers were read through the existing source owner.
 This actual restricted-history crash is part of the same reader/filter batch.
+
+The same final restricted-history path also exposed constructor-time reservation:
+ProjectedTranscriptHistory reserved WorkingTranscript before on_mount bound its
+HistoryWindow, although WorkingTranscript captures window.scroll_revision. The
+existing _finish_mount hook now admits that operation after the common on_mount
+has acquired the real window, before the original coverage/edge observers start.
+All reserve_source_work callers were read: ordinary page/publication paths are
+already mounted; only this constructor violated the acquisition lifetime. No
+copied window reference, reentrant lock, fallback revision or new lifecycle type.
+The native geometry fixture now mounts its original HistoryWindow directly under
+the real App Screen, preserving Conversation's nominal-block admission boundary.
