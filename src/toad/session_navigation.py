@@ -72,6 +72,15 @@ class SessionAdmissions:
         admission = self.get(mode)
         return admission.source(self) if admission else None
 
+    async def reconnect(self, selected, targets: tuple[str, ...]) -> None:
+        if not targets:
+            return
+        originals = self.members
+        snapshot = await self.app.preparation.run_thread(
+            lambda: self.app.coordination_access.require(selected).registry.snapshot())
+        for member in originals:
+            await member.reconnect(self, selected, snapshot, targets)
+
     def publish(self) -> None:
         self.app.events.publish(core_events.OpenTabsChanged())
         self.app.update_show_sessions()

@@ -117,8 +117,9 @@ async def slash(chat, pilot, text):
     await pilot.press('enter')
 
 async def mounted_layers(app, pilot):
+    from toad.widgets.comms_sidebar import CommsSidebar
     screen = app.screen
-    child = screen.query_one('#comms-sidebar')
+    child = screen.query_one(CommsSidebar)
     before = child.layers
     original = screen.styles.inline.get_rule('layers')
     try:
@@ -131,6 +132,101 @@ async def mounted_layers(app, pilot):
         screen.refresh(layout=True)
     await pilot.pause()
     assert child.layers == before
+
+
+async def started_target_connections(base):
+    """Use the original SDK/ACP fixture, with no native prompt or model call."""
+    from l0a_native_installed_pilot import main as native_journey
+    from toad.acp.agent_session import AgentSession
+    from toad.conversation_kind import DmConversation
+
+    evidence = base / 'start-connections'
+    evidence.mkdir()
+    os.environ['L0A_EVIDENCE'] = str(evidence)
+    calls = []
+    code = AgentSession.reconnect.__code__
+
+    def observe(frame, event, _argument):
+        if event == 'call' and frame.f_code is code:
+            calls.append(frame.f_locals['self'].agent)
+
+    async def acceptance(app, pilot, actor, comms, _entered, _release, _hold, requests):
+        from agent_comms.cli_commands import StartCliCommand
+        actor_mode = app.selected_mode
+        actor_source = app.selected_session
+        project = actor_source.project_path
+        original = comms.registry.require('beta')
+        comms.registry.declare(Thread('peer', frozenset({'team'}), str(project),
+            model=original.model, thinking_level=original.thinking_level), StoppedThreadStatus())
+        comms.threads.restore_stopped(comms.registry.snapshot(), ('peer',))
+        # A retained alias must select the same original native B admission.
+        actor_process = actor.process.process
+        actor_session = actor.session
+        actor_contents = actor_source.conversation.contents
+        inputs = comms.root / 'input_dispositions.json'
+        before_inputs = inputs.read_bytes() if inputs.exists() else None
+
+        async def start_from_dm():
+            await app.session_navigation.history(owner_mode=actor_mode, project_path=project,
+                me='beta', target='peer', kind=DmConversation)
+            chat = app.selected_session.query_one(CommsChatView)
+            context = await chat.command_target_context()
+            definition = next(item for item in await app.preparation.run_thread(context.available_actions)
+                              if item.declaration is StartCliCommand)
+            from toad.thread_actions import ThreadAction
+            ThreadAction.collect(context, definition)
+            await until(pilot, lambda: not app.thread_actions.pending)
+
+        threading.setprofile_all_threads(observe)
+        try:
+            await start_from_dm()
+            assert comms.registry.require('peer').process_alive
+            assert calls == [], 'No B source is open; A must not reconnect'
+            await app.preparation.run_thread(comms.threads.rename_managed_thread,
+                'peer', 'peer-current', owner_pid=comms.registry.require('peer').pid)
+            peer_mode = await app.thread_navigation.open(owner_mode=actor_mode,
+                project_path=project, target='peer')
+            peer_source = app.session_navigation.source(peer_mode)
+            await until(pilot, lambda: peer_source.conversation.agent is not None)
+            peer = peer_source.conversation.agent
+            await until(pilot, peer.session.settled.is_set)
+            assert peer.session.connected
+            await peer.stop()
+            await app.preparation.run_thread(comms.owners.stop, 'peer')
+            await start_from_dm()
+            assert calls == [peer], 'Only the already-bound original B source may reconnect'
+            assert peer.session.connected and comms.registry.require('peer').process_alive
+            assert actor.process.process is actor_process and actor_process.returncode is None
+            assert actor.session is actor_session and actor.session.connected
+            assert actor_source.conversation.contents is actor_contents
+            assert app.session_navigation.source(actor_mode) is actor_source
+            # Sidebar actions have no captured view mode. They still refresh
+            # the original already-open native B resource after a fresh start.
+            await peer.stop()
+            await app.preparation.run_thread(comms.owners.stop, 'peer')
+            from toad.target_commands import TargetContext
+            from toad.thread_actions import ThreadAction
+            context = TargetContext(app, comms, 'peer', 'beta', project)
+            definition = next(item for item in await app.preparation.run_thread(context.available_actions)
+                              if item.declaration is StartCliCommand)
+            ThreadAction.collect(context, definition)
+            await until(pilot, lambda: not app.thread_actions.pending)
+            assert calls == [peer, peer] and peer.session.connected
+            assert actor.process.process is actor_process and actor_process.returncode is None
+            assert actor_source.conversation.contents is actor_contents
+            assert (inputs.read_bytes() if inputs.exists() else None) == before_inputs
+            assert requests == []
+            (evidence / 'receipt.json').write_text(json.dumps({
+                'result': 'PASS', 'actor': 'beta', 'peer': 'peer-current',
+                'actor_connection_and_reader_unchanged': True,
+                'no_open_peer_reconnections': 0, 'dm_bound_peer_reconnections': 1,
+                'sidebar_bound_peer_reconnections': 1,
+                'alias_preserved': True, 'provider_calls': 0, 'native_inputs': 0}, indent=2)+'\n')
+        finally:
+            threading.setprofile_all_threads(None)
+
+    await native_journey(acceptance=acceptance, provider_request_budget=0,
+                         fixture_stage=base / 'start-fixture', app_type=ToadApp)
 
 
 async def journey(args):
@@ -300,6 +396,8 @@ async def journey(args):
     assert catalog_reads and all(read['thread'] != ui_thread for read in catalog_reads)
     checks.append('all-observed-catalog-reads-off-ui-loop')
     threading.setprofile_all_threads(None)
+    await started_target_connections(base)
+    checks.append('actual-start-dm-peer-not-actor-bound-native-root-alias-connection')
     await asyncio.get_running_loop().shutdown_default_executor()
     receipt = {'result':'PASS','scope':'installed App native widget + same-root CLI; no provider/native input/public writes',
                'physical_linux_driver':args.physical,'seconds':time.monotonic()-start,'checks':checks,

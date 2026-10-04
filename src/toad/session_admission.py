@@ -41,6 +41,9 @@ class SessionAdmission(DeclaredFamily, affix="Admission"):
     async def ready(self, sessions: SessionAdmissions) -> None:
         """Views with deferred loading own their admission completion."""
 
+    async def reconnect(self, sessions: SessionAdmissions, selected, snapshot, targets) -> None:
+        """Only a bound native admission can refresh its connection resource."""
+
     def source(self, sessions: SessionAdmissions) -> MainScreen | None:
         return None
 
@@ -101,6 +104,20 @@ class NativeSessionAdmission(SessionAdmission):
 
     def source(self, sessions: SessionAdmissions) -> MainScreen | None:
         return sessions.app.workspace_sessions.views.get(self.mode)
+
+    async def reconnect(self, sessions, selected, snapshot, targets):
+        from toad.comms_root import RouteSelection
+
+        if sessions.get(self.mode) is not self or RouteSelection.capture() != selected:
+            return
+        if source := self.source(sessions):
+            if agent := source.conversation.agent:
+                if binding := agent.coordination:
+                    if ((binding.wire_root, binding.thread) in self.original_threads(sessions)
+                            and Path(binding.wire_root).resolve() == selected.root
+                            and any(binding.thread.matches_recorded_name(target, snapshot)
+                                    for target in targets)):
+                        await agent.session.reconnect()
 
     def accepts_launch(self, sessions: SessionAdmissions, agent_identity: str, session_id: str) -> bool:
         source = self.source(sessions)
