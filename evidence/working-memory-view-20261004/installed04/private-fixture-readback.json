@@ -1,0 +1,73 @@
+{
+  "fixture": "/home/ts/wt/w6e04/test_authored_import_registere0",
+  "source": "/home/ts/wt/w6e04/test_authored_import_registere0/authored-history.jsonl",
+  "source_sha256": "77ea1d67589a129b9cb27c9c3e356fe214f5c3a023e0b5b8ca834d0744e14421",
+  "source_bytes": 502,
+  "labels": [
+    {
+      "label_type": "ModelLabel",
+      "section": "Unclassified",
+      "answer": "rule_span",
+      "author": null
+    },
+    {
+      "label_type": "HumanLabel",
+      "section": "Promised",
+      "answer": "commitment_span",
+      "author": {
+        "name": "user",
+        "created_at": 1791149401.3373885
+      }
+    }
+  ],
+  "table_counts": {
+    "native_runtime_input": 0,
+    "annotation_requests": 0,
+    "current_native_cursor": 0,
+    "span_annotations": 2
+  },
+  "inputs": {
+    "rows": {},
+    "version": 1
+  },
+  "bus_bytes": 0,
+  "phases": [
+    "[1791149401.366] W6: original local USER correction committed; controller constructed",
+    "[1791149401.366] W6: acquiring original private launch and stopped-source restoration",
+    "[1791149401.388] W6: original owner acquired; awaiting bind_owned",
+    "[1791149401.389] W6: canonical owner acquired and runtime bound",
+    "[1791149401.423] W6: entering original registered App startup and screen barrier",
+    "[1791149405.231] W6: App entered; awaiting original content readiness",
+    "[1791149405.231] W6: content ready; awaiting frame-admitted ACP agent construction",
+    "[1791149405.231] W6: ACP agent constructed; awaiting original session attachment settlement",
+    "[1791149409.434] W6: original ACP session and published source binding admitted; opening sidebar",
+    "[1791149410.273] W6: original right sidebar hydrated",
+    "[1791149410.273] W6: acquiring original imported reference and waiting for its tree node",
+    "[1791149414.873] W6: joining original controller resources",
+    "[1791149416.387] W6: controller resources joined"
+  ],
+  "result": "App/ACP settlement and exactroot/incarnation passed; historical model acquired, but native pointer selection cursor was Context root beforeEnter; read/search/export UNREACHED",
+  "failure": "tree.cursor_node actualRoot Context/None instead of originalHistoricalReferenceNode after pointer dispatch; secondfocus conjunct shortcircuited so focus not proven by assertion; cause not classified",
+  "original90s": "Unknown, no replay",
+  "fullW6": "AnnotationNode grouping/GUI correction not qualified",
+  "runtime_sessions": [
+    {
+      "thread": "authored-import",
+      "incarnation": {
+        "name": "authored-import",
+        "created_at": 1791149401.2434037
+      },
+      "pid": 784577,
+      "session_file": "/home/ts/wt/w6e04/test_authored_import_registere0/wire/imported_sessions/596c4406551d41d181953df601811f03.jsonl"
+    },
+    {
+      "thread": "user",
+      "incarnation": {
+        "name": "user",
+        "created_at": 1791149401.3373885
+      },
+      "pid": 0,
+      "session_file": null
+    }
+  ]
+}

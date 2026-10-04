@@ -1,0 +1,9 @@
+{
+  "state": "Append-only clarification of inherited restore_verify result wording",
+  "restore_receipt_sha256": "819fcfcdd8f459849ed7fedcb35904bff3cc39ecc9a4a4c30e5e4963a1c12303",
+  "actual04_restoration": "Only original uv installer --no-cache with four retained normal filewheels. No archive-member write performed or needed.",
+  "verified": "All1470SHA/mode/readlink +69versions/origins +390protected +noextra assets/sockets PASS; raw retained NRAZIP and actual floor both8f61",
+  "prior03": "Original stale-extraction failure and prior exact archive-member restoration retained unchanged; fb6e was not rawwheel member",
+  "original_cleaner_correction": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-NRA-retained-wheel-raw-ZIP-correction.json",
+  "original_cleaner_correction_sha256": "ffa88e877f48bc2f0bf6af72354fdb605ed78ecc582d99c4b2ab9d2a2bb34e68"
+}

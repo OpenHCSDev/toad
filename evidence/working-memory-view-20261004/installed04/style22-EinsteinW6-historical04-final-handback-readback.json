@@ -1,0 +1,52 @@
+{
+  "verified_at": 1791149665.1590862,
+  "whole_handback": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-historical-installed04/whole-handback.json",
+  "whole_handback_sha256": "a6a1fb4d69dd9f4ab88b06df1b23ca5275dd4cfe89fb5fa07e024bc3a3c1427f",
+  "actual_terminal": {
+    "elapsed": 22.254975423100404,
+    "returncode": 1,
+    "timed_out": false,
+    "error": null,
+    "child_retired": true,
+    "owned_group_members": [],
+    "scope": "One changed authored historical App, not full W6",
+    "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-EinsteinW6-historical04-Core627-Toad434-issued-grant.json"
+  },
+  "actual_scope": "FAIL beforeEnter: originalregisteredApp/ACP/privatebinding/historicalmodel acquired; pointerdispatch cursor was Contextroot instead of authenticnode. Focusconjunctshortcircuited/unproven. Read/search/exportUNREACHED; no fullW6PASS/nativefault/original90scause.",
+  "actual_floor_members_verified": 1470,
+  "normal69_versions_origins_equal": true,
+  "protected_originals_verified": 390,
+  "extra_W6_package_assets": [],
+  "private_runtime_sockets": [],
+  "original_runner_identity_absent": {
+    "pid": 784577,
+    "start_time": 62503495
+  },
+  "authored_source_bytes_unchanged": 502,
+  "authored_source_sha256": "77ea1d67589a129b9cb27c9c3e356fe214f5c3a023e0b5b8ca834d0744e14421",
+  "owner_source_debug_negative_preserved": true,
+  "NRA_actual_floor_SHA": "8f6127cb184801fbf2ca162adbece5c103c0fc6693f81197632668f710af7513",
+  "NRA_raw8dZIP_matches_actual8f61": true,
+  "owner_restore_method": "Originaluv --no-cache fourretainedfilewheels; no archive-memberwrite required/perowner04correction.",
+  "restore_wording_correction": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-historical-installed04/restore-wording-correction.json",
+  "restore_wording_correction_sha256": "8d9b51dbb0d100753c8bc9ec02034cb139f1fbe8b53474e748f9fc0a960274ae",
+  "prior03stale_extraction_archivewrite_negative_preserved": true,
+  "fresh_borrower_receipt": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-EinsteinW6-historical04-final-borrowers.json",
+  "fresh_borrower_sha256": "7822de5683200df8242cdd11bc0fbaf1bc9dac67e1fc07e09cc7d9f0159a5faf",
+  "all_uid_processes": 236,
+  "actual_borrowers": 0,
+  "permission_gaps": 0,
+  "native7a_READ_execution_owner_returned": true,
+  "native_artifact_authority": "SeparateSchimmutablekeeper, noartifactwrites",
+  "current_public_defaults": {
+    "agent-comms": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-agent",
+    "agent-comms-nk-foreground": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-nk-foreground",
+    "toad": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/toad"
+  },
+  "issued_sha256_unchanged": "b8895b60b4280eb5aaa54cf3a67aaac0d2fe74a42d3a489cbef9c70d1cc5c8ff",
+  "cleaner_package_restore_writes": 0,
+  "new_archive_bytes": 0,
+  "new_purpose_inferred": false
+}

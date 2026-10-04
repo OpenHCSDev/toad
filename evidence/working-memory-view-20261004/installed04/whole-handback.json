@@ -1,0 +1,33 @@
+{
+  "state": "Owner WHOLE handback; independent fresh privileged verification requested",
+  "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-EinsteinW6-historical04-Core627-Toad434-issued-grant.json",
+  "grant_sha256": "b8895b60b4280eb5aaa54cf3a67aaac0d2fe74a42d3a489cbef9c70d1cc5c8ff",
+  "terminal": {
+    "elapsed": 22.254975423100404,
+    "returncode": 1,
+    "timed_out": false,
+    "error": null,
+    "child_retired": true,
+    "owned_group_members": [],
+    "scope": "One changed authored historical App, not full W6",
+    "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-EinsteinW6-historical04-Core627-Toad434-issued-grant.json"
+  },
+  "original_runner_identity": {
+    "pid": 784577,
+    "start_time": 62503495
+  },
+  "original_runner_absent": true,
+  "owned_groups": [],
+  "private_sockets": [],
+  "restore": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-historical-installed04/restore-receipt.json",
+  "restore_correction": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-historical-installed04/restore-wording-correction.json",
+  "normal_no_cache_restore": true,
+  "archive_member_restore": "Not performed or needed in04; actual original rawwheel ZIP matches floor",
+  "result": "App/ACP/privatebinding and historical model acquisition reached; nativepointer leaves root cursor beforeEnter, read/search/export UNREACHED",
+  "private_readback": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-historical-installed04/private-fixture-readback.json",
+  "diagnostics": "/home/ts/wt/w6e04/test_authored_import_registere0/owner-debug.log",
+  "scope": "Authored historical only; separate local USER/defaultOFF/schema10 positives. No fullW6 GUI/nativefault/original90scause claim",
+  "package_import_read_build_execution_claim": "RETURNED; no further holder access planned",
+  "native7a_read_execution_claim": "RETURNED; keeper held unchanged",
+  "source_followup": "Read native pointer style/label/layout/cursor publication from retained04 focus/visibility diagnostics; no unchanged rerun or nativepatch justified"
+}

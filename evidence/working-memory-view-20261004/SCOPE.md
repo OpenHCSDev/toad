@@ -121,3 +121,13 @@ Focus/Blur/Show/Hide names for any future failure. No product/native patch,
 force-focus, sleep/retry or new readiness state. This changed control is
 unexecuted and needs a fresh eligible holder purpose. Full visible
 AnnotationNode/GUI-correction acceptance remains unfinished.
+
+## Historical04 result and NRA byte correction
+
+The one b889 historical04 purpose failed in22.254975s before Enter. Registered App/ACP settlement, exact private binding and historical model acquisition were reached. The native pointer landed on the Tree widget, but its cursor remained on the Context root instead of the intended historical source. The focus assertion was shortcircuited; read/search/export were not reached. Original Focus followed by a context read is retained, but original click/line/model timing is absent. No measured cause, native fault or explanation of the old90s wait is claimed.
+
+installed-w6-04.json binds the original diagnostics/negative and independent whole handback. Bohr verified all1470 original bytes/modes/readlinks,69 versions/origins,390 proofs, no extra assets/sockets, retired runner and236 all-UID processes with0 borrowers/0 gaps. Holder and7a execution purposes are CLOSED; no new access/run follows.
+
+NRA-byte-correction.json supersedes the earlier03 explanation that the raw wheel differed. The actual retained8d ZIP member measures.py hashes8f61, EXACT the original e6f floor. fb6e was stale installed extraction. The original03 verification failure and atomic archive-member restore remain unchanged. Historical04 restored using four normal filewheels with original installer --no-cache; no archive-member write was performed or needed. The original inherited restore-receipt wording is preserved alongside its append-only clarification. No shared-cache/public/source writes or rebuild.
+
+The historical reader and full authentic AnnotationNode GUI correction remain unfinished. Source work continues at the original native Tree/node/intent and pointer publication owners, with default-OFF disclosure/calibration and actual Codex exclusion unchanged.
