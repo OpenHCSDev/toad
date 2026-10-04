@@ -1,0 +1,61 @@
+{
+  "reviews": [
+    {
+      "phase": "input-held-up",
+      "image": "live-14-7-frames.png",
+      "start_seconds": 22.135898753,
+      "end_seconds": 22.935898753,
+      "before": {
+        "monotonic": 540451.684736449,
+        "alive": true
+      },
+      "after": {
+        "monotonic": 540472.073353833,
+        "alive": true
+      },
+      "identity": {
+        "pid": 2445681,
+        "birth": 54037607
+      },
+      "assessment": "48 consecutive timed frames: body/chrome remain painted; several repeated positions followed by discrete scroll advances, no full-body blank seen. Not smoothness or FPS proof."
+    },
+    {
+      "phase": "input-held-down",
+      "image": "live-21-12-frames.png",
+      "start_seconds": 47.005557077,
+      "end_seconds": 47.805557077,
+      "before": {
+        "monotonic": 540497.468429283,
+        "alive": true
+      },
+      "after": {
+        "monotonic": 540544.488460236,
+        "alive": false
+      },
+      "identity": {
+        "pid": 2445681,
+        "birth": 54037607
+      },
+      "assessment": "Consecutive frames maintain body/chrome; positions advance discretely with repeated tails. No full-body blank seen in these bands. Repeats alone do not prove stalls or FPS; destination limits need original travel data."
+    },
+    {
+      "phase": "reverse",
+      "image": "live-39-22-frames.png",
+      "start_seconds": 79.985500935,
+      "end_seconds": 80.785500935,
+      "before": {
+        "monotonic": 540497.468429283,
+        "alive": true
+      },
+      "after": {
+        "monotonic": 540544.488460236,
+        "alive": false
+      },
+      "identity": {
+        "pid": 2445681,
+        "birth": 54037607
+      },
+      "assessment": "Consecutive frames maintain body/chrome; positions advance discretely with repeated tails. No full-body blank seen in these bands. Repeats alone do not prove stalls or FPS; destination limits need original travel data."
+    }
+  ]
+}

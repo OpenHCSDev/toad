@@ -1,0 +1,11 @@
+{
+  "product_failures": false,
+  "notes": [
+    "One dependency-check command used the wrong working-directory relativeprefix and refused without writes; actualtarget pipcheck passed69.",
+    "Several sparse-checkout guessed evidencepaths were absent; originalGit source located actual READY/receipt owners before copying.",
+    "Final private evidence hash writer included an imported __pycache__ directory; refused before Ready artifact creation. Fixed selection to the51 original regularfiles. Source join had pushed and PRready state advanced; no public operation or package mutation."
+  ],
+  "superseded_pre410": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/registry605-sharedframe409-receiving-20261003/pre410-source.json",
+  "original334404_floor_archive": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/released334-package-code-409605-20261003/current334404-package-source-metadata.tar.gz",
+  "public_effects": 0
+}

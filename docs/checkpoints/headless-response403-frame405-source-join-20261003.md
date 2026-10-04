@@ -1,4 +1,4 @@
-# 408: merged599 +403/405/407 and Text47, ready for parent publication
+# 408: published599 +403/405/407 and Text47, scoped default accepted
 
 The same receiving checkout normally joined merged403/405/407 and Core599. Final installed pins are Core `3e5c97f9a38d10e65c3a5d06919d85d8e38b98ab`, Toad `d70643053f13f4a5b73296839ac07f469acede3d`, Text47 `688d06b12dc893b290422fa5d6924529e7689ac9`, SDK0.12.1 and unchanged native89. Production source equals the reviewed union; this evidence checkpoint changes no product files.
 
@@ -15,6 +15,14 @@ The new operation uses51 canonical operators and only PreserveRuntimeInstallatio
 Activation description was corrected BEFORE final408 freeze: original `2af587...` bytes and the unchanged25-row control receipt remain preserved; current activation `402839...` differs only in its descriptive state. Pins, paths, source proof and native bindings did not change. No blanket original-activation immutability claim.
 
 Final operands and original evidence are under `evidence/headless-response403-frame405-source-join-20261003/final599407`. The exact private operation is `.artifacts/headless-response403-frame405-receiving-20261003/new-publication40340546`. `execute-parent-command.txt` is the sole proposed execution command; never repeat it after a receipt exists. `readback-parent-command.txt` is used only after its successful terminal result. Ready SHA256: `b24637c66eb044d821263390cd96d8db34cf3058b517a64b0efdb25e1397d7bb`.
+
+## Published and scoped default accepted
+
+Parent merged exactReady `fa104c673` as `8840d35ce8364f2b1c2cbbeac3c90ef6aa76be76`, then executed the frozen original publisher once. Publication45.903764s; original raw SHA `e031d9705514fceaf53ebeaaf05de7ab1de379c5e29ad4688be5742ba3603b00`. The original readback verified19 preserved thread births/settings, new processes alive, allfive links/root/native bindings and matching schemas. Original receipt phase remains UI-pending; separate acceptance records establish the later UI result.
+
+Ordinary default saved-helper capture completed23.705207s with actual st terminal0, owner/runtime unchanged and cleanup empty. Parent personally inspected after.png AFTER terminal: readable retained history, sidebar/session Ready, empty focused editor and no activity bar. Encoder255 is preserved as recorder finalization, distinct from actual st0. No new input/provider or motion/wholecompaction/fullU2/S4 claim. Persistent delivered question was sent by Parent.
+
+All original publication/readback/default assessments and raw capture receipt are archived byte-for-byte under `evidence/headless-response403-frame405-source-join-20261003/published408`; original movie/pixels remain at their captured paths and are hash referenced. No operator/readback/capture was repeated or raw receipt phase changed.485 is now LIVE and protected;334 fallback and534 remain held. Native89 and separate603 artifactf3dd are retained. Parent owns the next cutover;603 producer/fanout followup remains Arendt-owned with no competing edits/build before his next freeze.
 
 ## Original source-only checkpoint (historical, superseded by final assembly)
 

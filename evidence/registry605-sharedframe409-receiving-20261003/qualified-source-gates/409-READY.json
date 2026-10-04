@@ -1,0 +1,244 @@
+{
+  "state": "SCOPED_READY; full foreground performance remains active",
+  "source_head": "710d012a332bcafa9a862155d156cbda5183a61f",
+  "installed_sources": [
+    {
+      "module": "agent_comms",
+      "head": "dbcf3ae4a47b629c85027c0def993a9614fadc6c",
+      "files": 339,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/agent-comms.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "dbcf3ae4a47b629c85027c0def993a9614fadc6c",
+          "requested_revision": "dbcf3ae4a47b629c85027c0def993a9614fadc6c"
+        }
+      }
+    },
+    {
+      "module": "toad",
+      "head": "e02f76c67ef7d931a1ab3df3c76e152794bd09bf",
+      "files": 320,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/toad.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "e02f76c67ef7d931a1ab3df3c76e152794bd09bf",
+          "requested_revision": "e02f76c67ef7d931a1ab3df3c76e152794bd09bf"
+        }
+      }
+    },
+    {
+      "module": "textual",
+      "head": "3efcc03803400c10ee60199331869d899a0fcc71",
+      "files": 266,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/textual.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "3efcc03803400c10ee60199331869d899a0fcc71",
+          "requested_revision": "3efcc03803400c10ee60199331869d899a0fcc71"
+        }
+      }
+    },
+    {
+      "module": "textual_diff_view",
+      "head": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "files": 3,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/textual-diff-view.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+          "requested_revision": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+        }
+      }
+    }
+  ],
+  "production_equal_installed": true,
+  "source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body409-strip48-20261003/source-proof.json",
+  "activation": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/activation.json",
+  "raw_capture": "/home/ts/.cache/agent-scratch/body409-strip48-public-20261003-01/capture",
+  "duration_seconds": 142.6026878618868,
+  "capture_completed": true,
+  "completed": true,
+  "runtime_unchanged": true,
+  "original_owner": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2432511,
+      "start_time": 54023564
+    },
+    "original_owner_alive": true
+  },
+  "warm_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_destination_covered": true,
+    "held_page_down_destination_covered": true,
+    "reverse_page_up_destination_covered": true
+  },
+  "input_checks": {
+    "input_remains_focused": true,
+    "original_editor_window_and_mode": true,
+    "draft_and_caret_preserved": true,
+    "input_pageup_moves_history": true,
+    "input_pagedown_moves_history": true,
+    "input_pageup_reaches_original_window": true,
+    "input_pagedown_reaches_original_window": true
+  },
+  "retained_ready_bodies": 22,
+  "writer": {
+    "flushed_frames": 1322,
+    "unmatched_enqueues": 0,
+    "key_windows": [
+      {
+        "action": "input-held-up",
+        "intervals": {
+          "count": 98,
+          "median_ms": 12.18,
+          "p95_ms": 34.91,
+          "p99_ms": 168.53,
+          "max_ms": 185.96
+        },
+        "writer_receipts": 99
+      },
+      {
+        "action": "input-held-down",
+        "intervals": {
+          "count": 144,
+          "median_ms": 10.84,
+          "p95_ms": 22.22,
+          "p99_ms": 31.93,
+          "max_ms": 103.81
+        },
+        "writer_receipts": 145
+      },
+      {
+        "action": "up",
+        "intervals": {
+          "count": 165,
+          "median_ms": 9.33,
+          "p95_ms": 20.1,
+          "p99_ms": 25.33,
+          "max_ms": 113.06
+        },
+        "writer_receipts": 166
+      },
+      {
+        "action": "down",
+        "intervals": {
+          "count": 126,
+          "median_ms": 12.35,
+          "p95_ms": 22.62,
+          "p99_ms": 28.2,
+          "max_ms": 243.31
+        },
+        "writer_receipts": 127
+      },
+      {
+        "action": "reverse",
+        "intervals": {
+          "count": 120,
+          "median_ms": 13.21,
+          "p95_ms": 24.76,
+          "p99_ms": 26.58,
+          "max_ms": 200.52
+        },
+        "writer_receipts": 121
+      },
+      {
+        "action": "end",
+        "intervals": {
+          "count": 11,
+          "median_ms": 159.52,
+          "p95_ms": 473.1,
+          "p99_ms": 473.1,
+          "max_ms": 498.2
+        },
+        "writer_receipts": 12
+      }
+    ],
+    "scope": "Native writer completion; not changed pixels or terminal presentation FPS. Zero stationary motion is legitimate, not a stall classification."
+  },
+  "cpu": [
+    {
+      "phase": "input-held-up",
+      "start": 20.85159082489554,
+      "end": 24.820010546944104,
+      "ui_cpu_percent": 74.08490547674033,
+      "boundary": "kernel marker spans include export/settle; not exact key-window CPU"
+    },
+    {
+      "phase": "input-held-down",
+      "start": 45.72446728195064,
+      "end": 49.647164707886986,
+      "ui_cpu_percent": 61.69224228204008,
+      "boundary": "kernel marker spans include export/settle; not exact key-window CPU"
+    },
+    {
+      "phase": "reverse",
+      "start": 78.68704891193192,
+      "end": 83.01980111491866,
+      "ui_cpu_percent": 66.23965243204057,
+      "boundary": "kernel marker spans include export/settle; not exact key-window CPU"
+    },
+    {
+      "phase": "idle",
+      "start": 92.75115229689982,
+      "end": 114.22109235997777,
+      "ui_cpu_percent": 19.79511813965779,
+      "boundary": "kernel marker spans include export/settle; not exact key-window CPU"
+    }
+  ],
+  "profile_quality": {
+    "sample_count": 1293,
+    "sampling_errors": 1,
+    "sampling_quality": "partial; inspect errors and missing thread intervals",
+    "alignment_nominal_uncertainty_seconds": 0.07779576346278191
+  },
+  "personal_review": "personal-motion-review.json",
+  "visual_result": "Body/chrome retained in Up/Down/reverse consecutive bands; discrete advances/repeated positions. Up personalview bracketed during sameUI; Down/reverse after-probe absent, completion during lifetime not established. A-return original selected body/draft personally reviewed after exit.",
+  "limits": [
+    "No smoothness/144Hz/changed-pixel FPS or input-to-paint proof",
+    "No causal CPU/speed comparison: public workload/source/owner epochs differ from407",
+    "Native writer completion is not terminal presentation; End marker includes observation tails",
+    "GIL sampler partial with one error, approximate clock +/-0.0778s",
+    "FFmpeg255 and transferred UI custody retained; no invented application exit0",
+    "Runtime preflights failed before UI: missing XDG_STATE_HOME then originalowner stopped during retainedrestart; neither is a product performance failure"
+  ],
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "raw_keeper_sha256": {
+    "receipt.json": "56de572acf9193c57a2ac18462f57414f9d2f6b3282c4e3f8fa1b7f9afa0948f",
+    "terminal.mp4": "d4897cd3b9cbdb8fe153560b0c61994b511e42bfcff36a64f89fc810f8a18400",
+    "before-state.pickle": "0805be14adfcb7de60417c2a9ecdb2d463152c8f8d1822a608fcba5cdd7985f8",
+    "after-state.pickle": "51184a61e7161700c7c9ad7f63a46db68eb43690c862c919b83f29e2e920ef54",
+    "phase-a-return-state.pickle": "5577034afd9f388e8f439c8aa6844c0e839b31b5dffcdf34c4cce368edb4e601",
+    "phase-a-return.png": "44f16406490516598145d08861524fd8255199eb08d6e485f5b7375abc0fd096",
+    "cpu-profile.json": "eda4b8b58fd477dc711e0eefa67031efec6504a9c8a2440e0990cdc7806e7058",
+    "driver.log": "cffea403ec126e7d5c469b4036a53b4fd9d9059f603524b5bdac3e9e678cdbb5",
+    "events.jsonl": "36bbc44a31fff3b13b42e200868d8b663ee56bd61f0ffed7183760121a5d8ce1",
+    "frame-delivery.json": "d643a4ffddf7eed4a16f49ec5ee37d86e9c8e46232d362f884460922e199b7fe"
+  },
+  "unfinished_scope": "CPU/144Hz/input latency,raster/firstpaint/coldwarm,3-runway/velocity/growingEnd/void,animation,sidebar/busy/IRC+DM/tab/compaction,focus/draftUndo/TC1T9T4"
+}

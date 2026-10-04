@@ -1,0 +1,61 @@
+{
+  "time": 1791065898.4169493,
+  "owner": "Sch original334 receiving owner",
+  "archive": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/released334-package-code-409605-20261003/current334404-package-source-metadata.tar.gz",
+  "archive_sha256": "c56cb256883ff27a71cc72cc5d5aea468a7ff5845f7f78ab83abe188a0529a40",
+  "archive_bytes": 3927198,
+  "manifest": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/released334-package-code-409605-20261003/current334404-package-code-archive.json",
+  "manifest_sha256": "5681886f800e14a79a46367ba52b5dbb8c30d7401d0d475e6f00a2663b0a5bda",
+  "members_verified": 1444,
+  "all_actual_original_member_hashes_modes_symlink_targets_verified": true,
+  "full_current4package69metadata_bin_coverage_verified": true,
+  "original_current404_activation": {
+    "stage": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+    "pins": {
+      "agent_comms": "eb3778d6a00e14f396a0b0d37c7c6aeea4583853",
+      "toad": "8d600148af9d9687371aaffa985fb9c26291e99a",
+      "textual": "db8becffb36294cb4cd9948ad3d891bbdc45a548"
+    },
+    "sdk": "0.12.1",
+    "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-89b56aea0bb128c4/node_modules/@earendil-works/pi-coding-agent",
+    "state": "Normal69 accepted merged601402/Text44 receiving/native89; original qualified gates retained",
+    "staging_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/fieldcodec601-bodyframe402-receiving-20261003/source-proof.json",
+    "bins": {
+      "python": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+      "toad": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/toad",
+      "agent-comms": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms",
+      "agent-comms-acp": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-acp",
+      "agent-comms-agent": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-agent",
+      "pi-comms-native": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/pi-comms-native"
+    },
+    "native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-89b56aea0bb128c4/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+    "native_manifest": "89b56aea0bb128c4bf3e2c979de8a5afa79ac88b1f51a74c49cc1cab46da60d2",
+    "native_tree": "4b7f66f396a342e523d631c753686789b61313c34c30d894ddf24b5a861caa26",
+    "native_configuration_note": "Released receiving holder /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002; original activation/source/native and saved-source qualification proof archived. Public source, named rollback and other borrowed holders are untouched. Core/native and frontend follow this complete installed proof; no provider/public changes from packaging and no environment/native build."
+  },
+  "source_metadata_keeper": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/fieldcodec601-bodyframe402-receiving-20261003/source-proof.json",
+  "no_cleaner_package_write": true,
+  "state": "EXPLICIT PACKAGE-ONLY GRANT Sch40948/605",
+  "recipient": "Sch sole package writer",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "authority": "Parent explicitly closed redundant CURRENT404334 PACKAGEfallback after485actualdefaultaccepted. OriginalSch archived current404 4packages/all69metadata/bin/activation/sourceproof; cleaner independent1444members/readback+freshborrower/import/alias/registry/build clearance.",
+  "process_check": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released334-Sch40948-605-borrowers-at-grant.json",
+  "environment_classification": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released334-Sch40948-605-environment-at-grant.json",
+  "reference_check": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released334-Sch40948-605-reference-check.json",
+  "all_uid_processes": 233,
+  "raw_environment_matches": 19,
+  "actual_borrowers": 0,
+  "permission_gaps": 0,
+  "internal_lib64_alias_only": true,
+  "scope": "Sch may replace PACKAGE CODE ONLY for nextqualified409/Text48/605 in SAME existing normal69 holder334. Keep existingdeps, no newenv/nativecopy. Archive/readback completed before grant; no package writes bycleaner.",
+  "protected": [
+    "LIVE485",
+    "fallback534",
+    "Mendel605540",
+    "Heisstyle22",
+    "all original334auth/history/privatewire/savedinput/UNKNOWN/rawfilms/proofs",
+    "oldpre404334archive/native2b",
+    "native89/f3dd/sourceGit/standalonewheels"
+  ]
+}

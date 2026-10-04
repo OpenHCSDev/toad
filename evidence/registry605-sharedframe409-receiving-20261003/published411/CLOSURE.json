@@ -1,0 +1,58 @@
+{
+  "state": "PUBLISHED_AND_ACCEPTED ordinarydefault savedhistory startup",
+  "ready_head": "e501d25303277e8d97d8c9a0421d8405c496075f",
+  "merged_head": "6294c2105f6e4350fe97ebb57a28f4c774a75f6c",
+  "raw_publication_phase_unchanged": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "publisher_duration_seconds": 39.97283601760864,
+  "owner_count": 19,
+  "same_births_settings_new_live_processes": true,
+  "default_duration_seconds": 23.810475995996967,
+  "default_terminal_exit": {
+    "pid": 2826026,
+    "start_ticks": 54423190,
+    "returncode": 0
+  },
+  "default_runtime_unchanged": true,
+  "cleanup_remaining": [],
+  "providers": 0,
+  "inputs": 0,
+  "scope": "Ordinary default installed saved-history startup, not fresh delivery, compaction, smoother motion or latency comparison",
+  "personal_image_review": "after.png viewed after terminal; saved received/inbound/outbound history readable; helper tab/sidebar/session Ready; focused empty editor; no activity bar",
+  "raw_recording_disposition": "Disposable after acceptance; retain this concise receipt and original publication/readback. Do not require perpetual media retention.",
+  "current334_live_immutable": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "previous485_fallback534_protected": true,
+  "publisher_or_readback_repeated": false,
+  "persistent_question": "Parent reported DELIVERED",
+  "originals": [
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published411-20261003/operator-original.log",
+      "archive": "operator-original.log",
+      "sha256": "4362dad3162e99d9ef84d963e62cf249792dbdfaf56c2351f3fa4a25231a9cea",
+      "bytes": 70
+    },
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published411-20261003/readback-original.json",
+      "archive": "readback-original.json",
+      "sha256": "8a810c6f6a1a153de811689a53c4e1d10924cdf0e9573a1afe6ea715cdf87eaa",
+      "bytes": 1083
+    },
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published411-20261003/default-capture-original.log",
+      "archive": "default-capture-original.log",
+      "sha256": "98bca54cc7f36716c5e16fd5da21f74160f90f9911a5119d7f7f4a8df4f8b95e",
+      "bytes": 184
+    },
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published411-20261003/default-acceptance.json",
+      "archive": "default-acceptance.json",
+      "sha256": "4b803aed69060c9d1abb0b598562fb23ee62d1349f8ac0ae9e33f272715cf68b",
+      "bytes": 1215
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/registry605-sharedframe409-receiving-20261003/new-publication60540941048/publication-receipt.json",
+      "archive": "publication-receipt-original.json",
+      "sha256": "9999d440ad3d60e4aede3096e5566250c7f53a914b422cca7202778482cb18c9",
+      "bytes": 38910
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/mounted-preparation412-receiving-20261004/new-publication60541248/prepare_review.py", line 12, in <module>
+    PrivateDirectoryRole.require(base.lstat())
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/agent_comms/private_path.py", line 70, in require
+    raise ValueError(f"{cls.declared_name}: {failed.declared_name}")
+ValueError: private_directory: unsafe_node_permissions

@@ -1,0 +1,44 @@
+{
+  "source_modules": 289,
+  "native_modules_from_before": 249,
+  "parse_omissions": [],
+  "deleted_mounted_warmup_owners": [
+    "ViewportBody",
+    "PreparedConversationMarkdown",
+    "StreamingMarkdown",
+    "TranscriptFragmentView"
+  ],
+  "remaining_prepare_body_declarations": [
+    {
+      "owner": "TranscriptHistory",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 426
+    }
+  ],
+  "remaining_prepare_body_consumers": [
+    {
+      "call": "history.prepare_body",
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 129
+    },
+    {
+      "call": "history.prepare_body",
+      "path": "src/toad/transcript_publication.py",
+      "line": 199
+    },
+    {
+      "call": "replacement.prepare_body",
+      "path": "src/toad/transcript_publication.py",
+      "line": 450
+    },
+    {
+      "call": "history.prepare_body",
+      "path": "src/toad/widgets/streaming_markdown.py",
+      "line": 154
+    }
+  ],
+  "source_read": "All four remaining calls prepare an unmounted TranscriptHistory for source publication/restoration before native window mutation. They are not mounted ViewportBody restoration calls.",
+  "restoration": "DocumentViewport joins original per-body restore operations through TaskGroup under one existing preserve_reader lifetime; actual completed effects drive deferred layout request. Visible admission and runway budget unchanged. All three body implementations use this restoration owner.",
+  "source_lookahead": "TranscriptBodyPreparation/TranscriptHistory continue preparing not-yet-mounted page admissions before their native mutation lock.",
+  "limits": "Semantic source closure, not dynamic result, concurrency acceptance, motion, CPU improvement or complete performance."
+}

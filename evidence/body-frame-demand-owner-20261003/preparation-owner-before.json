@@ -1,0 +1,442 @@
+{
+  "production_modules": 289,
+  "dependency_modules": 249,
+  "parse_omissions": [],
+  "owners": [
+    {
+      "path": "src/toad/render_backend.py",
+      "line": 78,
+      "name": "Renderer",
+      "bases": [
+        "RendererSpawn"
+      ],
+      "members": [
+        "warm_up",
+        "submit",
+        "aclose"
+      ]
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 45,
+      "name": "PreparedValue",
+      "bases": [
+        "ABC",
+        "Generic[ResultT]"
+      ],
+      "members": [
+        "materialize"
+      ]
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 58,
+      "name": "CopiedValue",
+      "bases": [
+        "PreparedValue[ResultT]"
+      ],
+      "members": [
+        "materialize"
+      ]
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 67,
+      "name": "SerializedValue",
+      "bases": [
+        "PreparedValue[ResultT]"
+      ],
+      "members": [
+        "size",
+        "materialize"
+      ]
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 84,
+      "name": "PreparationWork",
+      "bases": [
+        "ABC",
+        "Generic[ResultT]"
+      ],
+      "members": [
+        "result_size",
+        "store_result",
+        "lane",
+        "identity",
+        "execute"
+      ]
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 154,
+      "name": "RendererWork",
+      "bases": [
+        "PreparationWork[ResultT]"
+      ],
+      "members": [
+        "render_task",
+        "execute"
+      ]
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 167,
+      "name": "RenderPreparation",
+      "bases": [
+        "ContentAddressedWork[ResultT]",
+        "RendererWork[ResultT]"
+      ],
+      "members": [
+        "identity",
+        "inputs",
+        "render_task",
+        "retain_result",
+        "store_result"
+      ]
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 220,
+      "name": "PreparationRuntime",
+      "bases": [],
+      "members": [
+        "__init__",
+        "run_thread",
+        "discard_scope",
+        "submit",
+        "_deliver",
+        "_execute",
+        "aclose",
+        "_close"
+      ]
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 350,
+      "name": "PreparedRenderer",
+      "bases": [
+        "Renderer"
+      ],
+      "members": [
+        "__init__",
+        "submit",
+        "warm_up",
+        "aclose"
+      ]
+    }
+  ],
+  "calls": [
+    {
+      "path": "src/toad/app.py",
+      "line": 468,
+      "call": "self.render_processes.warm_up(project=self.project_dir, ansi=self.native_ansi_color, dark=self.current_theme.dark)"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 340,
+      "call": "self.render_processes.submit(task)"
+    },
+    {
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 129,
+      "call": "history.prepare_body(lambda: generation == self._selection_generation and self.is_attached)"
+    },
+    {
+      "path": "src/toad/transcript_filter.py",
+      "line": 122,
+      "call": "projection.prepare_fragments(page.fragments[page.extension_slice(False)], lambda: snapshot.current(owner))"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 199,
+      "call": "history.prepare_body(partial(self.source_current, self.page.after))"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 450,
+      "call": "replacement.prepare_body(is_current)"
+    },
+    {
+      "path": "src/toad/widgets/prepared_markdown.py",
+      "line": 86,
+      "call": "self.app.render_processes.submit(MarkdownRenderTask(self.source, self.app.native_ansi_color, self.app.current_theme.dark))"
+    },
+    {
+      "path": "src/toad/widgets/prepared_markdown.py",
+      "line": 110,
+      "call": "self.app.render_processes.submit(MarkdownRenderTask(markdown, *theme))"
+    },
+    {
+      "path": "src/toad/widgets/streaming_markdown.py",
+      "line": 56,
+      "call": "self.app.render_processes.submit(TranscriptRenderTask((self.TRANSCRIPT_EVENT(self.source),), continuation=True))"
+    },
+    {
+      "path": "src/toad/widgets/streaming_markdown.py",
+      "line": 60,
+      "call": "super().prepare_body()"
+    },
+    {
+      "path": "src/toad/widgets/streaming_markdown.py",
+      "line": 163,
+      "call": "history.prepare_body(is_current)"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 204,
+      "call": "self.app.render_processes.submit(ticket.task)"
+    },
+    {
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "line": 235,
+      "call": "self.renderer.submit(MarkdownRenderTask(event.text, self.ansi, self.dark))"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 334,
+      "call": "preparation.prepare_fragments(fragments, keep_going, batch_size=self.batch_size)"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 432,
+      "call": "preparation.prepare_fragments(fragments, current, batch_size=self.budget.admission_items)"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 814,
+      "call": "self.prepare_fragments(fragments[selected], lambda: snapshot.current(self) and request.current(window))"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 437,
+      "call": "self.prepare_fragments(page.fragments[page.start:page.stop], current)"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 668,
+      "call": "self.prepare_fragments(fragments[selected], current)"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 866,
+      "call": "self.prepare_fragments((edge.fragments if local else fragments)[selected], lambda: snapshot.current(self))"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 750,
+      "call": "preparation.prepare_fragments(fragments, current, batch_size=self.budget.admission_items)"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1108,
+      "call": "owner.prepare_body()"
+    },
+    {
+      "path": "src/toad/widgets/worker_static.py",
+      "line": 137,
+      "call": "app.render_processes.submit(request.task)"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 163,
+      "call": "runtime.renderer.submit(self.render_task)"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 357,
+      "call": "self.runtime.submit(RenderPreparation(task))"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 360,
+      "call": "self.runtime.renderer.warm_up(project=project, ansi=ansi, dark=dark)"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 306,
+      "call": "self._deliver(key, result)"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 284,
+      "call": "self._deliver(key, cached[0])"
+    }
+  ],
+  "discarded_result_warmups": [
+    {
+      "path": "src/toad/widgets/prepared_markdown.py",
+      "line": 86,
+      "call": "self.app.render_processes.submit(MarkdownRenderTask(self.source, self.app.native_ansi_color, self.app.current_theme.dark))"
+    },
+    {
+      "path": "src/toad/widgets/streaming_markdown.py",
+      "line": 56,
+      "call": "self.app.render_processes.submit(TranscriptRenderTask((self.TRANSCRIPT_EVENT(self.source),), continuation=True))"
+    },
+    {
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "line": 235,
+      "call": "self.renderer.submit(MarkdownRenderTask(event.text, self.ansi, self.dark))"
+    }
+  ],
+  "imports": [
+    {
+      "path": "src/toad/acp/sdk_boundary.py",
+      "line": 7,
+      "import": "from toad.render_backend import RenderTask"
+    },
+    {
+      "path": "src/toad/acp/transcript_reader.py",
+      "line": 17,
+      "import": "from toad.work_preparation import ScopedWork, SerializedWork, ThreadWork, PreparationRuntime, WorkKey"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 34,
+      "import": "from toad.render_backend import Renderer"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 57,
+      "import": "from toad.render_backend import RenderTask"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 277,
+      "import": "from toad.work_preparation import PreparationRuntime, PreparedRenderer"
+    },
+    {
+      "path": "src/toad/cli.py",
+      "line": 7,
+      "import": "from toad.render_backend import Renderer"
+    },
+    {
+      "path": "src/toad/render_backend.py",
+      "line": 16,
+      "import": "from toad.work_preparation import PreparationRuntime, RenderPreparation, WorkKey, PreparationWork"
+    },
+    {
+      "path": "src/toad/render_backend.py",
+      "line": 37,
+      "import": "from toad.work_preparation import WorkKey"
+    },
+    {
+      "path": "src/toad/render_backend.py",
+      "line": 43,
+      "import": "from toad.work_preparation import PreparationWork"
+    },
+    {
+      "path": "src/toad/render_backend.py",
+      "line": 50,
+      "import": "from toad.work_preparation import ContentAddressedWork"
+    },
+    {
+      "path": "src/toad/render_backend.py",
+      "line": 56,
+      "import": "from toad.work_preparation import SerializedWork"
+    },
+    {
+      "path": "src/toad/render_choices.py",
+      "line": 12,
+      "import": "from toad.render_backend import Renderer"
+    },
+    {
+      "path": "src/toad/render_processes.py",
+      "line": 16,
+      "import": "from toad.render_backend import Renderer"
+    },
+    {
+      "path": "src/toad/render_processes.py",
+      "line": 19,
+      "import": "from toad.render_backend import RenderTask"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 14,
+      "import": "from toad.render_backend import RenderTask"
+    },
+    {
+      "path": "src/toad/render_runtime.py",
+      "line": 7,
+      "import": "from toad.render_backend import Renderer"
+    },
+    {
+      "path": "src/toad/render_runtime.py",
+      "line": 9,
+      "import": "from toad.render_backend import RenderTask"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 7,
+      "import": "from toad.render_backend import ReusableRenderTask"
+    },
+    {
+      "path": "src/toad/render_zmq.py",
+      "line": 33,
+      "import": "from toad.render_backend import Renderer"
+    },
+    {
+      "path": "src/toad/render_zmq.py",
+      "line": 46,
+      "import": "from toad.render_backend import RenderTask"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 14,
+      "import": "from toad.work_preparation import ContentAddressedWork, RendererWork, SerializedWork"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 18,
+      "import": "from toad.work_preparation import PreparationRuntime"
+    },
+    {
+      "path": "src/toad/transcript_preparation.py",
+      "line": 17,
+      "import": "from toad.work_preparation import PreparationRuntime, RenderPreparation, PreparationScope, SerializedWork, ScopedWork, ThreadWork, WorkKey, WorkLane, retained_bytes"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 175,
+      "import": "from toad.work_preparation import RenderPreparation"
+    },
+    {
+      "path": "src/toad/widgets/committed_presentation.py",
+      "line": 247,
+      "import": "from toad.work_preparation import RenderPreparation"
+    },
+    {
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "line": 16,
+      "import": "from toad.render_backend import ReusableRenderTask"
+    },
+    {
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "line": 21,
+      "import": "from toad.render_backend import Renderer"
+    },
+    {
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "line": 152,
+      "import": "from toad.work_preparation import retained_bytes"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 18,
+      "import": "from toad.work_preparation import retained_bytes"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 18,
+      "import": "from toad.render_backend import Renderer"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 21,
+      "import": "from toad.render_backend import RenderTask"
+    }
+  ],
+  "source_decision": "Existing PreparationRuntime owns shared work/cache/admission/cancellation, PreparedRenderer distinguishes warming from delivered results; only result consumers copy via _deliver. Three ignored return warmup callers must use preparation without delivery.",
+  "limits": "AST receiver/member syntax plus semantic source reading; dynamic external renderer aliases not proved, no CPU dominance claim."
+}

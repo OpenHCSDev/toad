@@ -1,0 +1,17 @@
+{
+  "union_head": "975c312966cc74e0a0f1946cb440fde0ccaac2b0",
+  "actual_main": "6294c2105f6e4350fe97ebb57a28f4c774a75f6c",
+  "original_body_build": "66da5e59d4a08e322ba7b2f4b3de7a1af4d41fd3",
+  "body_and_recorder_byte_equal": {
+    "src/toad/widgets/viewport_body.py": "e6cd351fc87ee480d3e426d74bd1970f2441593fc77ade2f8e5bd3443efbeb20",
+    "src/toad/widgets/prepared_markdown.py": "c244591ecc6d0bc4b117a9c1d1263b10dbb4c187e12a9ec9f837aa32c80a00af",
+    "src/toad/widgets/streaming_markdown.py": "7c2e923099f381c7df6e84f5931c8c24b19940604825be8ef2b03171e731e442",
+    "src/toad/widgets/transcript_history.py": "f79eb289356b1ececf9395f025f4d56a36e51e2d19a7af9177453a236c0b5b60",
+    "tests/tools/record_installed_tui.py": "995fd1a81a6609a15c8bcc53b104adbad218fd9ca2977a7d9b71d37b2a01e70b"
+  },
+  "accepted_theme410_family_equal_main": true,
+  "normal_merge_conflicts": [],
+  "determining_main_production_diff": "0\t7\tsrc/toad/widgets/prepared_markdown.py\n0\t9\tsrc/toad/widgets/streaming_markdown.py\n0\t8\tsrc/toad/widgets/transcript_history.py\n14\t17\tsrc/toad/widgets/viewport_body.py\n",
+  "original_film_scope": "Coredbcf/Toad66da/Text48/native89 and earlier settings. Historical labels unchanged; no claim same full theme source as current union. Accepted410 exact Settings App qualification retained through main; no unchanged rerun.",
+  "qualified_theme_ready": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/headless-theme-preference-20261003/READY.json"
+}

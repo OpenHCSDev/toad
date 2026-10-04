@@ -50,15 +50,6 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
     def uses_paged_source(self, source: str) -> bool:
         return self._paginate and (self._paged is not None or len(source) > self.RICH_TEXT_LIMIT)
 
-    async def prepare_body(self) -> None:
-        if self.uses_paged_source(self.source):
-            from toad.widgets.transcript_fragments import TranscriptRenderTask
-            await self.app.render_processes.submit(
-                TranscriptRenderTask((self.TRANSCRIPT_EVENT(self.source),), continuation=True),
-            )
-        else:
-            await super().prepare_body()
-
     async def materialize_native_body(self) -> None:
         await self._update_content(self.source, append=False)
 
