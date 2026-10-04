@@ -116,6 +116,22 @@ async def slash(chat, pilot, text):
     await pilot.pause()
     await pilot.press('enter')
 
+async def mounted_layers(app, pilot):
+    screen = app.screen
+    child = screen.query_one('#comms-sidebar')
+    before = child.layers
+    original = screen.styles.inline.get_rule('layers')
+    try:
+        for layers in (('base', 'controls', 'controls'), ()):
+            screen.styles.layers = layers
+            await pilot.pause()
+            assert child.layers == layers
+    finally:
+        screen.styles.set_rule('layers', original)
+        screen.refresh(layout=True)
+    await pilot.pause()
+    assert child.layers == before
+
 
 async def journey(args):
     start = time.monotonic()
@@ -151,6 +167,8 @@ async def journey(args):
     app = ToadApp(project_dir=str(project))
     async with app.run_test(size=(125, 48), headless=not args.physical) as pilot:
         sidebar = await wait_channel_roster(app, pilot, '#first', '#all')
+        await mounted_layers(app, pilot)
+        checks.append('corrected-mounted-layer-owner-custom-duplicates-empty-restoration')
         row = await reveal_thread_row(app, pilot, 'tagged', '#first')
         await choose(app, pilot, row, 'thread-tags', {'tags': 'first,second'}, base)
         assert comms.registry.require('tagged').tags == frozenset({'first','second'})
