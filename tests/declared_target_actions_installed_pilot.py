@@ -280,12 +280,19 @@ async def deleted_native_connections(base):
         assert (inputs.read_bytes() if inputs.exists() else None) == before_inputs
         assert requests == []
         (evidence / 'receipt.json').write_text(json.dumps({
-            'result': 'PASS', 'closed_current_history_and_hidden_native': True,
+            'result': 'ASSERTIONS_PASS_SHUTDOWN_PENDING',
+            'closed_current_history_and_hidden_native': True,
             'actor_connection_and_reader_unchanged': True, 'input_bytes_unchanged': True,
             'provider_calls': 0, 'native_inputs': 0}, indent=2)+'\n')
 
     await native_journey(acceptance=acceptance, provider_request_budget=0,
                          fixture_stage=base / 'delete-fixture', app_type=ToadApp)
+    # The callback precedes run_test.__aexit__ and the original SDK fixture's
+    # finally block. Qualify the whole case only after both owners have joined.
+    receipt = json.loads((evidence / 'receipt.json').read_text())
+    receipt.update(result='PASS', whole_app_shutdown_completed=True,
+                   original_sdk_fixture_cleanup_completed=True)
+    (evidence / 'receipt.json').write_text(json.dumps(receipt, indent=2)+'\n')
 
 
 async def journey(args):
