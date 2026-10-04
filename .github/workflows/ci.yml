@@ -21,7 +21,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   ratchet:
-    name: Debt ratchet and surface guards
+    name: Debt ratchet
     timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
