@@ -63,3 +63,13 @@ NativePiUnavailable caused by NativePackageError(tree commitment mismatch).
 No recorder/UI/input was started. The receiving owner has the exact dependency.
 Native50's disjoint point-hit family will join the one changed physical workflow
 when its retained wheel and the matched original route are available.
+
+## Joined native point-hit resource
+
+Frozen Text50 ff5cc9c7 replaces the row-expanded layers_visible index with original
+ordered visible_widgets point membership; get_widget_at derives the first result.
+One native production file5 added/44 deleted; no new cache or Screen callback
+changes. Native18 affected controls qualified; first incorrect overlap-fixture
+negative retained by its owner. The supplied normal standalone wheel and266
+source inventory join this one changed physical workflow. Existing App result
+above was with Text49, and is kept as that exact source pair, not renamed Text50.
