@@ -1,0 +1,783 @@
+{
+  "tool": "existing refactor-audit Package",
+  "packages": [
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "5e0ff921ab5e65be28bc023da253b19b7d92e428",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "src/toad/app.py",
+          "line": 326,
+          "kind": "AsyncFunctionDef",
+          "name": "on_unmount",
+          "source": "async def on_unmount(self) -> None:\n        self.terminal_attention.close()\n        await self.thread_navigation.close()\n        await self.navigation_reader.aclose()\n        await self.render_processes.aclose()\n        if self._background_render_tasks:\n            await asyncio.gather(*tuple(self._background_render_tasks), return_exceptions=True)"
+        },
+        {
+          "path": "src/toad/app.py",
+          "line": 563,
+          "kind": "Attribute",
+          "name": "blocks_visible_read",
+          "source": "history.blocks_visible_read"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 57,
+          "kind": "FunctionDef",
+          "name": "remove",
+          "source": "def remove(self, filtering: TranscriptFilter) -> None:\n        if filtering.state is self:\n            filtering.clear()"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 169,
+          "kind": "FunctionDef",
+          "name": "checkpoint_available",
+          "source": "def checkpoint_available(self):\n        return self.view.checkpoint_available"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 200,
+          "kind": "FunctionDef",
+          "name": "remove",
+          "source": "def remove(self, filtering):\n        super().remove(filtering)\n        if self.view.is_attached:\n            self.view.remove()"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 275,
+          "kind": "FunctionDef",
+          "name": "checkpoint_available",
+          "source": "def checkpoint_available(self):\n        return not self.scanning and self.state.checkpoint_available"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 290,
+          "kind": "FunctionDef",
+          "name": "remove",
+          "source": "def remove(self) -> None:\n        self.state.remove(self)"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 170,
+          "kind": "Attribute",
+          "name": "checkpoint_available",
+          "source": "self.view.checkpoint_available"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 251,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 288,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 305,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 58,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "filtering.state"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 201,
+          "kind": "Attribute",
+          "name": "remove",
+          "source": "super().remove"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 211,
+          "kind": "Attribute",
+          "name": "remove",
+          "source": "filtering.remove"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 256,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 259,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 272,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 276,
+          "kind": "Attribute",
+          "name": "checkpoint_available",
+          "source": "self.state.checkpoint_available"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 291,
+          "kind": "Attribute",
+          "name": "remove",
+          "source": "self.state.remove"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 203,
+          "kind": "Attribute",
+          "name": "remove",
+          "source": "self.view.remove"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 262,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 276,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 278,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 280,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 283,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 285,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 286,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 291,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 326,
+          "kind": "Attribute",
+          "name": "checkpoint_available",
+          "source": "self.owner.checkpoint_available"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 296,
+          "kind": "Attribute",
+          "name": "remove",
+          "source": "retired.remove"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 315,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 328,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 136,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "filtering.state"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 151,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "filtering.state"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 137,
+          "kind": "Attribute",
+          "name": "remove",
+          "source": "admitted_state.remove"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 343,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 140,
+          "kind": "Attribute",
+          "name": "admit_initial",
+          "source": "projection.admit_initial"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 48,
+          "kind": "FunctionDef",
+          "name": "state",
+          "source": "def state(self) -> TranscriptState:\n        return self._source_state.observed(self)"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 62,
+          "kind": "FunctionDef",
+          "name": "blocks_visible_read",
+          "source": "def blocks_visible_read(self) -> bool:\n        \"\"\"Source mutation, remaining tail and filtering govern acknowledgement.\"\"\"\n        return self.state.blocks_visible_read(self)"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 66,
+          "kind": "FunctionDef",
+          "name": "reserve_source_work",
+          "source": "def reserve_source_work(self) -> WorkingTranscript:\n        operation = self._source_state.reserve(self)\n        self._source_state = operation\n        return operation"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 86,
+          "kind": "AsyncFunctionDef",
+          "name": "on_unmount",
+          "source": "async def on_unmount(self) -> None:\n        self._source_state = RetiredSourceTranscript(self._source_state.retirement_source())\n        self._generation += 1\n        self._prefetch_intent = None\n        self.window.histories.discard(self)\n        if self._page_buffer is not None:\n            self._page_buffer.close()\n        await self.close_source_reader()"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 166,
+          "kind": "FunctionDef",
+          "name": "finish_source_work",
+          "source": "def finish_source_work(self, operation: WorkingTranscript) -> None:\n        # Retirement or replacement revokes this exact admission. A cancelled\n        # old operation cannot publish again or settle a newer source's work.\n        if self._source_state is operation:\n            self._source_state = operation.source\n            operation.pending_request.apply(self)\n            if self.state.accepts_publication:\n                self.window.check_follow()\n                # The admitted operation owns source and reader progress.\n                # Native compensation and unchanged reads cannot rearm it.\n                if operation.progressed(self):\n                    self._scroll_changed()\n                self.publish_core(TranscriptSourceWorkFinished())"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 64,
+          "kind": "Attribute",
+          "name": "blocks_visible_read",
+          "source": "self.state.blocks_visible_read"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 73,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 53,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 64,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 107,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 119,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 172,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 161,
+          "kind": "Attribute",
+          "name": "finish_source_work",
+          "source": "self.finish_source_work"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 74,
+          "kind": "Attribute",
+          "name": "reserve_source_work",
+          "source": "self.reserve_source_work"
+        },
+        {
+          "path": "src/toad/transcript_state.py",
+          "line": 23,
+          "kind": "FunctionDef",
+          "name": "blocks_visible_read",
+          "source": "def blocks_visible_read(self, owner) -> bool:\n        \"\"\"An unpublished source must settle before its cursor is read.\"\"\"\n        return True"
+        },
+        {
+          "path": "src/toad/transcript_state.py",
+          "line": 90,
+          "kind": "FunctionDef",
+          "name": "blocks_visible_read",
+          "source": "def blocks_visible_read(self, owner) -> bool:\n        return owner.has_newer or not owner.checkpoint_available"
+        },
+        {
+          "path": "src/toad/transcript_state.py",
+          "line": 112,
+          "kind": "FunctionDef",
+          "name": "blocks_visible_read",
+          "source": "def blocks_visible_read(self, owner) -> bool:\n        \"\"\"Retained or retiring custody has no current paint obligation.\"\"\"\n        return False"
+        },
+        {
+          "path": "src/toad/transcript_state.py",
+          "line": 169,
+          "kind": "FunctionDef",
+          "name": "blocks_visible_read",
+          "source": "def blocks_visible_read(self, owner) -> bool:\n        \"\"\"An admitted source operation must settle before its cursor is read.\"\"\"\n        return True"
+        },
+        {
+          "path": "src/toad/transcript_state.py",
+          "line": 91,
+          "kind": "Attribute",
+          "name": "checkpoint_available",
+          "source": "owner.checkpoint_available"
+        },
+        {
+          "path": "src/toad/transcript_state.py",
+          "line": 206,
+          "kind": "Attribute",
+          "name": "finish_source_work",
+          "source": "owner.finish_source_work"
+        },
+        {
+          "path": "src/toad/transcript_state.py",
+          "line": 68,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "owner.state"
+        },
+        {
+          "path": "src/toad/transcript_state.py",
+          "line": 155,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "owner.state"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 320,
+          "kind": "FunctionDef",
+          "name": "on_unmount",
+          "source": "def on_unmount(self) -> None:\n        self._fragment_views = ()"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 533,
+          "kind": "FunctionDef",
+          "name": "publish_committed",
+          "source": "def publish_committed(self) -> None:\n        \"\"\"Acquire live-row ownership only after a provisional mount is accepted.\"\"\"\n        self._source_state = self._source_state.publish()\n        self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))\n        self._scroll_changed()\n        self.prepare_scroll()"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 636,
+          "kind": "FunctionDef",
+          "name": "checkpoint_available",
+          "source": "def checkpoint_available(self) -> bool:\n        return self.state.accepts_source_work and self.filter.checkpoint_available"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 1044,
+          "kind": "AsyncFunctionDef",
+          "name": "admit_initial",
+          "source": "async def admit_initial(self) -> None:\n        await self._source_state.execute(self, self._admit_initial)"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 1055,
+          "kind": "FunctionDef",
+          "name": "state",
+          "source": "def state(self) -> TranscriptState:\n        return super().state.for_projection(self, self._projection_owner())"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 637,
+          "kind": "Attribute",
+          "name": "checkpoint_available",
+          "source": "self.filter.checkpoint_available"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 1029,
+          "kind": "Attribute",
+          "name": "reserve_source_work",
+          "source": "self.reserve_source_work"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 1034,
+          "kind": "Attribute",
+          "name": "checkpoint_available",
+          "source": "self.checkpoint_available"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 500,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 637,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 659,
+          "kind": "Attribute",
+          "name": "reserve_source_work",
+          "source": "self.reserve_source_work"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 789,
+          "kind": "Attribute",
+          "name": "checkpoint_available",
+          "source": "self.checkpoint_available"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 918,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 1056,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "super().state"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 654,
+          "kind": "Attribute",
+          "name": "checkpoint_available",
+          "source": "self.checkpoint_available"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 738,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 829,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 664,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "self.state"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 708,
+          "kind": "Attribute",
+          "name": "remove",
+          "source": "self.filter.remove"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 995,
+          "kind": "Attribute",
+          "name": "remove",
+          "source": "evicted.remove"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 1042,
+          "kind": "Attribute",
+          "name": "reserve_source_work",
+          "source": "self.reserve_source_work"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "5e0ff921ab5e65be28bc023da253b19b7d92e428",
+      "root": "tests",
+      "modules": 394,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 43,
+          "kind": "AsyncFunctionDef",
+          "name": "on_unmount",
+          "source": "async def on_unmount(self):\n        if self.unmount_receipt is not None:\n            entered, release, finished = self.unmount_receipt\n            entered.set()\n            try:\n                await release.wait()\n            finally:\n                finished.set()"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 108,
+          "kind": "Attribute",
+          "name": "_task",
+          "source": "retired._task"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 102,
+          "kind": "Attribute",
+          "name": "reserve_source_work",
+          "source": "history.reserve_source_work"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 218,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "history.filter.state"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 222,
+          "kind": "Attribute",
+          "name": "_task",
+          "source": "state.view._task"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 223,
+          "kind": "Attribute",
+          "name": "remove",
+          "source": "stale.remove"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 228,
+          "kind": "Attribute",
+          "name": "remove",
+          "source": "history.filter.remove"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 167,
+          "kind": "Attribute",
+          "name": "_task",
+          "source": "child._task"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 225,
+          "kind": "Attribute",
+          "name": "state",
+          "source": "history.filter.state"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 245,
+          "kind": "Attribute",
+          "name": "reserve_source_work",
+          "source": "pending.reserve_source_work"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 277,
+          "kind": "Attribute",
+          "name": "finish_source_work",
+          "source": "history.finish_source_work"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 199,
+          "kind": "Attribute",
+          "name": "_task",
+          "source": "child._task"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 264,
+          "kind": "Attribute",
+          "name": "remove",
+          "source": "pending.remove"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "5e0ff921ab5e65be28bc023da253b19b7d92e428",
+      "root": "tools",
+      "modules": 41,
+      "omissions": [],
+      "sites": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "1bdc18c363cbc0f938537a71aa8ba0225d03e25e",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "src/textual/await_remove.py",
+          "line": 85,
+          "kind": "Attribute",
+          "name": "_task",
+          "source": "node._task"
+        },
+        {
+          "path": "src/textual/message_pump.py",
+          "line": 597,
+          "kind": "AsyncFunctionDef",
+          "name": "_process_messages",
+          "source": "async def _process_messages(self) -> None:\n        self._running = True\n        try:\n            with self._context():\n                try:\n                    if not await self._pre_process():\n                        return\n                    try:\n                        await self._process_messages_loop()\n                    except CancelledError:\n                        pass\n                finally:\n                    self._running = False\n                    try:\n                        if self._timers:\n                            await Timer._stop_all(self._timers)\n                            self._timers.clear()\n                        Reactive._clear_watchers(self)\n                    finally:\n                        await self._message_loop_exit()\n        finally:\n            # Bound methods and closures in a quiet publisher may retain this\n            # node despite its weak subscriber key. Teardown owns their removal,\n            # including cancellation and failed pre-processing.\n            self._running = False\n            self._clear_signal_subscriptions()\n            Reactive._clear_watch_subscriptions(self)\n            self._task = None"
+        },
+        {
+          "path": "src/textual/message_pump.py",
+          "line": 131,
+          "kind": "Attribute",
+          "name": "_task",
+          "source": "self._task"
+        },
+        {
+          "path": "src/textual/message_pump.py",
+          "line": 264,
+          "kind": "Attribute",
+          "name": "_task",
+          "source": "self._task"
+        },
+        {
+          "path": "src/textual/message_pump.py",
+          "line": 263,
+          "kind": "Attribute",
+          "name": "_task",
+          "source": "self._task"
+        },
+        {
+          "path": "src/textual/message_pump.py",
+          "line": 514,
+          "kind": "Attribute",
+          "name": "_task",
+          "source": "self._task"
+        },
+        {
+          "path": "src/textual/message_pump.py",
+          "line": 516,
+          "kind": "Attribute",
+          "name": "_task",
+          "source": "self._task"
+        },
+        {
+          "path": "src/textual/message_pump.py",
+          "line": 590,
+          "kind": "Attribute",
+          "name": "_task",
+          "source": "self._task"
+        },
+        {
+          "path": "src/textual/message_pump.py",
+          "line": 624,
+          "kind": "Attribute",
+          "name": "_task",
+          "source": "self._task"
+        },
+        {
+          "path": "src/textual/message_pump.py",
+          "line": 573,
+          "kind": "Attribute",
+          "name": "_task",
+          "source": "self._task"
+        },
+        {
+          "path": "src/textual/message_pump.py",
+          "line": 573,
+          "kind": "Attribute",
+          "name": "_task",
+          "source": "self._task"
+        },
+        {
+          "path": "src/textual/message_pump.py",
+          "line": 591,
+          "kind": "Attribute",
+          "name": "_process_messages",
+          "source": "self._process_messages"
+        },
+        {
+          "path": "src/textual/message_pump.py",
+          "line": 581,
+          "kind": "Attribute",
+          "name": "_task",
+          "source": "self._task"
+        }
+      ]
+    }
+  ],
+  "limits": "Lexical AST is not dynamic dispatch or runtime/paint/writer proof. Control borrows actual source state and native held event lifetimes; no copied receipt."
+}
