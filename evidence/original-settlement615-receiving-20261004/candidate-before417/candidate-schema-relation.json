@@ -1,0 +1,13 @@
+{
+  "state": "Candidate wholedeclaredNative/checkpoint schema equality before short417 loan; no publication/cohort admission attempted",
+  "source_prefix_derived_from_published_link": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534",
+  "target_prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "whole_declared_native_schema_equal": true,
+  "checkpoint_schema_equal": true,
+  "original_checkpoint": "c4ff566ee8f2c15407d486291971c9ef52efb99801150311a9f0fe40cd8ce8d2",
+  "target_checkpoint": "c4ff566ee8f2c15407d486291971c9ef52efb99801150311a9f0fe40cd8ce8d2",
+  "source_target_products_equal": false,
+  "preserve_only": "PreserveRuntimeInstallation+PreserveOwnerRuntime",
+  "carry_reset_replay_required": false,
+  "public_effects": 0
+}
