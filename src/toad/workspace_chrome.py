@@ -5,13 +5,23 @@ from textual.containers import Horizontal
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.widgets.footer import Footer
 from toad.session_presentation import NativeSessionSurface
+from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
+from toad.core.events import SidebarLayoutChanged
+from agent_comms.mro_dispatch import handles
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
     from toad.screens.session_view import SessionView
 
 
-class WorkspaceHeader(Horizontal):
+class WorkspaceHeader(CoreEventReceiver, Horizontal):
+    def on_mount(self) -> None:
+        self.observe_core(self.app.events)
+
+    @handles(SidebarLayoutChanged)
+    async def sidebar_layout_changed(self, event: CoreEventMessage) -> None:
+        self.app.workspace_chrome.layout_sidebars(self.screen)
+
     def compose(self) -> ComposeResult:
         from toad.widgets.session_tabs import SessionsTabs
         from toad.widgets.side_bar import TabHistoryControls
@@ -35,17 +45,31 @@ class WorkspaceChrome:
         screen.frame_presentation.defer(roster, roster.navigation.start)
         return changed
 
-    def sidebar_geometry(self, sidebar):
-        """Resolve the applying mounted member and its peers in one coordinate space."""
+    def layout_sidebars(self, screen) -> bool:
+        """Resolve and publish one mounted sidebar cohort in native frame order."""
         from toad.widgets.side_bar import SideBar
-        from textual.widget import Widget
 
-        screen = sidebar.screen
-        bars = {bar.id: bar for bar in (*screen.query(SideBar), sidebar)
-                if bar.id in screen.app.sidebar_layout.placements and bar.display
-                and all(ancestor.display for ancestor in bar.ancestors if isinstance(ancestor, Widget))}
-        return screen.app.sidebar_layout.resolve(
-            screen.size.width, {identity: bar.collapsed for identity, bar in bars.items()})
+        bars = tuple(bar for bar in screen.query(SideBar)
+                     if bar.id in screen.app.sidebar_layout.placements)
+        visible = tuple(bar for bar in bars if bar.presentation_visible)
+        resolved = screen.app.sidebar_layout.resolve(
+            screen.size.width, {bar.id: bar.collapsed for bar in visible})
+        changed = False
+        with screen.app.batch_update():
+            for bar in bars:
+                changed |= bar._apply_layout(resolved)
+            # Sibling order belongs to their shared placement, not to each bar.
+            order = {identity: index for index, identity in
+                     enumerate(screen.app.sidebar_layout.ordered())}
+            for parent in dict.fromkeys(bar.parent for bar in visible):
+                if parent is None:
+                    continue
+                before = tuple(parent.children)
+                after = tuple(sorted(before, key=lambda child: order.get(child.id, len(order))))
+                if before != after:
+                    parent.sort_children(key=lambda child: order.get(child.id, len(order)))
+                    changed = True
+        return changed
 
     async def select(self, view: "SessionView") -> None:
         roster = self.channels.roster
