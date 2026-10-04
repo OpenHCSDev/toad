@@ -1,0 +1,9 @@
+{
+  "exit_code": 0,
+  "duration_seconds": 11.64112398494035,
+  "pid": 417442,
+  "log": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/tool430-native59-20261004/app01.log",
+  "scratch": "/home/ts/.cache/agent-scratch/tool430-native59-app-20261004-01",
+  "provider_inputs": 0,
+  "physical_movie": false
+}
