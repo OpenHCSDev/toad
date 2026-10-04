@@ -1,0 +1,2219 @@
+{
+  "head": "617e295f10fe23d13af6dce0764f5927ccdad3ef",
+  "roots": [
+    {
+      "root": "src/toad",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "parsed": 393,
+      "omissions": []
+    },
+    {
+      "root": "tools",
+      "parsed": 41,
+      "omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 127,
+      "syntax": "Name",
+      "source": "phase = self.state.phase"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 127,
+      "syntax": "Attribute",
+      "source": "phase = self.state.phase"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 119,
+      "syntax": "Attribute",
+      "source": "return self.state.phase.can_cancel"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 128,
+      "syntax": "Name",
+      "source": "return phase.started_at if isinstance(phase, CompactionPhase) else self.state.started_at"
+    },
+    {
+      "path": "src/toad/conversation_turn.py",
+      "line": 128,
+      "syntax": "Name",
+      "source": "return phase.started_at if isinstance(phase, CompactionPhase) else self.state.started_at"
+    },
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 214,
+      "syntax": "Attribute",
+      "source": "visible = (current is view.screen and view in view.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/mounted_message_history.py",
+      "line": 158,
+      "syntax": "Attribute",
+      "source": "return projection(self.rows, self.view.screen._compositor.visible_widgets,"
+    },
+    {
+      "path": "src/toad/mounted_message_history.py",
+      "line": 249,
+      "syntax": "Attribute",
+      "source": "geometry = self.screen._compositor.visible_widgets.get(self)"
+    },
+    {
+      "path": "src/toad/screens/agent_modal.py",
+      "line": 80,
+      "syntax": "Attribute",
+      "source": "self.query_one(\"Footer\").styles.animate(\"opacity\", 1.0, duration=500 / 1000)"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 151,
+      "syntax": "Name",
+      "source": "super().update_node_styles(animate=animate)"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 13,
+      "syntax": "alias",
+      "source": "from toad.widgets.activity_spinner import FRAMES, animated_label"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 135,
+      "syntax": "Name",
+      "source": "for phase in range(len(FRAMES) if busy else 1):"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 63,
+      "syntax": "Name",
+      "source": "return self.frames[phase % len(self.frames)]"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 74,
+      "syntax": "Name",
+      "source": ") for phase in range(len(FRAMES) if source.busy else 1))"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 129,
+      "syntax": "Name",
+      "source": "return self.frames[phase % len(self.frames)]"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 135,
+      "syntax": "Name",
+      "source": "for phase in range(len(FRAMES) if busy else 1):"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 136,
+      "syntax": "Name",
+      "source": "title = animated_label(tab.title, busy=busy, phase=phase)"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 74,
+      "syntax": "Name",
+      "source": ") for phase in range(len(FRAMES) if source.busy else 1))"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 72,
+      "syntax": "Name",
+      "source": "f\"{animated_label(source.label, busy=source.busy, phase=phase)}\""
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 7,
+      "syntax": "alias",
+      "source": "from toad.widgets.activity_spinner import FRAMES"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 31,
+      "syntax": "FunctionDef",
+      "source": "def painted_busy_rows(self):"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 84,
+      "syntax": "FunctionDef",
+      "source": "def animate(self) -> None:"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 14,
+      "syntax": "Attribute",
+      "source": "self.phase = 0"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 40,
+      "syntax": "Attribute",
+      "source": "for row in self.sidebar.screen._compositor.visible_widgets:"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 88,
+      "syntax": "Attribute",
+      "source": "self.phase = (self.phase + 1) % len(FRAMES)"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 58,
+      "syntax": "Attribute",
+      "source": "self.animate, pause=True,"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 89,
+      "syntax": "Attribute",
+      "source": "for row in self.painted_busy_rows():"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 88,
+      "syntax": "Attribute",
+      "source": "self.phase = (self.phase + 1) % len(FRAMES)"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 88,
+      "syntax": "Name",
+      "source": "self.phase = (self.phase + 1) % len(FRAMES)"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 90,
+      "syntax": "Attribute",
+      "source": "row.advance_spinner(self.phase)"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 90,
+      "syntax": "Attribute",
+      "source": "row.advance_spinner(self.phase)"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 42,
+      "syntax": "Attribute",
+      "source": "if row.is_navigation_row() and row.sidebar_owner() is self.sidebar:"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 469,
+      "syntax": "Name",
+      "source": "phase = self.hydration"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 474,
+      "syntax": "Name",
+      "source": "if self.hydration is phase:"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 471,
+      "syntax": "Name",
+      "source": "if phase.pending and self.view.content_in_view:"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 475,
+      "syntax": "Name",
+      "source": "self.hydration = phase.after_attempt()"
+    },
+    {
+      "path": "src/toad/transcript_filter.py",
+      "line": 186,
+      "syntax": "Attribute",
+      "source": "visible = owner.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/transcript_filter.py",
+      "line": 128,
+      "syntax": "Attribute",
+      "source": "visible = snapshot.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/widgets/activity_spinner.py",
+      "line": 3,
+      "syntax": "Name",
+      "source": "FRAMES = (\"\u280b\", \"\u2819\", \"\u2839\", \"\u2838\", \"\u283c\", \"\u2834\", \"\u2826\", \"\u2827\", \"\u2807\", \"\u280f\")"
+    },
+    {
+      "path": "src/toad/widgets/activity_spinner.py",
+      "line": 11,
+      "syntax": "Name",
+      "source": "return f\"{FRAMES[phase % len(FRAMES)]} {label[len(marker):]}\""
+    },
+    {
+      "path": "src/toad/widgets/activity_spinner.py",
+      "line": 11,
+      "syntax": "Name",
+      "source": "return f\"{FRAMES[phase % len(FRAMES)]} {label[len(marker):]}\""
+    },
+    {
+      "path": "src/toad/widgets/activity_spinner.py",
+      "line": 11,
+      "syntax": "Name",
+      "source": "return f\"{FRAMES[phase % len(FRAMES)]} {label[len(marker):]}\""
+    },
+    {
+      "path": "src/toad/widgets/committed_presentation.py",
+      "line": 296,
+      "syntax": "Attribute",
+      "source": "visible = view.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 45,
+      "syntax": "alias",
+      "source": "from toad.widgets.side_bar import SidebarVisibilityObserver"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 268,
+      "syntax": "FunctionDef",
+      "source": "def sidebar_owner(self):"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 445,
+      "syntax": "Name",
+      "source": "class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 259,
+      "syntax": "Attribute",
+      "source": "sidebar = self.sidebar_owner()"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 277,
+      "syntax": "Attribute",
+      "source": "sidebar = self.sidebar_owner()"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 282,
+      "syntax": "Attribute",
+      "source": "sidebar = self.sidebar_owner()"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 303,
+      "syntax": "Attribute",
+      "source": "sidebar = self.sidebar_owner()"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 287,
+      "syntax": "Attribute",
+      "source": "if sidebar := self.sidebar_owner():"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 322,
+      "syntax": "Attribute",
+      "source": "if sidebar := self.sidebar_owner():"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 21,
+      "syntax": "alias",
+      "source": "from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 32,
+      "syntax": "Name",
+      "source": "class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 204,
+      "syntax": "Name",
+      "source": "phase = int(monotonic() * 12) % 12"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 316,
+      "syntax": "Attribute",
+      "source": "visible = self.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 172,
+      "syntax": "Attribute",
+      "source": "if self in self.screen._compositor.visible_widgets:"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 214,
+      "syntax": "Name",
+      "source": "gap = (position - phase) % 12"
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "line": 54,
+      "syntax": "Attribute",
+      "source": "or self not in screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 246,
+      "syntax": "Attribute",
+      "source": "visible = self.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/widgets/recovery_view.py",
+      "line": 112,
+      "syntax": "Attribute",
+      "source": "or self not in self.screen._compositor.visible_widgets):"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 53,
+      "syntax": "FunctionDef",
+      "source": "def advance_spinner(self, phase: int) -> None:"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 50,
+      "syntax": "Attribute",
+      "source": "self._spinner_phase = 0"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 56,
+      "syntax": "Attribute",
+      "source": "self._spinner_phase = phase"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 56,
+      "syntax": "Name",
+      "source": "self._spinner_phase = phase"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 87,
+      "syntax": "Attribute",
+      "source": "content = prepared.content(self._spinner_phase)"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 54,
+      "syntax": "Attribute",
+      "source": "if self._spinner_phase == phase or not self.has_class(\"-busy\"):"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 54,
+      "syntax": "Name",
+      "source": "if self._spinner_phase == phase or not self.has_class(\"-busy\"):"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 27,
+      "syntax": "alias",
+      "source": "from toad.widgets.activity_spinner import FRAMES, animated_label"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 168,
+      "syntax": "FunctionDef",
+      "source": "def _animate_busy(self) -> None:"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 141,
+      "syntax": "Attribute",
+      "source": "self._spinner_phase = 0"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 142,
+      "syntax": "Attribute",
+      "source": "self._spinner_timer = None"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 160,
+      "syntax": "Attribute",
+      "source": "timer = self._spinner_timer"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 175,
+      "syntax": "Attribute",
+      "source": "self._spinner_phase = (self._spinner_phase + 1) % len(FRAMES)"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 182,
+      "syntax": "Attribute",
+      "source": "self._spinner_timer = self.set_interval(.18, self._animate_busy, pause=True)"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 182,
+      "syntax": "Attribute",
+      "source": "self._spinner_timer = self.set_interval(.18, self._animate_busy, pause=True)"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 222,
+      "syntax": "Name",
+      "source": "if animate:"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 175,
+      "syntax": "Attribute",
+      "source": "self._spinner_phase = (self._spinner_phase + 1) % len(FRAMES)"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 175,
+      "syntax": "Name",
+      "source": "self._spinner_phase = (self._spinner_phase + 1) % len(FRAMES)"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 238,
+      "syntax": "Attribute",
+      "source": "return prepared.content(self._spinner_phase)"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 242,
+      "syntax": "Attribute",
+      "source": "phase=self._spinner_phase,"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 223,
+      "syntax": "Attribute",
+      "source": "underline.animate(\"highlight_start\", start, duration=0.3)"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 224,
+      "syntax": "Attribute",
+      "source": "underline.animate("
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 27,
+      "syntax": "ClassDef",
+      "source": "class SidebarVisibilityObserver:"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 901,
+      "syntax": "Name",
+      "source": "if isinstance(panel.widget, SidebarVisibilityObserver):"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 22,
+      "syntax": "alias",
+      "source": "from toad.widgets.activity_spinner import FRAMES"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 27,
+      "syntax": "alias",
+      "source": "from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 204,
+      "syntax": "Name",
+      "source": "class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 278,
+      "syntax": "FunctionDef",
+      "source": "def _animate_busy(self) -> None:"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 232,
+      "syntax": "Attribute",
+      "source": "self._spinner_phase = 0"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 233,
+      "syntax": "Attribute",
+      "source": "self._spinner_timer = None"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 255,
+      "syntax": "Attribute",
+      "source": "self._spinner_timer = self.set_interval(.18, self._animate_busy, pause=True)"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 282,
+      "syntax": "Attribute",
+      "source": "self._spinner_phase = (self._spinner_phase + 1) % len(FRAMES)"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 255,
+      "syntax": "Attribute",
+      "source": "self._spinner_timer = self.set_interval(.18, self._animate_busy, pause=True)"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 266,
+      "syntax": "Attribute",
+      "source": "if self._spinner_timer is None:"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 282,
+      "syntax": "Attribute",
+      "source": "self._spinner_phase = (self._spinner_phase + 1) % len(FRAMES)"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 282,
+      "syntax": "Name",
+      "source": "self._spinner_phase = (self._spinner_phase + 1) % len(FRAMES)"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 369,
+      "syntax": "Attribute",
+      "source": "and self in self.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 271,
+      "syntax": "Attribute",
+      "source": "self._spinner_timer.resume()"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 273,
+      "syntax": "Attribute",
+      "source": "self._spinner_timer.pause()"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 286,
+      "syntax": "Attribute",
+      "source": "row.advance_spinner(self._spinner_phase)"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 286,
+      "syntax": "Attribute",
+      "source": "row.advance_spinner(self._spinner_phase)"
+    },
+    {
+      "path": "src/toad/widgets/throbber.py",
+      "line": 132,
+      "syntax": "Attribute",
+      "source": "if screen is current and self in screen._compositor.visible_widgets:"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 235,
+      "syntax": "Attribute",
+      "source": "geometry = self.screen._compositor.visible_widgets.get(self)"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 521,
+      "syntax": "Attribute",
+      "source": "visible = self.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 754,
+      "syntax": "Attribute",
+      "source": "geometry = self.screen._compositor.visible_widgets.get(self)"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 744,
+      "syntax": "Attribute",
+      "source": "for body in self.screen._compositor.visible_widgets:"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 884,
+      "syntax": "Attribute",
+      "source": "visible = self.window.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1025,
+      "syntax": "Attribute",
+      "source": "visible = screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/activity_spinners_pilot.py",
+      "line": 19,
+      "syntax": "alias",
+      "source": "from toad.widgets.activity_spinner import FRAMES"
+    },
+    {
+      "path": "tests/activity_spinners_pilot.py",
+      "line": 115,
+      "syntax": "Attribute",
+      "source": "tree._animate_busy()"
+    },
+    {
+      "path": "tests/activity_spinners_pilot.py",
+      "line": 88,
+      "syntax": "Name",
+      "source": "assert first.title.startswith(\"\u231b \") and label.render().plain[0] in FRAMES"
+    },
+    {
+      "path": "tests/activity_spinners_pilot.py",
+      "line": 94,
+      "syntax": "Attribute",
+      "source": "sidebar.projection.animate()"
+    },
+    {
+      "path": "tests/activity_spinners_pilot.py",
+      "line": 95,
+      "syntax": "Attribute",
+      "source": "tabs._animate_busy()"
+    },
+    {
+      "path": "tests/activity_spinners_pilot.py",
+      "line": 118,
+      "syntax": "Name",
+      "source": "assert any((frame in row.render().plain for frame in FRAMES))"
+    },
+    {
+      "path": "tests/activity_spinners_pilot.py",
+      "line": 78,
+      "syntax": "Name",
+      "source": "assert rows and any(frame in row.render().plain for frame in FRAMES for row in rows)"
+    },
+    {
+      "path": "tests/activity_spinners_pilot.py",
+      "line": 99,
+      "syntax": "Name",
+      "source": "assert any(frame in rows[0].render().plain for frame in FRAMES)"
+    },
+    {
+      "path": "tests/agent_configuration_native_installed_pilot.py",
+      "line": 33,
+      "syntax": "Attribute",
+      "source": "await until(pilot, lambda: high in app.screen._compositor.visible_widgets and high.region.width > 0)"
+    },
+    {
+      "path": "tests/agent_selection_configured_installed_pilot.py",
+      "line": 109,
+      "syntax": "Name",
+      "source": "receipt['completed'].append(phase)"
+    },
+    {
+      "path": "tests/agent_selection_configured_installed_pilot.py",
+      "line": 111,
+      "syntax": "Name",
+      "source": "print(phase, flush=True)"
+    },
+    {
+      "path": "tests/agent_selection_configured_installed_pilot.py",
+      "line": 150,
+      "syntax": "Attribute",
+      "source": "await until(pilot, lambda: high in app.screen._compositor.visible_widgets and high.region.width > 0)"
+    },
+    {
+      "path": "tests/attachment_request_pilot.py",
+      "line": 124,
+      "syntax": "Attribute",
+      "source": "assert row in app.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 68,
+      "syntax": "Name",
+      "source": "receipt['phase'] = phase"
+    },
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 70,
+      "syntax": "Name",
+      "source": "print('CONTROLLED_JOURNEY_PHASE', phase, flush=True)"
+    },
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 265,
+      "syntax": "Attribute",
+      "source": "return (body in app.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 173,
+      "syntax": "Attribute",
+      "source": "'painted': body in view.screen._compositor.visible_widgets,"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 48,
+      "syntax": "Name",
+      "source": "receipt['phase'] = phase"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 50,
+      "syntax": "Name",
+      "source": "print('RETAINED_JOURNEY_PHASE', phase, flush=True)"
+    },
+    {
+      "path": "tests/channel_roster_retention_pilot.py",
+      "line": 34,
+      "syntax": "Attribute",
+      "source": "visible = screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/cold_context_installed_physical.py",
+      "line": 203,
+      "syntax": "FunctionDef",
+      "source": "def phase(label):"
+    },
+    {
+      "path": "tests/cold_context_installed_physical.py",
+      "line": 206,
+      "syntax": "Name",
+      "source": "snapshot = phase(label)"
+    },
+    {
+      "path": "tests/command_family_pilot.py",
+      "line": 72,
+      "syntax": "Attribute",
+      "source": "assert widget in app.screen._compositor.visible_widgets and region.width and region.height"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 882,
+      "syntax": "Attribute",
+      "source": "placement = app.screen._compositor.visible_widgets.get("
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 131,
+      "syntax": "Name",
+      "source": "phase = comms.registry.require(\"beta\").turn_state.phase"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 131,
+      "syntax": "Attribute",
+      "source": "phase = comms.registry.require(\"beta\").turn_state.phase"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 132,
+      "syntax": "Name",
+      "source": "assert isinstance(phase, CompactionPhase) and phase.source is not None"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 138,
+      "syntax": "Name",
+      "source": "progress = {\"operation_id\": phase.operation_id,"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 132,
+      "syntax": "Name",
+      "source": "assert isinstance(phase, CompactionPhase) and phase.source is not None"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 139,
+      "syntax": "Name",
+      "source": "\"source_bytes_done\": phase.source.source_bytes_done,"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 140,
+      "syntax": "Name",
+      "source": "\"source_bytes_total\": phase.source.source_bytes_total,"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 141,
+      "syntax": "Name",
+      "source": "\"label\": phase.source.label, \"elapsed_ms\": phase.source.elapsed_ms}"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 141,
+      "syntax": "Name",
+      "source": "\"label\": phase.source.label, \"elapsed_ms\": phase.source.elapsed_ms}"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 364,
+      "syntax": "Name",
+      "source": "assert outcomes == [outcome], (phase, outcomes)"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 372,
+      "syntax": "Name",
+      "source": "assert len(blocks) == 1, (phase, len(blocks))"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 375,
+      "syntax": "Name",
+      "source": "phases.append({\"phase\": phase, \"original_outcomes\": len(outcomes),"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 136,
+      "syntax": "Name",
+      "source": "await until(pilot, lambda: phase.source.label in \"\\n\".join("
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 378,
+      "syntax": "Name",
+      "source": "(evidence / f\"{phase}.svg\").write_text(app.export_screenshot())"
+    },
+    {
+      "path": "tests/core_events_native_installed_pilot.py",
+      "line": 64,
+      "syntax": "Attribute",
+      "source": "await until(pilot, lambda: high in app.screen._compositor.visible_widgets and high.region.width > 0)"
+    },
+    {
+      "path": "tests/cursor_extent_pilot.py",
+      "line": 60,
+      "syntax": "Attribute",
+      "source": "visible = view.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/cursor_extent_pilot.py",
+      "line": 100,
+      "syntax": "Attribute",
+      "source": "visible = view.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/cursor_extent_pilot.py",
+      "line": 76,
+      "syntax": "Attribute",
+      "source": "assert history in view.screen._compositor.visible_widgets, size"
+    },
+    {
+      "path": "tests/cursor_request_pilot.py",
+      "line": 138,
+      "syntax": "Attribute",
+      "source": "and row in app.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/existing_thread_tab_title_pilot.py",
+      "line": 136,
+      "syntax": "Name",
+      "source": "observations.append((phase, label, expected, cached, painted))"
+    },
+    {
+      "path": "tests/external_cli_native_installed_pilot.py",
+      "line": 132,
+      "syntax": "AsyncFunctionDef",
+      "source": "async def phase(label):"
+    },
+    {
+      "path": "tests/external_cli_native_installed_pilot.py",
+      "line": 163,
+      "syntax": "Name",
+      "source": "await phase(\"channel-pending\")"
+    },
+    {
+      "path": "tests/external_cli_native_installed_pilot.py",
+      "line": 172,
+      "syntax": "Name",
+      "source": "await phase(\"channel-checked\")"
+    },
+    {
+      "path": "tests/external_cli_native_installed_pilot.py",
+      "line": 179,
+      "syntax": "Name",
+      "source": "await phase(\"channel-both-checked\")"
+    },
+    {
+      "path": "tests/external_cli_native_installed_pilot.py",
+      "line": 188,
+      "syntax": "Name",
+      "source": "await phase(\"second-cli-open-no-native\")"
+    },
+    {
+      "path": "tests/external_cli_native_installed_pilot.py",
+      "line": 203,
+      "syntax": "Name",
+      "source": "await phase(\"dm-pending\")"
+    },
+    {
+      "path": "tests/external_cli_native_installed_pilot.py",
+      "line": 217,
+      "syntax": "Name",
+      "source": "await phase(\"dm-reply\")"
+    },
+    {
+      "path": "tests/external_cli_native_installed_pilot.py",
+      "line": 222,
+      "syntax": "Name",
+      "source": "await phase(\"external-offline\")"
+    },
+    {
+      "path": "tests/external_cli_native_installed_pilot.py",
+      "line": 255,
+      "syntax": "Name",
+      "source": "await phase(\"return-no-native-spawn\")"
+    },
+    {
+      "path": "tests/guards/test_plan_presentation.py",
+      "line": 61,
+      "syntax": "Attribute",
+      "source": "await until(pilot, lambda: plan in app.screen._compositor.visible_widgets)"
+    },
+    {
+      "path": "tests/history_availability_installed_pilot.py",
+      "line": 71,
+      "syntax": "Attribute",
+      "source": "print(\"RESPONSES\", [(len(r.source), r.region, r.display, r in app.screen._compositor.visible_widgets, r.body_ready, r.body_dormant) for r in source.query(AgentResponse)])"
+    },
+    {
+      "path": "tests/history_availability_installed_pilot.py",
+      "line": 74,
+      "syntax": "Attribute",
+      "source": "if r in app.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/history_edge_scheduling_pilot.py",
+      "line": 78,
+      "syntax": "Attribute",
+      "source": "assert widget.is_attached and widget in chat.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/history_frame_publication_pilot.py",
+      "line": 44,
+      "syntax": "Attribute",
+      "source": "visible = screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/history_mounted_budget_pilot.py",
+      "line": 59,
+      "syntax": "Attribute",
+      "source": "if child in app.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/independent_native_writer_pilot.py",
+      "line": 109,
+      "syntax": "Attribute",
+      "source": "if body in workspace._compositor.visible_widgets and body.region.overlaps(view.window.scrollable_content_region))"
+    },
+    {
+      "path": "tests/independent_native_writer_pilot.py",
+      "line": 131,
+      "syntax": "Attribute",
+      "source": "assert all(body() in workspace._compositor.visible_widgets for body in leaves), {"
+    },
+    {
+      "path": "tests/independent_native_writer_pilot.py",
+      "line": 134,
+      "syntax": "Attribute",
+      "source": "\"original_leaves_visible\": [body() in workspace._compositor.visible_widgets for body in leaves],"
+    },
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "line": 76,
+      "syntax": "Attribute",
+      "source": "assert roster in app.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "line": 47,
+      "syntax": "Attribute",
+      "source": "block in app.screen._compositor.visible_widgets and block.region.overlaps(window)"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "line": 54,
+      "syntax": "Attribute",
+      "source": "visible = screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "line": 54,
+      "syntax": "Attribute",
+      "source": "visible = screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/markdown_return_reuse_pilot.py",
+      "line": 47,
+      "syntax": "Attribute",
+      "source": "await until(pilot, lambda: response in app.screen._compositor.visible_widgets and"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 242,
+      "syntax": "Attribute",
+      "source": "[(type(node).__name__, node.region) for node in app.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 381,
+      "syntax": "Attribute",
+      "source": "if body in frame._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 279,
+      "syntax": "Attribute",
+      "source": "if body in frame._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/native_scroll_recording_pilot.py",
+      "line": 65,
+      "syntax": "Name",
+      "source": "for phase in ('up', 'down', 'reverse', 'end', 'idle'):"
+    },
+    {
+      "path": "tests/native_scroll_recording_pilot.py",
+      "line": 66,
+      "syntax": "Name",
+      "source": "command.extend(('--review-phase', phase))"
+    },
+    {
+      "path": "tests/original_stream_headers_installed_pilot.py",
+      "line": 37,
+      "syntax": "Attribute",
+      "source": "'painted': body in app.screen._compositor.visible_widgets and body.region.overlaps(viewport),"
+    },
+    {
+      "path": "tests/original_turn_resource_real_installed_pilot.py",
+      "line": 161,
+      "syntax": "Attribute",
+      "source": "assert isinstance(owner.active_turn.phase, ToolRunningPhase)"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 30,
+      "syntax": "Attribute",
+      "source": "if widget not in widget.screen._compositor.visible_widgets:"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 122,
+      "syntax": "Attribute",
+      "source": "\"visible\": mounted in mounted.screen._compositor.visible_widgets,"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 123,
+      "syntax": "Attribute",
+      "source": "\"paint\": viewport_text(mounted) if mounted in mounted.screen._compositor.visible_widgets else \"<absent>\","
+    },
+    {
+      "path": "tests/prompt_completion_installed_pilot.py",
+      "line": 38,
+      "syntax": "Attribute",
+      "source": "return widget in widget.screen._compositor.visible_widgets and text in viewport_text(widget)"
+    },
+    {
+      "path": "tests/prompt_popup_new_case_pilot.py",
+      "line": 48,
+      "syntax": "Attribute",
+      "source": "await until(pilot, lambda: popup in app.screen._compositor.visible_widgets and"
+    },
+    {
+      "path": "tests/provider_login_installed_physical.py",
+      "line": 103,
+      "syntax": "FunctionDef",
+      "source": "def phase(label):"
+    },
+    {
+      "path": "tests/provider_login_installed_physical.py",
+      "line": 110,
+      "syntax": "Name",
+      "source": "assert phase('cancelled')['metadata']['current_mode'] == phase('startup')['metadata']['current_mode']"
+    },
+    {
+      "path": "tests/provider_login_installed_physical.py",
+      "line": 110,
+      "syntax": "Name",
+      "source": "assert phase('cancelled')['metadata']['current_mode'] == phase('startup')['metadata']['current_mode']"
+    },
+    {
+      "path": "tests/provider_login_installed_physical.py",
+      "line": 107,
+      "syntax": "Name",
+      "source": "assert phase('provider-chooser')['metadata']['screen']['class'] == 'ContextMenu'"
+    },
+    {
+      "path": "tests/provider_login_installed_physical.py",
+      "line": 108,
+      "syntax": "Name",
+      "source": "assert phase('native-handoff')['metadata']['screen']['class'] == 'ActionModal'"
+    },
+    {
+      "path": "tests/provider_login_installed_physical.py",
+      "line": 109,
+      "syntax": "Name",
+      "source": "assert phase('cancelled')['metadata']['screen']['class'] != 'ActionModal'"
+    },
+    {
+      "path": "tests/queue_admission_pilot.py",
+      "line": 127,
+      "syntax": "Attribute",
+      "source": "assert summary in app.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/reader_geometry_pilot.py",
+      "line": 18,
+      "syntax": "Name",
+      "source": "phase = \"startup\""
+    },
+    {
+      "path": "tests/reader_geometry_pilot.py",
+      "line": 76,
+      "syntax": "Attribute",
+      "source": "app.phase = \"geometry-meets-reader\""
+    },
+    {
+      "path": "tests/reader_geometry_pilot.py",
+      "line": 85,
+      "syntax": "Attribute",
+      "source": "app.phase = \"geometry-restored\""
+    },
+    {
+      "path": "tests/reader_geometry_pilot.py",
+      "line": 94,
+      "syntax": "Attribute",
+      "source": "app.phase = \"downward-rejoin\""
+    },
+    {
+      "path": "tests/reader_geometry_pilot.py",
+      "line": 101,
+      "syntax": "Attribute",
+      "source": "app.phase = \"upward-release\""
+    },
+    {
+      "path": "tests/reader_geometry_pilot.py",
+      "line": 108,
+      "syntax": "Attribute",
+      "source": "app.phase = \"explicit-end\""
+    },
+    {
+      "path": "tests/reader_geometry_pilot.py",
+      "line": 115,
+      "syntax": "Attribute",
+      "source": "app.phase = \"stationary\""
+    },
+    {
+      "path": "tests/reader_geometry_pilot.py",
+      "line": 32,
+      "syntax": "Attribute",
+      "source": "clock=monotonic(), phase=self.phase, y=window.scroll_y,"
+    },
+    {
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 29,
+      "syntax": "Name",
+      "source": "phase = None"
+    },
+    {
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 133,
+      "syntax": "Attribute",
+      "source": "visible = app.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 172,
+      "syntax": "Attribute",
+      "source": "app.phase = 'dispose-parked-original'"
+    },
+    {
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 141,
+      "syntax": "Attribute",
+      "source": "app.phase = f'warm-away-{index}'"
+    },
+    {
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 144,
+      "syntax": "Attribute",
+      "source": "app.phase = f'warm-return-{index}'"
+    },
+    {
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 42,
+      "syntax": "Attribute",
+      "source": "if self.phase is None or renderable is None or self._batch_count:"
+    },
+    {
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 230,
+      "syntax": "Attribute",
+      "source": "app.phase = \"reader-input\""
+    },
+    {
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 240,
+      "syntax": "Attribute",
+      "source": "app.phase = \"physical-A\""
+    },
+    {
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 242,
+      "syntax": "Attribute",
+      "source": "app.phase = \"physical-B-return\""
+    },
+    {
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 255,
+      "syntax": "Attribute",
+      "source": "app.phase = \"repeated-pagedown-lazy-bottom\""
+    },
+    {
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 262,
+      "syntax": "Attribute",
+      "source": "app.phase = \"reverse\""
+    },
+    {
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 265,
+      "syntax": "Attribute",
+      "source": "app.phase = \"idle\""
+    },
+    {
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 268,
+      "syntax": "Attribute",
+      "source": "app.phase = \"separate-End\""
+    },
+    {
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 56,
+      "syntax": "Attribute",
+      "source": "self.frames.append(dict(clock=monotonic(), phase=self.phase,"
+    },
+    {
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 47,
+      "syntax": "Attribute",
+      "source": "self.frames.append(dict(clock=monotonic(), phase=self.phase,"
+    },
+    {
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 157,
+      "syntax": "Attribute",
+      "source": "if frame['phase'] == app.phase and frame['source'] == source_name]"
+    },
+    {
+      "path": "tests/reconnect_source_native_installed_pilot.py",
+      "line": 51,
+      "syntax": "Name",
+      "source": "phase = {\"phase\": label, \"canonical_assistants\": len(source),"
+    },
+    {
+      "path": "tests/reconnect_source_native_installed_pilot.py",
+      "line": 66,
+      "syntax": "Name",
+      "source": "assert len(source) == expected and all(event.text == BODY for event in source), phase"
+    },
+    {
+      "path": "tests/reconnect_source_native_installed_pilot.py",
+      "line": 67,
+      "syntax": "Name",
+      "source": "assert len(users) == expected and len({event.native_id for event in users}) == expected, phase"
+    },
+    {
+      "path": "tests/reconnect_source_native_installed_pilot.py",
+      "line": 68,
+      "syntax": "Name",
+      "source": "assert len(widgets) == expected and paint.count(BODY) == expected, phase"
+    },
+    {
+      "path": "tests/reconnect_source_native_installed_pilot.py",
+      "line": 69,
+      "syntax": "Name",
+      "source": "assert paint.count(\"Agent \u00b7\") == expected, phase"
+    },
+    {
+      "path": "tests/reconnect_source_native_installed_pilot.py",
+      "line": 62,
+      "syntax": "Name",
+      "source": "receipt[\"phases\"].append(phase)"
+    },
+    {
+      "path": "tests/reconnect_source_native_installed_pilot.py",
+      "line": 65,
+      "syntax": "Name",
+      "source": "print(\"RECONNECT_PHASE\", json.dumps(phase), flush=True)"
+    },
+    {
+      "path": "tests/recovery_view_boundaries_pilot.py",
+      "line": 139,
+      "syntax": "Attribute",
+      "source": "while view not in owner_screen._compositor.visible_widgets:"
+    },
+    {
+      "path": "tests/relationship_poll_reflow_pilot.py",
+      "line": 69,
+      "syntax": "Attribute",
+      "source": "tree._spinner_timer.stop()"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 46,
+      "syntax": "Attribute",
+      "source": "visible=screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 103,
+      "syntax": "Attribute",
+      "source": "receipt={'live_response_attached':block.is_attached,'response_resources':len(responses),'history_frontier_advanced':history.committed_cursor.offset>old_page.after.offset,'managed_phase':type(view.turns.owner.state.phase).__name__,'managed_busy':view.turns.owner.busy,'history_count':len(view.window.histories),'response_resource_ids':[id(widget) for widget in responses]}"
+    },
+    {
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 399,
+      "syntax": "Attribute",
+      "source": "assert selected not in scene.visible_widgets"
+    },
+    {
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 288,
+      "syntax": "Attribute",
+      "source": "assert not any(member in child.ancestors for child in scene.visible_widgets)"
+    },
+    {
+      "path": "tests/retained_input_origin_native_pilot.py",
+      "line": 30,
+      "syntax": "Name",
+      "source": "record['phases'].append(phase)"
+    },
+    {
+      "path": "tests/retained_input_origin_observer.py",
+      "line": 163,
+      "syntax": "FunctionDef",
+      "source": "def phase(name):"
+    },
+    {
+      "path": "tests/retained_input_origin_observer.py",
+      "line": 172,
+      "syntax": "Name",
+      "source": "phase('before_actual_toad_constructor')"
+    },
+    {
+      "path": "tests/retained_input_origin_observer.py",
+      "line": 180,
+      "syntax": "Name",
+      "source": "phase('before_actual_toad_run_test')"
+    },
+    {
+      "path": "tests/retained_input_origin_observer.py",
+      "line": 182,
+      "syntax": "Name",
+      "source": "phase('actual_toad_run_test_yielded_before_saved_view_ready')"
+    },
+    {
+      "path": "tests/retained_input_origin_observer.py",
+      "line": 187,
+      "syntax": "Name",
+      "source": "phase('actual_original_view_before_acp_attachment_settlement')"
+    },
+    {
+      "path": "tests/retained_input_origin_observer.py",
+      "line": 192,
+      "syntax": "Name",
+      "source": "phase('actual_acp_attached_original_queue_scope')"
+    },
+    {
+      "path": "tests/retained_input_origin_observer.py",
+      "line": 45,
+      "syntax": "Name",
+      "source": "'phase': phase, 'core': __import__('agent_comms').__file__,"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 73,
+      "syntax": "Attribute",
+      "source": "visible = screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 396,
+      "syntax": "Attribute",
+      "source": "if block in app.screen._compositor.visible_widgets}"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 379,
+      "syntax": "Attribute",
+      "source": "if block in app.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 96,
+      "syntax": "Name",
+      "source": "phase = [None]"
+    },
+    {
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 107,
+      "syntax": "Name",
+      "source": "current = phase[0]"
+    },
+    {
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 156,
+      "syntax": "Name",
+      "source": "phase[0] = (target, \"near_latest_scroll\", index)"
+    },
+    {
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 166,
+      "syntax": "Name",
+      "source": "phase[0] = None"
+    },
+    {
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 174,
+      "syntax": "Name",
+      "source": "phase[0] = (target, \"near_oldest_scroll\", index)"
+    },
+    {
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 184,
+      "syntax": "Name",
+      "source": "phase[0] = None"
+    },
+    {
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 206,
+      "syntax": "Name",
+      "source": "phase[0] = (target, \"selection\", len(selection_timings))"
+    },
+    {
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 212,
+      "syntax": "Name",
+      "source": "phase[0] = None"
+    },
+    {
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 161,
+      "syntax": "Name",
+      "source": "scroll_call_ms[phase[0]] = round((time.perf_counter() - started) * 1000, 1)"
+    },
+    {
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 179,
+      "syntax": "Name",
+      "source": "scroll_call_ms[phase[0]] = round((time.perf_counter() - started) * 1000, 1)"
+    },
+    {
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 244,
+      "syntax": "Attribute",
+      "source": "(widget for widget in app.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 232,
+      "syntax": "Attribute",
+      "source": "\"start_mapped\": start_widget in app.screen._compositor.visible_widgets,"
+    },
+    {
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 233,
+      "syntax": "Attribute",
+      "source": "\"end_mapped\": end_widget in app.screen._compositor.visible_widgets,"
+    },
+    {
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 239,
+      "syntax": "Attribute",
+      "source": "for widget in app.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "line": 62,
+      "syntax": "Attribute",
+      "source": "assert history in app.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "line": 101,
+      "syntax": "Attribute",
+      "source": "assert activity in app.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/shared_channels_pilot.py",
+      "line": 51,
+      "syntax": "Attribute",
+      "source": "and row in screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/sidebar_direction_pilot.py",
+      "line": 42,
+      "syntax": "Attribute",
+      "source": "button in app.screen._compositor.visible_widgets,"
+    },
+    {
+      "path": "tests/sidebar_edge_anchor_installed_pilot.py",
+      "line": 71,
+      "syntax": "Attribute",
+      "source": "assert grip.display and grip in app.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 58,
+      "syntax": "Attribute",
+      "source": "region, clip = widget.screen.screen._compositor.visible_widgets[widget]"
+    },
+    {
+      "path": "tests/source_admission_trace_pilot.py",
+      "line": 34,
+      "syntax": "Name",
+      "source": "for phase,key in [('up','pageup'),('down','pagedown'),('reverse','pageup'),('end','end')]:"
+    },
+    {
+      "path": "tests/source_admission_trace_pilot.py",
+      "line": 35,
+      "syntax": "Name",
+      "source": "if phase=='end':"
+    },
+    {
+      "path": "tests/source_admission_trace_pilot.py",
+      "line": 39,
+      "syntax": "Name",
+      "source": "for step in range(steps if phase!='end' else 1):"
+    },
+    {
+      "path": "tests/source_admission_trace_pilot.py",
+      "line": 41,
+      "syntax": "Name",
+      "source": "states.append({'phase':phase,'step':step,'range':[(p.start,p.stop) for p in history.pages], 'fragment_count':history.fragment_count,'widgets':history.window.document_viewport.materialized_widget_count,'widget_bound':history.window.document_viewport.budget.widget_limit(history.window.size.height),'y':view.window.scroll_y,'maximum':view.window.max_scroll_y,'native_body_evictions':view.window.document_viewport.body_evictions,'constructs':len(constructed)})"
+    },
+    {
+      "path": "tests/tab_history_controls_pilot.py",
+      "line": 104,
+      "syntax": "Attribute",
+      "source": "in app.screen._compositor.visible_widgets)"
+    },
+    {
+      "path": "tests/tab_history_controls_pilot.py",
+      "line": 74,
+      "syntax": "Attribute",
+      "source": "assert controls.display and controls in first_screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/tab_history_controls_pilot.py",
+      "line": 143,
+      "syntax": "Attribute",
+      "source": "preview_back in app.screen._compositor.visible_widgets,"
+    },
+    {
+      "path": "tests/tail_anchor_policy_pilot.py",
+      "line": 31,
+      "syntax": "Attribute",
+      "source": "assert marker not in app.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/thread_navigation_installed_journey.py",
+      "line": 130,
+      "syntax": "Attribute",
+      "source": "retained_alpha = sum(body() in app.screen._compositor.visible_widgets for body in alpha_bodies)"
+    },
+    {
+      "path": "tests/thread_navigation_installed_journey.py",
+      "line": 100,
+      "syntax": "Attribute",
+      "source": "if body in app.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/throbber_busy_pilot.py",
+      "line": 44,
+      "syntax": "Attribute",
+      "source": "assert indicator in compositor.visible_widgets"
+    },
+    {
+      "path": "tests/throbber_scroll_cost_pilot.py",
+      "line": 44,
+      "syntax": "Attribute",
+      "source": "assert visible in compositor.visible_widgets"
+    },
+    {
+      "path": "tests/throbber_scroll_cost_pilot.py",
+      "line": 45,
+      "syntax": "Attribute",
+      "source": "assert old not in compositor.visible_widgets"
+    },
+    {
+      "path": "tests/throbber_scroll_cost_pilot.py",
+      "line": 46,
+      "syntax": "Attribute",
+      "source": "assert hidden not in compositor.visible_widgets"
+    },
+    {
+      "path": "tests/tools/editor_focus_journey.py",
+      "line": 126,
+      "syntax": "Name",
+      "source": "for phase, (text, column) in expected.items():"
+    },
+    {
+      "path": "tests/tools/editor_focus_journey.py",
+      "line": 131,
+      "syntax": "Name",
+      "source": "observations[phase] = {"
+    },
+    {
+      "path": "tests/tools/editor_focus_journey.py",
+      "line": 151,
+      "syntax": "Name",
+      "source": "assert all(phase[\"edit_passed\"] for phase in observations.values()), \"Physical editor keys failed; see editing-acceptance.json\""
+    },
+    {
+      "path": "tests/tools/editor_focus_journey.py",
+      "line": 151,
+      "syntax": "Name",
+      "source": "assert all(phase[\"edit_passed\"] for phase in observations.values()), \"Physical editor keys failed; see editing-acceptance.json\""
+    },
+    {
+      "path": "tests/tools/editor_focus_journey.py",
+      "line": 127,
+      "syntax": "Name",
+      "source": "snapshot = pickle.loads((base / f\"capture/phase-{phase}-state.pickle\").read_bytes())"
+    },
+    {
+      "path": "tests/tools/profile_trace.py",
+      "line": 119,
+      "syntax": "Name",
+      "source": "for phase in review[\"phases\"]:"
+    },
+    {
+      "path": "tests/tools/profile_trace.py",
+      "line": 163,
+      "syntax": "Attribute",
+      "source": "args.phase, args.examples)"
+    },
+    {
+      "path": "tests/tools/profile_trace.py",
+      "line": 106,
+      "syntax": "Name",
+      "source": "unknown = set(phases) - {phase[\"label\"] for phase in review[\"phases\"]}"
+    },
+    {
+      "path": "tests/tools/profile_trace.py",
+      "line": 106,
+      "syntax": "Name",
+      "source": "unknown = set(phases) - {phase[\"label\"] for phase in review[\"phases\"]}"
+    },
+    {
+      "path": "tests/tools/profile_trace.py",
+      "line": 120,
+      "syntax": "Name",
+      "source": "if phases and phase[\"label\"] not in phases:"
+    },
+    {
+      "path": "tests/tools/profile_trace.py",
+      "line": 131,
+      "syntax": "Name",
+      "source": "\"label\": phase[\"label\"], \"video_start_seconds\": phase[\"video_start_seconds\"],"
+    },
+    {
+      "path": "tests/tools/profile_trace.py",
+      "line": 131,
+      "syntax": "Name",
+      "source": "\"label\": phase[\"label\"], \"video_start_seconds\": phase[\"video_start_seconds\"],"
+    },
+    {
+      "path": "tests/tools/profile_trace.py",
+      "line": 132,
+      "syntax": "Name",
+      "source": "\"video_end_seconds\": phase[\"video_end_seconds\"],"
+    },
+    {
+      "path": "tests/tools/profile_trace.py",
+      "line": 134,
+      "syntax": "Name",
+      "source": "for cpu in phase[\"cpu\"]], \"physical_evidence\": phase[\"physical_evidence\"],"
+    },
+    {
+      "path": "tests/tools/profile_trace.py",
+      "line": 123,
+      "syntax": "Name",
+      "source": "if phase[\"video_start_seconds\"] <= observation.timestamp / 1_000_000 + offset"
+    },
+    {
+      "path": "tests/tools/profile_trace.py",
+      "line": 124,
+      "syntax": "Name",
+      "source": "< phase[\"video_end_seconds\"])"
+    },
+    {
+      "path": "tests/tools/profile_trace.py",
+      "line": 134,
+      "syntax": "Name",
+      "source": "for cpu in phase[\"cpu\"]], \"physical_evidence\": phase[\"physical_evidence\"],"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1565,
+      "syntax": "Name",
+      "source": "receipt[\"correlated_phases\"] = [phase for phase in profile[\"phases\"]"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1565,
+      "syntax": "Name",
+      "source": "receipt[\"correlated_phases\"] = [phase for phase in profile[\"phases\"]"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 969,
+      "syntax": "Name",
+      "source": "}, \"phases\": {label: vars(phase) for label, phase in phases.items()},"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 820,
+      "syntax": "Name",
+      "source": "for phase in (initial, up, down)),"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 823,
+      "syntax": "Name",
+      "source": "for phase in (up, down)),"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 825,
+      "syntax": "Name",
+      "source": "for phase in (up, down)),"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 969,
+      "syntax": "Name",
+      "source": "}, \"phases\": {label: vars(phase) for label, phase in phases.items()},"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 819,
+      "syntax": "Name",
+      "source": "\"input_remains_focused\": all(phase.focused_widget == phase.editor"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 819,
+      "syntax": "Name",
+      "source": "\"input_remains_focused\": all(phase.focused_widget == phase.editor"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 822,
+      "syntax": "Name",
+      "source": "(phase.editor, phase.window, phase.mode) == (initial.editor, initial.window, initial.mode)"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 822,
+      "syntax": "Name",
+      "source": "(phase.editor, phase.window, phase.mode) == (initial.editor, initial.window, initial.mode)"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 822,
+      "syntax": "Name",
+      "source": "(phase.editor, phase.window, phase.mode) == (initial.editor, initial.window, initial.mode)"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 824,
+      "syntax": "Name",
+      "source": "\"draft_and_caret_preserved\": all((phase.text, phase.selection) == (initial.text, initial.selection)"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 824,
+      "syntax": "Name",
+      "source": "\"draft_and_caret_preserved\": all((phase.text, phase.selection) == (initial.text, initial.selection)"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1566,
+      "syntax": "Name",
+      "source": "if any(phase[\"video_start_seconds\"] < interval[\"start\"] + interval[\"seconds\"]"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1567,
+      "syntax": "Name",
+      "source": "and phase[\"video_end_seconds\"] > interval[\"start\"]"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 140,
+      "syntax": "Name",
+      "source": "\"phases\": {label: asdict(phase) for label, phase in phases.items()},"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 225,
+      "syntax": "Name",
+      "source": "\"phases\": {label: asdict(phase) for label, phase in phases.items()},"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 129,
+      "syntax": "Name",
+      "source": "\"source_view_retained\": all(phase.mode == original.mode for phase in same),"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 130,
+      "syntax": "Name",
+      "source": "\"editor_retained\": all(phase.editor == original.editor for phase in same),"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 131,
+      "syntax": "Name",
+      "source": "\"history_window_retained\": all(phase.window == original.window for phase in same),"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 140,
+      "syntax": "Name",
+      "source": "\"phases\": {label: asdict(phase) for label, phase in phases.items()},"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 199,
+      "syntax": "Name",
+      "source": "\"source_retained\": all(phase.mode == initial.mode for phase in same),"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 200,
+      "syntax": "Name",
+      "source": "\"editor_retained\": all(phase.editor == initial.editor for phase in same),"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 201,
+      "syntax": "Name",
+      "source": "\"history_window_retained\": all(phase.window == initial.window for phase in same),"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 213,
+      "syntax": "Name",
+      "source": "phases.update((phase.label, phase) for phase in scroll)"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 213,
+      "syntax": "Name",
+      "source": "phases.update((phase.label, phase) for phase in scroll)"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 225,
+      "syntax": "Name",
+      "source": "\"phases\": {label: asdict(phase) for label, phase in phases.items()},"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 129,
+      "syntax": "Name",
+      "source": "\"source_view_retained\": all(phase.mode == original.mode for phase in same),"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 130,
+      "syntax": "Name",
+      "source": "\"editor_retained\": all(phase.editor == original.editor for phase in same),"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 131,
+      "syntax": "Name",
+      "source": "\"history_window_retained\": all(phase.window == original.window for phase in same),"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 199,
+      "syntax": "Name",
+      "source": "\"source_retained\": all(phase.mode == initial.mode for phase in same),"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 200,
+      "syntax": "Name",
+      "source": "\"editor_retained\": all(phase.editor == initial.editor for phase in same),"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 201,
+      "syntax": "Name",
+      "source": "\"history_window_retained\": all(phase.window == initial.window for phase in same),"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 213,
+      "syntax": "Name",
+      "source": "phases.update((phase.label, phase) for phase in scroll)"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 217,
+      "syntax": "Name",
+      "source": "\"scroll_keys_focus_history\": all(phase.focused_widget == phase.window for phase in scroll),"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 217,
+      "syntax": "Name",
+      "source": "\"scroll_keys_focus_history\": all(phase.focused_widget == phase.window for phase in scroll),"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 217,
+      "syntax": "Name",
+      "source": "\"scroll_keys_focus_history\": all(phase.focused_widget == phase.window for phase in scroll),"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 372,
+      "syntax": "Attribute",
+      "source": "assert child not in app.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 386,
+      "syntax": "Attribute",
+      "source": "assert child in app.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/viewport_demand_custody_pilot.py",
+      "line": 48,
+      "syntax": "Attribute",
+      "source": "visible = window.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 58,
+      "syntax": "Attribute",
+      "source": "visible = app.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 97,
+      "syntax": "Attribute",
+      "source": "assert background not in app.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 48,
+      "syntax": "Attribute",
+      "source": "while not any(body in app.screen._compositor.visible_widgets for body in docs):"
+    },
+    {
+      "path": "tests/viewport_rapid_scroll_pilot.py",
+      "line": 94,
+      "syntax": "Attribute",
+      "source": "end._body_measurement, end in app.screen._compositor.visible_widgets,"
+    },
+    {
+      "path": "tests/viewport_rapid_scroll_pilot.py",
+      "line": 107,
+      "syntax": "Attribute",
+      "source": "assert end.body_ready and end in app.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/viewport_rapid_scroll_pilot.py",
+      "line": 20,
+      "syntax": "Attribute",
+      "source": "frames.append((window.follows_tail, end in screen._compositor.visible_widgets,"
+    },
+    {
+      "path": "tests/viewport_rapid_scroll_pilot.py",
+      "line": 79,
+      "syntax": "Attribute",
+      "source": "assert end.body_ready and end in app.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "line": 134,
+      "syntax": "Attribute",
+      "source": "history.region, frame._compositor.visible_widgets.get(history))"
+    },
+    {
+      "path": "tests/viewport_runway_pilot.py",
+      "line": 53,
+      "syntax": "Attribute",
+      "source": "visible = app.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/viewport_selection_diff_pilot.py",
+      "line": 43,
+      "syntax": "Attribute",
+      "source": "assert code.is_mounted and code in app.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/viewport_selection_diff_pilot.py",
+      "line": 57,
+      "syntax": "Attribute",
+      "source": "clipped = [widget for widget in screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tests/worker_native_size_pilot.py",
+      "line": 100,
+      "syntax": "Attribute",
+      "source": "assert any(body not in scene.visible_widgets for body in bodies)"
+    },
+    {
+      "path": "tests/worker_native_size_pilot.py",
+      "line": 147,
+      "syntax": "Attribute",
+      "source": "exposed = [body for body in bodies if body in scene.visible_widgets]"
+    },
+    {
+      "path": "tools/performance/analyze_frame_structure.py",
+      "line": 25,
+      "syntax": "Name",
+      "source": "for phase, rows in phases.items():"
+    },
+    {
+      "path": "tools/performance/analyze_frame_structure.py",
+      "line": 36,
+      "syntax": "Name",
+      "source": "\"phase\": phase, \"switches\": len(rows),"
+    },
+    {
+      "path": "tools/performance/benchmark_spinner.py",
+      "line": 69,
+      "syntax": "Attribute",
+      "source": "\"visible_widgets\": len(app.screen._compositor.visible_widgets),"
+    },
+    {
+      "path": "tools/performance/capture_state.py",
+      "line": 201,
+      "syntax": "Attribute",
+      "source": "visible_regions = compositor.visible_widgets"
+    },
+    {
+      "path": "tools/performance/capture_state.py",
+      "line": 100,
+      "syntax": "Attribute",
+      "source": "visible = screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tools/performance/replay_state.py",
+      "line": 45,
+      "syntax": "Attribute",
+      "source": "self.phase = \"settlement\""
+    },
+    {
+      "path": "tools/performance/replay_state.py",
+      "line": 53,
+      "syntax": "Attribute",
+      "source": "previous, self.phase = self.phase, name"
+    },
+    {
+      "path": "tools/performance/replay_state.py",
+      "line": 53,
+      "syntax": "Attribute",
+      "source": "previous, self.phase = self.phase, name"
+    },
+    {
+      "path": "tools/performance/replay_state.py",
+      "line": 67,
+      "syntax": "Attribute",
+      "source": "self.phase = previous"
+    },
+    {
+      "path": "tools/performance/replay_state.py",
+      "line": 71,
+      "syntax": "Name",
+      "source": "if phase == \"start\":"
+    },
+    {
+      "path": "tools/performance/replay_state.py",
+      "line": 82,
+      "syntax": "Name",
+      "source": "phase = self.phase"
+    },
+    {
+      "path": "tools/performance/replay_state.py",
+      "line": 82,
+      "syntax": "Attribute",
+      "source": "phase = self.phase"
+    },
+    {
+      "path": "tools/performance/replay_state.py",
+      "line": 72,
+      "syntax": "Attribute",
+      "source": "self._collections_started[thread] = (time.monotonic_ns(), time.thread_time_ns(), self.phase)"
+    },
+    {
+      "path": "tools/performance/replay_state.py",
+      "line": 87,
+      "syntax": "Name",
+      "source": "self.gaps.append({\"phase_before\": phase, \"phase_after\": self.phase, \"wall_ms\": elapsed})"
+    },
+    {
+      "path": "tools/performance/replay_state.py",
+      "line": 87,
+      "syntax": "Attribute",
+      "source": "self.gaps.append({\"phase_before\": phase, \"phase_after\": self.phase, \"wall_ms\": elapsed})"
+    },
+    {
+      "path": "tools/performance/replay_state.py",
+      "line": 306,
+      "syntax": "Attribute",
+      "source": "visible = app.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "tools/performance/sidebar_validation_driver.py",
+      "line": 442,
+      "syntax": "Name",
+      "source": "if phase == \"start\":"
+    },
+    {
+      "path": "tools/performance/sidebar_validation_driver.py",
+      "line": 576,
+      "syntax": "Attribute",
+      "source": "for widget, (region, clip) in screen._compositor.visible_widgets.items():"
+    }
+  ],
+  "dynamic_limits": "Nominal syntax mapping; external aliases/overrides and runtime dispatch not proven."
+}
