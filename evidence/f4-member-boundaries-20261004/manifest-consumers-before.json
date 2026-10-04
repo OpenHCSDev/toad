@@ -1,0 +1,106 @@
+{
+  "head": "d2b05a36106456a112d9918a8db4a23e1d0c9fe6",
+  "collector": "original audit.Package.load9a98",
+  "roots": [
+    {
+      "root": "src/toad",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "parsed": 393,
+      "omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 20,
+      "role": "import",
+      "expression": "from agent_comms.turn_context import ContextManifest, ContextSegment, ContextSourceText, NativeMessages, Provenance, SegmentManifest"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 90,
+      "role": "declaration",
+      "expression": "ManifestNode",
+      "bases": [
+        "ContextNode"
+      ]
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 115,
+      "role": "declaration",
+      "expression": "RecordedTurnNode",
+      "bases": [
+        "ContextNode"
+      ]
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 137,
+      "role": "declaration",
+      "expression": "NativeSegmentNode",
+      "bases": [
+        "ContextNode"
+      ]
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 196,
+      "role": "constructor",
+      "expression": "NativeSegmentNode(self.key, segment, self.read_source)"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 107,
+      "role": "read",
+      "expression": "self.segment.kind"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 125,
+      "role": "constructor",
+      "expression": "ManifestNode(f'{self.key}/{i}', segment, partial(self.inspection.recorded_source, self.manifest, i))"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 268,
+      "role": "constructor",
+      "expression": "RecordedTurnNode(f'turn/{identity}', manifest, self)"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 100,
+      "role": "constructor",
+      "expression": "ManifestNode(f'{self.key}/contributor/{i}', child, self.read_source)"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 147,
+      "role": "constructor",
+      "expression": "ManifestNode(f'{self.key}/contributor/{i}', child, self.read_source)"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 96,
+      "role": "read",
+      "expression": "self.segment.kind"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 127,
+      "role": "read",
+      "expression": "self.manifest.segments"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 101,
+      "role": "read",
+      "expression": "self.segment.contributors"
+    }
+  ],
+  "scope": "Lexical declaration/constructor/import/field reads; dynamic runtime resolution not proved."
+}

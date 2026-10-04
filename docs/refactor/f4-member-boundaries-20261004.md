@@ -59,3 +59,27 @@ Core normally joins F1's62dca291 editor/catalog codec correction. Required F4
 exemptions are qualified by original package/module; nested same-name facades
 are counted. F1's newer reconnect work remains its owner in thread_actions,
 session_admission and session_navigation; this pin update adds no frontend edit.
+
+## Decoded manifest consumer closure
+
+ManifestNode.label/detail now derive from SegmentManifest.public_description and
+ContextSegment.public_title. The old string .replace call and class repr are
+deleted. NativeSegmentNode contributor children and RecordedTurnNode recorded
+children use this same original node; their traversal/read/export/state methods
+remain Einstein417's claim. He adopted exactafab8fe8 as27a5fc9d, preserving all
+other method ASTs. The paired Core pin is the typed F4 producer, not old615's
+string field. No compatibility decode or widget kind switch.
+
+The narrow regression records an annotation through the original private
+protocol/observation producer, decodes the current segment through FieldCodec,
+and constructs both actual child paths. It asserts original class membership and
+human labels/detail. This fixture is not native/provider/source-history proof.
+Its installed check is pending the full holder. Original Package AST before
+shows all288production/393fixture modules, zero omissions;13related sites read.
+
+Core-only boundary qualification is published in Core8616a670: original15PASS,
+two fixture negatives preserved, corrected original producer/inherited refusal
+3PASS; original311Core/10audit installed files unchanged. No unchanged passing
+controls were repeated. Normal F2/main joined Core7f8be3de after that frozen run;
+F2's accepted source/receipt is retained, scalar SQL transition untouched.
+Full App/labels qualification is separate; no source-only Ready/live/speed claim.
