@@ -15,7 +15,7 @@ The original #422 profile and source paths motivate reading these consumers, but
 
 Existing native visible custody chooses animation rows; widget mutation stays on the UI thread. Canonical snapshot identity/status and the existing admission determine tab labels. This deletes competing cohort selection/repeated interpretation rather than retaining a second authority (NRA/refactor-audit IMPL-12 / AGENT-2).
 
-`owner-before.json`, `tab-owner-before.json` and `dependency-owners.json` use existing refactor-audit Package/Repository parsing: Toad 288, tests 393, tools 41, Core611 311 and native53 249 modules, zero parse omissions. Nominal declarations/imports/attribute references are source evidence; external dynamic aliases/overrides are not proved. After output follows the source checkpoint.
+`owner-before.json`, `tab-owner-before.json` and `dependency-owners.json` use existing refactor-audit Package/Repository parsing: Toad 288, tests 393, tools 41, Core611 311 and native53 249 modules, zero parse omissions. Nominal declarations/imports/attribute references are source evidence; external dynamic aliases/overrides are not proved. `owner-after.json` records the pushed working source. Evidence lists related declarations/consumers after complete-root parsing; same-spelling ambiguity remains explicit.
 
 ## Validation and custody
 

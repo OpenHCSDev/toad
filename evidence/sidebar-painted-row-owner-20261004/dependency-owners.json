@@ -13,793 +13,106 @@
       "omissions": []
     }
   ],
+  "limits": "Unchanged dependency declarations/consumers. Source syntax evidence, not runtime resolution or CPU attribution.",
+  "selection": "Related named declarations/callers plus conservative same-spelling references. All roots parsed before selection; external dynamic aliases/overrides not proven.",
   "sites": [
-    {
-      "path": "src/agent_comms/activity.py",
-      "line": 41,
-      "syntax": "FunctionDef",
-      "source": "def presentation(self, title: str, detail: str) -> ThreadPresentation:"
-    },
-    {
-      "path": "src/agent_comms/activity.py",
-      "line": 96,
-      "syntax": "FunctionDef",
-      "source": "def presentation(self, ordinary: ThreadPresentation, *, busy: bool) -> ThreadPresentation: ..."
-    },
-    {
-      "path": "src/agent_comms/activity.py",
-      "line": 109,
-      "syntax": "FunctionDef",
-      "source": "def presentation(self, ordinary, *, busy):"
-    },
-    {
-      "path": "src/agent_comms/activity.py",
-      "line": 125,
-      "syntax": "FunctionDef",
-      "source": "def presentation(self, ordinary, *, busy):"
-    },
-    {
-      "path": "src/agent_comms/activity.py",
-      "line": 144,
-      "syntax": "FunctionDef",
-      "source": "def presentation(self, title: str) -> ThreadPresentation:"
-    },
-    {
-      "path": "src/agent_comms/activity.py",
-      "line": 184,
-      "syntax": "FunctionDef",
-      "source": "def presentation(self, title):"
-    },
-    {
-      "path": "src/agent_comms/activity.py",
-      "line": 145,
-      "syntax": "Attribute",
-      "source": "return self.state.presentation(title, self.detail)"
-    },
-    {
-      "path": "src/agent_comms/activity.py",
-      "line": 185,
-      "syntax": "Attribute",
-      "source": "return self.readiness.presentation(super().presentation(title), busy=self.state.busy)"
-    },
-    {
-      "path": "src/agent_comms/activity.py",
-      "line": 185,
-      "syntax": "Attribute",
-      "source": "return self.readiness.presentation(super().presentation(title), busy=self.state.busy)"
-    },
-    {
-      "path": "src/agent_comms/goal_presentation.py",
-      "line": 94,
-      "syntax": "FunctionDef",
-      "source": "def presentation(self, title: str) -> ThreadPresentation:"
-    },
-    {
-      "path": "src/agent_comms/goal_presentation.py",
-      "line": 38,
-      "syntax": "Attribute",
-      "source": "return FieldCodec.decode("
-    },
-    {
-      "path": "src/agent_comms/goal_states.py",
-      "line": 111,
-      "syntax": "FunctionDef",
-      "source": "def presentation(self) -> tuple[str, str]:"
-    },
-    {
-      "path": "src/agent_comms/goal_states.py",
-      "line": 247,
-      "syntax": "FunctionDef",
-      "source": "def presentation(self) -> tuple[str, str]:"
-    },
-    {
-      "path": "src/agent_comms/goal_states.py",
-      "line": 261,
-      "syntax": "FunctionDef",
-      "source": "def presentation(self) -> tuple[str, str]:"
-    },
-    {
-      "path": "src/agent_comms/historical_views.py",
-      "line": 40,
-      "syntax": "Name",
-      "source": "return presentation.bus.history.integrated_page(self, presentation, **paging)"
-    },
-    {
-      "path": "src/agent_comms/historical_views.py",
-      "line": 60,
-      "syntax": "Name",
-      "source": "page = self.page(presentation, limit=1000)"
-    },
-    {
-      "path": "src/agent_comms/historical_views.py",
-      "line": 119,
-      "syntax": "Name",
-      "source": "bus = presentation.bus"
-    },
-    {
-      "path": "src/agent_comms/historical_views.py",
-      "line": 63,
-      "syntax": "Name",
-      "source": "page = self.page(presentation, before=page.oldest_cursor, limit=1000)"
-    },
-    {
-      "path": "src/agent_comms/historical_views.py",
-      "line": 90,
-      "syntax": "Name",
-      "source": "return presentation.channel_page(self.channel.name, viewer=self.viewer, **paging)"
-    },
-    {
-      "path": "src/agent_comms/historical_views.py",
-      "line": 124,
-      "syntax": "Name",
-      "source": "presentation.registry,"
-    },
-    {
-      "path": "src/agent_comms/historical_views.py",
-      "line": 432,
-      "syntax": "Name",
-      "source": "presentation, before=before, after=after, limit=limit, max_bytes=max_bytes"
-    },
-    {
-      "path": "src/agent_comms/historical_views.py",
-      "line": 441,
-      "syntax": "Name",
-      "source": "presentation, before=before, after=after, limit=limit, max_bytes=max_bytes"
-    },
-    {
-      "path": "src/agent_comms/historical_views.py",
-      "line": 457,
-      "syntax": "Name",
-      "source": "display = view.display_evidence(history, presentation)"
-    },
-    {
-      "path": "src/agent_comms/historical_views.py",
-      "line": 458,
-      "syntax": "Name",
-      "source": "latest = view.live_page(presentation, limit=1)"
-    },
-    {
-      "path": "src/agent_comms/historical_views.py",
-      "line": 78,
-      "syntax": "Name",
-      "source": "return presentation.bus.channel_history_page(self.target, **paging)"
-    },
-    {
-      "path": "src/agent_comms/historical_views.py",
-      "line": 102,
-      "syntax": "Name",
-      "source": "return presentation.bus.dm_history_page(self.first, self.second, **paging)"
-    },
-    {
-      "path": "src/agent_comms/historical_views.py",
-      "line": 120,
-      "syntax": "Name",
-      "source": "if self.second not in presentation.registry and bus.history.threads(self.second):"
-    },
-    {
-      "path": "src/agent_comms/historical_views.py",
-      "line": 467,
-      "syntax": "Name",
-      "source": "view.live_page(presentation, after=0, limit=limit, max_bytes=max_bytes),"
-    },
-    {
-      "path": "src/agent_comms/historical_views.py",
-      "line": 40,
-      "syntax": "Name",
-      "source": "return presentation.bus.history.integrated_page(self, presentation, **paging)"
-    },
-    {
-      "path": "src/agent_comms/historical_views.py",
-      "line": 50,
-      "syntax": "Name",
-      "source": "presentation.bus.reads.capture("
-    },
-    {
-      "path": "src/agent_comms/historical_views.py",
-      "line": 53,
-      "syntax": "Name",
-      "source": "presentation.registry.snapshot(),"
-    },
-    {
-      "path": "src/agent_comms/history_views.py",
-      "line": 41,
-      "syntax": "alias",
-      "source": "CoordinationSnapshot,"
-    },
-    {
-      "path": "src/agent_comms/history_views.py",
-      "line": 43,
-      "syntax": "alias",
-      "source": "ThreadView,"
-    },
-    {
-      "path": "src/agent_comms/history_views.py",
-      "line": 329,
-      "syntax": "Name",
-      "source": ") -> CoordinationSnapshot:"
-    },
-    {
-      "path": "src/agent_comms/history_views.py",
-      "line": 367,
-      "syntax": "Name",
-      "source": ") -> CoordinationSnapshot:"
-    },
-    {
-      "path": "src/agent_comms/history_views.py",
-      "line": 82,
-      "syntax": "Attribute",
-      "source": "self.presentation = BusPresentation(bus, registry, channels.catalog)"
-    },
-    {
-      "path": "src/agent_comms/history_views.py",
-      "line": 101,
-      "syntax": "Attribute",
-      "source": "return DMHistory(a, b).full_history(self.presentation)"
-    },
-    {
-      "path": "src/agent_comms/history_views.py",
-      "line": 105,
-      "syntax": "Attribute",
-      "source": "return ChannelHistory(target, targets).full_history(self.presentation)"
-    },
-    {
-      "path": "src/agent_comms/history_views.py",
-      "line": 120,
-      "syntax": "Attribute",
-      "source": "self.presentation,"
-    },
-    {
-      "path": "src/agent_comms/history_views.py",
-      "line": 154,
-      "syntax": "Attribute",
-      "source": "self.presentation,"
-    },
-    {
-      "path": "src/agent_comms/history_views.py",
-      "line": 185,
-      "syntax": "Attribute",
-      "source": "self.presentation,"
-    },
-    {
-      "path": "src/agent_comms/history_views.py",
-      "line": 207,
-      "syntax": "Attribute",
-      "source": "self.presentation,"
-    },
-    {
-      "path": "src/agent_comms/history_views.py",
-      "line": 226,
-      "syntax": "Attribute",
-      "source": ").full_history(self.presentation)"
-    },
-    {
-      "path": "src/agent_comms/history_views.py",
-      "line": 237,
-      "syntax": "Attribute",
-      "source": "self.presentation,"
-    },
-    {
-      "path": "src/agent_comms/history_views.py",
-      "line": 290,
-      "syntax": "Name",
-      "source": ") -> tuple[ThreadView, ...]:"
-    },
-    {
-      "path": "src/agent_comms/history_views.py",
-      "line": 320,
-      "syntax": "Attribute",
-      "source": "view.presentation,"
-    },
-    {
-      "path": "src/agent_comms/history_views.py",
-      "line": 354,
-      "syntax": "Name",
-      "source": "return CoordinationSnapshot("
-    },
-    {
-      "path": "src/agent_comms/history_views.py",
-      "line": 292,
-      "syntax": "Name",
-      "source": "return ThreadView.roster("
-    },
-    {
-      "path": "src/agent_comms/history_views.py",
-      "line": 309,
-      "syntax": "Name",
-      "source": "view = ThreadView.capture("
-    },
-    {
-      "path": "src/agent_comms/history_views.py",
-      "line": 340,
-      "syntax": "Name",
-      "source": "threads = ThreadView.roster("
-    },
-    {
-      "path": "src/agent_comms/history_views.py",
-      "line": 404,
-      "syntax": "Name",
-      "source": "snapshot = CoordinationSnapshot("
-    },
-    {
-      "path": "src/agent_comms/history_views.py",
-      "line": 438,
-      "syntax": "Attribute",
-      "source": "self.presentation.mark_channel_read("
-    },
-    {
-      "path": "src/agent_comms/history_views.py",
-      "line": 173,
-      "syntax": "Attribute",
-      "source": "return self.presentation.channel_page("
-    },
-    {
-      "path": "src/agent_comms/history_views.py",
-      "line": 307,
-      "syntax": "Name",
-      "source": "if not ThreadView.visible(thread, snapshot, show_stopped=True, show_archived=False):"
-    },
-    {
-      "path": "src/agent_comms/history_views.py",
-      "line": 370,
-      "syntax": "Attribute",
-      "source": "with self.presentation.snapshot(viewer=viewer) as (basis, records, bus_revision):"
-    },
-    {
-      "path": "src/agent_comms/history_views.py",
-      "line": 380,
-      "syntax": "Attribute",
-      "source": "display_activity, display_unread = self.presentation.display_view_metrics("
-    },
-    {
-      "path": "src/agent_comms/history_views.py",
-      "line": 396,
-      "syntax": "Name",
-      "source": "threads = ThreadView.roster("
-    },
-    {
-      "path": "src/agent_comms/presentation.py",
-      "line": 455,
-      "syntax": "ClassDef",
-      "source": "class ThreadView:"
-    },
-    {
-      "path": "src/agent_comms/presentation.py",
-      "line": 560,
-      "syntax": "ClassDef",
-      "source": "class CoordinationSnapshot:"
-    },
-    {
-      "path": "src/agent_comms/presentation.py",
-      "line": 518,
-      "syntax": "FunctionDef",
-      "source": "def presentation(self) -> ThreadPresentation:"
-    },
-    {
-      "path": "src/agent_comms/presentation.py",
-      "line": 480,
-      "syntax": "Name",
-      "source": ") -> ThreadView:"
-    },
-    {
-      "path": "src/agent_comms/presentation.py",
-      "line": 502,
-      "syntax": "Name",
-      "source": ") -> tuple[ThreadView, ...]:"
-    },
-    {
-      "path": "src/agent_comms/presentation.py",
-      "line": 538,
-      "syntax": "Attribute",
-      "source": "return self.status.presentation(self.thread.title or self.thread.name, self.activity)"
-    },
-    {
-      "path": "src/agent_comms/presentation.py",
-      "line": 561,
-      "syntax": "Name",
-      "source": "threads: tuple[ThreadView, ...]"
-    },
-    {
-      "path": "src/agent_comms/presentation.py",
-      "line": 573,
-      "syntax": "Name",
-      "source": "def participants(self, channel: str) -> tuple[ThreadView, ...]:"
-    },
-    {
-      "path": "src/agent_comms/presentation.py",
-      "line": 522,
-      "syntax": "Attribute",
-      "source": "ordinary = self.activity.readiness.presentation(ordinary, busy=self.activity.state.busy)"
-    },
-    {
-      "path": "src/agent_comms/presentation.py",
-      "line": 523,
-      "syntax": "Attribute",
-      "source": "return replace(self.thread.execution.presentation(self.thread, self.status, ordinary),"
-    },
-    {
-      "path": "src/agent_comms/presentation.py",
-      "line": 528,
-      "syntax": "Attribute",
-      "source": "return ActivityState.WORKING.presentation("
-    },
-    {
-      "path": "src/agent_comms/presentation.py",
-      "line": 537,
-      "syntax": "Attribute",
-      "source": "return self.goal_execution.presentation(self.thread.title or self.thread.name)"
-    },
-    {
-      "path": "src/agent_comms/presentation.py",
-      "line": 590,
-      "syntax": "Attribute",
-      "source": "MentionCandidate(person.thread.name, person.presentation.title)"
-    },
-    {
-      "path": "src/agent_comms/relationships.py",
-      "line": 27,
-      "syntax": "alias",
-      "source": "from .presentation import ThreadView"
-    },
-    {
-      "path": "src/agent_comms/relationships.py",
-      "line": 155,
-      "syntax": "Name",
-      "source": "person: ThreadView | None = None"
-    },
-    {
-      "path": "src/agent_comms/thread_execution.py",
-      "line": 52,
-      "syntax": "FunctionDef",
-      "source": "def presentation(cls, thread: Thread, status, ordinary: ThreadPresentation) -> ThreadPresentation:"
-    },
-    {
-      "path": "src/agent_comms/thread_execution.py",
-      "line": 93,
-      "syntax": "FunctionDef",
-      "source": "def presentation(cls, thread: Thread, status, ordinary: ThreadPresentation) -> ThreadPresentation:"
-    },
-    {
-      "path": "src/agent_comms/thread_execution.py",
-      "line": 106,
-      "syntax": "FunctionDef",
-      "source": "def presentation(cls, thread: Thread, status, ordinary: ThreadPresentation) -> ThreadPresentation:"
-    },
-    {
-      "path": "src/agent_comms/thread_status.py",
-      "line": 68,
-      "syntax": "FunctionDef",
-      "source": "def presentation(self, title: str, activity: ObservedActivity) -> ThreadPresentation:"
-    },
-    {
-      "path": "src/agent_comms/thread_status.py",
-      "line": 94,
-      "syntax": "FunctionDef",
-      "source": "def presentation(self, title: str, activity: ObservedActivity) -> ThreadPresentation:"
-    },
-    {
-      "path": "src/agent_comms/thread_status.py",
-      "line": 95,
-      "syntax": "Attribute",
-      "source": "return activity.presentation(title)"
-    },
-    {
-      "path": "src/agent_comms/turn_context.py",
-      "line": 21,
-      "syntax": "alias",
-      "source": "from .presentation import ThreadView"
-    },
-    {
-      "path": "src/agent_comms/turn_context.py",
-      "line": 494,
-      "syntax": "Name",
-      "source": "def from_view(cls, view: ThreadView) -> PeerState:"
-    },
-    {
-      "path": "src/agent_comms/turn_context.py",
-      "line": 512,
-      "syntax": "Name",
-      "source": "def capture(cls, owner: Thread, views: tuple[ThreadView, ...]) -> CoordinationSegment:"
-    },
-    {
-      "path": "src/agent_comms/turn_context.py",
-      "line": 742,
-      "syntax": "Name",
-      "source": "views: tuple[ThreadView, ...],"
-    },
-    {
-      "path": "src/textual/_compositor.py",
-      "line": 754,
-      "syntax": "FunctionDef",
-      "source": "def visible_widgets(self) -> dict[Widget, tuple[Region, Region]]:"
-    },
-    {
-      "path": "src/textual/_compositor.py",
-      "line": 1170,
-      "syntax": "FunctionDef",
-      "source": "def get_widget_at(self, x: int, y: int) -> tuple[Widget, Region]:"
-    },
-    {
-      "path": "src/textual/_compositor.py",
-      "line": 1188,
-      "syntax": "FunctionDef",
-      "source": "def get_widgets_at(self, x: int, y: int) -> Iterable[tuple[Widget, Region]]:"
-    },
-    {
-      "path": "src/textual/_compositor.py",
-      "line": 1532,
-      "syntax": "FunctionDef",
-      "source": "def render_partial_update(self) -> ChopsUpdate | None:"
-    },
-    {
-      "path": "src/textual/_compositor.py",
-      "line": 1609,
-      "syntax": "FunctionDef",
-      "source": "def _render_chops("
-    },
-    {
-      "path": "src/textual/_compositor.py",
-      "line": 1184,
-      "syntax": "Attribute",
-      "source": "for hit in self.get_widgets_at(x, y):"
-    },
-    {
-      "path": "src/textual/_compositor.py",
-      "line": 1218,
-      "syntax": "Attribute",
-      "source": "if widget not in self.visible_widgets:"
-    },
-    {
-      "path": "src/textual/_compositor.py",
-      "line": 1254,
-      "syntax": "Attribute",
-      "source": "if widget not in self.visible_widgets:"
-    },
-    {
-      "path": "src/textual/_compositor.py",
-      "line": 1386,
-      "syntax": "Attribute",
-      "source": "self._cuts = self._cuts_for_regions(self.size.region, self.visible_widgets)"
-    },
-    {
-      "path": "src/textual/_compositor.py",
-      "line": 1517,
-      "syntax": "Attribute",
-      "source": "chops = self._render_chops(crop, lambda y: True,"
-    },
-    {
-      "path": "src/textual/_compositor.py",
-      "line": 1549,
-      "syntax": "Attribute",
-      "source": "chops = self._render_chops(crop, is_rendered_line,"
-    },
-    {
-      "path": "src/textual/_compositor.py",
-      "line": 1565,
-      "syntax": "Attribute",
-      "source": "chops = self._render_chops(size.region, lambda y: True,"
-    },
-    {
-      "path": "src/textual/_compositor.py",
-      "line": 1717,
-      "syntax": "Attribute",
-      "source": "get_widget = self.visible_widgets.__getitem__"
-    },
-    {
-      "path": "src/textual/_compositor.py",
-      "line": 1215,
-      "syntax": "Attribute",
-      "source": "widget, region = self.get_widget_at(x, y)"
-    },
-    {
-      "path": "src/textual/_compositor.py",
-      "line": 1251,
-      "syntax": "Attribute",
-      "source": "widget, region = self.get_widget_at(x, y)"
-    },
-    {
-      "path": "src/textual/_compositor.py",
-      "line": 1483,
-      "syntax": "Attribute",
-      "source": "return self.render_partial_update()"
-    },
-    {
-      "path": "src/textual/_compositor.py",
-      "line": 1518,
-      "syntax": "Attribute",
-      "source": "widgets=self.visible_widgets, cuts=self.cuts,"
-    },
-    {
-      "path": "src/textual/_compositor.py",
-      "line": 1550,
-      "syntax": "Attribute",
-      "source": "widgets=self.visible_widgets, cuts=cuts,"
-    },
-    {
-      "path": "src/textual/_compositor.py",
-      "line": 1566,
-      "syntax": "Attribute",
-      "source": "widgets=self.visible_widgets, cuts=self.cuts,"
-    },
-    {
-      "path": "src/textual/_compositor.py",
-      "line": 1605,
-      "syntax": "Attribute",
-      "source": "chops = self._render_chops(bounds, lambda y: True,"
-    },
-    {
-      "path": "src/textual/_compositor.py",
-      "line": 1200,
-      "syntax": "Attribute",
-      "source": "for widget, (region, clip) in self.visible_widgets.items():"
-    },
-    {
-      "path": "src/textual/_compositor.py",
-      "line": 1718,
-      "syntax": "Attribute",
-      "source": "for widget in self.visible_widgets.keys() & widgets:"
-    },
-    {
-      "path": "src/textual/_compositor.py",
-      "line": 1711,
-      "syntax": "Attribute",
-      "source": "self.visible_widgets.keys()"
-    },
-    {
-      "path": "src/textual/app.py",
-      "line": 3927,
-      "syntax": "FunctionDef",
-      "source": "def get_widget_at(self, x: int, y: int) -> tuple[Widget, Region]:"
-    },
-    {
-      "path": "src/textual/app.py",
-      "line": 3937,
-      "syntax": "Attribute",
-      "source": "return self.screen.get_widget_at(x, y)"
-    },
-    {
-      "path": "src/textual/app.py",
-      "line": 4107,
-      "syntax": "Attribute",
-      "source": "input_owner, _ = self.get_widget_at(event.x, event.y)"
-    },
-    {
-      "path": "src/textual/app.py",
-      "line": 4109,
-      "syntax": "Attribute",
-      "source": "self._mouse_down_widget, _ = self.get_widget_at("
-    },
-    {
-      "path": "src/textual/app.py",
-      "line": 4127,
-      "syntax": "Attribute",
-      "source": "mouse_up_widget, _ = self.get_widget_at(*screen_offset)"
-    },
-    {
-      "path": "src/textual/command.py",
-      "line": 813,
-      "syntax": "Attribute",
-      "source": "if self.get_widget_at(event.screen_x, event.screen_y)[0] is self:"
-    },
-    {
-      "path": "src/textual/layout.py",
-      "line": 106,
-      "syntax": "Name",
-      "source": "visible_widgets = {placement.widget for _, placement in culled_placements}"
-    },
-    {
-      "path": "src/textual/layout.py",
-      "line": 107,
-      "syntax": "Name",
-      "source": "if retained_widgets - visible_widgets:"
-    },
-    {
-      "path": "src/textual/layout.py",
-      "line": 111,
-      "syntax": "Name",
-      "source": "if placement.widget in visible_widgets or placement.widget in retained_widgets"
-    },
-    {
-      "path": "src/textual/pilot.py",
-      "line": 461,
-      "syntax": "Attribute",
-      "source": "widget_at, _ = app.get_widget_at(*offset)"
-    },
-    {
-      "path": "src/textual/screen.py",
-      "line": 647,
-      "syntax": "FunctionDef",
-      "source": "def get_widget_at(self, x: int, y: int) -> tuple[Widget, Region]:"
-    },
-    {
-      "path": "src/textual/screen.py",
-      "line": 689,
-      "syntax": "FunctionDef",
-      "source": "def get_widgets_at(self, x: int, y: int) -> Iterable[tuple[Widget, Region]]:"
-    },
-    {
-      "path": "src/textual/screen.py",
-      "line": 389,
-      "syntax": "Attribute",
-      "source": "painted = self._compositor.visible_widgets"
-    },
-    {
-      "path": "src/textual/screen.py",
-      "line": 660,
-      "syntax": "Attribute",
-      "source": "return self._compositor.get_widget_at(x, y)"
-    },
-    {
-      "path": "src/textual/screen.py",
-      "line": 699,
-      "syntax": "Attribute",
-      "source": "return self._compositor.get_widgets_at(x, y)"
-    },
-    {
-      "path": "src/textual/screen.py",
-      "line": 2265,
-      "syntax": "Attribute",
-      "source": "if widget not in self._compositor.visible_widgets:"
-    },
-    {
-      "path": "src/textual/screen.py",
-      "line": 2283,
-      "syntax": "Attribute",
-      "source": "if widget not in self._compositor.visible_widgets:"
-    },
-    {
-      "path": "src/textual/screen.py",
-      "line": 677,
-      "syntax": "Attribute",
-      "source": "widgets_under_coordinate = iter(self._compositor.get_widgets_at(x, y))"
-    },
-    {
-      "path": "src/textual/screen.py",
-      "line": 715,
-      "syntax": "Attribute",
-      "source": "widget, _region = self.get_widget_at(x, y)"
-    },
-    {
-      "path": "src/textual/screen.py",
-      "line": 1698,
-      "syntax": "Attribute",
-      "source": "under_mouse, _ = self.get_widget_at(*self.app.mouse_position)"
-    },
-    {
-      "path": "src/textual/screen.py",
-      "line": 2039,
-      "syntax": "Attribute",
-      "source": "widget, region = self.get_widget_at(event.x, event.y)"
-    },
-    {
-      "path": "src/textual/selection.py",
-      "line": 335,
-      "syntax": "Attribute",
-      "source": "visible = screen._compositor.visible_widgets"
-    },
-    {
-      "path": "src/textual/widget.py",
-      "line": 731,
-      "syntax": "Attribute",
-      "source": "for widget, _ in self.screen.get_widgets_at(*self.app.mouse_position):"
-    },
-    {
-      "path": "src/textual/widget.py",
-      "line": 4082,
-      "syntax": "Attribute",
-      "source": "if widget not in self.screen._compositor.visible_widgets:"
-    },
-    {
-      "path": "src/textual/widget.py",
-      "line": 4561,
-      "syntax": "Attribute",
-      "source": "widget, _ = self.screen.get_widget_at(*screen_offset)"
-    },
-    {
-      "path": "src/textual/widget.py",
-      "line": 4106,
-      "syntax": "Attribute",
-      "source": "if widget not in self.screen._compositor.visible_widgets or not widget.display:"
-    }
-  ],
-  "limits": "Unchanged dependency declarations/consumers. Source syntax evidence, not runtime resolution or CPU attribution."
+    {"path": "src/agent_comms/activity.py", "line": 41, "syntax": "FunctionDef", "source": "def presentation(self, title: str, detail: str) -> ThreadPresentation:"},
+    {"path": "src/agent_comms/activity.py", "line": 109, "syntax": "FunctionDef", "source": "def presentation(self, ordinary, *, busy):"},
+    {"path": "src/agent_comms/activity.py", "line": 125, "syntax": "FunctionDef", "source": "def presentation(self, ordinary, *, busy):"},
+    {"path": "src/agent_comms/activity.py", "line": 144, "syntax": "FunctionDef", "source": "def presentation(self, title: str) -> ThreadPresentation:"},
+    {"path": "src/agent_comms/activity.py", "line": 184, "syntax": "FunctionDef", "source": "def presentation(self, title):"},
+    {"path": "src/agent_comms/activity.py", "line": 145, "syntax": "Attribute", "source": "return self.state.presentation(title, self.detail)"},
+    {"path": "src/agent_comms/activity.py", "line": 185, "syntax": "Attribute", "source": "return self.readiness.presentation(super().presentation(title), busy=self.state.busy)"},
+    {"path": "src/agent_comms/activity.py", "line": 185, "syntax": "Attribute", "source": "return self.readiness.presentation(super().presentation(title), busy=self.state.busy)"},
+    {"path": "src/agent_comms/goal_presentation.py", "line": 94, "syntax": "FunctionDef", "source": "def presentation(self, title: str) -> ThreadPresentation:"},
+    {"path": "src/agent_comms/goal_states.py", "line": 111, "syntax": "FunctionDef", "source": "def presentation(self) -> tuple[str, str]:"},
+    {"path": "src/agent_comms/goal_states.py", "line": 247, "syntax": "FunctionDef", "source": "def presentation(self) -> tuple[str, str]:"},
+    {"path": "src/agent_comms/goal_states.py", "line": 261, "syntax": "FunctionDef", "source": "def presentation(self) -> tuple[str, str]:"},
+    {"path": "src/agent_comms/historical_views.py", "line": 40, "syntax": "Name", "source": "return presentation.bus.history.integrated_page(self, presentation, **paging)"},
+    {"path": "src/agent_comms/historical_views.py", "line": 60, "syntax": "Name", "source": "page = self.page(presentation, limit=1000)"},
+    {"path": "src/agent_comms/historical_views.py", "line": 119, "syntax": "Name", "source": "bus = presentation.bus"},
+    {"path": "src/agent_comms/historical_views.py", "line": 63, "syntax": "Name", "source": "page = self.page(presentation, before=page.oldest_cursor, limit=1000)"},
+    {"path": "src/agent_comms/historical_views.py", "line": 90, "syntax": "Name", "source": "return presentation.channel_page(self.channel.name, viewer=self.viewer, **paging)"},
+    {"path": "src/agent_comms/historical_views.py", "line": 124, "syntax": "Name", "source": "presentation.registry,"},
+    {"path": "src/agent_comms/historical_views.py", "line": 432, "syntax": "Name", "source": "presentation, before=before, after=after, limit=limit, max_bytes=max_bytes"},
+    {"path": "src/agent_comms/historical_views.py", "line": 441, "syntax": "Name", "source": "presentation, before=before, after=after, limit=limit, max_bytes=max_bytes"},
+    {"path": "src/agent_comms/historical_views.py", "line": 457, "syntax": "Name", "source": "display = view.display_evidence(history, presentation)"},
+    {"path": "src/agent_comms/historical_views.py", "line": 458, "syntax": "Name", "source": "latest = view.live_page(presentation, limit=1)"},
+    {"path": "src/agent_comms/historical_views.py", "line": 78, "syntax": "Name", "source": "return presentation.bus.channel_history_page(self.target, **paging)"},
+    {"path": "src/agent_comms/historical_views.py", "line": 102, "syntax": "Name", "source": "return presentation.bus.dm_history_page(self.first, self.second, **paging)"},
+    {"path": "src/agent_comms/historical_views.py", "line": 120, "syntax": "Name", "source": "if self.second not in presentation.registry and bus.history.threads(self.second):"},
+    {"path": "src/agent_comms/historical_views.py", "line": 467, "syntax": "Name", "source": "view.live_page(presentation, after=0, limit=limit, max_bytes=max_bytes),"},
+    {"path": "src/agent_comms/historical_views.py", "line": 40, "syntax": "Name", "source": "return presentation.bus.history.integrated_page(self, presentation, **paging)"},
+    {"path": "src/agent_comms/historical_views.py", "line": 50, "syntax": "Name", "source": "presentation.bus.reads.capture("},
+    {"path": "src/agent_comms/historical_views.py", "line": 53, "syntax": "Name", "source": "presentation.registry.snapshot(),"},
+    {"path": "src/agent_comms/history_views.py", "line": 41, "syntax": "alias", "source": "CoordinationSnapshot,"},
+    {"path": "src/agent_comms/history_views.py", "line": 43, "syntax": "alias", "source": "ThreadView,"},
+    {"path": "src/agent_comms/history_views.py", "line": 329, "syntax": "Name", "source": ") -> CoordinationSnapshot:"},
+    {"path": "src/agent_comms/history_views.py", "line": 367, "syntax": "Name", "source": ") -> CoordinationSnapshot:"},
+    {"path": "src/agent_comms/history_views.py", "line": 82, "syntax": "Attribute", "source": "self.presentation = BusPresentation(bus, registry, channels.catalog)"},
+    {"path": "src/agent_comms/history_views.py", "line": 101, "syntax": "Attribute", "source": "return DMHistory(a, b).full_history(self.presentation)"},
+    {"path": "src/agent_comms/history_views.py", "line": 105, "syntax": "Attribute", "source": "return ChannelHistory(target, targets).full_history(self.presentation)"},
+    {"path": "src/agent_comms/history_views.py", "line": 120, "syntax": "Attribute", "source": "self.presentation,"},
+    {"path": "src/agent_comms/history_views.py", "line": 154, "syntax": "Attribute", "source": "self.presentation,"},
+    {"path": "src/agent_comms/history_views.py", "line": 185, "syntax": "Attribute", "source": "self.presentation,"},
+    {"path": "src/agent_comms/history_views.py", "line": 207, "syntax": "Attribute", "source": "self.presentation,"},
+    {"path": "src/agent_comms/history_views.py", "line": 226, "syntax": "Attribute", "source": ").full_history(self.presentation)"},
+    {"path": "src/agent_comms/history_views.py", "line": 237, "syntax": "Attribute", "source": "self.presentation,"},
+    {"path": "src/agent_comms/history_views.py", "line": 290, "syntax": "Name", "source": ") -> tuple[ThreadView, ...]:"},
+    {"path": "src/agent_comms/history_views.py", "line": 320, "syntax": "Attribute", "source": "view.presentation,"},
+    {"path": "src/agent_comms/history_views.py", "line": 354, "syntax": "Name", "source": "return CoordinationSnapshot("},
+    {"path": "src/agent_comms/history_views.py", "line": 292, "syntax": "Name", "source": "return ThreadView.roster("},
+    {"path": "src/agent_comms/history_views.py", "line": 309, "syntax": "Name", "source": "view = ThreadView.capture("},
+    {"path": "src/agent_comms/history_views.py", "line": 340, "syntax": "Name", "source": "threads = ThreadView.roster("},
+    {"path": "src/agent_comms/history_views.py", "line": 404, "syntax": "Name", "source": "snapshot = CoordinationSnapshot("},
+    {"path": "src/agent_comms/history_views.py", "line": 438, "syntax": "Attribute", "source": "self.presentation.mark_channel_read("},
+    {"path": "src/agent_comms/history_views.py", "line": 173, "syntax": "Attribute", "source": "return self.presentation.channel_page("},
+    {"path": "src/agent_comms/history_views.py", "line": 307, "syntax": "Name", "source": "if not ThreadView.visible(thread, snapshot, show_stopped=True, show_archived=False):"},
+    {"path": "src/agent_comms/history_views.py", "line": 370, "syntax": "Attribute", "source": "with self.presentation.snapshot(viewer=viewer) as (basis, records, bus_revision):"},
+    {"path": "src/agent_comms/history_views.py", "line": 380, "syntax": "Attribute", "source": "display_activity, display_unread = self.presentation.display_view_metrics("},
+    {"path": "src/agent_comms/history_views.py", "line": 396, "syntax": "Name", "source": "threads = ThreadView.roster("},
+    {"path": "src/agent_comms/presentation.py", "line": 455, "syntax": "ClassDef", "source": "class ThreadView:"},
+    {"path": "src/agent_comms/presentation.py", "line": 560, "syntax": "ClassDef", "source": "class CoordinationSnapshot:"},
+    {"path": "src/agent_comms/presentation.py", "line": 518, "syntax": "FunctionDef", "source": "def presentation(self) -> ThreadPresentation:"},
+    {"path": "src/agent_comms/presentation.py", "line": 480, "syntax": "Name", "source": ") -> ThreadView:"},
+    {"path": "src/agent_comms/presentation.py", "line": 502, "syntax": "Name", "source": ") -> tuple[ThreadView, ...]:"},
+    {"path": "src/agent_comms/presentation.py", "line": 538, "syntax": "Attribute", "source": "return self.status.presentation(self.thread.title or self.thread.name, self.activity)"},
+    {"path": "src/agent_comms/presentation.py", "line": 561, "syntax": "Name", "source": "threads: tuple[ThreadView, ...]"},
+    {"path": "src/agent_comms/presentation.py", "line": 573, "syntax": "Name", "source": "def participants(self, channel: str) -> tuple[ThreadView, ...]:"},
+    {"path": "src/agent_comms/presentation.py", "line": 522, "syntax": "Attribute", "source": "ordinary = self.activity.readiness.presentation(ordinary, busy=self.activity.state.busy)"},
+    {"path": "src/agent_comms/presentation.py", "line": 523, "syntax": "Attribute", "source": "return replace(self.thread.execution.presentation(self.thread, self.status, ordinary),"},
+    {"path": "src/agent_comms/presentation.py", "line": 528, "syntax": "Attribute", "source": "return ActivityState.WORKING.presentation("},
+    {"path": "src/agent_comms/presentation.py", "line": 537, "syntax": "Attribute", "source": "return self.goal_execution.presentation(self.thread.title or self.thread.name)"},
+    {"path": "src/agent_comms/presentation.py", "line": 590, "syntax": "Attribute", "source": "MentionCandidate(person.thread.name, person.presentation.title)"},
+    {"path": "src/agent_comms/relationships.py", "line": 155, "syntax": "Name", "source": "person: ThreadView | None = None"},
+    {"path": "src/agent_comms/thread_execution.py", "line": 52, "syntax": "FunctionDef", "source": "def presentation(cls, thread: Thread, status, ordinary: ThreadPresentation) -> ThreadPresentation:"},
+    {"path": "src/agent_comms/thread_execution.py", "line": 93, "syntax": "FunctionDef", "source": "def presentation(cls, thread: Thread, status, ordinary: ThreadPresentation) -> ThreadPresentation:"},
+    {"path": "src/agent_comms/thread_execution.py", "line": 106, "syntax": "FunctionDef", "source": "def presentation(cls, thread: Thread, status, ordinary: ThreadPresentation) -> ThreadPresentation:"},
+    {"path": "src/agent_comms/thread_status.py", "line": 68, "syntax": "FunctionDef", "source": "def presentation(self, title: str, activity: ObservedActivity) -> ThreadPresentation:"},
+    {"path": "src/agent_comms/thread_status.py", "line": 94, "syntax": "FunctionDef", "source": "def presentation(self, title: str, activity: ObservedActivity) -> ThreadPresentation:"},
+    {"path": "src/agent_comms/thread_status.py", "line": 95, "syntax": "Attribute", "source": "return activity.presentation(title)"},
+    {"path": "src/agent_comms/turn_context.py", "line": 494, "syntax": "Name", "source": "def from_view(cls, view: ThreadView) -> PeerState:"},
+    {"path": "src/agent_comms/turn_context.py", "line": 512, "syntax": "Name", "source": "def capture(cls, owner: Thread, views: tuple[ThreadView, ...]) -> CoordinationSegment:"},
+    {"path": "src/agent_comms/turn_context.py", "line": 742, "syntax": "Name", "source": "views: tuple[ThreadView, ...],"},
+    {"path": "src/textual/_compositor.py", "line": 754, "syntax": "FunctionDef", "source": "def visible_widgets(self) -> dict[Widget, tuple[Region, Region]]:"},
+    {"path": "src/textual/_compositor.py", "line": 1218, "syntax": "Attribute", "source": "if widget not in self.visible_widgets:"},
+    {"path": "src/textual/_compositor.py", "line": 1254, "syntax": "Attribute", "source": "if widget not in self.visible_widgets:"},
+    {"path": "src/textual/_compositor.py", "line": 1386, "syntax": "Attribute", "source": "self._cuts = self._cuts_for_regions(self.size.region, self.visible_widgets)"},
+    {"path": "src/textual/_compositor.py", "line": 1717, "syntax": "Attribute", "source": "get_widget = self.visible_widgets.__getitem__"},
+    {"path": "src/textual/_compositor.py", "line": 1518, "syntax": "Attribute", "source": "widgets=self.visible_widgets, cuts=self.cuts,"},
+    {"path": "src/textual/_compositor.py", "line": 1550, "syntax": "Attribute", "source": "widgets=self.visible_widgets, cuts=cuts,"},
+    {"path": "src/textual/_compositor.py", "line": 1566, "syntax": "Attribute", "source": "widgets=self.visible_widgets, cuts=self.cuts,"},
+    {"path": "src/textual/_compositor.py", "line": 1200, "syntax": "Attribute", "source": "for widget, (region, clip) in self.visible_widgets.items():"},
+    {"path": "src/textual/_compositor.py", "line": 1718, "syntax": "Attribute", "source": "for widget in self.visible_widgets.keys() & widgets:"},
+    {"path": "src/textual/_compositor.py", "line": 1711, "syntax": "Attribute", "source": "self.visible_widgets.keys()"},
+    {"path": "src/textual/layout.py", "line": 106, "syntax": "Name", "source": "visible_widgets = {placement.widget for _, placement in culled_placements}"},
+    {"path": "src/textual/layout.py", "line": 107, "syntax": "Name", "source": "if retained_widgets - visible_widgets:"},
+    {"path": "src/textual/layout.py", "line": 111, "syntax": "Name", "source": "if placement.widget in visible_widgets or placement.widget in retained_widgets"},
+    {"path": "src/textual/screen.py", "line": 389, "syntax": "Attribute", "source": "painted = self._compositor.visible_widgets"},
+    {"path": "src/textual/screen.py", "line": 2265, "syntax": "Attribute", "source": "if widget not in self._compositor.visible_widgets:"},
+    {"path": "src/textual/screen.py", "line": 2283, "syntax": "Attribute", "source": "if widget not in self._compositor.visible_widgets:"},
+    {"path": "src/textual/selection.py", "line": 335, "syntax": "Attribute", "source": "visible = screen._compositor.visible_widgets"},
+    {"path": "src/textual/widget.py", "line": 4082, "syntax": "Attribute", "source": "if widget not in self.screen._compositor.visible_widgets:"},
+    {"path": "src/textual/widget.py", "line": 4106, "syntax": "Attribute", "source": "if widget not in self.screen._compositor.visible_widgets or not widget.display:"}
+  ]
 }
