@@ -95,3 +95,20 @@ environment or artificial wait for completeCPU/performance is proposed.
 This draft is useful source/delivery preparation, not Ready or live delivery.
 Normal merged-main source closure and an explicitly eligible holder remain the
 next concrete boundaries; Parent owns public admission/default affected acceptance.
+
+## Corrected442 published source checkpoint
+
+Heis published product35e72d0f, docs8fa92be source/control/pinZERO. Product
+requiredDebt37237228607 passed; changed installedqualification remains pending.
+The original checkpoint/state common facade now owns BOTHsaved/filter and
+wire/reader hooks; duplicate gates are deleted. Complete original AST0omissions
+and focusedForeignAbsence deltas0 are source evidence, not installedApp proof.
+
+CORRECTED-442-SOURCE-RELATION.json directly compares all319 correctedGitassets
+with historical8ac and lists actualchangedmembers.8ac is not the correctedwheel.
+OriginalHeis owns ONEnewtinyfilewheel and ONEchangedaffectedApp onlyafterBohr
+issues exactfreshpurpose. Sch conditional086 authority has been delivered bound
+to35e72/control7725/proposalab7e; it authorizes no holderaccess before thatgrant.
+No duplicate builder, Core/Text/nativebuild or original22PASSrebasing. After
+actualinstalledscope/finalgreen/Parentnormalmerge, consume the new truthful
+sourceequal keeper and normally join the accepted product in this draft.
