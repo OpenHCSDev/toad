@@ -1,0 +1,60 @@
+{
+  "revision": "d8a36b17f0e4ef4a2183d6cee5e3068b5ea1ea52",
+  "production_modules_parsed": 288,
+  "omissions": [],
+  "methods": [
+    {
+      "owner": "ContextTreeIntent",
+      "method": "restore",
+      "line": 39,
+      "source": "def restore(self, nodes, restore_node):\n        if self.selected is None:\n            return False\n        node = nodes.get(self.selected.key)\n        if node is None:\n            return False\n        self.selected = node.data\n        restore_node(node, self.selected)\n        return True"
+    },
+    {
+      "owner": "ContextTreeIntent",
+      "method": "with_selected",
+      "line": 49,
+      "source": "def with_selected(self, model, consume):\n        if self.selected is model:\n            consume(model)"
+    },
+    {
+      "owner": "ContextTree",
+      "method": "restore_reader",
+      "line": 126,
+      "source": "def restore_reader(self, placeholder):\n        with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):\n            pending = list(self.context_nodes.values())\n            while pending:\n                node = pending.pop()\n                if node.data.key in self.intent.expanded:\n                    self._expand(node)\n                    node.expand()\n                    pending.extend(node.children)\n        if not self.intent.restore(self.context_nodes, self._reveal_restored):\n            self.show_placeholder(placeholder)"
+    },
+    {
+      "owner": "ContextTree",
+      "method": "_reveal_restored",
+      "line": 138,
+      "source": "def _reveal_restored(self, node, model):\n        # The retained intent owns the reader choice. Native initialization may\n        # already highlight a data-less root or group before this callback.\n        ancestor = node.parent\n        with self.prevent(Tree.NodeExpanded):\n            while ancestor is not None:\n                ancestor.expand()\n                ancestor = ancestor.parent\n        self.call_after_refresh(self.intent.with_selected, model, self._restore_cursor)"
+    },
+    {
+      "owner": "ContextTree",
+      "method": "_restore_cursor",
+      "line": 148,
+      "source": "def _restore_cursor(self, model):\n        node = self.context_nodes.get(model.key)\n        if self.owns_node(node) and node.data is model:\n            with self.prevent(Tree.NodeHighlighted):\n                self.move_cursor(node, animate=False)\n            self.show_detail(model)"
+    },
+    {
+      "owner": "ContextTree",
+      "method": "owns_node",
+      "line": 160,
+      "source": "def owns_node(self, node):\n        if node is None:\n            return False\n        if node.data is None:\n            return False\n        return self.is_attached and self.context_nodes.get(node.data.key) is node"
+    },
+    {
+      "owner": "ContextExplorer",
+      "method": "node_highlighted",
+      "line": 435,
+      "source": "def node_highlighted(self, event):\n        event.stop()\n        if self.query_one(ContextTree).owns_node(event.node):\n            if self.intent.selected is not event.node.data:\n                self.workers.cancel_group(self, \"context-search\")\n            self.intent.selected = event.node.data\n            self._show_detail(event.node.data)"
+    }
+  ],
+  "deleted_decisions": [
+    "schedule only if native cursor None",
+    "deferred restoration only if native cursor None or requested node"
+  ],
+  "unchanged_fences": [
+    "intent.selected is captured model",
+    "mounted native index membership",
+    "node.data is captured model",
+    "search cancellation/source/revision"
+  ],
+  "limitations": "Lexical AST source evidence; installed remount/reader remains pending, no actual cursor/callback causal trace from reader12."
+}

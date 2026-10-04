@@ -1,0 +1,20 @@
+Recording isolated display :8946: /home/ts/.cache/agent-scratch/recorded-context417-physical10/capture
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/cold_context_installed_physical.py", line 531, in <module>
+    recorder.main()
+    ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/tools/record_installed_tui.py", line 2229, in main
+    print(review_recording(args) if args.review_recording else record(args))
+                                                               ~~~~~~^^^^^^
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/tools/record_installed_tui.py", line 1823, in record
+    owner.run(["xdotool", *action_argv], env, stdout=log,
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+              stderr=subprocess.STDOUT,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+              observe=observe, observation_interval=args.live_review_interval,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+              timeout=max(.1, remaining() - args.tail_seconds - 1))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/tools/record_installed_tui.py", line 290, in run
+    raise subprocess.CalledProcessError(owned.process.returncode, argv, out, err)
+subprocess.CalledProcessError: Command '['xdotool', 'exec', '--sync', '/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python', '/home/ts/wt/toad-regression-widget-cost-20261001/tools/performance/click_history.py', '--state', 'phase-recorded-export-path-state.pickle', '--target', 'widget', '--name', 'Button#context-export', '--button', '1']' returned non-zero exit status 1.

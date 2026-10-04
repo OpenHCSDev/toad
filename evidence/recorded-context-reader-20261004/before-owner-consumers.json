@@ -1,0 +1,3696 @@
+{
+  "tool": "refactor-audit Package",
+  "roots": [
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "root": "src/toad",
+      "head": "ff2315f3d87d88ad325f894d26c3ea71fdca73bd",
+      "parsed": 288,
+      "unparsed": [],
+      "sites": [
+        {
+          "path": "src/toad/acp/agent.py",
+          "line": 7,
+          "kind": "ImportFrom",
+          "source": "from toad.acp.context_measurement import ContextMeasurement, ContextUnavailable"
+        },
+        {
+          "path": "src/toad/acp/agent.py",
+          "line": 187,
+          "kind": "FunctionDef",
+          "source": "def update_status_line(self) -> None:"
+        },
+        {
+          "path": "src/toad/acp/agent.py",
+          "line": 114,
+          "kind": "Attribute",
+          "source": "self.context_measurement"
+        },
+        {
+          "path": "src/toad/acp/agent.py",
+          "line": 114,
+          "kind": "Name",
+          "source": "ContextUnavailable"
+        },
+        {
+          "path": "src/toad/acp/agent_process.py",
+          "line": 244,
+          "kind": "Attribute",
+          "source": "process.stderr.read"
+        },
+        {
+          "path": "src/toad/acp/comms_updates.py",
+          "line": 120,
+          "kind": "ImportFrom",
+          "source": "from .context_measurement import ContextMeasurement"
+        },
+        {
+          "path": "src/toad/acp/comms_updates.py",
+          "line": 142,
+          "kind": "ImportFrom",
+          "source": "from .context_measurement import ContextUnavailable"
+        },
+        {
+          "path": "src/toad/acp/comms_updates.py",
+          "line": 131,
+          "kind": "Attribute",
+          "source": "agent.context_measurement"
+        },
+        {
+          "path": "src/toad/acp/comms_updates.py",
+          "line": 143,
+          "kind": "Attribute",
+          "source": "self.agent.context_measurement"
+        },
+        {
+          "path": "src/toad/acp/comms_updates.py",
+          "line": 132,
+          "kind": "Attribute",
+          "source": "agent.update_status_line"
+        },
+        {
+          "path": "src/toad/acp/comms_updates.py",
+          "line": 143,
+          "kind": "Name",
+          "source": "ContextUnavailable"
+        },
+        {
+          "path": "src/toad/acp/comms_updates.py",
+          "line": 144,
+          "kind": "Attribute",
+          "source": "self.agent.update_status_line"
+        },
+        {
+          "path": "src/toad/acp/comms_updates.py",
+          "line": 131,
+          "kind": "Name",
+          "source": "ContextMeasurement"
+        },
+        {
+          "path": "src/toad/acp/context_measurement.py",
+          "line": 26,
+          "kind": "ClassDef",
+          "source": "class ContextMeasurement(ABC):"
+        },
+        {
+          "path": "src/toad/acp/context_measurement.py",
+          "line": 48,
+          "kind": "ClassDef",
+          "source": "@dataclass(frozen=True)"
+        },
+        {
+          "path": "src/toad/acp/context_measurement.py",
+          "line": 48,
+          "kind": "Name",
+          "source": "ContextMeasurement"
+        },
+        {
+          "path": "src/toad/acp/context_measurement.py",
+          "line": 56,
+          "kind": "Name",
+          "source": "ContextMeasurement"
+        },
+        {
+          "path": "src/toad/acp/context_measurement.py",
+          "line": 35,
+          "kind": "Name",
+          "source": "ContextUnavailable"
+        },
+        {
+          "path": "src/toad/acp/context_measurement.py",
+          "line": 43,
+          "kind": "Name",
+          "source": "ContextUnavailable"
+        },
+        {
+          "path": "src/toad/acp/log_records.py",
+          "line": 187,
+          "kind": "FunctionDef",
+          "source": "@classmethod"
+        },
+        {
+          "path": "src/toad/acp/log_records.py",
+          "line": 199,
+          "kind": "Attribute",
+          "source": "stream.read"
+        },
+        {
+          "path": "src/toad/acp/log_records.py",
+          "line": 201,
+          "kind": "Attribute",
+          "source": "data.find"
+        },
+        {
+          "path": "src/toad/acp/log_records.py",
+          "line": 197,
+          "kind": "Attribute",
+          "source": "stream.read"
+        },
+        {
+          "path": "src/toad/acp/session_updates.py",
+          "line": 14,
+          "kind": "ImportFrom",
+          "source": "from toad.acp.context_measurement import ContextMeasurement"
+        },
+        {
+          "path": "src/toad/acp/session_updates.py",
+          "line": 75,
+          "kind": "Attribute",
+          "source": "self.agent.context_measurement"
+        },
+        {
+          "path": "src/toad/acp/session_updates.py",
+          "line": 76,
+          "kind": "Attribute",
+          "source": "self.agent.update_status_line"
+        },
+        {
+          "path": "src/toad/acp/session_updates.py",
+          "line": 75,
+          "kind": "Name",
+          "source": "ContextMeasurement"
+        },
+        {
+          "path": "src/toad/acp/transcript_reader.py",
+          "line": 25,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/acp/transcript_reader.py",
+          "line": 35,
+          "kind": "Attribute",
+          "source": "self.read.read"
+        },
+        {
+          "path": "src/toad/acp/transcript_reader.py",
+          "line": 78,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/acp/transcript_reader.py",
+          "line": 106,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/acp/transcript_reader.py",
+          "line": 35,
+          "kind": "Attribute",
+          "source": "self.read"
+        },
+        {
+          "path": "src/toad/acp/transcript_reader.py",
+          "line": 112,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/acp/transcript_reader.py",
+          "line": 32,
+          "kind": "Attribute",
+          "source": "self.read"
+        },
+        {
+          "path": "src/toad/acp/transcript_reader.py",
+          "line": 43,
+          "kind": "Attribute",
+          "source": "self.read"
+        },
+        {
+          "path": "src/toad/acp/transcript_reader.py",
+          "line": 107,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/acp/transcript_reader.py",
+          "line": 80,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/acp/transcript_reader.py",
+          "line": 84,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/acp/transcript_reader.py",
+          "line": 110,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/ansi/_ansi.py",
+          "line": 63,
+          "kind": "FunctionDef",
+          "source": "@classmethod"
+        },
+        {
+          "path": "src/toad/ansi/_ansi.py",
+          "line": 71,
+          "kind": "FunctionDef",
+          "source": "@classmethod"
+        },
+        {
+          "path": "src/toad/ansi/_ansi.py",
+          "line": 89,
+          "kind": "FunctionDef",
+          "source": "@classmethod"
+        },
+        {
+          "path": "src/toad/ansi/_ansi.py",
+          "line": 125,
+          "kind": "FunctionDef",
+          "source": "@classmethod"
+        },
+        {
+          "path": "src/toad/ansi/_ansi.py",
+          "line": 167,
+          "kind": "FunctionDef",
+          "source": "@classmethod"
+        },
+        {
+          "path": "src/toad/ansi/_ansi.py",
+          "line": 207,
+          "kind": "FunctionDef",
+          "source": "@classmethod"
+        },
+        {
+          "path": "src/toad/ansi/_ansi.py",
+          "line": 226,
+          "kind": "Attribute",
+          "source": "sequence.read"
+        },
+        {
+          "path": "src/toad/ansi/_stream_parser.py",
+          "line": 226,
+          "kind": "FunctionDef",
+          "source": "def read(self, count: int) -> Read:"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 51,
+          "kind": "FunctionDef",
+          "source": "def read(self, follow_tail: bool=True) -> HistoryReadResult:"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 172,
+          "kind": "AsyncFunctionDef",
+          "source": "async def read(self, follow_tail: bool) -> HistoryReadResult:"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 182,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 173,
+          "kind": "Attribute",
+          "source": "self.source.read"
+        },
+        {
+          "path": "src/toad/clipboard.py",
+          "line": 33,
+          "kind": "FunctionDef",
+          "source": "def read(self, app: App) -> str:"
+        },
+        {
+          "path": "src/toad/clipboard.py",
+          "line": 54,
+          "kind": "FunctionDef",
+          "source": "def read(self, app: App) -> str:"
+        },
+        {
+          "path": "src/toad/clipboard.py",
+          "line": 37,
+          "kind": "Attribute",
+          "source": "self.read"
+        },
+        {
+          "path": "src/toad/clipboard.py",
+          "line": 58,
+          "kind": "Attribute",
+          "source": "super().read"
+        },
+        {
+          "path": "src/toad/clipboard_image.py",
+          "line": 33,
+          "kind": "Attribute",
+          "source": "process.stdout.read"
+        },
+        {
+          "path": "src/toad/command_catalog.py",
+          "line": 20,
+          "kind": "AsyncFunctionDef",
+          "source": "@classmethod"
+        },
+        {
+          "path": "src/toad/conversation_kind.py",
+          "line": 119,
+          "kind": "Attribute",
+          "source": "comms.channels.catalog.read"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 20,
+          "kind": "ImportFrom",
+          "source": "from agent_comms.turn_context import ContextManifest, ContextSegment, ContextSourceText, NativeMessages, Provenance, SegmentManifest"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 30,
+          "kind": "ClassDef",
+          "source": "@dataclass(frozen=True)"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 90,
+          "kind": "ClassDef",
+          "source": "@dataclass(frozen=True)"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 115,
+          "kind": "ClassDef",
+          "source": "@dataclass(frozen=True)"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 244,
+          "kind": "ClassDef",
+          "source": "@dataclass(frozen=True)"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 48,
+          "kind": "FunctionDef",
+          "source": "def find(self, query: str):"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 55,
+          "kind": "AsyncFunctionDef",
+          "source": "async def read(self):"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 70,
+          "kind": "Name",
+          "source": "ContextNode"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 84,
+          "kind": "AsyncFunctionDef",
+          "source": "async def read(self):"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 90,
+          "kind": "Name",
+          "source": "ContextNode"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 115,
+          "kind": "Name",
+          "source": "ContextNode"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 137,
+          "kind": "Name",
+          "source": "ContextNode"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 223,
+          "kind": "Name",
+          "source": "ContextNode"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 252,
+          "kind": "FunctionDef",
+          "source": "@classmethod"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 264,
+          "kind": "FunctionDef",
+          "source": "def recorded(self):"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 271,
+          "kind": "FunctionDef",
+          "source": "def find(self, native, query: str, *, limit=100):"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 301,
+          "kind": "AsyncFunctionDef",
+          "source": "async def recorded_source(self, manifest, position, source):"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 91,
+          "kind": "Name",
+          "source": "SegmentManifest"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 116,
+          "kind": "Name",
+          "source": "ContextManifest"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 117,
+          "kind": "Name",
+          "source": "ContextInspection"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 38,
+          "kind": "Name",
+          "source": "ContextNode"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 247,
+          "kind": "Name",
+          "source": "ContextManifest"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 257,
+          "kind": "Name",
+          "source": "ContextInspection"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 299,
+          "kind": "Name",
+          "source": "ContextSourceText"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 305,
+          "kind": "Name",
+          "source": "ContextSourceText"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 60,
+          "kind": "Attribute",
+          "source": "self.read"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 72,
+          "kind": "Name",
+          "source": "ContextSourceText"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 92,
+          "kind": "Name",
+          "source": "ContextSourceText"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 139,
+          "kind": "Name",
+          "source": "ContextSourceText"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 225,
+          "kind": "Name",
+          "source": "ContextSourceText"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 53,
+          "kind": "Attribute",
+          "source": "child.find"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 125,
+          "kind": "Name",
+          "source": "ManifestNode"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 268,
+          "kind": "Name",
+          "source": "RecordedTurnNode"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 100,
+          "kind": "Name",
+          "source": "ManifestNode"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 126,
+          "kind": "Attribute",
+          "source": "self.inspection.recorded_source"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 147,
+          "kind": "Name",
+          "source": "ManifestNode"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 277,
+          "kind": "Attribute",
+          "source": "node.find"
+        },
+        {
+          "path": "src/toad/db.py",
+          "line": 190,
+          "kind": "Attribute",
+          "source": "Session.read"
+        },
+        {
+          "path": "src/toad/fuzzy.py",
+          "line": 109,
+          "kind": "Attribute",
+          "source": "candidate.find"
+        },
+        {
+          "path": "src/toad/fuzzy_index.py",
+          "line": 181,
+          "kind": "Attribute",
+          "source": "path.find"
+        },
+        {
+          "path": "src/toad/fuzzy_index.py",
+          "line": 184,
+          "kind": "Attribute",
+          "source": "path.find"
+        },
+        {
+          "path": "src/toad/mcp_decision.py",
+          "line": 97,
+          "kind": "Attribute",
+          "source": "acquired.reader.read"
+        },
+        {
+          "path": "src/toad/mcp_inventory.py",
+          "line": 96,
+          "kind": "Attribute",
+          "source": "stdout.read"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 286,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 286,
+          "kind": "Attribute",
+          "source": "reader.read"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 289,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 300,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 328,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 302,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 328,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 298,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 326,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 307,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/navigation_preparation.py",
+          "line": 28,
+          "kind": "FunctionDef",
+          "source": "@abstractmethod"
+        },
+        {
+          "path": "src/toad/navigation_preparation.py",
+          "line": 47,
+          "kind": "FunctionDef",
+          "source": "def read(self) -> CommsNavigation:"
+        },
+        {
+          "path": "src/toad/navigation_preparation.py",
+          "line": 124,
+          "kind": "FunctionDef",
+          "source": "def read(self) -> ThreadNavigation:"
+        },
+        {
+          "path": "src/toad/navigation_preparation.py",
+          "line": 206,
+          "kind": "AsyncFunctionDef",
+          "source": "async def read(self, request: NavigationRequest[ResultT]) -> ResultT | None:"
+        },
+        {
+          "path": "src/toad/navigation_preparation.py",
+          "line": 175,
+          "kind": "Attribute",
+          "source": "navigator.app.navigation_reader.read"
+        },
+        {
+          "path": "src/toad/navigation_preparation.py",
+          "line": 214,
+          "kind": "Attribute",
+          "source": "request.read"
+        },
+        {
+          "path": "src/toad/path_complete.py",
+          "line": 44,
+          "kind": "FunctionDef",
+          "source": "def read(self) -> None:"
+        },
+        {
+          "path": "src/toad/path_complete.py",
+          "line": 61,
+          "kind": "Attribute",
+          "source": "self.read"
+        },
+        {
+          "path": "src/toad/prompt/resource.py",
+          "line": 59,
+          "kind": "Attribute",
+          "source": "source.read"
+        },
+        {
+          "path": "src/toad/screens/historical_sessions.py",
+          "line": 156,
+          "kind": "FunctionDef",
+          "source": "def read():"
+        },
+        {
+          "path": "src/toad/screens/historical_sessions.py",
+          "line": 174,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 316,
+          "kind": "ImportFrom",
+          "source": "from toad.widgets.context_explorer import ContextExplorer"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 317,
+          "kind": "Name",
+          "source": "ContextExplorer"
+        },
+        {
+          "path": "src/toad/screens/store.py",
+          "line": 567,
+          "kind": "Attribute",
+          "source": "LAUNCHER_KEYS.find"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 64,
+          "kind": "FunctionDef",
+          "source": "def find(self, address: object) -> SessionAdmission | None:"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 147,
+          "kind": "Attribute",
+          "source": "self.find"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 159,
+          "kind": "Attribute",
+          "source": "self.find"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 136,
+          "kind": "Attribute",
+          "source": "app.navigation_reader.read"
+        },
+        {
+          "path": "src/toad/session_observation.py",
+          "line": 84,
+          "kind": "AsyncFunctionDef",
+          "source": "@abstractmethod"
+        },
+        {
+          "path": "src/toad/session_observation.py",
+          "line": 94,
+          "kind": "AsyncFunctionDef",
+          "source": "async def read(self, agent):"
+        },
+        {
+          "path": "src/toad/session_observation.py",
+          "line": 109,
+          "kind": "AsyncFunctionDef",
+          "source": "async def read(self, agent):"
+        },
+        {
+          "path": "src/toad/session_observation.py",
+          "line": 68,
+          "kind": "Attribute",
+          "source": "self.read"
+        },
+        {
+          "path": "src/toad/shell_read.py",
+          "line": 25,
+          "kind": "Attribute",
+          "source": "reader.read"
+        },
+        {
+          "path": "src/toad/shell_read.py",
+          "line": 34,
+          "kind": "Attribute",
+          "source": "reader.read"
+        },
+        {
+          "path": "src/toad/sidebar_observation.py",
+          "line": 249,
+          "kind": "AsyncFunctionDef",
+          "source": "async def read(self, revision: WireRevision) -> None:"
+        },
+        {
+          "path": "src/toad/sidebar_observation.py",
+          "line": 247,
+          "kind": "Attribute",
+          "source": "self.read"
+        },
+        {
+          "path": "src/toad/sidebar_observation.py",
+          "line": 118,
+          "kind": "Attribute",
+          "source": "self.read"
+        },
+        {
+          "path": "src/toad/target_commands.py",
+          "line": 52,
+          "kind": "AsyncFunctionDef",
+          "source": "async def read():"
+        },
+        {
+          "path": "src/toad/target_commands.py",
+          "line": 65,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/target_commands.py",
+          "line": 70,
+          "kind": "Attribute",
+          "source": "CommandCatalog.read"
+        },
+        {
+          "path": "src/toad/widgets/acp_log.py",
+          "line": 80,
+          "kind": "Attribute",
+          "source": "LogPage.read"
+        },
+        {
+          "path": "src/toad/widgets/comms_chat.py",
+          "line": 311,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/widgets/comms_chat.py",
+          "line": 322,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/widgets/comms_chat.py",
+          "line": 330,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/widgets/comms_chat.py",
+          "line": 298,
+          "kind": "Attribute",
+          "source": "comms.channels.catalog.read"
+        },
+        {
+          "path": "src/toad/widgets/comms_chat.py",
+          "line": 393,
+          "kind": "Attribute",
+          "source": "comms.channels.catalog.read"
+        },
+        {
+          "path": "src/toad/widgets/comms_chat.py",
+          "line": 311,
+          "kind": "Attribute",
+          "source": "reader.read"
+        },
+        {
+          "path": "src/toad/widgets/comms_chat.py",
+          "line": 317,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/widgets/comms_chat.py",
+          "line": 328,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 17,
+          "kind": "ImportFrom",
+          "source": "from toad.core.context_inspection import ContextInspection, ContextNode"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 32,
+          "kind": "ClassDef",
+          "source": "class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 48,
+          "kind": "Name",
+          "source": "ContextInspection"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 225,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 226,
+          "kind": "Attribute",
+          "source": "inspection.recorded"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 63,
+          "kind": "Name",
+          "source": "ContextNode"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 227,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 406,
+          "kind": "Attribute",
+          "source": "model.read"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 143,
+          "kind": "Attribute",
+          "source": "ContextInspection.read"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 268,
+          "kind": "Attribute",
+          "source": "inspection.find"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 318,
+          "kind": "Attribute",
+          "source": "model.read"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 143,
+          "kind": "Name",
+          "source": "ContextInspection"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 561,
+          "kind": "Attribute",
+          "source": "agent.context_measurement"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1673,
+          "kind": "Attribute",
+          "source": "CommandCatalog.read"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1342,
+          "kind": "Attribute",
+          "source": "self.agent.context_measurement"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1846,
+          "kind": "Attribute",
+          "source": "agent.context_measurement"
+        },
+        {
+          "path": "src/toad/widgets/goal_text.py",
+          "line": 34,
+          "kind": "Attribute",
+          "source": "ThreadMention.find"
+        },
+        {
+          "path": "src/toad/widgets/incoming_message.py",
+          "line": 47,
+          "kind": "Attribute",
+          "source": "MessageClock.recorded"
+        },
+        {
+          "path": "src/toad/widgets/irc_message.py",
+          "line": 88,
+          "kind": "Attribute",
+          "source": "MessageClock.recorded"
+        },
+        {
+          "path": "src/toad/widgets/message_divider.py",
+          "line": 25,
+          "kind": "FunctionDef",
+          "source": "@classmethod"
+        },
+        {
+          "path": "src/toad/widgets/model_switcher.py",
+          "line": 52,
+          "kind": "Attribute",
+          "source": "candidate.find"
+        },
+        {
+          "path": "src/toad/widgets/observed_thread_activity.py",
+          "line": 27,
+          "kind": "Attribute",
+          "source": "self.read"
+        },
+        {
+          "path": "src/toad/widgets/observed_thread_activity.py",
+          "line": 27,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/widgets/observed_thread_activity.py",
+          "line": 50,
+          "kind": "Attribute",
+          "source": "self.read"
+        },
+        {
+          "path": "src/toad/widgets/observed_thread_activity.py",
+          "line": 50,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/widgets/observed_thread_activity.py",
+          "line": 69,
+          "kind": "Attribute",
+          "source": "self.read"
+        },
+        {
+          "path": "src/toad/widgets/observed_thread_activity.py",
+          "line": 75,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/widgets/observed_thread_activity.py",
+          "line": 88,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/widgets/observed_thread_activity.py",
+          "line": 88,
+          "kind": "Attribute",
+          "source": "self.read"
+        },
+        {
+          "path": "src/toad/widgets/observed_thread_activity.py",
+          "line": 77,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/widgets/observed_thread_activity.py",
+          "line": 79,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/widgets/observed_thread_activity.py",
+          "line": 79,
+          "kind": "Attribute",
+          "source": "self.read"
+        },
+        {
+          "path": "src/toad/widgets/observed_thread_activity.py",
+          "line": 81,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/widgets/outgoing_message.py",
+          "line": 36,
+          "kind": "Attribute",
+          "source": "MessageClock.recorded"
+        },
+        {
+          "path": "src/toad/widgets/path_search.py",
+          "line": 66,
+          "kind": "Attribute",
+          "source": "line.plain.find"
+        },
+        {
+          "path": "src/toad/widgets/project_panel.py",
+          "line": 150,
+          "kind": "Attribute",
+          "source": "source.read"
+        },
+        {
+          "path": "src/toad/widgets/session_details.py",
+          "line": 52,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/toad/widgets/session_thread_panels.py",
+          "line": 118,
+          "kind": "ImportFrom",
+          "source": "from toad.widgets.context_explorer import ContextExplorer, ContextTreeIntent"
+        },
+        {
+          "path": "src/toad/widgets/session_thread_panels.py",
+          "line": 121,
+          "kind": "Name",
+          "source": "ContextExplorer"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 85,
+          "kind": "Attribute",
+          "source": "MessageClock.recorded"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 102,
+          "kind": "Attribute",
+          "source": "MessageClock.recorded"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 218,
+          "kind": "Attribute",
+          "source": "MessageClock.recorded"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/comms-retained-human-main-20261001",
+      "root": "src/agent_comms",
+      "head": "8006623ffd535cbdc762dd916ab92b9288f45b07",
+      "parsed": 311,
+      "unparsed": [],
+      "sites": [
+        {
+          "path": "src/agent_comms/acp_extension.py",
+          "line": 466,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/agent_comms/acp_extension.py",
+          "line": 467,
+          "kind": "Attribute",
+          "source": "read.read"
+        },
+        {
+          "path": "src/agent_comms/acp_extension.py",
+          "line": 467,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/agent_comms/acp_extension.py",
+          "line": 467,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/agent_comms/active_route.py",
+          "line": 181,
+          "kind": "Attribute",
+          "source": "os.read"
+        },
+        {
+          "path": "src/agent_comms/activity.py",
+          "line": 256,
+          "kind": "Attribute",
+          "source": "self.checkpoint.read"
+        },
+        {
+          "path": "src/agent_comms/activity_checkpoint.py",
+          "line": 33,
+          "kind": "Attribute",
+          "source": "stream.read"
+        },
+        {
+          "path": "src/agent_comms/agent_activity.py",
+          "line": 230,
+          "kind": "Attribute",
+          "source": "self.runtime_info.read"
+        },
+        {
+          "path": "src/agent_comms/agent_event_updates.py",
+          "line": 190,
+          "kind": "Attribute",
+          "source": "self.agent.inputs.dispositions.read"
+        },
+        {
+          "path": "src/agent_comms/agent_events.py",
+          "line": 361,
+          "kind": "ClassDef",
+          "source": "class AgentEventConsumer(MroDispatch):"
+        },
+        {
+          "path": "src/agent_comms/assignment_store.py",
+          "line": 32,
+          "kind": "Attribute",
+          "source": "WakeAssignment.read"
+        },
+        {
+          "path": "src/agent_comms/attempt_recovery.py",
+          "line": 84,
+          "kind": "Attribute",
+          "source": "comms.owners.releases.read"
+        },
+        {
+          "path": "src/agent_comms/awareness_context.py",
+          "line": 18,
+          "kind": "Attribute",
+          "source": "InstructionFile.read"
+        },
+        {
+          "path": "src/agent_comms/awareness_context.py",
+          "line": 36,
+          "kind": "Attribute",
+          "source": "InstructionFile.read"
+        },
+        {
+          "path": "src/agent_comms/backend.py",
+          "line": 610,
+          "kind": "Attribute",
+          "source": "self.watchdog.read"
+        },
+        {
+          "path": "src/agent_comms/bus_activity_index.py",
+          "line": 54,
+          "kind": "Attribute",
+          "source": "stream.read"
+        },
+        {
+          "path": "src/agent_comms/bus_display_index.py",
+          "line": 98,
+          "kind": "Attribute",
+          "source": "stream.read"
+        },
+        {
+          "path": "src/agent_comms/bus_page_index.py",
+          "line": 75,
+          "kind": "Attribute",
+          "source": "SQLiteSchemaObject.read"
+        },
+        {
+          "path": "src/agent_comms/bus_page_index.py",
+          "line": 105,
+          "kind": "Attribute",
+          "source": "stream.read"
+        },
+        {
+          "path": "src/agent_comms/bus_page_index.py",
+          "line": 118,
+          "kind": "Attribute",
+          "source": "stream.read"
+        },
+        {
+          "path": "src/agent_comms/bus_page_index.py",
+          "line": 142,
+          "kind": "Attribute",
+          "source": "BusPageRow.read"
+        },
+        {
+          "path": "src/agent_comms/bus_page_index.py",
+          "line": 184,
+          "kind": "Attribute",
+          "source": "stream.read"
+        },
+        {
+          "path": "src/agent_comms/bus_projection.py",
+          "line": 57,
+          "kind": "Attribute",
+          "source": "stream.read"
+        },
+        {
+          "path": "src/agent_comms/bus_route_counts.py",
+          "line": 132,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/bus_route_counts.py",
+          "line": 133,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/bus_route_counts.py",
+          "line": 134,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/bus_route_counts.py",
+          "line": 212,
+          "kind": "Attribute",
+          "source": "RouteUnread.read"
+        },
+        {
+          "path": "src/agent_comms/bus_route_counts.py",
+          "line": 142,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/bus_route_counts.py",
+          "line": 145,
+          "kind": "Attribute",
+          "source": "source.read"
+        },
+        {
+          "path": "src/agent_comms/bus_route_counts.py",
+          "line": 146,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/bus_route_counts.py",
+          "line": 127,
+          "kind": "Attribute",
+          "source": "source.read"
+        },
+        {
+          "path": "src/agent_comms/bus_route_counts.py",
+          "line": 138,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/bus_route_counts.py",
+          "line": 130,
+          "kind": "Attribute",
+          "source": "source.read"
+        },
+        {
+          "path": "src/agent_comms/bus_route_counts.py",
+          "line": 136,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/bus_route_counts.py",
+          "line": 139,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/bus_route_counts.py",
+          "line": 140,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/bus_route_counts.py",
+          "line": 136,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/channel_coding_tools.py",
+          "line": 87,
+          "kind": "Attribute",
+          "source": "self.store.session.read"
+        },
+        {
+          "path": "src/agent_comms/channel_input_batch.py",
+          "line": 42,
+          "kind": "Attribute",
+          "source": "dispositions.read"
+        },
+        {
+          "path": "src/agent_comms/channel_management.py",
+          "line": 54,
+          "kind": "Attribute",
+          "source": "self.catalog.read"
+        },
+        {
+          "path": "src/agent_comms/channel_management.py",
+          "line": 39,
+          "kind": "Attribute",
+          "source": "channels.catalog.read"
+        },
+        {
+          "path": "src/agent_comms/channel_management.py",
+          "line": 86,
+          "kind": "Attribute",
+          "source": "self.catalog.read"
+        },
+        {
+          "path": "src/agent_comms/channel_management.py",
+          "line": 51,
+          "kind": "Attribute",
+          "source": "self.catalog.read"
+        },
+        {
+          "path": "src/agent_comms/channel_management.py",
+          "line": 95,
+          "kind": "Attribute",
+          "source": "self.catalog.read"
+        },
+        {
+          "path": "src/agent_comms/channel_management.py",
+          "line": 177,
+          "kind": "Attribute",
+          "source": "self.catalog.read"
+        },
+        {
+          "path": "src/agent_comms/channel_management.py",
+          "line": 188,
+          "kind": "Attribute",
+          "source": "self.catalog.read"
+        },
+        {
+          "path": "src/agent_comms/channel_management.py",
+          "line": 191,
+          "kind": "Attribute",
+          "source": "self.catalog.read"
+        },
+        {
+          "path": "src/agent_comms/channel_management.py",
+          "line": 193,
+          "kind": "Attribute",
+          "source": "self.catalog.read"
+        },
+        {
+          "path": "src/agent_comms/child_process.py",
+          "line": 702,
+          "kind": "Attribute",
+          "source": "os.read"
+        },
+        {
+          "path": "src/agent_comms/child_process.py",
+          "line": 802,
+          "kind": "Attribute",
+          "source": "os.read"
+        },
+        {
+          "path": "src/agent_comms/child_process.py",
+          "line": 1008,
+          "kind": "Attribute",
+          "source": "self.stderr.read"
+        },
+        {
+          "path": "src/agent_comms/child_process.py",
+          "line": 1057,
+          "kind": "Attribute",
+          "source": "os.read"
+        },
+        {
+          "path": "src/agent_comms/child_process.py",
+          "line": 1383,
+          "kind": "Attribute",
+          "source": "os.read"
+        },
+        {
+          "path": "src/agent_comms/child_process.py",
+          "line": 1477,
+          "kind": "Attribute",
+          "source": "os.read"
+        },
+        {
+          "path": "src/agent_comms/claim_admission.py",
+          "line": 85,
+          "kind": "Attribute",
+          "source": "store.session.read"
+        },
+        {
+          "path": "src/agent_comms/claim_admission.py",
+          "line": 161,
+          "kind": "Attribute",
+          "source": "store.session.read"
+        },
+        {
+          "path": "src/agent_comms/cli_commands.py",
+          "line": 1128,
+          "kind": "Attribute",
+          "source": "comms.channels.catalog.read"
+        },
+        {
+          "path": "src/agent_comms/cli_commands.py",
+          "line": 842,
+          "kind": "Attribute",
+          "source": "ctx.ledger.read"
+        },
+        {
+          "path": "src/agent_comms/cli_commands.py",
+          "line": 130,
+          "kind": "Attribute",
+          "source": "comms.channels.catalog.read"
+        },
+        {
+          "path": "src/agent_comms/cli_commands.py",
+          "line": 900,
+          "kind": "Attribute",
+          "source": "manifest.public_text_recorded"
+        },
+        {
+          "path": "src/agent_comms/cli_commands.py",
+          "line": 121,
+          "kind": "Attribute",
+          "source": "comms.channels.catalog.read"
+        },
+        {
+          "path": "src/agent_comms/cohort_foreground.py",
+          "line": 258,
+          "kind": "Attribute",
+          "source": "os.read"
+        },
+        {
+          "path": "src/agent_comms/cohort_foreground.py",
+          "line": 223,
+          "kind": "Attribute",
+          "source": "store.session.read"
+        },
+        {
+          "path": "src/agent_comms/cohort_foreground.py",
+          "line": 224,
+          "kind": "Attribute",
+          "source": "CohortDeliveryReceipts.read"
+        },
+        {
+          "path": "src/agent_comms/cohort_schema.py",
+          "line": 475,
+          "kind": "Attribute",
+          "source": "SQLiteSchemaObject.read"
+        },
+        {
+          "path": "src/agent_comms/cohort_schema.py",
+          "line": 487,
+          "kind": "Attribute",
+          "source": "SQLiteSchemaObject.read"
+        },
+        {
+          "path": "src/agent_comms/cohort_schema.py",
+          "line": 506,
+          "kind": "Attribute",
+          "source": "SQLiteForeignKeys.read"
+        },
+        {
+          "path": "src/agent_comms/cohort_schema.py",
+          "line": 545,
+          "kind": "Attribute",
+          "source": "SQLiteJournalMode.read"
+        },
+        {
+          "path": "src/agent_comms/compaction_journal.py",
+          "line": 91,
+          "kind": "FunctionDef",
+          "source": "def read(db):"
+        },
+        {
+          "path": "src/agent_comms/compaction_journal.py",
+          "line": 102,
+          "kind": "FunctionDef",
+          "source": "def read(db):"
+        },
+        {
+          "path": "src/agent_comms/compaction_journal.py",
+          "line": 114,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/agent_comms/compaction_journal.py",
+          "line": 179,
+          "kind": "Attribute",
+          "source": "JournalMode.read"
+        },
+        {
+          "path": "src/agent_comms/compaction_journal.py",
+          "line": 40,
+          "kind": "Attribute",
+          "source": "CompactionOutcomeSnapshot.read"
+        },
+        {
+          "path": "src/agent_comms/compaction_journal.py",
+          "line": 62,
+          "kind": "Attribute",
+          "source": "stream.read"
+        },
+        {
+          "path": "src/agent_comms/compaction_journal.py",
+          "line": 73,
+          "kind": "Attribute",
+          "source": "JournalMode.read"
+        },
+        {
+          "path": "src/agent_comms/compaction_journal.py",
+          "line": 97,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/agent_comms/compaction_journal.py",
+          "line": 143,
+          "kind": "Attribute",
+          "source": "JournalSchemaObject.read"
+        },
+        {
+          "path": "src/agent_comms/compaction_journal.py",
+          "line": 181,
+          "kind": "Attribute",
+          "source": "SyncMode.read"
+        },
+        {
+          "path": "src/agent_comms/compaction_outcomes.py",
+          "line": 75,
+          "kind": "FunctionDef",
+          "source": "@classmethod"
+        },
+        {
+          "path": "src/agent_comms/compaction_records.py",
+          "line": 179,
+          "kind": "Attribute",
+          "source": "NativeIntent.read"
+        },
+        {
+          "path": "src/agent_comms/compaction_records.py",
+          "line": 168,
+          "kind": "Attribute",
+          "source": "NativeOutcome.read"
+        },
+        {
+          "path": "src/agent_comms/compaction_states.py",
+          "line": 377,
+          "kind": "FunctionDef",
+          "source": "@classmethod"
+        },
+        {
+          "path": "src/agent_comms/compaction_summaries.py",
+          "line": 54,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/compaction_summaries.py",
+          "line": 55,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/continued_private_session.py",
+          "line": 58,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/continued_private_session.py",
+          "line": 67,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/continued_private_session.py",
+          "line": 70,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/continued_private_session.py",
+          "line": 79,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/continued_private_session.py",
+          "line": 92,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/continued_private_session.py",
+          "line": 65,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/continued_private_session.py",
+          "line": 94,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/coordinated_runtime_schema.py",
+          "line": 34,
+          "kind": "Attribute",
+          "source": "SQLiteSchemaObject.read"
+        },
+        {
+          "path": "src/agent_comms/coordinated_runtime_schema.py",
+          "line": 55,
+          "kind": "Attribute",
+          "source": "SQLiteSchemaObject.read"
+        },
+        {
+          "path": "src/agent_comms/coordinated_runtime_schema.py",
+          "line": 44,
+          "kind": "Attribute",
+          "source": "SQLiteForeignKeys.read"
+        },
+        {
+          "path": "src/agent_comms/coordination_cohort.py",
+          "line": 315,
+          "kind": "Attribute",
+          "source": "store.session.read"
+        },
+        {
+          "path": "src/agent_comms/coordination_cohort.py",
+          "line": 354,
+          "kind": "Attribute",
+          "source": "store.session.read"
+        },
+        {
+          "path": "src/agent_comms/coordination_cohort.py",
+          "line": 379,
+          "kind": "Attribute",
+          "source": "store.session.read"
+        },
+        {
+          "path": "src/agent_comms/coordination_cohort.py",
+          "line": 387,
+          "kind": "Attribute",
+          "source": "WakeAssignment.read"
+        },
+        {
+          "path": "src/agent_comms/coordination_database.py",
+          "line": 177,
+          "kind": "Attribute",
+          "source": "SQLiteUserVersion.read"
+        },
+        {
+          "path": "src/agent_comms/coordination_database.py",
+          "line": 161,
+          "kind": "Attribute",
+          "source": "_TableName.read"
+        },
+        {
+          "path": "src/agent_comms/coordination_response.py",
+          "line": 171,
+          "kind": "Attribute",
+          "source": "SQLiteSchemaObject.read"
+        },
+        {
+          "path": "src/agent_comms/coordination_response.py",
+          "line": 194,
+          "kind": "Attribute",
+          "source": "SQLiteSchemaObject.read"
+        },
+        {
+          "path": "src/agent_comms/coordination_response.py",
+          "line": 329,
+          "kind": "Attribute",
+          "source": "SelectedResponseRoute.read"
+        },
+        {
+          "path": "src/agent_comms/coordination_response.py",
+          "line": 183,
+          "kind": "Attribute",
+          "source": "SQLiteForeignKeys.read"
+        },
+        {
+          "path": "src/agent_comms/coordination_session.py",
+          "line": 62,
+          "kind": "FunctionDef",
+          "source": "@contextmanager"
+        },
+        {
+          "path": "src/agent_comms/exporting.py",
+          "line": 147,
+          "kind": "Attribute",
+          "source": "catalog.read"
+        },
+        {
+          "path": "src/agent_comms/exporting.py",
+          "line": 151,
+          "kind": "Attribute",
+          "source": "catalog.read"
+        },
+        {
+          "path": "src/agent_comms/fresh_private_session.py",
+          "line": 348,
+          "kind": "Attribute",
+          "source": "os.read"
+        },
+        {
+          "path": "src/agent_comms/fresh_private_session.py",
+          "line": 409,
+          "kind": "Attribute",
+          "source": "os.read"
+        },
+        {
+          "path": "src/agent_comms/goal_actions.py",
+          "line": 274,
+          "kind": "Attribute",
+          "source": "ctx.goals.waits.read"
+        },
+        {
+          "path": "src/agent_comms/goal_attempts.py",
+          "line": 324,
+          "kind": "Attribute",
+          "source": "SQLiteSchemaObject.read"
+        },
+        {
+          "path": "src/agent_comms/goal_attempts.py",
+          "line": 588,
+          "kind": "Attribute",
+          "source": "SQLiteJournalMode.read"
+        },
+        {
+          "path": "src/agent_comms/goal_history.py",
+          "line": 110,
+          "kind": "Attribute",
+          "source": "SQLiteSchemaObject.read"
+        },
+        {
+          "path": "src/agent_comms/goal_management.py",
+          "line": 115,
+          "kind": "Attribute",
+          "source": "InputDispositions(self.root / InputDispositions.filename).read"
+        },
+        {
+          "path": "src/agent_comms/goal_management.py",
+          "line": 164,
+          "kind": "Attribute",
+          "source": "waits.read"
+        },
+        {
+          "path": "src/agent_comms/goal_management.py",
+          "line": 183,
+          "kind": "Attribute",
+          "source": "waits.read"
+        },
+        {
+          "path": "src/agent_comms/goal_management.py",
+          "line": 241,
+          "kind": "Attribute",
+          "source": "self.waits.read"
+        },
+        {
+          "path": "src/agent_comms/goal_management.py",
+          "line": 320,
+          "kind": "Attribute",
+          "source": "self.waits.read"
+        },
+        {
+          "path": "src/agent_comms/goal_management.py",
+          "line": 343,
+          "kind": "Attribute",
+          "source": "self.waits.read"
+        },
+        {
+          "path": "src/agent_comms/goal_management.py",
+          "line": 48,
+          "kind": "Attribute",
+          "source": "InputDispositions(self.root / InputDispositions.filename).read"
+        },
+        {
+          "path": "src/agent_comms/goal_management.py",
+          "line": 68,
+          "kind": "Attribute",
+          "source": "InputDispositions(self.root / InputDispositions.filename).read"
+        },
+        {
+          "path": "src/agent_comms/goal_states.py",
+          "line": 38,
+          "kind": "Attribute",
+          "source": "InstructionFile.read"
+        },
+        {
+          "path": "src/agent_comms/historical_native_inputs.py",
+          "line": 156,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/historical_native_inputs.py",
+          "line": 122,
+          "kind": "Attribute",
+          "source": "store.session.read"
+        },
+        {
+          "path": "src/agent_comms/historical_native_inputs.py",
+          "line": 126,
+          "kind": "Attribute",
+          "source": "_HistoricalSource.read"
+        },
+        {
+          "path": "src/agent_comms/historical_native_inputs.py",
+          "line": 167,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/historical_native_inputs.py",
+          "line": 195,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/historical_views.py",
+          "line": 404,
+          "kind": "Attribute",
+          "source": "request.read"
+        },
+        {
+          "path": "src/agent_comms/history_views.py",
+          "line": 131,
+          "kind": "Attribute",
+          "source": "catalog.read"
+        },
+        {
+          "path": "src/agent_comms/history_views.py",
+          "line": 274,
+          "kind": "Attribute",
+          "source": "self.channels.catalog.read"
+        },
+        {
+          "path": "src/agent_comms/history_views.py",
+          "line": 316,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/agent_comms/history_views.py",
+          "line": 331,
+          "kind": "Attribute",
+          "source": "self.channels.catalog.read"
+        },
+        {
+          "path": "src/agent_comms/history_views.py",
+          "line": 528,
+          "kind": "Attribute",
+          "source": "GoalWaits(self.root / GoalWaits.filename).read"
+        },
+        {
+          "path": "src/agent_comms/history_views.py",
+          "line": 314,
+          "kind": "Attribute",
+          "source": "GoalWaits(self.root / GoalWaits.filename).read"
+        },
+        {
+          "path": "src/agent_comms/history_views.py",
+          "line": 568,
+          "kind": "Attribute",
+          "source": "self.ledger.read"
+        },
+        {
+          "path": "src/agent_comms/history_views.py",
+          "line": 104,
+          "kind": "Attribute",
+          "source": "self.channels.catalog.read"
+        },
+        {
+          "path": "src/agent_comms/history_views.py",
+          "line": 205,
+          "kind": "Attribute",
+          "source": "self.channels.catalog.read"
+        },
+        {
+          "path": "src/agent_comms/history_views.py",
+          "line": 324,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/agent_comms/history_views.py",
+          "line": 313,
+          "kind": "Attribute",
+          "source": "self.agents.runtime_info.read"
+        },
+        {
+          "path": "src/agent_comms/history_views.py",
+          "line": 181,
+          "kind": "Attribute",
+          "source": "self.channels.catalog.read"
+        },
+        {
+          "path": "src/agent_comms/history_views.py",
+          "line": 322,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/agent_comms/history_views.py",
+          "line": 317,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/agent_comms/import_records.py",
+          "line": 352,
+          "kind": "FunctionDef",
+          "source": "@classmethod"
+        },
+        {
+          "path": "src/agent_comms/import_records.py",
+          "line": 359,
+          "kind": "FunctionDef",
+          "source": "@classmethod"
+        },
+        {
+          "path": "src/agent_comms/import_records.py",
+          "line": 365,
+          "kind": "FunctionDef",
+          "source": "@classmethod"
+        },
+        {
+          "path": "src/agent_comms/importing.py",
+          "line": 64,
+          "kind": "FunctionDef",
+          "source": "def read(self, source: Path, limits: ImportLimits, session_id: str | None) -> ImportSnapshot:"
+        },
+        {
+          "path": "src/agent_comms/importing.py",
+          "line": 282,
+          "kind": "FunctionDef",
+          "source": "@abstractmethod"
+        },
+        {
+          "path": "src/agent_comms/importing.py",
+          "line": 287,
+          "kind": "FunctionDef",
+          "source": "def read(self, source: Path, limits: ImportLimits, session_id: str | None) -> ImportSnapshot:"
+        },
+        {
+          "path": "src/agent_comms/importing.py",
+          "line": 492,
+          "kind": "FunctionDef",
+          "source": "def read(self, source: Path, limits: ImportLimits, session_id: str | None) -> ImportSnapshot:"
+        },
+        {
+          "path": "src/agent_comms/importing.py",
+          "line": 65,
+          "kind": "Attribute",
+          "source": "ImportAdapter.registry[self]().read"
+        },
+        {
+          "path": "src/agent_comms/importing.py",
+          "line": 291,
+          "kind": "Attribute",
+          "source": "OpenCodeSource.for_path(source).read"
+        },
+        {
+          "path": "src/agent_comms/importing.py",
+          "line": 399,
+          "kind": "Attribute",
+          "source": "stream.read"
+        },
+        {
+          "path": "src/agent_comms/importing.py",
+          "line": 336,
+          "kind": "Attribute",
+          "source": "OpenCodeSession.read"
+        },
+        {
+          "path": "src/agent_comms/importing.py",
+          "line": 346,
+          "kind": "Attribute",
+          "source": "SQLiteSchemaObject.read"
+        },
+        {
+          "path": "src/agent_comms/importing.py",
+          "line": 350,
+          "kind": "Attribute",
+          "source": "OpenCodeLinkedHistory.read"
+        },
+        {
+          "path": "src/agent_comms/importing.py",
+          "line": 374,
+          "kind": "Attribute",
+          "source": "OpenCodePart.read"
+        },
+        {
+          "path": "src/agent_comms/input_drain.py",
+          "line": 301,
+          "kind": "Attribute",
+          "source": "store.session.read"
+        },
+        {
+          "path": "src/agent_comms/input_drain.py",
+          "line": 513,
+          "kind": "Attribute",
+          "source": "self.dispositions.read"
+        },
+        {
+          "path": "src/agent_comms/input_drain.py",
+          "line": 396,
+          "kind": "Attribute",
+          "source": "self.dispositions.read"
+        },
+        {
+          "path": "src/agent_comms/input_drain.py",
+          "line": 416,
+          "kind": "Attribute",
+          "source": "self.dispositions.read"
+        },
+        {
+          "path": "src/agent_comms/input_drain.py",
+          "line": 623,
+          "kind": "Attribute",
+          "source": "self.dispositions.read"
+        },
+        {
+          "path": "src/agent_comms/input_origin.py",
+          "line": 55,
+          "kind": "Attribute",
+          "source": "InputDispositions(comms.root / InputDispositions.filename).read"
+        },
+        {
+          "path": "src/agent_comms/locked_store.py",
+          "line": 80,
+          "kind": "FunctionDef",
+          "source": "def read(self) -> T:"
+        },
+        {
+          "path": "src/agent_comms/maintenance_barrier.py",
+          "line": 171,
+          "kind": "FunctionDef",
+          "source": "def read(self) -> MaintenanceReceipt | None:"
+        },
+        {
+          "path": "src/agent_comms/mentions.py",
+          "line": 26,
+          "kind": "FunctionDef",
+          "source": "@classmethod"
+        },
+        {
+          "path": "src/agent_comms/message_bus.py",
+          "line": 169,
+          "kind": "Attribute",
+          "source": "self._channels.read"
+        },
+        {
+          "path": "src/agent_comms/message_bus.py",
+          "line": 197,
+          "kind": "Attribute",
+          "source": "self.reads.read"
+        },
+        {
+          "path": "src/agent_comms/message_bus.py",
+          "line": 373,
+          "kind": "Attribute",
+          "source": "MessagePageRequest.capture(scope, before=before, after=after, limit=limit, max_bytes=max_bytes).read"
+        },
+        {
+          "path": "src/agent_comms/message_bus.py",
+          "line": 76,
+          "kind": "Attribute",
+          "source": "self._channels.read"
+        },
+        {
+          "path": "src/agent_comms/message_bus.py",
+          "line": 135,
+          "kind": "Attribute",
+          "source": "self._channels.read"
+        },
+        {
+          "path": "src/agent_comms/message_bus.py",
+          "line": 354,
+          "kind": "Attribute",
+          "source": "self._channels.read"
+        },
+        {
+          "path": "src/agent_comms/message_bus.py",
+          "line": 129,
+          "kind": "Attribute",
+          "source": "self._channels.read"
+        },
+        {
+          "path": "src/agent_comms/message_bus.py",
+          "line": 152,
+          "kind": "Attribute",
+          "source": "self._channels.read"
+        },
+        {
+          "path": "src/agent_comms/message_bus.py",
+          "line": 292,
+          "kind": "Attribute",
+          "source": "self._channels.read"
+        },
+        {
+          "path": "src/agent_comms/message_bus.py",
+          "line": 400,
+          "kind": "Attribute",
+          "source": "self._channels.read"
+        },
+        {
+          "path": "src/agent_comms/message_page.py",
+          "line": 231,
+          "kind": "FunctionDef",
+          "source": "def read(self, log) -> MessagePage:"
+        },
+        {
+          "path": "src/agent_comms/native_admission_rules.py",
+          "line": 175,
+          "kind": "Attribute",
+          "source": "check.row.reference.recorded"
+        },
+        {
+          "path": "src/agent_comms/native_compaction_request.py",
+          "line": 122,
+          "kind": "FunctionDef",
+          "source": "@classmethod"
+        },
+        {
+          "path": "src/agent_comms/native_custody.py",
+          "line": 64,
+          "kind": "Attribute",
+          "source": "stream.read"
+        },
+        {
+          "path": "src/agent_comms/native_custody.py",
+          "line": 266,
+          "kind": "Attribute",
+          "source": "NativeIntent.read"
+        },
+        {
+          "path": "src/agent_comms/native_entries.py",
+          "line": 81,
+          "kind": "FunctionDef",
+          "source": "@classmethod"
+        },
+        {
+          "path": "src/agent_comms/native_entries.py",
+          "line": 183,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/native_entries.py",
+          "line": 184,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/native_entries.py",
+          "line": 185,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/native_input_record.py",
+          "line": 250,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/native_input_record.py",
+          "line": 273,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/native_input_record.py",
+          "line": 97,
+          "kind": "Attribute",
+          "source": "WakeAssignment.read"
+        },
+        {
+          "path": "src/agent_comms/native_package.py",
+          "line": 93,
+          "kind": "Attribute",
+          "source": "os.read"
+        },
+        {
+          "path": "src/agent_comms/native_package.py",
+          "line": 98,
+          "kind": "Attribute",
+          "source": "os.read"
+        },
+        {
+          "path": "src/agent_comms/native_pi.py",
+          "line": 276,
+          "kind": "Attribute",
+          "source": "cls.read"
+        },
+        {
+          "path": "src/agent_comms/native_pi.py",
+          "line": 348,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/native_pi.py",
+          "line": 675,
+          "kind": "Attribute",
+          "source": "self.stream.read"
+        },
+        {
+          "path": "src/agent_comms/native_pi.py",
+          "line": 729,
+          "kind": "Attribute",
+          "source": "self.stream.read"
+        },
+        {
+          "path": "src/agent_comms/native_pi.py",
+          "line": 249,
+          "kind": "Attribute",
+          "source": "SQLiteSchemaObject.read"
+        },
+        {
+          "path": "src/agent_comms/native_prompt_binding.py",
+          "line": 198,
+          "kind": "Attribute",
+          "source": "store.session.read"
+        },
+        {
+          "path": "src/agent_comms/native_prompt_binding.py",
+          "line": 199,
+          "kind": "Attribute",
+          "source": "_BindingRoot.read"
+        },
+        {
+          "path": "src/agent_comms/native_runtime_input.py",
+          "line": 286,
+          "kind": "Attribute",
+          "source": "self.reference.recorded"
+        },
+        {
+          "path": "src/agent_comms/native_runtime_input.py",
+          "line": 179,
+          "kind": "Attribute",
+          "source": "row.reference.recorded"
+        },
+        {
+          "path": "src/agent_comms/native_runtime_input.py",
+          "line": 218,
+          "kind": "Attribute",
+          "source": "PublishedReplyRevision.read"
+        },
+        {
+          "path": "src/agent_comms/native_source_cursor.py",
+          "line": 200,
+          "kind": "FunctionDef",
+          "source": "def read(self, *, owner_name: str) -> CurrentNativeCursor | None:"
+        },
+        {
+          "path": "src/agent_comms/native_source_cursor.py",
+          "line": 47,
+          "kind": "Attribute",
+          "source": "cls(bus, store, wire_root_id=wire_root_id).read"
+        },
+        {
+          "path": "src/agent_comms/native_source_cursor.py",
+          "line": 248,
+          "kind": "Attribute",
+          "source": "self.store.session.read"
+        },
+        {
+          "path": "src/agent_comms/native_source_cursor.py",
+          "line": 206,
+          "kind": "Attribute",
+          "source": "self.store.session.read"
+        },
+        {
+          "path": "src/agent_comms/native_source_cursor.py",
+          "line": 235,
+          "kind": "Attribute",
+          "source": "self.store.session.read"
+        },
+        {
+          "path": "src/agent_comms/native_transcript.py",
+          "line": 49,
+          "kind": "FunctionDef",
+          "source": "@classmethod"
+        },
+        {
+          "path": "src/agent_comms/native_transcript.py",
+          "line": 26,
+          "kind": "Attribute",
+          "source": "stream.read"
+        },
+        {
+          "path": "src/agent_comms/native_transcript.py",
+          "line": 51,
+          "kind": "Attribute",
+          "source": "NativeEntry.read"
+        },
+        {
+          "path": "src/agent_comms/native_transcript.py",
+          "line": 107,
+          "kind": "Attribute",
+          "source": "NativeEntry.read"
+        },
+        {
+          "path": "src/agent_comms/native_transcript.py",
+          "line": 126,
+          "kind": "Attribute",
+          "source": "NativeEntry.read"
+        },
+        {
+          "path": "src/agent_comms/native_transcript.py",
+          "line": 192,
+          "kind": "Attribute",
+          "source": "NativeEntry.read"
+        },
+        {
+          "path": "src/agent_comms/native_transcript.py",
+          "line": 209,
+          "kind": "Attribute",
+          "source": "NativeRecord.read"
+        },
+        {
+          "path": "src/agent_comms/native_transcript.py",
+          "line": 38,
+          "kind": "Attribute",
+          "source": "stream.read"
+        },
+        {
+          "path": "src/agent_comms/native_transcript.py",
+          "line": 205,
+          "kind": "Attribute",
+          "source": "NativeRecord.read"
+        },
+        {
+          "path": "src/agent_comms/native_transcript.py",
+          "line": 34,
+          "kind": "Attribute",
+          "source": "stream.read"
+        },
+        {
+          "path": "src/agent_comms/native_turn_context.py",
+          "line": 8,
+          "kind": "ImportFrom",
+          "source": "from .turn_context import ContextManifest, ContextSegment, ContextSourceText, MeasuredNativeSegment, PreviewProvenance, Provenance, SegmentManifest, TurnContext"
+        },
+        {
+          "path": "src/agent_comms/native_turn_context.py",
+          "line": 71,
+          "kind": "Name",
+          "source": "ContextSourceText"
+        },
+        {
+          "path": "src/agent_comms/native_turn_context.py",
+          "line": 18,
+          "kind": "Name",
+          "source": "SegmentManifest"
+        },
+        {
+          "path": "src/agent_comms/native_turn_context.py",
+          "line": 26,
+          "kind": "Name",
+          "source": "ContextManifest"
+        },
+        {
+          "path": "src/agent_comms/native_turn_context.py",
+          "line": 77,
+          "kind": "Name",
+          "source": "ContextSourceText"
+        },
+        {
+          "path": "src/agent_comms/native_turn_context.py",
+          "line": 82,
+          "kind": "Name",
+          "source": "SegmentManifest"
+        },
+        {
+          "path": "src/agent_comms/nk_foreground.py",
+          "line": 137,
+          "kind": "Attribute",
+          "source": "os.read"
+        },
+        {
+          "path": "src/agent_comms/notification_assignment.py",
+          "line": 101,
+          "kind": "Attribute",
+          "source": "SQLiteUserVersion.read"
+        },
+        {
+          "path": "src/agent_comms/optional_awareness_projection.py",
+          "line": 477,
+          "kind": "Attribute",
+          "source": "InstructionFile.read"
+        },
+        {
+          "path": "src/agent_comms/optional_awareness_projection.py",
+          "line": 478,
+          "kind": "Attribute",
+          "source": "InstructionFile.read"
+        },
+        {
+          "path": "src/agent_comms/optional_awareness_projection.py",
+          "line": 540,
+          "kind": "Attribute",
+          "source": "SQLiteUserVersion.read"
+        },
+        {
+          "path": "src/agent_comms/optional_awareness_projection.py",
+          "line": 541,
+          "kind": "Attribute",
+          "source": "_CoordinatorVersions.read"
+        },
+        {
+          "path": "src/agent_comms/optional_awareness_projection.py",
+          "line": 550,
+          "kind": "Attribute",
+          "source": "_CohortVersion.read"
+        },
+        {
+          "path": "src/agent_comms/optional_awareness_projection.py",
+          "line": 555,
+          "kind": "Attribute",
+          "source": "_ParticipantOwner.read"
+        },
+        {
+          "path": "src/agent_comms/optional_awareness_projection.py",
+          "line": 521,
+          "kind": "Attribute",
+          "source": "_ParticipantOwner.read"
+        },
+        {
+          "path": "src/agent_comms/owned_turn.py",
+          "line": 208,
+          "kind": "Attribute",
+          "source": "self.runner.inputs.dispositions.read"
+        },
+        {
+          "path": "src/agent_comms/owned_turn.py",
+          "line": 221,
+          "kind": "Attribute",
+          "source": "InstructionFile.read"
+        },
+        {
+          "path": "src/agent_comms/owned_turn.py",
+          "line": 232,
+          "kind": "Attribute",
+          "source": "InstructionFile.read"
+        },
+        {
+          "path": "src/agent_comms/owned_turn.py",
+          "line": 489,
+          "kind": "Attribute",
+          "source": "self.runner.inputs.dispositions.read"
+        },
+        {
+          "path": "src/agent_comms/owner_compaction_adaptive.py",
+          "line": 81,
+          "kind": "Attribute",
+          "source": "bridge.inputs.read"
+        },
+        {
+          "path": "src/agent_comms/owner_compaction_commit.py",
+          "line": 345,
+          "kind": "Attribute",
+          "source": "NativeIntent.read"
+        },
+        {
+          "path": "src/agent_comms/owner_compaction_commit.py",
+          "line": 371,
+          "kind": "Attribute",
+          "source": "NativeIntent.read"
+        },
+        {
+          "path": "src/agent_comms/owner_lifecycle.py",
+          "line": 408,
+          "kind": "Attribute",
+          "source": "self.releases.read"
+        },
+        {
+          "path": "src/agent_comms/participant_store.py",
+          "line": 56,
+          "kind": "Attribute",
+          "source": "self.session.read"
+        },
+        {
+          "path": "src/agent_comms/participant_store.py",
+          "line": 65,
+          "kind": "Attribute",
+          "source": "ParticipantAliases.read"
+        },
+        {
+          "path": "src/agent_comms/pi_commands.py",
+          "line": 25,
+          "kind": "ImportFrom",
+          "source": "from .turn_context import InputContributionCoordinates, SegmentManifest"
+        },
+        {
+          "path": "src/agent_comms/pi_commands.py",
+          "line": 485,
+          "kind": "Name",
+          "source": "SegmentManifest"
+        },
+        {
+          "path": "src/agent_comms/pi_commands.py",
+          "line": 486,
+          "kind": "Name",
+          "source": "SegmentManifest"
+        },
+        {
+          "path": "src/agent_comms/pi_commands.py",
+          "line": 489,
+          "kind": "Name",
+          "source": "SegmentManifest"
+        },
+        {
+          "path": "src/agent_comms/presentation.py",
+          "line": 109,
+          "kind": "Attribute",
+          "source": "reads.read"
+        },
+        {
+          "path": "src/agent_comms/presentation.py",
+          "line": 503,
+          "kind": "Attribute",
+          "source": "agents.runtime_info.read"
+        },
+        {
+          "path": "src/agent_comms/presentation.py",
+          "line": 504,
+          "kind": "Attribute",
+          "source": "goal_waits.read"
+        },
+        {
+          "path": "src/agent_comms/private_bus_checkpoint.py",
+          "line": 41,
+          "kind": "ImportFrom",
+          "source": "from .turn_context import ContextManifest"
+        },
+        {
+          "path": "src/agent_comms/private_bus_checkpoint.py",
+          "line": 407,
+          "kind": "Name",
+          "source": "ContextManifest"
+        },
+        {
+          "path": "src/agent_comms/private_bus_checkpoint.py",
+          "line": 256,
+          "kind": "Name",
+          "source": "ContextManifest"
+        },
+        {
+          "path": "src/agent_comms/private_bus_checkpoint.py",
+          "line": 280,
+          "kind": "Name",
+          "source": "ContextManifest"
+        },
+        {
+          "path": "src/agent_comms/private_bus_checkpoint.py",
+          "line": 535,
+          "kind": "Attribute",
+          "source": "SQLiteSchemaObject.read"
+        },
+        {
+          "path": "src/agent_comms/private_bus_checkpoint.py",
+          "line": 229,
+          "kind": "Attribute",
+          "source": "DeliverySources.read"
+        },
+        {
+          "path": "src/agent_comms/private_bus_checkpoint.py",
+          "line": 447,
+          "kind": "Attribute",
+          "source": "SQLiteSchemaObject.read"
+        },
+        {
+          "path": "src/agent_comms/private_bus_checkpoint.py",
+          "line": 927,
+          "kind": "Attribute",
+          "source": "DeliverySources.read"
+        },
+        {
+          "path": "src/agent_comms/private_bus_checkpoint.py",
+          "line": 184,
+          "kind": "Attribute",
+          "source": "DeliverySources.read"
+        },
+        {
+          "path": "src/agent_comms/private_bus_checkpoint.py",
+          "line": 190,
+          "kind": "Attribute",
+          "source": "DeliverySources.read"
+        },
+        {
+          "path": "src/agent_comms/private_bus_checkpoint.py",
+          "line": 356,
+          "kind": "Attribute",
+          "source": "stream.read"
+        },
+        {
+          "path": "src/agent_comms/private_bus_checkpoint.py",
+          "line": 290,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/private_bus_checkpoint.py",
+          "line": 494,
+          "kind": "Attribute",
+          "source": "stream.read"
+        },
+        {
+          "path": "src/agent_comms/private_bus_checkpoint.py",
+          "line": 289,
+          "kind": "Name",
+          "source": "recorded"
+        },
+        {
+          "path": "src/agent_comms/private_bus_checkpoint.py",
+          "line": 882,
+          "kind": "Attribute",
+          "source": "stream.read"
+        },
+        {
+          "path": "src/agent_comms/private_bus_checkpoint.py",
+          "line": 843,
+          "kind": "Attribute",
+          "source": "scan.read"
+        },
+        {
+          "path": "src/agent_comms/private_registry_guard.py",
+          "line": 56,
+          "kind": "Attribute",
+          "source": "os.read"
+        },
+        {
+          "path": "src/agent_comms/private_send_stage.py",
+          "line": 134,
+          "kind": "Attribute",
+          "source": "store.session.read"
+        },
+        {
+          "path": "src/agent_comms/private_sidecar.py",
+          "line": 227,
+          "kind": "Attribute",
+          "source": "SQLiteSchemaObject.read"
+        },
+        {
+          "path": "src/agent_comms/private_sidecar.py",
+          "line": 230,
+          "kind": "Attribute",
+          "source": "SQLiteSchemaObject.read"
+        },
+        {
+          "path": "src/agent_comms/private_sidecar.py",
+          "line": 237,
+          "kind": "Attribute",
+          "source": "_Database.read"
+        },
+        {
+          "path": "src/agent_comms/private_sidecar.py",
+          "line": 242,
+          "kind": "Attribute",
+          "source": "SQLiteForeignKeys.read"
+        },
+        {
+          "path": "src/agent_comms/private_sidecar.py",
+          "line": 246,
+          "kind": "Attribute",
+          "source": "_QuickCheck.read"
+        },
+        {
+          "path": "src/agent_comms/private_sidecar.py",
+          "line": 161,
+          "kind": "Attribute",
+          "source": "os.read"
+        },
+        {
+          "path": "src/agent_comms/proven_source_coverage.py",
+          "line": 108,
+          "kind": "FunctionDef",
+          "source": "def read(self, *, limit: int=100, after_seq: int=0, partial: bool=False, source_reads: NativeEvidenceScope | None=None) -> ProvenSourceCoverage:"
+        },
+        {
+          "path": "src/agent_comms/proven_source_coverage.py",
+          "line": 185,
+          "kind": "Attribute",
+          "source": "self.store.session.read"
+        },
+        {
+          "path": "src/agent_comms/proven_source_coverage.py",
+          "line": 236,
+          "kind": "Attribute",
+          "source": "self.read"
+        },
+        {
+          "path": "src/agent_comms/publisher.py",
+          "line": 359,
+          "kind": "Attribute",
+          "source": "self._channels.read"
+        },
+        {
+          "path": "src/agent_comms/publisher.py",
+          "line": 143,
+          "kind": "Attribute",
+          "source": "ThreadMention.find"
+        },
+        {
+          "path": "src/agent_comms/publisher.py",
+          "line": 98,
+          "kind": "Attribute",
+          "source": "self._channels.read"
+        },
+        {
+          "path": "src/agent_comms/queued_input.py",
+          "line": 160,
+          "kind": "Attribute",
+          "source": "inputs.dispositions.read"
+        },
+        {
+          "path": "src/agent_comms/read_ledger.py",
+          "line": 132,
+          "kind": "Attribute",
+          "source": "self.read"
+        },
+        {
+          "path": "src/agent_comms/read_ledger.py",
+          "line": 167,
+          "kind": "Attribute",
+          "source": "self.read"
+        },
+        {
+          "path": "src/agent_comms/recovery_gateway.py",
+          "line": 117,
+          "kind": "Attribute",
+          "source": "stream.read"
+        },
+        {
+          "path": "src/agent_comms/recovery_gateway.py",
+          "line": 137,
+          "kind": "Attribute",
+          "source": "OwnerGenerations.read"
+        },
+        {
+          "path": "src/agent_comms/recovery_gateway.py",
+          "line": 147,
+          "kind": "Attribute",
+          "source": "OwnerGenerations.read"
+        },
+        {
+          "path": "src/agent_comms/recovery_gateway.py",
+          "line": 161,
+          "kind": "Attribute",
+          "source": "ExecutionRecord.read"
+        },
+        {
+          "path": "src/agent_comms/recovery_gateway.py",
+          "line": 131,
+          "kind": "Attribute",
+          "source": "SQLiteJournalMode.read"
+        },
+        {
+          "path": "src/agent_comms/recovery_gateway.py",
+          "line": 348,
+          "kind": "Attribute",
+          "source": "reader.read"
+        },
+        {
+          "path": "src/agent_comms/recovery_gateway_client.py",
+          "line": 123,
+          "kind": "Attribute",
+          "source": "reader.read"
+        },
+        {
+          "path": "src/agent_comms/recovery_projection.py",
+          "line": 173,
+          "kind": "Attribute",
+          "source": "SQLiteUserVersion.read"
+        },
+        {
+          "path": "src/agent_comms/recovery_projection.py",
+          "line": 180,
+          "kind": "Attribute",
+          "source": "OwnerGenerations.read"
+        },
+        {
+          "path": "src/agent_comms/recovery_projection.py",
+          "line": 193,
+          "kind": "Attribute",
+          "source": "ExecutionRecord.read"
+        },
+        {
+          "path": "src/agent_comms/recovery_projection.py",
+          "line": 211,
+          "kind": "Attribute",
+          "source": "cls.read"
+        },
+        {
+          "path": "src/agent_comms/recovery_projection.py",
+          "line": 285,
+          "kind": "Attribute",
+          "source": "ProjectedRecovery.read"
+        },
+        {
+          "path": "src/agent_comms/recovery_projection.py",
+          "line": 293,
+          "kind": "Attribute",
+          "source": "ProjectedConnectivity.read"
+        },
+        {
+          "path": "src/agent_comms/recovery_projection.py",
+          "line": 321,
+          "kind": "Attribute",
+          "source": "stream.read"
+        },
+        {
+          "path": "src/agent_comms/recovery_projection.py",
+          "line": 349,
+          "kind": "Attribute",
+          "source": "SQLiteJournalMode.read"
+        },
+        {
+          "path": "src/agent_comms/recovery_reader.py",
+          "line": 41,
+          "kind": "Attribute",
+          "source": "self.session.read"
+        },
+        {
+          "path": "src/agent_comms/recovery_reader.py",
+          "line": 68,
+          "kind": "Attribute",
+          "source": "PublicationReceipt.read"
+        },
+        {
+          "path": "src/agent_comms/recovery_reader.py",
+          "line": 77,
+          "kind": "Attribute",
+          "source": "RecoveryAudit.read"
+        },
+        {
+          "path": "src/agent_comms/registration.py",
+          "line": 35,
+          "kind": "Attribute",
+          "source": "self.store.read"
+        },
+        {
+          "path": "src/agent_comms/relationships.py",
+          "line": 529,
+          "kind": "Attribute",
+          "source": "stream.read"
+        },
+        {
+          "path": "src/agent_comms/relationships.py",
+          "line": 553,
+          "kind": "Attribute",
+          "source": "self.store.read"
+        },
+        {
+          "path": "src/agent_comms/relationships.py",
+          "line": 399,
+          "kind": "Attribute",
+          "source": "self.store.read"
+        },
+        {
+          "path": "src/agent_comms/relationships.py",
+          "line": 443,
+          "kind": "Attribute",
+          "source": "self.store.read"
+        },
+        {
+          "path": "src/agent_comms/restart_queue.py",
+          "line": 327,
+          "kind": "Attribute",
+          "source": "os.read"
+        },
+        {
+          "path": "src/agent_comms/runtime_requests.py",
+          "line": 23,
+          "kind": "ImportFrom",
+          "source": "from .turn_context import ContextManifest, ContextSourceText, PreviewProvenance, Provenance, RecordedContextTurn"
+        },
+        {
+          "path": "src/agent_comms/runtime_requests.py",
+          "line": 370,
+          "kind": "ClassDef",
+          "source": "@dataclass(frozen=True, kw_only=True)"
+        },
+        {
+          "path": "src/agent_comms/runtime_requests.py",
+          "line": 397,
+          "kind": "ClassDef",
+          "source": "@dataclass(frozen=True, kw_only=True)"
+        },
+        {
+          "path": "src/agent_comms/runtime_requests.py",
+          "line": 385,
+          "kind": "Name",
+          "source": "RecordedContextRuntimeRequest"
+        },
+        {
+          "path": "src/agent_comms/runtime_requests.py",
+          "line": 397,
+          "kind": "Name",
+          "source": "RecordedContextRuntimeRequest"
+        },
+        {
+          "path": "src/agent_comms/runtime_requests.py",
+          "line": 402,
+          "kind": "Attribute",
+          "source": "manifest.selected_segment"
+        },
+        {
+          "path": "src/agent_comms/runtime_requests.py",
+          "line": 378,
+          "kind": "Name",
+          "source": "ContextManifest"
+        },
+        {
+          "path": "src/agent_comms/runtime_requests.py",
+          "line": 410,
+          "kind": "Name",
+          "source": "ContextSourceText"
+        },
+        {
+          "path": "src/agent_comms/selected_actions.py",
+          "line": 51,
+          "kind": "Attribute",
+          "source": "InstructionFile.read"
+        },
+        {
+          "path": "src/agent_comms/selected_actions.py",
+          "line": 82,
+          "kind": "Attribute",
+          "source": "InstructionFile.read"
+        },
+        {
+          "path": "src/agent_comms/selected_participant.py",
+          "line": 71,
+          "kind": "Attribute",
+          "source": "resource.session.read"
+        },
+        {
+          "path": "src/agent_comms/selected_participant.py",
+          "line": 155,
+          "kind": "Attribute",
+          "source": "store.session.read"
+        },
+        {
+          "path": "src/agent_comms/selected_participant.py",
+          "line": 168,
+          "kind": "Attribute",
+          "source": "store.session.read"
+        },
+        {
+          "path": "src/agent_comms/selected_participant.py",
+          "line": 231,
+          "kind": "Attribute",
+          "source": "resource.session.read"
+        },
+        {
+          "path": "src/agent_comms/selected_session.py",
+          "line": 147,
+          "kind": "Attribute",
+          "source": "resource.session.read"
+        },
+        {
+          "path": "src/agent_comms/selected_source_batch.py",
+          "line": 92,
+          "kind": "Attribute",
+          "source": "InstructionFile.read"
+        },
+        {
+          "path": "src/agent_comms/selected_source_batch.py",
+          "line": 93,
+          "kind": "Attribute",
+          "source": "InstructionFile.read"
+        },
+        {
+          "path": "src/agent_comms/selected_source_batch.py",
+          "line": 35,
+          "kind": "Attribute",
+          "source": "self.store.session.read"
+        },
+        {
+          "path": "src/agent_comms/selected_source_batch.py",
+          "line": 65,
+          "kind": "Attribute",
+          "source": "self.sources[0].store.session.read"
+        },
+        {
+          "path": "src/agent_comms/selected_summary_admission.py",
+          "line": 149,
+          "kind": "Attribute",
+          "source": "dispositions.read"
+        },
+        {
+          "path": "src/agent_comms/selected_tool_broker.py",
+          "line": 287,
+          "kind": "Attribute",
+          "source": "scoped.session.read"
+        },
+        {
+          "path": "src/agent_comms/selected_tool_broker.py",
+          "line": 304,
+          "kind": "Attribute",
+          "source": "row.reference.recorded"
+        },
+        {
+          "path": "src/agent_comms/selected_turn.py",
+          "line": 102,
+          "kind": "Attribute",
+          "source": "InstructionFile.read"
+        },
+        {
+          "path": "src/agent_comms/selected_turn.py",
+          "line": 103,
+          "kind": "Attribute",
+          "source": "InstructionFile.read"
+        },
+        {
+          "path": "src/agent_comms/selected_turn.py",
+          "line": 125,
+          "kind": "Attribute",
+          "source": "InstructionFile.read"
+        },
+        {
+          "path": "src/agent_comms/selected_write_plan.py",
+          "line": 166,
+          "kind": "Attribute",
+          "source": "stream.read"
+        },
+        {
+          "path": "src/agent_comms/store_files.py",
+          "line": 209,
+          "kind": "Attribute",
+          "source": "stream.read"
+        },
+        {
+          "path": "src/agent_comms/store_files.py",
+          "line": 206,
+          "kind": "Attribute",
+          "source": "stream.read"
+        },
+        {
+          "path": "src/agent_comms/thread_management.py",
+          "line": 122,
+          "kind": "Attribute",
+          "source": "format.read"
+        },
+        {
+          "path": "src/agent_comms/todos.py",
+          "line": 399,
+          "kind": "Attribute",
+          "source": "_TodoTable.read"
+        },
+        {
+          "path": "src/agent_comms/todos.py",
+          "line": 445,
+          "kind": "Attribute",
+          "source": "Todo.read"
+        },
+        {
+          "path": "src/agent_comms/tools.py",
+          "line": 347,
+          "kind": "Attribute",
+          "source": "comms.channels.catalog.read"
+        },
+        {
+          "path": "src/agent_comms/tools.py",
+          "line": 345,
+          "kind": "Attribute",
+          "source": "comms.channels.catalog.read"
+        },
+        {
+          "path": "src/agent_comms/tracked_turn.py",
+          "line": 320,
+          "kind": "Attribute",
+          "source": "self.watchdog.read"
+        },
+        {
+          "path": "src/agent_comms/transcript_routes.py",
+          "line": 53,
+          "kind": "Attribute",
+          "source": "SQLiteSchemaObject.read"
+        },
+        {
+          "path": "src/agent_comms/transcripts.py",
+          "line": 207,
+          "kind": "FunctionDef",
+          "source": "def read(self) -> TranscriptPage:"
+        },
+        {
+          "path": "src/agent_comms/transcripts.py",
+          "line": 265,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/agent_comms/transcripts.py",
+          "line": 300,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/agent_comms/transcripts.py",
+          "line": 262,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/agent_comms/transcripts.py",
+          "line": 329,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/agent_comms/transcripts.py",
+          "line": 514,
+          "kind": "Attribute",
+          "source": "InputDispositions(self.root / InputDispositions.filename).read"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 145,
+          "kind": "ClassDef",
+          "source": "@dataclass(frozen=True)"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 170,
+          "kind": "ClassDef",
+          "source": "@dataclass(frozen=True)"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 638,
+          "kind": "ClassDef",
+          "source": "@dataclass(frozen=True)"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 160,
+          "kind": "FunctionDef",
+          "source": "@classmethod"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 193,
+          "kind": "FunctionDef",
+          "source": "def selected_contributor(self, positions: tuple[int, ...]) -> SegmentManifest:"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 267,
+          "kind": "FunctionDef",
+          "source": "@property"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 648,
+          "kind": "FunctionDef",
+          "source": "@property"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 656,
+          "kind": "FunctionDef",
+          "source": "def selected_segment(self, position: int, contributors: tuple[int, ...]=()) -> SegmentManifest:"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 193,
+          "kind": "Name",
+          "source": "SegmentManifest"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 201,
+          "kind": "Name",
+          "source": "SegmentManifest"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 302,
+          "kind": "Name",
+          "source": "SegmentManifest"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 656,
+          "kind": "Name",
+          "source": "SegmentManifest"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 668,
+          "kind": "Name",
+          "source": "ContextManifest"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 676,
+          "kind": "Name",
+          "source": "ContextSourceText"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 781,
+          "kind": "Name",
+          "source": "ContextManifest"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 233,
+          "kind": "Attribute",
+          "source": "self.public_text_recorded"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 176,
+          "kind": "Name",
+          "source": "SegmentManifest"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 237,
+          "kind": "Name",
+          "source": "SegmentManifest"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 240,
+          "kind": "Name",
+          "source": "SegmentManifest"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 288,
+          "kind": "Name",
+          "source": "SegmentManifest"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 292,
+          "kind": "Name",
+          "source": "SegmentManifest"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 292,
+          "kind": "Name",
+          "source": "SegmentManifest"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 304,
+          "kind": "Name",
+          "source": "SegmentManifest"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 355,
+          "kind": "Name",
+          "source": "SegmentManifest"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 368,
+          "kind": "Name",
+          "source": "SegmentManifest"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 371,
+          "kind": "Name",
+          "source": "SegmentManifest"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 383,
+          "kind": "Name",
+          "source": "SegmentManifest"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 414,
+          "kind": "Name",
+          "source": "SegmentManifest"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 414,
+          "kind": "Name",
+          "source": "SegmentManifest"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 477,
+          "kind": "Attribute",
+          "source": "InstructionFile.read"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 515,
+          "kind": "Attribute",
+          "source": "InstructionFile.read"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 560,
+          "kind": "Attribute",
+          "source": "InstructionFile.read"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 641,
+          "kind": "Name",
+          "source": "SegmentManifest"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 659,
+          "kind": "Attribute",
+          "source": "self.segments[position].selected_contributor"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 679,
+          "kind": "Name",
+          "source": "ContextSourceText"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 700,
+          "kind": "Name",
+          "source": "ContextManifest"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 782,
+          "kind": "Name",
+          "source": "ContextManifest"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 271,
+          "kind": "Attribute",
+          "source": "part.public_text_recorded"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 649,
+          "kind": "Attribute",
+          "source": "segment.public_text_recorded"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 681,
+          "kind": "Name",
+          "source": "ContextManifest"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 241,
+          "kind": "Attribute",
+          "source": "part.public_text_recorded"
+        },
+        {
+          "path": "src/agent_comms/turn_context.py",
+          "line": 677,
+          "kind": "Attribute",
+          "source": "self.selected_segment"
+        },
+        {
+          "path": "src/agent_comms/turn_input_binding.py",
+          "line": 66,
+          "kind": "Attribute",
+          "source": "self.dispositions.read"
+        },
+        {
+          "path": "src/agent_comms/turn_input_binding.py",
+          "line": 117,
+          "kind": "Attribute",
+          "source": "self.dispositions.read"
+        },
+        {
+          "path": "src/agent_comms/turn_input_binding.py",
+          "line": 125,
+          "kind": "Attribute",
+          "source": "self.dispositions.read"
+        },
+        {
+          "path": "src/agent_comms/turn_input_source.py",
+          "line": 208,
+          "kind": "Attribute",
+          "source": "dispositions.read"
+        },
+        {
+          "path": "src/agent_comms/turn_progress.py",
+          "line": 52,
+          "kind": "Attribute",
+          "source": "events.AgentEventConsumer"
+        },
+        {
+          "path": "src/agent_comms/turn_progress.py",
+          "line": 184,
+          "kind": "Attribute",
+          "source": "self.inputs.dispositions.read"
+        },
+        {
+          "path": "src/agent_comms/turn_runner.py",
+          "line": 337,
+          "kind": "Attribute",
+          "source": "self.comms.bus.reads.read"
+        },
+        {
+          "path": "src/agent_comms/turn_runner.py",
+          "line": 201,
+          "kind": "Attribute",
+          "source": "events.AgentEventConsumer"
+        },
+        {
+          "path": "src/agent_comms/turn_watchdog.py",
+          "line": 125,
+          "kind": "AsyncFunctionDef",
+          "source": "async def read(self, session: TurnSession) -> bytes:"
+        },
+        {
+          "path": "src/agent_comms/typed_table.py",
+          "line": 355,
+          "kind": "FunctionDef",
+          "source": "@classmethod"
+        },
+        {
+          "path": "src/agent_comms/typed_table.py",
+          "line": 481,
+          "kind": "Attribute",
+          "source": "cls.read"
+        },
+        {
+          "path": "src/agent_comms/view_unread.py",
+          "line": 231,
+          "kind": "Attribute",
+          "source": "self.reads.read"
+        },
+        {
+          "path": "src/agent_comms/view_unread.py",
+          "line": 255,
+          "kind": "Attribute",
+          "source": "TranscriptReply.read"
+        },
+        {
+          "path": "src/agent_comms/view_unread.py",
+          "line": 130,
+          "kind": "Attribute",
+          "source": "SQLiteUserVersion.read"
+        },
+        {
+          "path": "src/agent_comms/view_unread.py",
+          "line": 132,
+          "kind": "Attribute",
+          "source": "_IndexTable.read"
+        },
+        {
+          "path": "src/agent_comms/view_unread.py",
+          "line": 196,
+          "kind": "Attribute",
+          "source": "NativeEntry.read"
+        },
+        {
+          "path": "src/agent_comms/wake_candidate_index.py",
+          "line": 185,
+          "kind": "Attribute",
+          "source": "SQLiteSchemaObject.read"
+        },
+        {
+          "path": "src/agent_comms/wake_candidate_index.py",
+          "line": 168,
+          "kind": "Attribute",
+          "source": "SQLiteJournalMode.read"
+        },
+        {
+          "path": "src/agent_comms/wake_candidate_index.py",
+          "line": 510,
+          "kind": "Attribute",
+          "source": "Candidate.read"
+        },
+        {
+          "path": "src/agent_comms/wake_candidate_index.py",
+          "line": 414,
+          "kind": "Attribute",
+          "source": "stream.read"
+        },
+        {
+          "path": "src/agent_comms/wake_candidate_index.py",
+          "line": 505,
+          "kind": "Attribute",
+          "source": "stream.read"
+        },
+        {
+          "path": "src/agent_comms/wake_injection.py",
+          "line": 39,
+          "kind": "Attribute",
+          "source": "InstructionFile.read"
+        },
+        {
+          "path": "src/agent_comms/wake_policy.py",
+          "line": 70,
+          "kind": "Attribute",
+          "source": "InstructionFile.read"
+        },
+        {
+          "path": "src/agent_comms/wire_log.py",
+          "line": 96,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/agent_comms/wire_log.py",
+          "line": 192,
+          "kind": "Attribute",
+          "source": "InputDispositions(self.path.parent / InputDispositions.filename).read"
+        },
+        {
+          "path": "src/agent_comms/wire_log.py",
+          "line": 297,
+          "kind": "Attribute",
+          "source": "scan.read"
+        },
+        {
+          "path": "src/agent_comms/wire_log.py",
+          "line": 461,
+          "kind": "Attribute",
+          "source": "scan.read"
+        },
+        {
+          "path": "src/agent_comms/wire_log.py",
+          "line": 90,
+          "kind": "Name",
+          "source": "read"
+        },
+        {
+          "path": "src/agent_comms/wire_metadata.py",
+          "line": 26,
+          "kind": "ImportFrom",
+          "source": "from .turn_context import ContextManifest"
+        },
+        {
+          "path": "src/agent_comms/wire_metadata.py",
+          "line": 63,
+          "kind": "Name",
+          "source": "ContextManifest"
+        },
+        {
+          "path": "src/agent_comms/wire_record.py",
+          "line": 180,
+          "kind": "ImportFrom",
+          "source": "from .turn_context import ContextManifest"
+        },
+        {
+          "path": "src/agent_comms/wire_record.py",
+          "line": 158,
+          "kind": "FunctionDef",
+          "source": "def read(self, line: bytes) -> WireRecord:"
+        },
+        {
+          "path": "src/agent_comms/wire_watch.py",
+          "line": 92,
+          "kind": "Attribute",
+          "source": "os.read"
+        },
+        {
+          "path": "src/agent_comms/worker.py",
+          "line": 61,
+          "kind": "Attribute",
+          "source": "agent.inputs.dispositions.read"
+        }
+      ]
+    }
+  ],
+  "limits": "Lexical refs include shared read/find methods; method receiver resolution, MRO and callback wiring require semantic reading, not zero-by-omission."
+}

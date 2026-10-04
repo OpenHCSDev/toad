@@ -1,0 +1,583 @@
+{
+  "state": "WHOLE_PURPOSE_RELEASED_CANDIDATE_HELD_PARENT_DISPOSITION",
+  "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Einstein417-reader-only-package-execution-grant.json",
+  "candidate_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "owned_cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 80395,
+        "start_ticks": 58611206,
+        "returncode": 0
+      },
+      {
+        "pid": 80532,
+        "start_ticks": 58611409,
+        "returncode": 0
+      },
+      {
+        "pid": 80534,
+        "start_ticks": 58611461,
+        "returncode": 0
+      },
+      {
+        "pid": 80535,
+        "start_ticks": 58611473,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 80536,
+        "start_ticks": 58611478,
+        "returncode": 0
+      },
+      {
+        "pid": 80537,
+        "start_ticks": 58611490,
+        "returncode": 0
+      },
+      {
+        "pid": 80538,
+        "start_ticks": 58611502,
+        "returncode": 0
+      },
+      {
+        "pid": 81235,
+        "start_ticks": 58612514,
+        "returncode": 0
+      },
+      {
+        "pid": 81242,
+        "start_ticks": 58612547,
+        "returncode": 0
+      },
+      {
+        "pid": 81247,
+        "start_ticks": 58612589,
+        "returncode": 0
+      },
+      {
+        "pid": 81251,
+        "start_ticks": 58612627,
+        "returncode": 0
+      },
+      {
+        "pid": 81296,
+        "start_ticks": 58612780,
+        "returncode": 0
+      },
+      {
+        "pid": 81297,
+        "start_ticks": 58612793,
+        "returncode": 0
+      },
+      {
+        "pid": 81298,
+        "start_ticks": 58612903,
+        "returncode": 0
+      },
+      {
+        "pid": 81314,
+        "start_ticks": 58613072,
+        "returncode": 0
+      },
+      {
+        "pid": 81346,
+        "start_ticks": 58613231,
+        "returncode": 0
+      },
+      {
+        "pid": 81511,
+        "start_ticks": 58613333,
+        "returncode": 0
+      },
+      {
+        "pid": 81628,
+        "start_ticks": 58614046,
+        "returncode": 0
+      },
+      {
+        "pid": 81642,
+        "start_ticks": 58614199,
+        "returncode": 0
+      },
+      {
+        "pid": 81816,
+        "start_ticks": 58614304,
+        "returncode": 0
+      },
+      {
+        "pid": 81817,
+        "start_ticks": 58614322,
+        "returncode": 0
+      },
+      {
+        "pid": 81840,
+        "start_ticks": 58614434,
+        "returncode": 0
+      },
+      {
+        "pid": 81893,
+        "start_ticks": 58614618,
+        "returncode": 0
+      },
+      {
+        "pid": 81915,
+        "start_ticks": 58614720,
+        "returncode": 0
+      },
+      {
+        "pid": 81916,
+        "start_ticks": 58614742,
+        "returncode": 0
+      },
+      {
+        "pid": 81939,
+        "start_ticks": 58614931,
+        "returncode": 0
+      },
+      {
+        "pid": 81989,
+        "start_ticks": 58615039,
+        "returncode": 0
+      },
+      {
+        "pid": 81990,
+        "start_ticks": 58615075,
+        "returncode": 0
+      },
+      {
+        "pid": 82080,
+        "start_ticks": 58615248,
+        "returncode": 0
+      },
+      {
+        "pid": 82150,
+        "start_ticks": 58615336,
+        "returncode": 0
+      },
+      {
+        "pid": 82151,
+        "start_ticks": 58615346,
+        "returncode": 0
+      },
+      {
+        "pid": 82152,
+        "start_ticks": 58615461,
+        "returncode": 0
+      },
+      {
+        "pid": 82181,
+        "start_ticks": 58615625,
+        "returncode": 0
+      },
+      {
+        "pid": 82188,
+        "start_ticks": 58615729,
+        "returncode": 0
+      },
+      {
+        "pid": 82196,
+        "start_ticks": 58615753,
+        "returncode": 0
+      },
+      {
+        "pid": 82219,
+        "start_ticks": 58615926,
+        "returncode": 0
+      },
+      {
+        "pid": 82222,
+        "start_ticks": 58616014,
+        "returncode": 0
+      },
+      {
+        "pid": 82223,
+        "start_ticks": 58616047,
+        "returncode": 0
+      },
+      {
+        "pid": 82238,
+        "start_ticks": 58616218,
+        "returncode": 0
+      },
+      {
+        "pid": 82376,
+        "start_ticks": 58616301,
+        "returncode": 0
+      },
+      {
+        "pid": 82377,
+        "start_ticks": 58616315,
+        "returncode": 0
+      },
+      {
+        "pid": 82451,
+        "start_ticks": 58616527,
+        "returncode": 0
+      },
+      {
+        "pid": 82475,
+        "start_ticks": 58616697,
+        "returncode": 0
+      },
+      {
+        "pid": 82492,
+        "start_ticks": 58616785,
+        "returncode": 0
+      },
+      {
+        "pid": 82505,
+        "start_ticks": 58616882,
+        "returncode": 0
+      },
+      {
+        "pid": 82506,
+        "start_ticks": 58616905,
+        "returncode": 0
+      },
+      {
+        "pid": 82507,
+        "start_ticks": 58616919,
+        "returncode": 0
+      },
+      {
+        "pid": 82508,
+        "start_ticks": 58617132,
+        "returncode": 0
+      },
+      {
+        "pid": 82659,
+        "start_ticks": 58617296,
+        "returncode": 0
+      },
+      {
+        "pid": 82673,
+        "start_ticks": 58617404,
+        "returncode": 0
+      },
+      {
+        "pid": 82674,
+        "start_ticks": 58617428,
+        "returncode": 0
+      },
+      {
+        "pid": 82688,
+        "start_ticks": 58617587,
+        "returncode": 0
+      },
+      {
+        "pid": 82692,
+        "start_ticks": 58617676,
+        "returncode": 0
+      },
+      {
+        "pid": 82693,
+        "start_ticks": 58617709,
+        "returncode": 0
+      },
+      {
+        "pid": 82707,
+        "start_ticks": 58617879,
+        "returncode": 0
+      },
+      {
+        "pid": 82742,
+        "start_ticks": 58617966,
+        "returncode": 0
+      },
+      {
+        "pid": 82745,
+        "start_ticks": 58617979,
+        "returncode": 0
+      },
+      {
+        "pid": 82748,
+        "start_ticks": 58618092,
+        "returncode": 0
+      },
+      {
+        "pid": 82898,
+        "start_ticks": 58618264,
+        "returncode": 0
+      },
+      {
+        "pid": 82900,
+        "start_ticks": 58618354,
+        "returncode": 0
+      },
+      {
+        "pid": 82913,
+        "start_ticks": 58618457,
+        "returncode": 0
+      },
+      {
+        "pid": 82914,
+        "start_ticks": 58618569,
+        "returncode": 0
+      },
+      {
+        "pid": 82984,
+        "start_ticks": 58618733,
+        "returncode": 0
+      },
+      {
+        "pid": 82985,
+        "start_ticks": 58618745,
+        "returncode": 0
+      },
+      {
+        "pid": 82986,
+        "start_ticks": 58618858,
+        "returncode": 0
+      },
+      {
+        "pid": 83020,
+        "start_ticks": 58619023,
+        "returncode": 0
+      },
+      {
+        "pid": 83038,
+        "start_ticks": 58619128,
+        "returncode": 0
+      },
+      {
+        "pid": 83043,
+        "start_ticks": 58619232,
+        "returncode": 0
+      },
+      {
+        "pid": 83204,
+        "start_ticks": 58619370,
+        "returncode": 0
+      },
+      {
+        "pid": 83226,
+        "start_ticks": 58619529,
+        "returncode": 0
+      },
+      {
+        "pid": 83227,
+        "start_ticks": 58619544,
+        "returncode": 0
+      },
+      {
+        "pid": 83241,
+        "start_ticks": 58619702,
+        "returncode": 0
+      },
+      {
+        "pid": 83246,
+        "start_ticks": 58619806,
+        "returncode": 0
+      },
+      {
+        "pid": 83247,
+        "start_ticks": 58619919,
+        "returncode": 0
+      },
+      {
+        "pid": 83281,
+        "start_ticks": 58620088,
+        "returncode": 0
+      },
+      {
+        "pid": 83286,
+        "start_ticks": 58620198,
+        "returncode": 0
+      },
+      {
+        "pid": 83288,
+        "start_ticks": 58620216,
+        "returncode": 0
+      },
+      {
+        "pid": 83289,
+        "start_ticks": 58620231,
+        "returncode": 0
+      },
+      {
+        "pid": 83463,
+        "start_ticks": 58620341,
+        "returncode": 0
+      },
+      {
+        "pid": 83488,
+        "start_ticks": 58620508,
+        "returncode": 0
+      },
+      {
+        "pid": 83572,
+        "start_ticks": 58620613,
+        "returncode": 0
+      },
+      {
+        "pid": 83573,
+        "start_ticks": 58620638,
+        "returncode": 0
+      },
+      {
+        "pid": 83588,
+        "start_ticks": 58620797,
+        "returncode": 0
+      },
+      {
+        "pid": 83591,
+        "start_ticks": 58620889,
+        "returncode": 0
+      },
+      {
+        "pid": 83592,
+        "start_ticks": 58620922,
+        "returncode": 0
+      },
+      {
+        "pid": 83633,
+        "start_ticks": 58621096,
+        "returncode": 0
+      },
+      {
+        "pid": 83635,
+        "start_ticks": 58621197,
+        "returncode": 0
+      },
+      {
+        "pid": 83636,
+        "start_ticks": 58621210,
+        "returncode": 0
+      },
+      {
+        "pid": 83773,
+        "start_ticks": 58621322,
+        "returncode": 0
+      },
+      {
+        "pid": 83837,
+        "start_ticks": 58621500,
+        "returncode": 0
+      },
+      {
+        "pid": 83856,
+        "start_ticks": 58621824,
+        "returncode": 0
+      },
+      {
+        "pid": 83864,
+        "start_ticks": 58621838,
+        "returncode": 0
+      },
+      {
+        "pid": 83891,
+        "start_ticks": 58621948,
+        "returncode": 0
+      },
+      {
+        "pid": 83946,
+        "start_ticks": 58622134,
+        "returncode": 0
+      },
+      {
+        "pid": 83949,
+        "start_ticks": 58622229,
+        "returncode": 0
+      },
+      {
+        "pid": 84128,
+        "start_ticks": 58622441,
+        "returncode": 0
+      },
+      {
+        "pid": 84154,
+        "start_ticks": 58622622,
+        "returncode": 0
+      },
+      {
+        "pid": 84190,
+        "start_ticks": 58622739,
+        "returncode": 0
+      },
+      {
+        "pid": 84191,
+        "start_ticks": 58622761,
+        "returncode": 0
+      },
+      {
+        "pid": 84219,
+        "start_ticks": 58622936,
+        "returncode": 0
+      },
+      {
+        "pid": 84221,
+        "start_ticks": 58623029,
+        "returncode": 0
+      },
+      {
+        "pid": 84222,
+        "start_ticks": 58623061,
+        "returncode": 0
+      },
+      {
+        "pid": 84358,
+        "start_ticks": 58623251,
+        "returncode": 0
+      },
+      {
+        "pid": 84383,
+        "start_ticks": 58623343,
+        "returncode": 0
+      },
+      {
+        "pid": 84384,
+        "start_ticks": 58623357,
+        "returncode": 0
+      },
+      {
+        "pid": 84431,
+        "start_ticks": 58623570,
+        "returncode": 0
+      },
+      {
+        "pid": 84456,
+        "start_ticks": 58623745,
+        "returncode": 0
+      },
+      {
+        "pid": 84487,
+        "start_ticks": 58624045,
+        "returncode": 0
+      },
+      {
+        "pid": 84494,
+        "start_ticks": 58624074,
+        "returncode": 0
+      },
+      {
+        "pid": 84499,
+        "start_ticks": 58624123,
+        "returncode": 0
+      },
+      {
+        "pid": 84645,
+        "start_ticks": 58624321,
+        "returncode": 0
+      }
+    ]
+  },
+  "native_child_retired": true,
+  "active_borrowers": 0,
+  "borrower_classification": {
+    "original_raw_receipt": "final-borrowers.json",
+    "historical_environment_underscore_refs": 23,
+    "verification": "Privileged re-read of all23 environment refs found only the historical shell _ key. No cwd/exe/argv/maps/FD reference and zeropermissiongaps. Same classification as original Bohr purpose grant."
+  },
+  "immutable_original165_equal": true,
+  "original_activation_untouched": true,
+  "original_floor_restored": false,
+  "disposition": "Positive purpose retains candidate only for Parent; no future package/read/build/execution claim, no newloan or publication inferred.",
+  "recorded_scope": "ExactSystem/0 search/fullread/copy/export equal and distinct Coordination/2/contributor/119/contributor/0, canonical606 measuredfooter.",
+  "current_preview_negative": "Unknown ContextSegment name: 'unavailable_awareness'",
+  "public_source_and_originals_unchanged": true,
+  "normal_main_union": "f7be3e824e05676e26142f215deefd139e1894ce",
+  "production_vs_installed04b": ""
+}

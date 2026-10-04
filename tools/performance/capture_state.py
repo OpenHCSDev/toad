@@ -20,6 +20,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
     from toad.widgets.prompt import PromptTextArea
     from toad.navigation_target import ChannelTarget
     from toad.widgets.comms_sidebar import CommsRow, ThreadRow
+    from toad.widgets.comms_menu import ContextMenuItem
     from toad.widgets.session_tabs import SessionLabel
     from toad.widgets.tool_call import ToolCall
     from toad.transcript_source_preparation import TranscriptSourcePreparation
@@ -213,6 +214,8 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
             if not region:
                 continue
             if target := navigation_target(node, region, node.id or type(node).__name__):
+                if isinstance(node, ContextMenuItem):
+                    target["action"] = node.action
                 metadata["navigation_targets"]["widgets"].append(target)
             if isinstance(node, ThreadRow):
                 if target := navigation_target(node, region, node.target_name):
@@ -278,6 +281,8 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                             "thinking": agent.configuration.thinking.current,
                             "mode": mode.id if mode is not None else None,
                             "rendered_label": node.agent_info.plain,
+                            "context_measurement": asdict(agent.context_measurement)
+                                if agent.context_measurement.available else {"unavailable": agent.context_measurement.reason},
                         }
                     kind = type(node).__name__
                     widget_classes[kind] += 1
@@ -297,10 +302,15 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                         tree = node.query_one("#context-tree", Tree)
                         detail = node.query_one("#context-detail", TextArea)
                         context_nodes = []
-                        for model in node._context_nodes.values():
+                        # The Tree owns lazy materialization. A newly remounted
+                        # node's private cached _line can still be -1 while its
+                        # same label is visible; ask the original line owner.
+                        materialized = {tree.get_node_at_line(line): line
+                                        for line in range(tree.last_line + 1)}
+                        for model in tree.context_nodes.values():
                             target = None
-                            label_region = (tree._get_label_region(model._line)
-                                            if tree._get_node(model._line) is model else None)
+                            line = materialized.get(model, -1)
+                            label_region = tree._get_label_region(line) if line >= 0 else None
                             geometry = visible_regions.get(tree)
                             if label_region is not None and geometry is not None:
                                 region = label_region.translate(
@@ -310,14 +320,17 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                                     target = navigation_target(tree, region, model.data.key)
                             context_nodes.append({"key": model.data.key,
                                                   "label": model.label.plain,
+                                                  "model_type": type(model.data).__name__,
+                                                  "line": line,
                                                   "expanded": model.is_expanded,
                                                   "target": target})
                         view["context"] = {
-                            "owner": node.owner, "root": node.wire_root,
-                            "native_present": node._native is not None,
+                            "cursor_line": tree.cursor_line,
+                            "owner": node.state.name, "root": node.state.root,
+                            "native_present": node.state.contains_native(bool),
                             "status": str(node.query_one(".context-status", Static).content),
                             "detail": detail.text,
-                            "selected": node.intent.selected,
+                            "selected": node.intent.selected.key if node.intent.selected is not None else None,
                             "query": node.intent.query,
                             "clipboard": app.clipboard,
                             "maximized": node.screen.maximized is detail,

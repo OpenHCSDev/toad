@@ -1,0 +1,27 @@
+{
+  "state": "CODE_LOAN_RETURNED_417_NOT_READY",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "restored_to_ad_source": "716832a5883b56adb1f0bd1c5ca543bfe10f50b6",
+  "restored_source_assets": 319,
+  "core": "03954605c0f1c75e60e1f09618e619edcedcd8cc",
+  "textual": "7ccfcf6af55ac6e743220aa0d2286b9763ccee27",
+  "native": "d5efa0d56e7ad3962bf3efc009adf1569167a260f1ceb46824c9271a0e7542a2",
+  "package_count": 69,
+  "package_names_versions_unchanged": true,
+  "direct_url": {
+    "url": "file:///home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "archive_info": {}
+  },
+  "activation_sha256": "b3b94cf64ddc60737308d5c43385bc5b9502862e94365aca2530cdfe99d2256d",
+  "activation_equals_baseline": true,
+  "physical07": "/home/ts/.cache/agent-scratch/recorded-context417-physical07/terminal-receipt.json",
+  "gate_completed": false,
+  "owned_children_retired": true,
+  "cleanup_remaining": [],
+  "cleanup_errors": [],
+  "original_input_source_unchanged": true,
+  "future_package_claim": false,
+  "source_branch": "998ffa954484b5d809b1dd51b9ee3e4f421c6685",
+  "handoff_monotonic": 553285.501526459,
+  "next": "Sch416 normal41549 crash fix assembly;417 reader draft remains separate, no repeat of original inputs"
+}
