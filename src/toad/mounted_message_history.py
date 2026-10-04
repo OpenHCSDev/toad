@@ -206,10 +206,10 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
     ) -> None:
         """Acquire reader/native resources only for an actual row mutation."""
         from toad.comms_root import root_is_current
-        snapshot = self.source_snapshot()
-        if (not snapshot.current(self) or self.reader is None
+        if (not self.source_publication_available or self.reader is None
                 or not root_is_current(self.reader.comms.root)):
             return
+        snapshot = self.source_snapshot()
         mounted = {message.view_key for message, _ in retained}
         messages = (tuple(message for message, _ in self.rows)
                     if page is None else page.messages)
