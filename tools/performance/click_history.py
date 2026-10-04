@@ -133,6 +133,28 @@ class RightSidebarTarget(NativeFocusTarget):
 
 class ContextTreeTarget(NativeFocusTarget):
     @classmethod
+    def reveal(cls, snapshot, args):
+        focused = snapshot['metadata']['screen']['focused']
+        if (focused['class'], focused['id']) != ('Tree', 'context-tree'):
+            raise ValueError('Reveal requires the actually focused native context Tree')
+        context = cls.selected_view(snapshot)['context']
+        node, = (node for node in context['nodes'] if node['key'] == args.name)
+        if node['line'] < 0 or context['cursor_line'] < 0:
+            raise ValueError('Original member and cursor must be materialized in the native Tree')
+        distance = node['line'] - context['cursor_line']
+        if distance:
+            subprocess.run(['xdotool', 'key', '--repeat', str(abs(distance)),
+                            '--repeat-delay', '5', 'Down' if distance > 0 else 'Up'], check=True)
+
+    @classmethod
+    def require_selected(cls, snapshot, args):
+        context = cls.selected_view(snapshot)['context']
+        node, = (node for node in context['nodes'] if node['key'] == args.name)
+        if context['selected'] != args.name or node['line'] != context['cursor_line']:
+            raise ValueError(f"Original selected reader/cursor differs from {args.name}: "
+                             f"{context['selected']} at {context['cursor_line']}; target {node['line']}")
+
+    @classmethod
     def locate(cls, snapshot, args):
         if args.name:
             context = cls.selected_view(snapshot)["context"]
@@ -196,6 +218,9 @@ def main():
     parser.add_argument("--focused", action="store_true", help="Select only the currently focused widget")
     parser.add_argument("--empty", action="store_true", help="Require empty original editor before a fresh fork input")
     parser.add_argument("--original-state", type=Path, help="This run's initial selected-mode snapshot")
+    control = parser.add_mutually_exclusive_group()
+    control.add_argument('--reveal-context', action='store_true', help='Reveal the materialized original context member with native cursor keys')
+    control.add_argument('--require-context-selection', action='store_true', help='Require the original selected context member and native cursor before reader effects')
     args = parser.parse_args()
     output = Path(os.environ["TOAD_VIDEO_OUTPUT"]).resolve()
     if not output.is_relative_to((Path.home() / ".cache/agent-scratch").resolve()):
@@ -208,6 +233,14 @@ def main():
     metadata = snapshot["metadata"]
     if metadata["pid"] != identity.pid or not identity.alive():
         raise ValueError("Captured native UI identity changed")
+    if args.reveal_context or args.require_context_selection:
+        if args.target is not ContextTreeTarget:
+            raise ValueError('Context controls require the declared ContextTreeTarget')
+        if args.reveal_context:
+            ContextTreeTarget.reveal(snapshot, args)
+        else:
+            ContextTreeTarget.require_selected(snapshot, args)
+        return
     resource = args.target.locate(snapshot, args)
     target = resource["focus_target"]
     cell = Offset(*target["cell"])

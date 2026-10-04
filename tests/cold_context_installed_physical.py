@@ -40,6 +40,10 @@ def load_recorder():
                 return "exec --sync " + shlex.join((sys.executable, str(Path(__file__).resolve()),
                     "--select-context", state, kind))
             if os.environ.get("TOAD_RECORDED_CONTEXT_AUDIT") == "1":
+                def context_control(state, key, *, require=False):
+                    return "exec --sync " + shlex.join((sys.executable, str(helper),
+                        "--state", state, "--target", "context_tree", "--name", key,
+                        "--require-context-selection" if require else "--reveal-context"))
                 def selected(phase, field):
                     # Native cursor navigation reveals/highlights the member.
                     # Select that cursor once; a subsequent pointer click may
@@ -54,9 +58,9 @@ def load_recorder():
                         click("phase-" + phase + "-state.pickle", "widget", "Input#context-search"),
                         "key --repeat 4 --repeat-delay 5 Tab",
                         mark + focused,
-                        "exec --sync " + shlex.join((sys.executable, str(Path(__file__).resolve()),
-                            "--reveal-context", "phase-" + focused + "-state.pickle", os.environ[field])),
+                        context_control("phase-" + focused + "-state.pickle", os.environ[field]),
                         "sleep .2", mark + revealed,
+                        context_control("phase-" + revealed + "-state.pickle", os.environ[field], require=True),
                         "key Return"))
                 export = os.environ["TOAD_CONTEXT_AUDIT_EXPORT"]
                 return "\n".join((
@@ -101,10 +105,12 @@ def load_recorder():
                     "sleep 1", mark + "request-members",
                     selected("request-members", "TOAD_RECORDED_SYSTEM_NODE"),
                     "sleep 2", mark + "recorded-system",
+                    context_control("phase-recorded-system-state.pickle", os.environ["TOAD_RECORDED_SYSTEM_NODE"], require=True),
                     click("phase-recorded-system-state.pickle", "widget", "Input#context-search"),
                     "type --clearmodifiers 'One fact'", "key Return", "sleep 2", mark + "recorded-search",
                     selected("recorded-search", "TOAD_RECORDED_SYSTEM_NODE"),
                     "sleep 1", mark + "recorded-result",
+                    context_control("phase-recorded-result-state.pickle", os.environ["TOAD_RECORDED_SYSTEM_NODE"], require=True),
                     click("phase-recorded-result-state.pickle", "widget", "Button#context-read-full"),
                     "sleep 1", mark + "recorded-full", "key Escape", "sleep 1", mark + "recorded-return",
                     click("phase-recorded-return-state.pickle", "widget", "Button#context-copy"),
@@ -116,16 +122,14 @@ def load_recorder():
                     "key Home shift+End BackSpace", "key Return", "sleep 1", mark + "tree-restored",
                     selected("tree-restored", "TOAD_RECORDED_TRANSCRIPT_NODE"),
                     "sleep 1", mark + "transcript-expanded",
-                    "exec --sync " + shlex.join((sys.executable, str(Path(__file__).resolve()),
-                        "--reveal-context", "phase-transcript-expanded-state.pickle",
-                        os.environ["TOAD_RECORDED_COORDINATION_NODE"].rsplit('/contributor/',1)[0])),
+                    context_control("phase-transcript-expanded-state.pickle",
+                                    os.environ["TOAD_RECORDED_COORDINATION_NODE"].rsplit('/contributor/',1)[0]),
                     "key space", "sleep 1", mark + "contributor-expanded",
-                    "exec --sync " + shlex.join((sys.executable, str(Path(__file__).resolve()),
-                        "--reveal-context", "phase-contributor-expanded-state.pickle",
-                        os.environ["TOAD_RECORDED_COORDINATION_NODE"])),
+                    context_control("phase-contributor-expanded-state.pickle", os.environ["TOAD_RECORDED_COORDINATION_NODE"]),
                     "sleep 2", mark + "exact-contributor",
                     selected("exact-contributor", "TOAD_RECORDED_COORDINATION_NODE"),
                     "sleep 2", mark + "recorded-coordination",
+                    context_control("phase-recorded-coordination-state.pickle", os.environ["TOAD_RECORDED_COORDINATION_NODE"], require=True),
                     "",
                 ))
             query = os.environ.get("TOAD_CONTEXT_AUDIT_QUERY", "")
@@ -182,6 +186,60 @@ def load_recorder():
                 "key Up", "sleep 1", mark + "segment-return", "",
             ))
     return recorder, recorder_path, ColdContextJourney
+
+
+async def check_reader_lifetime(command, declared, system_key):
+    """Exercise the native reader while original contributors leave and return."""
+    from dataclasses import replace
+    from toad.app import ToadApp
+    from toad.agent_schema import AgentDefinition
+    from toad.widgets.context_explorer import ContextExplorer
+    from toad.widgets.side_bar import SideBar, SideBarCollapsible
+    from textual.widgets import Tree
+
+    definition = AgentDefinition.decode({
+        "identity": "recorded-context-lifetime", "name": "Recorded context",
+        "short_name": "context", "protocol": "acp",
+        "run_command": {"*": command},
+    })
+    app = ToadApp(agent_data=definition, project_dir=declared.worktree,
+                  agent_session_id=declared.name)
+    async with app.run_test(size=(150, 55)) as pilot:
+        async with asyncio.timeout(40):
+            await app.selected_session.wait_content_ready()
+            view = app.selected_session
+            sidebar, = (bar for bar in view.query(SideBar) if bar.right)
+            sidebar.collapsed = False
+            sidebar.schedule_hydration()
+            await sidebar.wait_content_ready()
+            explorer = view.query_one(ContextExplorer)
+            explorer.query_ancestor(SideBarCollapsible).collapsed = False
+            explorer.action_refresh()
+            while explorer._native is None:
+                await pilot.pause()
+                await asyncio.sleep(.05)
+            inspection, native = explorer._inspection, explorer._native
+            assert native.contributors, 'This original configured source must expose contributors'
+            tree = explorer.query_one(Tree)
+            request_key = system_key.rsplit('/', 1)[0]
+            request = explorer._context_nodes[request_key]
+            request.parent.expand()
+            request.expand()
+            await pilot.pause()
+            original = explorer._context_nodes[system_key]
+            tree.move_cursor(original)
+            await pilot.pause()
+            assert explorer.intent.selected is original.data
+            for acquired in (replace(native, contributors=native.contributors[1:]), native):
+                explorer._present(inspection, acquired)
+                await pilot.pause()
+                assert tree.cursor_node is original
+                assert tree.get_node_at_line(tree.cursor_line) is original
+                assert explorer._context_nodes[system_key] is original
+                assert explorer.intent.selected is original.data
+            assert app._exception is None
+            return {"native_tree_node_retained": True, "selected_original": system_key,
+                    "contributor_remove_and_return": True, "actual_registered_acp_app": True}
 
 
 async def run(options):
@@ -292,6 +350,9 @@ async def run(options):
         command = [str(runtime / "toad"), "acp",
             shlex.join((str(runtime / "python"), "-m", "agent_comms.acp")),
             declared.worktree, "--title", "Cold configured saved context", "--session", declared.name]
+        if options.recorded_audit:
+            receipt['app_reader_lifetime'] = await check_reader_lifetime(command[2], declared, system.key)
+            (base / "terminal-receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
         if options.staging_receipt:
             probe_owner = recorder.ProcessOwner()
             try:
@@ -443,27 +504,6 @@ async def run(options):
 
 
 if __name__ == "__main__":
-    if sys.argv[1:2] == ["--reveal-context"]:
-        import subprocess
-        output = Path(os.environ["TOAD_VIDEO_OUTPUT"])
-        state, key = sys.argv[2:]
-        snapshot = pickle.loads((output/state).read_bytes())
-        focused = snapshot['metadata']['screen']['focused']
-        assert (focused['class'], focused['id']) == ('Tree', 'context-tree'), 'Physical reveal requires the actually focused context Tree'
-        context = next(v for v in snapshot['views'] if v['mode']==snapshot['metadata']['current_mode'])['context']
-        model, = (node for node in context['nodes'] if node['key']==key)
-        assert model['line'] >= 0, 'Original member must be expanded in the native Tree first'
-        assert os.environ['DISPLAY'] != ':0'
-        # Borrow the native cursor position, not an assumed Home origin. The
-        # original selected reader may be restored during a contributor update;
-        # walking through unrelated current branches also uses their old height.
-        cursor = context['cursor_line']
-        assert cursor >= 0, 'Original focused Tree must have a native cursor'
-        distance = model['line'] - cursor
-        if distance:
-            subprocess.run(['xdotool','key','--repeat',str(abs(distance)),
-                            '--repeat-delay','5','Down' if distance > 0 else 'Up'],check=True)
-        raise SystemExit(0)
     if sys.argv[1:2] == ["--select-context"]:
         helper = Path(__file__).resolve().parents[1] / "tools/performance/click_history.py"
         spec = importlib.util.spec_from_file_location("context_native_click", helper)
