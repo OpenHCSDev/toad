@@ -408,3 +408,17 @@ After the normal main359 union, the earlier shared destination implementation
 is already present in main. Current PR355 production delta is one shared
 admission method: five added/two deleted lines. Its initial native/IRC admission
 is exercised; the whole later IRC End journey stays open in this context.
+
+## Generated journal storage continuation, 2026-10-04
+
+The outer original_turn_resource_real_installed_pilot owns creation and terminal
+disposition of the two private SDK fork journals. record_retained owns only its
+recorder ProcessOwner. Terminal process cleanup previously left both full copied
+journals under each failed run. Kepler owns the fixture correction; Bohr owns the
+separately authorized ten historical leaf cold moves after shared borrower clearance.
+
+Use the existing runtime_fixture I/O lifetime for the transferred SHA-verified
+cold-retention operation. Retain terminal evidence first, use Bohr's existing
+borrower census, and preserve the original journal paths through symlinks.
+Original wires, UNKNOWN inputs, public journals and SDK fork semantics stay intact.
+This continuation is source work only, not a new UI/native/provider journey.
