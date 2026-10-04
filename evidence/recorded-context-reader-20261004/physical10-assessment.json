@@ -1,0 +1,78 @@
+{
+  "state": "PARTIAL_POSITIVES_WHOLE_JOURNEY_FAILED",
+  "app": {
+    "native_tree_node_retained": true,
+    "selected_original": "turn/b2c6b72bbcb444b4979b42e821680cf3/0",
+    "contributor_remove_and_return": true,
+    "actual_registered_acp_app": true
+  },
+  "elapsed_seconds": 187.72761005803477,
+  "system_key": "turn/b2c6b72bbcb444b4979b42e821680cf3/0",
+  "original_inputs_unchanged": true,
+  "public_source_unchanged": true,
+  "selected_source_unchanged": true,
+  "recorded-system": {
+    "selected": "turn/b2c6b72bbcb444b4979b42e821680cf3/0",
+    "cursor": 8,
+    "chars": 20854,
+    "query": "",
+    "maximized": false,
+    "clipboard_equal": false,
+    "system_member_present": true
+  },
+  "recorded-search": {
+    "selected": "turn/b2c6b72bbcb444b4979b42e821680cf3/0",
+    "cursor": 8,
+    "chars": 20854,
+    "query": "One fact",
+    "maximized": false,
+    "clipboard_equal": false,
+    "system_member_present": true
+  },
+  "recorded-result": {
+    "selected": "turn/b2c6b72bbcb444b4979b42e821680cf3/0",
+    "cursor": 1,
+    "chars": 20854,
+    "query": "One fact",
+    "maximized": false,
+    "clipboard_equal": false,
+    "system_member_present": true
+  },
+  "recorded-full": {
+    "selected": "turn/b2c6b72bbcb444b4979b42e821680cf3/0",
+    "cursor": 1,
+    "chars": 20854,
+    "query": "One fact",
+    "maximized": true,
+    "clipboard_equal": false,
+    "system_member_present": true
+  },
+  "recorded-return": {
+    "selected": "turn/b2c6b72bbcb444b4979b42e821680cf3/0",
+    "cursor": 1,
+    "chars": 20854,
+    "query": "One fact",
+    "maximized": false,
+    "clipboard_equal": false,
+    "system_member_present": true
+  },
+  "recorded-export-path": {
+    "selected": "turn/b2c6b72bbcb444b4979b42e821680cf3/0",
+    "cursor": 1,
+    "chars": 20854,
+    "query": "One fact",
+    "maximized": false,
+    "clipboard_equal": true,
+    "system_member_present": true
+  },
+  "measured_footer_original_agent_info_equal": true,
+  "measurement": {
+    "used": 143609,
+    "size": 272000,
+    "cost": null
+  },
+  "failure": "Physical export button was below visible sidebar viewport: WidgetTarget correctly refused 0 visible Button#context-export; no export or distinct contributor step reached.",
+  "reader_pixel_review": "Einstein viewed phase-recorded-full.png AFTER UI exit; actual System Layer and standing instruction list readable. No DURING claim for this image.",
+  "parent_during_witness": "Parent personally viewed SAME physical10 existing phase-thread-menu.png and phase-context-open.png while actual UI1078632/birth56012634 alive BEFORE monotonic560213843066248 and immediatelyAFTER560226761778999. Thread menu includes readable Edit thread tags and retained history; context right sidebar readable current Core Coordination/User Input + native System/Compaction/Transcript/ToolCatalog and Recorded requests group; footer143.6K52.7% visible. This is bracketed DURING existing-image review, not exactrecorded child/fullreader/search acceptance. No export/click/client/provider/input by Parent.",
+  "parent_system_pixel_review": "Parent exact recorded-system.png personally AFTER: UI1078632/birth56012634 alreadyABSENT at560289693890021 and after560297870870883. Image visibly selects original System Layer with Request1 and renders coding harness/tools wording; no DURING/fulltext/exactchild verification from pixels alone."
+}

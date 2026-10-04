@@ -1,0 +1,1285 @@
+{
+  "owner": "Einstein-cold595-physical01",
+  "purpose": "installed TUI physical interaction video review",
+  "output": "/home/ts/.cache/agent-scratch/recorded-context417-physical10/capture",
+  "command": [
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/toad",
+    "acp",
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python -m agent_comms.acp",
+    "/home/ts/.cache/agent-scratch/c603p01/project",
+    "--title",
+    "Cold configured saved context",
+    "--session",
+    "configured-source"
+  ],
+  "terminal_command": [
+    "st",
+    "-e",
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/toad",
+    "acp",
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python -m agent_comms.acp",
+    "/home/ts/.cache/agent-scratch/c603p01/project",
+    "--title",
+    "Cold configured saved context",
+    "--session",
+    "configured-source"
+  ],
+  "fps": 20,
+  "screen": [
+    1500,
+    1100
+  ],
+  "profiling_requested": false,
+  "state_capture_requested": true,
+  "ui_config": {
+    "source": "/home/ts/.cache/agent-scratch/c603p01/config/toad/toad.json",
+    "home": "/home/ts/.cache/agent-scratch/recorded-context417-physical10/capture/ui-config",
+    "initial_sha256": "d28ed37acd0f79951b3860b5fee783b116a2fbf1ac01eb92247d4a24ad792ff4"
+  },
+  "private_root": "/home/ts/.cache/agent-scratch/c603p01/wire",
+  "capture_target": "private",
+  "physical_journey": "cold_context",
+  "original_owner_before": {
+    "root": "/home/ts/.cache/agent-scratch/c603p01/wire",
+    "mode": "private"
+  },
+  "recorder_argv": [
+    "/home/ts/wt/toad-regression-widget-cost-20261001/tests/cold_context_installed_physical.py",
+    "--output",
+    "/home/ts/.cache/agent-scratch/recorded-context417-physical10/capture",
+    "--owner",
+    "Einstein-cold595-physical01",
+    "--private-root",
+    "/home/ts/.cache/agent-scratch/c603p01/wire",
+    "--journey",
+    "cold_context",
+    "--capture-state",
+    "--review-timing",
+    "deferred",
+    "--fps",
+    "20",
+    "--width",
+    "1500",
+    "--height",
+    "1100",
+    "--fit-window",
+    "--startup-wait",
+    "10",
+    "--max-duration",
+    "240",
+    "--tail-seconds",
+    "2",
+    "--",
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/toad",
+    "acp",
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python -m agent_comms.acp",
+    "/home/ts/.cache/agent-scratch/c603p01/project",
+    "--title",
+    "Cold configured saved context",
+    "--session",
+    "configured-source"
+  ],
+  "recorder_source_sha256": "995fd1a81a6609a15c8bcc53b104adbad218fd9ca2977a7d9b71d37b2a01e70b",
+  "started_utc": "2026-10-04T03:28:04.526209+00:00",
+  "assessment": "unreviewed",
+  "capture_completed": false,
+  "completed": false,
+  "review_timing": "deferred",
+  "review": {
+    "start_seconds": 0,
+    "seconds": 3,
+    "fps": 8,
+    "frames_limit": 24,
+    "slowdown": 8,
+    "timestamp_basis": "source video seconds"
+  },
+  "runtime_before": {
+    "selection": "AGENT_COMMS_RUNTIME_ROOT",
+    "bin_directory": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin",
+    "launcher": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/toad",
+    "launcher_sha256": "8a6525af5718a68fad1dd6fbaa1d441d911cd2b3d3599866038d3a51c7721e89",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/toad",
+        "resolved_path": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/toad",
+        "sha256": "8a6525af5718a68fad1dd6fbaa1d441d911cd2b3d3599866038d3a51c7721e89"
+      },
+      "acp": {
+        "selected_path": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/agent-comms-acp",
+        "sha256": "90e15ffd2edd07c60553a038e973a908660018ad44047e5b9ea511c6cef1dc22"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/toad",
+        "sha256": "8a6525af5718a68fad1dd6fbaa1d441d911cd2b3d3599866038d3a51c7721e89"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/agent-comms-acp",
+        "sha256": "90e15ffd2edd07c60553a038e973a908660018ad44047e5b9ea511c6cef1dc22"
+      }
+    },
+    "activation_path": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/activation.json",
+    "activation_sha256": "834020106d2c5a8f1ad9cee7e84fb79c96a7d14edd9cd2b838157659c4fd22cd",
+    "activation": {
+      "stage": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+      "pins": {
+        "agent_comms": "8f16339673835114f526d7431032576099764af5",
+        "toad": "65eba7b5993692f61a318b8f7e49bb3171465c6a",
+        "textual": "b263e4e707846025fd6b70448749c7a36c0a2d81"
+      },
+      "sdk": "0.12.1",
+      "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-086d511f2026b10d/node_modules/@earendil-works/pi-coding-agent",
+      "state": "verified-immutable-cohort",
+      "staging_receipt_sha256": "d56fa75ce5258230239bb42865878569b3ae30ff54d262eb2df564b4e29a911f"
+    },
+    "observed": {
+      "python": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+      "prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "573f7b9d71dd24bf2221c0e1708c1bc745c0ccdab16251326c0565a7efa2060b",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "file:///home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/recorded-context-reader-20261004/wheel-lifetime/batrachian_toad-0.6.20-py3-none-any.whl",
+            "archive_info": {}
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "a6def9a04fce38768cf63e6a24cb201e7cd410d48ca679076945d1b949842966",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "file:///home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text50-filewheel-ff5cc9c7-20261003/textual-8.2.8-py3-none-any.whl",
+            "archive_info": {}
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "06c3409d39e683f1d52f74030a027a92cfda5ab29e852ce5c2119754ce62d594",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "file:///home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/original-settlement615-wheels/agent_comms-0.1.0-py3-none-any.whl",
+            "archive_info": {}
+          }
+        }
+      },
+      "route": {
+        "root": "/home/ts/.cache/agent-scratch/c603p01/wire",
+        "wire_root_id": "bc3515d89b9f4fd2826b59f85434c7f0",
+        "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-086d511f2026b10d/node_modules/@earendil-works/pi-coding-agent"
+      },
+      "native_launch": {
+        "root": "/home/ts/.cache/agent-scratch/c603p01/wire",
+        "wire_root_id": "bc3515d89b9f4fd2826b59f85434c7f0",
+        "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-086d511f2026b10d/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "display": ":8946",
+  "ui_identity": {
+    "pid": 1078632,
+    "start_ticks": 56012634
+  },
+  "window": "2097158",
+  "capture_launch_monotonic": 560126.746568418,
+  "interaction_deadline_monotonic": 560350.746568418,
+  "finish_deadline_monotonic": 560366.746568418,
+  "finalize_seconds": 16,
+  "terminal_pid": 1078631,
+  "state_captures": {
+    "before": {
+      "started_seconds": 10.334386178990826,
+      "manifest": {
+        "pid": 1078632,
+        "created": 1791084486.34,
+        "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+        "rss_before": 178167808,
+        "started_ns": 1791084497978232511,
+        "profile_seconds": 0,
+        "gil_only": false,
+        "native": false,
+        "receipts": {
+          "/home/ts/.cache/agent-scratch/recorded-context417-physical10/capture/before-state": "complete",
+          "/home/ts/.cache/agent-scratch/recorded-context417-physical10/capture/before-screen": "complete"
+        },
+        "finished_ns": 1791084498142900846
+      },
+      "finished_seconds": 10.70176296599675
+    },
+    "observers": {
+      "started_seconds": 10.701869416981936,
+      "manifest": {
+        "pid": 1078632,
+        "created": 1791084486.34,
+        "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+        "rss_before": 181010432,
+        "started_ns": 1791084498330248493,
+        "profile_seconds": 0,
+        "gil_only": false,
+        "native": false,
+        "receipts": {
+          "/home/ts/.cache/agent-scratch/recorded-context417-physical10/capture/observers-state": "complete"
+        },
+        "finished_ns": 1791084498462639320
+      },
+      "finished_seconds": 11.024445357965305
+    }
+  },
+  "terminal_processes": {
+    "1078631": {
+      "start_ticks": 56012623,
+      "command": "st -e /home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/toad acp /home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python -m agent_comms.acp /home/ts/.cache/agent-scratch/c603p01/project --title Cold configured saved context --session configured-source "
+    },
+    "1078632": {
+      "start_ticks": 56012634,
+      "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                  "
+    },
+    "1078652": {
+      "start_ticks": 56012754,
+      "command": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+    },
+    "1078688": {
+      "start_ticks": 56012872,
+      "command": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=18) --multiprocessing-fork "
+    },
+    "1078689": {
+      "start_ticks": 56012872,
+      "command": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=21) --multiprocessing-fork "
+    },
+    "1080010": {
+      "start_ticks": 56013411,
+      "command": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=18) --multiprocessing-fork "
+    }
+  },
+  "driver_started_seconds": 11.055861313012429,
+  "live_reviews": [
+    {
+      "label": "live-0-0",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-0-1",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-2-2",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-3-3",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-3-4",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-4-5",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-5-6",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-5-7",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-7-8",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-8-9",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-8-10",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-10-11",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-11-12",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-11-13",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-15-14",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-15-15",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-17-16",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-17-17",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-18-18",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-18-19",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-20-20",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-21-21",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-21-22",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-23-23",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-24-24",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-24-25",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-28-26",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-28-27",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-30-28",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-30-29",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-31-30",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-31-31",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-33-32",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-33-33",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-34-34",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-34-35",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-38-36",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-38-37",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-39-38",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-39-39",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-41-40",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-42-41",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-42-42",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-44-43",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-45-44",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-45-45",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-47-46",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-47-47",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-48-48",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-48-49",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-50-50",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-51-51",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-51-52",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-52-53",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-53-54",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-53-55",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-53-56",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-53-57",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-53-58",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-53-59",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-53-60",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-54-61",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-54-62",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-57-63",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-58-64",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-58-65",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-61-66",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-61-67",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-64-68",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-64-69",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-67-70",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-68-71",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-68-72",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-69-73",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-71-74",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-71-75",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-74-76",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-74-77",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-77-78",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-77-79",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-78-80",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-78-81",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-83-82",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-83-83",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-84-84",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-84-85",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-87-86",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-87-87",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-90-88",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-90-89",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-93-90",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-94-91",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-94-92",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-97-93",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-98-94",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-98-95",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-100-96",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-101-97",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-101-98",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-103-99",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-104-100",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-105-101",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    },
+    {
+      "label": "live-105-102",
+      "assessment": "Clip encoding deferred; native frame tracing remains active. Inspect consecutive original video frames during or after the run."
+    }
+  ],
+  "error": "CalledProcessError: Command '['xdotool', 'exec', '--sync', '/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python', '/home/ts/wt/toad-regression-widget-cost-20261001/tools/performance/click_history.py', '--state', 'phase-recorded-export-path-state.pickle', '--target', 'widget', '--name', 'Button#context-export', '--button', '1']' returned non-zero exit status 1.",
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 1077730,
+        "start_ticks": 56012372,
+        "returncode": 0
+      },
+      {
+        "pid": 1078519,
+        "start_ticks": 56012556,
+        "returncode": 0
+      },
+      {
+        "pid": 1078631,
+        "start_ticks": 56012623,
+        "returncode": 1
+      },
+      {
+        "pid": 1078632,
+        "start_ticks": 56012634,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 1078633,
+        "start_ticks": 56012635,
+        "returncode": 0
+      },
+      {
+        "pid": 1078634,
+        "start_ticks": 56012647,
+        "returncode": 0
+      },
+      {
+        "pid": 1078635,
+        "start_ticks": 56012657,
+        "returncode": 0
+      },
+      {
+        "pid": 1078636,
+        "start_ticks": 56012672,
+        "returncode": 255
+      },
+      {
+        "pid": 1081022,
+        "start_ticks": 56013674,
+        "returncode": 0
+      },
+      {
+        "pid": 1081142,
+        "start_ticks": 56013708,
+        "returncode": 0
+      },
+      {
+        "pid": 1081252,
+        "start_ticks": 56013744,
+        "returncode": 0
+      },
+      {
+        "pid": 1081256,
+        "start_ticks": 56013780,
+        "returncode": 0
+      },
+      {
+        "pid": 1081299,
+        "start_ticks": 56013949,
+        "returncode": 0
+      },
+      {
+        "pid": 1081300,
+        "start_ticks": 56013967,
+        "returncode": 0
+      },
+      {
+        "pid": 1081434,
+        "start_ticks": 56014083,
+        "returncode": 0
+      },
+      {
+        "pid": 1082113,
+        "start_ticks": 56014250,
+        "returncode": 0
+      },
+      {
+        "pid": 1082340,
+        "start_ticks": 56014363,
+        "returncode": 0
+      },
+      {
+        "pid": 1082374,
+        "start_ticks": 56014553,
+        "returncode": 0
+      },
+      {
+        "pid": 1082380,
+        "start_ticks": 56014650,
+        "returncode": 0
+      },
+      {
+        "pid": 1082381,
+        "start_ticks": 56014762,
+        "returncode": 0
+      },
+      {
+        "pid": 1082432,
+        "start_ticks": 56014921,
+        "returncode": 0
+      },
+      {
+        "pid": 1082437,
+        "start_ticks": 56015017,
+        "returncode": 0
+      },
+      {
+        "pid": 1082614,
+        "start_ticks": 56015130,
+        "returncode": 0
+      },
+      {
+        "pid": 1082628,
+        "start_ticks": 56015300,
+        "returncode": 0
+      },
+      {
+        "pid": 1082633,
+        "start_ticks": 56015388,
+        "returncode": 0
+      },
+      {
+        "pid": 1082642,
+        "start_ticks": 56015404,
+        "returncode": 0
+      },
+      {
+        "pid": 1082643,
+        "start_ticks": 56015432,
+        "returncode": 0
+      },
+      {
+        "pid": 1082661,
+        "start_ticks": 56015596,
+        "returncode": 0
+      },
+      {
+        "pid": 1082666,
+        "start_ticks": 56015696,
+        "returncode": 0
+      },
+      {
+        "pid": 1082731,
+        "start_ticks": 56015910,
+        "returncode": 0
+      },
+      {
+        "pid": 1082894,
+        "start_ticks": 56016084,
+        "returncode": 0
+      },
+      {
+        "pid": 1082938,
+        "start_ticks": 56016189,
+        "returncode": 0
+      },
+      {
+        "pid": 1082939,
+        "start_ticks": 56016302,
+        "returncode": 0
+      },
+      {
+        "pid": 1082968,
+        "start_ticks": 56016477,
+        "returncode": 0
+      },
+      {
+        "pid": 1082973,
+        "start_ticks": 56016576,
+        "returncode": 0
+      },
+      {
+        "pid": 1082974,
+        "start_ticks": 56016691,
+        "returncode": 0
+      },
+      {
+        "pid": 1083088,
+        "start_ticks": 56016850,
+        "returncode": 0
+      },
+      {
+        "pid": 1083110,
+        "start_ticks": 56016961,
+        "returncode": 0
+      },
+      {
+        "pid": 1083133,
+        "start_ticks": 56016980,
+        "returncode": 0
+      },
+      {
+        "pid": 1083220,
+        "start_ticks": 56017017,
+        "returncode": 0
+      },
+      {
+        "pid": 1084563,
+        "start_ticks": 56017173,
+        "returncode": 0
+      },
+      {
+        "pid": 1085078,
+        "start_ticks": 56017276,
+        "returncode": 0
+      },
+      {
+        "pid": 1085160,
+        "start_ticks": 56017488,
+        "returncode": 0
+      },
+      {
+        "pid": 1085638,
+        "start_ticks": 56017673,
+        "returncode": 0
+      },
+      {
+        "pid": 1086013,
+        "start_ticks": 56017778,
+        "returncode": 0
+      },
+      {
+        "pid": 1086123,
+        "start_ticks": 56017993,
+        "returncode": 0
+      },
+      {
+        "pid": 1086483,
+        "start_ticks": 56018164,
+        "returncode": 0
+      },
+      {
+        "pid": 1086910,
+        "start_ticks": 56018268,
+        "returncode": 0
+      },
+      {
+        "pid": 1087036,
+        "start_ticks": 56018302,
+        "returncode": 0
+      },
+      {
+        "pid": 1087047,
+        "start_ticks": 56018314,
+        "returncode": 0
+      },
+      {
+        "pid": 1087310,
+        "start_ticks": 56018527,
+        "returncode": 0
+      },
+      {
+        "pid": 1087946,
+        "start_ticks": 56018692,
+        "returncode": 0
+      },
+      {
+        "pid": 1088079,
+        "start_ticks": 56018796,
+        "returncode": 0
+      },
+      {
+        "pid": 1088080,
+        "start_ticks": 56018909,
+        "returncode": 0
+      },
+      {
+        "pid": 1088246,
+        "start_ticks": 56019084,
+        "returncode": 0
+      },
+      {
+        "pid": 1088271,
+        "start_ticks": 56019195,
+        "returncode": 0
+      },
+      {
+        "pid": 1088400,
+        "start_ticks": 56019311,
+        "returncode": 0
+      },
+      {
+        "pid": 1088991,
+        "start_ticks": 56019487,
+        "returncode": 0
+      },
+      {
+        "pid": 1089368,
+        "start_ticks": 56019591,
+        "returncode": 0
+      },
+      {
+        "pid": 1089412,
+        "start_ticks": 56019804,
+        "returncode": 0
+      },
+      {
+        "pid": 1089677,
+        "start_ticks": 56019978,
+        "returncode": 0
+      },
+      {
+        "pid": 1090222,
+        "start_ticks": 56020086,
+        "returncode": 0
+      },
+      {
+        "pid": 1090861,
+        "start_ticks": 56020199,
+        "returncode": 0
+      },
+      {
+        "pid": 1091467,
+        "start_ticks": 56020367,
+        "returncode": 0
+      },
+      {
+        "pid": 1091519,
+        "start_ticks": 56020500,
+        "returncode": 0
+      },
+      {
+        "pid": 1095630,
+        "start_ticks": 56021212,
+        "returncode": 0
+      },
+      {
+        "pid": 1096521,
+        "start_ticks": 56021406,
+        "returncode": 0
+      },
+      {
+        "pid": 1096853,
+        "start_ticks": 56021517,
+        "returncode": 0
+      },
+      {
+        "pid": 1096943,
+        "start_ticks": 56021535,
+        "returncode": 0
+      },
+      {
+        "pid": 1096998,
+        "start_ticks": 56021648,
+        "returncode": 0
+      },
+      {
+        "pid": 1098025,
+        "start_ticks": 56021815,
+        "returncode": 0
+      },
+      {
+        "pid": 1098770,
+        "start_ticks": 56021918,
+        "returncode": 0
+      },
+      {
+        "pid": 1098901,
+        "start_ticks": 56021946,
+        "returncode": 0
+      },
+      {
+        "pid": 1099827,
+        "start_ticks": 56022146,
+        "returncode": 0
+      },
+      {
+        "pid": 1100391,
+        "start_ticks": 56022240,
+        "returncode": 0
+      },
+      {
+        "pid": 1100487,
+        "start_ticks": 56022274,
+        "returncode": 0
+      },
+      {
+        "pid": 1101419,
+        "start_ticks": 56022447,
+        "returncode": 0
+      },
+      {
+        "pid": 1101752,
+        "start_ticks": 56022539,
+        "returncode": 0
+      },
+      {
+        "pid": 1101833,
+        "start_ticks": 56022554,
+        "returncode": 0
+      },
+      {
+        "pid": 1102346,
+        "start_ticks": 56022668,
+        "returncode": 0
+      },
+      {
+        "pid": 1102662,
+        "start_ticks": 56022851,
+        "returncode": 0
+      },
+      {
+        "pid": 1103075,
+        "start_ticks": 56022976,
+        "returncode": 0
+      },
+      {
+        "pid": 1103264,
+        "start_ticks": 56022998,
+        "returncode": 0
+      },
+      {
+        "pid": 1104789,
+        "start_ticks": 56023180,
+        "returncode": 0
+      },
+      {
+        "pid": 1105234,
+        "start_ticks": 56023268,
+        "returncode": 0
+      },
+      {
+        "pid": 1105304,
+        "start_ticks": 56023302,
+        "returncode": 0
+      },
+      {
+        "pid": 1106033,
+        "start_ticks": 56023491,
+        "returncode": 0
+      },
+      {
+        "pid": 1106566,
+        "start_ticks": 56023593,
+        "returncode": 0
+      },
+      {
+        "pid": 1106671,
+        "start_ticks": 56023604,
+        "returncode": 0
+      },
+      {
+        "pid": 1107533,
+        "start_ticks": 56023816,
+        "returncode": 0
+      },
+      {
+        "pid": 1108169,
+        "start_ticks": 56023996,
+        "returncode": 0
+      },
+      {
+        "pid": 1108292,
+        "start_ticks": 56024080,
+        "returncode": 0
+      },
+      {
+        "pid": 1108368,
+        "start_ticks": 56024178,
+        "returncode": 0
+      },
+      {
+        "pid": 1108372,
+        "start_ticks": 56024201,
+        "returncode": 0
+      },
+      {
+        "pid": 1108374,
+        "start_ticks": 56024214,
+        "returncode": 0
+      },
+      {
+        "pid": 1108933,
+        "start_ticks": 56024428,
+        "returncode": 0
+      },
+      {
+        "pid": 1110066,
+        "start_ticks": 56024595,
+        "returncode": 0
+      },
+      {
+        "pid": 1110279,
+        "start_ticks": 56024694,
+        "returncode": 0
+      },
+      {
+        "pid": 1110280,
+        "start_ticks": 56024717,
+        "returncode": 0
+      },
+      {
+        "pid": 1110320,
+        "start_ticks": 56024892,
+        "returncode": 0
+      },
+      {
+        "pid": 1110334,
+        "start_ticks": 56024995,
+        "returncode": 0
+      },
+      {
+        "pid": 1110335,
+        "start_ticks": 56025030,
+        "returncode": 0
+      },
+      {
+        "pid": 1111071,
+        "start_ticks": 56025213,
+        "returncode": 0
+      },
+      {
+        "pid": 1111356,
+        "start_ticks": 56025300,
+        "returncode": 0
+      },
+      {
+        "pid": 1111357,
+        "start_ticks": 56025311,
+        "returncode": 0
+      },
+      {
+        "pid": 1111380,
+        "start_ticks": 56025421,
+        "returncode": 0
+      },
+      {
+        "pid": 1111962,
+        "start_ticks": 56025585,
+        "returncode": 0
+      },
+      {
+        "pid": 1112243,
+        "start_ticks": 56025669,
+        "returncode": 0
+      },
+      {
+        "pid": 1112257,
+        "start_ticks": 56025767,
+        "returncode": 0
+      },
+      {
+        "pid": 1112562,
+        "start_ticks": 56025877,
+        "returncode": 0
+      },
+      {
+        "pid": 1113142,
+        "start_ticks": 56026031,
+        "returncode": 0
+      },
+      {
+        "pid": 1113143,
+        "start_ticks": 56026042,
+        "returncode": 0
+      },
+      {
+        "pid": 1113316,
+        "start_ticks": 56026155,
+        "returncode": 0
+      },
+      {
+        "pid": 1113955,
+        "start_ticks": 56026325,
+        "returncode": 0
+      },
+      {
+        "pid": 1114255,
+        "start_ticks": 56026432,
+        "returncode": 0
+      },
+      {
+        "pid": 1114318,
+        "start_ticks": 56026550,
+        "returncode": 0
+      },
+      {
+        "pid": 1114788,
+        "start_ticks": 56026697,
+        "returncode": 0
+      },
+      {
+        "pid": 1115189,
+        "start_ticks": 56026865,
+        "returncode": 1
+      }
+    ]
+  },
+  "terminal_exit": {
+    "pid": 1078631,
+    "start_ticks": 56012623,
+    "returncode": 1
+  },
+  "original_owner_after": {
+    "root": "/home/ts/.cache/agent-scratch/c603p01/wire",
+    "mode": "private"
+  }
+}

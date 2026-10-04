@@ -32,10 +32,11 @@ def load_recorder():
         def script(cls, args):
             mark = recorder.marker_command()
             helper = Path(__file__).resolve().parents[1] / "tools/performance/click_history.py"
-            def click(state, target, name=None, button=1):
+            def click(state, target, name=None, button=1, *, focused=False):
                 return "exec --sync " + shlex.join((sys.executable, str(helper),
                     "--state", state, "--target", target,
-                    *(() if name is None else ("--name", name)), "--button", str(button)))
+                    *(() if name is None else ("--name", name)), "--button", str(button),
+                    *(("--focused",) if focused else ())))
             def select(state, kind):
                 return "exec --sync " + shlex.join((sys.executable, str(Path(__file__).resolve()),
                     "--select-context", state, kind))
@@ -66,37 +67,39 @@ def load_recorder():
                 return "\n".join((
                     mark + "saved --wait-history-seconds 12 --wait-history-thread configured-source",
                     "key ctrl+b", "sleep 1", mark + "roster",
-                    "sleep 1", mark + "menus-ready",
-                    click("phase-menus-ready-state.pickle", "thread", "configured-source", 3),
-                    "sleep 1", mark + "thread-menu",
-                    click("phase-thread-menu-state.pickle", "menu_action", "thread-tags"),
-                    "sleep 1", mark + "thread-tags-form",
-                    click("phase-thread-tags-form-state.pickle", "widget", "Input#command-field-tags"),
-                    "key Home shift+End BackSpace", "type --clearmodifiers " + shlex.quote(os.environ["TOAD_CONTEXT_AUDIT_TAGS"]),
-                    mark + "thread-tags-review",
-                    click("phase-thread-tags-review-state.pickle", "widget", "Button#command-apply"),
-                    "sleep 2", mark + "tag-applied",
-                    click("phase-tag-applied-state.pickle", "channel", "#review417", 3),
-                    "sleep 1", mark + "tag-menu",
-                    click("phase-tag-menu-state.pickle", "menu_action", "rename-tag"),
-                    "sleep 1", mark + "rename-form",
-                    click("phase-rename-form-state.pickle", "widget", "Input#command-field-new-name"),
-                    "key Home shift+End BackSpace", "type --clearmodifiers review417-renamed",
-                    mark + "rename-review",
-                    click("phase-rename-review-state.pickle", "widget", "Button#command-apply"),
-                    "sleep 2", mark + "renamed",
-                    click("phase-renamed-state.pickle", "channel", "#review417-renamed"),
-                    "sleep 2", mark + "channel-open",
-                    click("phase-channel-open-state.pickle", "editor"),
-                    "type --clearmodifiers '/pin-channel '", "key Return", "sleep 2", mark + "slash-executed",
-                    click("phase-slash-executed-state.pickle", "channel", "#review417-renamed", 3),
-                    "sleep 1", mark + "delete-menu",
-                    click("phase-delete-menu-state.pickle", "menu_action", "delete-tag"),
-                    "sleep 1", mark + "delete-review",
-                    click("phase-delete-review-state.pickle", "widget", "Button#command-apply"),
-                    "sleep 2", mark + "deleted",
-                    click("phase-deleted-state.pickle", "thread", "configured-source"),
-                    "sleep 1", mark + "menus-returned",
+                    *((
+                        "sleep 1", mark + "menus-ready",
+                        click("phase-menus-ready-state.pickle", "thread", "configured-source", 3),
+                        "sleep 1", mark + "thread-menu",
+                        click("phase-thread-menu-state.pickle", "menu_action", "thread-tags"),
+                        "sleep 1", mark + "thread-tags-form",
+                        click("phase-thread-tags-form-state.pickle", "widget", "Input#command-field-tags"),
+                        "key Home shift+End BackSpace", "type --clearmodifiers " + shlex.quote(os.environ["TOAD_CONTEXT_AUDIT_TAGS"]),
+                        mark + "thread-tags-review",
+                        click("phase-thread-tags-review-state.pickle", "widget", "Button#command-apply"),
+                        "sleep 2", mark + "tag-applied",
+                        click("phase-tag-applied-state.pickle", "channel", "#review417", 3),
+                        "sleep 1", mark + "tag-menu",
+                        click("phase-tag-menu-state.pickle", "menu_action", "rename-tag"),
+                        "sleep 1", mark + "rename-form",
+                        click("phase-rename-form-state.pickle", "widget", "Input#command-field-new-name"),
+                        "key Home shift+End BackSpace", "type --clearmodifiers review417-renamed",
+                        mark + "rename-review",
+                        click("phase-rename-review-state.pickle", "widget", "Button#command-apply"),
+                        "sleep 2", mark + "renamed",
+                        click("phase-renamed-state.pickle", "channel", "#review417-renamed"),
+                        "sleep 2", mark + "channel-open",
+                        click("phase-channel-open-state.pickle", "editor"),
+                        "type --clearmodifiers '/pin-channel '", "key Return", "sleep 2", mark + "slash-executed",
+                        click("phase-slash-executed-state.pickle", "channel", "#review417-renamed", 3),
+                        "sleep 1", mark + "delete-menu",
+                        click("phase-delete-menu-state.pickle", "menu_action", "delete-tag"),
+                        "sleep 1", mark + "delete-review",
+                        click("phase-delete-review-state.pickle", "widget", "Button#command-apply"),
+                        "sleep 2", mark + "deleted",
+                        click("phase-deleted-state.pickle", "thread", "configured-source"),
+                        "sleep 1", mark + "menus-returned",
+                    ) if os.environ.get("TOAD_RECORDED_READER_ONLY") != "1" else (mark + "menus-returned",)),
                     click("phase-menus-returned-state.pickle", "right_sidebar"),
                     "sleep 7", mark + "context-open",
                     click("phase-context-open-state.pickle", "context_tree"),
@@ -116,7 +119,10 @@ def load_recorder():
                     click("phase-recorded-return-state.pickle", "widget", "Button#context-copy"),
                     click("phase-recorded-return-state.pickle", "widget", "Input#context-export-path"),
                     "type --clearmodifiers " + shlex.quote(export), mark + "recorded-export-path",
-                    click("phase-recorded-export-path-state.pickle", "widget", "Button#context-export"),
+                    # Native focus-next reveals the declared Button below the
+                    # sidebar viewport; never manufacture an offscreen hit.
+                    "key Tab", mark + "recorded-export-control",
+                    click("phase-recorded-export-control-state.pickle", "widget", "Button#context-export", focused=True),
                     "sleep 1", mark + "recorded-export",
                     click("phase-recorded-export-state.pickle", "widget", "Input#context-search"),
                     "key Home shift+End BackSpace", "key Return", "sleep 1", mark + "tree-restored",
@@ -303,6 +309,8 @@ async def run(options):
             XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(base / "state"),
             XDG_DATA_HOME=str(base / "data"), TOAD_TEST_ATTEMPT="Einstein-cold595-physical01")
         if options.recorded_audit:
+            if options.recorded_reader_only:
+                environment['TOAD_RECORDED_READER_ONLY'] = '1'
             manifest, = (m for m in manifests_before if m.request_id == options.request_id)
             recorded = next(n for n in inspection.recorded() if n.manifest == manifest)
             system, = (n for n in recorded.children() if n.segment.kind == "system_layer")
@@ -408,11 +416,12 @@ async def run(options):
             assert service.registry.require(previous.name).tags == tags_before
             assert '#review417' not in service.channels.channels()
             assert '#review417-renamed' not in service.channels.channels()
-            assert not any(n["id"] == "command-apply" for n in phase("deleted")["metadata"]["navigation_targets"]["widgets"])
+            if not options.recorded_reader_only:
+                assert not any(n["id"] == "command-apply" for n in phase("deleted")["metadata"]["navigation_targets"]["widgets"])
             receipt.update(recorded_search_read_copy_export_equal=True,
                 recorded_coordination_text=child_context["detail"],
                 original_footer_measurement=saved_view["agent_configuration"]["context_measurement"],
-                physical_menu_tag_rename_delete_and_slash=True)
+                physical_menu_tag_rename_delete_and_slash=not options.recorded_reader_only)
             returned = context
         elif options.source_only:
             context = context_phase("core-instructions")
@@ -539,6 +548,7 @@ if __name__ == "__main__":
     parser.add_argument("--original-python", type=Path, required=True)
     parser.add_argument("--original-thread", default="openhcs-audit-merged-runtime")
     parser.add_argument("--recorded-audit", action="store_true")
+    parser.add_argument("--recorded-reader-only", action="store_true", help="Continue the remaining recorded reader controls; retain original menu/slash acceptance without repeating it")
     parser.add_argument("--request-id", default="")
     parser.add_argument("--staging-receipt", type=Path)
     parser.add_argument("--instruction-query", default="", help="Search the original public instructions in the same cold journey")
