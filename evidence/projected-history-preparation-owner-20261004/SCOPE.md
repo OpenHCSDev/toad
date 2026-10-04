@@ -45,9 +45,27 @@ aliases or overrides, runtime equivalence, installed UI behavior or duration.
 
 ## Remaining qualification
 
-After the coherent source change, extend the existing prefetch control to cover
-both raw/upstream branches, empty projected intervals, and source/demand
-revocation while projection is pending. No broad old App, movie, build or
-provider repeat is part of this checkpoint. Source-qualified and installed
-qualification will be reported separately. Full runway and continuous workflow
-performance remain unfinished.
+The existing `transcript_prefetch_pilot.projected_checks` now covers both
+raw/upstream branches, selected and empty projected intervals, bounded raw
+transport rounds, and source/demand revocation during actual category
+projection. Its held projection resumes the original category worker; the
+control creates no alternate source or projection answer. Original buffers and
+runtime workers are closed in the control's finalizers.
+
+`owner-after.json` records complete288/394/41/249 module coverage with zero
+omissions. The owning source has one projection invocation and four consumers:
+boundary, foreground, upstream prefetch and raw prefetch.
+
+One bounded source-control attempt under the system interpreter imported the
+retained Core and Textual wheels directly, with no installed-holder access.
+It stopped during Core import: `NativePackageError: Installed native package
+resources are unavailable`. Core's original import requires filesystem-backed
+packaged resources; importing its ZIP alone cannot supply that installed
+contract. No control assertion or native process ran. The original exit1,
+traceback and exact operands are retained in `source-controls.*`. No resource
+override or retry was made.
+
+The authored controls remain unexecuted pending an eligible named package/import
+purpose. No broad old App, movie, build or provider repeat is part of this
+checkpoint. Runtime qualification and installed UI behavior remain open. Full
+runway and continuous workflow performance also remain unfinished.
