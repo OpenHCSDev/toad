@@ -1,0 +1,33 @@
+{
+  "core": "03954605c0f1c75e60e1f09618e619edcedcd8cc",
+  "operator_core": "03954605c0f1c75e60e1f09618e619edcedcd8cc",
+  "toad": "716832a5883b56adb1f0bd1c5ca543bfe10f50b6",
+  "textual": "7ccfcf6af55ac6e743220aa0d2286b9763ccee27",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-d5efa0d56e7ad396/node_modules/@earendil-works/pi-coding-agent",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "archive_artifacts": [
+    {
+      "path": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/selected609-receiving416-20261004/core-wheel/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "c4606c3bc98109146be31b1df8e939c4ec151872b7ea1452d28d1ceab7ccb759"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "1c6c30fb50cf85396c999b1a2e0751f48b5a79260a855ba2caa02eb1890d33ab"
+    },
+    {
+      "path": "/home/ts/.cache/uv/sdists-v9/git/62f7f81f0cec9b83/3efcc03803400c10/textual-8.2.8-py3-none-any.whl",
+      "sha256": "517ad82a4ae1f7d6a5670276dc4ab8772e928dc2e03f7475b143460465157e96"
+    }
+  ],
+  "purpose": "416 qualified merged603/607/609 plus406/413, Text48, existingd5; explicit current411334 package-only grant",
+  "excluded": [
+    "608",
+    "610",
+    "live485",
+    "fallback534",
+    "style22",
+    "540"
+  ],
+  "no_new_environment": true,
+  "no_new_native": true
+}

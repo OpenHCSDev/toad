@@ -1,0 +1,10 @@
+{
+  "source_head": "716832a5883b56adb1f0bd1c5ca543bfe10f50b6",
+  "wheel": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+  "sha256": "1c6c30fb50cf85396c999b1a2e0751f48b5a79260a855ba2caa02eb1890d33ab",
+  "bytes": 2239834,
+  "local_source_build": true,
+  "actual_hatchling": "1.30.1",
+  "new_environment": false,
+  "new_source_clone": false
+}

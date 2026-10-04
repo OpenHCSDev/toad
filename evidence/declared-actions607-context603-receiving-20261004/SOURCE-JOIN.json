@@ -1,0 +1,55 @@
+{
+  "normal414_main": "12198e663795d6b8f754599e9e13255cac9fa054",
+  "qualified_menu_head": "f10aa9bdee4eae05c9c54a089a4b239945c0786a",
+  "qualified_context_frontend_head": "c21cdc15515c86276ebc87168955a0ea0f154e7b",
+  "actual_core603_merge": "0e28f21cd41e6af8391b2940bf6ae51cdab6b5e3",
+  "core607_ready_candidate_not_yet_merged": "8006623ffd535cbdc762dd916ab92b9288f45b07",
+  "normal_receiving_join": "191fa20d04202403ac877c254010bcf19d8a5c42",
+  "merge_conflicts": [],
+  "feature_pin_after_join": "0e28f21cd41e6af8391b2940bf6ae51cdab6b5e3",
+  "final_receiving_pin": "Actual reviewed mergedCore607, after parent merge; do not claim feature603 pin supplies607 actions",
+  "textual": "7ccfcf6af55ac6e743220aa0d2286b9763ccee27",
+  "native_manifest": "d5efa0d56e7ad3962bf3efc009adf1569167a260f1ceb46824c9271a0e7542a2",
+  "native_tree": "5ff27e716d8adc6cd1a2482fb90d35e24b4c4f837160f262ff05ee2c52769798",
+  "context_scope": "Current instruction/authenticated file scope qualified; complete recorded SDK text/search UI projection still incomplete",
+  "menu_scope": "Installed App plus same-bus CLI functional scope qualified; raw st pixels blank, ordinary physical menu pixels not qualified",
+  "packages_builds_native_provider_ui_writes": 0,
+  "receiving_holder_borrowed": false,
+  "excluded": [
+    "608",
+    "609",
+    "new Arendt provenance capture optimization not frozen/qualified"
+  ],
+  "original_owner_keeper_hashes": [
+    {
+      "source_head": "c21cdc15",
+      "path": "evidence/context-human-instruction-audit-20261003/READY.json",
+      "sha256": "bae5ffd9fdd36a8a60162da1c2d8fe46e4c50e9ad98ad455795a63c13c81e122",
+      "unchanged_in_receiving": true
+    },
+    {
+      "source_head": "c21cdc15",
+      "path": "evidence/context-human-instruction-audit-20261003/main414-core603-integration.json",
+      "sha256": "ce6efa4f0585df0e6aeec2f2aa5a22143ae47cb2a256c74d42b330a78aca7247",
+      "unchanged_in_receiving": true
+    },
+    {
+      "source_head": "f10aa9bd",
+      "path": "evidence/declared-target-menus-20261003/READY.json",
+      "sha256": "b5ca56c82fbbdc85fd880c6833bad183f53b698d68fe1f10486f01391114d332",
+      "unchanged_in_receiving": true
+    },
+    {
+      "source_head": "f10aa9bd",
+      "path": "evidence/declared-target-menus-20261003/installed-journey.json",
+      "sha256": "530a65c5b06ecbe94dacc80f2702108271209834a8e68a442158d42869e25a3a",
+      "unchanged_in_receiving": true
+    },
+    {
+      "source_head": "f10aa9bd",
+      "path": "evidence/declared-target-menus-20261003/CODE-HANDBACK.json",
+      "sha256": "f083604bd4be3032fe33060aac733e07471267ae53c6c1f11e43816d0faec127",
+      "unchanged_in_receiving": true
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "stage": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "pins": {
+    "agent_comms": "03954605c0f1c75e60e1f09618e619edcedcd8cc",
+    "toad": "2420f4c71b6c15ee5cb67f5c30c4b38b57815d89",
+    "textual": "3d6d4146fa04b0b0d46445b98b0c9bcc2761ef25"
+  },
+  "sdk": "0.12.1",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-d5efa0d56e7ad396/node_modules/@earendil-works/pi-coding-agent",
+  "state": "verified-immutable-cohort",
+  "staging_receipt_sha256": "12f52fe317c6e288ec1b43278f4b1c0f2c3faa60201e06663dc28dbec089d013"
+}

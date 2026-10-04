@@ -1,0 +1,56 @@
+[
+  {
+    "source": "0e28f21cd41e6af8391b2940bf6ae51cdab6b5e3",
+    "original_path": "evidence/context-source603-configured-publication-20261003/configured-receipt.json",
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/final41549/qualified-source-gates/603-configured.json",
+    "sha256": "ca0a8545c889a4dd9a540516cd16385ab3a4f9c061a61535cd21bf16cbca62ed"
+  },
+  {
+    "source": "03954605c0f1c75e60e1f09618e619edcedcd8cc",
+    "original_path": "evidence/declared-target-actions-20261003/READY.json",
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/final41549/qualified-source-gates/607-READY.json",
+    "sha256": "b5ca56c82fbbdc85fd880c6833bad183f53b698d68fe1f10486f01391114d332"
+  },
+  {
+    "source": "03954605c0f1c75e60e1f09618e619edcedcd8cc",
+    "original_path": "evidence/selected-native-acquisition-lifetime-20261004/installed-receipt.json",
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/final41549/qualified-source-gates/609-installed.json",
+    "sha256": "ee0d123ffea995c0a2170fc17b88b42bb82ff3fc90e815c714ebfd7e6820f74d"
+  },
+  {
+    "source": "77149570ec70679ec42d8f94316c08dbfc391f89",
+    "original_path": "evidence/declared-target-menus-20261003/installed-journey.json",
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/final41549/qualified-source-gates/413-installed.json",
+    "sha256": "530a65c5b06ecbe94dacc80f2702108271209834a8e68a442158d42869e25a3a"
+  },
+  {
+    "source": "eb529624a8bb927a6a0b89ae3880305e0e4e61ba",
+    "original_path": "evidence/context-human-instruction-audit-20261003/READY.json",
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/final41549/qualified-source-gates/406-READY.json",
+    "sha256": "bae5ffd9fdd36a8a60162da1c2d8fe46e4c50e9ad98ad455795a63c13c81e122"
+  },
+  {
+    "source": "d41601c16d74e9e3e4195b6527fb218b8fe14af9",
+    "original_path": "evidence/cold-native-info-publication-20261003/installed-receipt.json",
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/final41549/qualified-source-gates/606-installed.json",
+    "sha256": "8051135ec87dc48a38a32bf704d9b40218c8a9e65fa61d3c3dbf57ae212c320e"
+  },
+  {
+    "source": "8622069433d348556d9e2c3975fafbcb0282086f",
+    "original_path": "evidence/reader-motion-custody-owner-20261003/READY.json",
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/final41549/qualified-source-gates/415-READY.json",
+    "sha256": "caf5ebaa4817987b844f841dcdc92d1baddb44c9f5bd797ceffeb1b34f1932b2"
+  },
+  {
+    "source": "d41601c16d74e9e3e4195b6527fb218b8fe14af9",
+    "original_path": "evidence/context-segment-capture-20261003/READY.json",
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/final41549/qualified-source-gates/610-SDK-READY.json",
+    "sha256": "ce9e77085bba52e6377fc4704518f40c89208952ad5966910d75398fcc6918be"
+  },
+  {
+    "source": "d41601c16d74e9e3e4195b6527fb218b8fe14af9",
+    "original_path": "evidence/input-drain-fixture-retirement-20261004/READY.json",
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/final41549/qualified-source-gates/611-READY.json",
+    "sha256": "867a30cc22220d5f28b8b9f69078ad1bc4b88fbafa5dce7bdd753897d8864bbb"
+  }
+]

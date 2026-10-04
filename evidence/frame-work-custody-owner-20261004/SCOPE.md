@@ -84,3 +84,12 @@ remain original observations. Existing Package AST tools-root parse has zero
 omissions; before/after consumer evidence is native50-export-consumer.json.
 The next needed physical workflow's required native exports validate this seam;
 no extra App check or recording for this one removed private diagnostic.
+
+## Matched public launch now released
+
+Parent's416 publication now supplies actual Core611 d416/native2ea on the public
+route. Join the retained normal611 wheel and its immutable native2ea artifact;
+Core039/D5 probe refusal stays historical, not a UI failure. No override or
+private substitute. Normal main join keeps all accepted frontend families and
+uses native50 for this changed418 physical run. Original installed App with
+039/D5/49 remains at that exact scope; source-unchanged frame code is preserved.
