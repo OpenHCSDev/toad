@@ -207,3 +207,29 @@ directly with its owner; TreeNode.line alone is a cached field, not a solution.
 Qualified615 receiving source is normally joined. One affected native/recorded
 reader journey will use the explicitly granted previous485 candidate, original
 c603p01 request/fork/incarnation and no new input/provider/fork.
+
+## Typed F3 installed11
+
+Current-main union d7cd preserves the frozen F3 production source and adopts the
+merged typed ContextSegment labels. Retained Core421, Text53 and NRA file wheels
+were used in the explicitly granted style22 holder. Full source/trust proof:
+339 Core,319 Toad,266 Textual,3 unchanged diff assets;69 packages compatible.
+
+Actual App ran19.043s. Contributor removal/return retained the original selected
+native TreeNode. Unmount released its node map and preserved reader intent.
+Remount retained the selected System/0 key but failed the native cursor identity
+assertion before physical launch. No movie or images, provider/input/fork/priming.
+The original saved/public source hashes and input disposition are unchanged;
+the owned native child retired. Export/distinct authenticated child remains
+unfinished. Raw terminal and receipt are retained under installed11/.
+
+Source cause: Tree.move_cursor reads node._line before its reactive validator
+acquires the lazy _tree_lines projection. A newly materialized node starts at
+-1; validation builds its actual line but clamps the previously captured -1 to
+root0. The owning Textual Tree must acquire its projection before choosing the
+line; no reader timing delay or copied cursor state is justified. This is a
+source finding, not a second installed acceptance. Shared owner notified.
+
+Whole style22 floor restored: exact original normal wheels and original NRA
+archive bytes/origin,1459 file/symlink members verified,69 compatible,privileged
+borrower read0refs/0gaps. No future code/import/build/execution claim.
