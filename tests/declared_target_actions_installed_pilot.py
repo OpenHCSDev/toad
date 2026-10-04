@@ -143,11 +143,16 @@ async def started_target_connections(base):
     evidence = base / 'start-connections'
     evidence.mkdir()
     os.environ['L0A_EVIDENCE'] = str(evidence)
+    os.environ['TMPDIR'] = str(base)
     calls = []
+    frames = set()
     code = AgentSession.reconnect.__code__
 
     def observe(frame, event, _argument):
-        if event == 'call' and frame.f_code is code:
+        if event == 'call' and frame.f_code is code and frame not in frames:
+            # Coroutine resumes report another call event for the same frame.
+            # Keep each actual invocation once, without replacing the method.
+            frames.add(frame)
             calls.append(frame.f_locals['self'].agent)
 
     async def acceptance(app, pilot, actor, comms, _entered, _release, _hold, requests):
