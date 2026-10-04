@@ -21,7 +21,7 @@ wheels = [
 [[package]]
 name = "agent-comms"
 version = "0.1.0"
-source = { git = "https://github.com/OpenHCSDev/agent-comms.git?rev=486b83666509b5db711017916343853bf8b38237#486b83666509b5db711017916343853bf8b38237" }
+source = { git = "https://github.com/OpenHCSDev/agent-comms.git?rev=7a5c5fc2e79f2e32e4f340eaba573bf1bfec69bf#7a5c5fc2e79f2e32e4f340eaba573bf1bfec69bf" }
 dependencies = [
     { name = "metaclass-registry" },
     { name = "nominal-refactor-audit" },
@@ -305,7 +305,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "agent-client-protocol", specifier = "==0.12.1" },
-    { name = "agent-comms", extras = ["acp"], git = "https://github.com/OpenHCSDev/agent-comms.git?rev=486b83666509b5db711017916343853bf8b38237" },
+    { name = "agent-comms", extras = ["acp"], git = "https://github.com/OpenHCSDev/agent-comms.git?rev=7a5c5fc2e79f2e32e4f340eaba573bf1bfec69bf" },
     { name = "aiosqlite", specifier = "==0.22.1" },
     { name = "bashlex", specifier = "==0.18" },
     { name = "click", specifier = "==8.4.0" },
@@ -319,7 +319,7 @@ requires-dist = [
     { name = "pyperclip", specifier = "==1.11.0" },
     { name = "rich", specifier = "==15.0.0" },
     { name = "setproctitle", specifier = "==1.3.7" },
-    { name = "textual", extras = ["syntax"], git = "https://github.com/OpenHCSDev/textual.git?rev=bb936deb08cff0b676385007df52759c84356b78" },
+    { name = "textual", extras = ["syntax"], git = "https://github.com/OpenHCSDev/textual.git?rev=0017eebee2f7a1e725732f39dacca7b461114696" },
     { name = "textual-diff-view", git = "https://github.com/OpenHCSDev/textual-diff-view.git?rev=8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9" },
     { name = "textual-serve", specifier = "==1.1.3" },
     { name = "textual-speedups", specifier = "==0.2.1" },
@@ -986,7 +986,7 @@ wheels = [
 [[package]]
 name = "nominal-refactor-audit"
 version = "0.1.0"
-source = { git = "https://github.com/OpenHCSDev/NominalRefactorAdvisor.git?subdirectory=skills%2Frefactor-audit&rev=d392c5e4cd189ce1203127a746337ad498a0330d#d392c5e4cd189ce1203127a746337ad498a0330d" }
+source = { git = "https://github.com/OpenHCSDev/NominalRefactorAdvisor.git?subdirectory=skills%2Frefactor-audit&rev=9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10#9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10" }
 
 [[package]]
 name = "notify-py"
@@ -1549,7 +1549,7 @@ wheels = [
 [[package]]
 name = "textual"
 version = "8.2.8"
-source = { git = "https://github.com/OpenHCSDev/textual.git?rev=bb936deb08cff0b676385007df52759c84356b78#bb936deb08cff0b676385007df52759c84356b78" }
+source = { git = "https://github.com/OpenHCSDev/textual.git?rev=0017eebee2f7a1e725732f39dacca7b461114696#0017eebee2f7a1e725732f39dacca7b461114696" }
 dependencies = [
     { name = "markdown-it-py", extra = ["linkify"] },
     { name = "mdit-py-plugins" },
