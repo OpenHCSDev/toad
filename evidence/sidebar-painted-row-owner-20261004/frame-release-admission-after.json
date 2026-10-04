@@ -1,0 +1,169 @@
+{
+  "head": "930ee0ec81a76e5abac68871835f33f70472a6e1",
+  "roots": [
+    {
+      "root": "src/toad",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "parsed": 392,
+      "omissions": []
+    },
+    {
+      "root": "tools",
+      "parsed": 41,
+      "omissions": []
+    }
+  ],
+  "declarations": [
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 168,
+      "source": "def release_frame_callback(self, owner, callback) -> bool:\n    \"\"\"Inactive native scenes retain their work for their next frame.\"\"\"\n    if not self.is_current:\n        return False\n    return self.app.workspace_sessions.release_frame_callback(owner, callback)"
+    },
+    {
+      "path": "src/toad/workspace_sessions.py",
+      "line": 159,
+      "source": "def release_frame_callback(self, owner, callback) -> bool:\n    \"\"\"Admit mounted work through its original logical source binding.\n\n        Hidden session mounts retain their same frame callback; workspace\n        chrome has no session binding. Native attachment and writer custody\n        remain with the frame, and the owner's pump executes source I/O.\n        \"\"\"\n    from toad.screens.session_view import SessionView\n    for view in owner.walk_ancestors(with_self=True):\n        if isinstance(view, SessionView):\n            if not self.owns(view):\n                return False\n            break\n    owner.call_later(callback)\n    return True"
+    }
+  ],
+  "calls": [
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 223,
+      "source": "self.controller.surface.owns(surface)"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 88,
+      "source": "self.surface.owns(binding.target)"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 101,
+      "source": "self.surface.owns(target)"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 47,
+      "source": "binding.owns(surface)"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 78,
+      "source": "binding.owns(surface)"
+    },
+    {
+      "path": "src/toad/acp/terminal_owner.py",
+      "line": 26,
+      "source": "self.surface.owns(target)"
+    },
+    {
+      "path": "src/toad/agent_surface.py",
+      "line": 62,
+      "source": "self.owns(view)"
+    },
+    {
+      "path": "src/toad/agent_surface.py",
+      "line": 153,
+      "source": "self.owns(target)"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 164,
+      "source": "self.screen.release_frame_callback(owner, callback)"
+    },
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 51,
+      "source": "session.owns(agent)"
+    },
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 180,
+      "source": "self.owns(agent)"
+    },
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 189,
+      "source": "self.owns(agent)"
+    },
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 109,
+      "source": "session.owns(agent)"
+    },
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 160,
+      "source": "self.owns(view.agent)"
+    },
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 165,
+      "source": "self.owns(agent)"
+    },
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 172,
+      "source": "self.owns(agent)"
+    },
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 192,
+      "source": "self.owns(agent)"
+    },
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 201,
+      "source": "self.owns(agent)"
+    },
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 204,
+      "source": "self.owns(agent)"
+    },
+    {
+      "path": "src/toad/screens/session_view.py",
+      "line": 26,
+      "source": "self.app.workspace_sessions.owns(self)"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 172,
+      "source": "self.app.workspace_sessions.release_frame_callback(owner, callback)"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 559,
+      "source": "view.app.workspace_sessions.owns(source)"
+    },
+    {
+      "path": "src/toad/workspace_sessions.py",
+      "line": 170,
+      "source": "self.owns(view)"
+    },
+    {
+      "path": "tests/client_session_native_installed_pilot.py",
+      "line": 98,
+      "source": "agent.controller.surface.owns(returned)"
+    },
+    {
+      "path": "tests/native_permission_ui.py",
+      "line": 90,
+      "source": "self.agent.controller.surface.owns(previous)"
+    },
+    {
+      "path": "tests/permission_pending_mount_pilot.py",
+      "line": 65,
+      "source": "agent.controller.surface.owns(original)"
+    }
+  ],
+  "limits": "All declared Toad, test and tool roots parsed. Dotted names do not prove external overrides/dynamic aliases.",
+  "release_family_equality": {
+    "src/toad/widgets/conversation.py": true,
+    "src/toad/session_presentation.py": true
+  }
+}

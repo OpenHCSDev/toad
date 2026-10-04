@@ -1,0 +1,62 @@
+{
+  "source_head": "15cc0345d9331b595c68e4c231203da9edb29f71",
+  "normal_main": "af1ad597a8611bd9c0b4f85f00ed0365f9bc5f8c",
+  "original_installed_toad": "4d51775ac7e5f03e84b2338312cf252019bd5201",
+  "normal_join_products_tools_tests_equal_af57": true,
+  "determining_delta": {
+    "files": 12,
+    "added": 121,
+    "deleted": 149
+  },
+  "complete_AST": [
+    {
+      "revision": "31c93c7c41a542c352f6b78eb4ae0d8d73f92a61",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "revision": "4d51775ac7e5f03e84b2338312cf252019bd5201",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "revision": "15cc0345d9331b595c68e4c231203da9edb29f71",
+      "modules": 288,
+      "omissions": []
+    }
+  ],
+  "full_file_byte_equal": [
+    "src/toad/app.py",
+    "src/toad/frame_presentation.py",
+    "src/toad/screens/workspace.py",
+    "src/toad/sidebar_projection.py",
+    "src/toad/widgets/comms_sidebar.py",
+    "src/toad/widgets/session_sidebar.py",
+    "src/toad/widgets/session_tabs.py",
+    "src/toad/widgets/side_bar.py",
+    "src/toad/widgets/thread_comms.py",
+    "src/toad/workspace_sessions.py"
+  ],
+  "remaining_owned_methods_byte_equal": [
+    {
+      "path": "src/toad/screens/comms.py",
+      "owner": "CommsScreen._load_content",
+      "original_source_sha256": "7097e186bfdc936f4a85030d37e33ba47ef02dd2a050d2d3e8e2fbbb5f46fdd1",
+      "current_source_sha256": "7097e186bfdc936f4a85030d37e33ba47ef02dd2a050d2d3e8e2fbbb5f46fdd1",
+      "byte_equal": true
+    },
+    {
+      "path": "src/toad/session_admission.py",
+      "owner": "NativeSessionAdmission.tab",
+      "original_source_sha256": "9a73e3417ee56a1bd38bc19427d8a148e86b3128c1044275ef3a931391002337",
+      "current_source_sha256": "9a73e3417ee56a1bd38bc19427d8a148e86b3128c1044275ef3a931391002337",
+      "byte_equal": true
+    }
+  ],
+  "two_file_whole_byte_equality": false,
+  "two_file_difference": "Accepted F4 main changes CommsScreen typed constructor/kind methods and HistorySessionAdmission kind. NativeSessionAdmission.tab and CommsScreen._load_content owned by426 are exact original installed bytes. WholeF4/newCore union is not relabeled as newinstalledApp result.",
+  "core_pin": "7a5c5fc2e79f2e32e4f340eaba573bf1bfec69bf",
+  "textual_pin": "ace479c7e602a1f804bc8cc6b6fd5bf90d518733",
+  "native55_source_tests_pyproject_equal_original_bb936": true,
+  "limits": "Git byte equality for original owned files/methods; complete refactor-audit AST source evidence with no parse omissions. External dynamic subclass/alias resolution not proved; no wholephysical/nativegoal/performance claim."
+}

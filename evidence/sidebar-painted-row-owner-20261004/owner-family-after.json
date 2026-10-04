@@ -1,0 +1,365 @@
+{
+  "head": "900c57386874a3ba5c8bd562894209ddd664262d",
+  "roots": [
+    {
+      "root": "src/toad",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "parsed": 392,
+      "omissions": []
+    },
+    {
+      "root": "tools",
+      "parsed": 41,
+      "omissions": []
+    }
+  ],
+  "removed_names": {
+    "_atomic_mode_switch": 0,
+    "_pending_mode_switch": 0,
+    "painted_busy_rows": 0,
+    "present_navigation": 0
+  },
+  "current_consumers": [
+    {
+      "path": "src/toad/app.py",
+      "line": 467,
+      "kind": "AsyncFunctionDef",
+      "name": "_switch_mode_ready",
+      "source": "async def _switch_mode_ready(self, mode: str, *, history_index: int | None = None) -> None:"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 352,
+      "kind": "Attribute",
+      "name": "release",
+      "source": "self.background_render_slots.release()"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 436,
+      "kind": "Attribute",
+      "name": "_switch_mode_ready",
+      "source": "return AwaitComplete(self._switch_mode_ready(mode, history_index=history_index))"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 340,
+      "kind": "Attribute",
+      "name": "release",
+      "source": "self.background_render_slots.release()"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 66,
+      "kind": "FunctionDef",
+      "name": "defer",
+      "source": "def defer(self, frame, owner, callback):"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 112,
+      "kind": "FunctionDef",
+      "name": "defer",
+      "source": "def defer(self, frame, owner, callback):"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 118,
+      "kind": "FunctionDef",
+      "name": "defer",
+      "source": "def defer(self, frame, owner, callback):"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 149,
+      "kind": "FunctionDef",
+      "name": "defer",
+      "source": "def defer(self, owner: Widget, callback: Callable[[], object]) -> None:"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 153,
+      "kind": "FunctionDef",
+      "name": "release",
+      "source": "def release(self, owner: Widget, callback: Callable[[], object]) -> None:"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 113,
+      "kind": "Attribute",
+      "name": "defer",
+      "source": "super().defer(frame, owner, callback)"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 114,
+      "kind": "Attribute",
+      "name": "release",
+      "source": "owner.call_after_refresh(frame.release, owner, callback)"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 151,
+      "kind": "Attribute",
+      "name": "defer",
+      "source": "self.state.defer(self, owner, callback)"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 192,
+      "kind": "Attribute",
+      "name": "release",
+      "source": "self.release(owner, callback)"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 174,
+      "kind": "Attribute",
+      "name": "defer",
+      "source": "self.screen.frame_presentation.defer(self, self._start_hydration)"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 173,
+      "kind": "AsyncFunctionDef",
+      "name": "remove_native_tree",
+      "source": "async def remove_native_tree(self) -> None:"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 171,
+      "kind": "Attribute",
+      "name": "remove_native_tree",
+      "source": "await self.remove_native_tree()"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 176,
+      "kind": "Attribute",
+      "name": "release_native_session",
+      "source": "await conversation.release_native_session()"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 277,
+      "kind": "Attribute",
+      "name": "remove_native_tree",
+      "source": "await owner.remove_native_tree()"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 63,
+      "kind": "Attribute",
+      "name": "defer",
+      "source": "screen.frame_presentation.defer(self.sidebar, self.sidebar.navigation.start)"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 84,
+      "kind": "Attribute",
+      "name": "defer",
+      "source": "screen.frame_presentation.defer(self.sidebar, self.start_read)"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 75,
+      "kind": "Attribute",
+      "name": "painted_rows",
+      "source": "for row in self.sidebar.painted_rows():"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 76,
+      "kind": "Attribute",
+      "name": "advance_spinner",
+      "source": "row.advance_spinner(self.phase)"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 65,
+      "kind": "Attribute",
+      "name": "busy",
+      "source": "if active and self.has_snapshot() and any(row.busy for row in self.rows):"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 521,
+      "kind": "AsyncFunctionDef",
+      "name": "_release_source_resources",
+      "source": "async def _release_source_resources(self) -> None:"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 531,
+      "kind": "AsyncFunctionDef",
+      "name": "release_native_session",
+      "source": "async def release_native_session(self) -> None:"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1408,
+      "kind": "Attribute",
+      "name": "busy",
+      "source": "if self.turns.owner.busy:"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1416,
+      "kind": "Attribute",
+      "name": "busy",
+      "source": "if self.turns.owner.busy:"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 534,
+      "kind": "Attribute",
+      "name": "_release_source_resources",
+      "source": "await self._release_source_resources()"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1054,
+      "kind": "Attribute",
+      "name": "_release_source_resources",
+      "source": "await self._release_source_resources()"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 598,
+      "kind": "Attribute",
+      "name": "defer",
+      "source": "screen.frame_presentation.defer(self, start_agent)"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 806,
+      "kind": "Attribute",
+      "name": "busy",
+      "source": "lambda: self.busy_count > 0 or self.turns.owner.busy, id=\"throbber\""
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1164,
+      "kind": "Attribute",
+      "name": "busy",
+      "source": "self.turns.owner.busy"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 54,
+      "kind": "FunctionDef",
+      "name": "busy",
+      "source": "def busy(self) -> bool:"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 57,
+      "kind": "FunctionDef",
+      "name": "advance_spinner",
+      "source": "def advance_spinner(self, phase: int) -> None:"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 55,
+      "kind": "Attribute",
+      "name": "busy",
+      "source": "return self._thread_presentation is not None and self._thread_presentation.busy"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 58,
+      "kind": "Attribute",
+      "name": "busy",
+      "source": "if self._spinner_phase == phase or not self.busy:"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 77,
+      "kind": "Attribute",
+      "name": "busy",
+      "source": "self.update_classes({\"-wire-thread\": True, \"-busy\": prepared.busy,"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 33,
+      "kind": "FunctionDef",
+      "name": "painted_rows",
+      "source": "def painted_rows(self):"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 709,
+      "kind": "Attribute",
+      "name": "defer",
+      "source": "screen.frame_presentation.defer(self, self._start_hydration)"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 283,
+      "kind": "Attribute",
+      "name": "painted_rows",
+      "source": "for row in self.painted_rows():"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 284,
+      "kind": "Attribute",
+      "name": "advance_spinner",
+      "source": "row.advance_spinner(self._spinner_phase)"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 270,
+      "kind": "Attribute",
+      "name": "busy",
+      "source": "and any(row.busy for group in self.groups.values() for row in group.rows.values())):"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 697,
+      "kind": "FunctionDef",
+      "name": "release",
+      "source": "def release(self, window) -> None:"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 850,
+      "kind": "Attribute",
+      "name": "defer",
+      "source": "self.window.screen.frame_presentation.defer(self.window, self.request)"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 986,
+      "kind": "Attribute",
+      "name": "defer",
+      "source": "self.window.screen.frame_presentation.defer(self.window, self.request)"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1139,
+      "kind": "Attribute",
+      "name": "defer",
+      "source": "self.window.screen.frame_presentation.defer(self.window, self.request)"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1089,
+      "kind": "Attribute",
+      "name": "defer",
+      "source": "screen.frame_presentation.defer(self.window, self.request)"
+    },
+    {
+      "path": "src/toad/workspace_chrome.py",
+      "line": 45,
+      "kind": "Attribute",
+      "name": "defer",
+      "source": "screen.frame_presentation.defer(roster, roster.navigation.start)"
+    }
+  ],
+  "limits": "Entire declared roots parsed; related nominal direct consumers extracted, same-spelling subjects are shown not presumed resolved. External dynamic resolution and aliases not proved. No execution or speed claim. Native dependency ownership unchanged by Toad checkpoint; corrected Native55 source controls and artifact are independently owned."
+}

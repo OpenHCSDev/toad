@@ -134,8 +134,8 @@ class NativeSessionAdmission(SessionAdmission):
     def tab(self, sessions: SessionAdmissions, snapshot) -> OpenTab:
         source = self.source(sessions)
         name = source._comms_thread if source else ""
-        presentations = {thread.thread.name: thread.presentation for thread in snapshot.threads} if snapshot else {}
-        presentation = presentations.get(name)
+        presentation = next((thread.presentation for thread in snapshot.threads
+                             if thread.thread.name == name), None) if snapshot else None
         return OpenTab(self.mode, presentation.label if presentation else self.details.title or "New Session",
                        UnreadPresentation.for_thread(snapshot, name) if snapshot else ExactUnread())
 

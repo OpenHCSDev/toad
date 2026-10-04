@@ -1,0 +1,166 @@
+{
+  "state": "SCOPED READY: async source/frame admission and sidebar/tab ownership; full performance continuation ACTIVE",
+  "determining_source_head": "15cc0345d9331b595c68e4c231203da9edb29f71",
+  "normal_main": "af1ad597a8611bd9c0b4f85f00ed0365f9bc5f8c",
+  "determining_production_delta": {
+    "files": 12,
+    "added": 121,
+    "deleted": 149
+  },
+  "source_equality": {
+    "full_files": 10,
+    "changed_owned_methods_in_two_F4_files": [
+      {
+        "path": "src/toad/screens/comms.py",
+        "owner": "CommsScreen._load_content",
+        "original_source_sha256": "7097e186bfdc936f4a85030d37e33ba47ef02dd2a050d2d3e8e2fbbb5f46fdd1",
+        "current_source_sha256": "7097e186bfdc936f4a85030d37e33ba47ef02dd2a050d2d3e8e2fbbb5f46fdd1",
+        "byte_equal": true
+      },
+      {
+        "path": "src/toad/session_admission.py",
+        "owner": "NativeSessionAdmission.tab",
+        "original_source_sha256": "9a73e3417ee56a1bd38bc19427d8a148e86b3128c1044275ef3a931391002337",
+        "current_source_sha256": "9a73e3417ee56a1bd38bc19427d8a148e86b3128c1044275ef3a931391002337",
+        "byte_equal": true
+      }
+    ],
+    "whole_two_file_equal": false,
+    "qualification_limit": "Accepted F4 main changes CommsScreen typed constructor/kind methods and HistorySessionAdmission kind. NativeSessionAdmission.tab and CommsScreen._load_content owned by426 are exact original installed bytes. WholeF4/newCore union is not relabeled as newinstalledApp result."
+  },
+  "source_pins": {
+    "agent_comms": "7a5c5fc2e79f2e32e4f340eaba573bf1bfec69bf",
+    "textual": "ace479c7e602a1f804bc8cc6b6fd5bf90d518733"
+  },
+  "original_installed_cohort": {
+    "toad": "4d51775ac7e5f03e84b2338312cf252019bd5201",
+    "agent_comms": "486b83666509b5db711017916343853bf8b38237",
+    "textual_build": "bb936deb08cff0b676385007df52759c84356b78",
+    "native_manifest": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
+    "packages": 69,
+    "assets": {
+      "agent_comms": 339,
+      "toad": 319,
+      "textual": 266,
+      "textual_diff_view": 3
+    }
+  },
+  "accepted_installed_app_cases": [
+    {
+      "case": "blank_presentation_pilot.py",
+      "risk": "Changed session switching: warm A/B/A, original draft Undo, shell/watcher custody and complete disposal",
+      "exit_code": 0,
+      "duration_seconds": 14.394317290978506,
+      "log": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame426-native55-20261004/blank_presentation_pilot.py.log",
+      "log_sha256": "b5608428c68fc96d7da64ba6d156285a4732bfe68190b6a0ed5850a90dac5831"
+    },
+    {
+      "case": "sidebar_drag_resize_pilot.py",
+      "risk": "Changed asynchronous/native style publication: pointer drag and mirrored width/collapse geometry",
+      "exit_code": 0,
+      "duration_seconds": 10.988262036000378,
+      "log": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame426-native55-20261004/sidebar_drag_resize_pilot.py.log",
+      "log_sha256": "0f8045b35cbcf6b6bb1aea2c6cdb01a86aab54771b62a8066fb9607a7090e187"
+    },
+    {
+      "case": "viewport_rapid_scroll_pilot.py",
+      "risk": "Changed frame scheduling: cold body/reversal/End readiness and preserved draft/idle boundedness",
+      "exit_code": 0,
+      "duration_seconds": 39.695415111025795,
+      "log": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame426-native55-20261004/viewport_rapid_scroll_pilot.py.log",
+      "log_sha256": "def7c549cfed16b77833b8f39a10559bdd18d61b436fb5a8d33d9f5052bf94ce"
+    },
+    {
+      "case": "blank_presentation_pilot --frame-only",
+      "exit_code": 0,
+      "duration_seconds": 7.781353428028524,
+      "log": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame426-native55-20261004/frame-admission-app01.log",
+      "risk": "Hidden/inactive source admission retained; current Screen paints during pending source I/O; no global Pilot idle barrier",
+      "log_sha256": "0411f6154d6eecb6d7c1060209ec36316366eb8ced2a3db80ace067721f7d2e0"
+    }
+  ],
+  "preserved_pre_app_failure": {
+    "case": {
+      "case": "native_goal_read_first_paint_pilot.py",
+      "risk": "Changed frame/source admission: actual native/SDK return paints while original goal read remains held",
+      "exit_code": 1,
+      "duration_seconds": 0.11452679894864559,
+      "log": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame426-native55-20261004/native_goal_read_first_paint_pilot.py.log",
+      "log_sha256": "dea54388f8359e27ecbc8ab0c712b51d84e77b17eea76e95760d7c06cdeba270"
+    },
+    "classification": "Runner omitted CORE_FIXTURE_TESTS; failed on import before App/native fixture. Required specialized original fixture contains UNKNOWN compaction outcome and was not borrowed or replayed. No goal-read/native socket acceptance."
+  },
+  "frame_scope": {
+    "result": "pass",
+    "installed_toad": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/__init__.py",
+    "hidden_source_retained_until_selected": true,
+    "native_paint_during_pending_source_callback": true,
+    "inactive_workspace_retained_until_return": true,
+    "provider_calls": 0,
+    "native_inputs": 0,
+    "scope": "Original installed App, source selection and native compositor; synchronous test driver, no terminal writer or physical motion claim"
+  },
+  "raw_keepers": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame426-native55-20261004/blank_presentation_pilot.py.log",
+      "sha256": "b5608428c68fc96d7da64ba6d156285a4732bfe68190b6a0ed5850a90dac5831"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame426-native55-20261004/sidebar_drag_resize_pilot.py.log",
+      "sha256": "0f8045b35cbcf6b6bb1aea2c6cdb01a86aab54771b62a8066fb9607a7090e187"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame426-native55-20261004/viewport_rapid_scroll_pilot.py.log",
+      "sha256": "def7c549cfed16b77833b8f39a10559bdd18d61b436fb5a8d33d9f5052bf94ce"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame426-native55-20261004/frame-admission-app01.log",
+      "sha256": "0411f6154d6eecb6d7c1060209ec36316366eb8ced2a3db80ace067721f7d2e0"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame426-native55-20261004/native_goal_read_first_paint_pilot.py.log",
+      "sha256": "dea54388f8359e27ecbc8ab0c712b51d84e77b17eea76e95760d7c06cdeba270"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame426-native55-20261004/source-proof.json",
+      "sha256": "f48b3cfef8b6e9d9b2e8bcfcca87bb984aed0810acb647f9f6916cb80ea9a381"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/sidebar-painted-row-owner-20261004/APP-QUALIFIED.json",
+      "sha256": "06e36b9349e5e1f2fffde80f1b7e403f46995689643724d1256c413bd71eeb44"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/sidebar-painted-row-owner-20261004/QUALIFIED-MAIN-JOIN.json",
+      "sha256": "1a8d1767addcc2eb0d7f4c4598dae4e0fd65031bc82f25c60c20e0a4ebc1b4d6"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/sidebar-painted-row-owner-20261004/CODE-HANDBACK.json",
+      "sha256": "23426b3caacd4b356d0cde0b049f562cb000e0484e2b1a602726fe45dd7643d4"
+    }
+  ],
+  "native55_merged_source_equal_original_wheel": true,
+  "public_movie_launched": false,
+  "matched_public_native086_missing_is_not_scoped_ready_hold": true,
+  "style22_code_purpose_closed": true,
+  "new_lease_assumed": false,
+  "remaining_scope": [
+    "full actual motion/CPU/frame/input-to-paint acceptance",
+    "tool/message replacement retained-resource owner closure",
+    "rapid preparation runway/velocity/reversal/End/growing history",
+    "DM/IRC/thread-open/tab/sidebar physical workflow",
+    "TC1/T4/T9 and configurable144Hz"
+  ],
+  "claims_not_made": [
+    "terminal presentation rate",
+    "smoothness",
+    "comparative or total CPU gain",
+    "actual held native goal read",
+    "full performance completion"
+  ],
+  "automatic_debt": {
+    "source_head": "15cc0345d9331b595c68e4c231203da9edb29f71",
+    "result": "SUCCESS",
+    "job": "https://github.com/OpenHCSDev/toad/actions/runs/37189274362/job/111397871222",
+    "suite": "SKIPPED; no broad rerun"
+  }
+}
