@@ -105,6 +105,7 @@ async def main(output):
                 releases.append(release)
                 retired = resource.fragment_views[-1]
                 retired.unmount_receipt = entered, release, finished
+                retired_task = retired._task
                 async with view.window.history_lock:
                     async with view.window.preserve_history(None):
                         resource.trim(1, older=False)
@@ -145,7 +146,7 @@ async def main(output):
                 release.set()
                 async with asyncio.timeout(5):
                     await finished.wait()
-                    await asyncio.shield(retired._task)
+                    await asyncio.shield(retired_task)
                 checks["original_child_unmount_and_unregister_complete"] = retired.parent is None
 
                 # Cancellation at a genuine leaf Mount must not transfer the
@@ -163,6 +164,7 @@ async def main(output):
                 async with asyncio.timeout(5):
                     await mount_entered.wait()
                 acquiring = tuple(child for child in resource.children if child not in before_rows)
+                acquiring_tasks = tuple(child._task for child in acquiring)
                 task.cancel()
                 result = (await asyncio.gather(task, return_exceptions=True))[0]
                 checks["cancelled_mount_keeps_committed_rows_and_bounds"] = (
@@ -171,7 +173,7 @@ async def main(output):
                     and bool(acquiring) and all(child._pruning for child in acquiring))
                 resource._body = original_body
                 mount_release.set()
-                await asyncio.gather(*(child._task for child in acquiring), return_exceptions=True)
+                await asyncio.gather(*acquiring_tasks, return_exceptions=True)
 
                 page_entered, page_release = asyncio.Event(), asyncio.Event()
                 releases.append(page_release)
@@ -194,6 +196,7 @@ async def main(output):
                         await page_entered.wait()
                     acquiring_pages = tuple(child for child in history.children
                                             if isinstance(child, PendingPage) and child not in before_pages)
+                    acquiring_page_tasks = tuple(child._task for child in acquiring_pages)
                     task.cancel()
                     result = (await asyncio.gather(task, return_exceptions=True))[0]
                     checks["cancelled_page_mount_does_not_commit_native_candidate"] = (
@@ -203,7 +206,7 @@ async def main(output):
                 finally:
                     PendingPage.mount_receipt = None
                     page_release.set()
-                await asyncio.gather(*(child._task for child in acquiring_pages), return_exceptions=True)
+                await asyncio.gather(*acquiring_page_tasks, return_exceptions=True)
 
                 # Both projections borrow original prepared-source ownership;
                 # late removal of the first cannot clear the second admission.
@@ -216,13 +219,14 @@ async def main(output):
                     await history.mount(overlay, before=history.newer)
                     projections.append(admitted)
                 stale, newer_state = projections
+                stale_task, newer_task = (state.view._task for state in projections)
                 stale.remove(history.filter)
                 checks["stale_filter_cleanup_preserves_newer_admission"] = (
                     history.filter.state is newer_state and stale.view._pruning
                     and history.filter.owns_projection(newer_state.view) and not newer_state.view._pruning)
-                await asyncio.gather(stale.view._task, return_exceptions=True)
+                await asyncio.gather(stale_task, return_exceptions=True)
                 history.filter.remove()
-                await asyncio.gather(newer_state.view._task, return_exceptions=True)
+                await asyncio.gather(newer_task, return_exceptions=True)
 
                 source_cases = []
                 for cause in ("revision", "parked", "loader"):
