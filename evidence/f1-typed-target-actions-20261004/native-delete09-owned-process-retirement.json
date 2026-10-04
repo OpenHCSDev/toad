@@ -1,0 +1,28 @@
+{
+  "state": "assertions PASS; whole shutdown FAILED; exact owned fixture group retired separately",
+  "leader": {
+    "pid": 2770084,
+    "start_time": 56873436
+  },
+  "members": [
+    {
+      "pid": 2770084,
+      "start_time": 56873436
+    },
+    {
+      "pid": 2770155,
+      "start_time": 56873690
+    },
+    {
+      "pid": 2770173,
+      "start_time": 56873741
+    }
+  ],
+  "before_cleanup_refusal": "Leader attempt environment disappeared after original Textual process-title mutation; initial environment assertion refused before any effect. Original birth/cwd/group + child attempt/root/prefix bind actual owned group.",
+  "reason": "App shutdown Window NoMatches prevented original renderer unmount; original private registry owners already stopped",
+  "time": 1791093594.4679978,
+  "public_processes_signaled": false,
+  "retired": true,
+  "outcome": "GracefulStopOutcome",
+  "remaining": []
+}

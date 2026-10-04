@@ -1,0 +1,52 @@
+INSTALLED_APP_RUN_TEST_ENTER
+INSTALLED_APP_RUN_TEST_YIELDED
+ATTACHED_AND_NAVIGABLE
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/tests/declared_target_actions_installed_pilot.py", line 485, in <module>
+    asyncio.run(deleted_native_connections(args.output.resolve()))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/tests/declared_target_actions_installed_pilot.py", line 287, in deleted_native_connections
+    await native_journey(acceptance=acceptance, provider_request_budget=0,
+                         fixture_stage=base / 'delete-fixture', app_type=ToadApp)
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/tests/l0a_native_installed_pilot.py", line 294, in main
+    async with app.run_test(headless=headless, size=(160, 44)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 221, in __aexit__
+    await anext(self.gen)
+  File "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/app.py", line 2224, in run_test
+    await app._shutdown()
+  File "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/app.py", line 3776, in _shutdown
+    await self._close_all()
+  File "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/app.py", line 323, in _close_all
+    await super()._close_all()
+  File "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/workspace_sessions.py", line 179, in _close_all
+    await self.workspace_sessions.aclose()
+  File "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/workspace_sessions.py", line 171, in aclose
+    await view.close_presentation()
+  File "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/screens/main.py", line 286, in close_presentation
+    await self.presentation.close(self)
+  File "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/session_presentation.py", line 162, in close
+    await screen.app.workspace_chrome.native.dispose(screen, self)
+  File "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/session_presentation.py", line 277, in dispose
+    await self._remove(owner)
+  File "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/session_presentation.py", line 266, in _remove
+    await conversation.release_native_session()
+  File "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/widgets/conversation.py", line 529, in release_native_session
+    await self.window.document_viewport.suspend_source()
+          ^^^^^^^^^^^
+  File "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/getters.py", line 149, in __get__
+    query_node = obj.query_one(self.selector, self.expect_type)
+  File "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/dom.py", line 1643, in query_one
+    raise NoMatches(f"No nodes match {query_selector!r} on {base_node!r}")
+textual.css.query.NoMatches: No nodes match 'Window' on Conversation(classes='-initial-loading')
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/resource_tracker.py:396: UserWarning: resource_tracker: There appear to be 5 leaked semaphore objects to clean up at shutdown: {'/mp-tlfl5ehy', '/mp-j9hzeswm', '/mp-85i4hmzt', '/mp-auzjkbkm', '/mp-a_ak9aqr'}
+  warnings.warn(

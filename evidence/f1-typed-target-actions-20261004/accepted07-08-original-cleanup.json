@@ -1,0 +1,66 @@
+{
+  "registry_roots": [
+    {
+      "root": "/home/ts/.cache/agent-scratch/f1-channel-actions-installed07/start-fixture/private-root/wire",
+      "owners": [
+        {
+          "thread": "beta",
+          "identity": {
+            "pid": 2658442,
+            "start_time": 56806416
+          },
+          "alive": false
+        },
+        {
+          "thread": "user",
+          "identity": null,
+          "alive": false
+        },
+        {
+          "thread": "peer-current",
+          "identity": {
+            "pid": 2666104,
+            "start_time": 56809323
+          },
+          "alive": false
+        }
+      ]
+    },
+    {
+      "root": "/home/ts/.cache/agent-scratch/f1-channel-actions-installed08/wire",
+      "owners": [
+        {
+          "thread": "viewer",
+          "identity": null,
+          "alive": false
+        },
+        {
+          "thread": "tagged",
+          "identity": null,
+          "alive": false
+        },
+        {
+          "thread": "project",
+          "identity": null,
+          "alive": false
+        },
+        {
+          "thread": "user",
+          "identity": null,
+          "alive": false
+        },
+        {
+          "thread": "archive-a",
+          "identity": null,
+          "alive": false
+        }
+      ]
+    }
+  ],
+  "attempt_borrowers": [],
+  "attempt_scan_permission_gaps": [
+    1786010,
+    1786012,
+    3699396
+  ]
+}

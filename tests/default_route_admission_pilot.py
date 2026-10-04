@@ -124,7 +124,7 @@ async def main() -> None:
                         ),
                     ):
                         ack = asyncio.create_task(view.message_history.mark_page(page))
-                        request_target(app, StartCliCommand, "peer", "user")
+                        request_target(app, StartCliCommand, "peer")
                         async with asyncio.timeout(8):
                             await entered_ack.wait()
                             await entered_action.wait()
