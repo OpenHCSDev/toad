@@ -7,7 +7,7 @@ import asyncio
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from agent_comms.cli_commands import TargetActionsCliCommand, TargetEditCliCommand
+from agent_comms.cli_commands import TargetAction, TargetEdit
 from toad.comms_root import RouteSelection
 
 if TYPE_CHECKING:
@@ -86,22 +86,20 @@ class ThreadActionExecution:
 @dataclass(frozen=True)
 class ThreadAction:
     """A native edit resource borrowing one backend-declared command projection."""
-    definition: dict
-    request: TargetEditCliCommand
+    definition: TargetAction
+    request: TargetEdit
 
     @property
     def pending(self):
-        return self.definition['label'] + '…'
+        return self.definition.label + '…'
 
     async def completed(self, app, session_modes, result):
-        from agent_comms.cli_commands import CliCommand
-        command = CliCommand.decode(self.request.operation)
-        for thread in command.reconnect_targets(result):
+        for thread in self.request.declaration.reconnect_targets(result):
             for mode in session_modes:
                 source = app.session_navigation.source(mode)
                 if source is not None and source.conversation.agent is not None:
                     await source.conversation.agent.session.reconnect()
-        app.notify(self.definition['label'], title=self.request.target)
+        app.notify(self.definition.label, title=self.request.target)
 
     @classmethod
     def collect(cls, ctx, definition):
@@ -112,15 +110,14 @@ class ThreadAction:
                 return
             try:
                 ctx.current()
-                request = TargetEditCliCommand(target=ctx.subject,
-                    operation=definition['command'], arguments=arguments,
-                    confirmed=bool(definition['confirmation']), channel=ctx.channel)
+                request = TargetEdit(declaration=definition.declaration, target=ctx.subject,
+                    arguments=arguments, confirmed=bool(definition.edited(arguments).confirmation()), channel=ctx.channel)
                 ctx.app.thread_actions.invoke(cls(definition, request), ctx.subject, ctx.actor,
                     (ctx.mode,) if ctx.mode is not None else ())
             except (OSError, ValueError) as error:
-                ctx.app.notify(str(error), title=definition['label'], severity='error')
+                ctx.app.notify(str(error), title=definition.label, severity='error')
 
-        if definition['parameters']['properties'] or definition['confirmation']:
+        if definition.editable_fields or definition.confirmation:
             ctx.app.push_screen(CommandDialog(definition, ctx.subject), accepted)
         else:
             accepted({})
