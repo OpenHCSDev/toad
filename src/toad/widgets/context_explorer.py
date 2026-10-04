@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
-from functools import partial
 from pathlib import Path
 
 from acp.exceptions import RequestError
@@ -12,9 +11,10 @@ from textual.containers import Horizontal, Vertical
 from textual.widgets import Button, Input, Static, TextArea, Tree
 from textual.worker import Worker, WorkerCancelled, WorkerState, get_current_worker
 from agent_comms.mro_dispatch import handles
-from agent_comms.coordinator import Coordination
 
-from toad.core.context_inspection import ContextInspection, ContextNode
+from toad.core.context_inspection import (
+    ContextNode, DetachedInspection, HoldingInspection, InspectionState,
+)
 from toad.core.events import CoordinationObserved, SessionSelected
 from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 from toad.screens.session_view import SessionView
@@ -25,8 +25,167 @@ from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibility
 class ContextTreeIntent:
     """Only reader choices survive disposable sidebar widget retirement."""
     expanded: set[str] = field(default_factory=set)
-    selected: str | None = None
+    selected: ContextNode | None = None
     query: str = ""
+
+    def search_current(self, query, selected):
+        return self.query == query and self.selected is selected
+
+    def rebind(self, original, model, show_detail):
+        if self.selected is original:
+            self.selected = model
+            show_detail(model)
+
+    def restore(self, nodes, restore_node):
+        if self.selected is None:
+            return False
+        node = nodes.get(self.selected.key)
+        if node is None:
+            return False
+        self.selected = node.data
+        restore_node(node, self.selected)
+        return True
+
+    def with_selected(self, model, consume):
+        if self.selected is model:
+            consume(model)
+
+
+class ContextTree(Tree[ContextNode]):
+    """Native nodes, disclosure and cursor share the Tree's mounted lifetime."""
+
+    def __init__(self, intent, show_detail, show_placeholder):
+        self.intent = intent
+        self.show_detail = show_detail
+        self.show_placeholder = show_placeholder
+        self.context_nodes = {}
+        super().__init__("Context", id="context-tree")
+
+    def clear(self):
+        self.context_nodes.clear()
+        return super().clear()
+
+    def on_unmount(self):
+        self.context_nodes.clear()
+
+    def present(self, groups):
+        # Reconcile the original TreeNodes so Tree._build rebases its cursor.
+        with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected,
+                          Tree.NodeHighlighted):
+            self.root.set_label("Context")
+            self.root.expand()
+            labels = {label for label, _, _ in groups}
+            for node in tuple(self.root.children):
+                if self.owns_node(node) or node.label.plain not in labels:
+                    self._retire(node)
+            for index, (label, models, expanded) in enumerate(groups):
+                group = next((node for node in self.root.children
+                              if node.label.plain == label), None)
+                if group is None:
+                    group = self.root.add(label, before=index, expand=expanded)
+                self._reconcile(group, models)
+        self.restore_reader("Select a context segment to inspect.")
+
+    def search_results(self, matches, description, query):
+        with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
+            self.clear()
+            self.root.set_label(f"{description} · {query}")
+            self.root.expand()
+            for model in matches:
+                self._add(self.root, model)
+        self.restore_reader("Select a matching original source to read its full public text.")
+
+    def _reconcile(self, parent, models):
+        previous = {node.data.key: node for node in parent.children}
+        for index, model in enumerate(models):
+            node = previous.pop(model.key, None)
+            if node is None:
+                self._add(parent, model, before=index)
+                continue
+            original = node.data
+            if original != model:
+                node.data = model
+                self.intent.rebind(original, model, self.show_detail)
+            if node.label.plain != model.label:
+                node.set_label(model.label)
+            # Native disclosure remembers inspected empty leaves as well as
+            # materialized children; unopened nodes remain lazy.
+            if node.children or not node.allow_expand or node.is_expanded:
+                self._reconcile(node, model.children())
+                node.allow_expand = bool(node.children)
+        for node in previous.values():
+            self._retire(node)
+
+    def _retire(self, node):
+        for child in tuple(node.children):
+            self._retire(child)
+        if self.owns_node(node):
+            self.context_nodes.pop(node.data.key)
+        node.remove()
+
+    def restore_reader(self, placeholder):
+        with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
+            pending = list(self.context_nodes.values())
+            while pending:
+                node = pending.pop()
+                if node.data.key in self.intent.expanded:
+                    self._expand(node)
+                    node.expand()
+                    pending.extend(node.children)
+        if not self.intent.restore(self.context_nodes, self._reveal_restored):
+            self.show_placeholder(placeholder)
+
+    def _reveal_restored(self, node, model):
+        # The retained intent owns the reader choice. Native initialization may
+        # already highlight a data-less root or group before this callback.
+        ancestor = node.parent
+        with self.prevent(Tree.NodeExpanded):
+            while ancestor is not None:
+                ancestor.expand()
+                ancestor = ancestor.parent
+        self.call_after_refresh(self.intent.with_selected, model, self._restore_cursor)
+
+    def _restore_cursor(self, model):
+        node = self.context_nodes.get(model.key)
+        if self.owns_node(node) and node.data is model:
+            with self.prevent(Tree.NodeHighlighted):
+                self.move_cursor(node, animate=False)
+            self.show_detail(model)
+
+    def _add(self, parent, model, *, before=None):
+        node = parent.add(model.label, model, before=before, allow_expand=True)
+        self.context_nodes[model.key] = node
+        return node
+
+    def owns_node(self, node):
+        if node is None:
+            return False
+        if node.data is None:
+            return False
+        return self.is_attached and self.context_nodes.get(node.data.key) is node
+
+    def _expand(self, node):
+        if not self.owns_node(node) or node.children:
+            return
+        # TreeNode owns whether this native disclosure still admits expansion.
+        if node.allow_expand:
+            for model in node.data.children():
+                self._add(node, model)
+            node.allow_expand = bool(node.children)
+
+    @on(Tree.NodeExpanded, "#context-tree")
+    def node_expanded(self, event):
+        if self.owns_node(event.node):
+            self.intent.expanded.add(event.node.data.key)
+            self._expand(event.node)
+
+    @on(Tree.NodeCollapsed, "#context-tree")
+    def node_collapsed(self, event):
+        if self.owns_node(event.node):
+            self.intent.expanded.discard(event.node.data.key)
+
+    def selected(self, model):
+        return self.owns_node(self.cursor_node) and self.cursor_node.data is model
 
 
 class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
@@ -43,24 +202,19 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
     BINDINGS = [("r", "refresh", "Refresh context")]
     def __init__(self, owner: str, root: str | None, *, intent: ContextTreeIntent):
         super().__init__()
-        self.owner, self.wire_root = owner, root
+        self.state = InspectionState.for_owner(owner, root)
         self.intent = intent
-        self._inspection: ContextInspection | None = None
-        self._native = None
-        self._observed_revision = None
-        self._loaded: set[str] = set()
-        self._context_nodes = {}
 
     def compose(self):
         yield Static("Context · select a segment to inspect", markup=False,
                      classes="context-status")
-        yield Input(self.intent.query, placeholder="Search public instructions and messages · Enter",
+        yield Input(self.intent.query, placeholder="Search current context or selected recorded request · Enter",
                     id="context-search")
         with Horizontal(classes="context-controls"):
             yield Button("Search", id="context-find")
             yield Button("Read full", id="context-read-full")
             yield Button("Copy", id="context-copy")
-        yield Tree[ContextNode]("Context", id="context-tree")
+        yield ContextTree(self.intent, self._show_detail, self._show_placeholder)
         yield TextArea("No context selected.", read_only=True, soft_wrap=True,
                        show_line_numbers=False, id="context-detail")
         yield Input(placeholder="Export to a new text file · path", id="context-export-path")
@@ -93,8 +247,8 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         if self._working("context-read"):
             return
         access = self.app.coordination_access
-        if self._observed_revision != access.revision:
-            self._read(self.owner, self.wire_root)
+        if not self.state.observed_at(access.revision):
+            self._read()
 
     @on(Worker.StateChanged)
     def context_read_finished(self, event):
@@ -102,148 +256,96 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
                 and event.state == WorkerState.SUCCESS):
             self._observed()
 
+    def on_unmount(self):
+        self.state = DetachedInspection()
+
     def set_identity(self, owner, root):
-        if (owner, root) == (self.owner, self.wire_root):
+        if self.state.bound_to(owner, root):
             return
         self.workers.cancel_node(self)
-        self._context_nodes.clear()
-        self._loaded.clear()
-        self.owner, self.wire_root = owner, root
-        self._inspection, self._native = None, None
-        self._observed_revision = None
-        self.query_one(Tree).clear()
+        self.state = InspectionState.for_owner(owner, root)
+        self.intent.selected = None
+        self.query_one(ContextTree).clear()
         self.query_one(TextArea).load_text("No context selected.")
         self.action_refresh()
 
     def action_refresh(self):
         if self.presentation_visible():
-            self._read(self.owner, self.wire_root, force=True)
+            self._read(force=True)
 
-    def _reading(self, owner, root):
+    def _reading(self, captured):
         return (self.is_attached and not get_current_worker().is_cancelled
-                and (owner, root) == (self.owner, self.wire_root))
+                and self.state.bound_to(captured.name, captured.root))
 
     def _working(self, group):
         return any(worker.node is self and worker.group == group
                    and not worker.is_finished for worker in self.workers)
 
     @work(group="context-read", exclusive=True, exit_on_error=False)
-    async def _read(self, owner, root, *, force=False):
+    async def _read(self, *, force=False):
         status = self.query_one(".context-status", Static)
-        revision = self.app.coordination_access.revision
-        self._observed_revision = revision
-        if not owner or root is None:
-            status.update("No managed thread context available")
-            return
+        access = self.app.coordination_access
+        previous = self.state
+        self.state = previous.observe(access.revision)
         try:
-            service = self.app.coordination_access.service
-            if str(service.root.resolve()) != str(root):
-                status.update("Selected context belongs to another wire root")
+            acquired = await self.state.acquire(access.service, access.revision)
+            if not self._reading(previous):
                 return
-            inspection = await Coordination.run_worker(partial(ContextInspection.read, service, owner))
-            if not self._reading(owner, root):
-                return
-            previous = self._inspection
-            same_source = (previous is not None
-                           and inspection.same_native_source(previous))
-            changed_manifests = (previous is None
-                                 or inspection.manifests != previous.manifests)
-            changed_contributors = False
-            if same_source and self._native is not None:
-                original = self._native
-                refreshed = await Coordination.run_worker(partial(
-                    original.with_current_contributors, service, inspection.owner))
-                if not self._reading(owner, root):
-                    return
-                if self._native is original:
-                    changed_contributors = refreshed.contributors != original.contributors
-                    if changed_contributors:
-                        self._native = refreshed
-            if not same_source:
-                self.workers.cancel_group(self, "context-native")
-                self._native = None
-            self._inspection = inspection
-            if not same_source or changed_manifests or changed_contributors:
-                self._present(inspection, self._native)
-            if force or not same_source:
-                status.update(f"{owner} · recorded manifests available\nReading native context…")
-                self._read_native(inspection, owner, root)
-            elif (changed_manifests and self._native is None
-                  and not self._working("context-native")):
-                # An original SDK manifest is context evidence; an unrelated
-                # roster status change is not permission to poll native again.
-                self._read_native(inspection, owner, root)
+            self.state = self.state.receive_inspection(acquired)
+            status.update(self.state.status)
+            self.state.present(lambda current: self._inspection_acquired(previous, current, force))
+            await self.state.refresh_contributors(self._contributors_acquired)
         except asyncio.CancelledError:
             raise
         except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
-            if self._reading(owner, root):
+            if self._reading(previous):
                 status.update(f"Context unavailable: {error}")
 
+    def _inspection_acquired(self, previous, current, force):
+        if previous.inspection_differs(current.inspection):
+            self._present(current)
+        if previous.needs_native(current.inspection, force):
+            source_changed = not previous.same_source(current.inspection)
+            if source_changed:
+                self.workers.cancel_group(self, "context-native")
+            if force or source_changed or not self._working("context-native"):
+                self.query_one(".context-status", Static).update(current.status)
+                current.prepare_native(self._read_native)
+
+    def _contributors_acquired(self, expected, native):
+        updated = self.state.with_contributors(expected, native)
+        if updated is not self.state:
+            self.state = updated
+            updated.present(self._present)
+
     @work(group="context-native", exclusive=True, exit_on_error=False)
-    async def _read_native(self, inspection, owner, root):
-        native = None
-        unavailable = ""
+    async def _read_native(self, captured: HoldingInspection):
         try:
-            native = await inspection.native()
+            native = await captured.inspection.native()
         except asyncio.CancelledError:
             raise
         except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
-            unavailable = str(error)
-        if (not self._reading(owner, root) or self._inspection is None
-                or not inspection.same_native_source(self._inspection)):
-            return
-        if native != self._native:
-            self._native = native
-            # Use the latest original manifest observation, not the earlier
-            # capture whose native request was pending while it was appended.
-            self._present(self._inspection, native)
-        self.query_one(".context-status", Static).update(
-            f"{owner} · current Core instructions and native base before future input/provider hooks\n"
-            f"Segment counts: estimates ({native.counter}) · provider totals unavailable"
-            if native is not None else
-            f"{owner} · recorded manifests only\nCurrent detail unavailable: {unavailable}")
+            if self._reading(captured):
+                self._native_acquired(self.state.native_failed(captured.inspection, error))
+        else:
+            if self._reading(captured):
+                self._native_acquired(self.state.with_native(captured.inspection, native))
 
-    def _present(self, inspection, native):
-        if self.intent.query and native is not None:
-            self._search(inspection, native, self.intent.query)
+    def _native_acquired(self, updated):
+        if updated is not self.state:
+            self.state = updated
+            updated.present(self._present)
+        self.query_one(".context-status", Static).update(updated.status)
+
+    def _show_placeholder(self, placeholder):
+        self.query_one(TextArea).load_text(placeholder)
+
+    def _present(self, captured: HoldingInspection):
+        if self.intent.query:
+            self._search(captured, self.intent.query, self.intent.selected)
             return
         self.workers.cancel_group(self, "context-search")
-        tree = self.query_one(Tree)
-        self._context_nodes.clear()
-        self._loaded.clear()
-        with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
-            tree.clear()
-            tree.root.set_label("Context")
-            tree.root.expand()
-            if native is not None:
-                core = tree.root.add("Current Core instructions · before next input", expand=True)
-                for model in inspection.contributors(native):
-                    self._add(core, model)
-                active = tree.root.add("Current native base · before next input and provider hooks", expand=True)
-                for model in inspection.active(native):
-                    self._add(active, model)
-            recorded = tree.root.add("Recorded requests · source evidence, not today's base")
-            for model in inspection.recorded():
-                self._add(recorded, model)
-        self._restore_reader("Select a context segment to inspect.")
-
-    def _restore_reader(self, placeholder):
-        with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
-            # Restore expansions without fetching referenced files or rebuilding text.
-            pending = list(self._context_nodes.values())
-            while pending:
-                node = pending.pop()
-                if node.data.key in self.intent.expanded:
-                    self._expand(node)
-                    node.expand()
-                    pending.extend(node.children)
-        if self.intent.selected in self._context_nodes:
-            model = self._context_nodes[self.intent.selected].data
-            self.call_after_refresh(self._restore_cursor, model)
-        else:
-            # A pending/unavailable original observation cannot revoke the
-            # reader's choice. Reuse it when its node is materialized again.
-            self.query_one(TextArea).load_text(placeholder)
+        self.query_one(ContextTree).present(captured.groups())
 
     @on(Input.Changed, "#context-search")
     def query_changed(self, event):
@@ -254,48 +356,33 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
     @on(Button.Pressed, "#context-find")
     def action_search(self, event):
         event.stop()
-        if self._inspection is not None:
-            self._present(self._inspection, self._native)
-            if self._native is None and self.intent.query:
-                self.query_one(".context-status", Static).update(
-                    "Current public text is not loaded; search resumes when the native read completes.")
+        self.state.present(self._present)
 
     @work(group="context-search", exclusive=True, exit_on_error=False)
-    async def _search(self, inspection, native, query):
+    async def _search(self, captured: HoldingInspection, query, selected):
         status = self.query_one(".context-status", Static)
         status.update("Searching original public context…")
         try:
-            matches = await Coordination.run_worker(partial(inspection.find, native, query))
+            matches = await captured.find(query, selected)
         except (OSError, ValueError, RuntimeError, RequestError) as error:
-            if self._searching(inspection, native, query):
+            if self._searching(captured, query, selected):
                 status.update(f"Context search unavailable: {error}")
             return
-        if not self._searching(inspection, native, query):
+        if not self._searching(captured, query, selected):
             return
-        tree = self.query_one(Tree)
-        self._context_nodes.clear()
-        self._loaded.clear()
-        with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
-            tree.clear()
-            tree.root.set_label(f"Current public context · {query}")
-            tree.root.expand()
-            for model in matches:
-                self._add(tree.root, model)
-        status.update(f"{len(matches)} matching sources · first 100 shown · recorded request text is separate evidence")
-        self._restore_reader("Select a matching original source to read its full public text.")
+        description = selected.search_description() if selected is not None else "Current public context"
+        self.query_one(ContextTree).search_results(matches, description, query)
+        status.update(f"{len(matches)} matching sources · first 100 shown · {description}")
 
-    def _searching(self, inspection, native, query):
-        return (self.is_attached and not get_current_worker().is_cancelled
-                and self._inspection is not None
-                and inspection.same_native_source(self._inspection)
-                and self._native is native
-                and self.intent.query == query)
+    def _searching(self, captured, query, selected):
+        return (self._reading(captured) and self.state.search_current(captured)
+                and self.intent.search_current(query, selected))
 
     @on(Button.Pressed, "#context-read-full")
     @work(group="context-full-read", exclusive=True, exit_on_error=False)
     async def action_read_full(self):
-        node = self.query_one(Tree).cursor_node
-        if not self._owns_node(node):
+        node = self.query_one(ContextTree).cursor_node
+        if not self.query_one(ContextTree).owns_node(node):
             return
         model = node.data
         try:
@@ -311,8 +398,8 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
     @on(Button.Pressed, "#context-copy")
     @work(group="context-copy", exclusive=True, exit_on_error=False)
     async def action_copy(self):
-        node = self.query_one(Tree).cursor_node
-        if self._owns_node(node):
+        node = self.query_one(ContextTree).cursor_node
+        if self.query_one(ContextTree).owns_node(node):
             model = node.data
             try:
                 detail = await model.read()
@@ -327,8 +414,8 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
     @on(Button.Pressed, "#context-export")
     @work(group="context-export", exclusive=True, exit_on_error=False)
     async def action_export(self):
-        node = self.query_one(Tree).cursor_node
-        if not self._owns_node(node):
+        node = self.query_one(ContextTree).cursor_node
+        if not self.query_one(ContextTree).owns_node(node):
             return
         model = node.data
         destination = self.query_one("#context-export-path", Input).value.strip()
@@ -344,56 +431,17 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             if self.is_attached:
                 self.notify(f"Exported selected public text and source to {destination}")
 
-    def _restore_cursor(self, model):
-        node = self._context_nodes.get(model.key)
-        if (self._owns_node(node) and node.data is model
-                and self.intent.selected == model.key):
-            # Restoring this exact reader choice owns its detail publication.
-            # A second queued highlight must not cancel/re-read the same source.
-            with self.prevent(Tree.NodeHighlighted):
-                self.query_one(Tree).move_cursor(node, animate=False)
-            self._show_detail(model)
-
-    def _add(self, parent, model):
-        node = parent.add(model.label, model, allow_expand=True)
-        self._context_nodes[model.key] = node
-        return node
-
-    def _owns_node(self, node):
-        return (self.is_attached and node is not None and node.data is not None
-                and self._context_nodes.get(node.data.key) is node)
-
-    def _expand(self, node):
-        if not self._owns_node(node) or node.data.key in self._loaded:
-            return
-        self._loaded.add(node.data.key)
-        for model in node.data.children():
-            self._add(node, model)
-        node.allow_expand = bool(node.children)
-
-    @on(Tree.NodeExpanded, "#context-tree")
-    def node_expanded(self, event):
-        if self._owns_node(event.node):
-            self.intent.expanded.add(event.node.data.key)
-            self._expand(event.node)
-
-    @on(Tree.NodeCollapsed, "#context-tree")
-    def node_collapsed(self, event):
-        if self._owns_node(event.node):
-            self.intent.expanded.discard(event.node.data.key)
-
     @on(Tree.NodeHighlighted, "#context-tree")
     def node_highlighted(self, event):
         event.stop()
-        if self._owns_node(event.node):
-            self.intent.selected = event.node.data.key
+        if self.query_one(ContextTree).owns_node(event.node):
+            if self.intent.selected is not event.node.data:
+                self.workers.cancel_group(self, "context-search")
+            self.intent.selected = event.node.data
             self._show_detail(event.node.data)
 
     def _selected(self, model):
-        if not self.is_attached:
-            return False
-        node = self.query_one(Tree).cursor_node
-        return node is not None and node.data is model and self._owns_node(node)
+        return self.query_one(ContextTree).selected(model) if self.is_attached else False
 
     @work(group="context-detail", exclusive=True, exit_on_error=False)
     async def _show_detail(self, model):
