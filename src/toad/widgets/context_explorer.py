@@ -136,19 +136,18 @@ class ContextTree(Tree[ContextNode]):
             self.show_placeholder(placeholder)
 
     def _reveal_restored(self, node, model):
-        # Preserve an actual human cursor. Reveal only a rematerialized choice.
-        if self.cursor_node is None:
-            ancestor = node.parent
-            with self.prevent(Tree.NodeExpanded):
-                while ancestor is not None:
-                    ancestor.expand()
-                    ancestor = ancestor.parent
-            self.call_after_refresh(self.intent.with_selected, model, self._restore_cursor)
+        # The retained intent owns the reader choice. Native initialization may
+        # already highlight a data-less root or group before this callback.
+        ancestor = node.parent
+        with self.prevent(Tree.NodeExpanded):
+            while ancestor is not None:
+                ancestor.expand()
+                ancestor = ancestor.parent
+        self.call_after_refresh(self.intent.with_selected, model, self._restore_cursor)
 
     def _restore_cursor(self, model):
         node = self.context_nodes.get(model.key)
-        if (self.owns_node(node) and node.data is model
-                and (self.cursor_node is None or self.cursor_node is node)):
+        if self.owns_node(node) and node.data is model:
             with self.prevent(Tree.NodeHighlighted):
                 self.move_cursor(node, animate=False)
             self.show_detail(model)
