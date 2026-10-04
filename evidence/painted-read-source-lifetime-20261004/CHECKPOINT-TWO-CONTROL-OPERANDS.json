@@ -1,0 +1,96 @@
+{
+  "state": "Published ONE original App with TWO existing control owners; build/install/source proof complete; execution held until existing Bohr lifecycle release",
+  "source_head": "4449e3fc293a8529c1f0c4127d3e9e13d8e67907",
+  "determining_product": "35e72d0f200e7aab3eee283ad6126ce6b8065f5b",
+  "production_and_pins_delta_vs_product": "ZERO src/pyproject/uv.lock",
+  "controls": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/history_page_batch_mount_pilot.py",
+      "relative_path": "tests/history_page_batch_mount_pilot.py",
+      "sha256": "957a8d75d552770e14efca9fd84248af556f4251f5bc47b70db3a161dbacab01"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/channel_visibility_observation_pilot.py",
+      "relative_path": "tests/channel_visibility_observation_pilot.py",
+      "sha256": "1f496a8956e453c919bfe91b8f3674bac2eb58cc68313356461316cc34cdc1c5"
+    }
+  ],
+  "App_count": 1,
+  "app_command": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/history_page_batch_mount_pilot.py",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript442-checkpoint-source-lifetime-20261004/app"
+  ],
+  "output": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript442-checkpoint-source-lifetime-20261004",
+  "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "app_environment": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONPATH": "unset",
+    "TOAD_TEST_ATTEMPT": "Heis442-checkpoint-source-lifetime",
+    "AC_NATIVE_COPIED_PACKAGE": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-086d511f2026b10d/node_modules/@earendil-works/pi-coding-agent",
+    "AGENT_COMMS_ROOT": "original private Comms.initialize_private_initial_protocol fixture, not public"
+  },
+  "issued_grant_path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript442-checkpoint-source-lifetime-20261004/issued-grant.json",
+  "issued_sha256": "7a3787a44c18b4d10d4eee3ad2d829bc1cbe58c1ef6f85a660e824ad99f6c650",
+  "lifecycle_path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Heis442-checkpoint-source-App-lifecycle.json",
+  "native_manifest_sha256": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
+  "native_tree_sha256": "dbc88ed9231d1275da3ce218aa8919a247e41ce1f010ce765e7ac0960193f4ac",
+  "native_full_trust": true,
+  "toad_wheel": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript442-checkpoint-source-lifetime-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "ec36aaa4546d7c8a00bbb0775eba2aa00b7e2634217a1e9fbdf75a2b18512676",
+    "source_head": "8fa92be684d75469cd3dea7f9621d7649a15e453",
+    "product_reference": "35e72d0f200e7aab3eee283ad6126ce6b8065f5b",
+    "assets": 319,
+    "git_worktree_zip_byte_equal": true,
+    "inventory_sha256": "cef1e6e27c7c6b6d28c35477cd4f9262c3efc7fea89c1d23cd5c80fc4b3aa6e8",
+    "build": {
+      "source_head": "8fa92be684d75469cd3dea7f9621d7649a15e453",
+      "determining_product": "35e72d0f200e7aab3eee283ad6126ce6b8065f5b",
+      "command": [
+        "python",
+        "-m",
+        "build",
+        "--wheel",
+        "--no-isolation",
+        "--outdir",
+        "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript442-checkpoint-source-lifetime-20261004/toad-wheel"
+      ],
+      "backend": {
+        "path": "/home/ts/.cache/uv/archive-v0/RgcgNn7xR1Zs9HSF/hatchling/__init__.py",
+        "version": "1.28.0"
+      },
+      "seconds": 0.6887126639485359,
+      "exit_code": 0,
+      "new_environment": false,
+      "dependency_installation": false,
+      "source_clones": 0
+    }
+  },
+  "installed_source_proof": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript442-checkpoint-source-lifetime-20261004/source-proof.json",
+    "sha256": "181bd9632bf031246e2400708b2a8978e55057e9f0ce0db0c69b6fa5ecb895b3",
+    "assets": {
+      "agent_comms": 347,
+      "toad": 319,
+      "textual": 266,
+      "textual_diff_view": 3,
+      "refactor_audit": 10
+    },
+    "package_count": 69
+  },
+  "scope": "Original saved-source/checkpoint/task/Mount/filter/pruning/input/resize/End/whole-close regression AND actual channel_target/CommsChatView/MountedMessageHistory/ChannelHistoryReader initial loading/Working/Live/restart/current-worker/completion/captured original task whole-close. ONE App, two existing control owners.",
+  "not_qualified": [
+    "backend painted-cursor/ACK writer",
+    "physical motion",
+    "CPU gain",
+    "full structural performance workflow"
+  ],
+  "provider_inputs": 0,
+  "nativeSDK_inputs": 0,
+  "movie": false,
+  "public334_changes": false,
+  "restore": "Whole actual436 1470/modes/readlinks +69/origins+390 from original e6f/preimage; normal --no-cache original wheels and rawNRA8f61 exact floor; original child/socket/group cleanup and fresh privileged census; explicit086 handback",
+  "prior22": "Historical original PASS not rebased; new changed leaf family requires this new acceptance",
+  "supersedes_for_execution": "Saved-only ab7e proposal remains immutable historical evidence; this final two-owner operand is required before release."
+}
