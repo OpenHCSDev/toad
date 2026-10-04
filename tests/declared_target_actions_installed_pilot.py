@@ -62,14 +62,20 @@ async def choose(app, pilot, row, operation, fields, evidence):
     dialog = app.screen
     for key, value in fields.items():
         editor = dialog.query_one('#command-field-' + key.replace('_', '-'))
-        assert await pilot.click(editor)
-        if isinstance(editor, TextArea):
+        if isinstance(editor, Select):
+            # Select's container delegates input to its native current/overlay
+            # children; use its declared keyboard selection instead of treating
+            # a container hit as proof that its child was not clicked.
+            choices = next(item.choices for item in dialog.definition.editable_fields if item.name == key)
+            index = next(index for index, (_, declared) in enumerate(choices) if declared == value)
+            editor.focus()
+            await pilot.press('enter', 'home', *('down',) * index, 'enter')
+            assert editor.value == value
+        elif isinstance(editor, TextArea):
+            assert await pilot.click(editor)
             editor.text = value
-        elif isinstance(editor, Select):
-            editor.value = value
-            await pilot.press('escape')
-            await pilot.pause()
         else:
+            assert await pilot.click(editor)
             assert isinstance(editor, Input)
             editor.value = value
     if dialog.query_one('#command-confirmed', Checkbox).display:
@@ -110,6 +116,22 @@ async def slash(chat, pilot, text):
     await pilot.pause()
     await pilot.press('enter')
 
+async def mounted_layers(app, pilot):
+    screen = app.screen
+    child = screen.query_one('#comms-sidebar')
+    before = child.layers
+    original = screen.styles.inline.get_rule('layers')
+    try:
+        for layers in (('base', 'controls', 'controls'), ()):
+            screen.styles.layers = layers
+            await pilot.pause()
+            assert child.layers == layers
+    finally:
+        screen.styles.set_rule('layers', original)
+        screen.refresh(layout=True)
+    await pilot.pause()
+    assert child.layers == before
+
 
 async def journey(args):
     start = time.monotonic()
@@ -145,6 +167,8 @@ async def journey(args):
     app = ToadApp(project_dir=str(project))
     async with app.run_test(size=(125, 48), headless=not args.physical) as pilot:
         sidebar = await wait_channel_roster(app, pilot, '#first', '#all')
+        await mounted_layers(app, pilot)
+        checks.append('corrected-mounted-layer-owner-custom-duplicates-empty-restoration')
         row = await reveal_thread_row(app, pilot, 'tagged', '#first')
         await choose(app, pilot, row, 'thread-tags', {'tags': 'first,second'}, base)
         assert comms.registry.require('tagged').tags == frozenset({'first','second'})

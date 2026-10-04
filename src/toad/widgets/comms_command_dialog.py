@@ -62,12 +62,10 @@ class CommandDialog(ModalScreen[dict[str, str]]):
     def action_submit(self):
         arguments = self.arguments()
         try:
-            confirmation = self.definition.edited(arguments).confirmation()
+            self.definition.edited(arguments).with_confirmation(
+                self.query_one('#command-confirmed', Checkbox).value)
         except (KeyError, ValueError, TypeError) as error:
             self.notify(str(error), severity='error')
-            return
-        if confirmation and not self.query_one('#command-confirmed', Checkbox).value:
-            self.notify('Confirm the declared operation before applying it.', severity='warning')
             return
         self.dismiss(arguments)
 
