@@ -58,6 +58,19 @@ class ToolContent(MeasuredViewportBody, containers.VerticalGroup):
             return AwaitComplete()
         return self.publish_body(self.materialize_native_body, exit_on_error=True)
 
+    async def recompose(self) -> None:
+        # Preserve the native public recompose boundary before admitting work.
+        if not self.is_attached or self._pruning:
+            return
+        # This body composes decoded parts, not VerticalGroup's empty compose.
+        # Revoke the native attestation only after preceding writers have joined.
+        async def rebuild():
+            async with self.lock:
+                self._mounted_parts = None
+                await self.materialize_native_body()
+
+        await self._body_measurement.recompose(self, rebuild)
+
     async def materialize_native_body(self) -> None:
         async with self.batch():
             output = self.output
