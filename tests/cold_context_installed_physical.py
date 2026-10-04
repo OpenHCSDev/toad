@@ -384,7 +384,7 @@ async def run(options):
         command = [str(runtime / "toad"), "acp",
             shlex.join((str(runtime / "python"), "-m", "agent_comms.acp")),
             declared.worktree, "--title", "Cold configured saved context", "--session", declared.name]
-        if options.recorded_audit:
+        if options.recorded_audit and not options.recorded_reader_only:
             receipt['app_reader_lifetime'] = await check_reader_lifetime(command[2], declared, system.key)
             (base / "terminal-receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
         if options.staging_receipt:
@@ -574,7 +574,7 @@ if __name__ == "__main__":
     parser.add_argument("--original-python", type=Path, required=True)
     parser.add_argument("--original-thread", default="openhcs-audit-merged-runtime")
     parser.add_argument("--recorded-audit", action="store_true")
-    parser.add_argument("--recorded-reader-only", action="store_true", help="Continue the remaining recorded reader controls; retain original menu/slash acceptance without repeating it")
+    parser.add_argument("--recorded-reader-only", action="store_true", help="Continue only the remaining physical reader controls; do not repeat qualified registered App or menu/slash acceptance")
     parser.add_argument("--request-id", default="")
     parser.add_argument("--staging-receipt", type=Path)
     parser.add_argument("--instruction-query", default="", help="Search the original public instructions in the same cold journey")
