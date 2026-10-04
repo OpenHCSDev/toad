@@ -1,0 +1,54 @@
+{
+  "source_head": "d45ff495a164bd9739bcd8e325eb3d68eb2ed0bc",
+  "native_source_head": "ff5cc9c7d9a20e936b09d67a21a7ac44bf6ebea1",
+  "sources": [
+    {
+      "module": "agent_comms",
+      "head": "03954605c0f1c75e60e1f09618e619edcedcd8cc",
+      "wheel": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/selected609-receiving416-20261004/core-wheel/agent_comms-0.1.0-py3-none-any.whl",
+      "wheel_sha256": "c4606c3bc98109146be31b1df8e939c4ec151872b7ea1452d28d1ceab7ccb759",
+      "files": 342,
+      "byte_equal": true,
+      "additional_installed_files": [],
+      "direct_url": {
+        "url": "file:///home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/selected609-receiving416-20261004/core-wheel/agent_comms-0.1.0-py3-none-any.whl",
+        "archive_info": {}
+      }
+    },
+    {
+      "module": "toad",
+      "head": "d45ff495a164bd9739bcd8e325eb3d68eb2ed0bc",
+      "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame418-stage-20261004/joined50-toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "wheel_sha256": "5fa15f7d2e59cd919feedf8e49c9154dad218015356665aa525bbd82e53b4f3b",
+      "files": 319,
+      "byte_equal": true,
+      "additional_installed_files": [],
+      "direct_url": {
+        "url": "file:///home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame418-stage-20261004/joined50-toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+        "archive_info": {}
+      }
+    },
+    {
+      "module": "textual",
+      "head": "ff5cc9c7d9a20e936b09d67a21a7ac44bf6ebea1",
+      "wheel": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text50-filewheel-ff5cc9c7-20261003/textual-8.2.8-py3-none-any.whl",
+      "wheel_sha256": "ddd4ae0e0a5fae1dc7465b4772e7f8bd31630d35c118a85cbc53a3cf423adbb3",
+      "files": 266,
+      "byte_equal": true,
+      "additional_installed_files": [],
+      "direct_url": {
+        "url": "file:///home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text50-filewheel-ff5cc9c7-20261003/textual-8.2.8-py3-none-any.whl",
+        "archive_info": {}
+      }
+    }
+  ],
+  "proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame418-stage-20261004/before611-source-proof.json",
+  "proof_sha256": "6c90642cd633a63b6ae37834af58615aff88f2fb9d11bc2d78ebd60194ea34e2",
+  "all_69_versions_unchanged": true,
+  "Toad_package_assets_equal_original_installed_App": true,
+  "installed_App_original_pair": "e0a9/Core039/Text49/nativeD5",
+  "physical_launched": false,
+  "physical_blocker": "Original public route remains native89; candidateCore609 validatesnativeD5",
+  "no_speed_claim": true,
+  "scope": "historical joined609/D5/50 asset verification before matched611 restage"
+}

@@ -1,0 +1,51 @@
+{
+  "source_head": "bc6decd00f867e90cf7b78690015ac8b4672c1d8",
+  "parsed_toad": 288,
+  "omissions": [],
+  "changed_owner": "src/toad/frame_presentation.py",
+  "production_delta": "22\t11\tsrc/toad/frame_presentation.py\n",
+  "writes_and_release": [
+    {
+      "line": 66,
+      "kind": "FunctionDef",
+      "source": "def defer(self, frame, owner, callback):\n    frame.callbacks[owner, callback] = None"
+    },
+    {
+      "line": 112,
+      "kind": "FunctionDef",
+      "source": "def defer(self, frame, owner, callback):\n    super().defer(frame, owner, callback)\n    if not frame.screen.app._atomic_mode_switch:\n        owner.call_after_refresh(frame.release, owner, callback)"
+    },
+    {
+      "line": 119,
+      "kind": "FunctionDef",
+      "source": "def defer(self, frame, owner, callback):\n    pass"
+    },
+    {
+      "line": 150,
+      "kind": "FunctionDef",
+      "source": "def defer(self, owner: Widget, callback: Callable[[], object]) -> None:\n    if (owner, callback) not in self.callbacks:\n        self.state.defer(self, owner, callback)"
+    },
+    {
+      "line": 154,
+      "kind": "FunctionDef",
+      "source": "def release(self, owner: Widget, callback: Callable[[], object]) -> None:\n    \"\"\"Release one owned operation only from a presented scene.\n\n        An earlier after-refresh callback may arrive after this scene began\n        another publication. Keep its work for that publication's writer\n        receipt; closing removes the resource before either callback arrives.\n        \"\"\"\n    key = (owner, callback)\n    if not self.ready or key not in self.callbacks:\n        return\n    del self.callbacks[key]\n    if owner.is_attached:\n        owner.call_later(callback)"
+    },
+    {
+      "line": 177,
+      "kind": "FunctionDef",
+      "source": "def present(self) -> None:\n    \"\"\"A written or restored scene releases its same deferred source work.\"\"\"\n    self.state = PresentedFrame()\n    self.presented.set()\n    for owner, callback in tuple(self.callbacks):\n        self.release(owner, callback)"
+    },
+    {
+      "line": 191,
+      "kind": "FunctionDef",
+      "source": "def close(self):\n    self.state = ClosedFrame()\n    self.callbacks.clear()\n    self.presented.set()"
+    }
+  ],
+  "all_consumers_migrated": "All original frame_presentation.defer callers use the unchanged original API. Pending and Presented hooks queue the same callback resource; only FramePresentation.release invokes released callbacks.",
+  "deleted_bypass": "PresentedFrame.defer no longer sends the user callback directly to after-refresh.",
+  "validation": "WIP, no changed installed App/film acceptance yet; published source before final checks.",
+  "limits": [
+    "Syntax census does not prove runtime resolution of aliases or external subclasses.",
+    "Profile activation is not dominance or CPU share. No performance gain claim."
+  ]
+}
