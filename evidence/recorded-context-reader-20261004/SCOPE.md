@@ -31,7 +31,8 @@ one useful installed check; do not repeat03/05 current-reader rituals.
 
 ## Coherent source checkpoint
 
-RecordedTurnNode now renders the original request through its member readers.
+RecordedTurnNode presents original request metadata and exposes its original
+member readers. It does not concatenate those members into a frontend prompt.
 The one added RecordedSegmentNode member is a behavior-owning navigation resource,
 not a second context payload: it stores the original manifest and contributor
 coordinate; segment, digest, provenance and text are derived from the existing
@@ -61,3 +62,33 @@ Capture exports the derived key, preserving its original external shape.
 and ACP usage/coordination -> ContextMeasurement -> Conversation UpdateStatusLine.
 No segment-based footer estimate, status copy or extra publisher is added.
 Final installed check must observe this real chain, not seed a measurement.
+
+## Search and Tree lifetime closure
+
+Search result AND error publication now require the original selected reader
+resource, in addition to query, inspection/native source, attachment and worker
+currentness. Selecting another source cancels the existing search worker. No
+new search token, source copy or status state is introduced. Detail/full-reader,
+copy and export continue through their original selection/operation owners.
+
+Restoration reveals the selected TreeNode's original ancestor path before its
+cursor is restored. Recorded-request container expansion is a rendering
+resource derived from that choice; it cannot be lost when contributors change
+and the Tree is rematerialized. Capture asks the native Tree's materialized
+line owner rather than trusting a new node's uninitialized private line cache.
+The physical controller honors native auto-expand selection exactly once.
+
+Physical01/02 preserved: history/request labels and measured footer painted,
+but the original request target could not be hit. Physical03 preserved: the
+selected request target was reached; duplicate label-click plus Space collapsed
+it before member selection. These are whole-journey negatives, not recorded
+text/menu acceptance. Each original input, manifest and saved source stayed
+unchanged; native children and recorder-owned clients retired.
+
+The final configured continuation uses fresh RetainedOwnerLaunch from the actual
+published original owner, then the existing stopped restoration, acquisition and
+bind_owned APIs. It never executes the fork-producing CLI, load_session drain,
+seed input, manual enrollment or provider prompt. Original c603p01 sealed request
+and old input remain operands, not synthetic copies. Footer acceptance compares
+actual visible ContextMeasurement with canonical AgentInfo publication from the
+existing606 StatsRequest/AgentEventConsumer path. No segment-derived totals.

@@ -43,8 +43,9 @@ def load_recorder():
                 def selected(phase, field):
                     # Reveal by the original materialized Tree line, then acquire
                     # fresh clipped geometry before the actual pointer selection.
-                    revealed = "revealed-" + phase + "-" + field.lower()
-                    focused = "focused-" + phase + "-" + field.lower()
+                    member = field.removeprefix("TOAD_RECORDED_").removesuffix("_NODE").lower()
+                    revealed = "revealed-" + phase + "-" + member
+                    focused = "focused-" + phase + "-" + member
                     return "\n".join((
                         click("phase-" + phase + "-state.pickle", "context_tree"),
                         mark + focused,
