@@ -1,0 +1,12 @@
+{
+  "time": 1791105756.2116873,
+  "processes": 245,
+  "gaps": [],
+  "refs": {
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002": [],
+    "/home/ts/.cache/agent-scratch/startup429-native55-app-20261004-02": [],
+    "/home/ts/.cache/agent-scratch/startup429-native55-app-20261004-03": [],
+    "/home/ts/.cache/agent-scratch/startup429-native55-app-20261004-04": [],
+    "/home/ts/.cache/agent-scratch/startup429-native55-app-20261004-01": []
+  }
+}

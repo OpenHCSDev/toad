@@ -1,0 +1,861 @@
+{
+  "head": "caf415209bedb718df869b188d6bc32be6f95bdf",
+  "roots": [
+    {
+      "root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad",
+      "parsed": 288,
+      "unparsed": []
+    },
+    {
+      "root": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual",
+      "parsed": 249,
+      "unparsed": []
+    }
+  ],
+  "sites": [
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 138,
+      "access": "start_operation",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 197,
+      "declaration": "start_operation"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 198,
+      "access": "start_operation",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 96,
+      "access": "start_operation",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 201,
+      "access": "start_operation",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 220,
+      "access": "start_operation",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 113,
+      "declaration": "start_operation"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 41,
+      "access": "runner",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 45,
+      "access": "disposition",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 122,
+      "access": "disposition",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 157,
+      "access": "runner",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 72,
+      "access": "disposition",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 75,
+      "access": "runner",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 107,
+      "access": "disposition",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 122,
+      "access": "disposition",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 153,
+      "access": "runner",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 153,
+      "access": "runner",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 171,
+      "access": "runner",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 154,
+      "access": "runner",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 155,
+      "access": "runner",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 172,
+      "access": "runner",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/client_session.py",
+      "line": 21,
+      "access": "disposition",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/client_session.py",
+      "line": 27,
+      "access": "disposition",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/client_session.py",
+      "line": 27,
+      "access": "disposition",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 154,
+      "access": "start_operation",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/terminal_owner.py",
+      "line": 23,
+      "declaration": "start_operation"
+    },
+    {
+      "path": "src/toad/acp/terminal_owner.py",
+      "line": 27,
+      "access": "start_operation",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/terminal_owner.py",
+      "line": 38,
+      "access": "start_operation",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/wire_message.py",
+      "line": 47,
+      "access": "start_operation",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/agent_surface.py",
+      "line": 130,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 326,
+      "declaration": "on_unmount"
+    },
+    {
+      "path": "src/toad/application_lifetime.py",
+      "line": 95,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/application_lifetime.py",
+      "line": 64,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "line": 205,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "line": 175,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 178,
+      "declaration": "_start_hydration"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 200,
+      "declaration": "_load_content"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 79,
+      "access": "_content_ready",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 81,
+      "access": "_content_loaded",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 82,
+      "access": "_content_loading",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 83,
+      "access": "_hydrate_queued",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 203,
+      "access": "_content_loading",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 204,
+      "access": "_content_loaded",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 173,
+      "access": "_content_loaded",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 181,
+      "access": "_hydrate_queued",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 201,
+      "access": "_content_loading",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 174,
+      "access": "_start_hydration",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 180,
+      "access": "_content_loaded",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 180,
+      "access": "_hydrate_queued",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 182,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 182,
+      "access": "_load_content",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 221,
+      "access": "_content_ready",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 224,
+      "access": "_content_ready",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 137,
+      "access": "_content_loaded",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 258,
+      "declaration": "close_presentation"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 175,
+      "access": "_content_ready",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 259,
+      "access": "_content_ready",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 194,
+      "access": "_content_ready",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 254,
+      "access": "_content_ready",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/mcp_decision.py",
+      "line": 77,
+      "declaration": "on_unmount"
+    },
+    {
+      "path": "src/toad/screens/mcp_inventory.py",
+      "line": 72,
+      "declaration": "on_unmount"
+    },
+    {
+      "path": "src/toad/screens/session_view.py",
+      "line": 77,
+      "declaration": "close_presentation"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 560,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 238,
+      "access": "start_native_session",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_filter.py",
+      "line": 239,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_filter.py",
+      "line": 232,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 136,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 86,
+      "declaration": "on_unmount"
+    },
+    {
+      "path": "src/toad/widgets/acp_log.py",
+      "line": 66,
+      "declaration": "on_unmount"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 56,
+      "declaration": "on_unmount"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 479,
+      "declaration": "on_unmount"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 521,
+      "declaration": "_release_source_resources"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 567,
+      "declaration": "start_native_session"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1053,
+      "declaration": "on_unmount"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 512,
+      "access": "_native_agent_started_here",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 578,
+      "declaration": "start_agent"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 615,
+      "access": "_native_agent_started_here",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 635,
+      "access": "_native_agent_started_here",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1013,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1014,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1699,
+      "access": "start_native_session",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1979,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 534,
+      "access": "_release_source_resources",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 589,
+      "access": "_native_agent_started_here",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1054,
+      "access": "_release_source_resources",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1835,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1836,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "line": 250,
+      "declaration": "on_unmount"
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "line": 119,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 155,
+      "declaration": "on_unmount"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 54,
+      "declaration": "on_unmount"
+    },
+    {
+      "path": "src/toad/widgets/prepared_markdown.py",
+      "line": 83,
+      "declaration": "on_unmount"
+    },
+    {
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 167,
+      "declaration": "on_unmount"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 689,
+      "declaration": "on_unmount"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 127,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/prompt_popup.py",
+      "line": 74,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 187,
+      "declaration": "on_unmount"
+    },
+    {
+      "path": "src/toad/widgets/recovery_view.py",
+      "line": 59,
+      "declaration": "on_unmount"
+    },
+    {
+      "path": "src/toad/widgets/retiring_sidebar.py",
+      "line": 19,
+      "declaration": "_start_hydration"
+    },
+    {
+      "path": "src/toad/widgets/retiring_sidebar.py",
+      "line": 21,
+      "access": "_start_hydration",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 188,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 196,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 718,
+      "declaration": "_start_hydration"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 745,
+      "declaration": "on_unmount"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 709,
+      "access": "_start_hydration",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 711,
+      "access": "_start_hydration",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 986,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 77,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/streaming_markdown.py",
+      "line": 189,
+      "declaration": "on_unmount"
+    },
+    {
+      "path": "src/toad/widgets/terminal_tool.py",
+      "line": 47,
+      "declaration": "on_unmount"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 297,
+      "declaration": "on_unmount"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 227,
+      "declaration": "on_unmount"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 234,
+      "declaration": "on_unmount"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 663,
+      "declaration": "on_unmount"
+    },
+    {
+      "path": "src/toad/widgets/worker_static.py",
+      "line": 159,
+      "declaration": "on_unmount"
+    },
+    {
+      "path": "src/toad/widgets/worker_static.py",
+      "line": 81,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/workspace_chrome.py",
+      "line": 84,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/workspace_sessions.py",
+      "line": 173,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/workspace_sessions.py",
+      "line": 181,
+      "access": "close_presentation",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/workspace_sessions.py",
+      "line": 188,
+      "access": "close_presentation",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/_animator.py",
+      "line": 470,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/_animator.py",
+      "line": 432,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/_animator.py",
+      "line": 459,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/_callback.py",
+      "line": 88,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 3158,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 4656,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/command.py",
+      "line": 1245,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/css/styles.py",
+      "line": 570,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/dom.py",
+      "line": 410,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/dom.py",
+      "line": 452,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/drivers/linux_driver.py",
+      "line": 420,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/drivers/linux_inline_driver.py",
+      "line": 116,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/drivers/web_driver.py",
+      "line": 173,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/message_pump.py",
+      "line": 523,
+      "declaration": "call_later"
+    },
+    {
+      "path": "src/textual/pilot.py",
+      "line": 504,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1572,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1574,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1149,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 1596,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 4868,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 1158,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 4833,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_button.py",
+      "line": 437,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_footer.py",
+      "line": 475,
+      "declaration": "on_unmount"
+    },
+    {
+      "path": "src/textual/widgets/_key_panel.py",
+      "line": 181,
+      "declaration": "on_unmount"
+    },
+    {
+      "path": "src/textual/widgets/_toast.py",
+      "line": 206,
+      "access": "call_later",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 358,
+      "access": "call_later",
+      "context": "Load"
+    }
+  ],
+  "limits": "AST declarations/calls/attribute writes; dynamic aliases/external overrides not resolved."
+}
