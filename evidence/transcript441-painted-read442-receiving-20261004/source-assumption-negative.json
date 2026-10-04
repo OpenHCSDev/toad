@@ -1,0 +1,7 @@
+{
+  "scope": "Read-only source comparison, no install/runtime",
+  "first_failed_assumption": "Expected current Git9a measures hash fb6e from historical restore relay; assertion refused. Direct original Git/ZIP/archive reads prove8f61 instead.",
+  "historical_fb6e_observation": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/nra-floor-discrepancy.json",
+  "historical_receipts_rewritten": false,
+  "runtime_repeated": false
+}

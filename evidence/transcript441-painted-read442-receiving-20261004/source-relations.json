@@ -1,0 +1,513 @@
+{
+  "state": "SOURCE_ONLY_WORKING_DRAFT; corrected442 ownerfreeze/green/actualmain relation pending",
+  "source_window": {
+    "toad_actual_main": "4cc4d531d07f3a7be29e824ee5ce8dc7ba60a024",
+    "core_actual_main": "ad7e582f3e7536d3b76f95ec6da1e1fd8122ee20",
+    "prospective_joined_product": "03110866e7a5503880577d3401f6bf936e0fd7c0",
+    "textual": "180cbd9471bd6674647590108ca2fe5a627eb24f",
+    "nra_original": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10"
+  },
+  "wheel_relations": {
+    "core_current_main": {
+      "git_head": "ad7e582f3e7536d3b76f95ec6da1e1fd8122ee20",
+      "wheel": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/c4-queued-reservation656-wheel-20261004/agent_comms-0.1.0-py3-none-any.whl",
+      "wheel_sha256": "5f1667ce64c58d67e153850be91dfb669ea9e347218f8d845937a1c12c778a9c",
+      "assets": 347,
+      "forced_assets": 3,
+      "changed": [],
+      "missing": [],
+      "extra_package_members": [],
+      "all_assets_equal": true,
+      "metadata_commitments": {
+        "agent_comms-0.1.0.dist-info/METADATA": "9a02a0a276afadd2f609acae02a93606f53d85a904f40f0ef162f9ceafa1fc0c",
+        "agent_comms-0.1.0.dist-info/WHEEL": "99f7cfcbcc019d9427d959c9514e6313df4ab316927e2c8c1d5f58b7468b571b",
+        "agent_comms-0.1.0.dist-info/entry_points.txt": "6e56bfd47c28174d7978791d6e7673645c69cb06141e3306961b4a88fac53a72",
+        "agent_comms-0.1.0.dist-info/RECORD": "ae1c30a3b7e7e12e371332fa8ae8a9078c17c3bc99411b2b4ea1cfc6315685b6"
+      },
+      "source_inventory_sha256": "f08be1fe5a86469bfca6894fd146e803285cacd59a99ae6e7192435ed95f5d3a",
+      "full_build_input_changes_vs_original_c656": [],
+      "build_inputs_sha256": {
+        "pyproject.toml": "000139ce7da800c73574db2cd2e99af5afb63795f94f38d532e03af4b1423ad7",
+        "README.md": "b77c9e4f95fe3b1c0cbf84f70f429ff07673308099688796b24bda7e339f84a6"
+      }
+    },
+    "toad_prospective_joined": {
+      "git_head": "03110866e7a5503880577d3401f6bf936e0fd7c0",
+      "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "wheel_sha256": "8acfb48d686d98a573ec351d5816002df71a7b584ff7860c5c9994a252941b32",
+      "assets": 319,
+      "forced_assets": 0,
+      "changed": [],
+      "missing": [],
+      "extra_package_members": [],
+      "all_assets_equal": true,
+      "metadata_commitments": {
+        "batrachian_toad-0.6.20.dist-info/METADATA": "3fde2bfef1346f91a2bad2c6dfbca28a40710dc38ca987f66266a6064c3c43ee",
+        "batrachian_toad-0.6.20.dist-info/WHEEL": "58b82a17209f9bf2804afe161f2632d0fde933f9bb2792fd936b2474a2e2ac2f",
+        "batrachian_toad-0.6.20.dist-info/entry_points.txt": "12cacbee8134076f2a99542ab81f8682c88f39cbea62228e9c3b950d319d4528",
+        "batrachian_toad-0.6.20.dist-info/RECORD": "ef5439aef3bab0364e0a446b191581805b755eec47324ab32a3983bd8979074f"
+      },
+      "source_inventory_sha256": "c81f6815efb3a299dda0bbc087eb08d8fdfe25c641b742360a9762ada16c18d3",
+      "scope": "Historical031/source8ac equality only; original22PASS preserved. Upcoming corrected442 production is not covered."
+    },
+    "toad_current_main": {
+      "git_head": "4cc4d531d07f3a7be29e824ee5ce8dc7ba60a024",
+      "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "wheel_sha256": "8acfb48d686d98a573ec351d5816002df71a7b584ff7860c5c9994a252941b32",
+      "assets": 319,
+      "forced_assets": 0,
+      "changed": [
+        "toad/transcript_filter.py",
+        "toad/transcript_source_preparation.py",
+        "toad/transcript_state.py",
+        "toad/widgets/transcript_history.py"
+      ],
+      "missing": [],
+      "extra_package_members": [],
+      "all_assets_equal": false,
+      "metadata_commitments": {
+        "batrachian_toad-0.6.20.dist-info/METADATA": "3fde2bfef1346f91a2bad2c6dfbca28a40710dc38ca987f66266a6064c3c43ee",
+        "batrachian_toad-0.6.20.dist-info/WHEEL": "58b82a17209f9bf2804afe161f2632d0fde933f9bb2792fd936b2474a2e2ac2f",
+        "batrachian_toad-0.6.20.dist-info/entry_points.txt": "12cacbee8134076f2a99542ab81f8682c88f39cbea62228e9c3b950d319d4528",
+        "batrachian_toad-0.6.20.dist-info/RECORD": "ef5439aef3bab0364e0a446b191581805b755eec47324ab32a3983bd8979074f"
+      },
+      "source_inventory_sha256": "741e3088a3c1907febcec172fd03bed09a3c72de42fc81548b1e1c836261a000"
+    },
+    "text59": {
+      "git_head": "180cbd9471bd6674647590108ca2fe5a627eb24f",
+      "wheel": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native59-filewheel-20261004/textual-8.2.8-py3-none-any.whl",
+      "wheel_sha256": "73d4ca971dd2891c2a2266a0c5c8629e3e0ff55e802456ae60d0fedfe72fdbaa",
+      "assets": 266,
+      "forced_assets": 0,
+      "changed": [],
+      "missing": [],
+      "extra_package_members": [],
+      "all_assets_equal": true,
+      "metadata_commitments": {
+        "textual-8.2.8.dist-info/METADATA": "5b9bc0d0516d05f028e21044bcae5ae2b907e0f22c73e74b54fc73aad5ad0f2b",
+        "textual-8.2.8.dist-info/WHEEL": "2fe5af2dd481bc95875efe73ad0c43bcd467220a01ccb52971bba2c35f4a0ae4",
+        "textual-8.2.8.dist-info/RECORD": "d7aa119d579504310e742f488d643c32233d56067b98ff488f6bad94d539ed15"
+      },
+      "source_inventory_sha256": "0a226ef45d9b8a78724d57d4d7d0e4c17c056b33234a59c3da5c31310d3f7b2a"
+    },
+    "nra_original_published": {
+      "git_head": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10",
+      "wheel": "/home/ts/wt/nra-skill-publish-20261002/.artifacts/family-flattened-collector-20261004/wheels/nominal_refactor_audit-0.1.0-py3-none-any.whl",
+      "wheel_sha256": "8d489731728ebf9f7e0f90ef2b14e7e3b5d2f90ed82bd8b1482d735f82869886",
+      "assets": 10,
+      "forced_assets": 0,
+      "changed": [],
+      "missing": [],
+      "extra_package_members": [],
+      "all_assets_equal": true,
+      "metadata_commitments": {
+        "nominal_refactor_audit-0.1.0.dist-info/METADATA": "d7e1f1fe09d295e2e23d5017805e8ec426e0d65c819779b62070a585bc5687bd",
+        "nominal_refactor_audit-0.1.0.dist-info/WHEEL": "61532836a2b3111b7ec23519c09df7c41180c27165fb872a6d8913b566b88ad1",
+        "nominal_refactor_audit-0.1.0.dist-info/RECORD": "2f8776b832f4c6bd07189392681a8db263e708218514d8a0827a5d4e41d31bfc"
+      },
+      "source_inventory_sha256": "1bee17a482be158d07306e851e4e856785f474c6b13472997e033d3985b71362"
+    }
+  },
+  "canonical_tool_relation": {
+    "source_core": "ad7e582f3e7536d3b76f95ec6da1e1fd8122ee20",
+    "ordinary_members": 51,
+    "root_members": 52,
+    "excluded_extra": [
+      "tools/cutover/global_extension_activation.py"
+    ],
+    "changed_vs_public440": [
+      "tools/cutover/retained_index_writer.py"
+    ],
+    "rows": [
+      {
+        "source": "tools/cutover/carry_history_provenance.py",
+        "git_blob": "d20d79eafd370e29f52ea2e6316a9e6d6b47dbde",
+        "sha256": "44735bcdd6424af4203ac75e509f8a80cf41641882b249610ccadd0215c527b2",
+        "bytes": 4308,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/checkpoint_schema.py",
+        "git_blob": "e9d32ef4b5613051cb68717c376cab04705b6ae5",
+        "sha256": "0d32c74d741572f9f5a242eb34750f7c3353ee88a480957d59380afb1147adee",
+        "bytes": 548,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/cutover_child.py",
+        "git_blob": "8238e80a03e847dfc993af152b154e388366a349",
+        "sha256": "26b307ce045a4642a8dc2a9c6fef9b94900726250bb663413f256abda11fa1e3",
+        "bytes": 1298,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/execute_retained_summary_foundation.py",
+        "git_blob": "3c0fcfd23886d727c97ecad1d1eaa937e2653021",
+        "sha256": "49c9a05298b68ccfd91dc75c9de8980e2a0a72e6b670e45d581ccac3ae6e3a19",
+        "bytes": 1794,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/install_retained_index.py",
+        "git_blob": "bbb769e42a53709f00502b6b747d017e6c98f969",
+        "sha256": "3060f64db3d180452452b5ec12c5cd2730f8f8052ab5676c8807f49c42b3982d",
+        "bytes": 1403,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/install_retained_routing.py",
+        "git_blob": "e884ebefb66f1a0ef54d683cec25f413ae139294",
+        "sha256": "2701b1b5a02b6cd74fe5876a9c91432ebd5344b55ee02434f61b2422c5d16531",
+        "bytes": 5358,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/install_retained_task_source.py",
+        "git_blob": "2388ca168e43e7f03fa5be7e6e8cec308f8d3995",
+        "sha256": "75ddca28e4684173a7b9c8f6bb62dcf2cba5e9896fb9376cb0b29a314bf839c2",
+        "bytes": 5676,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/launch_thread_retirement.py",
+        "git_blob": "20f416fccb59afe27953aee5ab92d3c169dd5433",
+        "sha256": "ec08c053a8d72449606169794f07e832b35a73197fb572cd8ecc70a4e0f7e1e7",
+        "bytes": 1936,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/native_schema_carry.py",
+        "git_blob": "ef70f259e0d94f5de9f860cb0d78d079f545dd07",
+        "sha256": "e7faf702b534056696229c145402b935f7872e89ae8432c848cbae5cbe811534",
+        "bytes": 40441,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/native_schema_carry_controls.py",
+        "git_blob": "70efc3d02f559db5b8f994bd42a8e035201ec488",
+        "sha256": "887cf058454efd12329488fc4e3269ef1e1f17c67d8a6b32a50fd5df184fc9a1",
+        "bytes": 15645,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/old_thread_client_probe.py",
+        "git_blob": "6564e7e702994b77293a940b2e2aa7b5782cd20c",
+        "sha256": "04b8aa84f8a4018c36b44632569502430f2c3a245e560140fb3ac226ec8af5e2",
+        "bytes": 2738,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/original_input_consumer_installed_pilot.py",
+        "git_blob": "bc971165e5fc7109179a9ed63dfc3c249242bad2",
+        "sha256": "fdd705768adb45c73457104da9eb2ffedf581a76fffdd22c4f8ab4f60566aeb2",
+        "bytes": 2371,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/original_owner_capture.py",
+        "git_blob": "49d576d187b3863de81659622836497a38fc4bc9",
+        "sha256": "d014a6828d518517e5bc93c3909bf227bd2197158f26fb75528c13c0d8934a80",
+        "bytes": 3049,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/original_owner_capture_installed_pilot.py",
+        "git_blob": "cec384c44a7167d46c9c2f30a723a70e440f5141",
+        "sha256": "3b8256606bd1d3754edda46b0232cd6bcf9e66912157cb52f8e1f6984e4d8587",
+        "bytes": 4206,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/owner_read_projection.py",
+        "git_blob": "36076cc393c4cd26305889595765138fedfdc4af",
+        "sha256": "4ca5fb3d2714863ba6ddd7b01f23cd3ddccd790f612f4edd7086b4b7935876a0",
+        "bytes": 1110,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/phased_owner_kernel.py",
+        "git_blob": "838f73226a23d36b0e7d50acc2aae1939d455e25",
+        "sha256": "2f20e6e0e7a81921bd1d400cc464aa6e2080b62ba5b802026961449b839f90db",
+        "bytes": 945,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/publish_openhcs_recovery.py",
+        "git_blob": "630ba848814dbc592076d1067fbd37fcdba094c3",
+        "sha256": "27516db16a4bec25bb37fb394e1c7bc04c567eb0a780fb1e0ed62235ca0ed9ff",
+        "bytes": 21793,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/publish_retained_summary.py",
+        "git_blob": "4700d5d4f55dc18d509d7530c3d0b6391b58fef8",
+        "sha256": "c146d510f445fddab2bfa4489bd7fad5530e7f9e77e73ad96c108b7647115830",
+        "bytes": 23103,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/read_original_owner.py",
+        "git_blob": "96195472e6a362ff7a0398a7bdf756422b9b3bc7",
+        "sha256": "3e61cfce03adfa059020d81c40ac5f3ef90bab1c09f602ebd614bc56c54ff053",
+        "bytes": 1519,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/read_original_task_preimage.py",
+        "git_blob": "0d42982ede11ebd6a8ffce554d7c1ba9ac21bd1d",
+        "sha256": "39e1b27473ce2548d3d91a0eecc01f40e8fe01c96b29727d8d7568a55c76e197",
+        "bytes": 1416,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/restart_original_thread_format.py",
+        "git_blob": "eae8543c88677735a7922f0308b44658334ccb64",
+        "sha256": "19b738c2e7b398aa2fb22bcfa66d175a895312b011c234ee10a540cf68310e65",
+        "bytes": 1563,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/restart_retained_routing.py",
+        "git_blob": "041aff23c3f76e072b06527dcfa15acef9b41ab2",
+        "sha256": "29ed16765498a0092df8ed4d9efa44f5bda49962f8704a9381f5aa226517abae",
+        "bytes": 1289,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/restart_thread_format.py",
+        "git_blob": "ac0cc8941a0add9517f84748f37b720f93f21f8b",
+        "sha256": "f07914f665ed6a15410fead47e3fb45759fb6f319013a170e869f5931ea782c7",
+        "bytes": 4312,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/restore_stopped_owners.py",
+        "git_blob": "628dd54180df6c956bd4a87a036420a8fee192dc",
+        "sha256": "7336914c1141c60f7769c60f45dae2279c003f4a55a1c43bb4ed4a95199f2f97",
+        "bytes": 1029,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/retained_index_cutover.py",
+        "git_blob": "4d34ab8da4de105d12d8139ee44cdf54ddc0445e",
+        "sha256": "cfb681ea376ad06b86606e8940666932a15f29bc97b8d748d55089fd2dbe3ab9",
+        "bytes": 3194,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/retained_index_installed_pilot.py",
+        "git_blob": "21c62a937e8423a150b6d96c7a47387e7d396d13",
+        "sha256": "b4d5a234d0f4fd3ac4511b7100698352d6252c6bcb09016ee458ed304b3daf39",
+        "bytes": 2953,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/retained_index_writer.py",
+        "git_blob": "e7c7e327dc08a3617e4aca31d0b17a07a0a8352f",
+        "sha256": "7b5ea337d2bc7e30933914c9f819a0015f283b076f8db699d1a6a35095c542d4",
+        "bytes": 2231,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/retained_routing_cutover.py",
+        "git_blob": "0332c5355dba6562e1499e7c56bd21c020bba756",
+        "sha256": "8e4b35be880c4a363a28c4f488a31ed6dc1308c8719e3266350df663bd47004a",
+        "bytes": 1549,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/retained_routing_installed_pilot.py",
+        "git_blob": "cd760bedd97e584b006f3716d5e4b1827d8ac1f4",
+        "sha256": "8a7aab641de626a1d1a729aba8aa056b04d311fa116893f7c746d2c4a861665f",
+        "bytes": 6095,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/retained_routing_writer.py",
+        "git_blob": "bd2b592c0a968c56f6579001a56916360707e5ee",
+        "sha256": "0b9cd2180ac03e4b1ff9f1c8c2f9977b0e777fe3f70028cb0fd5c6b02fe2aa37",
+        "bytes": 2271,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/retained_summary_reset.py",
+        "git_blob": "e209b67be6f56f3e18f513f14e3a46de358edd2b",
+        "sha256": "86d28cc9f9c74c9156ee258d061168a17003ab94f6c9ba1fdaac2dd01eb8dd12",
+        "bytes": 8554,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/retained_summary_reset_controls.py",
+        "git_blob": "7784e5e96323a4708ef62d5a712fac1a878755bb",
+        "sha256": "9eacb251632d155f6db1c58999f311614781d566f10374d8b62698342b02a56a",
+        "bytes": 5204,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/retained_summary_stage_controls.py",
+        "git_blob": "8d834338e3244625e8f960209d653d857cba2c44",
+        "sha256": "9c93c95987f9eabf3dcc261d8e509c7f7f47f1d8e82ab7c0d550f2e8c4aa15dc",
+        "bytes": 3953,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/retained_task_installed_pilot.py",
+        "git_blob": "34c4a6866c7627a969716b43bcba02fe03b8244b",
+        "sha256": "77625f058aa23cfcc313abe03bd4247763e9e9745a08849424e1102f856f3712",
+        "bytes": 5466,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/retained_task_source_carry.py",
+        "git_blob": "f4385428d30dd32cf4e8b888aa437cede235d491",
+        "sha256": "fb8601288e574c14837df65840262f805c556ba0b9f9fc8511d18f95ab1a2b3e",
+        "bytes": 3143,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/retained_task_writer.py",
+        "git_blob": "d0e51c108be61c6582b982d34ac3e7f02442b51b",
+        "sha256": "661cbc8aa52921375f995bacf519fd41d35af459dbaf5a76031eace671f8213f",
+        "bytes": 2277,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/routing_carry.py",
+        "git_blob": "07bb82a883aaf3772c9ff9ad50341755244f399a",
+        "sha256": "b5b502926276f78ca378828123bd26bcfe63dafe7a09be0f513d688901643188",
+        "bytes": 11450,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/routing_recovery.py",
+        "git_blob": "b2e485e396cae6a1de632fcd8e925bfbfd15559a",
+        "sha256": "af599ee91746123ed33606691973ef3a2a0e77e2d994cd158a1c5ddef2c2aafc",
+        "bytes": 2347,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/runtime_installation.py",
+        "git_blob": "e68ddc9715e6564f2f9ac9a9dee1bb632693d2ca",
+        "sha256": "9a2a9c7ee38cc64993d6cf1c3b706e77c62668dd51d6a553a86aa01022234524",
+        "bytes": 3391,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/seed_original_owner_capture.py",
+        "git_blob": "a015380d5238b585b040f2da6937ae3a196bf2f8",
+        "sha256": "08adc6657fa631c56f2e68aa49e68ab005cee63e2caff5795d221bf1d7fbb2cf",
+        "bytes": 1659,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/seed_original_task_carry.py",
+        "git_blob": "1e211f8931a54b0e00f129ec3315a2d4faf69c54",
+        "sha256": "d844fb0a5a02927ea7026467317110b75f42d91c00fc5b0bebeddfe921611fe1",
+        "bytes": 1776,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/seed_retained_index_fixture.py",
+        "git_blob": "6a819c807abe1d3375348cfd6426e44e20ab21d1",
+        "sha256": "29c2811f32d269c62f9d2752829cd9cac6a362ff22f08595180e43ea5d219513",
+        "bytes": 1394,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/seed_retained_routing_fixture.py",
+        "git_blob": "700fefa789a92cd0ce686757b1ff4c81106e7210",
+        "sha256": "1f0aaeaee108ebdd8989897c8eb865c51e2b1fb217af81611cb05b1e66befea7",
+        "bytes": 3352,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/seed_thread_retirement_fixture.py",
+        "git_blob": "4d35337232160f91a9d2fca527b3fa7d5bb60472",
+        "sha256": "01c532fbd479e93fa11a4e7f3a825fe368d91a6a9893abb730bc641f74d18252",
+        "bytes": 9641,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/task_envelope_promotion.py",
+        "git_blob": "9d57434ad1d28515b77f6631eff0570097d4ddb7",
+        "sha256": "d1d1b16a99c44fb7afab68c2021b83faa57df805b3e9fc7e4c82004037a9eef4",
+        "bytes": 3492,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/thread_format_retirement.py",
+        "git_blob": "189f368cbf4d3a9229d9310639ad16263e7a50cf",
+        "sha256": "ff4ddbc314afd01e9c069a4cec5df83b204bb6fab35bcf2f5e5055b5e148de35",
+        "bytes": 1105,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/thread_retirement_cutover.py",
+        "git_blob": "401a4c50915fbefbeebbfc9f712ba2437f5617e5",
+        "sha256": "65c3c3305e1dc78530256f944d1aa67a2357b537c1273cc66a44e5bbd0e52338",
+        "bytes": 5931,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/thread_retirement_installed_pilot.py",
+        "git_blob": "1aeb574889c66b99f82d0b6c9824d51cf977775c",
+        "sha256": "89b2eb21cad8222e7ed1a4fd5d5e2dc2fc81ab65ac3136196b0790921e447f6d",
+        "bytes": 11211,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/user_task_installed_pilot.py",
+        "git_blob": "916bbc9793ea545a6a57c3d4905abdfe5c95c0d1",
+        "sha256": "75c8cfd6a4819d16dbc87fffe0013ad526c6ede6492e083c26a0629a51c08057",
+        "bytes": 2405,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/validate_retained_routing.py",
+        "git_blob": "3b6698cee2b7475ed1ac4a33e2f011c9c475dffd",
+        "sha256": "d144e501120982e21ace4ea513cd2f2e3f9c720889ea5762f275feadb7638d96",
+        "bytes": 1379,
+        "git_mode": "100644"
+      },
+      {
+        "source": "tools/cutover/validate_thread_retirement.py",
+        "git_blob": "b18bcb5fb77792e702dc7aab2d79792a05a7290b",
+        "sha256": "8461b3cc18060e334adb8a02c938c68cf0417bcac28a01d396f15365b063a3bb",
+        "bytes": 756,
+        "git_mode": "100644"
+      }
+    ],
+    "reset_member_not_selected": true,
+    "operator_files_copied": 0
+  },
+  "nra_actual_keeper_relation": {
+    "original_git_measures_sha256": "8f6127cb184801fbf2ca162adbece5c103c0fc6693f81197632668f710af7513",
+    "current_retained_8d_ZIP_member_sha256": "8f6127cb184801fbf2ca162adbece5c103c0fc6693f81197632668f710af7513",
+    "actual_floor_archive": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/retired-env-metadata/style22-actual436-before-Heis432.tar.gz",
+    "actual_floor_member": "home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/refactor_audit/measures.py",
+    "actual_floor_member_sha256": "8f6127cb184801fbf2ca162adbece5c103c0fc6693f81197632668f710af7513",
+    "all_three_equal": true,
+    "historical_restore_fb6e_observation_preserved": true,
+    "historical_install_vs_current_ZIP_equivalence_claimed": false,
+    "stage_policy": "Future actualeligibleholder origin/assets must be verified by originalInstalledSource; preserveunchangedNRA. No cache repair or package access in this phase.",
+    "historical_fb6e_classification": "Stale installed extraction, NOT raw8d ZIP member; independently confirmed by Parent",
+    "future_restore": "Within exactissuedpurpose use existingnormalinstaller --no-cache + actualinstalledbyte readback; no currentaction/cachemutation"
+  },
+  "native_manifest_sha256": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
+  "native_tree": "dbc88ed9231d1275da3ce218aa8919a247e41ce1f010ce765e7ac0960193f4ac",
+  "builds": 0,
+  "package_holder_access": 0,
+  "installed_imports": 0,
+  "App_SDK_provider_runs": 0,
+  "public_guard_attempts": 0,
+  "source_dependency": "Corrected442 product35e72/docs8fa sourcepublished/productDebtgreen; changedAppnotyetqualified. OriginalHeis wheel/App underfreshBohrexactpurpose, Parentnormalmerge then exactsourcekeeper closure.",
+  "holder_dependency": "W6b889 independentlywholeclosed536888/764f236UID0; no ReaderPASS or loan. Future ordinaryreceiving exactBohrdisposition/freshpurpose after correctedsource/runtimeboundary.",
+  "receiving_metadata": {
+    "declared_core": "ad7e582f3e7536d3b76f95ec6da1e1fd8122ee20",
+    "lock_change": "Only3existingCoreURL/revision references, same graph; no resolve",
+    "Toadproject_buildsystem_hatch_README_equal_original8ac_build": true,
+    "whole_pyproject_equal": false,
+    "actual_fileorigin": "Original8ac archive/build031 stays truthful; new tooluv source declaration is receiving metadata, not invented VCS archiveorigin",
+    "build_required": false
+  }
+}
