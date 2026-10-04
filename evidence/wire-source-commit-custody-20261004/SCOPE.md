@@ -1,8 +1,8 @@
 # Wire row commit and receipt resource custody
 
-Source checkpoint only. The base is merged #432, `fb0447639cdba02aee0342170600783d66dab6eb`.
+Source checkpoint with original failed installed attempt. The base is merged #432, `fb0447639cdba02aee0342170600783d66dab6eb`.
 Its accepted installed 15.539s result remains historical qualification of that source;
-it does not qualify these new bytes. No package, App, provider or recording was run here.
+it does not qualify these new bytes. The separate installed01 attempt below does not qualify unfinished cases.
 
 ## Source ownership
 
@@ -50,8 +50,7 @@ AST names do not prove dynamic dispatch, external aliases or callbacks.
 
 ## Remaining acceptance
 
-The existing `message_dividers_pilot.py --row-publication` control is migrated,
-not executed. Its old waiting-worker assertions were an old completion contract:
+The existing `message_dividers_pilot.py --row-publication` control is migrated. Its old waiting-worker assertions were an old completion contract:
 it now awaits the same admitted native source worker before releasing the original
 pending `Unmount`. It also exercises a real registered replacement read and an
 actual native row `Mount` suspended across original source park/cancellation.
@@ -77,7 +76,32 @@ is not its qualification. Final production/control checkpoint
 acquisition, preserving detached/retired refusal before accessing native resources.
 The source census is bound to this final production; control bytes are unchanged
 from `e56cbe8825628ca916664529313657eb554a8d60`. An evidence-only successor does not
-change that source qualification. Runtime acceptance remains unrun.
+change that source qualification. The original installed01 failure below is retained; the corrected control is unrun.
 
-Full scrolling/runway/sidebar/thread-open performance remains active. No runtime
-failure, CPU dominance, measured speed improvement, smoothness or FPS is claimed.
+## Original installed01 failure and successor oracle
+
+The one granted original App exited 1 after 16.594132s at the frozen-cohort assertion
+following `pilot.pause()`. The exact differing keys were not exported. The source
+permits `_check_edges` to admit older canonical rows during that pause; this explains
+why the oracle must allow admitted source growth, not what the failed tuple contained.
+No final App receipt was produced. Pending Mount cancellation, archived/live overlap
+and final whole-App assertions remained unreached. Sequential receipt/source progress,
+replacement bounds, resize and editor checks before the assertion are documented
+without relabeling the failed run as a partial PASS.
+
+The changed oracle retains every admitted replacement key and requires actual rows
+to equal the original canonical page filtered to actual keys, in original order.
+It rejects foreign, duplicated, lost or reordered rows while allowing original older
+page admission. Only this control changes; production remains byte-equal to `96c8`.
+Parent authorized one successor affected App after a fresh specific Bohr purpose.
+No accepted #432 repeat, product patch, movie, provider or public quiet window is needed.
+
+The actual436 floor was restored: all1470 archive members,69 package versions and390
+protected keepers exact, original origins/activation preserved. Own final253 allUID
+census recorded zero references/gaps; Bohr independently closed the purpose with a
+separate246-process census. The issued grant remains immutable; only Bohr owns its
+lifecycle close. `installed01/keepers.json` binds the original failure, source proof,
+issued grant and whole-floor handback. The successor must restore that same floor.
+
+Full scrolling/runway/sidebar/thread-open performance remains active. No CPU dominance,
+measured speed improvement, smoothness or FPS is claimed.

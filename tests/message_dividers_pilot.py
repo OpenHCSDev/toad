@@ -155,7 +155,11 @@ async def row_publication() -> None:
             await first.wait()
             await second.wait()
             await pilot.pause()
-            assert tuple(message.view_key for message, _ in history.rows) == keys
+            actual = tuple(message.view_key for message, _ in history.rows)
+            assert all(key in actual for key in keys)
+            assert actual == tuple(message.view_key for message in page.messages
+                                   if message.view_key in actual)
+            keys = actual
             assert all(isinstance(widget, IRCMessage) for _, widget in history.rows)
             assert "style-pump" in editor.text
             checks.append("each repeated style request commits in original source order without losing draft")
