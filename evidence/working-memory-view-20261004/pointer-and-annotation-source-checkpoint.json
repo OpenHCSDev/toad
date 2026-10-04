@@ -2,7 +2,7 @@
   "files": [
     {
       "path": "src/toad/core/context_inspection.py",
-      "sha256": "b9d8cda20c6d048e4d640c7564acdc861b263c7a8be9e7a37295d1069378ca29"
+      "sha256": "fc9453541895ba43924b943696eed3f956b1ea8c9d0406a3eda9fa8c876439be"
     },
     {
       "path": "src/toad/widgets/context_explorer.py",
@@ -18,7 +18,8 @@
     "source_path": "ContextNode owns hierarchical child navigation; AnnotationSourceNode answers own membership across semantic section grouping.",
     "authentic_input": "Existing NativeBackendFixture.open_owner(runtime_enabled=True,native_options=(--no-tools,--system-prompt,authoredfile)) owns sole attach/preparation. Original router session/prompt once seals original manifest. Exact emitted source_spans and ContributionCoordinates.sentences address controlled rows; no ContextManifest/RecordedContextTurn constructor in new control.",
     "correction": "Mounted original declared-answer menu -> original ACP/RPC -> USER row -> effective HumanLabel -> actual explorer refresh.",
-    "limits": "Syntax and source-family reasoning only. No collection, App/native execution, installed holder access, filewheel build or provider input. Historical04 remains FAIL; authentic GUI unexecuted."
+    "limits": "Syntax and source-family reasoning only. No collection, App/native execution, installed holder access, filewheel build or provider input. Historical04 remains FAIL; authentic GUI unexecuted.",
+    "child_navigation_identity": "Different annotation items can expose the same original recorded source. Their native child positions now derive distinct keys from each parent via original dataclass replace; manifest/inspection/contributor references remain borrowed. This closes duplicate context_nodes registrations across different answer children while retaining exact source proofs."
   },
   "parse_omissions": []
 }

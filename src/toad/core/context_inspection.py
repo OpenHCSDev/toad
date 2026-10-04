@@ -261,7 +261,10 @@ class AnnotationNode(ContextNode):
                 f"{original.public_description()}")
 
     def children(self):
-        return (self.source,)
+        # Multiple answers can borrow the same recorded source. Their mounted
+        # child positions are distinct; each navigation projection borrows the
+        # original manifest/contributor reader, never a new proof or store.
+        return (replace(self.source, key=f"{self.key}/source"),)
 
     async def read(self):
         original = await self.source.source_text()
