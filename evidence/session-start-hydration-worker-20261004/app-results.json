@@ -1,0 +1,9 @@
+[
+  {
+    "case": "blank_presentation_pilot.py",
+    "risk": "Actual Conversation startup/preflight and CommsScreen hydration/navigation pending, native input/resize, hidden return/focus and whole App close",
+    "exit_code": 0,
+    "duration_seconds": 20.20678544207476,
+    "log": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/blank_presentation_pilot.py.log"
+  }
+]

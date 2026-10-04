@@ -1,0 +1,10 @@
+[
+  {
+    "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/f4-core421-receiver-wheels-20261004/agent_comms-0.1.0-py3-none-any.whl",
+    "sha256": "d96ab5bb53e360591d8cff8e1e7eb85559eb7ac985c3047f6ffaef80f0dba935"
+  },
+  {
+    "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text55-filewheel-bb936deb-20261004/textual-8.2.8-py3-none-any.whl",
+    "sha256": "b064011ef5988c395f375ada87e602de61c14f9fa3491315754850d1e97b9611"
+  }
+]
