@@ -1,0 +1,8 @@
+new rows commit; pending old native Unmount owns no Window/App paint fence
+actual resize/current-source native display admission before old Unmount ends
+editor input and same CommsScreen pump remain admitted during style worker
+each repeated style request commits in original source order without losing draft
+unchanged native rows do not manufacture reader layout
+source park joins cancelled row worker while native retirement keeps committed rows
+original source park/resume retains admitted native rows and draft
+whole original App/runtime cleanup
