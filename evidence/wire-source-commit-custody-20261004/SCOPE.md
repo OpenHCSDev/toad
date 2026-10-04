@@ -71,7 +71,13 @@ Debt ratchet SUCCESS, run `37213588265`, job `111469503458`. Changed-file syntax
 diff whitespace pass. `owner-after.json` closes the same full production/test/native
 source census with zero omissions. Source evidence does not qualify an installed App.
 The subsequent synthetic-page deletion changes production; the earlier green run
-is not the qualification of that new head. Its exact automatic ratchet must follow.
+is not its qualification. Final production/control checkpoint
+`96c8b1f3e0bc27fe1a996e88d10b525dbb7b26cf` passed exact automatic Debt run
+`37214994957`, job `111473585764`. Original source admission precedes snapshot
+acquisition, preserving detached/retired refusal before accessing native resources.
+The source census is bound to this final production; control bytes are unchanged
+from `e56cbe8825628ca916664529313657eb554a8d60`. An evidence-only successor does not
+change that source qualification. Runtime acceptance remains unrun.
 
 Full scrolling/runway/sidebar/thread-open performance remains active. No runtime
 failure, CPU dominance, measured speed improvement, smoothness or FPS is claimed.

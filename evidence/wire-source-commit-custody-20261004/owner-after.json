@@ -2,7 +2,7 @@
   "packages": [
     {
       "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
-      "revision": "e56cbe8825628ca916664529313657eb554a8d60",
+      "revision": "96c8b1f3e0bc27fe1a996e88d10b525dbb7b26cf",
       "root": "src/toad",
       "modules": 288,
       "parse_omissions": [],
@@ -560,13 +560,15 @@
   ],
   "limits": "AST names identify declarations and syntactic consumers, not runtime dispatch, external aliases, or callbacks. Source reading resolves the history/receipt/native teardown family; common accept/restart/snapshot sites outside that family remain unproved.",
   "final_source_identity": {
-    "production_and_control_head": "e56cbe8825628ca916664529313657eb554a8d60",
     "base": "fb0447639cdba02aee0342170600783d66dab6eb",
     "changed_production_paths": [
       "src/toad/conversation_kind.py",
       "src/toad/mounted_message_history.py"
     ],
     "native_source_changed": false,
-    "runtime_launched": false
+    "runtime_launched": false,
+    "production_head": "96c8b1f3e0bc27fe1a996e88d10b525dbb7b26cf",
+    "control_byte_equal_to_e56cbe88": true,
+    "control_head": "e56cbe8825628ca916664529313657eb554a8d60"
   }
 }
