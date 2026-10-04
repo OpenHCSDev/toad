@@ -1,0 +1,93 @@
+{
+  "state": "NORMAL MERGED SOURCE/PINS CHECKPOINT; not staged or new operator Ready",
+  "source_main": "d667eb201b3e37159ae8a686240e21a7b5de26bb",
+  "core_pin": "5e3f68c5825e80ffe52ba431082a8c13a78428f9",
+  "textual_pin": "180cbd9471bd6674647590108ca2fe5a627eb24f",
+  "audit": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10",
+  "native_manifest": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
+  "native_tree": "dbc88ed9231d1275da3ce218aa8919a247e41ce1f010ce765e7ac0960193f4ac",
+  "retained_wheels": [
+    {
+      "module": "agent_comms",
+      "qualified_wheel_source": "69e6019be9c92b3ce37f11c75de2e9a37c284690",
+      "actual_merged_head": "5e3f68c5825e80ffe52ba431082a8c13a78428f9",
+      "all_merged_package_assets_equal_qualified_source": true,
+      "compared_paths": [
+        "src",
+        "stack/pi-native.sha256",
+        "stack/native-compaction-commit-child.mjs",
+        ".pi/APPEND_SYSTEM.md"
+      ],
+      "wheel": "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/context-segment-loading-20261004/wheel/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "190ace615cf3c74c0b94b8060a935cd34357a2476217bfed2122626582399f3c",
+      "assets": 344,
+      "forced_assets": 3
+    },
+    {
+      "module": "toad",
+      "qualified_wheel_source": "5b2a4a62ab560b17b4da4b0ae4225d9dcc06a960",
+      "actual_merged_head": "d667eb201b3e37159ae8a686240e21a7b5de26bb",
+      "all_merged_package_assets_equal_qualified_source": true,
+      "compared_paths": [
+        "src/toad"
+      ],
+      "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/tool430-native59-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "caec8cb834def340defba3ea9c4d8645d323b3c34e4ab314dc220798c4511eb7",
+      "assets": 319,
+      "forced_assets": 0
+    },
+    {
+      "module": "textual",
+      "qualified_wheel_source": "1bdc18c363cbc0f938537a71aa8ba0225d03e25e",
+      "actual_merged_head": "180cbd9471bd6674647590108ca2fe5a627eb24f",
+      "all_merged_package_assets_equal_qualified_source": true,
+      "compared_paths": [
+        "src/textual"
+      ],
+      "wheel": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native59-filewheel-20261004/textual-8.2.8-py3-none-any.whl",
+      "sha256": "73d4ca971dd2891c2a2266a0c5c8629e3e0ff55e802456ae60d0fedfe72fdbaa",
+      "assets": 266,
+      "forced_assets": 0
+    }
+  ],
+  "new_build_needed": false,
+  "source_update": "Only Core/Text revision identities in pyproject and lock; original Core project and Text Poetry metadata unchanged; parsed lock differs only those identities; no dependency resolve/VCS clone",
+  "private_preparation_negative": "First source-plan inspection assumed Text PEP621 project; KeyError before any file mutation. Corrected to original Text tool.poetry metadata; no product failure/check or package launch.",
+  "qualified_scopes": {
+    "637": "Original installed current-preview registeredACP/App16.280123s; ordinary declaration discovery, Coordination/UserInput and4native segments. No unavailable-awareness emission this read; all8 cold source kinds independently checked. Original negatives retained.",
+    "430_59": "Original changed App11.64112398494035s, pending unmount/mouse/viewport/end, two writers/join/latest commit, ToolContent recompose, editor, style loss/resize, collapse/draft/whole shutdown. Actual4311464 restore independently closed; no physical/CPU/smooth/firstpaint/allstalls claim."
+  },
+  "original_proofs": {
+    "637": "/home/ts/wt/comms-field-codec-closure-20260928/evidence/context-segment-loading-20261004/installed-current-preview",
+    "430": "evidence/tool-subtree-publication-lifetime-20261004/430-SCOPED-READY.json"
+  },
+  "protected_operations": {
+    "431": {
+      "artifacts": 159,
+      "head": "49b61f3a9e3a31de519c5f8c136df6ead16aeda9",
+      "ready_sha256": "8d0d71cadf6467d6eb9ac486ca099df923a42fe06c7d5bf6aaf7ceed08f52691"
+    },
+    "428": {
+      "artifacts": 165,
+      "head": "630a16f2db31e86632c21288c12597b690554efe",
+      "ready_sha256": "200b686231e79d78b037bea4e91be48bc8ff33f395785a647e7cc8842dc4920f"
+    },
+    "421": {
+      "artifacts": 155,
+      "state": "original freeze unchanged"
+    }
+  },
+  "exclusions": [
+    "638/640 pending independent qualification",
+    "417 full recorded followup",
+    "627/W1",
+    "unqualified followups"
+  ],
+  "remaining_step": "Bohr specific actual closed-holder purpose/disposition and matching currentfloor archive/readback/fresh grant before one retained-filewheel-only stage; no packagewriter inferred. Parent owns original guarded one-use execution/default physical acceptance.",
+  "package_writes": 0,
+  "public_effects": 0,
+  "new_envs": 0,
+  "native_builds": 0,
+  "native_copies": 0,
+  "new_vcs_clones": 0
+}
