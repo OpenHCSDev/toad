@@ -65,3 +65,23 @@ Installed blank_presentation_pilot passed retained A/B/A, draft Undo/redo, shell
 F0 initially rejected +1 TranscriptHistory class excess. The new positive preparation count made its independent zero-round early return unreachable; deleted that competing admission branch and its obsolete commentary rather than waiving the ratchet. Final source ratchet has zero positive deltas. The only resulting production change after the first two App cases is removal of this unreachable branch; the final rapid/runway cases exercise that exact installed source.
 
 One original configured saved-history/sidebar physical run is active at session422-sidebar-native53-public-20261004-01, recorder1747649/birth56383659. Existing SidebarWarmJourney inherits the whole InputWarm validation and adds native captured-region handle drag/wheel through the same click_history geometry owner. No guessed screen pixels, new recorder or alternate clock/store. Source and tools are frozen during this run. Host swap pressure recorded explicitly; one bounded isolated UI, no provider/native/public input, no concurrent App suite. Full performance remains active; no Ready, CPU improvement, FPS or smoothness claim before actual terminal/cleanup and motion/profile review.
+
+
+## Corrected native source and current main join
+
+Normal main077b6d14 is joined; only dependency metadata conflicts were resolved.
+Core966e761d stays at current main's approved declaration. Text53 now pins
+a818dcfd, the corrected layer fold and unchanged ordered style owner. Toad
+production, tests and tools are byte-identical to the original scoped checkpoint
+617e/installed9138. Lock package names and versions are unchanged.
+
+Kepler's corrected standalone wheel is SHA dfbd8fcb, with all266 assets source
+verified and35 mounted App layer/style/cache controls passing. Hosted Debt passes
+for52/53 with no positive packaged class deltas. These are changed source controls,
+not installed acceptance of the new wheel. Original SCOPED-READY.json and raw
+partial422 film remain bound to original Cored416/native2ea/Texta52.
+
+CORRECTED-NATIVE-JOIN.json records exact pins and artifact provenance. Sch's F1
+lease remains exclusive. After actual package handback, only the changed installed
+layer/style resource confirmation is needed; no repeated physical recording.
+Full stepped-motion/CPU/sidebar/tab/144Hz and clipped-peer return scope remain open.
