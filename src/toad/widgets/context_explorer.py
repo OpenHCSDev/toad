@@ -214,6 +214,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             yield Button("Search", id="context-find")
             yield Button("Read full", id="context-read-full")
             yield Button("Copy", id="context-copy")
+            yield Button("Correct", id="context-correct")
         yield ContextTree(self.intent, self._show_detail, self._show_placeholder)
         yield TextArea("No context selected.", read_only=True, soft_wrap=True,
                        show_line_numbers=False, id="context-detail")
@@ -339,6 +340,40 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
 
     def _show_placeholder(self, placeholder):
         self.query_one(TextArea).load_text(placeholder)
+
+    @on(Button.Pressed, "#context-correct")
+    def action_correct(self, event):
+        from functools import partial
+        from toad.widgets.comms_menu import show_target_menu
+
+        event.stop()
+        node = self.query_one(ContextTree).cursor_node
+        if not self.query_one(ContextTree).owns_node(node):
+            return
+        model = node.data
+        answers = model.correction_answers()
+        if not answers:
+            self.notify("Select an original annotation to correct", severity="warning")
+            return
+        show_target_menu(self.screen, event.button.region.offset, "Correct original answer",
+            [(answer.declared_name, answer.public_title()) for answer in answers],
+            {answer.declared_name: partial(self._correct_annotation, model, answer)
+             for answer in answers})
+
+    @work(group="context-correction", exclusive=True, exit_on_error=False)
+    async def _correct_annotation(self, model, answer):
+        if not self._selected(model):
+            return
+        worktree = self.query_ancestor(SessionView).project_root
+        try:
+            await model.correct(answer, worktree)
+        except (OSError, ValueError, RuntimeError, RequestError) as error:
+            if self._selected(model):
+                self.notify(f"Annotation correction failed: {error}", severity="error")
+            return
+        if self._selected(model):
+            self.notify("Original human correction recorded")
+            self._read()
 
     def _present(self, captured: HoldingInspection):
         if self.intent.query:

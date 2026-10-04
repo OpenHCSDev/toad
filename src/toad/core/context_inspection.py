@@ -22,6 +22,8 @@ from agent_comms.turn_context import (
     ContextManifest, ContextSegment, ContextSourceText, NativeMessages, Provenance,
     SegmentManifest,
 )
+from agent_comms.working_memory_labels import JevClassifier, ModelLabel
+from agent_comms.working_memory_questions import SpanAnswer
 
 if TYPE_CHECKING:
     from agent_comms.comms import Comms
@@ -68,6 +70,12 @@ class ContextNode(ABC):
 
     def search_description(self):
         return "Current public context"
+
+    def correction_answers(self):
+        return ()
+
+    async def correct(self, answer: type[SpanAnswer], worktree: Path):
+        raise ValueError("This context source has no original annotation to correct")
 
     async def read(self):
         return await Coordination.run_worker(self.detail)
@@ -220,6 +228,102 @@ class RecordedSegmentNode(RecordedTurnNode):
     def search_description(self):
         return f"{super().search_description()} · {self.manifest.turn.require_recorded().identity.value[:12]}"
 
+    def original_segments(self):
+        yield self
+        for index in range(len(self.segment.contributors)):
+            child = RecordedSegmentNode(f"{self.key}/contributor/{index}", self.manifest,
+                self.inspection, self.position, (*self.contributors, index))
+            yield from child.original_segments()
+
+
+@dataclass(frozen=True)
+class AnnotationNode(ContextNode):
+    """An original stored answer borrows the same authenticated span reader."""
+    annotation: ModelLabel
+    source: RecordedSegmentNode
+
+    @property
+    def label(self):
+        original = self.annotation
+        return (f"{original.question.question.public_title()} · {original.answer.public_title()} · "
+                f"{original.public_description()}")
+
+    def children(self):
+        return (self.source,)
+
+    async def read(self):
+        original = await self.source.source_text()
+        return self.describe_original(original)
+
+    def describe_original(self, original: ContextSourceText):
+        text = self.annotation.span.coordinates.public_text(original.text)
+        provenance = "\n".join(source.public_description()
+            for source in self.annotation.span.coordinates.provenance)
+        return (f"{self.label}\n{original.description}\n"
+                f"Question version: {self.annotation.question.sha256}\n"
+                f"Span: {self.annotation.span.coordinates.offset}+"
+                f"{self.annotation.span.coordinates.length} UTF8 bytes\n"
+                f"Sources:\n{provenance}\n\n{text}")
+
+    def search_roots(self, current_roots):
+        return (self,)
+
+    def search_description(self):
+        return self.label
+
+    async def find(self, query, *, limit=100):
+        if query in (await self.read()).casefold():
+            yield self
+
+    def correction_answers(self):
+        family = self.annotation.question.question.answer_family
+        return family.members_with(family)
+
+    async def correct(self, answer: type[SpanAnswer], worktree: Path):
+        return await self.source.inspection.correct_annotation(
+            self.source, self.annotation, answer, worktree)
+
+
+@dataclass(frozen=True)
+class AnnotationSourceNode(ContextNode):
+    """Navigation groups borrow original source facts, never infer authorship."""
+    kind: type[ContextSegment]
+    provenance: tuple[Provenance, ...]
+    answers: tuple[AnnotationNode, ...]
+
+    @property
+    def label(self):
+        return self.kind.public_title() + " · " + "; ".join(
+            source.public_description() for source in self.provenance)
+
+    def children(self):
+        return self.answers
+
+    def detail(self):
+        return (self.label + "\n\nOriginal source descriptions group these answers. "
+                "File paths or model probabilities do not establish an instruction's author.")
+
+    def search_roots(self, current_roots):
+        return (self,)
+
+    def search_description(self):
+        return self.label
+
+    async def find(self, query, *, limit=100):
+        # One search borrows each authenticated selected value once. These
+        # buffers leave with the operation; no corpus or text index is kept.
+        acquired = {}
+        count = 0
+        for answer in self.answers:
+            source = answer.source
+            if source.key not in acquired:
+                acquired[source.key] = await source.source_text()
+            if query in answer.describe_original(acquired[source.key]).casefold():
+                yield answer
+                count += 1
+                if count == limit:
+                    return
+
 
 @dataclass(frozen=True)
 class NativeSegmentNode(ContextNode):
@@ -335,12 +439,15 @@ class ContextInspection:
     manifests: tuple[ContextManifest, ...]
     source: SessionObservation
     service: Comms
+    annotations: tuple[ModelLabel, ...] = ()
 
     @classmethod
     def read(cls, comms, owner):
         thread = comms.registry.require(owner)
-        return cls(thread, comms.bus.log.context_manifests(owner, comms.registry),
-                   SessionRevision.observe(thread.session_file), comms)
+        manifests = comms.bus.log.context_manifests(owner, comms.registry)
+        with Coordination(str(comms.root / "coordination.sqlite3")) as store:
+            annotations = store.annotations.for_context(manifests, JevClassifier.version())
+        return cls(thread, manifests, SessionRevision.observe(thread.session_file), comms, annotations)
 
     def same_native_source(self, other: ContextInspection):
         """Compare original SDK source/launch facts, not roster presentation."""
@@ -358,7 +465,33 @@ class ContextInspection:
 
     def changed_since(self, previous: ContextInspection) -> bool:
         """Whether the original recorded request observations changed."""
-        return self.manifests != previous.manifests
+        return (self.manifests, self.annotations) != (previous.manifests, previous.annotations)
+
+    def working_memory(self):
+        sections = {}
+        for request in self.recorded():
+            for root in request.children():
+                for source in root.original_segments():
+                    for annotation in self.annotations:
+                        if source.segment.contains_span(annotation.span):
+                            key = (annotation.span, annotation.question, annotation.classifier)
+                            sections.setdefault(annotation.working_memory_section, {}).setdefault(
+                                key, AnnotationNode(
+                                    f"{source.key}/annotation/{annotation.span.coordinates.offset}/"
+                                    f"{annotation.question.question.declared_name}/{annotation.question.sha256}/"
+                                    f"{annotation.classifier.classifier.declared_name}/{annotation.classifier.pin}",
+                                    annotation, source))
+        groups = []
+        for section, nodes in sections.items():
+            sources = {}
+            for node in nodes.values():
+                coordinates = node.annotation.span.coordinates
+                sources.setdefault((coordinates.kind, coordinates.provenance), []).append(node)
+            groups.append((section, tuple(
+                AnnotationSourceNode(f"working-memory/{section}/{answers[0].key}",
+                    kind, provenance, tuple(answers))
+                for (kind, provenance), answers in sources.items()), False))
+        return tuple(groups)
 
     async def find(self, roots: tuple[ContextNode, ...], query: str, *, limit=100):
         """Bound result widgets while reading the selected original public sources."""
@@ -404,6 +537,14 @@ class ContextInspection:
             turn=FieldCodec.encode(manifest.turn), request_id=manifest.require_request_id(),
             segment=position, contributors=contributors)
         return FieldCodec.decode(ContextSourceText, payload)
+
+    async def correct_annotation(self, source, label, answer, worktree):
+        payload = await self._request("context_annotation_correction",
+            turn=FieldCodec.encode(source.manifest.turn),
+            request_id=source.manifest.require_request_id(), segment=source.position,
+            contributors=source.contributors, label=FieldCodec.encode(label),
+            answer=FieldCodec.encode(answer), worktree=str(worktree))
+        return FieldCodec.decode(ModelLabel, payload)
 
     def active(self, context: NativeContextData):
         return tuple(SegmentNodes(f"native/{context.identity.session_id}/{i}/{segment.declared_name}/{segment.sha256}",
@@ -541,7 +682,8 @@ class HoldingInspection(InspectionState):
         consumer(self)
 
     def groups(self):
-        return (("Recorded requests · source evidence, not today's base", self.inspection.recorded(), False),)
+        return (*self.inspection.working_memory(),
+                ("Recorded requests · source evidence, not today's base", self.inspection.recorded(), False))
 
     def prepare_native(self, consumer) -> None:
         consumer(self)
