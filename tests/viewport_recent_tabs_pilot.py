@@ -4,6 +4,8 @@ One real Pi/ACP source is visited through four logical tabs. No transport,
 restoration, source loader or body renderer is replaced by a test double.
 """
 import asyncio
+from dataclasses import dataclass
+from weakref import ReferenceType, ref
 import difflib
 import gc
 import json
@@ -14,6 +16,8 @@ from l0a_native_installed_pilot import main as native_fixture, until
 from native_session_retention_pilot import InstalledApp, conversation_paint
 from toad.screens.main import MainScreen
 from textual.widget import Widget
+from textual.widgets._markdown import MarkdownBlock
+from toad.widgets.prepared_markdown import PreparedConversationMarkdown
 from toad.widgets.transcript_history import TranscriptFragmentView
 from agent_comms.transcript_events import TextTranscript
 from toad.widgets.agent_response import AgentResponse
@@ -46,6 +50,97 @@ async def settled(pilot, view):
     painted = asyncio.Event()
     window.call_after_refresh(painted.set)
     await until(pilot, painted.is_set)
+
+
+@dataclass
+class ReaderCheckpoint:
+    source: object
+    document: object
+    history: object
+    text: str
+    reader_y: float
+    follows_tail: bool
+    pages: tuple[tuple[object, tuple[object, ...]], ...]
+    fragments: tuple[tuple[object, ...], ...]
+    painted: str
+    rendered_bodies: tuple[ReferenceType[MarkdownBlock], ...]
+    rendered_content: tuple[object, ...]
+
+    @staticmethod
+    def record_failed_reader(source, app):
+        view = source.conversation
+        evidence = Path(os.environ["L0A_EVIDENCE"])
+        diagnostic = {
+            "source": source.id,
+            "native_session": view.agent.session_id,
+            "reader_region": str(view.window.region),
+            "reader_virtual_size": str(view.window.virtual_size),
+            "scroll_y": view.window.scroll_y,
+            "max_scroll_y": view.window.max_scroll_y,
+            "markdown": [{
+                "region": str(body.region), "virtual_size": str(body.virtual_size),
+                "display": body.display, "ready": body.body_ready,
+                "children": len(body.children), "parent": type(body.parent).__name__,
+            } for body in view.query(PreparedConversationMarkdown)],
+        }
+        (evidence / "body-return-geometry.json").write_text(json.dumps(diagnostic, indent=2))
+        (evidence / "body-return-reader.txt").write_text(conversation_paint(app.screen))
+        (evidence / "body-return.svg").write_text(app.export_screenshot())
+        print("BODY_RETURN_GEOMETRY_FAILURE", diagnostic, flush=True)
+
+    @classmethod
+    async def capture(cls, source, app, pilot):
+        view = source.conversation
+        await settled(pilot, view)
+        editor = view.prompt.prompt_text_area
+        region = view.window.scrollable_content_region
+        bodies = tuple(block for markdown in view.query(PreparedConversationMarkdown)
+                       for block in markdown.query(MarkdownBlock)
+                       if block in app.screen._compositor.visible_widgets
+                       if block.region.overlaps(region))
+        assert len(bodies) > 0, "Checkpoint needs actually rendered native Markdown bodies"
+        pages = tuple((history, tuple(history.pages)) for history in view.window.histories)
+        return cls(source, editor.document, editor.history, editor.text,
+                   view.window.scroll_y, view.window.follows_tail, pages,
+                   tuple(page.fragments for _, cohort in pages for page in cohort),
+                   conversation_paint(app.screen), tuple(ref(block) for block in bodies),
+                   tuple(block._render_cache for block in bodies))
+
+    async def page_reads(self):
+        agent = self.source.presentation.sources.agent
+        async with agent.controller.transcripts.bind(agent.coordination.wire_root) as reader:
+            return reader.transcripts.page_reads
+
+    async def verify(self, app, pilot):
+        view = self.source.conversation
+        await settled(pilot, view)
+        editor = view.prompt.prompt_text_area
+        assert editor.document is self.document
+        assert editor.history is self.history
+        assert editor.text == self.text
+        assert view.window.scroll_y == self.reader_y
+        assert view.window.follows_tail is self.follows_tail
+        current_pages = tuple((history, tuple(history.pages)) for history in view.window.histories)
+        assert current_pages == self.pages, "Warm return replaced unchanged committed page resources"
+        current_fragments = tuple(page.fragments for _, pages in current_pages for page in pages)
+        assert len(current_fragments) == len(self.fragments)
+        assert all(current is original for current, original in zip(current_fragments, self.fragments)), (
+            "Warm return rebuilt unchanged source-owned prepared fragments", self.source.id
+        )
+        assert conversation_paint(app.screen) == self.painted
+        current_bodies = {block for block in view.query(MarkdownBlock)
+                          if block in app.screen._compositor.visible_widgets}
+        for body, rendered in zip(self.rendered_bodies, self.rendered_content):
+            assert body() in current_bodies, (
+                "Native tab return replaced a previously rendered Markdown body",
+                self.source.id, body(),
+            )
+            assert body()._render_cache is rendered, (
+                "Warm return rendered an unchanged Markdown body again",
+                self.source.id, body(), rendered.size, body()._render_cache.size,
+            )
+        print("CLICKED_RETURN_ACTUAL_RENDERED_BODY_IDENTITY", self.source.id,
+              len(self.rendered_bodies), flush=True)
 
 
 async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
