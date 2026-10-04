@@ -324,9 +324,10 @@ async def main(*, readonly_acceptance=None, readonly_capture=None, app_type=Reso
             for owner in service.registry.all_threads().values())
         (evidence / 'receipt.json').write_text(json.dumps(receipt, indent=2))
         if readonly_capture is not None:
-            await asyncio.to_thread(retain_fixture_journals,
+            retention = await asyncio.to_thread(retain_fixture_journals,
                 (item['session_file'] for item in receipt.get('physical_sources', ())),
                 stage=stage, evidence=evidence)
+            print('FIXTURE_JOURNAL_RETENTION', json.dumps(retention), flush=True)
     print('REAL_RESOURCE_CUSTODY_ACCEPTANCE', json.dumps(receipt), flush=True)
 
 
