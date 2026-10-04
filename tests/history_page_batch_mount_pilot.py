@@ -73,6 +73,7 @@ async def main(output):
     assert package.is_relative_to(Path(sys.prefix).resolve()), "Driver imported a source overlay"
     checks = {}
     tasks, releases = [], []
+    wire_checkpoint = None
     with TemporaryDirectory(dir=output) as directory:
         root = Path(directory)
         os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"),
@@ -336,7 +337,17 @@ async def main(output):
                     "checks": checks, "toad_package": str(package),
                     "exception": str(app._exception),
                 }, indent=2) + "\n")
+            from channel_visibility_observation_pilot import checkpoint_checks
+
+            wire_checkpoint = await checkpoint_checks(app, pilot, service, root, checks)
         checks["whole_original_app_shutdown"] = app._exception is None
+        wire_history, wire_reader, wire_window, wire_task = wire_checkpoint
+        await asyncio.shield(wire_task)
+        checks["wire_original_reader_unmount_whole_close"] = (
+            not wire_reader._pending and wire_history.parent is None
+            and wire_history not in wire_window.histories
+            and not wire_history.checkpoint_available and not wire_history.blocks_visible_read)
+        assert all(checks.values()), checks
         await asyncio.get_running_loop().shutdown_default_executor()
     receipt = {"scope": "Installed original App/page/Mount/Unmount/source/read-fence custody; no backend painted-cursor writer, physical, CPU or FPS claim",
                "checks": checks, "toad_package": str(package), "source_cases": source_cases,
