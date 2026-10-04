@@ -1,0 +1,4764 @@
+{
+  "packages": [
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "fb0447639cdba02aee0342170600783d66dab6eb",
+      "root": "src/toad",
+      "modules": 288,
+      "parse_omissions": [],
+      "named_sites": [
+        {
+          "path": "src/toad/acp/agent.py",
+          "line": 397,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "result.current"
+        },
+        {
+          "path": "src/toad/acp/agent.py",
+          "line": 395,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "result.current"
+        },
+        {
+          "path": "src/toad/acp/agent.py",
+          "line": 394,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "result.current"
+        },
+        {
+          "path": "src/toad/acp/agent_configuration.py",
+          "line": 53,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "@property"
+        },
+        {
+          "path": "src/toad/acp/agent_configuration.py",
+          "line": 62,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/acp/agent_controller.py",
+          "line": 350,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "authority.current"
+        },
+        {
+          "path": "src/toad/acp/agent_controller.py",
+          "line": 219,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "authority.current"
+        },
+        {
+          "path": "src/toad/acp/agent_session.py",
+          "line": 308,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "result.current"
+        },
+        {
+          "path": "src/toad/acp/client_session.py",
+          "line": 25,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "@property"
+        },
+        {
+          "path": "src/toad/acp/client_session.py",
+          "line": 32,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/acp/client_session.py",
+          "line": 35,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/acp/maintenance_ingress.py",
+          "line": 168,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "ShellCommand.current"
+        },
+        {
+          "path": "src/toad/acp/projection_attachment.py",
+          "line": 23,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/acp/projection_attachment.py",
+          "line": 140,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/acp/projection_attachment.py",
+          "line": 214,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/acp/projection_attachment.py",
+          "line": 45,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/acp/projection_attachment.py",
+          "line": 129,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current.scope.relation(scope).current"
+        },
+        {
+          "path": "src/toad/acp/projection_attachment.py",
+          "line": 41,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/acp/projection_attachment.py",
+          "line": 128,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/acp/projection_attachment.py",
+          "line": 164,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/acp/projection_attachment.py",
+          "line": 166,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/acp/projection_attachment.py",
+          "line": 191,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/acp/projection_attachment.py",
+          "line": 206,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/acp/projection_attachment.py",
+          "line": 208,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/acp/projection_attachment.py",
+          "line": 118,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "scope.relation(other).current"
+        },
+        {
+          "path": "src/toad/acp/projection_attachment.py",
+          "line": 167,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/acp/projection_attachment.py",
+          "line": 131,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/acp/projection_attachment.py",
+          "line": 211,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/acp/projection_attachment.py",
+          "line": 129,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/acp/projection_attachment.py",
+          "line": 133,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/acp/projection_attachment.py",
+          "line": 134,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/acp/queue_attachment.py",
+          "line": 39,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.scope.relation(scope).current"
+        },
+        {
+          "path": "src/toad/acp/queue_attachment.py",
+          "line": 23,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/acp/queue_attachment.py",
+          "line": 23,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/acp/queue_attachment.py",
+          "line": 27,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/acp/queue_attachment.py",
+          "line": 28,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/acp/queue_attachment.py",
+          "line": 81,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.scope.relation(update.scope).current"
+        },
+        {
+          "path": "src/toad/acp/queue_attachment.py",
+          "line": 88,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "previous.scope.relation(update.scope).current"
+        },
+        {
+          "path": "src/toad/acp/session_updates.py",
+          "line": 132,
+          "kind": "FunctionDef",
+          "name": "accept",
+          "expression": "def accept(self, session_id, update, metadata=None):"
+        },
+        {
+          "path": "src/toad/acp/shell_command.py",
+          "line": 9,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "@classmethod"
+        },
+        {
+          "path": "src/toad/acp/terminal_owner.py",
+          "line": 61,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "authority.current"
+        },
+        {
+          "path": "src/toad/acp/tool_calls.py",
+          "line": 18,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/acp/tool_calls.py",
+          "line": 19,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/acp/tool_calls.py",
+          "line": 24,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/acp/tool_calls.py",
+          "line": 27,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/acp/tool_calls.py",
+          "line": 28,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/acp/tool_calls.py",
+          "line": 29,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/acp/tool_calls.py",
+          "line": 32,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/acp/tool_calls.py",
+          "line": 27,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/acp/tool_calls.py",
+          "line": 20,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/acp/tool_calls.py",
+          "line": 33,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/block_navigation.py",
+          "line": 103,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "@property"
+        },
+        {
+          "path": "src/toad/block_navigation.py",
+          "line": 108,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/block_navigation.py",
+          "line": 108,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/block_navigation.py",
+          "line": 120,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/block_navigation.py",
+          "line": 130,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/block_navigation.py",
+          "line": 124,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/block_navigation.py",
+          "line": 120,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 142,
+          "kind": "ClassDef",
+          "name": "HistoryReadResult",
+          "expression": "@dataclass(frozen=True)"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 61,
+          "kind": "FunctionDef",
+          "name": "restart",
+          "expression": "def restart(self) -> InitialHistoryReadRequest:"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 163,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "def current(self, result: HistoryReadResult, follow_tail: bool) -> bool:"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 166,
+          "kind": "FunctionDef",
+          "name": "accept",
+          "expression": "def accept(self, result: HistoryReadResult, follow_tail: bool) -> None:"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 169,
+          "kind": "FunctionDef",
+          "name": "restart",
+          "expression": "def restart(self) -> None:"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 36,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 51,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 56,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 58,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 83,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 86,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 107,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 112,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 172,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 39,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 42,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 67,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 87,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 89,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 92,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 127,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 129,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 137,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 163,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 166,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 170,
+          "kind": "Attribute",
+          "name": "restart",
+          "expression": "self.source.restart"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 179,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 109,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 119,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 122,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 156,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 117,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/conversation_kind.py",
+          "line": 89,
+          "kind": "FunctionDef",
+          "name": "remember_page",
+          "expression": "@classmethod"
+        },
+        {
+          "path": "src/toad/conversation_kind.py",
+          "line": 102,
+          "kind": "FunctionDef",
+          "name": "remember_mounted",
+          "expression": "@classmethod"
+        },
+        {
+          "path": "src/toad/conversation_kind.py",
+          "line": 127,
+          "kind": "FunctionDef",
+          "name": "painted_page",
+          "expression": "@classmethod"
+        },
+        {
+          "path": "src/toad/conversation_kind.py",
+          "line": 184,
+          "kind": "FunctionDef",
+          "name": "remember_mounted",
+          "expression": "@classmethod"
+        },
+        {
+          "path": "src/toad/conversation_kind.py",
+          "line": 205,
+          "kind": "FunctionDef",
+          "name": "painted_page",
+          "expression": "@classmethod"
+        },
+        {
+          "path": "src/toad/conversation_kind.py",
+          "line": 328,
+          "kind": "FunctionDef",
+          "name": "painted_page",
+          "expression": "@classmethod"
+        },
+        {
+          "path": "src/toad/conversation_kind.py",
+          "line": 209,
+          "kind": "Attribute",
+          "name": "channel_receipts",
+          "expression": "history.channel_receipts"
+        },
+        {
+          "path": "src/toad/conversation_kind.py",
+          "line": 329,
+          "kind": "Attribute",
+          "name": "tail_receipt",
+          "expression": "history.tail_receipt"
+        },
+        {
+          "path": "src/toad/conversation_kind.py",
+          "line": 321,
+          "kind": "Attribute",
+          "name": "tail_receipt",
+          "expression": "history.tail_receipt"
+        },
+        {
+          "path": "src/toad/conversation_kind.py",
+          "line": 95,
+          "kind": "Attribute",
+          "name": "remember_mounted",
+          "expression": "cls.remember_mounted"
+        },
+        {
+          "path": "src/toad/conversation_kind.py",
+          "line": 185,
+          "kind": "Attribute",
+          "name": "channel_receipts",
+          "expression": "history.channel_receipts"
+        },
+        {
+          "path": "src/toad/conversation_kind.py",
+          "line": 92,
+          "kind": "Attribute",
+          "name": "historical_receipts",
+          "expression": "history.historical_receipts"
+        },
+        {
+          "path": "src/toad/conversation_kind.py",
+          "line": 211,
+          "kind": "Attribute",
+          "name": "channel_receipts",
+          "expression": "history.channel_receipts"
+        },
+        {
+          "path": "src/toad/conversation_kind.py",
+          "line": 229,
+          "kind": "Attribute",
+          "name": "channel_receipts",
+          "expression": "history.channel_receipts"
+        },
+        {
+          "path": "src/toad/conversation_kind.py",
+          "line": 217,
+          "kind": "Attribute",
+          "name": "channel_receipts",
+          "expression": "history.channel_receipts"
+        },
+        {
+          "path": "src/toad/conversation_submission.py",
+          "line": 172,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "@property"
+        },
+        {
+          "path": "src/toad/conversation_submission.py",
+          "line": 208,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/conversation_submission.py",
+          "line": 273,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "execution.current"
+        },
+        {
+          "path": "src/toad/conversation_submission.py",
+          "line": 281,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/conversation_submission.py",
+          "line": 114,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "execution.current"
+        },
+        {
+          "path": "src/toad/conversation_submission.py",
+          "line": 180,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/conversation_submission.py",
+          "line": 204,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/conversation_submission.py",
+          "line": 195,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/conversation_submission.py",
+          "line": 263,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "execution.current"
+        },
+        {
+          "path": "src/toad/conversation_submission.py",
+          "line": 282,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/conversation_submission.py",
+          "line": 256,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "item.current"
+        },
+        {
+          "path": "src/toad/conversation_submission.py",
+          "line": 282,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/conversation_submission.py",
+          "line": 283,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 616,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 564,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/goal_display.py",
+          "line": 36,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "@staticmethod"
+        },
+        {
+          "path": "src/toad/goal_interaction.py",
+          "line": 213,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/goal_interaction.py",
+          "line": 215,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/goal_interaction.py",
+          "line": 214,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/history.py",
+          "line": 37,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "@property"
+        },
+        {
+          "path": "src/toad/history.py",
+          "line": 41,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "@current.setter"
+        },
+        {
+          "path": "src/toad/history.py",
+          "line": 42,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/history.py",
+          "line": 40,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/history.py",
+          "line": 139,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/input_history.py",
+          "line": 29,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/input_history.py",
+          "line": 39,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 71,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "@property"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 155,
+          "kind": "AsyncFunctionDef",
+          "name": "paint_receipt",
+          "expression": "async def paint_receipt(self, receipt):"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 200,
+          "kind": "AsyncFunctionDef",
+          "name": "mount_page",
+          "expression": "async def mount_page(self, page: MessagePage, *, older: bool) -> None:"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 205,
+          "kind": "AsyncFunctionDef",
+          "name": "_mount_page",
+          "expression": "async def _mount_page(self, page: MessagePage, *, older: bool, retained: tuple[tuple[WireMessage, Widget], ...], style: WireMessageStyle) -> None:"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 238,
+          "kind": "AsyncFunctionDef",
+          "name": "insert_page",
+          "expression": "async def insert_page(self, page: MessagePage, pairs: list[tuple[WireMessage, Widget]], *, older: bool, protected: set[Widget], retained: tuple[tuple[WireMessage, Widget], ...], removed: tuple[Widget, ...], style: WireMessageStyle) -> AwaitRemove | None:"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 366,
+          "kind": "FunctionDef",
+          "name": "mark_visible",
+          "expression": "def mark_visible(self) -> None:"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 395,
+          "kind": "AsyncFunctionDef",
+          "name": "mark_historical",
+          "expression": "async def mark_historical(self, page: MessagePage, keys: set[tuple[str, int]]) -> None:"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 412,
+          "kind": "AsyncFunctionDef",
+          "name": "mark_page",
+          "expression": "async def mark_page(self, page: MessagePage, original_page: MessagePage | None=None) -> None:"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 64,
+          "kind": "Attribute",
+          "name": "tail_receipt",
+          "expression": "self.tail_receipt"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 65,
+          "kind": "Attribute",
+          "name": "channel_receipts",
+          "expression": "self.channel_receipts"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 66,
+          "kind": "Attribute",
+          "name": "historical_receipts",
+          "expression": "self.historical_receipts"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 132,
+          "kind": "Attribute",
+          "name": "tail_receipt",
+          "expression": "self.tail_receipt"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 242,
+          "kind": "Name",
+          "name": "AwaitRemove",
+          "expression": "AwaitRemove"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 376,
+          "kind": "Attribute",
+          "name": "historical_receipts",
+          "expression": "self.historical_receipts"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 106,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 118,
+          "kind": "Attribute",
+          "name": "mark_visible",
+          "expression": "self.mark_visible"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 236,
+          "kind": "Attribute",
+          "name": "remember_page",
+          "expression": "self.view.conversation_kind.remember_page"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 301,
+          "kind": "Attribute",
+          "name": "source_snapshot",
+          "expression": "self.source_snapshot"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 321,
+          "kind": "Attribute",
+          "name": "restart",
+          "expression": "reader.restart"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 322,
+          "kind": "Attribute",
+          "name": "source_snapshot",
+          "expression": "self.source_snapshot"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 328,
+          "kind": "Name",
+          "name": "HistoryReadResult",
+          "expression": "HistoryReadResult"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 387,
+          "kind": "Attribute",
+          "name": "painted_page",
+          "expression": "self.view.conversation_kind.painted_page"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 133,
+          "kind": "Attribute",
+          "name": "channel_receipts",
+          "expression": "self.channel_receipts"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 134,
+          "kind": "Attribute",
+          "name": "historical_receipts",
+          "expression": "self.historical_receipts"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 170,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 283,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 313,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "snapshot.current"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 363,
+          "kind": "Attribute",
+          "name": "accept",
+          "expression": "reader.accept"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 392,
+          "kind": "Attribute",
+          "name": "mark_page",
+          "expression": "self.mark_page"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 426,
+          "kind": "Attribute",
+          "name": "tail_receipt",
+          "expression": "self.tail_receipt"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 443,
+          "kind": "Attribute",
+          "name": "tail_receipt",
+          "expression": "self.tail_receipt"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 163,
+          "kind": "Attribute",
+          "name": "restart",
+          "expression": "self.reader.restart"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 164,
+          "kind": "Attribute",
+          "name": "_mount_page",
+          "expression": "self._mount_page"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 197,
+          "kind": "Attribute",
+          "name": "_mount_page",
+          "expression": "self._mount_page"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 202,
+          "kind": "Attribute",
+          "name": "_mount_page",
+          "expression": "self._mount_page"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 324,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "snapshot.current"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 324,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "request.current"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 346,
+          "kind": "Attribute",
+          "name": "historical_receipts",
+          "expression": "self.historical_receipts"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 348,
+          "kind": "Attribute",
+          "name": "channel_receipts",
+          "expression": "self.channel_receipts"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 350,
+          "kind": "Attribute",
+          "name": "tail_receipt",
+          "expression": "self.tail_receipt"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 384,
+          "kind": "Attribute",
+          "name": "mark_historical",
+          "expression": "self.mark_historical"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 398,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 416,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 425,
+          "kind": "Attribute",
+          "name": "tail_receipt",
+          "expression": "self.tail_receipt"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 425,
+          "kind": "Attribute",
+          "name": "tail_receipt",
+          "expression": "self.tail_receipt"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 448,
+          "kind": "Attribute",
+          "name": "mark_visible",
+          "expression": "self.mark_visible"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 224,
+          "kind": "Attribute",
+          "name": "insert_page",
+          "expression": "self.insert_page"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 314,
+          "kind": "Attribute",
+          "name": "_mount_page",
+          "expression": "self._mount_page"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 335,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "reader.current"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 361,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "reader.current"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 377,
+          "kind": "Attribute",
+          "name": "historical_receipts",
+          "expression": "self.historical_receipts"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 405,
+          "kind": "Attribute",
+          "name": "historical_receipts",
+          "expression": "self.historical_receipts"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 407,
+          "kind": "Attribute",
+          "name": "historical_receipts",
+          "expression": "self.historical_receipts"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 444,
+          "kind": "Attribute",
+          "name": "channel_receipts",
+          "expression": "self.channel_receipts"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 352,
+          "kind": "Attribute",
+          "name": "_mount_page",
+          "expression": "self._mount_page"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 379,
+          "kind": "Attribute",
+          "name": "historical_receipts",
+          "expression": "self.historical_receipts"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 381,
+          "kind": "Attribute",
+          "name": "historical_receipts",
+          "expression": "self.historical_receipts"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 404,
+          "kind": "Attribute",
+          "name": "historical_receipts",
+          "expression": "self.historical_receipts"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 430,
+          "kind": "Attribute",
+          "name": "channel_receipts",
+          "expression": "self.channel_receipts"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 357,
+          "kind": "Attribute",
+          "name": "_mount_page",
+          "expression": "self._mount_page"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 429,
+          "kind": "Attribute",
+          "name": "channel_receipts",
+          "expression": "self.channel_receipts"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 439,
+          "kind": "Attribute",
+          "name": "restart",
+          "expression": "self.reader.restart"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 346,
+          "kind": "Attribute",
+          "name": "historical_receipts",
+          "expression": "self.historical_receipts"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 348,
+          "kind": "Attribute",
+          "name": "channel_receipts",
+          "expression": "self.channel_receipts"
+        },
+        {
+          "path": "src/toad/navigation_preparation.py",
+          "line": 181,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.origin.current"
+        },
+        {
+          "path": "src/toad/project_link.py",
+          "line": 208,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/project_link.py",
+          "line": 217,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/prompt_cursor.py",
+          "line": 21,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/prompt_cursor.py",
+          "line": 126,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/prompt_cursor.py",
+          "line": 25,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/prompt_cursor.py",
+          "line": 25,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/prompt_cursor.py",
+          "line": 29,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/prompt_cursor.py",
+          "line": 35,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/prompt_cursor.py",
+          "line": 33,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/prompt_cursor.py",
+          "line": 131,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/render_identity.py",
+          "line": 66,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "@classmethod"
+        },
+        {
+          "path": "src/toad/render_service.py",
+          "line": 88,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/render_service.py",
+          "line": 53,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "RendererBuild.current"
+        },
+        {
+          "path": "src/toad/render_service.py",
+          "line": 90,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/render_zmq.py",
+          "line": 72,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "RendererBuild.current"
+        },
+        {
+          "path": "src/toad/render_zmq.py",
+          "line": 89,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "RendererBuild.current"
+        },
+        {
+          "path": "src/toad/screens/workspace.py",
+          "line": 313,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/screens/workspace.py",
+          "line": 317,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/session_admission.py",
+          "line": 202,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/session_admission.py",
+          "line": 204,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/session_admission.py",
+          "line": 206,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 194,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 156,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "origin.current"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 263,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "identity.current"
+        },
+        {
+          "path": "src/toad/session_observation.py",
+          "line": 99,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "GoalDisplay.current"
+        },
+        {
+          "path": "src/toad/session_tracker.py",
+          "line": 162,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/sidebar_layout.py",
+          "line": 122,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/sidebar_layout.py",
+          "line": 132,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/sidebar_layout.py",
+          "line": 144,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/sidebar_layout.py",
+          "line": 163,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/sidebar_layout.py",
+          "line": 171,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/sidebar_layout.py",
+          "line": 127,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/sidebar_layout.py",
+          "line": 138,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/sidebar_layout.py",
+          "line": 167,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/sidebar_layout.py",
+          "line": 172,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/sidebar_layout.py",
+          "line": 123,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/sidebar_layout.py",
+          "line": 128,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/sidebar_layout.py",
+          "line": 165,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/sidebar_layout.py",
+          "line": 139,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/sidebar_layout.py",
+          "line": 147,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/sidebar_layout.py",
+          "line": 148,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/sidebar_layout.py",
+          "line": 172,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/sidebar_layout.py",
+          "line": 134,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/sidebar_layout.py",
+          "line": 149,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/sidebar_navigation.py",
+          "line": 163,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "row.current"
+        },
+        {
+          "path": "src/toad/sidebar_navigation.py",
+          "line": 165,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "row.current"
+        },
+        {
+          "path": "src/toad/tab_order.py",
+          "line": 54,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/tab_order.py",
+          "line": 50,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/tab_order.py",
+          "line": 54,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/target_commands.py",
+          "line": 34,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "def current(self):"
+        },
+        {
+          "path": "src/toad/target_commands.py",
+          "line": 42,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/target_commands.py",
+          "line": 74,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/thread_actions.py",
+          "line": 110,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "ctx.current"
+        },
+        {
+          "path": "src/toad/thread_navigation.py",
+          "line": 29,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "def current(self, navigator: ThreadNavigator, owner_mode: str) -> bool:"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 69,
+          "kind": "Name",
+          "name": "HistorySourceSnapshot",
+          "expression": "HistorySourceSnapshot"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 217,
+          "kind": "Name",
+          "name": "HistorySourceSnapshot",
+          "expression": "HistorySourceSnapshot"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 335,
+          "kind": "Attribute",
+          "name": "source_snapshot",
+          "expression": "self.owner.source_snapshot"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 219,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "snapshot.current"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 338,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "snapshot.current"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 344,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "snapshot.current"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 118,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "snapshot.current"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 331,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "snapshot.current"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 341,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "snapshot.current"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 126,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "snapshot.current"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 123,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "snapshot.current"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 63,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "def current(self) -> bool:"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 378,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "def current(self) -> bool:"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 256,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 310,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 410,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 36,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 61,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 82,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 126,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 380,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "super().current"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 381,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.plan.current"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 593,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "publication.current"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 102,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 140,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 181,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 193,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 390,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 205,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 215,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 21,
+          "kind": "ClassDef",
+          "name": "HistorySourceSnapshot",
+          "expression": "@dataclass(frozen=True)"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 29,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "def current(self, owner: TranscriptSourcePreparation) -> bool:"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 57,
+          "kind": "FunctionDef",
+          "name": "source_snapshot",
+          "expression": "def source_snapshot(self) -> HistorySourceSnapshot:"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 57,
+          "kind": "Name",
+          "name": "HistorySourceSnapshot",
+          "expression": "HistorySourceSnapshot"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 58,
+          "kind": "Name",
+          "name": "HistorySourceSnapshot",
+          "expression": "HistorySourceSnapshot"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 143,
+          "kind": "Name",
+          "name": "HistorySourceSnapshot",
+          "expression": "HistorySourceSnapshot"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 145,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "snapshot.current"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 154,
+          "kind": "Attribute",
+          "name": "source_snapshot",
+          "expression": "self.source_snapshot"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 32,
+          "kind": "Attribute",
+          "name": "source_snapshot",
+          "expression": "owner.source_snapshot"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 129,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "request.current"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 136,
+          "kind": "Attribute",
+          "name": "source_snapshot",
+          "expression": "self.source_snapshot"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 158,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "snapshot.current"
+        },
+        {
+          "path": "src/toad/transcript_state.py",
+          "line": 133,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "def current(self, window) -> bool:"
+        },
+        {
+          "path": "src/toad/transcript_state.py",
+          "line": 139,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/transcript_state.py",
+          "line": 143,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/widgets/committed_presentation.py",
+          "line": 209,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "@abstractmethod"
+        },
+        {
+          "path": "src/toad/widgets/committed_presentation.py",
+          "line": 240,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "def current(self, window: HistoryWindow) -> bool:"
+        },
+        {
+          "path": "src/toad/widgets/committed_presentation.py",
+          "line": 279,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "def current(self, window: HistoryWindow) -> bool:"
+        },
+        {
+          "path": "src/toad/widgets/committed_presentation.py",
+          "line": 270,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/widgets/comms_chat.py",
+          "line": 337,
+          "kind": "Attribute",
+          "name": "mark_visible",
+          "expression": "self.message_history.mark_visible"
+        },
+        {
+          "path": "src/toad/widgets/comms_chat.py",
+          "line": 483,
+          "kind": "Attribute",
+          "name": "paint_receipt",
+          "expression": "self.message_history.paint_receipt"
+        },
+        {
+          "path": "src/toad/widgets/comms_chat.py",
+          "line": 324,
+          "kind": "Attribute",
+          "name": "mark_visible",
+          "expression": "self.message_history.mark_visible"
+        },
+        {
+          "path": "src/toad/widgets/comms_chat.py",
+          "line": 317,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "reader.current"
+        },
+        {
+          "path": "src/toad/widgets/comms_sidebar.py",
+          "line": 239,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/comms_sidebar.py",
+          "line": 159,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/comms_sidebar.py",
+          "line": 172,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "row.current"
+        },
+        {
+          "path": "src/toad/widgets/comms_sidebar.py",
+          "line": 160,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 305,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 306,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 307,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 296,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 308,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 312,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 313,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 687,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 688,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 961,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.navigation.current"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 689,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1577,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "agent.configuration.thinking.current"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1223,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "agent.configuration.thinking.current"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 27,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "def current(self, window: 'HistoryWindow') -> bool:"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 365,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "def current(self, window: HistoryWindow) -> bool:"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 31,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/toad/widgets/input_delivery.py",
+          "line": 87,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/input_delivery.py",
+          "line": 90,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/input_delivery.py",
+          "line": 93,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/input_delivery.py",
+          "line": 99,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/input_delivery.py",
+          "line": 108,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/model_switcher.py",
+          "line": 166,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/model_switcher.py",
+          "line": 166,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "setting.current"
+        },
+        {
+          "path": "src/toad/widgets/model_switcher.py",
+          "line": 180,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/model_switcher.py",
+          "line": 187,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/path_search.py",
+          "line": 216,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "content_switcher.current"
+        },
+        {
+          "path": "src/toad/widgets/prompt.py",
+          "line": 574,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/prompt.py",
+          "line": 585,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/prompt.py",
+          "line": 586,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/prompt.py",
+          "line": 578,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/recovery_view.py",
+          "line": 139,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/recovery_view.py",
+          "line": 142,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/recovery_view.py",
+          "line": 144,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/session_details.py",
+          "line": 100,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/session_details.py",
+          "line": 102,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/session_details.py",
+          "line": 103,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/session_details.py",
+          "line": 104,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/session_sidebar.py",
+          "line": 92,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/session_sidebar.py",
+          "line": 95,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/session_sidebar.py",
+          "line": 95,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/sidebar_tree.py",
+          "line": 180,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/sidebar_tree.py",
+          "line": 145,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/sidebar_tree.py",
+          "line": 181,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/sidebar_tree.py",
+          "line": 182,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/sidebar_tree.py",
+          "line": 184,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/sidebar_tree.py",
+          "line": 146,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/sidebar_tree.py",
+          "line": 150,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/sidebar_tree.py",
+          "line": 183,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/thread_comms.py",
+          "line": 513,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/thread_comms.py",
+          "line": 519,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/thread_comms.py",
+          "line": 523,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/thread_comms.py",
+          "line": 517,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/thread_comms.py",
+          "line": 519,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/thread_comms.py",
+          "line": 523,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/thread_comms.py",
+          "line": 523,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/thread_comms.py",
+          "line": 517,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/thread_comms.py",
+          "line": 518,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/throbber.py",
+          "line": 127,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/throbber.py",
+          "line": 132,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 651,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "def current():"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 658,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 725,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 792,
+          "kind": "Attribute",
+          "name": "source_snapshot",
+          "expression": "self.source_snapshot"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 835,
+          "kind": "Attribute",
+          "name": "source_snapshot",
+          "expression": "self.source_snapshot"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 354,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 424,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 735,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 358,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 367,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 429,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 660,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 372,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 662,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 678,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 734,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 740,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 805,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "snapshot.current"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 805,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "request.current"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 817,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "snapshot.current"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 817,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "request.current"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 857,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "snapshot.current"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 802,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "snapshot.current"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 802,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "request.current"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 854,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "snapshot.current"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 674,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 813,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "snapshot.current"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 813,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "request.current"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 156,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 159,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 157,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 633,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 634,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 625,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 627,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 629,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 632,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 673,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 663,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 663,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 678,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 638,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 644,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 644,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 644,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 651,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 651,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 651,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/toad/workspace_sessions.py",
+          "line": 19,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "def current(self, view: 'SessionView') -> bool:"
+        },
+        {
+          "path": "src/toad/workspace_sessions.py",
+          "line": 63,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "@abstractmethod"
+        },
+        {
+          "path": "src/toad/workspace_sessions.py",
+          "line": 88,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "def current(self, view):"
+        },
+        {
+          "path": "src/toad/workspace_sessions.py",
+          "line": 93,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "def current(self, view):"
+        },
+        {
+          "path": "src/toad/workspace_sessions.py",
+          "line": 101,
+          "kind": "FunctionDef",
+          "name": "current",
+          "expression": "def current(self, view):"
+        },
+        {
+          "path": "src/toad/workspace_sessions.py",
+          "line": 157,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.source.current"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "fb0447639cdba02aee0342170600783d66dab6eb",
+      "root": "tests",
+      "modules": 394,
+      "parse_omissions": [],
+      "named_sites": [
+        {
+          "path": "tests/acp_completion_server.py",
+          "line": 23,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/agent_configuration_native_installed_pilot.py",
+          "line": 37,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "agent.configuration.thinking.current"
+        },
+        {
+          "path": "tests/agent_configuration_native_installed_pilot.py",
+          "line": 35,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "agent.configuration.thinking.current"
+        },
+        {
+          "path": "tests/agent_configuration_native_installed_pilot.py",
+          "line": 40,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "agent.configuration.thinking.current"
+        },
+        {
+          "path": "tests/agent_selection_configured_installed_pilot.py",
+          "line": 160,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "agent.configuration.thinking.current"
+        },
+        {
+          "path": "tests/agent_selection_configured_installed_pilot.py",
+          "line": 129,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "agent.configuration.model.current"
+        },
+        {
+          "path": "tests/agent_selection_configured_installed_pilot.py",
+          "line": 190,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "agent.configuration.model.current"
+        },
+        {
+          "path": "tests/agent_selection_configured_installed_pilot.py",
+          "line": 191,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "agent.configuration.thinking.current"
+        },
+        {
+          "path": "tests/agent_selection_configured_installed_pilot.py",
+          "line": 153,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "agent.configuration.model.current"
+        },
+        {
+          "path": "tests/attachment_request_pilot.py",
+          "line": 164,
+          "kind": "Attribute",
+          "name": "accept",
+          "expression": "agent.updates.accept"
+        },
+        {
+          "path": "tests/canonical_wire_conversation_installed_pilot.py",
+          "line": 523,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "agent._private_cursor.current"
+        },
+        {
+          "path": "tests/channel_history_reader_pilot.py",
+          "line": 106,
+          "kind": "Attribute",
+          "name": "accept",
+          "expression": "reader.accept"
+        },
+        {
+          "path": "tests/channel_partial_paint_pilot.py",
+          "line": 32,
+          "kind": "Attribute",
+          "name": "mark_page",
+          "expression": "MountedMessageHistory.mark_page"
+        },
+        {
+          "path": "tests/client_session_native_installed_pilot.py",
+          "line": 42,
+          "kind": "Attribute",
+          "name": "accept",
+          "expression": "agent.updates.accept"
+        },
+        {
+          "path": "tests/comms_pilot.py",
+          "line": 238,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "session_rows[0].current"
+        },
+        {
+          "path": "tests/comms_pilot.py",
+          "line": 430,
+          "kind": "Attribute",
+          "name": "accept",
+          "expression": "startup_agent.updates.accept"
+        },
+        {
+          "path": "tests/comms_pilot.py",
+          "line": 585,
+          "kind": "Attribute",
+          "name": "accept",
+          "expression": "protocol_agent.updates.accept"
+        },
+        {
+          "path": "tests/comms_pilot.py",
+          "line": 595,
+          "kind": "Attribute",
+          "name": "accept",
+          "expression": "protocol_agent.updates.accept"
+        },
+        {
+          "path": "tests/comms_pilot.py",
+          "line": 816,
+          "kind": "Attribute",
+          "name": "mount_page",
+          "expression": "long_chat.message_history.mount_page"
+        },
+        {
+          "path": "tests/comms_pilot.py",
+          "line": 808,
+          "kind": "Attribute",
+          "name": "mount_page",
+          "expression": "long_chat.message_history.mount_page"
+        },
+        {
+          "path": "tests/context_resume_pilot.py",
+          "line": 65,
+          "kind": "Attribute",
+          "name": "accept",
+          "expression": "agent.updates.accept"
+        },
+        {
+          "path": "tests/core_events_native_installed_pilot.py",
+          "line": 84,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "agent.configuration.thinking.current"
+        },
+        {
+          "path": "tests/core_events_native_installed_pilot.py",
+          "line": 66,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "agent.configuration.thinking.current"
+        },
+        {
+          "path": "tests/core_events_native_installed_pilot.py",
+          "line": 94,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "agent.configuration.thinking.current"
+        },
+        {
+          "path": "tests/cursor_request_pilot.py",
+          "line": 141,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "agent._private_cursor.current"
+        },
+        {
+          "path": "tests/cursor_request_pilot.py",
+          "line": 131,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "agent._private_cursor.current"
+        },
+        {
+          "path": "tests/default_route_admission_pilot.py",
+          "line": 126,
+          "kind": "Attribute",
+          "name": "mark_page",
+          "expression": "view.message_history.mark_page"
+        },
+        {
+          "path": "tests/default_route_cancel_pilot.py",
+          "line": 97,
+          "kind": "Attribute",
+          "name": "mount_page",
+          "expression": "channel.message_history.mount_page"
+        },
+        {
+          "path": "tests/default_route_pilot.py",
+          "line": 157,
+          "kind": "Attribute",
+          "name": "restart",
+          "expression": "view.message_history.reader.restart"
+        },
+        {
+          "path": "tests/divider_unread_paint_pilot.py",
+          "line": 38,
+          "kind": "Name",
+          "name": "mark_visible",
+          "expression": "mark_visible"
+        },
+        {
+          "path": "tests/divider_unread_paint_pilot.py",
+          "line": 38,
+          "kind": "Attribute",
+          "name": "mark_visible",
+          "expression": "MountedMessageHistory.mark_visible"
+        },
+        {
+          "path": "tests/divider_unread_paint_pilot.py",
+          "line": 62,
+          "kind": "Attribute",
+          "name": "channel_receipts",
+          "expression": "chat.message_history.channel_receipts"
+        },
+        {
+          "path": "tests/divider_unread_paint_pilot.py",
+          "line": 63,
+          "kind": "Name",
+          "name": "mark_visible",
+          "expression": "mark_visible"
+        },
+        {
+          "path": "tests/editor_key_terminal_journey.py",
+          "line": 46,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/editor_key_terminal_journey.py",
+          "line": 47,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/editor_key_terminal_journey.py",
+          "line": 114,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/editor_key_terminal_journey.py",
+          "line": 115,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/editor_key_workflow_pilot.py",
+          "line": 133,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/editor_key_workflow_pilot.py",
+          "line": 155,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/editor_key_workflow_pilot.py",
+          "line": 134,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/f4_declared_family_installed_pilot.py",
+          "line": 115,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/f4_declared_family_installed_pilot.py",
+          "line": 116,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/goal_collapse_pilot.py",
+          "line": 34,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "GoalDisplay.current"
+        },
+        {
+          "path": "tests/goal_collapse_pilot.py",
+          "line": 57,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "GoalDisplay.current"
+        },
+        {
+          "path": "tests/goal_details_pilot.py",
+          "line": 29,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "GoalDisplay.current"
+        },
+        {
+          "path": "tests/goal_geometry_pilot.py",
+          "line": 44,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "GoalDisplay.current"
+        },
+        {
+          "path": "tests/goal_geometry_pilot.py",
+          "line": 45,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "GoalDisplay.current"
+        },
+        {
+          "path": "tests/goal_geometry_pilot.py",
+          "line": 56,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "GoalDisplay.current"
+        },
+        {
+          "path": "tests/goal_objective_edit_pilot.py",
+          "line": 123,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/goal_objective_edit_pilot.py",
+          "line": 101,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/goal_objective_edit_pilot.py",
+          "line": 103,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/goal_objective_edit_pilot.py",
+          "line": 106,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/goal_objective_edit_pilot.py",
+          "line": 123,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/goal_objective_edit_pilot.py",
+          "line": 102,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/goal_objective_edit_pilot.py",
+          "line": 102,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/goal_objective_edit_pilot.py",
+          "line": 129,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/goal_resize_pilot.py",
+          "line": 32,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "GoalDisplay.current"
+        },
+        {
+          "path": "tests/goal_resize_pilot.py",
+          "line": 59,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "GoalDisplay.current"
+        },
+        {
+          "path": "tests/goal_resize_pilot.py",
+          "line": 88,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "GoalDisplay.current"
+        },
+        {
+          "path": "tests/goal_retry_pilot.py",
+          "line": 43,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "GoalDisplay.current"
+        },
+        {
+          "path": "tests/goal_server_poll_pilot.py",
+          "line": 169,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/goal_server_poll_pilot.py",
+          "line": 192,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/goal_server_poll_pilot.py",
+          "line": 175,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/goal_server_poll_pilot.py",
+          "line": 193,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/goal_server_poll_pilot.py",
+          "line": 175,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/goal_server_poll_pilot.py",
+          "line": 193,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/goal_standby_history_pilot.py",
+          "line": 108,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "GoalDisplay.current"
+        },
+        {
+          "path": "tests/guards/test_goal_interaction.py",
+          "line": 41,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "GoalDisplay.current"
+        },
+        {
+          "path": "tests/guards/test_transcript_publication.py",
+          "line": 83,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "tests/history_edge_scheduling_pilot.py",
+          "line": 107,
+          "kind": "Attribute",
+          "name": "restart",
+          "expression": "history.reader.restart"
+        },
+        {
+          "path": "tests/history_edge_scheduling_pilot.py",
+          "line": 125,
+          "kind": "Attribute",
+          "name": "restart",
+          "expression": "history.reader.restart"
+        },
+        {
+          "path": "tests/history_edge_scheduling_pilot.py",
+          "line": 121,
+          "kind": "Attribute",
+          "name": "mount_page",
+          "expression": "history.mount_page"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 74,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 81,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 82,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 79,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/history_scroll_frames_pilot.py",
+          "line": 119,
+          "kind": "Attribute",
+          "name": "restart",
+          "expression": "chat.message_history.reader.restart"
+        },
+        {
+          "path": "tests/input_failure_pilot.py",
+          "line": 54,
+          "kind": "Attribute",
+          "name": "accept",
+          "expression": "receiver.updates.accept"
+        },
+        {
+          "path": "tests/input_visibility_native_installed_pilot.py",
+          "line": 188,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "item.current"
+        },
+        {
+          "path": "tests/l0a_native_installed_pilot.py",
+          "line": 399,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "view.agent.configuration.model.current"
+        },
+        {
+          "path": "tests/mcp_observation_fixture.py",
+          "line": 43,
+          "kind": "Attribute",
+          "name": "accept",
+          "expression": "agent.updates.accept"
+        },
+        {
+          "path": "tests/mcp_observation_fixture.py",
+          "line": 31,
+          "kind": "Attribute",
+          "name": "accept",
+          "expression": "agent.updates.accept"
+        },
+        {
+          "path": "tests/message_dividers_pilot.py",
+          "line": 138,
+          "kind": "Attribute",
+          "name": "mount_page",
+          "expression": "history.mount_page"
+        },
+        {
+          "path": "tests/message_notifications_pilot.py",
+          "line": 66,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/message_notifications_pilot.py",
+          "line": 77,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/message_notifications_pilot.py",
+          "line": 69,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/message_notifications_pilot.py",
+          "line": 73,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/message_notifications_pilot.py",
+          "line": 79,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/midturn_compaction_pilot.py",
+          "line": 31,
+          "kind": "Attribute",
+          "name": "accept",
+          "expression": "agent.updates.accept"
+        },
+        {
+          "path": "tests/midturn_compaction_pilot.py",
+          "line": 32,
+          "kind": "Attribute",
+          "name": "accept",
+          "expression": "agent.updates.accept"
+        },
+        {
+          "path": "tests/midturn_compaction_pilot.py",
+          "line": 35,
+          "kind": "Attribute",
+          "name": "accept",
+          "expression": "agent.updates.accept"
+        },
+        {
+          "path": "tests/midturn_compaction_pilot.py",
+          "line": 43,
+          "kind": "Attribute",
+          "name": "accept",
+          "expression": "agent.updates.accept"
+        },
+        {
+          "path": "tests/midturn_compaction_pilot.py",
+          "line": 50,
+          "kind": "Attribute",
+          "name": "accept",
+          "expression": "agent.updates.accept"
+        },
+        {
+          "path": "tests/midturn_compaction_pilot.py",
+          "line": 52,
+          "kind": "Attribute",
+          "name": "accept",
+          "expression": "agent.updates.accept"
+        },
+        {
+          "path": "tests/midturn_compaction_pilot.py",
+          "line": 58,
+          "kind": "Attribute",
+          "name": "accept",
+          "expression": "agent.updates.accept"
+        },
+        {
+          "path": "tests/midturn_compaction_pilot.py",
+          "line": 61,
+          "kind": "Attribute",
+          "name": "accept",
+          "expression": "agent.updates.accept"
+        },
+        {
+          "path": "tests/model_picker_pilot.py",
+          "line": 185,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "agent.configuration.model.current"
+        },
+        {
+          "path": "tests/model_picker_pilot.py",
+          "line": 164,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "agent.configuration.model.current"
+        },
+        {
+          "path": "tests/model_picker_pilot.py",
+          "line": 189,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "agent.configuration.model.current"
+        },
+        {
+          "path": "tests/native_message_parts_pilot.py",
+          "line": 45,
+          "kind": "Attribute",
+          "name": "accept",
+          "expression": "agent.updates.accept"
+        },
+        {
+          "path": "tests/native_permission_ui.py",
+          "line": 37,
+          "kind": "Attribute",
+          "name": "accept",
+          "expression": "self.agent.updates.accept"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 69,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 70,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 72,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/persistent_renderer_ui_pilot.py",
+          "line": 38,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/persistent_renderer_ui_pilot.py",
+          "line": 39,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/persistent_renderer_ui_pilot.py",
+          "line": 44,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/persistent_renderer_ui_pilot.py",
+          "line": 73,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/persistent_renderer_ui_pilot.py",
+          "line": 40,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/persistent_renderer_ui_pilot.py",
+          "line": 40,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/persistent_renderer_ui_pilot.py",
+          "line": 41,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/persistent_renderer_ui_pilot.py",
+          "line": 41,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/prompt_completion_installed_pilot.py",
+          "line": 208,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "view.agent.configuration.model.current"
+        },
+        {
+          "path": "tests/queue_admission_pilot.py",
+          "line": 142,
+          "kind": "Attribute",
+          "name": "accept",
+          "expression": "consumer.updates.accept"
+        },
+        {
+          "path": "tests/queue_admission_pilot.py",
+          "line": 75,
+          "kind": "Attribute",
+          "name": "accept",
+          "expression": "consumer.updates.accept"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 154,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 100,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 101,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 155,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 158,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 103,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 105,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 106,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/response_source_custody_pilot.py",
+          "line": 153,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "snapshot.current"
+        },
+        {
+          "path": "tests/retained_fragment_geometry_pilot.py",
+          "line": 357,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/retained_fragment_geometry_pilot.py",
+          "line": 358,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/retained_fragment_geometry_pilot.py",
+          "line": 359,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/retained_page_end_pilot.py",
+          "line": 43,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/retained_page_end_pilot.py",
+          "line": 29,
+          "kind": "Attribute",
+          "name": "source_snapshot",
+          "expression": "history.source_snapshot"
+        },
+        {
+          "path": "tests/retained_page_end_pilot.py",
+          "line": 46,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/retained_page_end_pilot.py",
+          "line": 45,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/retained_page_end_pilot.py",
+          "line": 46,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/retained_page_end_pilot.py",
+          "line": 46,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/retained_page_end_pilot.py",
+          "line": 30,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "snapshot.current"
+        },
+        {
+          "path": "tests/retained_page_end_pilot.py",
+          "line": 44,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/retained_page_end_pilot.py",
+          "line": 45,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/retained_page_end_pilot.py",
+          "line": 45,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/retained_page_end_pilot.py",
+          "line": 45,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/retained_tool_text_pilot.py",
+          "line": 192,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/retained_tool_text_pilot.py",
+          "line": 193,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/retained_tool_text_pilot.py",
+          "line": 195,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/retained_tool_text_pilot.py",
+          "line": 196,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/retained_tool_text_pilot.py",
+          "line": 197,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/retained_tool_text_pilot.py",
+          "line": 199,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/retained_tool_text_pilot.py",
+          "line": 201,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/runtime_fixture.py",
+          "line": 274,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/runtime_fixture.py",
+          "line": 276,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/runtime_fixture.py",
+          "line": 276,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/runtime_fixture.py",
+          "line": 276,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/runtime_fixture.py",
+          "line": 276,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/scroll_select_latency_pilot.py",
+          "line": 107,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/scroll_select_latency_pilot.py",
+          "line": 113,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/scroll_select_latency_pilot.py",
+          "line": 114,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/settings_tree_pilot.py",
+          "line": 87,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/settings_tree_pilot.py",
+          "line": 89,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/settings_tree_pilot.py",
+          "line": 88,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/settings_tree_pilot.py",
+          "line": 93,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/sidebar_metadata_reflow_pilot.py",
+          "line": 109,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "row.current"
+        },
+        {
+          "path": "tests/sidebar_navigation_pilot.py",
+          "line": 161,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/sidebar_navigation_pilot.py",
+          "line": 236,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/sidebar_navigation_pilot.py",
+          "line": 259,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "member.current"
+        },
+        {
+          "path": "tests/sidebar_navigation_pilot.py",
+          "line": 274,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "member.current"
+        },
+        {
+          "path": "tests/sidebar_navigation_pilot.py",
+          "line": 162,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/sidebar_navigation_pilot.py",
+          "line": 174,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/sidebar_navigation_pilot.py",
+          "line": 237,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/sidebar_navigation_pilot.py",
+          "line": 253,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/sidebar_navigation_pilot.py",
+          "line": 175,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/sidebar_navigation_pilot.py",
+          "line": 191,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/sidebar_navigation_pilot.py",
+          "line": 254,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/sidebar_navigation_pilot.py",
+          "line": 258,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/sidebar_navigation_pilot.py",
+          "line": 177,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/sidebar_navigation_pilot.py",
+          "line": 185,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/sidebar_navigation_pilot.py",
+          "line": 195,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/sidebar_navigation_pilot.py",
+          "line": 271,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/sidebar_navigation_pilot.py",
+          "line": 276,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/sidebar_navigation_pilot.py",
+          "line": 262,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/submission_native_installed_pilot.py",
+          "line": 89,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "scope.relation(original_scope).current"
+        },
+        {
+          "path": "tests/submission_native_installed_pilot.py",
+          "line": 113,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "agent.queue_attachment.scope.relation(scope).current"
+        },
+        {
+          "path": "tests/terminal_attention_installed_journey.py",
+          "line": 175,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/terminal_attention_installed_journey.py",
+          "line": 179,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/test_agent_configuration.py",
+          "line": 24,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "model.current"
+        },
+        {
+          "path": "tests/test_agent_configuration.py",
+          "line": 26,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "thinking.current"
+        },
+        {
+          "path": "tests/test_agent_configuration.py",
+          "line": 33,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "configuration.thinking.current"
+        },
+        {
+          "path": "tests/test_agent_configuration.py",
+          "line": 46,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "extra.setting(BudgetConfigurationSetting).current"
+        },
+        {
+          "path": "tests/test_context_manifest_navigation.py",
+          "line": 33,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/test_context_manifest_navigation.py",
+          "line": 41,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/thread_navigation_installed_journey.py",
+          "line": 74,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "origin.current"
+        },
+        {
+          "path": "tests/thread_navigation_installed_journey.py",
+          "line": 114,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "origin.current"
+        },
+        {
+          "path": "tests/thread_navigation_installed_journey.py",
+          "line": 93,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "origin.current"
+        },
+        {
+          "path": "tests/tool_diff_lifecycle_pilot.py",
+          "line": 61,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/tool_diff_lifecycle_pilot.py",
+          "line": 74,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/tool_diff_lifecycle_pilot.py",
+          "line": 62,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/tool_diff_lifecycle_pilot.py",
+          "line": 77,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/tool_diff_lifecycle_pilot.py",
+          "line": 76,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/tool_diff_lifecycle_pilot.py",
+          "line": 82,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/tool_diff_lifecycle_pilot.py",
+          "line": 72,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/tool_diff_lifecycle_pilot.py",
+          "line": 82,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/tools/merged_selector_fixture_recording.py",
+          "line": 71,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/tools/merged_selector_fixture_recording.py",
+          "line": 72,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/tools/merged_selector_fixture_recording.py",
+          "line": 82,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 222,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "Platform.current"
+        },
+        {
+          "path": "tests/tools/scroll_observation.py",
+          "line": 100,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/tools/scroll_observation.py",
+          "line": 73,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/tools/scroll_observation.py",
+          "line": 83,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/tools/scroll_observation.py",
+          "line": 74,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/tools/scroll_observation.py",
+          "line": 84,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/tools/scroll_observation.py",
+          "line": 75,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/tools/scroll_observation.py",
+          "line": 85,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/tools/scroll_observation.py",
+          "line": 76,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/tools/scroll_observation.py",
+          "line": 77,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/tools/scroll_observation.py",
+          "line": 86,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/tools/scroll_observation.py",
+          "line": 87,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/tools/scroll_observation.py",
+          "line": 101,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/tools/scroll_observation.py",
+          "line": 102,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/tools/scroll_observation.py",
+          "line": 103,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/transcript_reader_reuse.py",
+          "line": 146,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/transcript_reader_reuse.py",
+          "line": 147,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/transcript_reader_reuse.py",
+          "line": 138,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "read.current"
+        },
+        {
+          "path": "tests/transcript_reader_reuse.py",
+          "line": 148,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/viewport_body_order_pilot.py",
+          "line": 136,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/viewport_body_order_pilot.py",
+          "line": 137,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/viewport_body_order_pilot.py",
+          "line": 142,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/worker_preview_pilot.py",
+          "line": 172,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/worker_preview_pilot.py",
+          "line": 179,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "tests/worker_preview_pilot.py",
+          "line": 184,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "revision": "1bdc18c363cbc0f938537a71aa8ba0225d03e25e",
+      "root": "src/textual",
+      "modules": 249,
+      "parse_omissions": [],
+      "named_sites": [
+        {
+          "path": "src/textual/_compositor.py",
+          "line": 177,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/textual/_compositor.py",
+          "line": 178,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/textual/_compositor.py",
+          "line": 176,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/textual/_compositor.py",
+          "line": 175,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 3768,
+          "kind": "Name",
+          "name": "AwaitRemove",
+          "expression": "AwaitRemove"
+        },
+        {
+          "path": "src/textual/await_remove.py",
+          "line": 25,
+          "kind": "ClassDef",
+          "name": "AwaitRemove",
+          "expression": "@rich.repr.auto"
+        },
+        {
+          "path": "src/textual/await_remove.py",
+          "line": 39,
+          "kind": "Name",
+          "name": "AwaitRemove",
+          "expression": "AwaitRemove"
+        },
+        {
+          "path": "src/textual/css/query.py",
+          "line": 407,
+          "kind": "Name",
+          "name": "AwaitRemove",
+          "expression": "AwaitRemove"
+        },
+        {
+          "path": "src/textual/css/query.py",
+          "line": 413,
+          "kind": "Name",
+          "name": "AwaitRemove",
+          "expression": "AwaitRemove"
+        },
+        {
+          "path": "src/textual/css/scalar_animation.py",
+          "line": 77,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/textual/css/scalar_animation.py",
+          "line": 78,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/textual/reactive.py",
+          "line": 136,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/textual/reactive.py",
+          "line": 139,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/textual/reactive.py",
+          "line": 140,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/textual/screen.py",
+          "line": 391,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/textual/screen.py",
+          "line": 392,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/textual/screen.py",
+          "line": 394,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 4616,
+          "kind": "Name",
+          "name": "AwaitRemove",
+          "expression": "AwaitRemove"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 4627,
+          "kind": "Name",
+          "name": "AwaitRemove",
+          "expression": "AwaitRemove"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 4622,
+          "kind": "Name",
+          "name": "AwaitRemove",
+          "expression": "AwaitRemove"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 4649,
+          "kind": "Name",
+          "name": "AwaitRemove",
+          "expression": "AwaitRemove"
+        },
+        {
+          "path": "src/textual/widgets/_content_switcher.py",
+          "line": 30,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/textual/widgets/_content_switcher.py",
+          "line": 85,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/textual/widgets/_content_switcher.py",
+          "line": 85,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/textual/widgets/_content_switcher.py",
+          "line": 130,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.current"
+        },
+        {
+          "path": "src/textual/widgets/_list_view.py",
+          "line": 261,
+          "kind": "Name",
+          "name": "AwaitRemove",
+          "expression": "AwaitRemove"
+        },
+        {
+          "path": "src/textual/widgets/_markdown.py",
+          "line": 122,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/textual/widgets/_markdown.py",
+          "line": 123,
+          "kind": "Name",
+          "name": "current",
+          "expression": "current"
+        },
+        {
+          "path": "src/textual/widgets/_tabbed_content.py",
+          "line": 561,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.get_child_by_type(ContentSwitcher).current"
+        },
+        {
+          "path": "src/textual/widgets/_tabbed_content.py",
+          "line": 511,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "switcher.current"
+        },
+        {
+          "path": "src/textual/widgets/_tabbed_content.py",
+          "line": 539,
+          "kind": "Attribute",
+          "name": "current",
+          "expression": "self.get_child_by_type(ContentSwitcher).current"
+        }
+      ]
+    }
+  ],
+  "limits": "Existing Package parses complete roots. Named AST sites include unrelated current/accept/restart attributes; no dynamic dispatch or alias resolution claimed. Semantic closure is MountedMessageHistory/ConversationKind/ChannelHistoryReader/HistorySourceSnapshot and native AwaitRemove."
+}

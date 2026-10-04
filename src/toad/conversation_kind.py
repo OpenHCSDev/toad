@@ -88,18 +88,23 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     @classmethod
     def remember_page(cls, history, page, older):
         """Only committed mounted pages supply read-receipt authority."""
+        mounted = {message.view_key for message, _ in history.rows}
+        history.historical_receipts = {
+            key: source for key, source in history.historical_receipts.items() if key in mounted
+        }
+        cls.remember_tail(history, page, older, mounted)
+        cls.remember_mounted(history, page, mounted)
         if page.historical_display is not None:
-            history.historical_receipts.update((message.view_key, page) for message in page.messages)
-        else:
-            cls.remember_tail(history, page, older)
-            cls.remember_mounted(history, page)
+            history.historical_receipts.update(
+                (message.view_key, page) for message in page.messages if message.view_key in mounted
+            )
 
     @classmethod
-    def remember_tail(cls, history, page, older):
+    def remember_tail(cls, history, page, older, mounted):
         pass
 
     @classmethod
-    def remember_mounted(cls, history, page):
+    def remember_mounted(cls, history, page, mounted):
         pass
 
     @classmethod
@@ -181,8 +186,14 @@ class ChannelConversation(ConversationKind):
         return ChannelPrompt(simple_input=True, placeholder=cls.placeholder(target))
 
     @classmethod
-    def remember_mounted(cls, history, page):
-        history.channel_receipts.update((message.seq, page) for message in page.messages)
+    def remember_mounted(cls, history, page, mounted):
+        history.channel_receipts = {
+            seq: source for seq, source in history.channel_receipts.items() if ("", seq) in mounted
+        }
+        if cls.current_identity(page) is not None:
+            history.channel_receipts.update(
+                (message.seq, page) for message in page.messages if message.view_key in mounted
+            )
 
     @classmethod
     def read_only(cls, catalog, target):
@@ -203,14 +214,6 @@ class ChannelConversation(ConversationKind):
 
     @classmethod
     def painted_page(cls, history, painted):
-        mounted = {
-            message.seq for message, _ in history.rows if not message.view_key[0]
-        }
-        history.channel_receipts = {
-            seq: source
-            for seq, source in history.channel_receipts.items()
-            if seq in mounted
-        }
         original = next(
             (
                 source
@@ -222,8 +225,6 @@ class ChannelConversation(ConversationKind):
         if original is None:
             return None
         scope = original.display_scope
-        if scope is None or scope.displayed is None:
-            return None
         selected = {
             seq
             for seq, source in history.channel_receipts.items()
@@ -316,9 +317,12 @@ class DmConversation(ConversationKind):
         return Prompt(simple_input=True, placeholder=cls.placeholder(target))
 
     @classmethod
-    def remember_tail(cls, history, page, older):
-        if not older and page.messages:
-            history.tail_receipt = page
+    def remember_tail(cls, history, page, older, mounted):
+        original = history.tail_receipt
+        if original is not None and ("", original.newest_seq) not in mounted:
+            history.tail_receipt = None
+        if not older and cls.current_identity(page) is not None:
+            history.tail_receipt = page if page.messages else None
 
     @classmethod
     async def agent_info(cls, comms, target):
@@ -330,7 +334,7 @@ class DmConversation(ConversationKind):
         if original is None or original.newest_seq not in painted:
             return None
         basis = original.display_basis
-        if basis is None or basis.older_unread:
+        if basis.older_unread:
             return None
         inbound = (
             message.seq

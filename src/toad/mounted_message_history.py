@@ -8,7 +8,6 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.message_page import MessagePage
 from agent_comms.messages import Message as WireMessage
 from textual import containers
-from textual.await_remove import AwaitRemove
 from textual.widget import Widget
 from toad.block_navigation import ConversationBlock, ChildBlockCursor
 from toad.widgets.conversation import CategorizedMount
@@ -16,7 +15,7 @@ from toad.widgets.message_filter import CategorizedBlock, apply_block_filter
 from toad.message_viewport import AcknowledgementViewport
 from toad.channel_preparation import ChannelHistoryReader, HistoryReadResult
 from toad.screens.session_view import SessionView
-from toad.transcript_source_preparation import TranscriptSourcePreparation
+from toad.transcript_source_preparation import HistorySourceSnapshot, TranscriptSourcePreparation
 from toad.transcript_state import LiveTranscript, LatestViewportRequest
 from toad.widgets.irc_message import IRCMessage, WireMarkdownMessage
 
@@ -205,10 +204,12 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
     async def _mount_page(
         self, page: MessagePage, *, older: bool,
         retained: tuple[tuple[WireMessage, Widget], ...], style: WireMessageStyle,
+        read: HistoryReadResult | None = None,
     ) -> None:
         """Acquire reader/native resources only for an actual row mutation."""
         from toad.comms_root import root_is_current
-        if (not self.source_publication_available or self.reader is None
+        snapshot = self.source_snapshot()
+        if (not snapshot.current(self) or self.reader is None
                 or not root_is_current(self.reader.comms.root)):
             return
         mounted = {message.view_key for message, _ in retained}
@@ -218,28 +219,33 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
         removed = tuple(widget for _, widget in self.rows if widget not in retained_widgets)
         if pairs or removed:
             async with self.native_publication(retained, older=older) as protected:
-                if (not self.source_publication_available
+                if (not snapshot.current(self)
                         or not root_is_current(self.reader.comms.root)):
                     return
-                retirement = await self.insert_page(
+                committed = await self.insert_page(
                     page, pairs, older=older, protected=protected,
-                    retained=retained, removed=removed, style=style)
-            if retirement is None:
+                    retained=retained, removed=removed, style=style,
+                    snapshot=snapshot, read=read)
+            if not committed:
                 return
-            # These rows have already left the scene. Their original native
-            # completion must not retain the Window paint/reader fence.
-            await retirement
-        elif older:
-            self.has_older = page.has_older
+            # Native AwaitRemove already owns completion and error delivery.
+            # A committed source must not wait for an old row's Unmount.
         else:
-            self.has_newer = page.has_newer
-        self.view.conversation_kind.remember_page(self, page, older)
+            if read is not None and read.replace_tail:
+                self.has_older = page.has_older
+            if older:
+                self.has_older = page.has_older
+            else:
+                self.has_newer = page.has_newer
+            self.view.conversation_kind.remember_page(self, page, older)
 
     async def insert_page(
         self, page: MessagePage, pairs: list[tuple[WireMessage, Widget]], *, older: bool,
         protected: set[Widget], retained: tuple[tuple[WireMessage, Widget], ...],
         removed: tuple[Widget, ...], style: WireMessageStyle,
-    ) -> AwaitRemove | None:
+        snapshot: HistorySourceSnapshot,
+        read: HistoryReadResult | None,
+    ) -> bool:
         # New rows remain acquisition resources until their original native
         # mount completes. Cancellation retires them before the fence opens;
         # the previous committed row association is still intact.
@@ -249,10 +255,15 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
                 admission.push_async_callback(self.remove_children,
                                               tuple(widget for _, widget in pairs))
                 await self.mount(*(widget for _, widget in pairs), before=before)
-            if not self.source_publication_available:
-                return None
+            from toad.comms_root import root_is_current
+            if not snapshot.current(self) or not root_is_current(self.reader.comms.root):
+                return False
+            if read is not None and not self.reader.current(read, self.follows_tail):
+                return False
             self.rows[:] = (*pairs, *retained) if older else (*retained, *pairs)
             self.style = style
+            if read is not None and read.replace_tail:
+                self.has_older = page.has_older
             if older:
                 self.has_older = page.has_older
                 edge = -1
@@ -275,7 +286,9 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
             else:
                 self.has_older = True
             retired.append(widget)
-        return self.remove_children(retired)
+        self.view.conversation_kind.remember_page(self, page, older)
+        self.remove_children(retired)
+        return True
 
 
     def _check_edges(self) -> None:
@@ -334,6 +347,7 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
                     or not root_is_current(reader.comms.root)
                     or not reader.current(read, self.follows_tail)):
                 return False
+            snapshot = self.source_snapshot()
             page = read.page
             if page is not None:
                 if read.replace_tail:
@@ -342,25 +356,20 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
                     # second receipt/seen list, while replacing the older page.
                     retained = tuple((message, widget) for message, widget in self.rows
                                      if not message.view_key[0] and message.seq > read.high_water)
-                    mounted = {message.view_key for message, _ in retained}
-                    self.historical_receipts = {key: source for key, source in self.historical_receipts.items()
-                                                if key in mounted}
-                    self.channel_receipts = {seq: source for seq, source in self.channel_receipts.items()
-                                             if ("", seq) in mounted}
-                    self.tail_receipt = None
-                    self.has_older = page.has_older
                     await self._mount_page(page, older=False,
-                                           retained=retained, style=self.style)
-                    if loading := self.query_one_optional("#history-loading"):
-                        await loading.remove()
+                                           retained=retained, style=self.style, read=read)
                 elif page.messages and self.follows_tail:
                     await self._mount_page(page, older=False,
-                                           retained=tuple(self.rows), style=self.style)
+                                           retained=tuple(self.rows), style=self.style, read=read)
                 elif page.messages:
                     self.has_newer = True
-            if not reader.current(read, self.follows_tail) or not root_is_current(reader.comms.root):
+            if (not snapshot.current(self) or not reader.current(read, self.follows_tail)
+                    or not root_is_current(reader.comms.root)):
                 return False
             reader.accept(read, read.follow_tail)
+            if page is not None and read.replace_tail:
+                if loading := self.query_one_optional("#history-loading"):
+                    loading.remove()
             return True
 
     def mark_visible(self) -> None:
@@ -372,10 +381,6 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
             self.view.display = False
             return
         visible = set(self.painted_keys())
-        mounted_keys = {message.view_key for message, _ in self.rows}
-        self.historical_receipts = {
-            key: source for key, source in self.historical_receipts.items() if key in mounted_keys
-        }
         historical = next((page for key, page in self.historical_receipts.items() if key in visible), None)
         if historical is not None:
             selected = {key for key, page in self.historical_receipts.items()
@@ -389,7 +394,8 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
             return
         page, original_page = selected
         self.ack_inflight = True
-        self.view.run_worker(self.mark_page(page, original_page), group="comms-painted-read")
+        self.view.run_worker(self.mark_page(page, original_page,
+                            snapshot=self.source_snapshot()), group="comms-painted-read")
 
 
     async def mark_historical(self, page: MessagePage, keys: set[tuple[str, int]]) -> None:
@@ -404,16 +410,21 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
                 if self.historical_receipts.get(key) is page:
                     del self.historical_receipts[key]
         except ValueError:
-            self.historical_receipts.clear()
+            self.historical_receipts = {
+                key: source for key, source in self.historical_receipts.items() if source is not page
+            }
         finally:
             self.ack_inflight = False
 
 
-    async def mark_page(self, page: MessagePage, original_page: MessagePage | None = None) -> None:
+    async def mark_page(
+        self, page: MessagePage, original_page: MessagePage | None, *,
+        snapshot: HistorySourceSnapshot,
+    ) -> None:
         try:
             from toad.comms_root import root_is_current
 
-            if self.reader is None or not self.is_attached or not self.current:
+            if self.reader is None or not snapshot.current(self):
                 return
             comms = self.reader.comms
             if not root_is_current(comms.root):
@@ -431,17 +442,19 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
         except ValueError:
             # The peer, viewer, channel scope, or bus changed after page
             # fetch. Discard mounted history and fetch the current projection.
-            if self.is_attached:
+            if snapshot.current(self):
                 async with self.window.history_lock:
                     async with self.native_publication(()):
-                        removal = self.remove_children(tuple(widget for _, widget in self.rows))
+                        if not snapshot.current(self):
+                            return
+                        self.remove_children(tuple(widget for _, widget in self.rows))
                         self.rows.clear()
                         self.reader.restart()
                         self.has_older = False
                         self.has_newer = False
-                    await removal
-            self.tail_receipt = None
-            self.channel_receipts.clear()
+                        self.tail_receipt = None
+                        self.channel_receipts.clear()
+                        self.historical_receipts.clear()
         finally:
             self.ack_inflight = False
             if self.is_attached:
