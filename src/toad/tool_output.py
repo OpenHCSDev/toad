@@ -30,7 +30,7 @@ from toad.widgets.worker_static import WorkerStatic
 
 if TYPE_CHECKING:
     from textual.worker import Worker
-    from toad.widgets.tool_call import ToolCall
+    from toad.widgets.tool_call import ToolCall, ToolContent
 
 
 class ToolOutputPart(DeclaredFamily, affix="ToolOutputPart"):
@@ -352,7 +352,6 @@ class ToolOutput:
         self.parts: tuple[ToolOutputPart, ...] = ()
         self.suppress_auto_expansion = False
         self._mounted: tuple[ToolOutputPart, ...] | None = None
-        self._lock = asyncio.Lock()
         self.hydration: ToolHydration = IdleToolHydration()
         self._warming: tuple[ToolOutputPart, ...] = ()
         self._theme: tuple[bool, bool] | None = None
@@ -385,39 +384,50 @@ class ToolOutput:
 
     async def sync(self) -> None:
         from toad.widgets.conversation import Window
+        from toad.widgets.tool_call import ToolContent
 
-        async with self._lock:
+        view = self.view
+        body = view.query_one_optional("#tool-content", ToolContent)
+        if body is None:
+            return
+        if view.expanded and not view.content_presentable and not body.children:
+            self.prepare_hidden()
+            if not self.hydration.pending:
+                self.hydration = WaitingToolHydration()
+                try:
+                    view.query_ancestor(Window).pending_tool_content.add(view)
+                except NoMatches:
+                    pass
+                view.call_after_refresh(self.hydrate_if_visible)
+            return
+        self.hydration = IdleToolHydration()
+        try:
+            view.query_ancestor(Window).pending_tool_content.discard(view)
+        except NoMatches:
+            pass
+        if not view.expanded:
+            self.cancel_preparation()
+            if not body.children:
+                self._mounted = None
+                return
+        elif self._mounted == self.parts and not body.body_dormant:
+            return
+        await body.publish_body(partial(self._sync_widgets, body))
+
+    async def _sync_widgets(self, body: ToolContent) -> None:
+        """The body's native writer owns replacement and reentry alike."""
+        async with body.lock:
             view = self.view
             parts = self.parts
-            body = view.query_one_optional("#tool-content", Widget)
-            if body is None:
-                return
-            if view.expanded and not view.content_presentable and not body.children:
-                self.prepare_hidden()
-                if not self.hydration.pending:
-                    self.hydration = WaitingToolHydration()
-                    try:
-                        view.query_ancestor(Window).pending_tool_content.add(view)
-                    except NoMatches:
-                        pass
-                    view.call_after_refresh(self.hydrate)
-                return
-            self.hydration = IdleToolHydration()
-            try:
-                view.query_ancestor(Window).pending_tool_content.discard(view)
-            except NoMatches:
-                pass
             if not view.expanded:
-                self.cancel_preparation()
                 if body.children:
                     await body.remove_children()
                 self._mounted = None
             elif self._mounted != parts:
                 retained = len(parts) == len(self._mounted or ()) == len(body.children) == 1
                 if not retained or not parts[0].update_widget(self._mounted[0], body.children[0]):
-                    with view.app.batch_update():
-                        await body.remove_children()
-                        await body.mount_all(widget for part in parts for widget in part.compose(view))
+                    await body.remove_children()
+                    await body.mount_all(widget for part in parts for widget in part.compose(view))
                 self._mounted = parts
 
     def prepare_hidden(self) -> None:

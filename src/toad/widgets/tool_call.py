@@ -13,6 +13,7 @@ from textual.reactive import var
 from textual.css.query import NoMatches
 from textual import containers
 from textual.widgets import Static
+from textual.widget import Widget
 
 from toad.app import ToadApp
 from toad.tool_output import ToolOutput
@@ -30,8 +31,22 @@ from toad.widgets.committed_presentation import SnapshotPresentation
 from toad.layout import trim_trailing_margin
 from textual.layout import WidgetPlacement
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
+from toad.widgets.viewport_body import MeasuredViewportBody
 
-class ToolContent(containers.VerticalGroup):
+class ToolContent(MeasuredViewportBody, containers.VerticalGroup):
+    @property
+    def output(self) -> ToolOutput:
+        return self.query_ancestor(ToolCall).output
+
+    def reconstructible_children(self) -> tuple[Widget, ...]:
+        return tuple(self.children)
+
+    def retire_body_resources(self) -> None:
+        self.output.retire()
+
+    async def materialize_native_body(self) -> None:
+        await self.output._sync_widgets(self)
+
     @height_dependency(INDEPENDENT_HEIGHT)
     def process_layout(self, placements: list[WidgetPlacement]) -> list[WidgetPlacement]:
         return trim_trailing_margin(placements)
