@@ -303,10 +303,15 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                         tree = node.query_one("#context-tree", Tree)
                         detail = node.query_one("#context-detail", TextArea)
                         context_nodes = []
+                        # The Tree owns lazy materialization. A newly remounted
+                        # node's private cached _line can still be -1 while its
+                        # same label is visible; ask the original line owner.
+                        materialized = {tree.get_node_at_line(line): line
+                                        for line in range(tree.last_line + 1)}
                         for model in node._context_nodes.values():
                             target = None
-                            label_region = (tree._get_label_region(model._line)
-                                            if tree._get_node(model._line) is model else None)
+                            line = materialized.get(model, -1)
+                            label_region = tree._get_label_region(line) if line >= 0 else None
                             geometry = visible_regions.get(tree)
                             if label_region is not None and geometry is not None:
                                 region = label_region.translate(
@@ -317,7 +322,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                             context_nodes.append({"key": model.data.key,
                                                   "label": model.label.plain,
                                                   "model_type": type(model.data).__name__,
-                                                  "line": model._line,
+                                                  "line": line,
                                                   "expanded": model.is_expanded,
                                                   "target": target})
                         view["context"] = {
