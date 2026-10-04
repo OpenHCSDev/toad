@@ -111,6 +111,16 @@ class WidgetTarget(NativeFocusTarget):
         return candidates[0]
 
 
+class MenuActionTarget(NativeFocusTarget):
+    """Select the actual declared action carried by a visible native menu item."""
+
+    @classmethod
+    def locate(cls, snapshot, args):
+        item, = (node for node in snapshot["metadata"]["navigation_targets"]["widgets"]
+                 if node["class"] == "ContextMenuItem" and node.get("action") == args.name)
+        return item
+
+
 class RightSidebarTarget(NativeFocusTarget):
     """The rightmost original sidebar disclosure in this terminal snapshot."""
 
@@ -182,6 +192,7 @@ def main():
     parser.add_argument("--target", type=NativeFocusTarget.decode, default=HistoryTarget,
                         help="Native resource: " + ", ".join(NativeFocusTarget.names()))
     parser.add_argument("--name", help="Native thread/channel name or widget Class#id")
+    parser.add_argument("--button", type=int, choices=(1, 3), default=1)
     parser.add_argument("--focused", action="store_true", help="Select only the currently focused widget")
     parser.add_argument("--empty", action="store_true", help="Require empty original editor before a fresh fork input")
     parser.add_argument("--original-state", type=Path, help="This run's initial selected-mode snapshot")
@@ -207,11 +218,11 @@ def main():
     client = XWindowGeometry.read(window_id)
     pixel = StTerminalGrid(*metadata["terminal_geometry"]).pixel_at(cell, client)
     observation = {"ui_identity": FieldCodec.encode(identity), "mode": metadata["current_mode"],
-                   "resource_object_id": resource["object_id"], "target": target,
+                   "resource_object_id": resource["object_id"], "target": target, "button": args.button,
                    "terminal_geometry": metadata["terminal_geometry"], "pixel": tuple(pixel)}
     (output / f"{args.target.declared_name}-click-target.json").write_text(json.dumps(observation, indent=2) + "\n")
     subprocess.run(["xdotool", "mousemove", "--sync", "--window", window_id,
-                    str(pixel.x), str(pixel.y), "click", "1"], check=True, timeout=5)
+                    str(pixel.x), str(pixel.y), "click", str(args.button)], check=True, timeout=5)
 
 
 if __name__ == "__main__":

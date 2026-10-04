@@ -32,13 +32,75 @@ def load_recorder():
         def script(cls, args):
             mark = recorder.marker_command()
             helper = Path(__file__).resolve().parents[1] / "tools/performance/click_history.py"
-            def click(state, target, name=None):
+            def click(state, target, name=None, button=1):
                 return "exec --sync " + shlex.join((sys.executable, str(helper),
                     "--state", state, "--target", target,
-                    *(() if name is None else ("--name", name))))
+                    *(() if name is None else ("--name", name)), "--button", str(button)))
             def select(state, kind):
                 return "exec --sync " + shlex.join((sys.executable, str(Path(__file__).resolve()),
                     "--select-context", state, kind))
+            if os.environ.get("TOAD_RECORDED_CONTEXT_AUDIT") == "1":
+                selected = lambda phase, field: select("phase-" + phase + "-state.pickle", "exact:" + os.environ[field])
+                export = os.environ["TOAD_CONTEXT_AUDIT_EXPORT"]
+                return "\n".join((
+                    mark + "saved --wait-history-seconds 12 --wait-history-thread configured-source",
+                    "key ctrl+b", "sleep 1", mark + "roster",
+                    click("phase-roster-state.pickle", "right_sidebar"),
+                    "sleep 7", mark + "context-open",
+                    click("phase-context-open-state.pickle", "context_tree"),
+                    "key End space End", "sleep 1", mark + "recorded-request",
+                    selected("recorded-request", "TOAD_RECORDED_REQUEST_NODE"),
+                    "key space", "sleep 1", mark + "request-members",
+                    selected("request-members", "TOAD_RECORDED_SYSTEM_NODE"),
+                    "sleep 2", mark + "recorded-system",
+                    click("phase-recorded-system-state.pickle", "widget", "Input#context-search"),
+                    "type --clearmodifiers 'One fact'", "key Return", "sleep 2", mark + "recorded-search",
+                    selected("recorded-search", "TOAD_RECORDED_SYSTEM_NODE"),
+                    "sleep 1", mark + "recorded-result",
+                    click("phase-recorded-result-state.pickle", "widget", "Button#context-read-full"),
+                    "sleep 1", mark + "recorded-full", "key Escape", "sleep 1", mark + "recorded-return",
+                    click("phase-recorded-return-state.pickle", "widget", "Button#context-copy"),
+                    click("phase-recorded-return-state.pickle", "widget", "Input#context-export-path"),
+                    "type --clearmodifiers " + shlex.quote(export), mark + "recorded-export-path",
+                    click("phase-recorded-export-path-state.pickle", "widget", "Button#context-export"),
+                    "sleep 1", mark + "recorded-export",
+                    click("phase-recorded-export-state.pickle", "widget", "Input#context-search"),
+                    "key Home shift+End BackSpace", "key Return", "sleep 1", mark + "tree-restored",
+                    selected("tree-restored", "TOAD_RECORDED_TRANSCRIPT_NODE"),
+                    "key space End Up space End Up Up", "sleep 2", mark + "exact-contributor",
+                    selected("exact-contributor", "TOAD_RECORDED_COORDINATION_NODE"),
+                    "sleep 2", mark + "recorded-coordination",
+                    click("phase-recorded-coordination-state.pickle", "right_sidebar"),
+                    "sleep 1", mark + "menus-ready",
+                    click("phase-menus-ready-state.pickle", "thread", "configured-source", 3),
+                    "sleep 1", mark + "thread-menu",
+                    click("phase-thread-menu-state.pickle", "menu_action", "thread-tags"),
+                    "sleep 1", mark + "thread-tags-form",
+                    click("phase-thread-tags-form-state.pickle", "widget", "Input#command-field-tags"),
+                    "key Home shift+End BackSpace", "type --clearmodifiers " + shlex.quote(os.environ["TOAD_CONTEXT_AUDIT_TAGS"]),
+                    mark + "thread-tags-review",
+                    click("phase-thread-tags-review-state.pickle", "widget", "Button#command-apply"),
+                    "sleep 2", mark + "tag-applied",
+                    click("phase-tag-applied-state.pickle", "channel", "#review417", 3),
+                    "sleep 1", mark + "tag-menu",
+                    click("phase-tag-menu-state.pickle", "menu_action", "rename-tag"),
+                    "sleep 1", mark + "rename-form",
+                    click("phase-rename-form-state.pickle", "widget", "Input#command-field-new-name"),
+                    "key Home shift+End BackSpace", "type --clearmodifiers review417-renamed",
+                    mark + "rename-review",
+                    click("phase-rename-review-state.pickle", "widget", "Button#command-apply"),
+                    "sleep 2", mark + "renamed",
+                    click("phase-renamed-state.pickle", "channel", "#review417-renamed"),
+                    "sleep 2", mark + "channel-open",
+                    click("phase-channel-open-state.pickle", "editor"),
+                    "type --clearmodifiers '/pin-channel '", "key Return", "sleep 2", mark + "slash-executed",
+                    click("phase-slash-executed-state.pickle", "channel", "#review417-renamed", 3),
+                    "sleep 1", mark + "delete-menu",
+                    click("phase-delete-menu-state.pickle", "menu_action", "delete-tag"),
+                    "sleep 1", mark + "delete-review",
+                    click("phase-delete-review-state.pickle", "widget", "Button#command-apply"),
+                    "sleep 2", mark + "deleted", "",
+                ))
             query = os.environ.get("TOAD_CONTEXT_AUDIT_QUERY", "")
             if os.environ.get("TOAD_CONTEXT_AUDIT_SOURCE_ONLY") == "1":
                 return "\n".join((
@@ -104,7 +166,7 @@ async def run(options):
     from agent_comms.comms import Comms
     from agent_comms.field_codec import FieldCodec
     from agent_comms.input_disposition import InputDispositions
-    from agent_comms.threads import Thread
+    from toad.core.context_inspection import ContextInspection
     from original_owner_capture import CurrentTypedCapture
     recorder, recorder_path, ColdContextJourney = load_recorder()
 
@@ -123,11 +185,15 @@ async def run(options):
     before = selected.read_bytes()
     assert not previous.require_process().alive(), "The previous owned controller must be retired"
     original = CurrentTypedCapture(options.public_root, options.original_python).read(
-        "openhcs-audit-merged-runtime")
+        options.original_thread)
     source = original.require_current()
     public_file = Path(source.require_saved_session())
     public_before = hashlib.sha256(public_file.read_bytes()).hexdigest()
     assert source.model == previous.model and source.thinking_level == previous.thinking_level
+    inputs_before = InputDispositions(service.root / InputDispositions.filename).read()
+    inspection = ContextInspection.read(service, previous.name)
+    manifests_before = inspection.manifests
+    tags_before = previous.tags
     receipt = {"state": "PREPARING_COLD_CONFIGURED_OWNER", "fixture": str(root),
         "selected_file": str(selected), "selected_bytes": len(before),
         "selected_sha256_before": hashlib.sha256(before).hexdigest(),
@@ -151,6 +217,22 @@ async def run(options):
             PATH=str(runtime) + os.pathsep + environment.get("PATH", os.defpath),
             XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(base / "state"),
             XDG_DATA_HOME=str(base / "data"), TOAD_TEST_ATTEMPT="Einstein-cold595-physical01")
+        if options.recorded_audit:
+            manifest, = (m for m in manifests_before if m.request_id == options.request_id)
+            recorded = next(n for n in inspection.recorded() if n.manifest == manifest)
+            system, = (n for n in recorded.children() if n.segment.kind == "system_layer")
+            transcript, = (n for n in recorded.children() if n.segment.kind == "transcript")
+            coordination, = (leaf for member in transcript.children() for leaf in member.children()
+                             if leaf.segment.kind == "coordination")
+            assert 'review417' not in tags_before and 'review417-renamed' not in tags_before
+            environment.update(TOAD_RECORDED_CONTEXT_AUDIT="1",
+                TOAD_RECORDED_REQUEST_NODE=recorded.key, TOAD_RECORDED_SYSTEM_NODE=system.key,
+                TOAD_RECORDED_TRANSCRIPT_NODE=transcript.key,
+                TOAD_RECORDED_COORDINATION_NODE=coordination.key,
+                TOAD_CONTEXT_AUDIT_TAGS=','.join(sorted((*tags_before, 'review417'))),
+                TOAD_CONTEXT_AUDIT_EXPORT=str(base / "selected-recorded-context.txt"))
+            receipt.update(sealed_request=manifest.request_id, recorded_system=system.key,
+                           recorded_coordination=coordination.key)
         if options.instruction_query:
             environment.update(TOAD_CONTEXT_AUDIT_QUERY=options.instruction_query,
                                TOAD_CONTEXT_AUDIT_EXPORT=str(base / "selected-public-context.txt"))
@@ -169,15 +251,13 @@ async def run(options):
             private_nk_wire_root_id=root_id, agent_bin=str(runtime / "pi-comms-native"),
             agent_args=list(original.retained.arguments or ()), auto_wake=False,
             runtime_enabled=True)
-        declared = service.registry.declare(Thread("configured-source", previous.tags,
-            previous.worktree, process_identity=ProcessIdentity.capture(os.getpid()),
-            session_file=str(selected), model=source.model,
-            thinking_level=source.thinking_level, task=previous.task))
+        service.owners.pin_private_nk_launch(service.root, root_id, package)
+        declared = service.owners.acquire_thread(previous.name, owner_pid=os.getpid())
         assert declared.created_at == previous.created_at
         await owner._runtime.start()
-        await owner.load_session(declared.worktree, declared.name)
+        await owner.sessions.bind_owned(declared, declared.name)
         assert declared.name not in owner.turns.persistent_backends
-        assert not InputDispositions(service.root / InputDispositions.filename).read().rows
+        assert InputDispositions(service.root / InputDispositions.filename).read() == inputs_before
         receipt["controller"] = FieldCodec.encode(declared.require_process())
         receipt["state"] = "COLD_OWNER_STARTED_NO_NATIVE_ACQUISITION"
         (base / "terminal-receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
@@ -189,7 +269,7 @@ async def run(options):
             "--journey", ColdContextJourney.declared_name, "--capture-state",
             "--review-timing", "deferred", "--fps", "20", "--width", "1500",
             "--height", "1100", "--fit-window", "--startup-wait", "10",
-            "--max-duration", "110" if options.instruction_query else "65",
+            "--max-duration", "130" if options.recorded_audit else "110" if options.instruction_query else "65",
             "--tail-seconds", "2", "--", *command]
         (base / "caller.json").write_text(json.dumps(sys.argv, indent=2) + "\n")
         with (base / "recorder.log").open("w") as log:
@@ -206,7 +286,34 @@ async def run(options):
             snapshot = phase(label)
             return next(view for view in snapshot["views"]
                         if view["mode"] == snapshot["metadata"]["current_mode"])["context"]
-        if options.source_only:
+        if options.recorded_audit:
+            context = context_phase("recorded-system")
+            text = context["detail"]
+            assert context["selected"] == system.key and "One fact" in text
+            assert "Selected context detail unavailable" not in text
+            assert system.key in {n["key"] for n in context_phase("recorded-search")["nodes"]}
+            assert context_phase("recorded-full")["maximized"]
+            assert context_phase("recorded-full")["detail"] == text
+            assert context_phase("recorded-export")["clipboard"] == text
+            assert (base / "selected-recorded-context.txt").read_text() == text
+            child_context = context_phase("recorded-coordination")
+            assert child_context["selected"] == coordination.key
+            assert "Coordination context:" in child_context["detail"]
+            assert "Selected context detail unavailable" not in child_context["detail"]
+            saved_view = next(v for v in phase("recorded-system")["views"]
+                              if v["mode"] == phase("recorded-system")["metadata"]["current_mode"])
+            assert saved_view["agent_configuration"]["context_measurement"]["used"] > 0
+            assert saved_view["agent_configuration"]["context_measurement"]["size"] > 0
+            assert service.registry.require(previous.name).tags == tags_before
+            assert '#review417' not in service.channels.channels()
+            assert '#review417-renamed' not in service.channels.channels()
+            assert not any(n["id"] == "command-apply" for n in phase("deleted")["metadata"]["navigation_targets"]["widgets"])
+            receipt.update(recorded_search_read_copy_export_equal=True,
+                recorded_coordination_text=child_context["detail"],
+                original_footer_measurement=saved_view["agent_configuration"]["context_measurement"],
+                physical_menu_tag_rename_delete_and_slash=True)
+            returned = context
+        elif options.source_only:
             context = context_phase("core-instructions")
             assert context["native_present"] and "configured-source" in context["detail"]
             reference = context_phase("authenticated-source")
@@ -256,7 +363,9 @@ async def run(options):
         assert selected.read_bytes() == before
         assert hashlib.sha256(public_file.read_bytes()).hexdigest() == public_before
         original.require_current()
-        assert not InputDispositions(service.root / InputDispositions.filename).read().rows
+        assert InputDispositions(service.root / InputDispositions.filename).read() == inputs_before
+        assert ContextInspection.read(service, previous.name).manifests == manifests_before
+        receipt["original_manifest_and_input_unchanged"] = True
         receipt["original_source_unchanged"] = True
     except BaseException as error:
         receipt.update(state="FAILED_NO_REPLAY", error=repr(error))
@@ -276,6 +385,8 @@ async def run(options):
         receipt["selected_source_unchanged"] = selected.read_bytes() == before
         receipt["public_sha256_after"] = hashlib.sha256(public_file.read_bytes()).hexdigest()
         receipt["public_source_unchanged"] = receipt["public_sha256_after"] == public_before
+        receipt["original_inputs_unchanged"] = InputDispositions(
+            service.root / InputDispositions.filename).read() == inputs_before
         receipt["native_input_rows_after"] = len(InputDispositions(
             service.root / InputDispositions.filename).read().rows)
         receipt["elapsed_seconds"] = time.monotonic() - started
@@ -293,7 +404,9 @@ if __name__ == "__main__":
         state, kind = sys.argv[2:]
         snapshot = click.read_snapshot(Path(state))
         context = click.NativeFocusTarget.selected_view(snapshot)["context"]
-        if kind == "file":
+        if kind.startswith("exact:"):
+            nodes = (node for node in context["nodes"] if node["key"] == kind.removeprefix("exact:"))
+        elif kind == "file":
             nodes = (node for node in context["nodes"]
                      if node["key"].startswith(context["selected"] + "/source/")
                      and node["label"].startswith("Source · File "))
@@ -315,6 +428,9 @@ if __name__ == "__main__":
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--public-root", type=Path, required=True)
     parser.add_argument("--original-python", type=Path, required=True)
+    parser.add_argument("--original-thread", default="openhcs-audit-merged-runtime")
+    parser.add_argument("--recorded-audit", action="store_true")
+    parser.add_argument("--request-id", default="")
     parser.add_argument("--instruction-query", default="", help="Search the original public instructions in the same cold journey")
     parser.add_argument("--source-only", action="store_true", help="Finish only Core instruction search and authenticated reading; retain earlier native reader proof")
     asyncio.run(run(parser.parse_args()))

@@ -20,6 +20,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
     from toad.widgets.prompt import PromptTextArea
     from toad.navigation_target import ChannelTarget
     from toad.widgets.comms_sidebar import CommsRow, ThreadRow
+    from toad.widgets.comms_menu import ContextMenuItem
     from toad.widgets.session_tabs import SessionLabel
     from toad.widgets.tool_call import ToolCall
     from toad.transcript_source_preparation import TranscriptSourcePreparation
@@ -214,6 +215,8 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
             if not region:
                 continue
             if target := navigation_target(node, region, node.id or type(node).__name__):
+                if isinstance(node, ContextMenuItem):
+                    target["action"] = node.action
                 metadata["navigation_targets"]["widgets"].append(target)
             if isinstance(node, ThreadRow):
                 if target := navigation_target(node, region, node.target_name):
@@ -279,6 +282,8 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                             "thinking": agent.configuration.thinking.current,
                             "mode": mode.id if mode is not None else None,
                             "rendered_label": node.agent_info.plain,
+                            "context_measurement": asdict(agent.context_measurement)
+                                if agent.context_measurement.available else {"unavailable": agent.context_measurement.reason},
                         }
                     kind = type(node).__name__
                     widget_classes[kind] += 1
@@ -311,6 +316,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                                     target = navigation_target(tree, region, model.data.key)
                             context_nodes.append({"key": model.data.key,
                                                   "label": model.label.plain,
+                                                  "model_type": type(model.data).__name__,
                                                   "expanded": model.is_expanded,
                                                   "target": target})
                         view["context"] = {
