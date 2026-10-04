@@ -174,7 +174,6 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         if (conversation := self.widget) is None:
             return
         await conversation.release_native_session()
-        await conversation.window.document_viewport.close()
         await conversation.remove()
         self.widget = None
 

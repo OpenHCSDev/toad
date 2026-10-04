@@ -1,0 +1,28 @@
+{
+  "state": "normal full published426 source join; not installed or Ready",
+  "source_head": "efff71d076167ed616ce02319d03778047a20a90",
+  "original_owner_head": "8fdcc554dc3c81ae457222b53815fbca4bd70a06",
+  "production_files": [
+    "src/toad/session_admission.py",
+    "src/toad/session_presentation.py",
+    "src/toad/sidebar_projection.py",
+    "src/toad/widgets/comms_sidebar.py",
+    "src/toad/widgets/conversation.py",
+    "src/toad/widgets/side_bar.py",
+    "src/toad/widgets/thread_comms.py"
+  ],
+  "pins_unchanged": {
+    "core": "99fa19ef56156c7f79f66495f32a5fdcd43103e3",
+    "textual": "c1c1ebe5c40499f75dc370c26a7818588114e71d",
+    "native": "086d511f2026b10d"
+  },
+  "single_writer": "Heis426 Conversation release/unmount/presentation/tree/sidebar family; Sch621/424 admission/reconnect/actions retained",
+  "ownership": "Conversation acquires Window before joins and closes that DocumentViewport; original MessagePump removes descendants once; explicit release/unmount share source cleanup; caller duplicate viewport query/close removed",
+  "additional_source_scope": "Full normal merge retains earlier426 visible busy-row capability, shared nearest-ancestor traversal and matching-native-tab projection; no installed qualification inferred",
+  "superseded_future_to_ad_wheel": "70c6 merged422-only wheel retained as original proof; insufficient for new release seam gate",
+  "remaining": "ONE changed existing native-delete whole App shutdown check after actual F4 handback and fresh Bohr purpose; related new426 sidebar/tab resource scope stays explicit; no repeated Start/general menus/channel/layers/movie/provider",
+  "style22": "F4 exclusive; no Sch current import/package/execution",
+  "original09": "assertions PASS; WHOLE shutdown FAILED143; raw unknown interleaving/owned cleanup preserved",
+  "preparation_negative": "First evidence-file write refused missing sparse-worktree directory; no source/package mutation; existing Git originals preserved, directory now created",
+  "ready": false
+}
