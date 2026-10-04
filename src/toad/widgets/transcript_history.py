@@ -719,12 +719,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         if self._prefetch_worker is not None and not self._prefetch_worker.is_finished:
             self._prefetch_worker.cancel()
 
-        # Transport completion does not exhaust the current page's local
-        # admission. Its unmounted leaves still need the stationary runway;
-        # the original reader skips absent transport edges itself.
-        if not rounds:
-            return
-
         async def prepare() -> None:
             # Reader replacement and source retirement both revoke this exact
             # intent. One owned snapshot identity is the publication fence.
