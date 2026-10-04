@@ -1,0 +1,23 @@
+{
+  "installed_import": "PASS",
+  "selected_original_handler": "HistoricalSessions.request_message_handling",
+  "mro": [
+    "toad.screens.historical_sessions.HistoricalSessions",
+    "toad.core_event_carrier.CoreEventReceiver",
+    "agent_comms.mro_dispatch.MroDispatch",
+    "toad.project_path_owner.ProjectPathOwner",
+    "toad.screens.workspace.WorkspaceScreen",
+    "toad.widgets.side_bar.SidebarFocusOwner",
+    "textual.screen.ModalScreen",
+    "textual.screen.Screen",
+    "typing.Generic",
+    "textual.widget.Widget",
+    "textual.dom.DOMNode",
+    "textual.message_pump.MessagePump",
+    "builtins.object"
+  ],
+  "modules": 288,
+  "parse_omissions": [],
+  "removed_event_references": 0,
+  "scope": "Installed original saved-screen construction and declared handler selection; no archived notification execution claim."
+}

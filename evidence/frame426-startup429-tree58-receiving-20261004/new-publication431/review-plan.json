@@ -1,0 +1,86 @@
+{
+  "target": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "source_interpreter": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534/bin/python",
+  "current_prefix": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/runtime-scoped-input534",
+  "original_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-2ea0a4d4ff2e3628/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-086d511f2026b10d/node_modules/@earendil-works/pi-coding-agent",
+  "activation": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/activation.json",
+    "sha256": "2d46e956b37e599add12718b06770cce5a1b53c1421c95a3e69201d34750c63b"
+  },
+  "source_proof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/source-proof.json",
+    "sha256": "e2ca7daa8d5a55a8aa2f155741e9dbd8b7050c9f0e656e7506a53be3a29a3e1f"
+  },
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/422-SCOPED-READY.json",
+      "sha256": "feec53af541b617ceef802ff43eb1c9e58d7f58632da6873665e5ef763a4d9db"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/426-APP-QUALIFIED.json",
+      "sha256": "06e36b9349e5e1f2fffde80f1b7e403f46995689643724d1256c413bd71eeb44"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/426-SCOPED-READY.json",
+      "sha256": "e39eed98a1c6d61b0fc9e586ea367535cd351722da4269a2cb5af3f0cfe89472"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/427-historical-consumer-receipt.json",
+      "sha256": "ed5b309d18b10d260bbb0fff4eaaa190026309f56781a027dc4bbac0d39bc06c"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/429-INSTALLED-APP.json",
+      "sha256": "9f9e08622ec1d850be5882cef85496f6228c7383eb52f40d9a0d79e82ca41dc9"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/429-READY.json",
+      "sha256": "b96ef809564c49fcd47bbfd80c2c3a88fcec14c5b9627bf2ce8e12db7f5923e8"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/53-SCOPED-INSTALLED-READY.json",
+      "sha256": "56ad1141a4725708647420da832bc6ca07b3465246c7aae079e67f11d5bd7773"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/58-SCOPED-READY.json",
+      "sha256": "4d66bede0e9ae5f33601fdc47dced38b0522fca29f6b0980b8c4736da8330677"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/616-READY.json",
+      "sha256": "2fcc01694ac5eb9f4a1a9ae4ec52e393b2f6d5fb111a39174875a1bfe19892e1"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/F1-channel08-receipt.json",
+      "sha256": "b6dcd1f7ec9cc3ce41b18e656834a775af93bd6db18c7c12c5b115301199e24f"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/F1-native-delete10-receipt.json",
+      "sha256": "9a63d88b97da718dfa0cfaa15729a4719edef99739c1bfb9672aec7b5d01dbf8"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/F1-start07-receipt.json",
+      "sha256": "cb04a18074b2e5aa0b8f28aba635f792c4202ddfb00e774c0d5e33c97ddb136f"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/F4-app06-physical-receipt.json",
+      "sha256": "c5aa90eec5d7d59b0733561b4be66ec0f0d3c196757f8e22cc9446b735648d96"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/F4-app06-terminal-receipt.json",
+      "sha256": "e83fa26a7392e47637944482cd1b404fda2a1ea4851cc981cb0a6f195a4db0f0"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/F4-core-installed-receipt.json",
+      "sha256": "58442920b84b2c05ccd708d1352edf90d1d6adef0184826e201adcb5d99e7721"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/F4-paired-installed-final.json",
+      "sha256": "c3980f0606a8b61a0145b6a8ec8251062948582dc00a4d26be530705588e1fb7"
+    }
+  ]
+}

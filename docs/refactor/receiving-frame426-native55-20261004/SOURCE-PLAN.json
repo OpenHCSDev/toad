@@ -1,0 +1,110 @@
+{
+  "state": "SOURCE READY for next receiving purpose: merged426/429/Text58 and source-equal currentCore919; not installedReady",
+  "source_main": "bf3a79c2a930c3b23433636378bb9ac8b08e1a69",
+  "core_pin": "9195325146f70886d7d879edbfcae74b12bd63c8",
+  "textual_pin": "456c27e18688e6c829c727f766561c9eb8640803",
+  "native": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
+  "audit": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10",
+  "retained_wheel_readback": [
+    {
+      "module": "agent_comms",
+      "actual_merged_head": "9195325146f70886d7d879edbfcae74b12bd63c8",
+      "wheel": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/f4-core421-receiver-wheels-20261004/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "d96ab5bb53e360591d8cff8e1e7eb85559eb7ac985c3047f6ffaef80f0dba935",
+      "assets": 339,
+      "forced_assets": [
+        "agent_comms/_native/APPEND_SYSTEM.md",
+        "agent_comms/_native/pi-native.sha256",
+        "agent_comms/_native/native-compaction-commit-child.mjs"
+      ],
+      "all_assets_equal": true
+    },
+    {
+      "module": "toad",
+      "actual_merged_head": "bf3a79c2a930c3b23433636378bb9ac8b08e1a69",
+      "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "bb575bc69672d86edab569e8bf6cbfad24ad49fbcef0b30f114a818b2b4d5f50",
+      "assets": 319,
+      "forced_assets": [],
+      "all_assets_equal": true
+    },
+    {
+      "module": "textual",
+      "actual_merged_head": "456c27e18688e6c829c727f766561c9eb8640803",
+      "wheel": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text58-tree-cursor-filewheel-20261004/textual-8.2.8-py3-none-any.whl",
+      "sha256": "0ffc78c3a7d56212479e016e13683e5d921a0b3fc9fbecfd1f5151994ac2862f",
+      "assets": 266,
+      "forced_assets": [],
+      "all_assets_equal": true
+    }
+  ],
+  "qualified_scope": "Original426 fourApp source/admission/globalpaint/sidebar scope retained; original429 pending-start/hydration App20.2068 input/resize/nativepaint/hidden-return actor/draft/focus/wholeclose. Originalthreefixture negatives retained; no startup-pump/UI-speed/public-physical/nativegoal claim. Text58 adds originalregisteredSDK/ACP reader13 selectedSystem0 contributor/remove-return/unmount-remount App scope; whole13 pre-recorderDTO negative retained, no physical export-child claim.",
+  "remaining_package_boundary": "All retainedCore421d96/Toad429bb575/Text580ffc wheels exact currentdeclaredassets; no build required. Needs concrete releasedexistingfull69 stagingpurpose and originalarchive/freshgrant before any packagewrite. Frozen428334 and421485 unavailable; LIVE534 protected.",
+  "protected428_ready": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/session422-native53-f1-f4-receiving-20261004/new-publication428/ready-receipt.json",
+  "protected428_ready_sha256": "200b686231e79d78b037bea4e91be48bc8ff33f395785a647e7cc8842dc4920f",
+  "protected428_artifacts": 165,
+  "protected428_head": "630a16f2db31e86632c21288c12597b690554efe",
+  "package_writes": 0,
+  "new_builds": 0,
+  "envs": 0,
+  "native_copies": 0,
+  "public_effects": 0,
+  "exclusions": [
+    "unqualified417/F3",
+    "627/W1",
+    "430",
+    "59",
+    "JeV"
+  ],
+  "previous_426_only_source_checkpoint": "5182377148fa61da1e293036dce8354958ae7084",
+  "source_join_head": "0fa5406850162842ddc8dc0c1cc0b32ca5bf3b27",
+  "previous_426_wheel_relation": {
+    "module": "toad",
+    "actual_merged_head": "42f1cc9f26d2f7e6f9c9b3728484e07902dcf832",
+    "original_build_record": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame426-native55-20261004/wheel-proof.json",
+    "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame426-native55-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "3155d3c2a2f398a007b705e9537d1b82d33be10f019ab757171fe1ef00114b2d",
+    "assets": 319,
+    "all_assets_equal": false,
+    "different_assets": [
+      "toad/acp/agent.py",
+      "toad/acp/status.py",
+      "toad/application_actions.py",
+      "toad/conversation_kind.py",
+      "toad/conversation_markdown.py",
+      "toad/core/context_inspection.py",
+      "toad/goal_interaction.py",
+      "toad/mcp_commands.py",
+      "toad/navigation_preparation.py",
+      "toad/screens/comms.py",
+      "toad/screens/store.py",
+      "toad/session_admission.py",
+      "toad/session_tracker.py",
+      "toad/widgets/comms_chat.py",
+      "toad/widgets/comms_transfer.py"
+    ]
+  },
+  "previous_429_text55_relation": [
+    {
+      "module": "toad",
+      "actual_merged_head": "bf3a79c2a930c3b23433636378bb9ac8b08e1a69",
+      "original_build_record": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/wheel-proof.json",
+      "original_build_head": "4e2ad921800b33ee86b65960f564434e91579c8f",
+      "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "bb575bc69672d86edab569e8bf6cbfad24ad49fbcef0b30f114a818b2b4d5f50",
+      "assets": 319,
+      "all_assets_equal": true,
+      "different_assets": []
+    },
+    {
+      "module": "textual",
+      "actual_merged_head": "ace479c7e602a1f804bc8cc6b6fd5bf90d518733",
+      "original_build_record": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text55-filewheel-bb936deb-20261004/build-receipt.json",
+      "wheel": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text55-filewheel-bb936deb-20261004/textual-8.2.8-py3-none-any.whl",
+      "sha256": "b064011ef5988c395f375ada87e602de61c14f9fa3491315754850d1e97b9611",
+      "assets": 266,
+      "all_assets_equal": true,
+      "different_assets": []
+    }
+  ]
+}
