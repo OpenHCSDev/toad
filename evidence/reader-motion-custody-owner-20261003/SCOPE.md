@@ -82,3 +82,21 @@ already mounted; only this constructor violated the acquisition lifetime. No
 copied window reference, reentrant lock, fallback revision or new lifecycle type.
 The native geometry fixture now mounts its original HistoryWindow directly under
 the real App Screen, preserving Conversation's nominal-block admission boundary.
+
+## Installed result
+
+Both affected original App paths now pass: original curve survives compensation,
+explicit offset/tail targets remain selected, reader revision is preserved, original
+2000-record committed geometry is reused through prepend/offscreen lookup; actual
+filtered older-page publication rejects the stale inbound selection and fills the
+selected thinking history. Original failed logs remain, including stale fixture
+assumptions. The final geometry-only correction uses actual Window/Screen query,
+required retain_geometry from Screen, and explicit offset policy after the tail
+case. It does not weaken source, animation or geometry assertions.
+
+Installed all319 Toad assets are exact normal local wheel bytes, original611
+Core/Text/diff assets and all69 versions unchanged. Actual comparator remains
+Coredbcf/Text48/native89; it is not called current default. Four production files
+now remove24/add35 lines. Text49's frozen original ordering change is available
+for the next joined physical motion/profile, no new environment/native build.
+Draft, not Ready: source/App behavior is qualified, new motion/latency is not.

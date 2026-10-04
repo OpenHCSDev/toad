@@ -54,13 +54,16 @@ async def exercise(app):
         assert window.scroll_revision == revision
         assert window.follows_tail
         await pilot.pause()
-        screen = app.screen
-        marker = app.query_one("#record-1999")
+        # The committed-record lookup below is an offset-reader case, separate
+        # from the explicit tail restoration just exercised.
+        window.release_anchor()
+        screen = window.screen
+        marker = window.query_one("#record-1999")
         compositor = screen._compositor
         # Reproduce the actual scroll -> prepend/full reflow sequence.
-        compositor.reflow_visible(screen, screen.size)
+        compositor.reflow_visible(screen, screen.size, retain_geometry=screen._layout_geometry_targets())
         assert compositor._full_map_invalidated
-        compositor.reflow(screen, screen.size)
+        compositor.reflow(screen, screen.size, retain_geometry=screen._layout_geometry_targets())
         with patch.object(compositor, "_arrange_root", wraps=compositor._arrange_root) as arrange:
             anchor = HistoryAnchor.capture(marker, window)
             assert anchor.virtual_y == 1999
