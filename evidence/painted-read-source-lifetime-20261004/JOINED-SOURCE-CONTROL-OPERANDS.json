@@ -1,0 +1,73 @@
+{
+  "state": "Published joined source/control; Parent confirms W6 whole handback, no Heis issued purpose/build/import/install/App yet",
+  "source_head": "8a98a037c29f1a8689a8b6230bad424fe02123b2",
+  "product_reference": "4406ea17d1e11ffc72c6baec98ecdae37e532130",
+  "production_delta": "",
+  "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "output": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004",
+  "floor": "Reverify ACTUAL floor after W6 whole1470/69/390 handback; prior exact436e6f Core1a58a/Toad5002/Text59/NRA8d/native086 is historical restore operand, not present borrower clearance.",
+  "build_command": [
+    "python",
+    "-m",
+    "build",
+    "--wheel",
+    "--no-isolation",
+    "--outdir",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/toad-wheel"
+  ],
+  "build_cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+  "build_backend": "existing cached/system hatchling1.28.0, no isolated environment or dependency installation",
+  "wheel_operand": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+  "inventory_operand": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/toad-inventory.json",
+  "wheel_proof_operand": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/wheel-proof.json",
+  "candidate_activation_operand": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/candidate-activation.json",
+  "source_proof_operand": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/source-proof.json",
+  "core_wheel": {
+    "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/c4-queued-reservation656-wheel-20261004/agent_comms-0.1.0-py3-none-any.whl",
+    "sha256": "5f1667ce64c58d67e153850be91dfb669ea9e347218f8d845937a1c12c778a9c",
+    "source_head": "5c1103077e5a982365a6d801b98bcbdb1b03c547",
+    "relation": "declared current main440 Core5c; genuinely replaces actual preimage1a58a; no API/source-equivalence claim",
+    "packaged_native_manifest_sha256": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872"
+  },
+  "retained_text_wheel": "73d4ca971dd2891c2a2266a0c5c8629e3e0ff55e802456ae60d0fedfe72fdbaa frozen1bd product/sourceequal merged native59",
+  "retained_nra": "Actual unchanged floor retained: nominal_refactor_advisor/measures.py SHA8f6127cb184801fbf2ca162adbece5c103c0fc6693f81197632668f710af7513. Original8d normal-wheel measures fb6e is explicitly NOT byte-equal to actual floor; preserve raw discrepancy/no semantic patch or fabricated source equality.",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-086d511f2026b10d/node_modules/@earendil-works/pi-coding-agent",
+  "native_manifest_sha256": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
+  "native_tree_sha256": "dbc88ed9231d1275da3ce218aa8919a247e41ce1f010ce765e7ac0960193f4ac",
+  "native_authority": "Original Sch immutable086 conditional READ/execute must bind the new combined purpose; original441 authority was handed back. No current execution claim.",
+  "app_command": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/history_page_batch_mount_pilot.py",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/app"
+  ],
+  "app_environment": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONPATH": "unset",
+    "TOAD_TEST_ATTEMPT": "Heis441442-source-lifetime",
+    "AC_NATIVE_COPIED_PACKAGE": "original immutable086 keeper",
+    "AGENT_COMMS_ROOT": "original fixture owns fresh private Comms/init protocol; no public root"
+  },
+  "app_control_sha256": "7725402f9008b30f4bcf01712e12bd3646c4b2e8bc57b143b1919637ef6e1cdd",
+  "app_scope": "ONE remaining original441/ec9+442 App: Mount cancellation, stale filter/source fences, genuine provisional/Working/Live-tail/filter and scene-revoked read fence during held child Unmount, input/resize/End/wholeclose. Prior five positives are not new progress credit. No backend painted-cursor writer witness/ack-loss, provider/native input/movie/CPU/FPS claim.",
+  "conditions": [
+    "After W6 whole handback, fresh Bohr specific grant/borrower clearance and matched Sch086 conditional authority precede any build/prefix access/install/import/App.",
+    "Filewheel/Git ZIP asset equality and honest ArchiveDirectURL before installed App.",
+    "Original whole NativePackage and FullTrust verification; no native override.",
+    "Own DTO/proof paths only; original PREFIXactivation and390/frozen operators unchanged.",
+    "Whole actual436 floor+69/origins/protected390 restore, original owned child cleanup and fresh borrower readback.",
+    "PUBLIC334 and current user sessions untouched."
+  ],
+  "normal_main": "4cc4d531d",
+  "control_sha256": "7725402f9008b30f4bcf01712e12bd3646c4b2e8bc57b143b1919637ef6e1cdd",
+  "prior_control": "ec9bc8f99ddb86e1d89694ab25c5452dff438e12 corrected Task acquisition; original44101FAIL remains immutable",
+  "prior_failure_keeper": "evidence/transcript-native-commit-owner-20261004/INSTALLED01-NEGATIVE.json",
+  "wheel_sha256": null,
+  "inventory_sha256": null,
+  "build_environment": {
+    "PYTHONPATH": "/home/ts/.cache/uv/archive-v0/RgcgNn7xR1Zs9HSF"
+  },
+  "build_backend_readonly_path": "/home/ts/.cache/uv/archive-v0/RgcgNn7xR1Zs9HSF/hatchling/__init__.py",
+  "wheel_source_relation": "New442 state files change product; old4418c02 wheel cannot represent this cohort. Build once only under fresh purpose, bind all Git/WT/ZIP assets before install.",
+  "preceding_purpose_disposition": "Parent verified W6 attachment03 whole closure lifecycle cd2fb3/readback ddb84b: original1470/69/390 restored, no active W6 package claim. Fresh Bohr specific purpose and references required; no borrower clearance inferred from this relay.",
+  "restore_boundary": "Whole actual1470/69/390/origins, including original e6f tar NRA measures8f6127. If normal restore wheels change a member, restore exact original tar bytes/mode/link using atomic new inode; no shared-cache inode edit and no metadata lie. Candidate NRA remains unchanged; no NRA install/build."
+}

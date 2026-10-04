@@ -1,0 +1,393 @@
+{
+  "tool": "existing refactor-audit Package/ForeignAbsenceProbe",
+  "packages": [
+    {
+      "head": "35e72d0f200e7aab3eee283ad6126ce6b8065f5b",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "src/toad/app.py",
+          "line": 563,
+          "reference": "history.blocks_visible_read",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 108,
+          "declaration": "source_checkpoint_available",
+          "source": "def source_checkpoint_available(self):\n        return (self.reader is not None\n                and not self.reader.source.loading)"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 299,
+          "reference": "self.checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 169,
+          "declaration": "checkpoint_available",
+          "source": "def checkpoint_available(self):\n        return self.view.checkpoint_available"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 275,
+          "declaration": "checkpoint_available",
+          "source": "def checkpoint_available(self):\n        return not self.scanning and self.state.checkpoint_available"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 170,
+          "reference": "self.view.checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 276,
+          "reference": "self.state.checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 326,
+          "reference": "self.owner.checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 62,
+          "declaration": "blocks_visible_read",
+          "source": "def blocks_visible_read(self) -> bool:\n        \"\"\"Source mutation, remaining tail and filtering govern acknowledgement.\"\"\"\n        return self.state.blocks_visible_read(self)"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 67,
+          "declaration": "checkpoint_available",
+          "source": "def checkpoint_available(self) -> bool:\n        return self.state.checkpoint_available(self)"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 64,
+          "reference": "self.state.blocks_visible_read",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 68,
+          "reference": "self.state.checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/transcript_state.py",
+          "line": 23,
+          "declaration": "checkpoint_available",
+          "source": "def checkpoint_available(self, owner) -> bool:\n        \"\"\"Source admission and its original resource govern checkpoint custody.\"\"\"\n        return self.accepts_source_work and owner.source_checkpoint_available"
+        },
+        {
+          "path": "src/toad/transcript_state.py",
+          "line": 27,
+          "declaration": "blocks_visible_read",
+          "source": "def blocks_visible_read(self, owner) -> bool:\n        \"\"\"An unpublished source must settle before its cursor is read.\"\"\"\n        return True"
+        },
+        {
+          "path": "src/toad/transcript_state.py",
+          "line": 94,
+          "declaration": "blocks_visible_read",
+          "source": "def blocks_visible_read(self, owner) -> bool:\n        return owner.has_newer or not self.checkpoint_available(owner)"
+        },
+        {
+          "path": "src/toad/transcript_state.py",
+          "line": 116,
+          "declaration": "blocks_visible_read",
+          "source": "def blocks_visible_read(self, owner) -> bool:\n        \"\"\"Retained or retiring custody has no current paint obligation.\"\"\"\n        return False"
+        },
+        {
+          "path": "src/toad/transcript_state.py",
+          "line": 173,
+          "declaration": "blocks_visible_read",
+          "source": "def blocks_visible_read(self, owner) -> bool:\n        \"\"\"An admitted source operation must settle before its cursor is read.\"\"\"\n        return True"
+        },
+        {
+          "path": "src/toad/transcript_state.py",
+          "line": 25,
+          "reference": "owner.source_checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/transcript_state.py",
+          "line": 95,
+          "reference": "self.checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/widgets/committed_presentation.py",
+          "line": 157,
+          "declaration": "checkpoint_available",
+          "source": "def checkpoint_available(self) -> bool:\n        raise NotImplementedError"
+        },
+        {
+          "path": "src/toad/widgets/committed_presentation.py",
+          "line": 216,
+          "reference": "history.checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/widgets/committed_presentation.py",
+          "line": 284,
+          "reference": "history.checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/widgets/committed_presentation.py",
+          "line": 302,
+          "reference": "history.checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 636,
+          "declaration": "source_checkpoint_available",
+          "source": "def source_checkpoint_available(self) -> bool:\n        return self.filter.checkpoint_available"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 637,
+          "reference": "self.filter.checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 1034,
+          "reference": "self.checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 789,
+          "reference": "self.checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 654,
+          "reference": "self.checkpoint_available",
+          "kind": "Load"
+        }
+      ]
+    },
+    {
+      "head": "35e72d0f200e7aab3eee283ad6126ce6b8065f5b",
+      "root": "tests",
+      "modules": 394,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "tests/core_events_native_installed_pilot.py",
+          "line": 48,
+          "reference": "h.checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/history_edge_scheduling_pilot.py",
+          "line": 127,
+          "reference": "history.checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/history_edge_scheduling_pilot.py",
+          "line": 100,
+          "reference": "history.checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/history_edge_scheduling_pilot.py",
+          "line": 142,
+          "reference": "history.checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/history_edge_scheduling_pilot.py",
+          "line": 251,
+          "reference": "history.checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 102,
+          "reference": "history.blocks_visible_read",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 106,
+          "reference": "history.blocks_visible_read",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 125,
+          "reference": "history.blocks_visible_read",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 142,
+          "reference": "history.checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 243,
+          "reference": "history.blocks_visible_read",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 243,
+          "reference": "projections[-1].view.blocks_visible_read",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 248,
+          "reference": "newer_state.view.blocks_visible_read",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 256,
+          "reference": "history.checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 142,
+          "reference": "history.blocks_visible_read",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 239,
+          "reference": "overlay.blocks_visible_read",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 239,
+          "reference": "history.blocks_visible_read",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 242,
+          "reference": "history.checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 248,
+          "reference": "stale.view.blocks_visible_read",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 257,
+          "reference": "history.blocks_visible_read",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 277,
+          "reference": "pending.blocks_visible_read",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 288,
+          "reference": "pending.blocks_visible_read",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 305,
+          "reference": "pending.checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 306,
+          "reference": "pending.blocks_visible_read",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/l0a_native_installed_pilot.py",
+          "line": 423,
+          "reference": "history.checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/transcript_lifecycle_pilot.py",
+          "line": 45,
+          "reference": "history.checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/transcript_lifecycle_pilot.py",
+          "line": 69,
+          "reference": "history.checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/transcript_lifecycle_pilot.py",
+          "line": 60,
+          "reference": "history.checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 62,
+          "reference": "paged._paged.checkpoint_available",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 162,
+          "reference": "scheduled.checkpoint_available",
+          "kind": "Load"
+        }
+      ]
+    },
+    {
+      "head": "35e72d0f200e7aab3eee283ad6126ce6b8065f5b",
+      "root": "tools",
+      "modules": 41,
+      "omissions": [],
+      "sites": []
+    },
+    {
+      "head": "1bdc18c363cbc0f938537a71aa8ba0225d03e25e",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": [],
+      "sites": []
+    }
+  ],
+  "foreign_absence_delta_vs_actual_main441": {
+    "src/toad/transcript_state.py": 0,
+    "src/toad/transcript_source_preparation.py": 0,
+    "src/toad/widgets/transcript_history.py": 0,
+    "src/toad/mounted_message_history.py": 0
+  },
+  "single_checkpoint_admission_owner": "TranscriptState.checkpoint_available",
+  "single_common_facade": "TranscriptSourcePreparation.checkpoint_available",
+  "source_leaf_hooks": [
+    "TranscriptHistory.source_checkpoint_available",
+    "MountedMessageHistory.source_checkpoint_available"
+  ],
+  "original17_app_keepers_unchanged": true,
+  "old_installed_wheel_source_equal_current": false,
+  "behavioral_runtime_check": "Not performed; no current named package/native execution purpose.",
+  "limits": "Complete lexical family evidence and focused source measure; hosted full required ratchet pending. No dynamic override/behavioral proof."
+}

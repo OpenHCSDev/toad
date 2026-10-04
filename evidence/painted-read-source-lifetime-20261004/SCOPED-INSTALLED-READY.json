@@ -1,0 +1,223 @@
+{
+  "state": "SCOPED installed original joined441/ec9+442 App PASS; full structural performance remains open",
+  "installed_source_head": "03110866e7a5503880577d3401f6bf936e0fd7c0",
+  "determining_product": "4406ea17d1e11ffc72c6baec98ecdae37e532130",
+  "source_control_head": "8a98a037c29f1a8689a8b6230bad424fe02123b2",
+  "control_sha256": "7725402f9008b30f4bcf01712e12bd3646c4b2e8bc57b143b1919637ef6e1cdd",
+  "wheel": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "8acfb48d686d98a573ec351d5816002df71a7b584ff7860c5c9994a252941b32",
+    "source_head": "03110866e7a5503880577d3401f6bf936e0fd7c0",
+    "product_reference": "4406ea17d1e11ffc72c6baec98ecdae37e532130",
+    "assets": 319,
+    "git_worktree_zip_byte_equal": true,
+    "inventory_sha256": "5811158afb969b4670ab90b4dae6f4d1fddb642c49fac547ba37b768e3d236e2",
+    "build": {
+      "source_head": "03110866e7a5503880577d3401f6bf936e0fd7c0",
+      "command": [
+        "python",
+        "-m",
+        "build",
+        "--wheel",
+        "--no-isolation",
+        "--outdir",
+        "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/toad-wheel"
+      ],
+      "backend": {
+        "path": "/home/ts/.cache/uv/archive-v0/RgcgNn7xR1Zs9HSF/hatchling/__init__.py",
+        "version": "1.28.0"
+      },
+      "seconds": 0.6897989009739831,
+      "exit_code": 0,
+      "new_environment": false,
+      "dependency_installation": false,
+      "source_clones": 0
+    }
+  },
+  "original_terminal": {
+    "source_head": "03110866e7a5503880577d3401f6bf936e0fd7c0",
+    "product_reference": "4406ea17d1e11ffc72c6baec98ecdae37e532130",
+    "control_sha256": "7725402f9008b30f4bcf01712e12bd3646c4b2e8bc57b143b1919637ef6e1cdd",
+    "provider_inputs": 0,
+    "physical_movie": false,
+    "scratch": "/home/ts/.cache/agent-scratch/transcript441442-page-read-source-app-20261004-01",
+    "exit_code": 0,
+    "duration_seconds": 9.168665857985616,
+    "cleanup": {
+      "remaining_owned_pids": [],
+      "errors": [],
+      "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+      "processes": [
+        {
+          "pid": 626722,
+          "start_ticks": 62414755,
+          "returncode": 0
+        }
+      ]
+    }
+  },
+  "app": {
+    "scope": "Installed original App/page/Mount/Unmount/source/read-fence custody; no backend painted-cursor writer, physical, CPU or FPS claim",
+    "checks": {
+      "provisional_source_blocks_visible_read": true,
+      "admitted_work_blocks_visible_read": true,
+      "trim_commits_before_original_unmount": true,
+      "live_unloaded_tail_blocks_visible_read": true,
+      "replacement_progresses_while_retired_child_attached": true,
+      "end_commits_destination_without_old_unmount_join": true,
+      "live_settled_tail_releases_visible_read_fence": true,
+      "editor_and_source_pump_progress_during_unmount": true,
+      "resize_pump_progresses_before_unmount_completion": true,
+      "original_child_unmount_and_unregister_complete": true,
+      "cancelled_mount_keeps_committed_rows_and_bounds": true,
+      "cancelled_page_mount_does_not_commit_native_candidate": true,
+      "admitted_projection_blocks_live_canonical_read": true,
+      "superseded_attached_projection_has_no_visible_read_obligation": true,
+      "stale_filter_cleanup_preserves_newer_admission": true,
+      "settled_filter_restores_live_source_fence": true,
+      "parked_attached_source_has_no_visible_read_obligation": true,
+      "pruned_working_source_releases_fence_before_unmount": true,
+      "pruned_source_original_unmount_unregister_complete": true,
+      "original_revision_park_loader_fences_reject_late_read": true,
+      "original_pruning_fence_rejects_late_read": true,
+      "whole_original_app_shutdown": true
+    },
+    "toad_package": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad",
+    "source_cases": [
+      "revision",
+      "parked",
+      "loader",
+      "pruning"
+    ],
+    "provider_inputs": 0,
+    "native_inputs": 0,
+    "exception": "None"
+  },
+  "newly_completed_remaining441_scope": [
+    "Original child Unmount/unregister completion with acquired Task custody",
+    "Leaf and page Mount cancellation preserve committed cohort/bounds",
+    "Prepared stale projection cannot clear newer admission",
+    "Revision/park/loader/pruning source fences reject late admission",
+    "Whole original App shutdown joins actual native resource lifetime"
+  ],
+  "related442_scope": [
+    "Mounted provisional and admitted Working source block facade read",
+    "Live unloaded tail/filter blocks; settled tail/filter releases facade fence",
+    "Superseded projection and parked source have no current paint obligation",
+    "Pruned Working pager remains attached/in Window membership during held child Unmount but no longer blocks current facade read"
+  ],
+  "prior_partial_credit": "Original44101 terminalFAIL7.671773587/fiveTRUE unchanged; those five are not new progress credit. W6 focus failures stay separate.",
+  "backend_painted_cursor_writer_witness": false,
+  "provider_inputs": 0,
+  "native_inputs": 0,
+  "physical_movie": false,
+  "cpu_gain_claim": false,
+  "smoothness_fps_claim": false,
+  "whole_handback": {
+    "state": "WHOLE actual436 floor restored; sole441442 code/import/read/execution/build claim closed",
+    "app_exit": 0,
+    "archive_sha256": "e6f27830a69a5e60902ecf8d25dccd46b43efefef75335e2679ef78c461aba5a",
+    "members_verified": 1470,
+    "packages": 69,
+    "protected_keepers_verified": 390,
+    "borrower_receipt": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/final-borrowers.json",
+    "borrower_receipt_sha256": "32734865410b43326204dba061bf7ce9a842ba04cd8c914bd6b33e9d855ae022",
+    "borrowers": 0,
+    "gaps": 0,
+    "process_cleanup": {
+      "remaining_owned_pids": [],
+      "errors": [],
+      "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+      "processes": [
+        {
+          "pid": 626722,
+          "start_ticks": 62414755,
+          "returncode": 0
+        }
+      ]
+    },
+    "original_origins_and_activation": "Exact archived original normal filewheel origins and PREFIXactivation bytes",
+    "provider_inputs": 0,
+    "physical_movie": false,
+    "native086_read_execution_handed_back": true,
+    "future_holder_claim": false
+  },
+  "nra_floor": "Actual unchanged8f6127 archive member retained/restored; original8d-wheel fb6e is NOT byte equality, raw discrepancy is preserved. No NRA source or metadata patch.",
+  "source_checks": "Existing refactor-audit Package288Toad/394tests/41tools/249native; before/after0omissions. Complete source/control beforeApp.",
+  "remaining": [
+    "Cold initial width and complete adaptive runway/capacity evidence",
+    "Growing history End and warm4/16/32/64-return/resource/continuous motion",
+    "Original real configured-fork continuous saved startup/open/tab/fork/message/reply/notification/queue/status/draftUndo/reader workflow",
+    "Responsible widget/invalidation attribution for original43602 production-side gaps"
+  ],
+  "keeper_hashes": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/issued-grant.json",
+      "sha256": "06d76b2dc152b6a3c67b55d0649ccc038a3048669c7566f93138809d28e7dc0a"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/source-control-operands.json",
+      "sha256": "40e1fe10d45c78bc5632ef7c87fbaeabbb390b91dd324abbf7a5766a8acdfa86"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/sch086-authority.json",
+      "sha256": "314543a48f230c9ee859918e73743e0fd28902c1963eaa5987c42ffd55e73753"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/wheel-proof.json",
+      "sha256": "c6497ea731e1546a3e263b723b25f40fd86c214a349ce072ac27af3eade48769"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/toad-inventory.json",
+      "sha256": "5811158afb969b4670ab90b4dae6f4d1fddb642c49fac547ba37b768e3d236e2"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/build-receipt.json",
+      "sha256": "9d06b81084e573bf466a5ec4f23b58e025eaa331d4ce1e524eba67ef5c4d4f77"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/agent_comms-inventory.json",
+      "sha256": "6b0f8d84e56d96e546796bac0175d3211a9dd8f706523951e9a866d8bb1576fe"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/core-source-relation.json",
+      "sha256": "3eaf2c53ede37a3c6f47cec203ec551eaf4ecbaf8a70ed2c00ee8e188af539f1"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/source-proof.json",
+      "sha256": "18e0481ac89980813ba58aca55a20bc9dbc4164f912436e9bec657d855583554"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/candidate-activation.json",
+      "sha256": "aea76d34433d3ca407fead3256b87bd2cdcf8af78eb9cad7776633914398ac78"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/app/receipt.json",
+      "sha256": "33a5afb475688a649f5d1cb7f0cb7e6d1dbe5de8122fb7e717fa03f3e4d4ca14"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/app/progress.json",
+      "sha256": "b451446e0494b2f578988e9f0b4e02068ae0903995418b5daea35c8ae6cab6f6"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/app.log",
+      "sha256": "9873eb151c85d0c6ff721d4c41960190494b483cc62b4c8ad0eeb5858bbfd5b3"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/terminal.json",
+      "sha256": "cabcd795c530588b338d7c248dc76d558b3fd2b2bdff6add35da5e2d676b3eb0"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/code-handback.json",
+      "sha256": "642fe521f819c63eb9c3acadb6e2c67f9c637fc83901137ee9686a67fa7a613a"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/final-borrowers.json",
+      "sha256": "32734865410b43326204dba061bf7ce9a842ba04cd8c914bd6b33e9d855ae022"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441442-source-lifetime-20261004/nra-floor-discrepancy.json",
+      "sha256": "370f69793ffae4d06c0df760693b53d6b21508f15ce34ff98fb20f93f5a2152c"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "normal_main": "b57d03e532d8b9f7e03a512d7472c579b387c263",
+  "normal_merge_head": "0f4d43c36b4cbd8dd647709c2ba9ed222cde9eda",
+  "qualified_installed_head": "03110866e7a5503880577d3401f6bf936e0fd7c0",
+  "src_tests_tools_pyproject_uv_changed_paths": [],
+  "frozen_ready_sha256": "9899cc3edce78d85ca0761f3bd36216a3e8b932212f0801cbddeb4d35adc13fb",
+  "original_keepers_verified_unchanged": 17,
+  "single_combined_app_seconds": 9.168665857985616,
+  "checks_true": 22,
+  "new_App_build_or_package_operation": false,
+  "nra_correction_sha256": "283fd5ad95a35b39cf21b95695a603905967a86679a7c6ff6180113aae1a4ebd",
+  "independent_bohr_correction": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-NRA-retained-wheel-raw-ZIP-correction.json",
+    "sha256": "ffa88e877f48bc2f0bf6af72354fdb605ed78ecc582d99c4b2ab9d2a2bb34e68"
+  },
+  "limits": "One combined441442 App. No independent442 UI, backend painted cursor/ACK witness, physical or CPU claim."
+}

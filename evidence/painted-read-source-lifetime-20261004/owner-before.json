@@ -1,0 +1,982 @@
+{
+  "packages": [
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "ec9bc8f99ddb86e1d89694ab25c5452dff438e12",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "src/toad/app.py",
+          "line": 529,
+          "kind": "AsyncFunctionDef",
+          "name": "mark_visible_thread_read"
+        },
+        {
+          "path": "src/toad/app.py",
+          "line": 563,
+          "kind": "Attribute",
+          "name": "blocks_visible_read"
+        },
+        {
+          "path": "src/toad/app.py",
+          "line": 563,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "src/toad/input_history.py",
+          "line": 85,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "src/toad/input_history.py",
+          "line": 106,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "src/toad/input_history.py",
+          "line": 111,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "src/toad/input_history.py",
+          "line": 92,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "src/toad/input_history.py",
+          "line": 107,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 108,
+          "kind": "FunctionDef",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 299,
+          "kind": "Attribute",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 227,
+          "kind": "AsyncFunctionDef",
+          "name": "observed"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 34,
+          "kind": "Attribute",
+          "name": "observed"
+        },
+        {
+          "path": "src/toad/session_presentation.py",
+          "line": 204,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "src/toad/setting_effects.py",
+          "line": 21,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "src/toad/sidebar_observation.py",
+          "line": 254,
+          "kind": "Attribute",
+          "name": "mark_visible_thread_read"
+        },
+        {
+          "path": "src/toad/sidebar_observation.py",
+          "line": 239,
+          "kind": "Attribute",
+          "name": "mark_visible_thread_read"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 169,
+          "kind": "FunctionDef",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 275,
+          "kind": "FunctionDef",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 170,
+          "kind": "Attribute",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 276,
+          "kind": "Attribute",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 326,
+          "kind": "Attribute",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 519,
+          "kind": "FunctionDef",
+          "name": "histories"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 186,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 669,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 156,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 550,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 50,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 534,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 456,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 62,
+          "kind": "FunctionDef",
+          "name": "blocks_visible_read"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 49,
+          "kind": "Attribute",
+          "name": "observed"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 80,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 90,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 188,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 199,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 64,
+          "kind": "Attribute",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "src/toad/transcript_state.py",
+          "line": 49,
+          "kind": "FunctionDef",
+          "name": "observed"
+        },
+        {
+          "path": "src/toad/transcript_state.py",
+          "line": 62,
+          "kind": "FunctionDef",
+          "name": "for_projection"
+        },
+        {
+          "path": "src/toad/widgets/committed_presentation.py",
+          "line": 157,
+          "kind": "FunctionDef",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "src/toad/widgets/committed_presentation.py",
+          "line": 216,
+          "kind": "Attribute",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "src/toad/widgets/committed_presentation.py",
+          "line": 284,
+          "kind": "Attribute",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "src/toad/widgets/committed_presentation.py",
+          "line": 302,
+          "kind": "Attribute",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 694,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 169,
+          "kind": "FunctionDef",
+          "name": "histories"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 123,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 80,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 209,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 636,
+          "kind": "FunctionDef",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 637,
+          "kind": "Attribute",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 1034,
+          "kind": "Attribute",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 1056,
+          "kind": "Attribute",
+          "name": "for_projection"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 789,
+          "kind": "Attribute",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 654,
+          "kind": "Attribute",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 1022,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 1004,
+          "kind": "Attribute",
+          "name": "histories"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "ec9bc8f99ddb86e1d89694ab25c5452dff438e12",
+      "root": "tests",
+      "modules": 394,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "tests/canonical_wire_conversation_installed_pilot.py",
+          "line": 159,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+          "line": 459,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/checkpoint_source_pivot_pilot.py",
+          "line": 87,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/checkpoint_source_pivot_pilot.py",
+          "line": 96,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/comms_boundary_pilot.py",
+          "line": 38,
+          "kind": "FunctionDef",
+          "name": "observed"
+        },
+        {
+          "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+          "line": 241,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+          "line": 227,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+          "line": 258,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/core_events_native_installed_pilot.py",
+          "line": 48,
+          "kind": "Attribute",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "tests/editor_key_workflow_pilot.py",
+          "line": 99,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/first_fork_native_installed_pilot.py",
+          "line": 294,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/guards/test_transcript_publication.py",
+          "line": 198,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/guards/test_transcript_publication.py",
+          "line": 201,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/guards/test_transcript_publication.py",
+          "line": 202,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/history_availability_installed_pilot.py",
+          "line": 63,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/history_edge_scheduling_pilot.py",
+          "line": 102,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/history_edge_scheduling_pilot.py",
+          "line": 127,
+          "kind": "Attribute",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "tests/history_edge_scheduling_pilot.py",
+          "line": 207,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/history_edge_scheduling_pilot.py",
+          "line": 100,
+          "kind": "Attribute",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "tests/history_edge_scheduling_pilot.py",
+          "line": 142,
+          "kind": "Attribute",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "tests/history_edge_scheduling_pilot.py",
+          "line": 251,
+          "kind": "Attribute",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "tests/history_edge_scheduling_pilot.py",
+          "line": 201,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/history_edge_scheduling_pilot.py",
+          "line": 204,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/history_frame_publication_pilot.py",
+          "line": 55,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/history_reflow_travel_pilot.py",
+          "line": 108,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/history_scroll_frames_pilot.py",
+          "line": 28,
+          "kind": "Attribute",
+          "name": "observed"
+        },
+        {
+          "path": "tests/history_scroll_frames_pilot.py",
+          "line": 27,
+          "kind": "Attribute",
+          "name": "observed"
+        },
+        {
+          "path": "tests/history_scroll_frames_pilot.py",
+          "line": 56,
+          "kind": "Attribute",
+          "name": "observed"
+        },
+        {
+          "path": "tests/history_scroll_frames_pilot.py",
+          "line": 81,
+          "kind": "Attribute",
+          "name": "observed"
+        },
+        {
+          "path": "tests/history_scroll_frames_pilot.py",
+          "line": 100,
+          "kind": "Attribute",
+          "name": "observed"
+        },
+        {
+          "path": "tests/history_scroll_frames_pilot.py",
+          "line": 103,
+          "kind": "Attribute",
+          "name": "observed"
+        },
+        {
+          "path": "tests/l0a_native_installed_pilot.py",
+          "line": 423,
+          "kind": "Attribute",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "tests/late_native_after_join_pilot.py",
+          "line": 131,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/late_native_application_pilot.py",
+          "line": 135,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/late_native_application_pilot.py",
+          "line": 116,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/markdown_parser_reuse_pilot.py",
+          "line": 27,
+          "kind": "FunctionDef",
+          "name": "observed"
+        },
+        {
+          "path": "tests/message_categories_pilot.py",
+          "line": 135,
+          "kind": "Attribute",
+          "name": "mark_visible_thread_read"
+        },
+        {
+          "path": "tests/native_loaded_return_cache_pilot.py",
+          "line": 251,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/native_loaded_return_cache_pilot.py",
+          "line": 261,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/native_loaded_return_cache_pilot.py",
+          "line": 266,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/native_loaded_return_cache_pilot.py",
+          "line": 369,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/native_loaded_return_cache_pilot.py",
+          "line": 385,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/native_loaded_return_cache_pilot.py",
+          "line": 247,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/native_loaded_return_cache_pilot.py",
+          "line": 281,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/native_loaded_return_cache_pilot.py",
+          "line": 308,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/native_loaded_return_cache_pilot.py",
+          "line": 371,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/native_loaded_return_cache_pilot.py",
+          "line": 228,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/native_loaded_return_cache_pilot.py",
+          "line": 236,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/native_loaded_return_cache_pilot.py",
+          "line": 358,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/native_return_anchor_trace.py",
+          "line": 39,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 97,
+          "kind": "Attribute",
+          "name": "observed"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 118,
+          "kind": "Attribute",
+          "name": "observed"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 121,
+          "kind": "Attribute",
+          "name": "mark_visible_thread_read"
+        },
+        {
+          "path": "tests/original_stream_headers_installed_pilot.py",
+          "line": 63,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 96,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 55,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 125,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 239,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 244,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 124,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 300,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/reconnect_source_native_installed_pilot.py",
+          "line": 57,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/reconnect_source_native_installed_pilot.py",
+          "line": 42,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/response_source_custody_pilot.py",
+          "line": 103,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/response_source_custody_pilot.py",
+          "line": 134,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/response_source_custody_pilot.py",
+          "line": 135,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/response_source_custody_pilot.py",
+          "line": 137,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/response_source_custody_pilot.py",
+          "line": 165,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/response_source_custody_pilot.py",
+          "line": 165,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/retained_body_transfer_pilot.py",
+          "line": 38,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/retained_body_transfer_pilot.py",
+          "line": 46,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/retained_body_transfer_pilot.py",
+          "line": 71,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/retained_history_projection_pilot.py",
+          "line": 64,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 29,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 42,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 174,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 67,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 68,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 98,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 107,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 63,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 91,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 105,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/tail_anchor_policy_pilot.py",
+          "line": 57,
+          "kind": "Attribute",
+          "name": "observed"
+        },
+        {
+          "path": "tests/tail_anchor_policy_pilot.py",
+          "line": 53,
+          "kind": "Attribute",
+          "name": "observed"
+        },
+        {
+          "path": "tests/transcript_lifecycle_pilot.py",
+          "line": 45,
+          "kind": "Attribute",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "tests/transcript_lifecycle_pilot.py",
+          "line": 69,
+          "kind": "Attribute",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "tests/transcript_lifecycle_pilot.py",
+          "line": 60,
+          "kind": "Attribute",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 62,
+          "kind": "Attribute",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 162,
+          "kind": "Attribute",
+          "name": "checkpoint_available"
+        },
+        {
+          "path": "tests/viewport_rapid_scroll_pilot.py",
+          "line": 19,
+          "kind": "Attribute",
+          "name": "observed"
+        },
+        {
+          "path": "tests/viewport_rapid_scroll_pilot.py",
+          "line": 98,
+          "kind": "Attribute",
+          "name": "observed"
+        },
+        {
+          "path": "tests/viewport_rapid_scroll_pilot.py",
+          "line": 102,
+          "kind": "Attribute",
+          "name": "observed"
+        },
+        {
+          "path": "tests/viewport_rapid_scroll_pilot.py",
+          "line": 18,
+          "kind": "Attribute",
+          "name": "observed"
+        },
+        {
+          "path": "tests/viewport_recent_tabs_pilot.py",
+          "line": 105,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/viewport_recent_tabs_pilot.py",
+          "line": 96,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/viewport_recent_tabs_pilot.py",
+          "line": 135,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/viewport_recent_tabs_pilot.py",
+          "line": 147,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tests/viewport_recent_tabs_pilot.py",
+          "line": 42,
+          "kind": "Attribute",
+          "name": "histories"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "ec9bc8f99ddb86e1d89694ab25c5452dff438e12",
+      "root": "tools",
+      "modules": 41,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "tools/performance/capture_state.py",
+          "line": 103,
+          "kind": "Attribute",
+          "name": "histories"
+        },
+        {
+          "path": "tools/performance/scroll_travel_observation.py",
+          "line": 181,
+          "kind": "FunctionDef",
+          "name": "observed"
+        },
+        {
+          "path": "tools/performance/scroll_travel_observation.py",
+          "line": 49,
+          "kind": "Attribute",
+          "name": "observed"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "1bdc18c363cbc0f938537a71aa8ba0225d03e25e",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": [],
+      "sites": []
+    }
+  ],
+  "limits": "Named AST source sites; external aliases/overrides and runtime behavior not proven"
+}
