@@ -227,7 +227,7 @@ async def main():
             with patch.object(app.preparation, 'submit', count_relationship_rows):
                 captured = await ThreadRowsWork.capture(
                     app.preparation, tuple(ThreadRowInput(person) for person in children.thread_people()))
-                await children.update_group(model, captured)
+                await children.reconcile_groups((children,), captured, sources={children: model})
             assert relationship_requests == [], relationship_requests
             assert tuple(children.member_container.children) == retained
             children.toggle_members()

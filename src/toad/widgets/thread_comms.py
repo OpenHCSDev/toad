@@ -118,32 +118,35 @@ class RelationshipRows(SidebarGroup):
         super().__init__(Static(model.title), expanded=expanded, scrollable=False,
                          id=f"relationships-{model.key}")
 
-    async def update_group(self, model: RelationshipGroup, captured: ThreadRowsWork) -> None:
-        async with self.member_lock:
-            self.model = model
-            await self._reconcile_members(captured)
-
     def thread_people(self):
         return {entry.person.thread.name: entry.person for entry in self.model.entries
                 if entry.person is not None}.values()
 
-    async def _reconcile_members(self, captured: ThreadRowsWork) -> None:
-        if not self.is_mounted:
-            return
+    def present(self, model: RelationshipGroup):
+        self.model = model
+
+    def thread_row_inputs(self):
         tree = self.query_ancestor(ThreadCommsSidebar)
-        state = tree.view_state
-        container = self.member_container
         entries = {(entry.kind, entry.target): entry for entry in self.model.entries}
-        model, owner = self.model, tree.owner
         row_keys = tuple(key for key, entry in entries.items() if entry.available and entry.person is not None)
         inputs = {key: ThreadRowInput(
             entries[key].person,
             unread=tree.unread(person_target(entries[key].person)),
             action_status=tree.app.thread_actions.pending.get(entries[key].target),
         ) for key in row_keys} if self.expanded else {}
-        prepared_rows = await self.prepare_thread_rows(inputs, self.rows, captured)
-        if not self.is_attached or self.model is not model or tree.owner != owner:
+        return inputs, self.rows, (self.model, tree.owner, tree._generation)
+
+    async def _reconcile_members(self, prepared_rows, source) -> None:
+        if not self.is_mounted or not self.is_attached or self._pruning or self._closing:
             return
+        tree = self.query_ancestor(ThreadCommsSidebar)
+        model, owner, generation = source
+        if (self.model is not model or tree.owner != owner
+                or tree._generation != generation):
+            return
+        state = tree.view_state
+        container = self.member_container
+        entries = {(entry.kind, entry.target): entry for entry in self.model.entries}
         if not self.expanded:
             if container.display:
                 state.scroll[self.model.key] = container.scroll_y
@@ -410,6 +413,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 control = self.query_ancestor(SideBarCollapsible).query_one_optional(RelationshipSort)
                 if control is not None:
                     control.update_groups(snapshot.groups)
+                groups = {}
                 for model in snapshot.groups:
                     if generation != self._generation:
                         return
@@ -426,7 +430,9 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                     glyph = "▾" if group.expanded else "▸"
                     if group.disclosure.content != glyph:
                         group.disclosure.update(glyph, layout=False)
-                    await group.update_group(model, row_inputs)
+                    groups[group] = model
+                await RelationshipRows.reconcile_groups(groups, row_inputs, sources=groups)
+                for group in groups:
                     if generation != self._generation:
                         group.display = False
                         return

@@ -5,3 +5,9 @@ Based on actual merged418/50. Full CPU/raster/cold/first-paint/warm/runway/veloc
 Existing SidebarGroup owns keyed member reuse and its member lock. Both channel and relationship publication currently await pure row preparation separately for each group. This continuation batches changed row preparation at that owner while keeping original native mutation, source checks and reader positions. No new cache, pool, timer or mirror. Source relationships and all callers first; proportionate affected installed App and saved-history motion validation after the coherent batch.
 
 Working draft; no new installed qualification or speed claim.
+
+## Working source checkpoint
+
+SidebarGroup.reconcile_groups now owns member-lock acquisition, captured roster decoration, retained-row reuse and one detached ThreadRowsWork submission for ALL changed groups. Identical declared row inputs share that one prepared immutable row within the publication. Channel and relationship leaf hooks supply their original inputs/source and do their native keyed mutations; disclosure uses the same owner. Deleted prepare_thread_rows and the separate RelationshipRows.update_group orchestration; all production callers migrated, including both full sidebar publications and disclosure. Original source snapshot/model/owner/generation witnesses reject delivery after rebind; locks unwind with the original async context lifetime.
+
+No persistent row index/cache/pool/timer or alternate paint authority. Native mutations and selection/reader preservation stay in their original row/group owners. Text width remains measured on the UI thread; this checkpoint does not claim to remove that remaining cost. AST before:288 Toad+249 native, zero omissions; after all288 working Toad modules parsed. Dynamic external aliases/overrides are not proved. Working implementation, not installed Ready; final affected App and one meaningful changed saved-history motion/profile remain.
