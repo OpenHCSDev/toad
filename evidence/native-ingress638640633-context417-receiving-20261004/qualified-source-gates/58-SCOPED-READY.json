@@ -1,0 +1,168 @@
+{
+  "state": "SCOPED_READY_INSTALLED_APP",
+  "source_head": "0bc23a0741dacfdaca5c6043d453c46bbfa4e1c2",
+  "buildhead": "d0c11d918f59fbf9e71d1fb0fdb67975421479a2",
+  "wheel_sha256": "0ffc78c3a7d56212479e016e13683e5d921a0b3fc9fbecfd1f5151994ac2862f",
+  "assets": 266,
+  "source_inventory_matches_original_wheel": true,
+  "qualified_scope": {
+    "native_tree_node_retained": true,
+    "selected_original": "turn/b2c6b72bbcb444b4979b42e821680cf3/0",
+    "contributor_remove_and_return": true,
+    "actual_registered_acp_app": true,
+    "retirement_and_remount": true
+  },
+  "original_total_elapsed_including_failed_recorder_preflight": 19.92025608289987,
+  "original_terminal": {
+    "state": "FAILED_NO_REPLAY",
+    "error": "KeyError('stage')",
+    "exit": 1,
+    "captured_phases": []
+  },
+  "original_evidence": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/Einstein417-F3-reader13-20261004/terminal-receipt.json",
+      "sha256": "4fafc68653effcd2b7dc90ef41fad37812fbeef58b3f052b7a30b7dd95dcaf7c",
+      "bytes": 2108
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/recorded-context417-source-closure/reader13-terminal.log",
+      "sha256": "b10ec00170902180a0e5b9d459cf033fcc451e009d830d9dd53af03aadd38d71",
+      "bytes": 3351
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/recorded-context417-source-closure/intent04b-stage/source-proof.json",
+      "sha256": "16bd9df7ceeef2d1a7d20edcb39abc499393f04018d84a54a546bccd12736246",
+      "bytes": 8078
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/recorded-context417-source-closure/intent04b-stage/textual-inventory.json",
+      "sha256": "9bed6395be1f2bf11f4b4716ce3c11310c81160c0310c6bac19d5ebb1a255b78",
+      "bytes": 39856
+    }
+  ],
+  "cohort": {
+    "sources": [
+      {
+        "module": "agent_comms",
+        "head": "7a5c5fc2e79f2e32e4f340eaba573bf1bfec69bf",
+        "location": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/agent_comms",
+        "files": 339,
+        "python_files": 311,
+        "byte_equal": true,
+        "direct_url": {
+          "url": "file:///home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/f4-core421-receiver-wheels-20261004/agent_comms-0.1.0-py3-none-any.whl",
+          "archive_info": {}
+        },
+        "inventory_sha256": "e3999073d602d0adf5a1f3b187149217950ce7438f9e6033b516b5ad5a04a98b"
+      },
+      {
+        "module": "toad",
+        "head": "04b771d763de5a404181526ec72a0d44c190c27e",
+        "location": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad",
+        "files": 319,
+        "python_files": 288,
+        "byte_equal": true,
+        "direct_url": {
+          "url": "file:///home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/recorded-context417-source-closure/intent04b-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+          "archive_info": {}
+        },
+        "inventory_sha256": "e0a1c2dfe0991255b73c87d6af6a6bb5b4118af933e910466e9340659d3ec3b8"
+      },
+      {
+        "module": "textual",
+        "head": "0bc23a0741dacfdaca5c6043d453c46bbfa4e1c2",
+        "location": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual",
+        "files": 266,
+        "python_files": 249,
+        "byte_equal": true,
+        "direct_url": {
+          "url": "file:///home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text58-tree-cursor-filewheel-20261004/textual-8.2.8-py3-none-any.whl",
+          "archive_info": {}
+        },
+        "inventory_sha256": "b37644609a4f0ab9b1ada4f6248b798ab85408cd177709b996a00b1985eff1c6"
+      },
+      {
+        "module": "textual_diff_view",
+        "head": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+        "location": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual_diff_view",
+        "files": 3,
+        "python_files": 2,
+        "byte_equal": true,
+        "direct_url": {
+          "url": "https://github.com/OpenHCSDev/textual-diff-view.git",
+          "vcs_info": {
+            "vcs": "git",
+            "commit_id": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+            "requested_revision": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+          }
+        },
+        "inventory_sha256": "c1ab2e4c7a7595de81eeb8fef14f9fa9e45b603f84e810dc7c08fa9145793679"
+      }
+    ],
+    "sdk": "0.12.1",
+    "package_count": 69,
+    "native_manifest": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
+    "native_tree": "dbc88ed9231d1275da3ce218aa8919a247e41ce1f010ce765e7ac0960193f4ac"
+  },
+  "preservation": {
+    "native_child_retired": true,
+    "selected_source_unchanged": true,
+    "public_source_unchanged": true,
+    "original_inputs_unchanged": true,
+    "providers": 0,
+    "native_inputs": 0,
+    "priming_calls": 0
+  },
+  "unqualified": [
+    "physical recorder/export/distinct-child F3 workflow",
+    "motion/CPU/smoothness/full performance"
+  ],
+  "whole_floor_handback": "CLOSED: original611/9138/a52/NRAd392/2ea restored1459/69; privileged census0refs0gaps; original reader13 controller/native absent. Original published496dd686 proofs.",
+  "new_source_build_test_or_movie": false,
+  "required_debt": "https://github.com/OpenHCSDev/textual/actions/runs/37189719909",
+  "published_original_evidence": [
+    {
+      "commit": "496dd686",
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/recorded-context-reader-20261004/installed13/ASSESSMENT.md",
+      "sha256": "770a167052e5b171a37fceac05dcac844d04a3de7d9f6ccc7a19fdf267f7955b",
+      "bytes": 2124
+    },
+    {
+      "commit": "496dd686",
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/recorded-context-reader-20261004/installed13/terminal.txt",
+      "sha256": "b10ec00170902180a0e5b9d459cf033fcc451e009d830d9dd53af03aadd38d71",
+      "bytes": 3351
+    },
+    {
+      "commit": "496dd686",
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/recorded-context-reader-20261004/installed13/terminal-receipt.json",
+      "sha256": "4fafc68653effcd2b7dc90ef41fad37812fbeef58b3f052b7a30b7dd95dcaf7c",
+      "bytes": 2108
+    },
+    {
+      "commit": "496dd686",
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/recorded-context-reader-20261004/installed13/candidate-source-proof.json",
+      "sha256": "16bd9df7ceeef2d1a7d20edcb39abc499393f04018d84a54a546bccd12736246",
+      "bytes": 8078
+    },
+    {
+      "commit": "496dd686",
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/recorded-context-reader-20261004/installed13/floor-restore.json",
+      "sha256": "74c7657aa3c6d1265702ef4136893cffe7e0dafdb0b1c9f9633d4f8e8c6815d7",
+      "bytes": 537
+    },
+    {
+      "commit": "496dd686",
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/recorded-context-reader-20261004/installed13/final-borrowers.json",
+      "sha256": "a7cd404c5f53dad0de9e61311a0a7d20839ef1b613216a9353948c41dac82854",
+      "bytes": 228
+    },
+    {
+      "commit": "496dd686",
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/recorded-context-reader-20261004/installed13/code-handback.json",
+      "sha256": "236ccb1d066bcb843f4087fb8c84718d6f02aa3f16e98a5f336148947114f2a5",
+      "bytes": 1193
+    }
+  ]
+}

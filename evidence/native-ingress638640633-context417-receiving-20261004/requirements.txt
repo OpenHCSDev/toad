@@ -1,0 +1,4 @@
+/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/merged-core633-1a520528-wheel-20261004/agent_comms-0.1.0-py3-none-any.whl
+/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl
+/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native59-filewheel-20261004/textual-8.2.8-py3-none-any.whl
+/home/ts/wt/nra-skill-publish-20261002/.artifacts/family-flattened-collector-20261004/wheels/nominal_refactor_audit-0.1.0-py3-none-any.whl
