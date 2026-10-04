@@ -422,3 +422,14 @@ cold-retention operation. Retain terminal evidence first, use Bohr's existing
 borrower census, and preserve the original journal paths through symlinks.
 Original wires, UNKNOWN inputs, public journals and SDK fork semantics stay intact.
 This continuation is source work only, not a new UI/native/provider journey.
+
+The readonly physical fixture now invokes retain_fixture_journals only after its
+original process cleanup and terminal receipt have finished. The existing all-UID
+borrower checker clears each exact journal; open references or permission gaps
+leave the original files intact. Cleared copies retain their original paths via
+symlinks under /run/media/ts/hdd/agent-comms-retained/history-sdk-fixture, after
+SHA verification and file/directory fsync. A concise resource receipt retains the
+original inode/stat/SHA and final destination. This never edits journal content.
+Missing checker privileges/HDD storage or a copy failure is an explicit fixture
+cleanup error; originals and partial evidence stay preserved. No new scanner or
+SDK policy. Source correction only: no new fixture/App/native/provider run.
