@@ -17,7 +17,6 @@ from agent_comms.mro_dispatch import handles
 from toad.core.projection import MroProjection
 from agent_comms.native_turn_context import NativeContextData
 from agent_comms.pi_payloads import PiMessage
-from agent_comms.runtime import RuntimeConnection, socket_path
 from agent_comms.selected_source import SessionRevision, SessionObservation
 from agent_comms.threads import Thread
 from agent_comms.turn_context import (
@@ -520,6 +519,8 @@ class ContextInspection:
         return tuple(matches)
 
     async def _request(self, action, **parameters):
+        from agent_comms.runtime import RuntimeConnection, socket_path
+
         owner = await Coordination.run_worker(partial(self.service.registry.require, self.owner.name))
         if owner.incarnation != self.owner.incarnation:
             raise ValueError("Selected context thread incarnation changed")

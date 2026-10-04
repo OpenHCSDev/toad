@@ -1,10 +1,13 @@
 """Current contributor and recorded-child navigation retain decoded members."""
 
 import hashlib
+import json
+import asyncio
 from functools import partial
 
 from agent_comms.comms import Comms
 from agent_comms.field_codec import FieldCodec
+from agent_comms.importing import ImportFormat
 from agent_comms.thread_identity import TurnId, TurnIdentity
 from agent_comms.threads import Thread
 from agent_comms.turn_context import (
@@ -16,6 +19,45 @@ from agent_comms.turn_context import (
     UserInputSegment,
 )
 from toad.core.context_inspection import ContextInspection, ManifestNode, NativeSegmentNode
+
+
+def test_imported_instruction_reference_read_search_export_remains_historical(tmp_path):
+    source = tmp_path / "authored-codex.jsonl"
+    records = [
+        {"type": "session_meta", "payload": {"id": "authored", "cwd": str(tmp_path)}},
+        {"type": "response_item", "payload": {
+            "type": "message", "role": "developer", "content": "Authored historical λ instructions."}},
+        {"type": "response_item", "payload": {
+            "type": "message", "role": "user", "content": "Authored question"}},
+    ]
+    source.write_text("".join(json.dumps(record, ensure_ascii=False) + "\n" for record in records))
+    original = source.read_bytes()
+    service = Comms(tmp_path / "wire")
+    service.messaging.initialize_private_initial_protocol()
+    receipt = service.threads.import_thread(source, ImportFormat.CODEX, name="imported")
+    inspection = ContextInspection.read(service, receipt.thread)
+    (node,) = inspection.imported()
+    assert inspection.recorded() == ()
+    assert node.source == receipt.historical_instructions[0]
+    assert "not current instructions" in node.label
+
+    async def read_original():
+        text = await node.read()
+        assert "Authored historical λ instructions." in text
+        assert await inspection.find((node,), "historical λ") == (node,)
+        exported = tmp_path / "original-export.txt"
+        await node.export(exported)
+        assert exported.read_text() == text
+        source.write_text(source.read_text().replace("historical λ", "changed θ"))
+        try:
+            await node.read()
+        except ValueError as error:
+            assert "changed or is unavailable" in str(error)
+        else:
+            raise AssertionError("Changed original source must be refused")
+
+    asyncio.run(read_original())
+    assert source.read_bytes() != original  # Only this authored source was deliberately changed.
 
 
 def test_decoded_current_contributor_and_recorded_child_labels(tmp_path):
