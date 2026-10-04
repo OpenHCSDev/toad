@@ -60,3 +60,14 @@ These detect overwritten destinations, lost animation custody and stale filtered
 publication. Installed physical motion/profile remains required before Ready;
 full performance is open. Original412 film is not qualification of these bytes.
 Style22 has now been explicitly returned by Einstein; no new environment needed.
+
+Final App batch original exit1 logs are retained. The old bare native App fixture
+has no Settings owner required by HistoryWindow; it now uses the original ToadApp
+and a private fixture root. The category App exposed a real stale consumer:
+SeekingFilter read removed HistorySourceSnapshot.selected. HistorySourceSnapshot
+already witnesses owner.source_identity (including selected categories); scan_older
+checks current before advance, and advance rechecks after its first await. The
+projection now takes the canonical owner.selected_categories before suspension;
+no duplicate snapshot selection field or tuple-index decoding was added. All
+snapshot and projection consumers were read through the existing source owner.
+This actual restricted-history crash is part of the same reader/filter batch.

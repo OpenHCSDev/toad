@@ -1,31 +1,33 @@
 """Reading a freshly measured anchor must not rebuild the full geometry map."""
 
 import asyncio
+import os
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-from textual.app import App, ComposeResult
+from runtime_fixture import ToadApp
 from textual.containers import VerticalGroup
 from textual.widgets import Static
 
 from toad.widgets.history_anchor import (
-    HistoryAnchor, HistoryWindow, OffsetReaderPosition, TailReaderPosition, WindowRestoration,
+    HistoryAnchor, OffsetReaderPosition, TailReaderPosition, WindowRestoration,
 )
 
 
-class Probe(App):
-    CSS = "Static { height: 1; }"
-
-    def compose(self) -> ComposeResult:
-        with HistoryWindow(id="window"):
-            with VerticalGroup():
-                for index in range(2000):
-                    yield Static(f"Record {index}", id=f"record-{index}")
+class Probe(ToadApp):
+    CSS = "#geometry-records > Static { height: 1; }"
 
 
-async def main():
-    app = Probe()
+async def exercise(app):
     async with app.run_test(size=(100, 35)) as pilot:
-        window = app.query_one(HistoryWindow)
+        await pilot.pause()
+        view = app.selected_session.conversation
+        await view.contents.remove_children()
+        await view.contents.mount(VerticalGroup(*(
+            Static(f"Record {index}", id=f"record-{index}") for index in range(2000)
+        ), id="geometry-records"))
+        window = view.window
         window.scroll_end(animate=False, immediate=True)
         await pilot.pause()
         # Compensation translates the same running curve. A saved reader
@@ -68,10 +70,21 @@ async def main():
             assert arrange.call_count == 0, "Anchor remeasured an already committed layout"
         window.scroll_home(animate=False, immediate=True)
         await pilot.pause()
-        await window.query_one(VerticalGroup).mount(Static("Prepended"), before=0)
+        await window.query_one("#geometry-records", VerticalGroup).mount(Static("Prepended"), before=0)
         await pilot.pause()
         assert HistoryAnchor.capture(marker, window).virtual_y == 2000
     print("2000-record anchor: committed geometry reused; prepend and off-screen lookup remain correct")
+
+
+async def main():
+    with TemporaryDirectory(prefix="reader-motion-", dir=os.environ["TMPDIR"]) as directory:
+        root = Path(directory)
+        os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"),
+                          XDG_CONFIG_HOME=str(root / "config"),
+                          XDG_STATE_HOME=str(root / "state"),
+                          XDG_DATA_HOME=str(root / "data"))
+        await exercise(Probe(project_dir=str(root)))
+        await asyncio.get_running_loop().shutdown_default_executor()
 
 
 if __name__ == "__main__":
