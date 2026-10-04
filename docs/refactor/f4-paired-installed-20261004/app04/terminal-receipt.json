@@ -1,0 +1,48 @@
+{
+  "state": "FAILED",
+  "python": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+  "root": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/owned-turn-acquisition599-configured02/wire",
+  "saved_session": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/owned-turn-acquisition599-configured02/native-forks/2026-10-03T21-12-37-302Z_01a1039c-9ab6-7266-9cbc-7f1b3a19daa9.jsonl",
+  "protected_before": {
+    "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/owned-turn-acquisition599-configured02/wire/bus.jsonl": "2da541df7acaf903b61991b31c6058ed0fd09f213e15791df4330da9abde6720",
+    "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/owned-turn-acquisition599-configured02/wire/input_dispositions.json": "8ee9b3d4dee19d31c8e17b3b0baedef78586927beeecf3f44544a4f120c77fd9",
+    "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/owned-turn-acquisition599-configured02/wire/native_prompt_bindings.sqlite3": "f2f41017e6a5a08cb28f54459497611aa4954df344e68412e47cb96603ba6c60",
+    "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/owned-turn-acquisition599-configured02/wire/compaction-commits.sqlite3": "913215ca342b987831a309ab6fc671de4c34e3c59458c7c3d0e4ff6887dec4a2",
+    "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/owned-turn-acquisition599-configured02/native-forks/2026-10-03T21-12-37-302Z_01a1039c-9ab6-7266-9cbc-7f1b3a19daa9.jsonl": "a204b77e78a005426d580e0640aba732ee0851ef482d07ab66383578be6315c4"
+  },
+  "original_incarnation": {
+    "name": "configured-source",
+    "created_at": 1791061961.917617
+  },
+  "model": "openai-codex/gpt-6.1-sol",
+  "thinking": "high",
+  "provider_calls": 0,
+  "native_inputs": 0,
+  "public_inputs": 0,
+  "replayed_inputs": 0,
+  "film": false,
+  "controller": {
+    "pid": 3178841,
+    "start_time": 57200812
+  },
+  "driver": "LinuxDriver",
+  "default_source": "MainScreen",
+  "saved_events": 21,
+  "saved_cursor_file": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/owned-turn-acquisition599-configured02/native-forks/2026-10-03T21-12-37-302Z_01a1039c-9ab6-7266-9cbc-7f1b3a19daa9.jsonl",
+  "native_contributors": 3,
+  "exception": "AssertionError()",
+  "protected_after": {
+    "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/owned-turn-acquisition599-configured02/wire/bus.jsonl": "2da541df7acaf903b61991b31c6058ed0fd09f213e15791df4330da9abde6720",
+    "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/owned-turn-acquisition599-configured02/wire/input_dispositions.json": "8ee9b3d4dee19d31c8e17b3b0baedef78586927beeecf3f44544a4f120c77fd9",
+    "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/owned-turn-acquisition599-configured02/wire/native_prompt_bindings.sqlite3": "f2f41017e6a5a08cb28f54459497611aa4954df344e68412e47cb96603ba6c60",
+    "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/owned-turn-acquisition599-configured02/wire/compaction-commits.sqlite3": "913215ca342b987831a309ab6fc671de4c34e3c59458c7c3d0e4ff6887dec4a2",
+    "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/owned-turn-acquisition599-configured02/native-forks/2026-10-03T21-12-37-302Z_01a1039c-9ab6-7266-9cbc-7f1b3a19daa9.jsonl": "a204b77e78a005426d580e0640aba732ee0851ef482d07ab66383578be6315c4"
+  },
+  "protected_unchanged": true,
+  "original_inputs_unchanged": true,
+  "after_incarnation": {
+    "name": "configured-source",
+    "created_at": 1791061961.917617
+  },
+  "seconds": 16.6904735310236
+}

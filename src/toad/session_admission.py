@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.comms import wire
+from agent_comms.thread_identity import ThreadIncarnation
 
 from toad.conversation_kind import ConversationKind
 from toad.session_tracker import CommsViewKey, ExactUnread, OpenTab, SessionDetails, UnreadPresentation
@@ -40,6 +41,9 @@ class SessionAdmission(DeclaredFamily, affix="Admission"):
     async def ready(self, sessions: SessionAdmissions) -> None:
         """Views with deferred loading own their admission completion."""
 
+    async def reconnect(self, sessions: SessionAdmissions, selected, snapshot, targets) -> None:
+        """Only a bound native admission can refresh its connection resource."""
+
     def source(self, sessions: SessionAdmissions) -> MainScreen | None:
         return None
 
@@ -48,6 +52,12 @@ class SessionAdmission(DeclaredFamily, affix="Admission"):
 
     def depends_on(self, mode: str) -> bool:
         return self.mode == mode
+
+    def original_threads(self, sessions: SessionAdmissions) -> tuple[tuple[str, ThreadIncarnation], ...]:
+        return ()
+
+    def original_channels(self) -> tuple[tuple[str, str], ...]:
+        return ()
 
     def entered(self, previous: str) -> None:
         """Only admissions with a return destination retain entry intent."""
@@ -69,10 +79,19 @@ class SessionAdmission(DeclaredFamily, affix="Admission"):
 
 
 class NativeSessionAdmission(SessionAdmission):
-    def __init__(self, details: SessionDetails, factory: Callable[[], MainScreen]) -> None:
+    def __init__(self, details: SessionDetails, factory: Callable[[], MainScreen],
+                 original: tuple[str, ThreadIncarnation] | None = None) -> None:
         super().__init__(details.mode_name)
         self.details = details
         self.factory = factory
+        self.original = original
+
+    def original_threads(self, sessions):
+        source = self.source(sessions)
+        fact = sessions.app.coordination_facts.get(source) if source is not None else None
+        if fact is not None:
+            return ((fact.wire_root, fact.thread),)
+        return (self.original,) if self.original is not None else ()
 
     def __call__(self) -> MainScreen:
         source = self.factory()
@@ -85,6 +104,20 @@ class NativeSessionAdmission(SessionAdmission):
 
     def source(self, sessions: SessionAdmissions) -> MainScreen | None:
         return sessions.app.workspace_sessions.views.get(self.mode)
+
+    async def reconnect(self, sessions, selected, snapshot, targets):
+        from toad.comms_root import RouteSelection
+
+        if sessions.get(self.mode) is not self or RouteSelection.capture() != selected:
+            return
+        if source := self.source(sessions):
+            if agent := source.conversation.agent:
+                if binding := agent.coordination:
+                    if ((binding.wire_root, binding.thread) in self.original_threads(sessions)
+                            and Path(binding.wire_root).resolve() == selected.root
+                            and any(binding.thread.matches_recorded_name(target, snapshot)
+                                    for target in targets)):
+                        await agent.session.reconnect()
 
     def accepts_launch(self, sessions: SessionAdmissions, agent_identity: str, session_id: str) -> bool:
         source = self.source(sessions)
@@ -125,15 +158,22 @@ class NativeSessionAdmission(SessionAdmission):
 
 class HistorySessionAdmission(SessionAdmission):
     def __init__(self, mode: str, key: CommsViewKey, kind: type[ConversationKind], project: Path,
-                 recovery_root: str | None) -> None:
+                 recovery_root: str | None, participants: tuple[ThreadIncarnation, ...]) -> None:
         super().__init__(mode)
         self.key, self.kind, self.project, self.recovery_root = key, kind, project, recovery_root
+        self.participants = participants
+
+    def original_threads(self, sessions):
+        return tuple((self.key.root, participant) for participant in self.participants)
+
+    def original_channels(self):
+        return self.kind.admitted_channels(self.key.root, self.key.target)
 
     def __call__(self):
         from toad.screens.comms import CommsScreen
         key = self.key
         return CommsScreen(project_path=self.project, owner_mode=key.owner_mode, me=key.me,
-                           target=key.target, kind=self.kind.declared_name,
+                           target=key.target, kind=self.kind,
                            recovery_root=self.recovery_root, wire_root=key.root)
 
     @property

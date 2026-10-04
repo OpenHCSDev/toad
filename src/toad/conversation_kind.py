@@ -12,6 +12,14 @@ from agent_comms.message_page import MessagePage
 
 class ConversationKind(DeclaredFamily, affix="Conversation"):
     @classmethod
+    def admitted_threads(cls, snapshot, me, target):
+        return ()
+
+    @classmethod
+    def admitted_channels(cls, root, target):
+        return ()
+
+    @classmethod
     def view_identity(cls, key):
         return key
 
@@ -42,6 +50,27 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     @classmethod
     def label(cls, target: str) -> str:
         return target
+
+    @classmethod
+    def historical_thread(cls, target: str) -> str | None:
+        return None
+
+    @classmethod
+    async def toggle_irc(cls, screen) -> None:
+        from toad.navigation_target import FeedTarget
+
+        await screen.open_sidebar_target(FeedTarget())
+
+    @classmethod
+    async def toggle_dm(cls, screen) -> None:
+        from toad.navigation_target import DirectTarget
+        from toad.widgets.comms_sidebar import CommsSidebar
+
+        sidebar = screen.query_one(CommsSidebar)
+        peers = [name for name in sorted(sidebar.observation.registry_names())
+                 if name != screen.me]
+        if peers:
+            await screen.open_sidebar_target(DirectTarget(peers[0]))
 
     @classmethod
     def unread(cls, snapshot, target):
@@ -103,6 +132,10 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
 
 class ChannelConversation(ConversationKind):
+    @classmethod
+    def admitted_channels(cls, root, target):
+        return ((root, target),)
+
     @classmethod
     def view_identity(cls, key):
         from toad.session_tracker import ChannelViewAddress
@@ -223,6 +256,18 @@ class ChannelConversation(ConversationKind):
 
 class DmConversation(ConversationKind):
     @classmethod
+    def historical_thread(cls, target: str) -> str:
+        return target
+
+    @classmethod
+    async def toggle_dm(cls, screen) -> None:
+        await screen.action_back_to_agent()
+
+    @classmethod
+    def admitted_threads(cls, snapshot, me, target):
+        return (snapshot.require(me).incarnation, snapshot.require(target).incarnation)
+
+    @classmethod
     def unread(cls, snapshot, target):
         from toad.session_tracker import ExactUnread
         return ExactUnread(snapshot.unread.get(target, 0)) if snapshot else ExactUnread()
@@ -321,6 +366,10 @@ class DmConversation(ConversationKind):
 
 
 class IrcConversation(ChannelConversation):
+    @classmethod
+    async def toggle_irc(cls, screen) -> None:
+        await screen.action_back_to_agent()
+
     @classmethod
     def label(cls, target: str) -> str:
         return f"{target} · all comms"

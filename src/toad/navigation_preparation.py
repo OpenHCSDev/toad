@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Generic, TypeVar, cast
 
 from agent_comms.threads import Thread
+from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.comms import Comms, wire
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.thread_execution import ConversationPreparation
@@ -33,6 +34,7 @@ class NavigationRequest(ABC, Generic[ResultT]):
 class CommsNavigation:
     key: CommsViewKey
     recovery_root: str | None
+    participants: tuple[ThreadIncarnation, ...]
 
 
 @dataclass(frozen=True)
@@ -52,8 +54,9 @@ class CommsNavigationRequest(NavigationRequest[CommsNavigation]):
         if recovery_root is not None and Path(recovery_root).expanduser().resolve() != root:
             recovery_root = None
         return CommsNavigation(
-            CommsViewKey(str(root), self.owner_mode, me, self.kind.declared_name, target),
+            CommsViewKey(str(root), self.owner_mode, me, self.kind, target),
             recovery_root,
+            self.kind.admitted_threads(comms.registry.snapshot(), me, target),
         )
 
 

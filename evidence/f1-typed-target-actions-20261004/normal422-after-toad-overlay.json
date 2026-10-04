@@ -1,0 +1,406 @@
+{
+ "string_dispatch": [
+  {
+   "function": "src/toad/danger.py::visitredirect",
+   "subject": "type",
+   "values": [
+    "&>",
+    "&>>",
+    ">",
+    ">>",
+    ">|"
+   ]
+  },
+  {
+   "function": "src/toad/widgets/inline_message.py::inline_message",
+   "subject": "urlsplit(match.group('url')).scheme.lowe",
+   "values": [
+    "http",
+    "https",
+    "mailto"
+   ]
+  }
+ ],
+ "isinstance_switch": [
+  {
+   "function": "src/toad/coordination_context_format.py::_render",
+   "subject": "item",
+   "checks": 4
+  },
+  {
+   "function": "src/toad/widgets/terminal.py::_encode_mouse_event_sgr",
+   "subject": "event",
+   "checks": 3
+  },
+  {
+   "function": "src/toad/work_preparation.py::retained_bytes",
+   "subject": "item",
+   "checks": 4
+  }
+ ],
+ "raw_shape": [
+  {
+   "function": "src/toad/acp/agent.py::get_goal_snapshot",
+   "subject": "result",
+   "keys": [
+    "_meta",
+    "goal",
+    "goalExecution"
+   ],
+   "model": {}
+  },
+  {
+   "function": "src/toad/acp/log_records.py::decode",
+   "subject": "value",
+   "keys": [
+    "error",
+    "id",
+    "method",
+    "params"
+   ],
+   "model": {}
+  },
+  {
+   "function": "src/toad/acp/log_records.py::decode",
+   "subject": "error",
+   "keys": [
+    "code",
+    "data",
+    "message"
+   ],
+   "model": {}
+  },
+  {
+   "function": "src/toad/jsonrpc.py::_dispatch_object_call",
+   "subject": "json",
+   "keys": [
+    "jsonrpc",
+    "method",
+    "params"
+   ],
+   "model": {}
+  },
+  {
+   "function": "src/toad/jsonrpc.py::_process_method_response",
+   "subject": "response",
+   "keys": [
+    "error",
+    "id",
+    "result"
+   ],
+   "model": {}
+  },
+  {
+   "function": "src/toad/jsonrpc.py::_process_method_response",
+   "subject": "error",
+   "keys": [
+    "code",
+    "data",
+    "message"
+   ],
+   "model": {}
+  },
+  {
+   "function": "src/toad/screens/goal_details.py::compose",
+   "subject": "entry",
+   "keys": [
+    "after",
+    "before",
+    "kind",
+    "observed_at"
+   ],
+   "model": {}
+  },
+  {
+   "function": "src/toad/tool_output.py::replace",
+   "subject": "raw_input",
+   "keys": [
+    "filePath",
+    "file_path",
+    "path"
+   ],
+   "model": {}
+  },
+  {
+   "function": "src/toad/twitter.py::open_tweet_intent",
+   "subject": "params",
+   "keys": [
+    "hashtags",
+    "in_reply_to",
+    "url",
+    "via"
+   ],
+   "model": {}
+  },
+  {
+   "function": "src/toad/version.py::check_version",
+   "subject": "version_meta",
+   "keys": [
+    "upgrade_message",
+    "version",
+    "visit_url"
+   ],
+   "model": {
+    "model": "src/toad/version.py::VersionMeta"
+   }
+  },
+  {
+   "function": "src/toad/widgets/input_delivery.py::_refresh_summary",
+   "subject": "self.delivery",
+   "keys": [
+    "currentScope",
+    "dismissedHistoricalCount",
+    "historicalCount",
+    "inputs"
+   ],
+   "model": {}
+  },
+  {
+   "function": "src/toad/widgets/input_delivery.py::_records",
+   "subject": "row",
+   "keys": [
+    "inputId",
+    "noticeDismissed",
+    "sequence",
+    "target",
+    "text"
+   ],
+   "model": {}
+  },
+  {
+   "function": "src/toad/widgets/recovery_view.py::_read",
+   "subject": "dto",
+   "keys": [
+    "availability",
+    "connectivity",
+    "current",
+    "lastRecovery",
+    "owner"
+   ],
+   "model": {}
+  },
+  {
+   "function": "src/toad/widgets/session_details.py::_refresh_summary",
+   "subject": "delivery",
+   "keys": [
+    "currentScope",
+    "dismissedHistoricalCount",
+    "historicalCount",
+    "inputs"
+   ],
+   "model": {}
+  }
+ ],
+ "exact_key_set": [],
+ "named_attribute": [
+  {
+   "location": "src/toad/jsonrpc.py:156",
+   "name": "_jsonrpc_expose"
+  },
+  {
+   "location": "src/toad/jsonrpc.py:338",
+   "name": "_jsonrpc_ordered"
+  },
+  {
+   "location": "src/toad/widgets/goal_text.py:14",
+   "name": "_sidebar_snapshot"
+  },
+  {
+   "location": "src/toad/widgets/streaming_markdown.py:144",
+   "name": "render_processes"
+  },
+  {
+   "location": "src/toad/widgets/transcript_history.py:208",
+   "name": "selected_categories"
+  },
+  {
+   "location": "src/toad/widgets/transcript_history.py:649",
+   "name": "render_processes"
+  },
+  {
+   "location": "src/toad/work_preparation.py:210",
+   "name": "__dict__"
+  }
+ ],
+ "long_condition": [
+  {
+   "location": "src/toad/widgets/context_explorer.py:288",
+   "terms": 6,
+   "profile": {
+    "kinds": [
+     [
+      "absence",
+      2
+     ],
+     [
+      "same_value",
+      2
+     ],
+     [
+      "flag",
+      1
+     ],
+     [
+      "predicate",
+      1
+     ]
+    ]
+   },
+   "text": "self.is_attached and (not get_current_worker().is_cancelled) and (self._inspection is not "
+  },
+  {
+   "location": "src/toad/widgets/viewport_body.py:589",
+   "terms": 6,
+   "profile": {
+    "kinds": [
+     [
+      "predicate",
+      3
+     ],
+     [
+      "flag",
+      2
+     ],
+     [
+      "rule",
+      1
+     ]
+    ]
+   },
+   "text": "not current.ready(self) or not self.is_attached or self.lock.is_locked or (self.screen.foc"
+  },
+  {
+   "location": "src/toad/widgets/viewport_body.py:631",
+   "terms": 7,
+   "profile": {
+    "kinds": [
+     [
+      "flag",
+      2
+     ],
+     [
+      "rule",
+      2
+     ],
+     [
+      "absence",
+      1
+     ],
+     [
+      "same_value",
+      1
+     ],
+     [
+      "predicate",
+      1
+     ]
+    ]
+   },
+   "text": "not can_commit or self._body_measurement is not current or (not rendered.ready(self)) or ("
+  }
+ ],
+ "god_class": [
+  {
+   "qualname": "src/toad/widgets/conversation.py::Conversation",
+   "size": 1550
+  },
+  {
+   "qualname": "src/toad/widgets/transcript_history.py::TranscriptHistory",
+   "size": 578
+  }
+ ],
+ "god_function": [
+  {
+   "qualname": "src/toad/acp/maintenance_ingress.py::admitted_spawn",
+   "size": 120
+  },
+  {
+   "qualname": "src/toad/ansi/_ansi.py::apply",
+   "size": 103
+  },
+  {
+   "qualname": "src/toad/path_complete.py::__call__",
+   "size": 106
+  }
+ ],
+ "legacy_marker": [
+  {
+   "location": "src/toad/mounted_message_history.py:201",
+   "text": "fallback=self.rows[0 if older else -1][1],"
+  },
+  {
+   "location": "src/toad/render_zmq.py:154",
+   "text": "self.renderer_endpoint.application.compatibility_with(observed.application).require_match()"
+  },
+  {
+   "location": "src/toad/rich_preparation.py:103",
+   "text": "force_terminal=options.is_terminal, legacy_windows=options.legacy_windows,"
+  },
+  {
+   "location": "src/toad/terminal_environment.py:12",
+   "text": "\"TTY_COMPATIBLE\": \"1\","
+  },
+  {
+   "location": "src/toad/transcript_filter.py:204",
+   "text": "# the projection's previously accepted backward cursor."
+  },
+  {
+   "location": "src/toad/widgets/conversation.py:2170",
+   "text": "legacy_windows=False,"
+  },
+  {
+   "location": "src/toad/widgets/history_anchor.py:237",
+   "text": "self, items, *, older: bool, fallback: Widget,"
+  },
+  {
+   "location": "src/toad/widgets/history_anchor.py:255",
+   "text": "anchor = retained[0 if older else -1] if retained else fallback"
+  },
+  {
+   "location": "src/toad/widgets/transcript_history.py:616",
+   "text": "# already accepted filtered overlay or its backward cursor."
+  },
+  {
+   "location": "src/toad/widgets/transcript_history.py:867",
+   "text": "fallback=edge.children[0 if older else -1] if edge.children else edge,"
+  }
+ ],
+ "positional_insert": [],
+ "column_insert": [
+  {
+   "location": "src/toad/db.py:99",
+   "text": "\"\"\"INSERT INTO model_history (agent_identity, model_id, last_used)"
+  }
+ ],
+ "embedded_script": [],
+ "child_process_site": [
+  {
+   "location": "src/toad/clipboard_image.py:26",
+   "call": "asyncio.create_subprocess_exec"
+  },
+  {
+   "location": "src/toad/mcp_inventory.py:79",
+   "call": "asyncio.create_subprocess_exec"
+  },
+  {
+   "location": "src/toad/render_zmq.py:141",
+   "call": "subprocess.Popen"
+  }
+ ],
+ "literal_roster": [
+  {
+   "values": [
+    "code_block",
+    "fence"
+   ],
+   "copies": 2
+  }
+ ],
+ "dead_module": [
+  {
+   "path": "src/toad/render_server.py",
+   "lines": 30,
+   "named_in_strings": true
+  }
+ ]
+}

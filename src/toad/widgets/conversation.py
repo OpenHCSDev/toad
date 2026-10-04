@@ -518,25 +518,23 @@ class ConversationSessionBinding(containers.Vertical):
         self.tool_expansions: dict[str, bool] = {}
 
 
-    async def release_native_session(self) -> None:
-        """Invalidate all old publications before this rich surface changes source."""
-        await self.transcript.close()
+    async def _release_source_resources(self) -> None:
+        """Join original publications for explicit release and native unmount."""
         self.goal_controls.close()
+        await self.transcript.close()
         self.output.retire()
+        await asyncio.gather(self.goal_observation.close(), self.delivery_observation.close())
         if self._directory_watcher is not None:
             await self._directory_watcher.aclose()
             self._directory_watcher = None
-        await self.window.document_viewport.suspend_source()
-        await asyncio.gather(self.goal_observation.close(),
-                             self.delivery_observation.close())
+
+    async def release_native_session(self) -> None:
+        """Acquire native custody before joining this surface's publications."""
+        viewport = self.window.document_viewport
+        await self._release_source_resources()
+        await viewport.close()
         self.agent = None
         self._initial_prompt = None
-        await self.contents.remove_children()
-        self.navigation.index = -1
-        self.cursor.refresh()
-        self.prompt._ask = None
-        self.prompt.ask_queue.clear()
-        self._focusable_terminals.clear()
 
     async def prepare_retained_session(self) -> None:
         """The actual source chooses restoration; a history widget is not an actor."""
@@ -1053,13 +1051,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             await self.rename_session(message.event.title or "")
 
     async def on_unmount(self) -> None:
-        self.goal_controls.close()
-        await self.transcript.close()
-        self.output.retire()
-        await asyncio.gather(self.goal_observation.close(), self.delivery_observation.close())
-        if self._directory_watcher is not None:
-            await self._directory_watcher.aclose()
-            self._directory_watcher = None
+        await self._release_source_resources()
         if self.agent is not None:
             await self.agent.retire_surface(self)
 

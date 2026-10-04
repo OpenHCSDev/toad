@@ -1,0 +1,20 @@
+{
+  "core": "62dca2914fbfbcc500714953ce981dda818cfd63",
+  "toad": "89eeada3268de541f47f6eb8f03bb64658090d5e",
+  "textual": "a818dcfd4a4a874af085f705559e134a00b7d189",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-086d511f2026b10d/node_modules/@earendil-works/pi-coding-agent",
+  "archive_artifacts": [
+    {
+      "path": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/f1-start-owner-final-wheels/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "832293118588d95a7641d42465defe58e23ec936dfdb5a45466bdbcbbf40fccc"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/f1-start-owner-final-wheels/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "ab0ecac9ae6b2c85e7fff1dacd11f029d939a26cc4e17d21d30f5ab00c44b9dc"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text53-filewheel-a818dcfd-20261004/textual-8.2.8-py3-none-any.whl",
+      "sha256": "dfbd8fcbd37221f3c7934a8e7d7cd141bb592b1f0e35e9f034bffafe8e7f2a5a"
+    }
+  ]
+}

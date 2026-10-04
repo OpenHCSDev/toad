@@ -97,7 +97,8 @@ class ThreadNavigator:
             screen._comms_thread = prepared.thread.name
             return screen
 
-        details = await app.session_navigation.new(get_screen, title=prepared.thread.name)
+        details = await app.session_navigation.new(get_screen, title=prepared.thread.name,
+                                                  original=(prepared.root, prepared.thread.incarnation))
         view = app.session_navigation.source(details.mode_name)
         if view is not None:
             await view.wait_content_ready()

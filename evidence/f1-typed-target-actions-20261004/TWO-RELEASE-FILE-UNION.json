@@ -1,0 +1,185 @@
+{
+  "state": "explicit owner-approved TWO release-file F1 union; source-only/not Ready",
+  "base_qualified_F1_source": "6b309c2903ccf2bde92e3436b59e87b2997fa633",
+  "original_owner_checkpoint": "8fdcc554dc3c81ae457222b53815fbca4bd70a06",
+  "release_files": [
+    {
+      "path": "src/toad/session_presentation.py",
+      "sha256": "58bf8b6991371645f422341d44109c650f2c0579617a6d517f63897800672aa6",
+      "byte_equal_original_owner": true
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "sha256": "228a6265f875c0dc41978b08db6dd30792c519f1826465a9c58ba219d83893b1",
+      "byte_equal_original_owner": true
+    }
+  ],
+  "all_new_method_calls": [
+    "8fdcc554dc3c81ae457222b53815fbca4bd70a06:src/toad/session_presentation.py:171:        await self.remove_native_tree()",
+    "8fdcc554dc3c81ae457222b53815fbca4bd70a06:src/toad/session_presentation.py:173:    async def remove_native_tree(self) -> None:",
+    "8fdcc554dc3c81ae457222b53815fbca4bd70a06:src/toad/session_presentation.py:176:        await conversation.release_native_session()",
+    "8fdcc554dc3c81ae457222b53815fbca4bd70a06:src/toad/session_presentation.py:277:            await owner.remove_native_tree()",
+    "8fdcc554dc3c81ae457222b53815fbca4bd70a06:src/toad/widgets/conversation.py:521:    async def _release_source_resources(self) -> None:",
+    "8fdcc554dc3c81ae457222b53815fbca4bd70a06:src/toad/widgets/conversation.py:531:    async def release_native_session(self) -> None:",
+    "8fdcc554dc3c81ae457222b53815fbca4bd70a06:src/toad/widgets/conversation.py:534:        await self._release_source_resources()",
+    "8fdcc554dc3c81ae457222b53815fbca4bd70a06:src/toad/widgets/conversation.py:1054:        await self._release_source_resources()"
+  ],
+  "original_owner_package_AST": {
+    "modules": 288,
+    "parse_omissions": []
+  },
+  "owner_methods": [
+    {
+      "owner_file": "src/toad/app.py",
+      "method": "src/toad/app.py::on_unmount",
+      "lines": 7
+    },
+    {
+      "owner_file": "src/toad/screens/mcp_decision.py",
+      "method": "src/toad/screens/mcp_decision.py::on_unmount",
+      "lines": 2
+    },
+    {
+      "owner_file": "src/toad/screens/mcp_inventory.py",
+      "method": "src/toad/screens/mcp_inventory.py::on_unmount",
+      "lines": 4
+    },
+    {
+      "owner_file": "src/toad/session_presentation.py",
+      "method": "src/toad/session_presentation.py::remove_native_tree",
+      "lines": 6
+    },
+    {
+      "owner_file": "src/toad/transcript_source_preparation.py",
+      "method": "src/toad/transcript_source_preparation.py::on_unmount",
+      "lines": 8
+    },
+    {
+      "owner_file": "src/toad/widgets/acp_log.py",
+      "method": "src/toad/widgets/acp_log.py::on_unmount",
+      "lines": 2
+    },
+    {
+      "owner_file": "src/toad/widgets/command_pane.py",
+      "method": "src/toad/widgets/command_pane.py::on_unmount",
+      "lines": 2
+    },
+    {
+      "owner_file": "src/toad/widgets/comms_sidebar.py",
+      "method": "src/toad/widgets/comms_sidebar.py::on_unmount",
+      "lines": 2
+    },
+    {
+      "owner_file": "src/toad/widgets/conversation.py",
+      "method": "src/toad/widgets/conversation.py::_release_source_resources",
+      "lines": 9
+    },
+    {
+      "owner_file": "src/toad/widgets/conversation.py",
+      "method": "src/toad/widgets/conversation.py::release_native_session",
+      "lines": 7
+    },
+    {
+      "owner_file": "src/toad/widgets/conversation.py",
+      "method": "src/toad/widgets/conversation.py::on_unmount",
+      "lines": 15
+    },
+    {
+      "owner_file": "src/toad/widgets/goal_bar.py",
+      "method": "src/toad/widgets/goal_bar.py::on_unmount",
+      "lines": 2
+    },
+    {
+      "owner_file": "src/toad/widgets/history_anchor.py",
+      "method": "src/toad/widgets/history_anchor.py::on_unmount",
+      "lines": 4
+    },
+    {
+      "owner_file": "src/toad/widgets/observed_thread_activity.py",
+      "method": "src/toad/widgets/observed_thread_activity.py::on_unmount",
+      "lines": 3
+    },
+    {
+      "owner_file": "src/toad/widgets/prepared_markdown.py",
+      "method": "src/toad/widgets/prepared_markdown.py::on_unmount",
+      "lines": 2
+    },
+    {
+      "owner_file": "src/toad/widgets/project_panel.py",
+      "method": "src/toad/widgets/project_panel.py::on_unmount",
+      "lines": 2
+    },
+    {
+      "owner_file": "src/toad/widgets/prompt.py",
+      "method": "src/toad/widgets/prompt.py::on_unmount",
+      "lines": 2
+    },
+    {
+      "owner_file": "src/toad/widgets/question.py",
+      "method": "src/toad/widgets/question.py::on_unmount",
+      "lines": 2
+    },
+    {
+      "owner_file": "src/toad/widgets/recovery_view.py",
+      "method": "src/toad/widgets/recovery_view.py::on_unmount",
+      "lines": 4
+    },
+    {
+      "owner_file": "src/toad/widgets/side_bar.py",
+      "method": "src/toad/widgets/side_bar.py::on_unmount",
+      "lines": 2
+    },
+    {
+      "owner_file": "src/toad/widgets/streaming_markdown.py",
+      "method": "src/toad/widgets/streaming_markdown.py::on_unmount",
+      "lines": 3
+    },
+    {
+      "owner_file": "src/toad/widgets/terminal_tool.py",
+      "method": "src/toad/widgets/terminal_tool.py::on_unmount",
+      "lines": 2
+    },
+    {
+      "owner_file": "src/toad/widgets/thread_comms.py",
+      "method": "src/toad/widgets/thread_comms.py::on_unmount",
+      "lines": 4
+    },
+    {
+      "owner_file": "src/toad/widgets/tool_call.py",
+      "method": "src/toad/widgets/tool_call.py::on_unmount",
+      "lines": 2
+    },
+    {
+      "owner_file": "src/toad/widgets/tool_content.py",
+      "method": "src/toad/widgets/tool_content.py::on_unmount",
+      "lines": 10
+    },
+    {
+      "owner_file": "src/toad/widgets/viewport_body.py",
+      "method": "src/toad/widgets/viewport_body.py::on_unmount",
+      "lines": 5
+    },
+    {
+      "owner_file": "src/toad/widgets/worker_static.py",
+      "method": "src/toad/widgets/worker_static.py::on_unmount",
+      "lines": 10
+    }
+  ],
+  "historical_full_union": "19800812f317dc883533d6915694ed04ccc0efa4",
+  "historical_full_union_failed_ratchet": "37182556029; LongBooleanChain+1/side_bar BooleanChainTerms+4; preserved without waiver",
+  "independent426_files_restored_to_prior_F1": [
+    "src/toad/session_admission.py",
+    "src/toad/sidebar_projection.py",
+    "src/toad/widgets/comms_sidebar.py",
+    "src/toad/widgets/side_bar.py",
+    "src/toad/widgets/thread_comms.py"
+  ],
+  "independent426_disposition": "unqualified sidebar/tab/ancestry stays with originalHeis426 source; excluded from F1 scope and acceptance",
+  "pins_unchanged": true,
+  "coherence": "release owner methods and single caller are confined to two byte-equal owner files; removed preliminary DOM/editor reset descendants require no extra captured getters; merged422 readmission/global teardown closure retained",
+  "guard_added": false,
+  "new_state_cache_timer_added": false,
+  "remaining": "exact final Debt PASS + ONE native-delete wholeApp shutdown acceptance after F4 actualwholehandback/newBohrgrant; oldpassedStart/08/layers/movie/provider not repeated",
+  "style22": "F4sole lease; no import/package/execution bySch",
+  "ready": false
+}
