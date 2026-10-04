@@ -153,5 +153,9 @@ previous pixel introduced the race. The controller now uses native Return
 once after native keyboard reveal, deleting that extra pointer selection.
 Actual menus remain pointer-controlled. This changed control is published but
 NOT run after the explicit package handback; no further loan or replay assumed.
-Producer awareness availability and the recorded-search EOF remain separate
-source questions for the existing backend owner, with no native-fault claim.
+Contributor availability is expected to change during acquisition: the original
+nonblocking awareness read can publish UnavailableAwarenessSegment, and an empty
+source publishes no segment. Native preview observation fences SDK data, while
+contributors are assembled separately. This permits the observed row shift but
+does not establish its exact lock/error cause. No611 or runtime fix is inferred.
+The recorded-search EOF remains unclassified, with no native-fault claim.

@@ -18,4 +18,6 @@ No new prompt, fork, priming or provider call. Original input/manifest/public an
 
 `evidence/recorded-context-reader-20261004/`: before/after owner-consumer AST (288ToAd/311unchangedCore, zero parse omissions; lexical/dynamic limits stated), SCOPE.md, physical08-terminal-receipt.json, physical-negative-receipts.json, restored41549-source-proof.json and code-handback41549.json. Original raw08 at `/home/ts/.cache/agent-scratch/recorded-context417-physical08`.
 
-Remaining: matched configured recorded-system search/full read and exact contributor acceptance after the concrete control correction; actual backend connection cause must be classified through its existing owner if it persists. No unchanged capture/provider repeat requested.
+Contributor membership can change by design during the original nonblocking awareness acquisition; this permits the observed row shift without proving a lock failure. No producer/611/runtime patch or EOF attribution is inferred. The controller selects the original native cursor once, rather than repeating selection at a stale pixel.
+
+Remaining: matched configured recorded-system search/full read and exact contributor acceptance after the published control correction. No new loan or run is authorized before delivery; no unchanged capture/provider repeat requested.
