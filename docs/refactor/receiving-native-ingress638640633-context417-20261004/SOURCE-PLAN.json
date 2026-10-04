@@ -1,0 +1,39 @@
+{
+  "state": "SOURCE successor only; original433b878/114/Ready9b29 frozen, no package grant inferred",
+  "selected_core": "1a520528dfa8d5e5e1ebb13913fed3ccb3514376",
+  "previous_qualified_core": "9dfc1de3ffb9f80d06106c6f1b630ac49dd963af",
+  "core_runtime_delta": [
+    "src/agent_comms/backend.py",
+    "src/agent_comms/native_input_owner.py",
+    "src/agent_comms/native_startup.py",
+    "src/agent_comms/owned_send_admission.py",
+    "src/agent_comms/registration.py",
+    "src/agent_comms/registry_document.py",
+    "src/agent_comms/turn_inputs.py"
+  ],
+  "core_build_owner": "Mendel existing goal-ledgerWT, SINGLE normal current-main-equivalent filewheel from publishedb421; Sch will not duplicatebuild",
+  "toad_source": "b8784052878fb2e0690e2368f0b34125fc80562c",
+  "textual": "180cbd9471bd6674647590108ca2fe5a627eb24f",
+  "audit": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-086d511f2026b10d/node_modules/@earendil-works/pi-coding-agent",
+  "retained_to_ad_wheel": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "5002977faca18b0f807999dced9e05f76144c039fd0cab719848bf4d544a7742"
+  },
+  "retained_text_wheel": {
+    "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native59-filewheel-20261004/textual-8.2.8-py3-none-any.whl",
+    "sha256": "73d4ca971dd2891c2a2266a0c5c8629e3e0ff55e802456ae60d0fedfe72fdbaa"
+  },
+  "retained_nra_wheel": {
+    "path": "/home/ts/wt/nra-skill-publish-20261002/.artifacts/family-flattened-collector-20261004/wheels/nominal_refactor_audit-0.1.0-py3-none-any.whl",
+    "sha256": "8d489731728ebf9f7e0f90ef2b14e7e3b5d2f90ed82bd8b1482d735f82869886"
+  },
+  "package_write_authority": "NONE until Bohr actual433floorarchive/readback/freshspecificnewpurpose",
+  "protected433_head": "b8784052878fb2e0690e2368f0b34125fc80562c",
+  "protected433_ready": "9b29dd6e8f22e709b3fa3ccbdd1571147a5c33fed48675b0c67a3aed16e48e6d",
+  "new_environments": 0,
+  "new_native_builds": 0,
+  "new_vcs_source_clones": 0,
+  "new_App_SDK_provider_movie": 0,
+  "retained_to_ad_319_exact": true
+}
