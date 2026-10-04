@@ -186,9 +186,7 @@ def required_sequences(widgets: Iterable[Widget]) -> frozenset[int]:
 
 
 def protected_blocks(view: Conversation, candidates: Iterable[Widget]) -> set[Widget]:
-    endpoints = set(view.screen.selections)
-    if view.screen.focused is not None:
-        endpoints.add(view.screen.focused)
+    endpoints = set(view.screen._interaction_widgets())
     if view.cursor_block is not None:
         endpoints.add(view.cursor_block)
     return protected_presentations(candidates, endpoints)

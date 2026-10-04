@@ -1,0 +1,178 @@
+{
+  "completed": true,
+  "elapsed": 8.63175267202314,
+  "checks": [
+    "pending MouseDown protects capture, viewport and committed row; replacement retires intent",
+    "direct ToolContent recompose preserves decoded source",
+    "captured pending native Unmount retires scene early and leaves Conversation input pump available",
+    "translucent modal refuses width/style-invalidated captured body before native display/damage",
+    "original chained writers join before latest commit; modal return and editor draft preserved",
+    "collapse and reentry consume same original part publication"
+  ],
+  "native_display_calls": [
+    {
+      "time": 590392.210322538,
+      "screen": "WorkspaceScreen",
+      "body_visible": true,
+      "body_ready": true
+    },
+    {
+      "time": 590392.21383007,
+      "screen": "WorkspaceScreen",
+      "body_visible": true,
+      "body_ready": true
+    },
+    {
+      "time": 590392.225392238,
+      "screen": "WorkspaceScreen",
+      "body_visible": true,
+      "body_ready": true
+    },
+    {
+      "time": 590392.237694417,
+      "screen": "WorkspaceScreen",
+      "body_visible": true,
+      "body_ready": true
+    },
+    {
+      "time": 590392.304038976,
+      "screen": "WorkspaceScreen",
+      "body_visible": true,
+      "body_ready": true
+    },
+    {
+      "time": 590392.310178574,
+      "screen": "WorkspaceScreen",
+      "body_visible": true,
+      "body_ready": true
+    },
+    {
+      "time": 590392.362602168,
+      "screen": "WorkspaceScreen",
+      "body_visible": true,
+      "body_ready": true
+    },
+    {
+      "time": 590392.366186696,
+      "screen": "WorkspaceScreen",
+      "body_visible": true,
+      "body_ready": true
+    },
+    {
+      "time": 590392.424212952,
+      "screen": "WorkspaceScreen",
+      "body_visible": true,
+      "body_ready": true
+    },
+    {
+      "time": 590392.428943611,
+      "screen": "WorkspaceScreen",
+      "body_visible": true,
+      "body_ready": true
+    },
+    {
+      "time": 590392.486619172,
+      "screen": "WorkspaceScreen",
+      "body_visible": true,
+      "body_ready": true
+    },
+    {
+      "time": 590392.491195509,
+      "screen": "WorkspaceScreen",
+      "body_visible": true,
+      "body_ready": true
+    },
+    {
+      "time": 590392.548018064,
+      "screen": "WorkspaceScreen",
+      "body_visible": true,
+      "body_ready": true
+    },
+    {
+      "time": 590392.553349491,
+      "screen": "WorkspaceScreen",
+      "body_visible": true,
+      "body_ready": true
+    },
+    {
+      "time": 590392.608368371,
+      "screen": "WorkspaceScreen",
+      "body_visible": true,
+      "body_ready": true
+    },
+    {
+      "time": 590392.609431134,
+      "screen": "WorkspaceScreen",
+      "body_visible": true,
+      "body_ready": true
+    },
+    {
+      "time": 590392.67171365,
+      "screen": "WorkspaceScreen",
+      "body_visible": true,
+      "body_ready": true
+    },
+    {
+      "time": 590392.679342458,
+      "screen": "WorkspaceScreen",
+      "body_visible": true,
+      "body_ready": true
+    },
+    {
+      "time": 590392.733204386,
+      "screen": "WorkspaceScreen",
+      "body_visible": true,
+      "body_ready": true
+    },
+    {
+      "time": 590392.734736107,
+      "screen": "WorkspaceScreen",
+      "body_visible": true,
+      "body_ready": true
+    },
+    {
+      "time": 590392.809876845,
+      "screen": "PublicationModal",
+      "body_visible": true,
+      "body_ready": true
+    },
+    {
+      "time": 590392.879292731,
+      "screen": "WorkspaceScreen",
+      "body_visible": true,
+      "body_ready": true
+    },
+    {
+      "time": 590392.881143035,
+      "screen": "WorkspaceScreen",
+      "body_visible": true,
+      "body_ready": true
+    },
+    {
+      "time": 590392.894091658,
+      "screen": "WorkspaceScreen",
+      "body_visible": true,
+      "body_ready": true
+    },
+    {
+      "time": 590392.938141914,
+      "screen": "WorkspaceScreen",
+      "body_visible": false,
+      "body_ready": false
+    },
+    {
+      "time": 590392.965072798,
+      "screen": "WorkspaceScreen",
+      "body_visible": true,
+      "body_ready": true
+    },
+    {
+      "time": 590392.970958325,
+      "screen": "WorkspaceScreen",
+      "body_visible": true,
+      "body_ready": true
+    }
+  ],
+  "providers": 0,
+  "boundary": "Installed real App/native display admission, not physical terminal motion or CPU gain"
+}

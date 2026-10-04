@@ -1,0 +1,1775 @@
+{
+  "source": "bf3a79c2a930c3b23433636378bb9ac8b08e1a69",
+  "packages": [
+    {
+      "root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "root": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual",
+      "modules": 249,
+      "omissions": []
+    },
+    {
+      "root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests",
+      "modules": 394,
+      "omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/acp/agent_process.py",
+      "line": 134,
+      "kind": "AsyncFunctionDef",
+      "source": "async def retire(self):\n        self.close()\n        if self.retirement is None:\n            self.retirement = asyncio.create_task(self._retire())\n        cancelled = False\n        while True:\n       "
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/acp/agent_process.py",
+      "line": 166,
+      "kind": "Attribute",
+      "source": "self.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/acp/agent_process.py",
+      "line": 173,
+      "kind": "Attribute",
+      "source": "self.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/acp/permission_controller.py",
+      "line": 82,
+      "kind": "Name",
+      "source": "retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/acp/permission_controller.py",
+      "line": 73,
+      "kind": "Name",
+      "source": "retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/acp/permission_controller.py",
+      "line": 71,
+      "kind": "Name",
+      "source": "retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/acp/permission_controller.py",
+      "line": 83,
+      "kind": "Name",
+      "source": "retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/acp/terminal_controller.py",
+      "line": 93,
+      "kind": "AsyncFunctionDef",
+      "source": "async def retire(self, terminal_id) -> None:\n        execution = self.executions.get(terminal_id)\n        if execution is not None:\n            await join_retirement(asyncio.create_task(self._release("
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/acp/terminal_controller.py",
+      "line": 54,
+      "kind": "Attribute",
+      "source": "self.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/acp/terminal_owner.py",
+      "line": 63,
+      "kind": "Attribute",
+      "source": "terminals.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/acp/transcript_reader.py",
+      "line": 53,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/acp/transcript_reader.py",
+      "line": 66,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/agent_surface.py",
+      "line": 120,
+      "kind": "FunctionDef",
+      "source": "def retire():\n            if view.is_attached:\n                view.prompt.remove_ask(ask)\n                if view.prompt._ask is None:\n                    view.refresh_bindings()"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/agent_surface.py",
+      "line": 126,
+      "kind": "Name",
+      "source": "retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/agent_surface.py",
+      "line": 94,
+      "kind": "Attribute",
+      "source": "screen.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/app.py",
+      "line": 476,
+      "kind": "Attribute",
+      "source": "self.workspace_sessions.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/directory_suggester.py",
+      "line": 21,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/directory_suggester.py",
+      "line": 34,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/directory_watcher.py",
+      "line": 39,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/directory_watcher.py",
+      "line": 200,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/directory_watcher.py",
+      "line": 44,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/directory_watcher.py",
+      "line": 49,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/directory_watcher.py",
+      "line": 58,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/directory_watcher.py",
+      "line": 69,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/directory_watcher.py",
+      "line": 78,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/directory_watcher.py",
+      "line": 203,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/directory_watcher.py",
+      "line": 215,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/fuzzy_index.py",
+      "line": 22,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/fuzzy_index.py",
+      "line": 30,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/fuzzy_index.py",
+      "line": 196,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/live_output.py",
+      "line": 177,
+      "kind": "FunctionDef",
+      "source": "def retire(self) -> None:\n        self.revision += 1\n        self.streams.clear()\n        self._view = lambda: None"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/mounted_message_history.py",
+      "line": 172,
+      "kind": "Attribute",
+      "source": "self.app.batch_update"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/question_presentation.py",
+      "line": 82,
+      "kind": "FunctionDef",
+      "source": "def retire(self):\n        self.mount.close()\n        self.mount = RetiredQuestionMount()"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/main.py",
+      "line": 202,
+      "kind": "Attribute",
+      "source": "self.presentation.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/permissions.py",
+      "line": 217,
+      "kind": "FunctionDef",
+      "source": "def retire(self):\n        if self.is_active:\n            self.dismiss(None)"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/permissions.py",
+      "line": 228,
+      "kind": "Attribute",
+      "source": "self.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "line": 204,
+      "kind": "Attribute",
+      "source": "self.app.batch_update"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/session_presentation.py",
+      "line": 69,
+      "kind": "AsyncFunctionDef",
+      "source": "async def retire(self, screen: \"MainScreen\") -> None: ..."
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/session_presentation.py",
+      "line": 151,
+      "kind": "AsyncFunctionDef",
+      "source": "async def retire(self, screen: \"MainScreen\") -> None:\n        await screen.app.workspace_chrome.native.retire(screen)"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/session_presentation.py",
+      "line": 198,
+      "kind": "AsyncFunctionDef",
+      "source": "async def retire(self, screen: \"MainScreen\") -> None:\n        async with self._lock:\n            if self.view is not screen or self.widget is None:\n                return\n            conversation = se"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/session_presentation.py",
+      "line": 187,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/session_presentation.py",
+      "line": 199,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/session_presentation.py",
+      "line": 211,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/session_presentation.py",
+      "line": 272,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/session_presentation.py",
+      "line": 280,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/session_presentation.py",
+      "line": 152,
+      "kind": "Attribute",
+      "source": "screen.app.workspace_chrome.native.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/shell_source.py",
+      "line": 58,
+      "kind": "Attribute",
+      "source": "self._operation.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/sidebar_navigation.py",
+      "line": 69,
+      "kind": "AsyncFunctionDef",
+      "source": "async def hydrate(self) -> None:\n        while self.sidebar.accepts_publication():\n            revision = self.revision\n            await self.sidebar.observation.present_cached()\n            if revis"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/sidebar_navigation.py",
+      "line": 66,
+      "kind": "Attribute",
+      "source": "self.hydrate"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/sidebar_navigation.py",
+      "line": 170,
+      "kind": "Attribute",
+      "source": "self.sidebar.observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/sidebar_navigation.py",
+      "line": 85,
+      "kind": "Attribute",
+      "source": "self.sidebar.app.batch_update"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/sidebar_observation.py",
+      "line": 111,
+      "kind": "AsyncFunctionDef",
+      "source": "async def sync(self) -> None:\n        \"\"\"Reconcile tracked rows before a resumed screen accepts input.\"\"\"\n        async with self.lock:\n            revision = self.service.views.revision()\n           "
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/terminal_execution.py",
+      "line": 249,
+      "kind": "FunctionDef",
+      "source": "def retire(self) -> TerminalOperation:\n        return self"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/terminal_execution.py",
+      "line": 281,
+      "kind": "FunctionDef",
+      "source": "def retire(self):\n        return RetiredTerminalOperation()"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/terminal_execution.py",
+      "line": 416,
+      "kind": "Attribute",
+      "source": "self._operation.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 36,
+      "kind": "ClassDef",
+      "source": "class ToolOutputPart(DeclaredFamily, affix=\"ToolOutputPart\"):\n    \"\"\"A captured output value; a case owns rendering and preparation hooks.\"\"\"\n\n    available = True\n\n    @abstractmethod\n    def compose"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 347,
+      "kind": "ClassDef",
+      "source": "class ToolOutput:\n    \"\"\"Mounted output, lazy hydration and cancellation belong to one lifetime.\"\"\"\n\n    def __init__(self, view: ToolCall) -> None:\n        self._view = ref(view)\n        self.parts: "
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 70,
+      "kind": "Name",
+      "source": "ToolOutputPart"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 211,
+      "kind": "FunctionDef",
+      "source": "def retire(self) -> None:\n        entry, self.warmup = self.warmup, None\n        if entry is not None and not entry.result.done():\n            entry.result.cancel()"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 218,
+      "kind": "Name",
+      "source": "ToolOutputPart"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 241,
+      "kind": "Name",
+      "source": "ToolOutputPart"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 259,
+      "kind": "Name",
+      "source": "ToolOutputPart"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 269,
+      "kind": "Name",
+      "source": "ToolOutputPart"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 309,
+      "kind": "Name",
+      "source": "ToolOutputPart"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 386,
+      "kind": "AsyncFunctionDef",
+      "source": "async def sync(self) -> None:\n        from toad.widgets.conversation import Window\n\n        async with self._lock:\n            view = self.view\n            parts = self.parts\n            body = view.q"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 423,
+      "kind": "FunctionDef",
+      "source": "def prepare_hidden(self) -> None:\n        view = self.view\n        theme = (view.app.current_theme.ansi, view.app.current_theme.dark)\n        if self.parts == self._warming and self._theme == theme:\n "
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 450,
+      "kind": "FunctionDef",
+      "source": "def cancel_preparation(self) -> None:\n        self._generation += 1\n        if self._worker is not None:\n            self._worker.cancel()\n            self._worker = None\n        for part in self._war"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 463,
+      "kind": "FunctionDef",
+      "source": "def hydrate_if_visible(self) -> None:\n        if self.hydration.schedulable and self.view.content_in_view:\n            self.hydration = ScheduledToolHydration()\n            self.view.run_worker(self.h"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 468,
+      "kind": "AsyncFunctionDef",
+      "source": "async def hydrate(self) -> None:\n        phase = self.hydration\n        try:\n            if phase.pending and self.view.content_in_view:\n                await self.sync()\n        finally:\n            "
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 477,
+      "kind": "FunctionDef",
+      "source": "def retire(self) -> None:\n        from toad.widgets.conversation import Window\n\n        self.cancel_preparation()\n        self.hydration = IdleToolHydration()\n        try:\n            self.view.query_"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 73,
+      "kind": "Name",
+      "source": "ToolOutputPart"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 246,
+      "kind": "Name",
+      "source": "ToolOutputPart"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 44,
+      "kind": "Name",
+      "source": "ToolOutputPart"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 354,
+      "kind": "Attribute",
+      "source": "self._mounted"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 355,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 356,
+      "kind": "Attribute",
+      "source": "self.hydration"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 469,
+      "kind": "Attribute",
+      "source": "self.hydration"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 481,
+      "kind": "Attribute",
+      "source": "self.hydration"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 486,
+      "kind": "Attribute",
+      "source": "self._mounted"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 52,
+      "kind": "Name",
+      "source": "ToolOutputPart"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 116,
+      "kind": "Name",
+      "source": "ToolOutputPart"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 185,
+      "kind": "Attribute",
+      "source": "self.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 233,
+      "kind": "Attribute",
+      "source": "self.preparation.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 389,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 405,
+      "kind": "Attribute",
+      "source": "self.hydration"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 428,
+      "kind": "Attribute",
+      "source": "self.cancel_preparation"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 465,
+      "kind": "Attribute",
+      "source": "self.hydration"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 480,
+      "kind": "Attribute",
+      "source": "self.cancel_preparation"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 352,
+      "kind": "Name",
+      "source": "ToolOutputPart"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 357,
+      "kind": "Name",
+      "source": "ToolOutputPart"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 375,
+      "kind": "Attribute",
+      "source": "self.cancel_preparation"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 414,
+      "kind": "Attribute",
+      "source": "self._mounted"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 460,
+      "kind": "Attribute",
+      "source": "self.hydration"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 461,
+      "kind": "Attribute",
+      "source": "self.prepare_hidden"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 464,
+      "kind": "Attribute",
+      "source": "self.hydration"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 466,
+      "kind": "Attribute",
+      "source": "self.hydrate"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 474,
+      "kind": "Attribute",
+      "source": "self.hydration"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 475,
+      "kind": "Attribute",
+      "source": "self.hydration"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 354,
+      "kind": "Name",
+      "source": "ToolOutputPart"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 396,
+      "kind": "Attribute",
+      "source": "self.prepare_hidden"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 398,
+      "kind": "Attribute",
+      "source": "self.hydration"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 411,
+      "kind": "Attribute",
+      "source": "self.cancel_preparation"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 415,
+      "kind": "Attribute",
+      "source": "self._mounted"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 421,
+      "kind": "Attribute",
+      "source": "self._mounted"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 436,
+      "kind": "Name",
+      "source": "ToolOutputPart"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 483,
+      "kind": "Attribute",
+      "source": "self.view.query_ancestor(Window).pending_tool_content"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 397,
+      "kind": "Attribute",
+      "source": "self.hydration"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 403,
+      "kind": "Attribute",
+      "source": "self.hydrate"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 407,
+      "kind": "Attribute",
+      "source": "view.query_ancestor(Window).pending_tool_content"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 472,
+      "kind": "Attribute",
+      "source": "self.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 400,
+      "kind": "Attribute",
+      "source": "view.query_ancestor(Window).pending_tool_content"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 416,
+      "kind": "Attribute",
+      "source": "self._mounted"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 418,
+      "kind": "Attribute",
+      "source": "view.app.batch_update"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 417,
+      "kind": "Attribute",
+      "source": "self._mounted"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/transcript_filter.py",
+      "line": 53,
+      "kind": "FunctionDef",
+      "source": "def retire(self, filtering: TranscriptFilter) -> None:\n        pass"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/transcript_filter.py",
+      "line": 191,
+      "kind": "FunctionDef",
+      "source": "def retire(self, filtering):\n        self.view.display = False\n        filtering.owner.run_worker(partial(filtering.retire, self), group=\"filter-reset\")"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/transcript_filter.py",
+      "line": 289,
+      "kind": "AsyncFunctionDef",
+      "source": "async def retire(self, retired: FilterState) -> None:\n        async with self.owner.window.history_lock:\n            async with self.owner.window.preserve_history(None):\n                await retired."
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/transcript_filter.py",
+      "line": 302,
+      "kind": "Attribute",
+      "source": "retired.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/transcript_filter.py",
+      "line": 193,
+      "kind": "Attribute",
+      "source": "filtering.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/acp_content.py",
+      "line": 3,
+      "kind": "alias",
+      "source": "ToolOutputPart"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/acp_content.py",
+      "line": 10,
+      "kind": "Name",
+      "source": "ToolOutputPart"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/conversation.py",
+      "line": 238,
+      "kind": "FunctionDef",
+      "source": "def sync(self) -> None:\n        owner = self.owner\n        self.visible = bool(owner.activity)\n        self.auto_refresh = 1 if owner.activity and owner.started_at is not None else None\n        self.r"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/conversation.py",
+      "line": 236,
+      "kind": "Attribute",
+      "source": "self.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/conversation.py",
+      "line": 525,
+      "kind": "Attribute",
+      "source": "self.output.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/conversation.py",
+      "line": 789,
+      "kind": "Attribute",
+      "source": "activity.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/conversation.py",
+      "line": 1306,
+      "kind": "Attribute",
+      "source": "throbber.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/conversation.py",
+      "line": 1531,
+      "kind": "Attribute",
+      "source": "existing_tool_call.update_tool_call"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/history_anchor.py",
+      "line": 174,
+      "kind": "FunctionDef",
+      "source": "def pending_tool_content(self) -> WeakSet[ToolCall]:\n        \"\"\"Only off-screen autoexpanded outputs need a visibility check.\"\"\"\n        return WeakSet()"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/history_anchor.py",
+      "line": 181,
+      "kind": "Attribute",
+      "source": "self.pending_tool_content"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/history_anchor.py",
+      "line": 158,
+      "kind": "Attribute",
+      "source": "self.document_viewport.membership.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/history_anchor.py",
+      "line": 179,
+      "kind": "Attribute",
+      "source": "self.pending_tool_content"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/history_anchor.py",
+      "line": 182,
+      "kind": "Attribute",
+      "source": "tool.hydrate_if_visible"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/prepared_markdown.py",
+      "line": 36,
+      "kind": "alias",
+      "source": "MeasuredViewportBody"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/prepared_markdown.py",
+      "line": 39,
+      "kind": "Name",
+      "source": "MeasuredViewportBody"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/prepared_markdown.py",
+      "line": 60,
+      "kind": "FunctionDef",
+      "source": "def reconstructible_children(self) -> tuple[Widget, ...]:\n        \"\"\"Native resources rebuilt from this document's original source.\"\"\"\n        return tuple(child for child in self.children if isinstan"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/prepared_markdown.py",
+      "line": 68,
+      "kind": "AsyncFunctionDef",
+      "source": "async def materialize_native_body(self) -> None:\n        await self._update_body_source(self.source)"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/prepared_markdown.py",
+      "line": 72,
+      "kind": "Attribute",
+      "source": "self.publish_body"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/prepared_markdown.py",
+      "line": 75,
+      "kind": "Attribute",
+      "source": "self.publish_body"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/question.py",
+      "line": 188,
+      "kind": "Attribute",
+      "source": "self.presentation.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/streaming_markdown.py",
+      "line": 53,
+      "kind": "AsyncFunctionDef",
+      "source": "async def materialize_native_body(self) -> None:\n        await self._update_content(self.source, append=False)"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/streaming_markdown.py",
+      "line": 64,
+      "kind": "FunctionDef",
+      "source": "def reconstructible_children(self) -> tuple[Widget, ...]:\n        if self._stream is not None or self._content_lock.locked():\n            return ()\n        return ((self._paged,) if self._paged is not"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/streaming_markdown.py",
+      "line": 80,
+      "kind": "Attribute",
+      "source": "self.publish_body"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/streaming_markdown.py",
+      "line": 83,
+      "kind": "Attribute",
+      "source": "self.publish_body"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/streaming_markdown.py",
+      "line": 68,
+      "kind": "Attribute",
+      "source": "super().reconstructible_children"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/throbber.py",
+      "line": 159,
+      "kind": "FunctionDef",
+      "source": "def sync(self) -> None:\n        self.watch_busy(self.busy)\n        self.refresh()"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/tool_call.py",
+      "line": 34,
+      "kind": "ClassDef",
+      "source": "class ToolContent(containers.VerticalGroup):\n    @height_dependency(INDEPENDENT_HEIGHT)\n    def process_layout(self, placements: list[WidgetPlacement]) -> list[WidgetPlacement]:\n        return trim_tr"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/tool_call.py",
+      "line": 18,
+      "kind": "alias",
+      "source": "ToolOutput"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/tool_call.py",
+      "line": 128,
+      "kind": "AsyncFunctionDef",
+      "source": "async def update_tool_call(self, tool_call: ToolCallStatus) -> None:\n        \"\"\"Update metadata in place; materialize output only when expanded.\n\n        Args:\n            tool_call: New Tool call dat"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/tool_call.py",
+      "line": 224,
+      "kind": "FunctionDef",
+      "source": "def hydrate_if_visible(self) -> None:\n        self.output.hydrate_if_visible()"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/tool_call.py",
+      "line": 124,
+      "kind": "Name",
+      "source": "ToolOutput"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/tool_call.py",
+      "line": 222,
+      "kind": "Attribute",
+      "source": "self.output.hydrate_if_visible"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/tool_call.py",
+      "line": 225,
+      "kind": "Attribute",
+      "source": "self.output.hydrate_if_visible"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/tool_call.py",
+      "line": 228,
+      "kind": "Attribute",
+      "source": "self.output.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/tool_call.py",
+      "line": 141,
+      "kind": "Attribute",
+      "source": "self.output.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/tool_call.py",
+      "line": 192,
+      "kind": "Name",
+      "source": "ToolContent"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/tool_call.py",
+      "line": 209,
+      "kind": "Attribute",
+      "source": "self.output.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/tool_call.py",
+      "line": 324,
+      "kind": "Attribute",
+      "source": "self.output.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/transcript_history.py",
+      "line": 50,
+      "kind": "alias",
+      "source": "MeasuredViewportBody"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/transcript_history.py",
+      "line": 178,
+      "kind": "Name",
+      "source": "MeasuredViewportBody"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/transcript_history.py",
+      "line": 197,
+      "kind": "FunctionDef",
+      "source": "def reconstructible_children(self) -> tuple[Widget, ...]:\n        return tuple(self.children)"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/transcript_history.py",
+      "line": 200,
+      "kind": "AsyncFunctionDef",
+      "source": "async def materialize_native_body(self) -> None:\n        await self.recompose()"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/transcript_history.py",
+      "line": 230,
+      "kind": "Attribute",
+      "source": "self.publish_body"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 239,
+      "kind": "ClassDef",
+      "source": "class MaterializingBody(BodyMeasurement):\n    \"\"\"One native writer borrowing the body's preceding paint resource.\n\n    Dimensions and retained bytes belong to that resource. The worker owns\n    public"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 409,
+      "kind": "ClassDef",
+      "source": "class MeasuredViewportBody(ViewportBody):\n    \"\"\"The body owns Live, Rendered and Measured behavior, not copied flags.\"\"\"\n\n    CACHE_HEIGHT_INDEPENDENT_BOX = True\n    CACHE_HEIGHT_INDEPENDENT_ARRANGEM"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 165,
+      "kind": "AsyncFunctionDef",
+      "source": "async def retire(self, body):\n        return False"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 234,
+      "kind": "FunctionDef",
+      "source": "def retire(self, body):\n        return body.retire_native_body(self)"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 514,
+      "kind": "FunctionDef",
+      "source": "def publish_body(self, work: Callable[[], Awaitable[None]]) -> AwaitComplete:\n        \"\"\"Source updates and reentry share the original materialization worker.\"\"\"\n        operation = self.start_materia"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 519,
+      "kind": "FunctionDef",
+      "source": "def start_materialization(self, previous, work=None):\n        publication = AwaitComplete(previous.before_publication())\n        paint = AwaitComplete(previous.prepare_publication(self))\n\n        asyn"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 555,
+      "kind": "AsyncFunctionDef",
+      "source": "async def materialize_native_body(self):\n        raise NotImplementedError"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 558,
+      "kind": "FunctionDef",
+      "source": "def reconstructible_children(self):\n        raise NotImplementedError"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 587,
+      "kind": "FunctionDef",
+      "source": "def capture_native_paint(self, current):\n        \"\"\"Capture once for retirement and preceding-source publication.\"\"\"\n        if (not current.ready(self) or not self.is_attached or self.lock.is_locked\n"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 803,
+      "kind": "FunctionDef",
+      "source": "def retire(self):\n        window = self.window()\n        self.presentation.windows.discard(window)\n        self.presentation.anchors.discard(window)"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 202,
+      "kind": "Attribute",
+      "source": "body.capture_native_paint"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 516,
+      "kind": "Attribute",
+      "source": "self.start_materialization"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 550,
+      "kind": "Name",
+      "source": "MaterializingBody"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 567,
+      "kind": "Attribute",
+      "source": "self._body_measurement.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 581,
+      "kind": "Attribute",
+      "source": "self.reconstructible_children"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 584,
+      "kind": "Attribute",
+      "source": "self.capture_native_paint"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 788,
+      "kind": "Attribute",
+      "source": "self.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 576,
+      "kind": "Attribute",
+      "source": "BodyMeasurement.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 578,
+      "kind": "Attribute",
+      "source": "BodyMeasurement.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 580,
+      "kind": "Attribute",
+      "source": "BodyMeasurement.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 583,
+      "kind": "Attribute",
+      "source": "BodyMeasurement.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 123,
+      "kind": "Attribute",
+      "source": "body.start_materialization"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 540,
+      "kind": "Attribute",
+      "source": "self.materialize_native_body"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/workspace_chrome.py",
+      "line": 58,
+      "kind": "Attribute",
+      "source": "screen.app.batch_update"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/workspace_sessions.py",
+      "line": 26,
+      "kind": "AsyncFunctionDef",
+      "source": "async def retire(self) -> \"WorkspaceSource\": ..."
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/workspace_sessions.py",
+      "line": 45,
+      "kind": "AsyncFunctionDef",
+      "source": "async def retire(self):\n        return self"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/workspace_sessions.py",
+      "line": 72,
+      "kind": "AsyncFunctionDef",
+      "source": "async def retire(self):\n        self.view.display = False\n        await self.view.retire_presentation()\n        return ParkedWorkspaceSource(self.view)"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/workspace_sessions.py",
+      "line": 104,
+      "kind": "AsyncFunctionDef",
+      "source": "async def retire(self):\n        return self"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/workspace_sessions.py",
+      "line": 153,
+      "kind": "AsyncFunctionDef",
+      "source": "async def retire(self) -> None:\n        self.source = await self.source.retire()"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/workspace_sessions.py",
+      "line": 138,
+      "kind": "Attribute",
+      "source": "self.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/workspace_sessions.py",
+      "line": 154,
+      "kind": "Attribute",
+      "source": "self.source.retire"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "line": 1069,
+      "kind": "FunctionDef",
+      "source": "def batch_update(self) -> Generator[None, None, None]:\n        \"\"\"A context manager to suspend all repaints until the end of the batch.\"\"\"\n        self._begin_batch()\n        try:\n            yield\n  "
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "line": 3153,
+      "kind": "Attribute",
+      "source": "self.batch_update"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "line": 3439,
+      "kind": "Attribute",
+      "source": "self.batch_update"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/styles.py",
+      "line": 742,
+      "kind": "FunctionDef",
+      "source": "def batch_update(self) -> AbstractContextManager[None]:\n        \"\"\"Apply related rule edits before invalidating their affected widgets.\"\"\"\n        raise NotImplementedError()"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/styles.py",
+      "line": 1024,
+      "kind": "FunctionDef",
+      "source": "def batch_update(self) -> Iterator[None]:\n        \"\"\"Invalidate once after related edits, including nested or interrupted edits.\n\n        Rule writes and their mutation epochs remain immediate. Only p"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/styles.py",
+      "line": 1577,
+      "kind": "FunctionDef",
+      "source": "def batch_update(self) -> AbstractContextManager[None]:\n        return self._inline_styles.batch_update()"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/styles.py",
+      "line": 1578,
+      "kind": "Attribute",
+      "source": "self._inline_styles.batch_update"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/styles.py",
+      "line": 941,
+      "kind": "Attribute",
+      "source": "prepared.batch_update"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/styles.py",
+      "line": 950,
+      "kind": "Attribute",
+      "source": "self.batch_update"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/stylesheet.py",
+      "line": 608,
+      "kind": "Attribute",
+      "source": "node._css_styles.batch_update"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/stylesheet.py",
+      "line": 832,
+      "kind": "Attribute",
+      "source": "base_styles.batch_update"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/stylesheet.py",
+      "line": 1023,
+      "kind": "Attribute",
+      "source": "node._css_styles.batch_update"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/rlock.py",
+      "line": 12,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/rlock.py",
+      "line": 39,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/rlock.py",
+      "line": 19,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/rlock.py",
+      "line": 34,
+      "kind": "Attribute",
+      "source": "self._lock"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 4668,
+      "kind": "Attribute",
+      "source": "self.app.batch_update"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_content_switcher.py",
+      "line": 74,
+      "kind": "Attribute",
+      "source": "self.app.batch_update"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_content_switcher.py",
+      "line": 94,
+      "kind": "Attribute",
+      "source": "self.app.batch_update"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_content_switcher.py",
+      "line": 127,
+      "kind": "Attribute",
+      "source": "self.app.batch_update"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_markdown.py",
+      "line": 1537,
+      "kind": "Attribute",
+      "source": "self.app.batch_update"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_markdown.py",
+      "line": 1460,
+      "kind": "Attribute",
+      "source": "self.app.batch_update"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/activity_spinners_pilot.py",
+      "line": 76,
+      "kind": "Attribute",
+      "source": "sidebar.observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/async_thread_open_pilot.py",
+      "line": 87,
+      "kind": "Attribute",
+      "source": "sidebar.observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/channel_unread_follow_pilot.py",
+      "line": 76,
+      "kind": "Attribute",
+      "source": "sidebar.observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/channel_views_pilot.py",
+      "line": 167,
+      "kind": "Attribute",
+      "source": "app.screen.query_one(CommsSidebar).observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/channel_views_pilot.py",
+      "line": 185,
+      "kind": "Attribute",
+      "source": "app.screen.query_one(CommsSidebar).observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/channel_views_pilot.py",
+      "line": 201,
+      "kind": "Attribute",
+      "source": "sidebar.observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/channel_views_pilot.py",
+      "line": 212,
+      "kind": "Attribute",
+      "source": "sidebar.observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/channel_views_pilot.py",
+      "line": 223,
+      "kind": "Attribute",
+      "source": "sidebar.observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/channel_views_pilot.py",
+      "line": 236,
+      "kind": "Attribute",
+      "source": "sidebar.observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/channel_visibility_pilot.py",
+      "line": 18,
+      "kind": "AsyncFunctionDef",
+      "source": "async def sync(app, pilot):\n    sidebar = app.screen.query_one(CommsSidebar)\n    await sidebar.observation.sync()\n    await pilot.pause()\n    group = next(group for group in sidebar.query(ChannelGroup"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/channel_visibility_pilot.py",
+      "line": 20,
+      "kind": "Attribute",
+      "source": "sidebar.observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/channel_visibility_pilot.py",
+      "line": 56,
+      "kind": "Name",
+      "source": "sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/channel_visibility_pilot.py",
+      "line": 66,
+      "kind": "Name",
+      "source": "sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/channel_visibility_pilot.py",
+      "line": 69,
+      "kind": "Name",
+      "source": "sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/channel_visibility_pilot.py",
+      "line": 75,
+      "kind": "Name",
+      "source": "sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/channel_visibility_pilot.py",
+      "line": 78,
+      "kind": "Name",
+      "source": "sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/channel_visibility_pilot.py",
+      "line": 93,
+      "kind": "Name",
+      "source": "sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/existing_thread_tab_title_pilot.py",
+      "line": 94,
+      "kind": "Attribute",
+      "source": "sidebar.observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/external_cli_native_installed_pilot.py",
+      "line": 78,
+      "kind": "AsyncFunctionDef",
+      "source": "async def retire(self):\n        if self.process.returncode is None:\n            self.process.stdin.close()\n            await asyncio.wait_for(self.process.wait(), 5)"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/external_cli_native_installed_pilot.py",
+      "line": 219,
+      "kind": "Attribute",
+      "source": "cli.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/external_cli_native_installed_pilot.py",
+      "line": 263,
+      "kind": "Attribute",
+      "source": "cli.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/external_cli_native_installed_pilot.py",
+      "line": 265,
+      "kind": "Attribute",
+      "source": "peer.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/fresh_fork_pilot.py",
+      "line": 86,
+      "kind": "Attribute",
+      "source": "sidebar.observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/fresh_fork_pilot.py",
+      "line": 91,
+      "kind": "Attribute",
+      "source": "sidebar.observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/guards/test_live_output.py",
+      "line": 91,
+      "kind": "Attribute",
+      "source": "view.output.retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/guards/test_tool_output.py",
+      "line": 8,
+      "kind": "alias",
+      "source": "ToolOutputPart"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/guards/test_tool_output.py",
+      "line": 83,
+      "kind": "Name",
+      "source": "ToolOutputPart"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/human_mark_read_pilot.py",
+      "line": 53,
+      "kind": "Attribute",
+      "source": "sidebar.observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/human_mark_read_pilot.py",
+      "line": 66,
+      "kind": "Attribute",
+      "source": "sidebar.observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/lazy_tools_pilot.py",
+      "line": 82,
+      "kind": "Attribute",
+      "source": "tools[-1].update_tool_call"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/lazy_tools_pilot.py",
+      "line": 62,
+      "kind": "Attribute",
+      "source": "tools[-1].update_tool_call"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/native_goal_read_first_paint_pilot.py",
+      "line": 48,
+      "kind": "Attribute",
+      "source": "app.workspace_chrome.native._lock"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/nominal_tool_menu_pilot.py",
+      "line": 35,
+      "kind": "Attribute",
+      "source": "sidebar.observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/pending_unread_pilot.py",
+      "line": 48,
+      "kind": "Attribute",
+      "source": "sidebar.observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/pending_unread_pilot.py",
+      "line": 59,
+      "kind": "Attribute",
+      "source": "sidebar.observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/pending_unread_pilot.py",
+      "line": 67,
+      "kind": "Attribute",
+      "source": "sidebar.observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/pending_unread_pilot.py",
+      "line": 57,
+      "kind": "Attribute",
+      "source": "sidebar.observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/retained_fragment_geometry_pilot.py",
+      "line": 266,
+      "kind": "Attribute",
+      "source": "member.publish_body"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/retained_fragment_geometry_pilot.py",
+      "line": 347,
+      "kind": "Attribute",
+      "source": "member.publish_body"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/retained_fragment_geometry_pilot.py",
+      "line": 350,
+      "kind": "Attribute",
+      "source": "member.publish_body"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/retained_fragment_geometry_pilot.py",
+      "line": 356,
+      "kind": "alias",
+      "source": "MaterializingBody"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/retained_fragment_geometry_pilot.py",
+      "line": 404,
+      "kind": "Attribute",
+      "source": "selected.reconstructible_children"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/retained_fragment_geometry_pilot.py",
+      "line": 265,
+      "kind": "Attribute",
+      "source": "member.materialize_native_body"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/retained_fragment_geometry_pilot.py",
+      "line": 340,
+      "kind": "Attribute",
+      "source": "member.materialize_native_body"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/retained_fragment_geometry_pilot.py",
+      "line": 345,
+      "kind": "Attribute",
+      "source": "member.materialize_native_body"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/retained_fragment_geometry_pilot.py",
+      "line": 359,
+      "kind": "Name",
+      "source": "MaterializingBody"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/retained_tool_text_pilot.py",
+      "line": 54,
+      "kind": "Attribute",
+      "source": "tool.update_tool_call"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/retained_tool_text_pilot.py",
+      "line": 56,
+      "kind": "Attribute",
+      "source": "tool.update_tool_call"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/retained_tool_text_pilot.py",
+      "line": 62,
+      "kind": "Attribute",
+      "source": "tool.update_tool_call"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/retained_tool_text_pilot.py",
+      "line": 65,
+      "kind": "Attribute",
+      "source": "tool.update_tool_call"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/retained_tool_text_pilot.py",
+      "line": 71,
+      "kind": "Attribute",
+      "source": "tool.update_tool_call"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/retained_tool_text_pilot.py",
+      "line": 80,
+      "kind": "Attribute",
+      "source": "tool.update_tool_call"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/retained_tool_text_pilot.py",
+      "line": 83,
+      "kind": "Attribute",
+      "source": "tool.update_tool_call"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/retained_tool_text_pilot.py",
+      "line": 89,
+      "kind": "Attribute",
+      "source": "tool.update_tool_call"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/retained_tool_text_pilot.py",
+      "line": 94,
+      "kind": "Attribute",
+      "source": "tool.update_tool_call"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/retained_tool_text_pilot.py",
+      "line": 99,
+      "kind": "Attribute",
+      "source": "tool.update_tool_call"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/retained_tool_text_pilot.py",
+      "line": 40,
+      "kind": "Attribute",
+      "source": "tool.update_tool_call"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/selection_disclosure_pilot.py",
+      "line": 78,
+      "kind": "Attribute",
+      "source": "restored.update_tool_call"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/selection_disclosure_pilot.py",
+      "line": 66,
+      "kind": "Attribute",
+      "source": "tool.update_tool_call"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/sidebar_latency_pilot.py",
+      "line": 85,
+      "kind": "Attribute",
+      "source": "sidebar.observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/sidebar_nonvirtual_scroll_pilot.py",
+      "line": 36,
+      "kind": "Attribute",
+      "source": "app.screen.query_one(CommsSidebar).observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/sidebar_sort_viewport_pilot.py",
+      "line": 40,
+      "kind": "Attribute",
+      "source": "app.screen.query_one(CommsSidebar).observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/snapshot_cancellation_custody_pilot.py",
+      "line": 134,
+      "kind": "Name",
+      "source": "retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/snapshot_cancellation_custody_pilot.py",
+      "line": 144,
+      "kind": "Name",
+      "source": "retire"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/stop_responsiveness_pilot.py",
+      "line": 63,
+      "kind": "Attribute",
+      "source": "sidebar.observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tool_diff_lifecycle_pilot.py",
+      "line": 60,
+      "kind": "Attribute",
+      "source": "tool.update_tool_call"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tool_diff_lifecycle_pilot.py",
+      "line": 98,
+      "kind": "Attribute",
+      "source": "auto.output.cancel_preparation"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tool_diff_lifecycle_pilot.py",
+      "line": 99,
+      "kind": "Attribute",
+      "source": "auto.output.prepare_hidden"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tool_diff_lifecycle_pilot.py",
+      "line": 100,
+      "kind": "Attribute",
+      "source": "auto.output.cancel_preparation"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tool_diff_lifecycle_pilot.py",
+      "line": 101,
+      "kind": "Attribute",
+      "source": "auto.output.hydrate"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tool_diff_pilot.py",
+      "line": 37,
+      "kind": "Attribute",
+      "source": "live.update_tool_call"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/ui_sidebar_geometry_pilot.py",
+      "line": 41,
+      "kind": "Attribute",
+      "source": "app.screen.query_one(CommsSidebar).observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/unread_paint_only_pilot.py",
+      "line": 45,
+      "kind": "Attribute",
+      "source": "sidebar.observation.sync"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/view_switch_latency.py",
+      "line": 66,
+      "kind": "alias",
+      "source": "ToolContent"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/view_switch_latency.py",
+      "line": 70,
+      "kind": "Name",
+      "source": "ToolContent"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/viewport_idle_cadence_pilot.py",
+      "line": 18,
+      "kind": "alias",
+      "source": "MaterializingBody"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/viewport_idle_cadence_pilot.py",
+      "line": 73,
+      "kind": "Name",
+      "source": "MaterializingBody"
+    }
+  ],
+  "dynamic_limit": "Attribute names include unrelated methods; semantic source reading identifies owners; external aliases/overrides not resolved."
+}

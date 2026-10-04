@@ -1,0 +1,12 @@
+{
+  "main": "d783b0fc63b3958956c9bee213b786131e59275c",
+  "normal_merge": "e6a3ea8e186a6bf38309f830671125db9d9a361d",
+  "source_checkpoint": "dbe465d8c98d2384bc3616036271e85744786980",
+  "src_tests_tools_delta": "",
+  "core_pin": "9195325146f70886d7d879edbfcae74b12bd63c8",
+  "native_pin": "1bdc18c363cbc0f938537a71aa8ba0225d03e25e",
+  "wheel_sha256": "73d4ca971dd2891c2a2266a0c5c8629e3e0ff55e802456ae60d0fedfe72fdbaa",
+  "inventory_sha256": "f5337c0e251ece88e5ba2de4d29946c99a928980cae5dd180274e6dfeb6299a3",
+  "installed_ready": false,
+  "holder_grant": false
+}
