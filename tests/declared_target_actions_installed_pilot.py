@@ -16,10 +16,11 @@ import threading
 
 from agent_comms.channels import SavedView, ViewKind, ViewPredicate, AnyOfMatch
 from agent_comms.cli_commands import CliCommand
+from agent_comms.channel_management import ArchiveThreadsTagDisposition, DeleteThreadsTagDisposition
 from agent_comms.field_codec import FieldCodec
 from agent_comms.thread_status import StoppedThreadStatus
 from agent_comms.threads import Thread
-from textual.widgets import Input, TextArea
+from textual.widgets import Checkbox, Input, Select, TextArea
 from toad.app import ToadApp
 from toad.screens.comms import CommsScreen
 from toad.widgets.comms_chat import CommsChatView
@@ -64,9 +65,15 @@ async def choose(app, pilot, row, operation, fields, evidence):
         assert await pilot.click(editor)
         if isinstance(editor, TextArea):
             editor.text = value
+        elif isinstance(editor, Select):
+            editor.value = value
+            await pilot.press('escape')
+            await pilot.pause()
         else:
             assert isinstance(editor, Input)
             editor.value = value
+    if dialog.query_one('#command-confirmed', Checkbox).display:
+        assert await pilot.click('#command-confirmed')
     app.save_screenshot(str(evidence / (operation + '-review.svg')))
     if type(app._driver).__name__ == 'LinuxDriver':
         assert os.environ['DISPLAY'] != ':0'
@@ -202,6 +209,57 @@ async def journey(args):
         app.save_screenshot(str(base / 'slash-hidden-return.svg'))
         checks.append('hidden-backend-change-original-tab-return-fresh-slash-execution')
         assert comms.registry.require('tagged').incarnation == original
+        # Channel visibility is a reversible catalog preference, independently
+        # of the three tagged-thread outcomes. Hidden admitted channels close
+        # through the same original workspace resource as selected channels.
+        channel_modes = tuple(entry.mode for entry in app.session_navigation.members
+                              if entry.original_channels() == ((str(comms.root), '#first'),))
+        original_registry = comms.registry.snapshot()
+        await command(comms.root, 'archive-channel', '--name', '#first')
+        await until(pilot, lambda: all(app.session_navigation.get(mode) is None for mode in channel_modes))
+        assert comms.registry.snapshot() == original_registry
+        assert comms.channels.catalog.read().resolve('#first').archived
+        await command(comms.root, 'restore-channel', '--name', '#first')
+        await wait_channel_roster(app, pilot, '#first')
+        assert not comms.channels.catalog.read().resolve('#first').archived
+        assert comms.registry.snapshot() == original_registry
+        checks.append('archive-restore-channel-only-preference-no-thread-tag-history-mutation')
+
+        for name, tag in (('archive-a', 'archive-cohort'), ('delete-a', 'delete-cohort'),
+                          ('delete-b', 'delete-cohort')):
+            comms.registry.declare(Thread(name, frozenset({tag}), str(project)), StoppedThreadStatus())
+        comms.threads.restore_stopped(comms.registry.snapshot(), ('archive-a', 'delete-a', 'delete-b'))
+        await wait_channel_roster(app, pilot, '#archive-cohort', '#delete-cohort')
+        sidebar = await wait_channel_roster(app, pilot, '#archive-cohort')
+        await choose(app, pilot, sidebar.projection.channels['#archive-cohort'], 'delete-tag',
+                     {'disposition': ArchiveThreadsTagDisposition.declared_name}, base)
+        assert comms.registry.status('archive-a').declared_name == 'archived'
+        assert comms.registry.require('archive-a').tags == {'archive-cohort'}
+        assert '#archive-cohort' in comms.channels.channels()
+        checks.append('native-form-archive-tagged-threads-preserves-tag-channel-and-history')
+
+        from toad.conversation_kind import DmConversation
+        owner = app.session_navigation.get(app.selected_session.owner_mode)
+        removed_modes = []
+        for peer in ('delete-a', 'delete-b'):
+            removed_modes.append(await app.session_navigation.history(
+                owner_mode=owner.mode, project_path=project, me='viewer', target=peer, kind=DmConversation))
+        assert app.selected_mode == removed_modes[-1]
+        assert all(mode in app.workspace_sessions.views for mode in removed_modes)
+        inputs = comms.root / 'input_dispositions.json'
+        input_bytes = inputs.read_bytes() if inputs.exists() else None
+        response = await command(comms.root, 'delete-tag', '--name', 'delete-cohort',
+                                 '--disposition', DeleteThreadsTagDisposition.declared_name, '--confirmed')
+        assert {row['name'] for row in response['removed_threads']} == {'delete-a', 'delete-b'}
+        await until(pilot, lambda: all(mode not in app.workspace_sessions.views
+                                      and app.session_navigation.get(mode) is None for mode in removed_modes))
+        assert all(peer not in comms.registry for peer in ('delete-a', 'delete-b'))
+        assert (inputs.read_bytes() if inputs.exists() else None) == input_bytes
+        reopened_mode = await app.session_navigation.history(owner_mode=owner.mode,
+            project_path=project, me='viewer', target='delete-a', kind=DmConversation)
+        assert reopened_mode not in removed_modes
+        assert all(app.session_navigation.get(mode) is None for mode in removed_modes)
+        checks.append('cli-delete-actual-backend-cohort-closes-current-hidden-views-refuses-reopen')
         assert app._exception is None
     reopened = ToadApp(project_dir=str(project))
     async with reopened.run_test(size=(125,48), headless=not args.physical) as pilot:
