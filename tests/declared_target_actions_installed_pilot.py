@@ -62,14 +62,20 @@ async def choose(app, pilot, row, operation, fields, evidence):
     dialog = app.screen
     for key, value in fields.items():
         editor = dialog.query_one('#command-field-' + key.replace('_', '-'))
-        assert await pilot.click(editor)
-        if isinstance(editor, TextArea):
+        if isinstance(editor, Select):
+            # Select's container delegates input to its native current/overlay
+            # children; use its declared keyboard selection instead of treating
+            # a container hit as proof that its child was not clicked.
+            choices = next(item.choices for item in dialog.definition.editable_fields if item.name == key)
+            index = next(index for index, (_, declared) in enumerate(choices) if declared == value)
+            editor.focus()
+            await pilot.press('enter', 'home', *('down',) * index, 'enter')
+            assert editor.value == value
+        elif isinstance(editor, TextArea):
+            assert await pilot.click(editor)
             editor.text = value
-        elif isinstance(editor, Select):
-            editor.value = value
-            await pilot.press('escape')
-            await pilot.pause()
         else:
+            assert await pilot.click(editor)
             assert isinstance(editor, Input)
             editor.value = value
     if dialog.query_one('#command-confirmed', Checkbox).display:
