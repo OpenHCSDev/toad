@@ -39,6 +39,7 @@ class PublicationApp(ToadApp):
         self.observed_body = None
         self.displays = []
         self.checks = []
+        self.displayed = asyncio.Event()
         super().__init__(**kwargs)
 
     def _display(self, screen, renderable):
@@ -49,6 +50,8 @@ class PublicationApp(ToadApp):
             self.displays.append({"time": monotonic(), "screen": type(screen).__name__,
                                   "body_visible": visible, "body_ready": body.body_ready})
         super()._display(screen, renderable)
+        if renderable is not None:
+            self.displayed.set()
 
 
 class PendingUnmount(Static):

@@ -62,11 +62,21 @@ and counts are explicit in each record.
 
 ## Remaining affected validation
 
-Required current-source Debt and one affected installed App remain. That App must
-cover pending native row mount/removal, source retirement/cancellation, input and
-resize while a style worker is pending, repeated style requests, source receipts,
-page order/bounds, original read acknowledgement and whole shutdown. These claims
-are not established by source or the prior #430 Tool/modal App.
+Production head 158d0a3 passed required Debt 37203852291; that is source
+qualification only. One affected installed App remains. The existing
+message_dividers_pilot --row-publication mode now uses the original PublicationApp,
+private wire, selected registry identity and native PendingUnmount resource. It
+covers native input/resize/display admission during old-row retirement, two style
+requests serialized by the original history lock, unchanged page resources and
+source park/cancellation after actual row commit. It selects displayed bodies
+from the original compositor mapping and acquires no additional rendered scene.
+The mode has not run. Native display admission is not terminal-writer or physical
+motion evidence.
+
+Interrupted new-row acquisition, new source receipt/tail publication, bounded
+paging and original read acknowledgement also require affected confirmation.
+Post-commit cancellation cannot stand in for cancellation during native mount.
+None of these claims is established by source or the prior #430 Tool/modal App.
 
 There is no package/import/execution lease now. A fresh actual holder purpose and
 archive precede installation. No old #430 App/movie/provider/saved input is repeated.
