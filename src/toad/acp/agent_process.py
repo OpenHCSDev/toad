@@ -46,6 +46,14 @@ class AgentProcess:
         self.custody = ExitStack()
 
     async def start(self):
+        self.disposition = ActiveProcessDisposition()
+        self.retirement = None
+        try:
+            await asyncio.to_thread(
+                self.agent.presentation.log_path.parent.mkdir, parents=True, exist_ok=True
+            )
+        except OSError:
+            pass
         self.agent.session.starting()
         # Freeze exactly the environment and working directory passed to the
         # child. A relative wire root is relative to the child cwd, not Toad's.
@@ -69,9 +77,11 @@ class AgentProcess:
                 self.agent.session.failed()
                 self.agent.events.publish(LogAgentFail("Failed to start agent", details=str(error), log_path=self.agent.presentation.log_path))
                 return
-            self.disposition = ActiveProcessDisposition()
+            # Closing the operational owner during preflight revokes this
+            # acquisition; it cannot reopen the process after that await.
+            if not self.accepts_updates:
+                return
             self.agent.controller.replace_terminal_session()
-            self.retirement = None
             self.runner = asyncio.create_task(self.run())
             # No await can cancel between task creation and resource transfer.
             # Cancelled/failed preflight owns no runner and closes acquisition.

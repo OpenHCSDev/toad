@@ -189,7 +189,10 @@ class CommsChatView(DeliveryFailureView, Conversation):
         prompt.sync_session()
         prompt.shell_mode = False
         prompt.update_prompt()
-        prompt.focus()
+        from toad.screens.session_view import SessionView
+
+        if self.query_ancestor(SessionView).is_current:
+            prompt.focus()
 
     def watch_agent(self, agent) -> None:
         """Keep the inherited agent reactive from turning this into a shell session."""

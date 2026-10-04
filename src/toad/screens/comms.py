@@ -11,6 +11,7 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.events import ScreenResume
 from textual.widget import Widget
+from textual.worker import WorkerCancelled
 from textual.widgets import Button, Static
 
 from toad import messages
@@ -79,8 +80,6 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
         self._content_ready = asyncio.Event()
         self._content_error: BaseException | None = None
         self._content_loaded = False
-        self._content_loading = False
-        self._hydrate_queued = False
 
     app = getters.app(ToadApp)
 
@@ -177,9 +176,8 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
 
     def _start_hydration(self) -> None:
         """Only a written route frame may start conversation composition."""
-        if not self._content_loaded and not self._hydrate_queued:
-            self._hydrate_queued = True
-            self.call_later(self._load_content)
+        if not self._content_loaded:
+            self.run_worker(self._load_content, group="comms-content")
 
     def _prepare_content(self) -> None:
         self.app.workspace_chrome.layout_sidebars(self.screen)
@@ -198,9 +196,8 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
         self.screen.align_tabs_to_sidebars()
 
     async def _load_content(self) -> None:
-        if self._content_loading or not self.is_attached:
+        if self._content_loaded or not self.is_attached:
             return
-        self._content_loading = True
         self._content_loaded = True
         try:
             # The navigation/sidebar shell is already visible in its chosen
@@ -224,6 +221,18 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
         await self._content_ready.wait()
         if self._content_error is not None:
             raise self._content_error
+
+    async def close_presentation(self) -> None:
+        """Join hydration before its controls or input pump are pruned."""
+        for worker in self.workers.cancel_group(self, "comms-content"):
+            try:
+                await worker.wait()
+            except WorkerCancelled as error:
+                self._content_error = error
+        self._content_ready.set()
+
+    async def on_unmount(self) -> None:
+        await self.close_presentation()
 
 
     def activate_session(self) -> None:

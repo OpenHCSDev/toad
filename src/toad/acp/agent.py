@@ -161,12 +161,6 @@ class Agent(AgentBase):
 
     async def start(self) -> None:
         """Start the operational agent; attachment resources are acquired separately."""
-        try:
-            await asyncio.to_thread(
-                self.presentation.log_path.parent.mkdir, parents=True, exist_ok=True
-            )
-        except OSError:
-            pass
         await self.process.start()
 
     def send(self, request: jsonrpc.Request) -> None:
