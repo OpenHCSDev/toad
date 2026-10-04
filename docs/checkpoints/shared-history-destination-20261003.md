@@ -430,6 +430,10 @@ leave the original files intact. Cleared copies retain their original paths via
 symlinks under /run/media/ts/hdd/agent-comms-retained/history-sdk-fixture, after
 SHA verification and file/directory fsync. A concise resource receipt retains the
 original inode/stat/SHA and final destination. This never edits journal content.
-Missing checker privileges/HDD storage or a copy failure is an explicit fixture
-cleanup error; originals and partial evidence stay preserved. No new scanner or
-SDK policy. Source correction only: no new fixture/App/native/provider run.
+Unavailable mounted HDD storage, checker or noninteractive sudo retains the
+original journals and records retained_reason; open borrowers/gaps do the same.
+Copy mismatches or existing destination entries fail cleanup while preserving
+originals/partial evidence. Final HDD publication uses an exclusive hard link,
+so it cannot overwrite a concurrently created entry or a dangling alias. Source
+replacement remains later, after the destination and mount have been verified.
+No new scanner or SDK policy; no new fixture/App/native/provider run.
