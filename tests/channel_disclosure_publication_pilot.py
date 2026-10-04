@@ -15,6 +15,7 @@ from agent_comms.comms import Comms
 from agent_comms.threads import Thread
 from toad.app import ToadApp
 from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork
+from toad.session_tracker import ExactUnread
 from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
 from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 from toad.widgets.thread_comms import ThreadCommsSidebar
