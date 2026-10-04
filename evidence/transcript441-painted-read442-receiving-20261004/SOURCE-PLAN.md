@@ -1,114 +1,82 @@
-# Receiving successor: joined441/442 source preparation
+# Receiving444: merged441/442 and retained wheels
 
-Source-only working draft in the finished original receiving checkout. Current
-public440334 and its frozen122 operators/proofs, prior436115/274 and428165,
-and frozen421485 remain unchanged. No holder grant, package access, build,
-installed import, App, SDK, provider, public guard or publication occurs here.
+## Source checkpoint
 
-## Exact current source and qualified prospective input
+This branch normally joins actual ToAd main
+`cb9bd5c89e821f45b53d465d38d11894336fa406`. Its `src/tests/tools` are
+byte-identical to that merge. The only product metadata difference is the
+accepted Core `ad7e582f3e7536d3b76f95ec6da1e1fd8122ee20` source pin and
+three existing lock references; the dependency graph is unchanged.
+ParentDocs432 remains Draft and is excluded. W6/Core627/native7a/schema10,
+unqualified443/prefetch and other unfinished source are excluded.
 
-- Actual Core main: ad7e582f3e7536d3b76f95ec6da1e1fd8122ee20.
-- Actual Toad main at this checkpoint:4cc4d531d07f3a7be29e824ee5ce8dc7ba60a024.
-- Qualified combined441/442 installed product:03110866, determining4406ea17.
-  Parent has merged441. Exact442b5ca requiredDebt37236476663 FAILED one
-  ForeignAbsenceProbe in the Live read-fence. Heis owns the coherent correction;
-  its source freeze, finalgreen and actualmain relation are pending.
-- Text59:180cbd9471bd6674647590108ca2fe5a627eb24f.
-- NRA original source/artifact:9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10/8d4897.
-- Native086 manifest/tree stay unchanged; W6/7a/schema10 is excluded.
+## Exact retained package relation
 
-Full Git blob/ZIP/source relations are committed in source-relations.json.
-Core347 assets (344tracked +3forced), fullsrc/stack/.pi/pyproject/README and
-wheelmetadata are source-equal to retained5f1667. No Core build is needed.
-The new receiving pin names actualad7e; only its three existing lock source
-references change, with the dependency graph unchanged and no resolve.
+`MERGED-442-WHEEL-SOURCE-RELATION.json` records every Git blob, package member,
+mode, digest, ZIP RECORD and distribution metadata commitment.
 
-Retained8acfb48 ToAdwheel has all319 assets exact qualified031 source. It differs
-from current main4cc in FOUR production files: transcript_filter,
-transcript_source_preparation, transcript_state and widgets/transcript_history.
-The draft does not fold unmerged product or falsely call this wheel current-main.
-8ac is now the preserved ORIGINAL22-pass artifact; its equality is proved only
-against031. No equality to upcoming corrected442 production is inferred. A
-retained-or-build decision waits for Heis's coherent freeze and actualgreen merge,
-then exact package and buildmetadata comparisons. No build is authorized now.
-After Parent's normal441/442 merges, compare the actual merged319 assets and
-fullproject/buildsystem/hatch/README metadata before final source integration.
-The present receiving build inputs equal8ac's original inputs; only tooluv Core
-source location changes. Keep original archive/build provenance truthful.
-Text73d's266 assets are exact accepted59; no Text build is needed.
+| Package | Retained wheel | Git/ZIP assets |
+| --- | --- | --- |
+| Core | 5f1667 | 344 tracked + 3 forced = 347 |
+| ToAd | corrected ec36aaa4 | 319 |
+| Text59 | 73d4ca | 266 |
+| NRA9a | 8d4897 | 10 |
 
-## Native and canonical original owners
+All 942 package assets match. Three unchanged Diff assets are a separate
+future installed-cohort readback, not counted twice. Core's full runtime,
+stack, native forced files, pyproject and README equal the original c656 build.
+ToAd's project/build-system/hatch/README equal ec36's original 8fa build.
+Receiving tool.uv metadata differs truthfully; it is not a fabricated whole
+pyproject equality or VCS origin. Reuse normal file wheels and their actual
+ArchiveDirectURLs. No Core, ToAd, Text, NRA or native rebuild is needed.
+Old 8ac represents the historical 22-check artifact and is not this source.
 
-Native086 remains the original immutable keeper. Source declared manifest is
-086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872;
-tree dbc88ed9231d1275da3ce218aa8919a247e41ce1f010ce765e7ac0960193f4ac.
-No native trust job/build/copy was rerun; source declaration and forcedresource
-bytes are compared, not claimed as a new installed cohort qualification.
+## Original canonical and native owners
 
-All51 ordinary canonical members were compared directly with Coread7e Git.
-Only retained_index_writer.py differs from frozen440; it acquires the original
-WireLog directly rather than constructing Comms in the stopped reset writer.
-No reset member is proposed: preserve-native/checkpoint/owner runtime remains the
-receiving plan, subject to later authentic cohort/schema/source acquisition.
-The additional global_extension_activation member remains outside ordinary51.
-No operator files were copied or frozen for a new execution in this phase.
-Future original invocation will retain the explicit trusted canonical directory
-admission with targetPython-I-c/runpy; consumed440/436 operands are untouched.
+All 51 ordinary canonical members match exact Coread7 Git bytes/modes/blobs.
+The only change against public440 is retained_index_writer.py; no reset is
+selected. Global extension activation is outside the ordinary51.
+The immutable086 manifest/tree and all three forced package resources match.
+No native trust execution or old SDK/App qualification is repeated here.
 
-## NRA original keeper and historical discrepancy
+`MERGED-RECEIVING-COMMAND-PLAN.json` proposes exact future command/path operands
+using target Python `-I -B -c`, explicit trusted canonical-directory admission
+and runpy. This avoids the preserved old436 isolated-script import failure.
+No canonical files, typed cohort, runtime plan or receipt have been created
+for execution. Their exact target/source relation and once-only freeze follow
+an actual receiving grant. Parent alone owns fresh admission/publication and
+identity/default acceptance; no old operation is repeated.
 
-Independent current reads prove current8d ZIP, published9a Git and exact original
-e6f archive member ALL contain measures.py8f6127. All10 currentZIP package files
-match that published Git. The historic restore observedfb6e in a stale installed extraction, which remains
-preserved in its original failure/restoration receipts. No claim that those
-historic installed bytes equal currentZIP/floor is made. Parent independently
-confirmed this original-byte correction; future restoration under an issued
-purpose uses the existing normal installer with --no-cache and actual installed
-byte readback, never shared-cache edits or a rebuild. The initial source
-comparison assertion used the relay'sfb6e expectation and refused; its concise
-negative is preserved separately. Actual original bytes now own this relation.
+## Accepted result and custody
 
-No NRA semantic/metadata/cache patch or package installation occurs. A future
-eligible holder must prove its actual source/origin through original owners;
-no stale extraction or currentfloor equality may be inferred from a filename.
+Corrected442 final b791d03f passed exact Debt37239181602 and was actually merged
+by Parent. The original ONE App with TWO existing control owners passed all29
+checks in 10.636214859900065s: saved and actual wire initial/restart/loading,
+Working/Live/current-worker/completion, captured originalTask and whole close.
+No backend painted-writer/ACK, physical motion, CPU or full-performance claim.
+Original failed441, old22 PASS, ratchet negative and17 historical keepers remain.
 
-## Actual acceptance and next boundary
+Bohr independently closed only the442 lifecycle: a5687788/readback865c545a,
+actual4361470 bytes/modes/readlinks +69 origins +390 originals exact,
+fresh230 UID0 refs/gaps. The19 shared public086 environment refs remain.
+This closure establishes a released boundary, not a new receiving permission.
+Sch's086 execution returned; artifact keepers remain immutable.
 
-The single original combined441442 App passed22 checks in9.168665858s,
-including Mount cancellation, projection supersession, live/provisional/Working
-read fences, heldUnmount/source retirement and whole close. Prior44101FAIL/five
-positives remain original separate evidence. No physical, CPU/smoothness,
-backend paintedcursor/ACK writer or new complete workflow acceptance is claimed.
-Bohr independent wholeclosure f892/readbacka076 confirmed1470/69/390,249UID0
-actualholderrefs/gaps and preserved19 shared086 environment-only references.
+## Existing-holder request and next delivery step
 
-W6historical04b889 is now independently wholeclosed: lifecycle536888 and
-readback764f confirm1470/69/390,236UID0refs/gaps and originalrunner absent. Its
-22.254975sFAIL reached attachment/model acquisition but selectedContextroot
-beforeEnter; focus/read/search/export remain unqualified. Sch7a execution is
-closed, keeper held. Sch has no current holder claim. An eligible receiving
-purpose still requires Bohr's exact fresh disposition/grant after corrected
-source/runtime boundary; the closure itself grants no package access. Eligibility alone
-is no loan; public334 is never a private staging or restore slot. No new holder,
-environment or artificial wait for completeCPU/performance is proposed.
+Propose the same NONLIVE style22 full69 prefix, subject to Bohr's fresh actual
+borrower/alias/import/launcher/registry check and specific soleSch ordinary444
+package/origin/source/cohort/canonical preparation grant. Respect any intervening
+actually issued exclusive purpose; no new holder/environment is proposed.
+Public334/current440 and consumed436/old165/115/274/390/frozen421 remain untouched.
 
-This draft is useful source/delivery preparation, not Ready or live delivery.
-Normal merged-main source closure and an explicitly eligible holder remain the
-next concrete boundaries; Parent owns public admission/default affected acceptance.
+NRA raw8d ZIP measures.py is 8f6127, exactly original published9a/e6f floor;
+historical fb6e was a stale installed extraction. Preserve all original logs.
+Any authorized normal restore uses --no-cache and actual installed byte readback,
+without shared-cache edits or a rebuild.
 
-## Corrected442 published source checkpoint
-
-Heis published product35e72d0f, docs8fa92be source/control/pinZERO. Product
-requiredDebt37237228607 passed; changed installedqualification remains pending.
-The original checkpoint/state common facade now owns BOTHsaved/filter and
-wire/reader hooks; duplicate gates are deleted. Complete original AST0omissions
-and focusedForeignAbsence deltas0 are source evidence, not installedApp proof.
-
-CORRECTED-442-SOURCE-RELATION.json directly compares all319 correctedGitassets
-with historical8ac and lists actualchangedmembers.8ac is not the correctedwheel.
-OriginalHeis owns ONEnewtinyfilewheel and ONEchangedaffectedApp onlyafterBohr
-issues exactfreshpurpose. Sch conditional086 authority has been delivered bound
-to35e72/control7725/proposalab7e; it authorizes no holderaccess before thatgrant.
-No duplicate builder, Core/Text/nativebuild or original22PASSrebasing. After
-actualinstalledscope/finalgreen/Parentnormalmerge, consume the new truthful
-sourceequal keeper and normally join the accepted product in this draft.
+Current work is SOURCE ONLY: no package or prefix access, installed imports,
+App/SDK/provider/input/movie, canonical control copies or public guard attempt.
+Publish this exact source checkpoint, request the fresh receiving purpose,
+then stage retained qualified wheels and freeze a new own cohort/once-operation
+for Parent review. Full performance and unfinished W6 do not hold this delivery.
