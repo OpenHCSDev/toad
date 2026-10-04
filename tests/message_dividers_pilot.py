@@ -37,6 +37,7 @@ async def row_publication() -> None:
     from textual.worker import WorkerState
     from retained_tool_text_pilot import PublicationApp, PendingUnmount
     from runtime_fixture import private_native_wire, refresh_comms
+    from agent_comms.comms import Comms
     from toad.screens.comms import CommsScreen
     from toad.transcript_state import ParkedSourceTranscript
     from toad.mounted_message_history import IrcMessageStyle, HISTORY_PAGE_SIZE
@@ -253,7 +254,9 @@ async def row_publication() -> None:
             history.resume_source()
             checks.append("interrupted real native Mount preserves committed rows, style, bounds and receipt resources")
 
-            archive = private_native_wire(root / "archive")
+            # An attached archive is a source, not a replacement native route.
+            archive = Comms(root / "archive")
+            archive.messaging.initialize_private_initial_protocol()
             archive.registry.declare(Thread("peer", frozenset(), str(root)))
             for index in range(2):
                 archive.messaging.send_message("peer", "#all", f"archived row {index}")

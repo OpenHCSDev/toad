@@ -105,3 +105,21 @@ issued grant and whole-floor handback. The successor must restore that same floo
 
 Full scrolling/runway/sidebar/thread-open performance remains active. No CPU dominance,
 measured speed improvement, smoothness or FPS is claimed.
+
+## Original successor installed02
+
+The one successor original App exited1 after18.503682s. The corrected canonical order,
+source park/resume and real pending Mount cancellation assertions were reached. This
+is sequential assertion evidence, not a fabricated final App receipt. It failed at
+archive fixture creation before overlap/restyle; final complete-App assertions remain
+unreached. Wholeactual4361470/69/390 restored; fresh248allUID0references/gaps.
+
+The existing private-native helper calls `wire(new root)` before initializing that
+root's durable private marker. With the live bus launch environment still active,
+`LocalRoute.bind_owners` tries to pin that old launch selection on the new archive.
+This is the wrong fixture resource: attached archived history needs the existing
+`Comms` service plus original private-protocol initialization, retaining the live
+launch route. Only that authored fixture construction is corrected; product bytes
+remain exactly96c8. The corrected archive control is unrun and no third purpose is
+inferred. Original02 failure, pre-App copied grant-field failure and wholehandback
+are immutable keepers under installed02. No UI/speed/fullApp PASS claim is made.
