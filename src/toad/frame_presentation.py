@@ -111,8 +111,7 @@ class PresentedFrame(FrameState):
 
     def defer(self, frame, owner, callback):
         super().defer(frame, owner, callback)
-        if not frame.screen.app._atomic_mode_switch:
-            owner.call_after_refresh(frame.release, owner, callback)
+        owner.call_after_refresh(frame.release, owner, callback)
 
 
 class ClosedFrame(FrameState):
@@ -161,10 +160,10 @@ class FramePresentation:
         key = owner, callback
         if not self.ready or key not in self.callbacks:
             return
-        del self.callbacks[key]
         if owner.is_attached:
-            # The original message pump rejects work once its owner closes.
-            owner.call_later(callback)
+            if not self.screen.release_frame_callback(owner, callback):
+                return
+        del self.callbacks[key]
 
     def displayed(self):
         self.state.displayed(self)

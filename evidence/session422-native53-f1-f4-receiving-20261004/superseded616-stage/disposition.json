@@ -1,0 +1,16 @@
+{
+  "state": "SUPERSEDED old616/422 snapshot after accepted F1 main integration; NO public operation",
+  "old_operator_prep": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/session422-native53-core616-receiving-20261004/new-publication42253",
+  "old_source_proof_sha": "16057b9cdeab6b58a32f8a9cb2e93c083b54a3ee4a9943338d0ae98bd8e0cd90",
+  "old_activation_sha": "62b4a3a29ef83d95bc3e8757a3e97e6ddf23fae275baf3f9dc30e33a5642dbe8",
+  "old_fullcohort_static_preflight": "PASS before source correction; not authority for new bytes",
+  "receipt_and_preimages_absent": true,
+  "old_retained_core_artifact": {
+    "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/original-batch616-wheels/agent_comms-0.1.0-py3-none-any.whl",
+    "sha256": "aa1ec28ed8f7c47bc10ce26d4364ed7d13aed3a02ddb1ed4d7e09b743c0aad80"
+  },
+  "old_retained_toad_artifact": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/session422-native53-core616-receiving-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "fb7ce22ad313b220d67e6aa986f4738598ac55ee299c22221da2eb1831fb9ee0"
+  }
+}

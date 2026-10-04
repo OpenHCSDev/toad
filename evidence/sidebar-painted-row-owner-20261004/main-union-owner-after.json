@@ -1,0 +1,142 @@
+{
+  "head": "c2e6b9f6296aa1230bc7653bf7ece47ea136e7fd",
+  "base": "51c743420f19d0bf182fb7d722497541704ff068",
+  "roots": [
+    {
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "modules": 394,
+      "omissions": []
+    },
+    {
+      "root": "tools",
+      "modules": 41,
+      "omissions": []
+    }
+  ],
+  "production_delta": {
+    "files": 12,
+    "added": 121,
+    "deleted": 149
+  },
+  "removed_production_references": {
+    "painted_busy_rows": 0,
+    "present_navigation": 0,
+    "_atomic_mode_switch": 0,
+    "_pending_mode_switch": 0,
+    "_atomic_resize": 0,
+    "delay_update": 0
+  },
+  "sites": [
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 164,
+      "kind": "consumer",
+      "name": "release_frame_callback",
+      "source": "self.screen.release_frame_callback"
+    },
+    {
+      "path": "src/toad/mounted_message_history.py",
+      "line": 172,
+      "kind": "remaining batch lifetime",
+      "name": "batch_update",
+      "source": "with self.app.batch_update():"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 168,
+      "kind": "declaration",
+      "name": "release_frame_callback",
+      "source": "def release_frame_callback(self, owner, callback) -> bool:\n    \"\"\"Inactive native scenes retain their work for their next frame.\"\"\"\n    if not self.is_current:\n        return False\n    return self.app.workspace_sessions.release_frame_callback(owner, callback)"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 172,
+      "kind": "consumer",
+      "name": "release_frame_callback",
+      "source": "self.app.workspace_sessions.release_frame_callback"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 204,
+      "kind": "remaining batch lifetime",
+      "name": "batch_update",
+      "source": "with self.app.batch_update():"
+    },
+    {
+      "path": "src/toad/sidebar_navigation.py",
+      "line": 85,
+      "kind": "remaining batch lifetime",
+      "name": "batch_update",
+      "source": "with self.sidebar.app.batch_update():"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 75,
+      "kind": "consumer",
+      "name": "painted_rows",
+      "source": "self.sidebar.painted_rows"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 76,
+      "kind": "consumer",
+      "name": "advance_spinner",
+      "source": "row.advance_spinner"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 418,
+      "kind": "remaining batch lifetime",
+      "name": "batch_update",
+      "source": "with view.app.batch_update():"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 57,
+      "kind": "declaration",
+      "name": "advance_spinner",
+      "source": "def advance_spinner(self, phase: int) -> None:\n    if self._spinner_phase == phase or not self.busy:\n        return\n    self._spinner_phase = phase\n    if self._thread_presentation is not None:\n        self.paint_thread_frame(self._thread_presentation)"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 33,
+      "kind": "declaration",
+      "name": "painted_rows",
+      "source": "def painted_rows(self):\n    \"\"\"Borrow this panel's rows from the original native scene.\n\n        Each row owns whether its prepared status has an animated frame.\n        \"\"\"\n    from toad.widgets.comms_sidebar import CommsRow\n    for row in self.screen._compositor.visible_widgets:\n        if isinstance(row, CommsRow) and row.is_navigation_row() and (row.sidebar_owner() is self):\n            yield row"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 283,
+      "kind": "consumer",
+      "name": "painted_rows",
+      "source": "self.painted_rows"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 284,
+      "kind": "consumer",
+      "name": "advance_spinner",
+      "source": "row.advance_spinner"
+    },
+    {
+      "path": "src/toad/workspace_chrome.py",
+      "line": 58,
+      "kind": "remaining batch lifetime",
+      "name": "batch_update",
+      "source": "with screen.app.batch_update():"
+    },
+    {
+      "path": "src/toad/workspace_sessions.py",
+      "line": 159,
+      "kind": "declaration",
+      "name": "release_frame_callback",
+      "source": "def release_frame_callback(self, owner, callback) -> bool:\n    \"\"\"Admit mounted work through its original logical source binding.\n\n        Hidden session mounts retain their same frame callback; workspace\n        chrome has no session binding. Native attachment and writer custody\n        remain with the frame, and the owner's pump executes source I/O.\n        \"\"\"\n    from toad.screens.session_view import SessionView\n    for view in owner.walk_ancestors(with_self=True):\n        if isinstance(view, SessionView):\n            if not self.owns(view):\n                return False\n            break\n    owner.call_later(callback)\n    return True"
+    }
+  ],
+  "limits": "Existing refactor-audit Package parsed complete declared roots. Attribute spelling is source evidence, not dynamic nominal resolution. Same-spelling external overrides/aliases remain ambiguous. Native55 dependency proof and pre-edit roots are separately retained; final source join does not relabel older installed4d assets as new union."
+}

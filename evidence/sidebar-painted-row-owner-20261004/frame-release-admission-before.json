@@ -1,0 +1,378 @@
+{
+  "head": "ceb28770cbe84c4b4a2d29a737c4aa1574e2e44a",
+  "roots": [
+    {
+      "root": "src/toad",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "parsed": 392,
+      "omissions": []
+    },
+    {
+      "root": "tools",
+      "parsed": 41,
+      "omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 66,
+      "kind": "FunctionDef",
+      "source": "def defer(self, frame, owner, callback):"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 69,
+      "kind": "FunctionDef",
+      "source": "def begin(self, frame):"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 112,
+      "kind": "FunctionDef",
+      "source": "def defer(self, frame, owner, callback):"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 118,
+      "kind": "FunctionDef",
+      "source": "def defer(self, frame, owner, callback):"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 121,
+      "kind": "FunctionDef",
+      "source": "def begin(self, frame):"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 146,
+      "kind": "FunctionDef",
+      "source": "def begin(self):"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 149,
+      "kind": "FunctionDef",
+      "source": "def defer(self, owner: Widget, callback: Callable[[], object]) -> None:"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 153,
+      "kind": "FunctionDef",
+      "source": "def release(self, owner: Widget, callback: Callable[[], object]) -> None:"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 187,
+      "kind": "FunctionDef",
+      "source": "def present(self) -> None:"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 206,
+      "kind": "AsyncFunctionDef",
+      "source": "async def wait(self) -> bool:"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 80,
+      "kind": "Attribute",
+      "source": "self.begin(frame)"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 110,
+      "kind": "Attribute",
+      "source": "frame.present()"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 113,
+      "kind": "Attribute",
+      "source": "super().defer(frame, owner, callback)"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 114,
+      "kind": "Attribute",
+      "source": "owner.call_after_refresh(frame.release, owner, callback)"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 114,
+      "kind": "Attribute",
+      "source": "owner.call_after_refresh(frame.release, owner, callback)"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 147,
+      "kind": "Attribute",
+      "source": "self.state.begin(self)"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 165,
+      "kind": "Attribute",
+      "source": "if not owner.is_attached:"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 177,
+      "kind": "Attribute",
+      "source": "owner.call_later(callback)"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 185,
+      "kind": "Attribute",
+      "source": "self.present()"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 209,
+      "kind": "Attribute",
+      "source": "return self.ready and screen.is_attached and screen.is_current"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 209,
+      "kind": "Attribute",
+      "source": "return self.ready and screen.is_attached and screen.is_current"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 151,
+      "kind": "Attribute",
+      "source": "self.state.defer(self, owner, callback)"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 163,
+      "kind": "Attribute",
+      "source": "if not self.ready or not self.screen.is_current or key not in self.callbacks:"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 192,
+      "kind": "Attribute",
+      "source": "self.release(owner, callback)"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 207,
+      "kind": "Attribute",
+      "source": "await self.presented.wait()"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 170,
+      "kind": "Attribute",
+      "source": "if not source.is_current:"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 174,
+      "kind": "Attribute",
+      "source": "self.screen.frame_presentation.defer(self, self._start_hydration)"
+    },
+    {
+      "path": "src/toad/screens/session_view.py",
+      "line": 25,
+      "kind": "FunctionDef",
+      "source": "def is_current(self) -> bool:"
+    },
+    {
+      "path": "src/toad/screens/session_view.py",
+      "line": 26,
+      "kind": "Attribute",
+      "source": "return self.app.workspace_sessions.owns(self) and self.screen.is_current"
+    },
+    {
+      "path": "src/toad/screens/session_view.py",
+      "line": 85,
+      "kind": "Attribute",
+      "source": "return await self.screen.frame_presentation.wait() and self.is_current"
+    },
+    {
+      "path": "src/toad/screens/session_view.py",
+      "line": 26,
+      "kind": "Attribute",
+      "source": "return self.app.workspace_sessions.owns(self) and self.screen.is_current"
+    },
+    {
+      "path": "src/toad/screens/session_view.py",
+      "line": 85,
+      "kind": "Attribute",
+      "source": "return await self.screen.frame_presentation.wait() and self.is_current"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 152,
+      "kind": "Attribute",
+      "source": "if self.is_attached:"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 169,
+      "kind": "Attribute",
+      "source": "return self.is_current"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 50,
+      "kind": "Attribute",
+      "source": "return cls(screen.is_attached, screen.stack_updates, screen._size,"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 244,
+      "kind": "Attribute",
+      "source": "self.frame_presentation.begin()"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 236,
+      "kind": "Attribute",
+      "source": "not widget.is_attached or (offset is not None and not isinstance(widget.parent, Widget))"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 63,
+      "kind": "Attribute",
+      "source": "screen.frame_presentation.defer(self.sidebar, self.sidebar.navigation.start)"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 84,
+      "kind": "Attribute",
+      "source": "screen.frame_presentation.defer(self.sidebar, self.start_read)"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 598,
+      "kind": "Attribute",
+      "source": "screen.frame_presentation.defer(self, start_agent)"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 709,
+      "kind": "Attribute",
+      "source": "screen.frame_presentation.defer(self, self._start_hydration)"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 850,
+      "kind": "Attribute",
+      "source": "self.window.screen.frame_presentation.defer(self.window, self.request)"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 986,
+      "kind": "Attribute",
+      "source": "self.window.screen.frame_presentation.defer(self.window, self.request)"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1139,
+      "kind": "Attribute",
+      "source": "self.window.screen.frame_presentation.defer(self.window, self.request)"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1089,
+      "kind": "Attribute",
+      "source": "screen.frame_presentation.defer(self.window, self.request)"
+    },
+    {
+      "path": "src/toad/workspace_chrome.py",
+      "line": 45,
+      "kind": "Attribute",
+      "source": "screen.frame_presentation.defer(roster, roster.navigation.start)"
+    },
+    {
+      "path": "src/toad/workspace_sessions.py",
+      "line": 19,
+      "kind": "FunctionDef",
+      "source": "def current(self, view: \"SessionView\") -> bool:"
+    },
+    {
+      "path": "src/toad/workspace_sessions.py",
+      "line": 63,
+      "kind": "FunctionDef",
+      "source": "def current(self, view: \"SessionView\") -> bool: ..."
+    },
+    {
+      "path": "src/toad/workspace_sessions.py",
+      "line": 88,
+      "kind": "FunctionDef",
+      "source": "def current(self, view):"
+    },
+    {
+      "path": "src/toad/workspace_sessions.py",
+      "line": 93,
+      "kind": "FunctionDef",
+      "source": "def current(self, view):"
+    },
+    {
+      "path": "src/toad/workspace_sessions.py",
+      "line": 101,
+      "kind": "FunctionDef",
+      "source": "def current(self, view):"
+    },
+    {
+      "path": "src/toad/workspace_sessions.py",
+      "line": 134,
+      "kind": "AsyncFunctionDef",
+      "source": "async def select(self, identity: str) -> \"SessionView\":"
+    },
+    {
+      "path": "src/toad/workspace_sessions.py",
+      "line": 156,
+      "kind": "FunctionDef",
+      "source": "def owns(self, view: \"SessionView\") -> bool:"
+    },
+    {
+      "path": "src/toad/workspace_sessions.py",
+      "line": 141,
+      "kind": "Attribute",
+      "source": "self.app.workspace_screen.frame_presentation.begin()"
+    },
+    {
+      "path": "src/toad/workspace_sessions.py",
+      "line": 157,
+      "kind": "Attribute",
+      "source": "return self.source.current(view)"
+    },
+    {
+      "path": "src/toad/workspace_sessions.py",
+      "line": 144,
+      "kind": "Attribute",
+      "source": "await self.app.workspace_chrome.select(destination)"
+    },
+    {
+      "path": "tests/first_frame_terminal_app.py",
+      "line": 22,
+      "kind": "Attribute",
+      "source": "screen.frame_presentation.defer(screen, self.record_frame)"
+    },
+    {
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 88,
+      "kind": "Attribute",
+      "source": "app.screen.frame_presentation.defer(window, observe_release)"
+    },
+    {
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 56,
+      "kind": "Attribute",
+      "source": "app.screen.frame_presentation.defer(window, published.set)"
+    }
+  ],
+  "authority": "FramePresentation owns receipt/callback custody; WorkspaceScreen owns active native scene; WorkspaceSessions owns current logical source. Attachment remains native Widget custody. No new state.",
+  "limits": "AST covers all declared roots. Name matches are source evidence, not proof of external overrides or dynamic aliases."
+}

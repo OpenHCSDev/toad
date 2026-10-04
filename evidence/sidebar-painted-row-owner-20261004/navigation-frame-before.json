@@ -1,0 +1,380 @@
+{
+  "head": "8fdcc554dc3c81ae457222b53815fbca4bd70a06",
+  "roots": [
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "8fdcc554dc3c81ae457222b53815fbca4bd70a06",
+      "root": "src/toad",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "8fdcc554dc3c81ae457222b53815fbca4bd70a06",
+      "root": "tests",
+      "parsed": 393,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "8fdcc554dc3c81ae457222b53815fbca4bd70a06",
+      "root": "tools",
+      "parsed": 41,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "revision": "HEAD",
+      "root": "src/textual",
+      "parsed": 249,
+      "omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "root": "src/toad",
+      "path": "src/toad/app.py",
+      "line": 483,
+      "kind": "AsyncFunctionDef",
+      "name": "_switch_mode_ready",
+      "source": "async def _switch_mode_ready(self, mode: str, *, history_index: int | None = None) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/app.py",
+      "line": 303,
+      "kind": "Attribute",
+      "name": "_atomic_mode_switch",
+      "source": "self._atomic_mode_switch = False"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/app.py",
+      "line": 304,
+      "kind": "Attribute",
+      "name": "_pending_mode_switch",
+      "source": "self._pending_mode_switch: str | None = None"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/app.py",
+      "line": 445,
+      "kind": "Attribute",
+      "name": "_pending_mode_switch",
+      "source": "self._pending_mode_switch = mode"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/app.py",
+      "line": 451,
+      "kind": "Attribute",
+      "name": "_atomic_mode_switch",
+      "source": "if not self._atomic_mode_switch:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/app.py",
+      "line": 486,
+      "kind": "Attribute",
+      "name": "_atomic_mode_switch",
+      "source": "self._atomic_mode_switch = True"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/app.py",
+      "line": 446,
+      "kind": "Attribute",
+      "name": "_switch_mode_ready",
+      "source": "return AwaitComplete(self._switch_mode_ready(mode, history_index=history_index))"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/app.py",
+      "line": 502,
+      "kind": "Attribute",
+      "name": "_atomic_mode_switch",
+      "source": "self._atomic_mode_switch = False"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/app.py",
+      "line": 503,
+      "kind": "Attribute",
+      "name": "_pending_mode_switch",
+      "source": "self._pending_mode_switch = None"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/frame_presentation.py",
+      "line": 66,
+      "kind": "FunctionDef",
+      "name": "defer",
+      "source": "def defer(self, frame, owner, callback):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/frame_presentation.py",
+      "line": 69,
+      "kind": "FunctionDef",
+      "name": "begin",
+      "source": "def begin(self, frame):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/frame_presentation.py",
+      "line": 112,
+      "kind": "FunctionDef",
+      "name": "defer",
+      "source": "def defer(self, frame, owner, callback):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/frame_presentation.py",
+      "line": 119,
+      "kind": "FunctionDef",
+      "name": "defer",
+      "source": "def defer(self, frame, owner, callback):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/frame_presentation.py",
+      "line": 122,
+      "kind": "FunctionDef",
+      "name": "begin",
+      "source": "def begin(self, frame):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/frame_presentation.py",
+      "line": 147,
+      "kind": "FunctionDef",
+      "name": "begin",
+      "source": "def begin(self):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/frame_presentation.py",
+      "line": 150,
+      "kind": "FunctionDef",
+      "name": "defer",
+      "source": "def defer(self, owner: Widget, callback: Callable[[], object]) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/frame_presentation.py",
+      "line": 80,
+      "kind": "Attribute",
+      "name": "begin",
+      "source": "self.begin(frame)"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/frame_presentation.py",
+      "line": 113,
+      "kind": "Attribute",
+      "name": "defer",
+      "source": "super().defer(frame, owner, callback)"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/frame_presentation.py",
+      "line": 114,
+      "kind": "Attribute",
+      "name": "_atomic_mode_switch",
+      "source": "if not frame.screen.app._atomic_mode_switch:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/frame_presentation.py",
+      "line": 148,
+      "kind": "Attribute",
+      "name": "begin",
+      "source": "self.state.begin(self)"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/frame_presentation.py",
+      "line": 152,
+      "kind": "Attribute",
+      "name": "defer",
+      "source": "self.state.defer(self, owner, callback)"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/screens/comms.py",
+      "line": 174,
+      "kind": "Attribute",
+      "name": "defer",
+      "source": "self.screen.frame_presentation.defer(self, self._start_hydration)"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/screens/comms.py",
+      "line": 209,
+      "kind": "Attribute",
+      "name": "batch_update",
+      "source": "with self.app.batch_update():"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/screens/workspace.py",
+      "line": 164,
+      "kind": "Attribute",
+      "name": "_atomic_mode_switch",
+      "source": "if app._atomic_mode_switch or (self.is_current and app._pending_mode_switch is not None"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/screens/workspace.py",
+      "line": 228,
+      "kind": "Attribute",
+      "name": "_atomic_mode_switch",
+      "source": "if cast(\"ToadApp\", self.app)._atomic_mode_switch and self.is_mounted:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/screens/workspace.py",
+      "line": 164,
+      "kind": "Attribute",
+      "name": "_pending_mode_switch",
+      "source": "if app._atomic_mode_switch or (self.is_current and app._pending_mode_switch is not None"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/screens/workspace.py",
+      "line": 165,
+      "kind": "Attribute",
+      "name": "_pending_mode_switch",
+      "source": "and app._pending_mode_switch != self.id):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 276,
+      "kind": "AsyncFunctionDef",
+      "name": "preserve_reader",
+      "source": "async def preserve_reader(self, widget: Widget | None):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 272,
+      "kind": "Attribute",
+      "name": "preserve_reader",
+      "source": "await reader.enter_async_context(self.preserve_reader(widget))"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 201,
+      "kind": "Attribute",
+      "name": "_atomic_mode_switch",
+      "source": "if self.app._atomic_mode_switch:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/workspace_sessions.py",
+      "line": 141,
+      "kind": "Attribute",
+      "name": "begin",
+      "source": "self.app.workspace_screen.frame_presentation.begin()"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/workspace_sessions.py",
+      "line": 145,
+      "kind": "Attribute",
+      "name": "prepare_presentation",
+      "source": "await destination.prepare_presentation()"
+    },
+    {
+      "root": "tests",
+      "path": "tests/manual_live_turn_status.py",
+      "line": 88,
+      "kind": "Attribute",
+      "name": "_pending_mode_switch",
+      "source": "f\"pending={app._pending_mode_switch}; atomic={app._atomic_mode_switch}; \""
+    },
+    {
+      "root": "tests",
+      "path": "tests/manual_live_turn_status.py",
+      "line": 88,
+      "kind": "Attribute",
+      "name": "_atomic_mode_switch",
+      "source": "f\"pending={app._pending_mode_switch}; atomic={app._atomic_mode_switch}; \""
+    },
+    {
+      "root": "tests",
+      "path": "tests/native_goal_read_first_paint_pilot.py",
+      "line": 49,
+      "kind": "Attribute",
+      "name": "_atomic_mode_switch",
+      "source": "'atomic_selection_held': app._atomic_mode_switch,"
+    },
+    {
+      "root": "tests",
+      "path": "tests/navigation_source_timer_pilot.py",
+      "line": 39,
+      "kind": "Attribute",
+      "name": "_pending_mode_switch",
+      "source": "assert app._pending_mode_switch is None"
+    },
+    {
+      "root": "tests",
+      "path": "tests/navigation_source_timer_pilot.py",
+      "line": 31,
+      "kind": "Attribute",
+      "name": "_pending_mode_switch",
+      "source": "assert app._pending_mode_switch == second_mode"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/capture_state.py",
+      "line": 182,
+      "kind": "Attribute",
+      "name": "_atomic_mode_switch",
+      "source": "\"atomic_mode_switch\": app._atomic_mode_switch,"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/sidebar_validation_driver.py",
+      "line": 547,
+      "kind": "Attribute",
+      "name": "_atomic_mode_switch",
+      "source": "\"atomic_mode_switch\": app._atomic_mode_switch, \"pending_mode_switch\": app._pending_mode_switch,"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/sidebar_validation_driver.py",
+      "line": 547,
+      "kind": "Attribute",
+      "name": "_pending_mode_switch",
+      "source": "\"atomic_mode_switch\": app._atomic_mode_switch, \"pending_mode_switch\": app._pending_mode_switch,"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 1069,
+      "kind": "FunctionDef",
+      "name": "batch_update",
+      "source": "def batch_update(self) -> Generator[None, None, None]:"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 3153,
+      "kind": "Attribute",
+      "name": "batch_update",
+      "source": "with self.batch_update():"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 3439,
+      "kind": "Attribute",
+      "name": "batch_update",
+      "source": "with self.batch_update():"
+    }
+  ],
+  "limits": "Names enumerate syntactic consumers including dependency roots; aliases and external dynamic overrides are not resolved. Native HEAD is read only and not the installed comparator. Source reading distinguishes synchronous mutation batches from global batches held across await."
+}

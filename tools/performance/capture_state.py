@@ -180,7 +180,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
             "repaint_required": screen._repaint_required,
             "dirty_widgets": [node_identity(node) for node in screen._dirty_widgets],
             "batch_count": app._batch_count,
-            "atomic_mode_switch": app._atomic_mode_switch,
+            "workspace_source": type(app.workspace_sessions.source).__name__,
             "frame": None if frame is None else {
                 "state": type(frame.state).__name__, "ready": frame.ready,
                 "presented": frame.presented.is_set(), "deferred_callbacks": len(frame.callbacks)},

@@ -1,0 +1,15 @@
+{
+  "state": "REFUSED actual NRA wheel measures.py missing FamilyFlattened; full source proof absent",
+  "artifact": {
+    "path": "/home/ts/wt/nra-skill-publish-20261002/.artifacts/family-flattened-collector-20261004/wheels/nominal_refactor_audit-0.1.0-py3-none-any.whl",
+    "sha256": "8d489731728ebf9f7e0f90ef2b14e7e3b5d2f90ed82bd8b1482d735f82869886"
+  },
+  "source": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10",
+  "canonical_path": "skills/refactor-audit/scripts/audit/measures.py",
+  "wheel_path": "refactor_audit/measures.py",
+  "original_sha256": "8f6127cb184801fbf2ca162adbece5c103c0fc6693f81197632668f710af7513",
+  "wheel_sha256": "8f6127cb184801fbf2ca162adbece5c103c0fc6693f81197632668f710af7513",
+  "expected_hash_changed": false,
+  "public_effects": 0,
+  "wheel_source_equality_claim_rejected": true
+}

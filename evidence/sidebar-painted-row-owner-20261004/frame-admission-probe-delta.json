@@ -1,0 +1,30 @@
+{
+  "scope": "Existing refactor-audit source measure for the three changed release/admission owners; not the complete packaged/hosted ratchet or runtime qualification.",
+  "head": "930ee0ec81a76e5abac68871835f33f70472a6e1",
+  "files": [
+    {
+      "path": "src/toad/frame_presentation.py",
+      "ForeignAbsenceProbe": {
+        "origin/main": 1,
+        "ceb28770cbe84c4b4a2d29a737c4aa1574e2e44a": 3,
+        "930ee0ec81a76e5abac68871835f33f70472a6e1": 0
+      }
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "ForeignAbsenceProbe": {
+        "origin/main": 2,
+        "ceb28770cbe84c4b4a2d29a737c4aa1574e2e44a": 1,
+        "930ee0ec81a76e5abac68871835f33f70472a6e1": 1
+      }
+    },
+    {
+      "path": "src/toad/workspace_sessions.py",
+      "ForeignAbsenceProbe": {
+        "origin/main": 0,
+        "ceb28770cbe84c4b4a2d29a737c4aa1574e2e44a": 0,
+        "930ee0ec81a76e5abac68871835f33f70472a6e1": 0
+      }
+    }
+  ]
+}

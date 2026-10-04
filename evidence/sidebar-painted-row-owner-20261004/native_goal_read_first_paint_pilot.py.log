@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/native_goal_read_first_paint_pilot.py", line 7, in <module>
+    from compaction_summary_stream_native_installed_pilot import reconnect_cancelled_source
+  File "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/compaction_summary_stream_native_installed_pilot.py", line 11, in <module>
+    sys.path.insert(0, os.environ["CORE_FIXTURE_TESTS"])
+                       ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 709, in __getitem__
+KeyError: 'CORE_FIXTURE_TESTS'

@@ -28,20 +28,6 @@ class SidebarProjection:
                 for row in (group.row, *group.member_container.children)
                 if row.is_navigation_row()]
 
-    def painted_busy_rows(self):
-        """Animate only rows admitted by the current native paint scene.
-
-        Navigation owns the whole roster. Its attachment walk is not an
-        animation census, and offscreen rows have no spinner pixels to paint.
-        Read the compositor's existing visible custody without retaining a
-        competing row list or busy-state index.
-        """
-        from toad.widgets.comms_sidebar import CommsRow
-        for row in self.sidebar.screen._compositor.visible_widgets:
-            if isinstance(row, CommsRow) and row.has_class("-busy"):
-                if row.is_navigation_row() and row.sidebar_owner() is self.sidebar:
-                    yield row
-
     @property
     def thread_rows(self):
         from toad.widgets.comms_sidebar import ChannelGroup
@@ -76,7 +62,7 @@ class SidebarProjection:
         if timer is None:
             return
         active = self.sidebar.shows_rows() and self.sidebar.observation.enabled
-        if active and self.has_snapshot() and any(row.has_class("-busy") for row in self.rows):
+        if active and self.has_snapshot() and any(row.busy for row in self.rows):
             timer.resume()
         else:
             timer.pause()
@@ -86,7 +72,7 @@ class SidebarProjection:
             self.sync_spinner()
             return
         self.phase = (self.phase + 1) % len(FRAMES)
-        for row in self.painted_busy_rows():
+        for row in self.sidebar.painted_rows():
             row.advance_spinner(self.phase)
 
     async def publish(self, snapshot: SidebarSnapshot) -> None:
