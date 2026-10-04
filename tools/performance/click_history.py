@@ -124,6 +124,12 @@ class RightSidebarTarget(NativeFocusTarget):
 class ContextTreeTarget(NativeFocusTarget):
     @classmethod
     def locate(cls, snapshot, args):
+        if args.name:
+            context = cls.selected_view(snapshot)["context"]
+            node, = (node for node in context["nodes"] if node["key"] == args.name)
+            if node["target"] is None:
+                raise ValueError("Selected original context node has no visible native target")
+            return node["target"]
         tree, = (node for node in snapshot["metadata"]["navigation_targets"]["widgets"]
                  if node["class"] == "Tree" and node["id"] == "context-tree")
         return tree

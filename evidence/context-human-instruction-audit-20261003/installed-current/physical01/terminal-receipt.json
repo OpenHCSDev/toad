@@ -1,0 +1,22 @@
+{
+  "state": "FAILED_NO_REPLAY",
+  "fixture": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/cold-context595-configured02",
+  "selected_file": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/cold-context595-configured02/native-forks/2026-10-03T16-01-21-766Z_01a1027f-a366-77f8-8b39-0d4999995f4d.jsonl",
+  "selected_bytes": 42376298,
+  "selected_sha256_before": "659a4f3af42b124bac4a50ee2d44b1ef2c58dcf9f7d82def9426781d855a5002",
+  "public_file": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T16-50-21-634Z_01a0f85f-c742-756b-9a21-4f02f7bea72e.jsonl",
+  "public_sha256_before": "b733f5ddbd17d7524f18a872ecfd061fa31d790f2eee5a89eeb9cb41020457f4",
+  "model": "openai-codex/gpt-6.1-sol",
+  "thinking": "high",
+  "providers": 0,
+  "native_inputs": 0,
+  "priming_calls": 0,
+  "python": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+  "activation": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/activation.json",
+  "controller": {
+    "pid": 2150645,
+    "start_time": 53853245
+  },
+  "error": "AssertionError('Inspect original recorder log/receipt')",
+  "elapsed_seconds": 34.52633051108569
+}

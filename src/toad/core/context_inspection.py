@@ -1,12 +1,15 @@
 """Read-only context references. The SDK owns selection and token estimates."""
 from __future__ import annotations
 
-import asyncio
 import json
+from pathlib import Path
 from abc import ABC
 from dataclasses import dataclass
+from functools import partial
+from typing import TYPE_CHECKING, Awaitable, Callable
 
 from agent_comms.field_codec import FieldCodec
+from agent_comms.coordinator import Coordination
 from agent_comms.mro_dispatch import handles
 from toad.core.projection import MroProjection
 from agent_comms.native_turn_context import NativeContextData
@@ -15,9 +18,12 @@ from agent_comms.runtime import RuntimeConnection, socket_path
 from agent_comms.selected_source import SessionRevision, SessionObservation
 from agent_comms.threads import Thread
 from agent_comms.turn_context import (
-    ContextManifest, MeasuredNativeSegment, NativeMessages, Provenance,
-    SegmentManifest, SystemLayerSegment, ToolCatalogSegment,
+    ContextManifest, ContextSegment, ContextSourceText, NativeMessages, Provenance,
+    SegmentManifest,
 )
+
+if TYPE_CHECKING:
+    from agent_comms.comms import Comms
 
 
 @dataclass(frozen=True)
@@ -35,33 +41,65 @@ class ContextNode(ABC):
     def detail(self) -> str:
         return "No text recorded for this observation."
 
+    def public_text(self) -> str:
+        """Only original public content is searchable, never private reasoning."""
+        return ""
+
+    def find(self, query: str):
+        """Walk original references on demand; do not build a second text index."""
+        if query in self.public_text().casefold():
+            yield self
+        for child in self.children():
+            yield from child.find(query)
+
+    async def read(self):
+        return await Coordination.run_worker(self.detail)
+
+    async def export(self, destination: Path):
+        """Export this original observation; never overwrite a session/source file."""
+        detail = await self.read()
+        await Coordination.run_worker(partial(self._write_export, destination, detail))
+
+    @staticmethod
+    def _write_export(destination, detail):
+        with destination.open("x", encoding="utf-8") as output:
+            output.write(detail)
+
 
 @dataclass(frozen=True)
 class ReferenceNode(ContextNode):
     source: Provenance
+    read_source: Callable[[Provenance], Awaitable[ContextSourceText]]
 
     @property
     def label(self):
-        return f"Reference · {self.source.declared_name}"
+        return f"Source · {self.source.public_description()}"
 
     def detail(self):
-        return "Reference only; not read by browsing.\n" + json.dumps(
-            FieldCodec.encode(self.source), ensure_ascii=False, indent=2)
+        return self.source.public_description()
+
+    def public_text(self):
+        return self.source.public_description()
+
+    async def read(self):
+        original = await self.read_source(self.source)
+        return f"{original.description}\n\n{original.text}"
 
 
 @dataclass(frozen=True)
 class ManifestNode(ContextNode):
     segment: SegmentManifest
+    read_source: Callable[[Provenance], Awaitable[ContextSourceText]]
 
     @property
     def label(self):
-        return f"{self.segment.kind} · ~{self.segment.tokens:,} tokens"
+        return f"{self.segment.kind.replace('_', ' ')} · ~{self.segment.tokens:,} tokens"
 
     def children(self):
         return (
-            *(ManifestNode(f"{self.key}/contributor/{i}", child)
+            *(ManifestNode(f"{self.key}/contributor/{i}", child, self.read_source)
               for i, child in enumerate(self.segment.contributors)),
-            *(ReferenceNode(f"{self.key}/source/{i}", source)
+            *(ReferenceNode(f"{self.key}/source/{i}", source, self.read_source)
               for i, source in enumerate(self.segment.provenance)),
         )
 
@@ -69,20 +107,23 @@ class ManifestNode(ContextNode):
         return (f"{self.segment.kind}\nEstimate: {self.segment.tokens:,} tokens\n"
                 f"Original bytes: {self.segment.utf8_bytes:,}\n"
                 f"Digest: {self.segment.sha256}\n\n"
-                "This recorded manifest contains no text. Its references are not dereferenced.")
+                "This manifest records the request's sources and measurements, not its text. "
+                "Current native base is not evidence of this earlier request's wording.")
 
 
 @dataclass(frozen=True)
 class RecordedTurnNode(ContextNode):
     manifest: ContextManifest
+    inspection: ContextInspection
 
     @property
     def label(self):
         turn = self.manifest.turn.require_recorded()
-        return f"Turn {turn.occurrence.generation} · {turn.identity.value[:12]}"
+        return f"Request {turn.occurrence.generation} · {turn.identity.value[:12]}"
 
     def children(self):
-        return tuple(ManifestNode(f"{self.key}/{i}", segment)
+        return tuple(ManifestNode(f"{self.key}/{i}", segment,
+                                 partial(self.inspection.recorded_source, self.manifest, i))
                      for i, segment in enumerate(self.manifest.segments))
 
     def detail(self):
@@ -94,81 +135,86 @@ class RecordedTurnNode(ContextNode):
 
 @dataclass(frozen=True)
 class NativeSegmentNode(ContextNode):
-    segment: MeasuredNativeSegment
+    segment: ContextSegment
+    read_source: Callable[[Provenance], Awaitable[ContextSourceText]]
 
     @property
     def label(self):
-        return f"{self.segment.declared_name} · ~{self.segment.tokens:,} tokens"
+        return self.segment.public_description()
 
     def children(self):
         return (
-            *(ManifestNode(f"{self.key}/contributor/{i}", child)
-              for i, child in enumerate(self.segment.contributors)),
-            *(ReferenceNode(f"{self.key}/source/{i}", source)
+            *(ManifestNode(f"{self.key}/contributor/{i}", child, self.read_source)
+              for i, child in enumerate(self.segment.contributor_manifests())),
+            *(ReferenceNode(f"{self.key}/source/{i}", source, self.read_source)
               for i, source in enumerate(self.segment.provenance)),
         )
 
     def detail(self):
-        return NativeDetail().dispatch_sync(self.segment)
+        sources = "\n\n".join(
+            source.public_description()
+            for source in self.segment.provenance
+        )
+        return f"{self.label}\n\n{self.public_text()}\n\nSources:\n{sources}"
 
-
-class NativeDetail(MroProjection):
-    """Use existing SDK segment and content owners; omit private reasoning."""
-    @handles(SystemLayerSegment)
-    def system(self, segment):
-        return segment.content
-
-    @handles(NativeMessages)
-    def messages(self, segment):
-        return "Expand this segment to inspect an individual message."
-
-    @handles(ToolCatalogSegment)
-    def tools(self, segment):
-        return json.dumps(segment.tools, ensure_ascii=False, indent=2)
+    def public_text(self):
+        return self.segment.public_text()
 
 
 @dataclass(frozen=True)
-class NativeMessageNode(ContextNode):
-    raw: dict
+class NativeMessageNode(NativeSegmentNode):
+    message: PiMessage
     position: int
 
     @property
     def label(self):
-        return f"Message {self.position + 1}"
+        text = " ".join(self.message.text[:120].split())
+        return (f"{self.segment.declared_name.replace('_', ' ')} · "
+                f"{self.message.declared_name} {self.position + 1} · {text or 'no public text'}")
 
-    def detail(self):
-        message = PiMessage.from_wire(self.raw)
+    def public_text(self):
+        message = self.message
         calls = tuple(call for part in message.parts for call in part.tool_calls())
         tool_text = "\n".join(json.dumps(FieldCodec.encode(call), ensure_ascii=False,
                                         indent=2) for call in calls)
+        return "\n".join(filter(None, (message.text, tool_text)))
+
+    def detail(self):
+        message = self.message
         usage = ("Provider usage on this original message:\n" + json.dumps(
             FieldCodec.encode(message.usage), ensure_ascii=False, indent=2)
             if message.usage is not None else "")
-        return "\n".join(filter(None, (message.text, tool_text, usage))) or (
-            "No public text in this message. Images, opaque content and private reasoning "
-            "are not rendered.")
+        return f"{super().detail()}\n\n{usage}" if usage else super().detail()
 
 
 class SegmentNodes(MroProjection):
-    def __init__(self, key):
-        self.key = key
+    def __init__(self, key, read_source):
+        self.key, self.read_source = key, read_source
 
-    @handles(MeasuredNativeSegment)
+    @handles(ContextSegment)
     def segment(self, segment):
-        return NativeSegmentNode(self.key, segment)
+        return NativeSegmentNode(self.key, segment, self.read_source)
 
     @handles(NativeMessages)
     def messages(self, segment):
-        return NativeMessagesNode(self.key, segment)
+        return NativeMessagesNode(self.key, segment, self.read_source)
 
 
 @dataclass(frozen=True)
 class NativeMessagesNode(NativeSegmentNode):
     page_size: int = 64
 
+    def public_text(self):
+        # This navigation container delegates searching to its original
+        # message children rather than concatenating the same history twice.
+        return ""
+
+    def detail(self):
+        return f"{self.label}\nExpand a message range to read each original public message."
+
     def children(self):
         return (*super().children(),
-                *(NativeMessageRange(f"{self.key}/range/{start}", self.segment,
+                *(NativeMessageRange(f"{self.key}/range/{start}", self.segment, self.read_source,
                                      start, min(start + self.page_size, len(self.segment.messages)))
                   for start in range(0, len(self.segment.messages), self.page_size)))
 
@@ -176,6 +222,7 @@ class NativeMessagesNode(NativeSegmentNode):
 @dataclass(frozen=True)
 class NativeMessageRange(ContextNode):
     segment: NativeMessages
+    read_source: Callable[[Provenance], Awaitable[ContextSourceText]]
     start: int
     stop: int
 
@@ -184,12 +231,13 @@ class NativeMessageRange(ContextNode):
         return f"Messages {self.start + 1}–{self.stop}"
 
     def children(self):
-        return tuple(NativeMessageNode(f"{self.key}/message/{i}",
-                                      self.segment.messages[i], i)
+        return tuple(NativeMessageNode(f"{self.key}/message/{i}", segment=self.segment,
+                                      read_source=self.read_source,
+                                      message=PiMessage.from_wire(self.segment.messages[i]), position=i)
                      for i in range(self.start, self.stop))
 
     def detail(self):
-        return "Selected active message range; expand to inspect an individual original message."
+        return "Current native message range; expand to read the original public text."
 
 
 @dataclass(frozen=True)
@@ -198,12 +246,13 @@ class ContextInspection:
     owner: Thread
     manifests: tuple[ContextManifest, ...]
     source: SessionObservation
+    service: Comms
 
     @classmethod
     def read(cls, comms, owner):
         thread = comms.registry.require(owner)
         return cls(thread, comms.bus.log.context_manifests(owner, comms.registry),
-                   SessionRevision.observe(thread.session_file))
+                   SessionRevision.observe(thread.session_file), comms)
 
     def same_native_source(self, other: ContextInspection):
         """Compare original SDK source/launch facts, not roster presentation."""
@@ -216,23 +265,51 @@ class ContextInspection:
         # Later observations of the same original turn supersede only its view.
         turns = {manifest.turn.require_recorded().identity.value: manifest
                  for manifest in self.manifests}
-        return tuple(RecordedTurnNode(f"turn/{identity}", manifest)
+        return tuple(RecordedTurnNode(f"turn/{identity}", manifest, self)
                      for identity, manifest in reversed(turns.items()))
 
-    async def native(self, comms):
-        owner = await asyncio.to_thread(comms.registry.require, self.owner.name)
+    def find(self, native, query: str, *, limit=100):
+        """Bound result widgets, while searching the original available public text."""
+        from itertools import islice
+
+        normalized = query.casefold()
+        nodes = (*self.contributors(native), *self.active(native)) if native is not None else ()
+        return tuple(islice((match for node in nodes for match in node.find(normalized)), limit))
+
+    async def _request(self, action, **parameters):
+        owner = await Coordination.run_worker(partial(self.service.registry.require, self.owner.name))
         if owner.incarnation != self.owner.incarnation:
             raise ValueError("Selected context thread incarnation changed")
         process = owner.require_process()
-        connection = RuntimeConnection(comms, owner.name, socket_path(comms.root, process.pid))
+        connection = RuntimeConnection(self.service, owner.name, socket_path(self.service.root, process.pid))
         try:
-            payload = await connection.request("context")
-            context = await asyncio.to_thread(FieldCodec.decode, NativeContextData, payload)
-            return context.require_session_file(owner.require_saved_session())
+            return await connection.request(action, **parameters)
         finally:
             await connection.close()
 
-    @staticmethod
-    def active(context: NativeContextData):
-        return tuple(SegmentNodes(f"native/{context.identity.session_id}/{i}/{segment.declared_name}/{segment.sha256}").dispatch_sync(segment)
+    async def native(self):
+        payload = await self._request("context")
+        context = await Coordination.run_worker(partial(FieldCodec.decode, NativeContextData, payload))
+        return context.require_session_file(self.owner.require_saved_session())
+
+    async def current_source(self, context, position, source):
+        payload = await self._request("context_source",
+            observation=FieldCodec.encode(context.observation()), segment=position,
+            source=FieldCodec.encode(source))
+        return FieldCodec.decode(ContextSourceText, payload)
+
+    async def recorded_source(self, manifest, position, source):
+        payload = await self._request("context_reference",
+            turn=FieldCodec.encode(manifest.turn), request_id=manifest.require_request_id(),
+            segment=position, source=FieldCodec.encode(source))
+        return FieldCodec.decode(ContextSourceText, payload)
+
+    def active(self, context: NativeContextData):
+        return tuple(SegmentNodes(f"native/{context.identity.session_id}/{i}/{segment.declared_name}/{segment.sha256}",
+                                 partial(self.current_source, context, i)).dispatch_sync(segment)
                      for i, segment in enumerate(context.segments))
+
+    def contributors(self, context: NativeContextData):
+        return tuple(SegmentNodes(f"core/{context.identity.session_id}/{i}/{segment.declared_name}",
+                     partial(self.current_source, context, len(context.segments) + i)).dispatch_sync(segment)
+                     for i, segment in enumerate(context.contributors))
