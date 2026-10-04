@@ -266,7 +266,10 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
             self.update(label)
 
     def sidebar_owner(self):
-        return next((node for node in self.walk_ancestors() if isinstance(node, TargetTree)), None)
+        parent = self.parent
+        while parent is not None and not isinstance(parent, TargetTree):
+            parent = parent.parent
+        return parent
 
     # Row-level actions delegate to the sidebar so keys work even when
     # scrollable ancestors would otherwise consume them.
@@ -364,7 +367,10 @@ class NewSessionButton(Static):
             self.action_create()
 
     def _sidebar(self):
-        return next((node for node in self.walk_ancestors() if isinstance(node, CommsSidebar)), None)
+        parent = self.parent
+        while parent is not None and not isinstance(parent, CommsSidebar):
+            parent = parent.parent
+        return parent
 
     def on_focus(self) -> None:
         if (sidebar := self._sidebar()) is not None:

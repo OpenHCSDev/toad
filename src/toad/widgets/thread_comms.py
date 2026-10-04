@@ -280,8 +280,10 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             self._sync_spinner()
             return
         self._spinner_phase = (self._spinner_phase + 1) % len(FRAMES)
-        for row in self.painted_busy_rows():
-            row.advance_spinner(self._spinner_phase)
+        for group in self.groups.values():
+            for row in group.rows.values():
+                if row.has_class("-busy"):
+                    row.advance_spinner(self._spinner_phase)
 
     def on_show(self):
         if not self.is_attached or self.screen is not self.app.screen:
