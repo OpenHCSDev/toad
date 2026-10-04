@@ -212,7 +212,8 @@ def request_target(app, command, subject):
         target=subject, declaration=command, arguments={})), subject)
 
 
-def retain_fixture_journals(paths, *, stage: Path, evidence: Path) -> None:
+def retain_fixture_journals(paths, *, stage: Path, evidence: Path,
+                           cold_mount: Path = Path("/run/media/ts/hdd")) -> None:
     """Cold-retain exact owned SDK copies after terminal keeper publication.
 
     This does not dispose source history or change SessionManager. The existing
@@ -228,23 +229,37 @@ def retain_fixture_journals(paths, *, stage: Path, evidence: Path) -> None:
     candidates.write_text(json.dumps({"items": [{"path": str(p)} for p in paths]}, indent=2) + "\n")
     census = evidence / "journal-retention-borrowers.json"
     checker = Path("/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/borrower-census.py")
-    subprocess.run(("sudo", "-n", sys.executable, str(checker), str(candidates), str(census)),
-                   check=True, stdout=subprocess.DEVNULL)
-    borrowers = json.loads(census.read_text())
     receipt = {"borrower_census": str(census), "files": []}
     retained = evidence / "journal-retention.json"
+    try:
+        if not cold_mount.is_mount():
+            raise OSError(f"Cold storage is not mounted: {cold_mount}")
+        cold_device = cold_mount.stat().st_dev
+        if any(path.stat().st_dev == cold_device for path in paths):
+            raise OSError("Cold storage must differ from the source filesystem")
+        if not checker.is_file():
+            raise FileNotFoundError(checker)
+        subprocess.run(("sudo", "-n", sys.executable, str(checker), str(candidates), str(census)),
+                       check=True, stdout=subprocess.DEVNULL)
+    except (OSError, subprocess.CalledProcessError) as error:
+        receipt["retained_reason"] = str(error)
+        retained.write_text(json.dumps(receipt, indent=2) + "\n")
+        return
+    borrowers = json.loads(census.read_text())
     retained.write_text(json.dumps(receipt, indent=2) + "\n")
     if borrowers["gaps"] or any(borrowers["refs"][str(path)] for path in paths):
+        receipt["retained_reason"] = "Borrowers or census permission gaps remain"
+        retained.write_text(json.dumps(receipt, indent=2) + "\n")
         return  # Original leaves remain intact while actual custody is open.
-    cold_root = Path("/run/media/ts/hdd/agent-comms-retained/history-sdk-fixture")
-    if not cold_root.parent.is_dir():
-        raise FileNotFoundError(cold_root.parent)
+    cold_root = cold_mount / "agent-comms-retained" / "history-sdk-fixture"
     for path in paths:
         before = path.stat()
         with path.open("rb") as source:
             digest = hashlib.file_digest(source, "sha256").hexdigest()
         destination = cold_root / path.relative_to(path.anchor)
         destination.parent.mkdir(parents=True, exist_ok=True)
+        if destination.parent.stat().st_dev != cold_device:
+            raise OSError("Cold destination escaped the mounted filesystem")
         if destination.exists():
             raise FileExistsError(destination)
         partial = destination.with_name(destination.name + ".partial")
@@ -270,6 +285,12 @@ def retain_fixture_journals(paths, *, stage: Path, evidence: Path) -> None:
         _sync_fixture_directory(destination.parent)
         link = path.with_name(path.name + ".cold-link")
         link.symlink_to(destination)
+        if (not cold_mount.is_mount() or cold_mount.stat().st_dev != cold_device
+                or destination.stat().st_dev != cold_device):
+            receipt["retained_reason"] = "Cold mount changed before source replacement"
+            retained.write_text(json.dumps(receipt, indent=2) + "\n")
+            link.unlink()
+            return
         os.replace(link, path)
         _sync_fixture_directory(path.parent)
         with path.open("rb") as original_path:
