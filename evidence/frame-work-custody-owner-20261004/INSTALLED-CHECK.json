@@ -5,7 +5,7 @@
   "observed_at": "2026-10-04T01:07:40.408975+00:00",
   "originals": {
     "source-proof.json": {
-      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame418-stage-20261004/source-proof.json",
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame418-stage-20261004/text49-source-proof.json",
       "sha256": "23617c62992d615c5b3588fbab0b3d89a3d726224af2df940222d96747fb587d"
     },
     "fragment-app.log": {

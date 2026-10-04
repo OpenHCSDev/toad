@@ -42,12 +42,13 @@
       }
     }
   ],
-  "proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame418-stage-20261004/source-proof.json",
+  "proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame418-stage-20261004/before611-source-proof.json",
   "proof_sha256": "6c90642cd633a63b6ae37834af58615aff88f2fb9d11bc2d78ebd60194ea34e2",
   "all_69_versions_unchanged": true,
   "Toad_package_assets_equal_original_installed_App": true,
   "installed_App_original_pair": "e0a9/Core039/Text49/nativeD5",
   "physical_launched": false,
   "physical_blocker": "Original public route remains native89; candidateCore609 validatesnativeD5",
-  "no_speed_claim": true
+  "no_speed_claim": true,
+  "scope": "historical joined609/D5/50 asset verification before matched611 restage"
 }

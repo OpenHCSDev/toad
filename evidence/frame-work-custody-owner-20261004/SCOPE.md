@@ -93,3 +93,34 @@ Core039/D5 probe refusal stays historical, not a UI failure. No override or
 private substitute. Normal main join keeps all accepted frontend families and
 uses native50 for this changed418 physical run. Original installed App with
 039/D5/49 remains at that exact scope; source-unchanged frame code is preserved.
+
+## Scoped installed physical qualification
+
+ONE original public existing_thread input_warm run completed138.053s on actual
+Core611 d416/native2ea, Toad feef523, frozenText50 ff5. All16 warm and7input
+checks passed,37 retained ready bodies, runtime and original nra owner unchanged;
+cleanup remaining/errors empty. Required native exports complete after removing
+the obsolete index read. No provider or native input; unsubmitted draft/Undo and
+original source/window/reader A/B/A preserved. Raw originals are hash-bound in
+READY.json; recorder encoder255/transferred UI custody kept without exit0 fiction.
+
+Personally viewed original48-frame Up22.512–23.312 andDown46.999–47.799 during
+the same UI151469/birth55568385, exact before/after witnesses committed in
+MOTION-REVIEW. Body/chrome remain painted; discrete/repeated positions remain.
+Reverse77.003–77.803 andEnd84.959–85.759 viewed AFTER UI exit. No smoothness/FPS
+claim. Native writer key-window median/p95/p99/worst milliseconds:
+Up12.18/40.33/124.32/147.68; Down11.52/27.83/52.25/104.39;
+reverse11.46/25.17/30.64/117.57. Native writer timeline frame-delivery.svg
+is supplied by the original observer; recorded60fps is not application FPS.
+
+Mid-history stationary18.643s marker band contains ZERO requests/admissions/
+retirements/materializations/scroll; only18 sidebar publications. Ready body IDs
+remain unchanged. Marker UI CPU Up76.95%,Down57.02%,reverse70.74%,mid-idle18.88%,
+End-idle19.55%; marker intervals include exports and workloads differ from415,
+so no causal CPU/speed gain. Profile1247 samples/0reportederrors, approximate
+alignment±0.0886s, activation groups not CPU time. Full performance stays ACTIVE.
+
+Scoped Ready: one callback custody algorithm across all11 existing consumers,
+native point-hit membership from original ordered scene, actual saved-history/
+focus/draft/Undo/tab-return/body/idle preservation. Remaining stepped foreground
+motion/main-thread layout/paint work is continued scope, not claimed solved.
