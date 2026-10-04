@@ -1,0 +1,176 @@
+{
+  "state": "Published414 ordinary default saved-history startup accepted; historical originals archived only",
+  "accepted_pr_head": "fe2740c2ddfc534afc5afe0c1e88cc0ebd2c6faf",
+  "merge_commit": "12198e663795d6b8f754599e9e13255cac9fa054",
+  "preserved_late_normal_join": "1b4bfa863bafff741b5dd90ce4619e938e375a91",
+  "raw_publication_phase_unchanged": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "raw_publication_sha256": "b7b7b661b460fd2905ebc4418e21dc184baffcbced597280cedcf64218e65c85",
+  "publisher_duration_seconds": 41.68945503234863,
+  "owner_count": 19,
+  "births_settings_root_preserved": true,
+  "new_process_identities_alive": true,
+  "five_links": {
+    "agent-comms": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/agent-comms-agent",
+    "agent-comms-nk-foreground": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/agent-comms-nk-foreground",
+    "toad": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/toad"
+  },
+  "route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-89b56aea0bb128c4/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "source_target_schema_equal": true,
+  "target_prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "scope": "Ordinary default installed saved-history startup, not fresh delivery, compaction, smoother motion or latency comparison",
+  "default_observation_seconds": 23.586318806977943,
+  "actual_terminal_exit": {
+    "pid": 3422623,
+    "start_ticks": 54748620,
+    "returncode": 0
+  },
+  "capture_returncode": 255,
+  "runtime_and_original_helper_unchanged": true,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 3421542,
+        "start_ticks": 54748350,
+        "returncode": 0
+      },
+      {
+        "pid": 3422619,
+        "start_ticks": 54748611,
+        "returncode": 0
+      },
+      {
+        "pid": 3422623,
+        "start_ticks": 54748620,
+        "returncode": 0
+      },
+      {
+        "pid": 3422624,
+        "start_ticks": 54748626,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 3422661,
+        "start_ticks": 54748724,
+        "returncode": 0
+      },
+      {
+        "pid": 3422675,
+        "start_ticks": 54748737,
+        "returncode": 0
+      },
+      {
+        "pid": 3422680,
+        "start_ticks": 54748749,
+        "returncode": 255
+      },
+      {
+        "pid": 3427593,
+        "start_ticks": 54749951,
+        "returncode": 0
+      },
+      {
+        "pid": 3427710,
+        "start_ticks": 54749973,
+        "returncode": 0
+      },
+      {
+        "pid": 3427947,
+        "start_ticks": 54750011,
+        "returncode": 0
+      },
+      {
+        "pid": 3433030,
+        "start_ticks": 54751041,
+        "returncode": 0
+      },
+      {
+        "pid": 3433181,
+        "start_ticks": 54751065,
+        "returncode": 0
+      },
+      {
+        "pid": 3433770,
+        "start_ticks": 54751132,
+        "returncode": 0
+      },
+      {
+        "pid": 3434379,
+        "start_ticks": 54751316,
+        "returncode": 0
+      },
+      {
+        "pid": 3435096,
+        "start_ticks": 54751562,
+        "returncode": 0
+      },
+      {
+        "pid": 3435097,
+        "start_ticks": 54751581,
+        "returncode": 0
+      },
+      {
+        "pid": 3436789,
+        "start_ticks": 54752298,
+        "returncode": 0
+      }
+    ]
+  },
+  "physical_review": "after.png personally viewed AFTER terminal: saved messages readable, helper/sidebar/session Ready, focused empty editor, no activity bar; terminal window occupies part of isolated display",
+  "raw_assessment_unchanged": "unreviewed",
+  "physical_assessment_owner": "Parent personally AFTER reviewed; no Sch physical run or DURING claim",
+  "pre_effect_client_refusal_preserved": true,
+  "provider_calls": 0,
+  "inputs": 0,
+  "public_operator_repeated": false,
+  "identity_readback_repeated": false,
+  "ui_repeated": false,
+  "product_or_operand_mutation": false,
+  "keepers": [
+    {
+      "source": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published414-20261004/publication-original.json",
+      "archive": "evidence/mounted-preparation412-receiving-20261004/published414/publication-original.json",
+      "bytes": 38363,
+      "sha256": "b7b7b661b460fd2905ebc4418e21dc184baffcbced597280cedcf64218e65c85"
+    },
+    {
+      "source": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published414-20261004/readback-original.json",
+      "archive": "evidence/mounted-preparation412-receiving-20261004/published414/readback-original.json",
+      "bytes": 18440,
+      "sha256": "45d892f375c6ab784a19d005258f01f80d4fc21bd5d6c452180d2a613308b005"
+    },
+    {
+      "source": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published414-20261004/preflight-client-refusal.json",
+      "archive": "evidence/mounted-preparation412-receiving-20261004/published414/preflight-client-refusal.json",
+      "bytes": 464,
+      "sha256": "f8fe57a4c739cd87d3439fefe1083dafb9ca2d55776d1832155336d28f2c6023"
+    },
+    {
+      "source": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published414-20261004/default-receipt-original.json",
+      "archive": "evidence/mounted-preparation412-receiving-20261004/published414/default-receipt-original.json",
+      "bytes": 29695,
+      "sha256": "20fc3fc37628bacfa8bf95b3ba22e38401fdb6e448ef1de30027e2aa7a25162a"
+    },
+    {
+      "source": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published414-20261004/default-acceptance.json",
+      "archive": "evidence/mounted-preparation412-receiving-20261004/published414/default-acceptance.json",
+      "bytes": 1224,
+      "sha256": "7790825c2ad2a6ffa62a6dd4784659f14955a37b2963ac9ff7654f24c5a6804f"
+    }
+  ],
+  "media_disposition": "Dispose completed observe-only media/duplicate exports after concise acceptance; no perpetual media retention",
+  "current485_role": "LIVE protected",
+  "previous334_role": "Protected previous package",
+  "fallback534_role": "Protected fallback",
+  "next603_d5_status": "Separate reviewed owner-qualified context receiving; not part of414",
+  "persistent_delivery_question": "Parent reports delivered; no duplicate notification"
+}
