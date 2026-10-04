@@ -69,3 +69,28 @@ The authored controls remain unexecuted pending an eligible named package/import
 purpose. No broad old App, movie, build or provider repeat is part of this
 checkpoint. Runtime qualification and installed UI behavior remain open. Full
 runway and continuous workflow performance also remain unfinished.
+
+## Actual merged442 integration and continuous control closure
+
+This successor now normally contains actual merged442 maincb9bd5c89. The
+qualified442 source/control/29-check App remains frozen on b791; no replay,
+build or holder purpose is inferred by this source join.
+
+The original continuous adaptive-reader control imposed a single-viewport
+forecast ceiling and waited for zero idle runway. DirectionalPreparation
+already owns a velocity/delivery/destination prediction; StationaryPreparation
+owns settled demand and PresentationBudget owns a retained idle reserve.
+PreparationRuntime bounds actual prepared entries/bytes and in-flight work.
+The control now waits for that original stationary demand and reads the
+declared baseline/resource bounds. Fast-vs-slow/reversal/End/native bounds,
+unchanged idle misses/provider requests and draft/Undo/read-position assertions
+remain. No production timer/flag/guard, alternate predictor or new harness was
+created. viewport_runway_pilot's one-viewport assertion is retained because
+that case deliberately sets the original user configuration to one.
+
+All288production/394tests/41tools parse through the existing Package with
+zero omissions; original249 native context unchanged. Neither this control
+correction nor the prior ZIP import refusal proves configured continuous UI
+acceptance. The authored localhost saved-state reply and the configured
+real-retained source fixture remain distinct scopes. No App/import/provider/
+native run, package mutation, SDK input or physical recording was started.
