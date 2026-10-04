@@ -1,0 +1,6 @@
+{
+  "failure": "private verifier adaptation substring missing before any install; missing changed-wheels requirement refused install",
+  "product_failure": false,
+  "package_writes": false,
+  "public_effects": 0
+}
