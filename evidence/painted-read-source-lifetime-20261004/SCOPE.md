@@ -1,6 +1,6 @@
 # Painted read fence follows transcript source lifetime
 
-Source-only successor stacked on frozen441/ec9; no installed App or read-write acceptance claim.
+Installed joined441/ec9+442 scoped App qualified at frozen031/4406. Source-only chronology below is retained; final accepted scope is the single installed result described at the end. No backend painted-cursor writer/read-acknowledgement or performance acceptance claim.
 
 The original `_source_state` remains stored and changed only by the existing transcript source lifecycle. `TranscriptState.observed` decodes native pruning/closing/attachment, and projected history applies the original canonical projection identity. Native59 removes scene membership synchronously but retains parent/NodeList/task custody through asynchronous Unmount. A still-attached, already-pruned pager can therefore remain in `Window.histories` until its original Unmount completes.
 
@@ -17,3 +17,11 @@ The same original `history_page_batch_mount_pilot` now lends actual source state
 The five behaviors already reached in44101 remain historical partial evidence, not new progress credit. Original44101 rawFAIL and issued grant/whole handback stay immutable. This future combined control is unrun and proves no backend painted-cursor write or acknowledgement loss: it exercises the production facade decision, not an authenticated HistoryViews writer witness. The current writer/category/root/cursor/body safeguards are unchanged.
 
 442 changes actual product bytes, so the retained441 wheel8c02 cannot represent this combined source. After W6's actual whole handback and fresh Bohr purpose plus original Sch086 authority, the permitted boundary is one normal tiny Toad filewheel from this owned published WT, exact Git/local/ZIP proof, one changed original App, and whole actual floor restoration/owned task/process/socket cleanup. No current holder reservation/build/import/install/run. Complete source/control operands will bind the published source, its control hash and separate output/DTO paths before a grant.
+
+## Single combined installed App completed
+
+Frozen031/control772 App completed terminal0/9.168665858s with22 original assertions true, including all remaining441 Mount cancellation/filter/source-fence/task/whole-close cases and the related442 real facade decisions during provisional/Working/Live-tail/filter/supersession/park/pruning lifetimes. The prior five positive behaviors are historical partial evidence, not new progress credit. The original44101FAIL and W6focus failures remain unchanged. No authenticated backend painted-cursor writer witness was exercised, so backend publication/ack loss is unqualified. No physical movie/provider/native input, CPU gain or smoothness/FPS claim.
+
+ONE normal tiny wheel8acfb48d686d98a573ec351d5816002df71a7b584ff7860c5c9994a252941b32 built at031 via cachedHatchling1.28/noisolation; all319Git/working-source/ZIP assets match. Installed Core347/Toad319/Text266/diff3/NRA10 +69 versions and native086 FullTrust verified; Core5c genuinely replaced actual1a58a for this purpose. Current actual NRA8f61 remained unchanged; the normal8d wheel fb6e is explicitly not floor equality.
+
+After terminal the exact original1470/69/origins/390 floor restored with zero readable borrowers/gaps; originalApp process626722/birth62414755 exited0 and ownedcleanup[]/errors[]. Empty scratch removed. Native086 READ/execution explicitly handed back to Sch, no current/future holder claim. Only Bohr closes the shared lifecycle after independent readback; issued06d immutable. Concise committed `SCOPED-INSTALLED-READY.json` binds17 original results/source/proof/negative-discrepancy/handback keepers. Full structural performance and original continuous configured user workflow remain active beyond this useful checkpoint.
