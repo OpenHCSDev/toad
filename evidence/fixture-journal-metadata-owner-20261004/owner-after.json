@@ -1,0 +1,34 @@
+{
+  "source_head": "10aa0d375e77fbb3792d90a39c08256f93d9ce87",
+  "coverage": [
+    {
+      "root": "src/toad",
+      "head": "10aa0d375e77fbb3792d90a39c08256f93d9ce87",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "head": "10aa0d375e77fbb3792d90a39c08256f93d9ce87",
+      "modules": 395,
+      "omissions": []
+    },
+    {
+      "root": "tools",
+      "head": "10aa0d375e77fbb3792d90a39c08256f93d9ce87",
+      "modules": 41,
+      "omissions": []
+    }
+  ],
+  "retention_consumers": [
+    {
+      "path": "tests/original_turn_resource_real_installed_pilot.py",
+      "line": 327,
+      "kind": "borrowed callable"
+    }
+  ],
+  "production_delta": "",
+  "sole_caller_delta": "",
+  "source_contract": "Private kernel-visible 0700 directories before source reads/copy; copied mode/uid/gid/size/atime/mtime read back; original device/inode/ctime+metadata checked again before commit; original source read O_NOATIME/O_NOFOLLOW; owned pending path cleanup acquired inode only; no chmod shared directories.",
+  "limits": "AST not runtime; dynamic external aliases not proven. Authored controls emulate mount/device and original-census answers, local filesystem metadata/copy operations are actual. No HDD or real journal operation."
+}

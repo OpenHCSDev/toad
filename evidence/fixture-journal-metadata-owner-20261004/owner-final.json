@@ -1,0 +1,34 @@
+{
+  "source_head": "c6f9ffa09d1fe5d2d972029c7d76004ab8b88fca",
+  "packages": [
+    {
+      "root": "src/toad",
+      "head": "c6f9ffa09d1fe5d2d972029c7d76004ab8b88fca",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "head": "c6f9ffa09d1fe5d2d972029c7d76004ab8b88fca",
+      "modules": 395,
+      "omissions": []
+    },
+    {
+      "root": "tools",
+      "head": "c6f9ffa09d1fe5d2d972029c7d76004ab8b88fca",
+      "modules": 41,
+      "omissions": []
+    }
+  ],
+  "consumers": [
+    {
+      "path": "tests/original_turn_resource_real_installed_pilot.py",
+      "line": 327,
+      "call": "asyncio.to_thread(retain_fixture_journals, (item['session_file'] for item in receipt.get('physical_sources', ())), stage=stage, evidence=evidence)"
+    }
+  ],
+  "production_src_delta": "",
+  "original_caller_changed": "Only awaits original returned retention receipt and prints it; same leaves/stage/evidence and after original child retirement/terminal keeper. No copied admission or retention decision.",
+  "native_dependency": "Original249 native59 context unchanged; no native edits",
+  "limits": "AST has no parse omissions; dynamic external aliases not proved. No real private journal/HDD/privileged census/App/SDK/provider/installed holder operation."
+}
