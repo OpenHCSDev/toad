@@ -1,0 +1,124 @@
+{
+  "packages": [
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "4406ea17d1e11ffc72c6baec98ecdae37e532130",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "src/toad/app.py",
+          "line": 529,
+          "kind": "AsyncFunctionDef",
+          "name": "mark_visible_thread_read",
+          "source": null
+        },
+        {
+          "path": "src/toad/app.py",
+          "line": 563,
+          "kind": "Attribute",
+          "name": "blocks_visible_read",
+          "source": null
+        },
+        {
+          "path": "src/toad/sidebar_observation.py",
+          "line": 254,
+          "kind": "Attribute",
+          "name": "mark_visible_thread_read",
+          "source": null
+        },
+        {
+          "path": "src/toad/sidebar_observation.py",
+          "line": 239,
+          "kind": "Attribute",
+          "name": "mark_visible_thread_read",
+          "source": null
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 62,
+          "kind": "FunctionDef",
+          "name": "blocks_visible_read",
+          "source": "@property\ndef blocks_visible_read(self) -> bool:\n    \"\"\"Source mutation, remaining tail and filtering govern acknowledgement.\"\"\"\n    return self.state.blocks_visible_read(self)"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 64,
+          "kind": "Attribute",
+          "name": "blocks_visible_read",
+          "source": null
+        },
+        {
+          "path": "src/toad/transcript_state.py",
+          "line": 23,
+          "kind": "FunctionDef",
+          "name": "blocks_visible_read",
+          "source": "def blocks_visible_read(self, owner) -> bool:\n    \"\"\"An unpublished source must settle before its cursor is read.\"\"\"\n    return True"
+        },
+        {
+          "path": "src/toad/transcript_state.py",
+          "line": 90,
+          "kind": "FunctionDef",
+          "name": "blocks_visible_read",
+          "source": "def blocks_visible_read(self, owner) -> bool:\n    return owner.has_newer or not owner.checkpoint_available"
+        },
+        {
+          "path": "src/toad/transcript_state.py",
+          "line": 112,
+          "kind": "FunctionDef",
+          "name": "blocks_visible_read",
+          "source": "def blocks_visible_read(self, owner) -> bool:\n    \"\"\"Retained or retiring custody has no current paint obligation.\"\"\"\n    return False"
+        },
+        {
+          "path": "src/toad/transcript_state.py",
+          "line": 169,
+          "kind": "FunctionDef",
+          "name": "blocks_visible_read",
+          "source": "def blocks_visible_read(self, owner) -> bool:\n    \"\"\"An admitted source operation must settle before its cursor is read.\"\"\"\n    return True"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "4406ea17d1e11ffc72c6baec98ecdae37e532130",
+      "root": "tests",
+      "modules": 394,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "tests/message_categories_pilot.py",
+          "line": 135,
+          "kind": "Attribute",
+          "name": "mark_visible_thread_read",
+          "source": null
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 121,
+          "kind": "Attribute",
+          "name": "mark_visible_thread_read",
+          "source": null
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "4406ea17d1e11ffc72c6baec98ecdae37e532130",
+      "root": "tools",
+      "modules": 41,
+      "omissions": [],
+      "sites": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "1bdc18c363cbc0f938537a71aa8ba0225d03e25e",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": [],
+      "sites": []
+    }
+  ],
+  "family": "Base provisional/unpublished blocks; Live original tail/filter fence; Suspended revoked no paint obligation; Working genuine source operation blocks; source facade observed state only; sole App consumer unchanged",
+  "scope": "Source only; named/dynamic AST limits remain; no installed read effect"
+}

@@ -1,0 +1,236 @@
+{
+  "state": "SCOPED corrected442 installed checkpoint owner/facade and BOTH actual saved/wire leaves PASS; full performance remains unfinished",
+  "published_source_head": "5b16e8422a710d007c56c863b7eb87fb3081dfae",
+  "source_control_head": "4449e3fc293a8529c1f0c4127d3e9e13d8e67907",
+  "determining_product": "35e72d0f200e7aab3eee283ad6126ce6b8065f5b",
+  "src_and_pins_equal": true,
+  "wheel_build_head": "8fa92be684d75469cd3dea7f9621d7649a15e453",
+  "wheel": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript442-checkpoint-source-lifetime-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "ec36aaa4546d7c8a00bbb0775eba2aa00b7e2634217a1e9fbdf75a2b18512676",
+    "source_head": "8fa92be684d75469cd3dea7f9621d7649a15e453",
+    "product_reference": "35e72d0f200e7aab3eee283ad6126ce6b8065f5b",
+    "assets": 319,
+    "git_worktree_zip_byte_equal": true,
+    "inventory_sha256": "cef1e6e27c7c6b6d28c35477cd4f9262c3efc7fea89c1d23cd5c80fc4b3aa6e8",
+    "build": {
+      "source_head": "8fa92be684d75469cd3dea7f9621d7649a15e453",
+      "determining_product": "35e72d0f200e7aab3eee283ad6126ce6b8065f5b",
+      "command": [
+        "python",
+        "-m",
+        "build",
+        "--wheel",
+        "--no-isolation",
+        "--outdir",
+        "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript442-checkpoint-source-lifetime-20261004/toad-wheel"
+      ],
+      "backend": {
+        "path": "/home/ts/.cache/uv/archive-v0/RgcgNn7xR1Zs9HSF/hatchling/__init__.py",
+        "version": "1.28.0"
+      },
+      "seconds": 0.6887126639485359,
+      "exit_code": 0,
+      "new_environment": false,
+      "dependency_installation": false,
+      "source_clones": 0
+    }
+  },
+  "final_operands_sha256": "766643d448206ed2404e394c871f71afa1788ed387fb2b940b3efa55a50f2284",
+  "App_count": 1,
+  "existing_control_owners": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/history_page_batch_mount_pilot.py",
+      "relative_path": "tests/history_page_batch_mount_pilot.py",
+      "sha256": "957a8d75d552770e14efca9fd84248af556f4251f5bc47b70db3a161dbacab01"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/channel_visibility_observation_pilot.py",
+      "relative_path": "tests/channel_visibility_observation_pilot.py",
+      "sha256": "1f496a8956e453c919bfe91b8f3674bac2eb58cc68313356461316cc34cdc1c5"
+    }
+  ],
+  "original_terminal": {
+    "source_head": "4449e3fc293a8529c1f0c4127d3e9e13d8e67907",
+    "product_reference": "35e72d0f200e7aab3eee283ad6126ce6b8065f5b",
+    "controls": [
+      {
+        "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/history_page_batch_mount_pilot.py",
+        "relative_path": "tests/history_page_batch_mount_pilot.py",
+        "sha256": "957a8d75d552770e14efca9fd84248af556f4251f5bc47b70db3a161dbacab01"
+      },
+      {
+        "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/channel_visibility_observation_pilot.py",
+        "relative_path": "tests/channel_visibility_observation_pilot.py",
+        "sha256": "1f496a8956e453c919bfe91b8f3674bac2eb58cc68313356461316cc34cdc1c5"
+      }
+    ],
+    "provider_inputs": 0,
+    "physical_movie": false,
+    "scratch": "/home/ts/.cache/agent-scratch/transcript442-checkpoint-source-app-20261004-01",
+    "exit_code": 0,
+    "duration_seconds": 10.636214859900065,
+    "cleanup": {
+      "remaining_owned_pids": [],
+      "errors": [],
+      "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+      "processes": [
+        {
+          "pid": 1169370,
+          "start_ticks": 62747559,
+          "returncode": 0
+        }
+      ]
+    }
+  },
+  "App": {
+    "scope": "Installed original App/page/Mount/Unmount/source/read-fence custody; no backend painted-cursor writer, physical, CPU or FPS claim",
+    "checks": {
+      "provisional_source_blocks_visible_read": true,
+      "admitted_work_blocks_visible_read": true,
+      "trim_commits_before_original_unmount": true,
+      "live_unloaded_tail_blocks_visible_read": true,
+      "replacement_progresses_while_retired_child_attached": true,
+      "end_commits_destination_without_old_unmount_join": true,
+      "live_settled_tail_releases_visible_read_fence": true,
+      "editor_and_source_pump_progress_during_unmount": true,
+      "resize_pump_progresses_before_unmount_completion": true,
+      "original_child_unmount_and_unregister_complete": true,
+      "cancelled_mount_keeps_committed_rows_and_bounds": true,
+      "cancelled_page_mount_does_not_commit_native_candidate": true,
+      "admitted_projection_blocks_live_canonical_read": true,
+      "superseded_attached_projection_has_no_visible_read_obligation": true,
+      "stale_filter_cleanup_preserves_newer_admission": true,
+      "settled_filter_restores_live_source_fence": true,
+      "parked_attached_source_has_no_visible_read_obligation": true,
+      "pruned_working_source_releases_fence_before_unmount": true,
+      "pruned_source_original_unmount_unregister_complete": true,
+      "original_revision_park_loader_fences_reject_late_read": true,
+      "original_pruning_fence_rejects_late_read": true,
+      "wire_original_reader_loading_blocks_checkpoint": true,
+      "wire_original_read_admission_blocks_checkpoint": true,
+      "wire_accepted_reader_live_checkpoint_available": true,
+      "wire_live_loading_resource_revokes_checkpoint": true,
+      "wire_restart_read_admission_owns_checkpoint": true,
+      "wire_restart_completion_restores_checkpoint": true,
+      "whole_original_app_shutdown": true,
+      "wire_original_reader_unmount_whole_close": true
+    },
+    "toad_package": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad",
+    "source_cases": [
+      "revision",
+      "parked",
+      "loader",
+      "pruning"
+    ],
+    "provider_inputs": 0,
+    "native_inputs": 0,
+    "exception": "None"
+  },
+  "checks_true": 29,
+  "actual_wire_scope": "channel_target -> CommsChatView -> MountedMessageHistory original ChannelHistoryReader initial/loading/Working/Live/restart/current worker/completion and acquiredTask whole-close; held read executes original read after release",
+  "original_saved_scope": "Existing page/fragment/Mount cancellation/filter identity/source revision/park/loader/prunedWorking/task custody/input/resize/End/wholeclose regression with changed source checkpoint owner",
+  "whole_handback": {
+    "state": "WHOLE actual436 floor restored; sole442-checkpoint code/import/read/execution/build claim closed",
+    "app_exit": 0,
+    "archive_sha256": "e6f27830a69a5e60902ecf8d25dccd46b43efefef75335e2679ef78c461aba5a",
+    "members_verified": 1470,
+    "packages": 69,
+    "protected_keepers_verified": 390,
+    "borrower_receipt": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript442-checkpoint-source-lifetime-20261004/final-borrowers.json",
+    "borrower_receipt_sha256": "5bd1e1532b6d267cea96bd5ec713783b6e9626034d085c92c455aade2d98ba57",
+    "borrowers": 0,
+    "gaps": 0,
+    "process_cleanup": {
+      "remaining_owned_pids": [],
+      "errors": [],
+      "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+      "processes": [
+        {
+          "pid": 1169370,
+          "start_ticks": 62747559,
+          "returncode": 0
+        }
+      ]
+    },
+    "original_origins_and_activation": "Exact archived original normal filewheel origins and PREFIXactivation bytes",
+    "provider_inputs": 0,
+    "physical_movie": false,
+    "native086_read_execution_handed_back": true,
+    "future_holder_claim": false
+  },
+  "original17_keepers_unchanged": 17,
+  "historical_original_ready_sha256": "9899cc3edce78d85ca0761f3bd36216a3e8b932212f0801cbddeb4d35adc13fb",
+  "prior_results": "031/4406 22checks PASS historical;44101FAIL/five positives and W6 failures immutable. They are not new wire evidence or rebased to corrected product.",
+  "backend_painted_cursor_ACK_writer_witness": false,
+  "physical_movie": false,
+  "cpu_gain_claim": false,
+  "provider_inputs": 0,
+  "nativeSDK_inputs": 0,
+  "public334_changed": false,
+  "native086_READ_execution_handed_back": true,
+  "future_holder_claim": false,
+  "nra_raw_zip_correction": "Raw retained8d ZIP measures.py8f61 exactly equals e6f floor. Priorfb6e designation was stale installed extraction; append-only correction and originallogs/Ready unchanged.",
+  "current_required_Debt": "5b16e842 exactrun37238779735/job111543088385SUCCESS; finaldocs automatic head separately",
+  "remaining": [
+    "full structural UI performance",
+    "cold initial width and velocity/destination preparation",
+    "growing End and warm4/16/32/64 retained body resources",
+    "matched configured continuous user workflow/physical motion",
+    "backend paintedcursor/ACK writer witness"
+  ],
+  "keeper_hashes": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript442-checkpoint-source-lifetime-20261004/issued-grant.json",
+      "sha256": "7a3787a44c18b4d10d4eee3ad2d829bc1cbe58c1ef6f85a660e824ad99f6c650"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript442-checkpoint-source-lifetime-20261004/execution-released-at-launch.json",
+      "sha256": "ec8550b94c6f2015b0e091625013741c92d7ea9a1962872346767e59ee210fc9"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript442-checkpoint-source-lifetime-20261004/two-control-operands.json",
+      "sha256": "766643d448206ed2404e394c871f71afa1788ed387fb2b940b3efa55a50f2284"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript442-checkpoint-source-lifetime-20261004/build-receipt.json",
+      "sha256": "4366f945a8cd2f6029b56618f68b0278ce8c8b02122860045e663d16600475fb"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript442-checkpoint-source-lifetime-20261004/wheel-proof.json",
+      "sha256": "3bedccf54aa92e2a77fed6125662dd77e3695f83b62decba8f092640240a38dc"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript442-checkpoint-source-lifetime-20261004/toad-inventory.json",
+      "sha256": "cef1e6e27c7c6b6d28c35477cd4f9262c3efc7fea89c1d23cd5c80fc4b3aa6e8"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript442-checkpoint-source-lifetime-20261004/source-proof.json",
+      "sha256": "181bd9632bf031246e2400708b2a8978e55057e9f0ce0db0c69b6fa5ecb895b3"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript442-checkpoint-source-lifetime-20261004/app/receipt.json",
+      "sha256": "288e941442ae15ca44424f33f40fcd198394e1264fabb7397273df56f7155736"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript442-checkpoint-source-lifetime-20261004/app/progress.json",
+      "sha256": "b451446e0494b2f578988e9f0b4e02068ae0903995418b5daea35c8ae6cab6f6"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript442-checkpoint-source-lifetime-20261004/app.log",
+      "sha256": "a1d7c900852218d040e03d440f7c01545ec0d7794ab53edc78282cfa563e218f"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript442-checkpoint-source-lifetime-20261004/terminal.json",
+      "sha256": "84bcf66a2947b67e66cb58a45739d14f6c94b4d858a49b613aa642a493164c7f"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript442-checkpoint-source-lifetime-20261004/code-handback.json",
+      "sha256": "414b6ef4bcbd43e7b0879bf423593cb25c929d195c34ea39bcf4f6669f34e173"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript442-checkpoint-source-lifetime-20261004/final-borrowers.json",
+      "sha256": "5bd1e1532b6d267cea96bd5ec713783b6e9626034d085c92c455aade2d98ba57"
+    }
+  ]
+}

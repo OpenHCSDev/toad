@@ -7,9 +7,10 @@ from toad.widgets.message_filter import OtherCategory
 
 import asyncio
 from collections import deque
+from contextlib import ExitStack, asynccontextmanager
 from dataclasses import dataclass, replace
 from functools import partial
-from collections.abc import Awaitable, Callable, Iterator
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from typing import TYPE_CHECKING
 from weakref import ref
 
@@ -279,6 +280,7 @@ class TranscriptPageView(VerticalGroup):
         selected = self.initial_slice(self.fragments, self.batch_size, newest)
         self.start, self.stop = selected.start, selected.stop
         self.visible_categories = all_categories()
+        self._fragment_views: tuple[TranscriptFragmentView, ...] = ()
 
     @staticmethod
     def initial_slice(fragments, batch_size: int, newest: bool) -> slice:
@@ -288,9 +290,35 @@ class TranscriptPageView(VerticalGroup):
     def _body(self, fragment: TranscriptFragment) -> TranscriptFragmentView:
         return TranscriptFragmentView(fragment, self.visible_categories)
 
+    @classmethod
+    @asynccontextmanager
+    async def acquire(
+        cls, owner: TranscriptHistory, page: TranscriptPage, *, fragments,
+        batch_size: int, before: Widget, current: Callable[[], bool], newest: bool = True,
+    ) -> AsyncIterator[TranscriptPageView]:
+        """Acquire a page until its original source transfers native custody."""
+        view = cls(page, fragments=fragments, batch_size=batch_size, newest=newest)
+        view.visible_categories = owner.selected_categories
+        with ExitStack() as acquisition:
+            acquisition.callback(owner.remove_children, (view,))
+            await owner.mount(view, before=before)
+            if not current():
+                raise _PublicationRetired
+            yield view
+            acquisition.pop_all()
+
     def compose(self) -> ComposeResult:
-        for fragment in self.fragments[self.start:self.stop]:
-            yield self._body(fragment)
+        self._fragment_views = tuple(self._body(fragment)
+                                     for fragment in self.fragments[self.start:self.stop])
+        yield from self._fragment_views
+
+    @property
+    def fragment_views(self) -> tuple[TranscriptFragmentView, ...]:
+        """Committed source resources, distinct from native mounting/pruning custody."""
+        return self._fragment_views
+
+    def on_unmount(self) -> None:
+        self._fragment_views = ()
 
     def capture_admission(self) -> TranscriptPageAdmission:
         return TranscriptPageAdmission(
@@ -317,7 +345,7 @@ class TranscriptPageView(VerticalGroup):
 
     def set_categories(self, selected: frozenset[type[MessageCategory]]) -> None:
         self.visible_categories = selected
-        for child in self.children:
+        for child in self.fragment_views:
             child.set_categories(selected)
 
     async def prepare_adjacent(self, preparation, demand, count: int, keep_going) -> None:
@@ -325,27 +353,36 @@ class TranscriptPageView(VerticalGroup):
         fragments = demand.neighbors(self.fragments, self.start, self.stop, count)
         await preparation.prepare_fragments(fragments, keep_going, batch_size=self.batch_size)
 
-    async def extend(self, older: bool) -> None:
+    async def extend(self, older: bool, current: Callable[[], bool]) -> None:
+        admission = self.capture_admission()
         selected = self.extension_slice(older)
-        start, stop = selected.start, selected.stop
-        before = self.children[0] if older and self.children else None
-        if start < stop:
-            await self.mount_all(
-                (self._body(fragment) for fragment in self.fragments[start:stop]),
-                before=before,
-            )
-        if older:
-            self.start = start
-        else:
-            self.stop = stop
+        added = tuple(self._body(fragment) for fragment in self.fragments[selected])
+        previous = self.fragment_views
+        with ExitStack() as acquisition:
+            if added:
+                acquisition.callback(self.remove_children, added)
+                await self.mount_all(added, before=previous[0] if older and previous else None)
+            if not current() or self.capture_admission() != admission:
+                raise _PublicationRetired
+            self._fragment_views = (*added, *previous) if older else (*previous, *added)
+            if older:
+                self.start = selected.start
+            else:
+                self.stop = selected.stop
+            acquisition.pop_all()
 
-    async def trim(self, count: int, *, older: bool) -> None:
-        children = list(self.children)
-        await self.remove_children(children[:count] if older else children[-count:])
+    def trim(self, count: int, *, older: bool) -> None:
+        bodies = self.fragment_views
+        boundary = count if older else len(bodies) - count
+        retired = bodies[:boundary] if older else bodies[boundary:]
+        self._fragment_views = bodies[boundary:] if older else bodies[:boundary]
         if older:
             self.start += count
         else:
             self.stop -= count
+        # Native scene retirement is synchronous; its completion belongs to
+        # AwaitRemove, not this source's admission lock or compensated layout.
+        self.remove_children(retired)
 
     async def update_fragments(
         self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...], selected: slice,
@@ -358,7 +395,7 @@ class TranscriptPageView(VerticalGroup):
             if not current():
                 return False
             admission = self.capture_admission()
-            previous = {self.start + index: child for index, child in enumerate(self.children)}
+            previous = {self.start + index: child for index, child in enumerate(self.fragment_views)}
         start, stop = selected.start, selected.stop
         # BodyMeasurement owns pending writers and their preceding paint. A
         # nested paged body may itself publish into this window, so joining it
@@ -372,18 +409,22 @@ class TranscriptPageView(VerticalGroup):
             if not current() or self.capture_admission() != admission:
                 return False
             async with window.preserve_history(None):
-                for index, child in previous.items():
-                    if not start <= index < stop:
-                        await child.remove()
-                before = None
-                for index in range(stop - 1, start - 1, -1):
-                    child = previous.get(index)
-                    if child is None:
-                        child = self._body(fragments[index])
-                        await self.mount(child, before=before)
-                    before = child
-                self.page, self.fragments = page, fragments
-                self.start, self.stop = start, stop
+                ordered = tuple(previous[index] if index in previous else self._body(fragments[index])
+                                for index in range(start, stop))
+                added = tuple(child for child in ordered if child not in previous.values())
+                with ExitStack() as acquisition:
+                    if added:
+                        acquisition.callback(self.remove_children, added)
+                        await self.mount_all(added)
+                    if not current() or self.capture_admission() != admission:
+                        return False
+                    self.page, self.fragments = page, fragments
+                    self.start, self.stop = start, stop
+                    self._fragment_views = ordered
+                    rank = {child: index for index, child in enumerate(ordered)}
+                    self.sort_children(key=lambda child: rank.get(child, len(rank)))
+                    acquisition.pop_all()
+                self.remove_children(tuple(child for child in previous.values() if child not in rank))
             return True
 
 
@@ -430,7 +471,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
 
     @property
     def fragment_views(self) -> tuple[TranscriptFragmentView, ...]:
-        return tuple(child for page in self.pages for child in page.children)
+        return tuple(child for page in self.pages for child in page.fragment_views)
 
     @property
     def source_identity(self):
@@ -592,8 +633,8 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         return self.through
 
     @property
-    def checkpoint_available(self) -> bool:
-        return self.state.accepts_source_work and self.filter.checkpoint_available
+    def source_checkpoint_available(self) -> bool:
+        return self.filter.checkpoint_available
 
     def retain_committed(self, through: TranscriptCursor) -> None:
         """Extend access to saved source without moving the displayed page window."""
@@ -664,7 +705,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                 if selected != view.update_slice(fragments, window.follows_tail):
                     continue
                 async with window.preserve_history(None):
-                    await self.filter.remove()
+                    self.filter.remove()
                 if selected != view.update_slice(fragments, window.follows_tail):
                     continue
             # Body workers have their own native custody. They may publish a
@@ -817,17 +858,19 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             if not snapshot.current(self) or not request.current(window):
                 return False
             async with window.preserve_history(None):
+                previous = tuple(self.pages)
                 if view.capture_admission().interval == CommittedInterval(page.before, page.after):
-                    await self.remove_children([retired for retired in self.pages if retired is not view])
+                    self.pages = deque([view])
                 else:
-                    await self.remove_children(list(self.pages))
-                    view = TranscriptPageView(
-                        page, fragments=fragments,
-                        batch_size=destination_admission,
-                    )
-                    view.visible_categories = self.selected_categories
-                    await self.mount(view, before=self.newer)
-                self.pages = deque([view])
+                    try:
+                        async with TranscriptPageView.acquire(
+                            self, page, fragments=fragments, batch_size=destination_admission,
+                            before=self.newer, current=lambda: snapshot.current(self) and request.current(window),
+                        ) as view:
+                            self.pages = deque([view])
+                    except _PublicationRetired:
+                        return False
+                self.remove_children(tuple(retired for retired in previous if retired is not view))
                 self._update_edges()
             return True
 
@@ -864,7 +907,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                 # visible record after preparation, including a reversed reader.
                 anchor, protected = window.protect_history(
                     self.fragment_views, older=older,
-                    fallback=edge.children[0 if older else -1] if edge.children else edge,
+                    fallback=edge.fragment_views[0 if older else -1] if edge.fragment_views else edge,
                 )
                 async with self.window.preserve_history(anchor):
                     await self._extend_and_trim(edge, older, local, page, protected, fragments)
@@ -885,26 +928,26 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         async with self.lock:
             previous_start = self.pages[0], self.pages[0].start
             overlay_visible = self.filter.projection_visible()
+            snapshot, admission = self.source_snapshot(), edge.capture_admission()
             if local:
-                previous_children = set(edge.children)
-                await edge.extend(older)
+                previous_children = set(edge.fragment_views)
+                await edge.extend(older, lambda: snapshot.current(self))
                 self._require_publication()
-                protected.update(child for child in edge.children if child not in previous_children)
+                protected.update(child for child in edge.fragment_views if child not in previous_children)
             elif page is not None:
                 assert fragments is not None
-                view = TranscriptPageView(
-                    page, newest=older, fragments=fragments, batch_size=self.budget.admission_items,
-                )
-                view.visible_categories = self.selected_categories
-                await self.mount(view, before=edge if older else self.newer)
-                self._require_publication()
-                protected.update(view.children)
+                async with TranscriptPageView.acquire(
+                    self, page, newest=older, fragments=fragments, batch_size=self.budget.admission_items,
+                    before=edge if older else self.newer,
+                    current=lambda: snapshot.current(self) and edge.capture_admission() == admission,
+                ) as view:
+                    if older:
+                        self.pages.appendleft(view)
+                    else:
+                        self.pages.append(view)
+                protected.update(view.fragment_views)
                 protected.add(view)
                 await self._report_coverage(page, fragments)
-                if older:
-                    self.pages.appendleft(view)
-                else:
-                    self.pages.append(view)
             # Wire pages vary enormously in visible size. A fixed three
             # page cap can evict the tail before even filling one screen,
             # causing the edge loaders to ping-pong forever. Bound actual
@@ -930,7 +973,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                     candidate = self.pages[0] if side else self.pages[-1]
                     if candidate in protected:
                         continue
-                    children = list(candidate.children)
+                    children = list(candidate.fragment_views)
                     if not side:
                         children.reverse()
                     available = []
@@ -949,16 +992,14 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                 remove_count = min(remove_count, len(available), self.fragment_count - 1)
                 if remove_count >= count and len(self.pages) > 1:
                     self.pages.popleft() if side else self.pages.pop()
-                    await evicted.remove()
-                    self._require_publication()
+                    evicted.remove()
                     excess -= count
                 else:
                     if not remove_count:
                         break
-                    await evicted.trim(min(remove_count, count), older=side)
-                    self._require_publication()
+                    evicted.trim(min(remove_count, count), older=side)
                     excess -= remove_count
-            await self.filter.canonical_moved(previous_start, overlay_visible)
+            self.filter.canonical_moved(previous_start, overlay_visible)
             self._update_edges()
 
     def _resource_fragment_budget(self) -> int:
@@ -1005,7 +1046,8 @@ class ProjectedTranscriptHistory(TranscriptHistory):
 
     async def _admit_initial(self) -> None:
         self._require_publication()
-        await self.pages[0].extend(False)
+        snapshot = self.source_snapshot()
+        await self.pages[0].extend(False, lambda: snapshot.current(self))
         self._require_publication()
         self._update_edges()
 

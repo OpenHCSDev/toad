@@ -161,13 +161,13 @@ async def main() -> None:
             )
             await view.post(saved)
             while saved.stop < len(fragments):
-                await saved.extend(False)
+                await saved.extend(False, lambda: saved.is_attached)
             await pilot.pause()
             assert len(saved.query(AgentActivityDivider)) == 2
             first = next(
                 (
                     child
-                    for child in saved.children
+                    for child in saved.fragment_views
                     if child.fragment.starts_agent_activity
                 )
             )

@@ -129,7 +129,7 @@ async def warm_pages(app, pilot, first, second, evidence):
     key = TranscriptPageWork(reader.scope, reader.loader, reader.through, request).work_key
     prepared = app.preparation._ready[key][0]
     page = history.pages[0]
-    children = tuple(page.children)
+    children = tuple(page.fragment_views)
     visible = app.screen._compositor.visible_widgets
     cached_strips = tuple((node, y, strip) for node in page.walk_children()
                           if node in visible for y, strip in node._styles_cache._cache.items())
@@ -158,7 +158,7 @@ async def warm_pages(app, pilot, first, second, evidence):
         records.append(dict(reader_reused=current is reader,
                             prepared_reused=app.preparation._ready.get(key, (None,))[0] is prepared,
                             page_reused=history.pages[0] is page,
-                            children_reused=tuple(page.children) == children,
+                            children_reused=tuple(page.fragment_views) == children,
                             observed_native_strip_lines=len(cached_strips),
                             reused_native_strip_lines=sum(node._styles_cache._cache.get(y) is strip
                                                           for node, y, strip in cached_strips),

@@ -1,0 +1,3188 @@
+{
+  "packages": [
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "215d7ff28478512b146d8b2c7a771693cf9cabb0",
+      "root": "src/toad",
+      "modules": 288,
+      "parse_omissions": [],
+      "sites": [
+        {
+          "path": "src/toad/acp/agent_configuration.py",
+          "line": 30,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/acp/agent_process.py",
+          "line": 134,
+          "syntax": "AsyncFunctionDef",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/acp/agent_process.py",
+          "line": 166,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/acp/agent_process.py",
+          "line": 173,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/acp/permission_controller.py",
+          "line": 82,
+          "syntax": "Name",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/acp/permission_controller.py",
+          "line": 73,
+          "syntax": "Name",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/acp/permission_controller.py",
+          "line": 71,
+          "syntax": "Name",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/acp/permission_controller.py",
+          "line": 83,
+          "syntax": "Name",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/acp/terminal_controller.py",
+          "line": 93,
+          "syntax": "AsyncFunctionDef",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/acp/terminal_controller.py",
+          "line": 54,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/acp/terminal_owner.py",
+          "line": 63,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/agent_surface.py",
+          "line": 120,
+          "syntax": "FunctionDef",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/agent_surface.py",
+          "line": 126,
+          "syntax": "Name",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/agent_surface.py",
+          "line": 94,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/agent_surface.py",
+          "line": 166,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/agent_surface.py",
+          "line": 172,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/ansi/_ansi.py",
+          "line": 1692,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/ansi/_ansi.py",
+          "line": 1495,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/app.py",
+          "line": 476,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/cli.py",
+          "line": 306,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/cli.py",
+          "line": 308,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/cli.py",
+          "line": 203,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/conversation_markdown.py",
+          "line": 104,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/conversation_markdown.py",
+          "line": 152,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/conversation_submission.py",
+          "line": 272,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/directory.py",
+          "line": 50,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/directory.py",
+          "line": 49,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/live_output.py",
+          "line": 177,
+          "syntax": "FunctionDef",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/live_output.py",
+          "line": 102,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/live_output.py",
+          "line": 118,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/mcp_declarations.py",
+          "line": 221,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 375,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/question_presentation.py",
+          "line": 82,
+          "syntax": "FunctionDef",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/question_presentation.py",
+          "line": 95,
+          "syntax": "AsyncFunctionDef",
+          "name": "recompose"
+        },
+        {
+          "path": "src/toad/screens/agent_modal.py",
+          "line": 87,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 202,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 189,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/screens/permissions.py",
+          "line": 217,
+          "syntax": "FunctionDef",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/screens/permissions.py",
+          "line": 228,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/screens/store.py",
+          "line": 552,
+          "syntax": "Attribute",
+          "name": "recompose"
+        },
+        {
+          "path": "src/toad/screens/workspace.py",
+          "line": 317,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/screens/workspace.py",
+          "line": 324,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/screens/workspace.py",
+          "line": 332,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/session_presentation.py",
+          "line": 69,
+          "syntax": "AsyncFunctionDef",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/session_presentation.py",
+          "line": 151,
+          "syntax": "AsyncFunctionDef",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/session_presentation.py",
+          "line": 198,
+          "syntax": "AsyncFunctionDef",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/session_presentation.py",
+          "line": 152,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/session_presentation.py",
+          "line": 177,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/shell.py",
+          "line": 206,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/shell_source.py",
+          "line": 58,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/sidebar_projection.py",
+          "line": 121,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/terminal_execution.py",
+          "line": 249,
+          "syntax": "FunctionDef",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/terminal_execution.py",
+          "line": 281,
+          "syntax": "FunctionDef",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/terminal_execution.py",
+          "line": 416,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/tool_output.py",
+          "line": 208,
+          "syntax": "FunctionDef",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/tool_output.py",
+          "line": 467,
+          "syntax": "FunctionDef",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/tool_output.py",
+          "line": 182,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/tool_output.py",
+          "line": 230,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 42,
+          "syntax": "FunctionDef",
+          "name": "canonical_moved"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 54,
+          "syntax": "FunctionDef",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 57,
+          "syntax": "FunctionDef",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 196,
+          "syntax": "FunctionDef",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 200,
+          "syntax": "FunctionDef",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 205,
+          "syntax": "FunctionDef",
+          "name": "canonical_moved"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 282,
+          "syntax": "FunctionDef",
+          "name": "canonical_moved"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 290,
+          "syntax": "FunctionDef",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 293,
+          "syntax": "AsyncFunctionDef",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 201,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 211,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 215,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 283,
+          "syntax": "Attribute",
+          "name": "canonical_moved"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 291,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 306,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 198,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 203,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 143,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 194,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 217,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 296,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 132,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 137,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 685,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 686,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 687,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 688,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 576,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/visuals/columns.py",
+          "line": 240,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 124,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 134,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 525,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1288,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 2104,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 890,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1064,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1295,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 604,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1255,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1337,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1891,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1987,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 158,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/widgets/menu.py",
+          "line": 114,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/menu.py",
+          "line": 118,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/patch_diff.py",
+          "line": 146,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/patch_diff.py",
+          "line": 147,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/patch_diff.py",
+          "line": 153,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/patch_diff.py",
+          "line": 377,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/project_panel.py",
+          "line": 195,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/project_tree_intent.py",
+          "line": 27,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/project_tree_intent.py",
+          "line": 53,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/question.py",
+          "line": 239,
+          "syntax": "AsyncFunctionDef",
+          "name": "recompose"
+        },
+        {
+          "path": "src/toad/widgets/question.py",
+          "line": 188,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/widgets/question.py",
+          "line": 240,
+          "syntax": "Attribute",
+          "name": "recompose"
+        },
+        {
+          "path": "src/toad/widgets/question.py",
+          "line": 240,
+          "syntax": "Attribute",
+          "name": "recompose"
+        },
+        {
+          "path": "src/toad/widgets/session_details.py",
+          "line": 96,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/session_sort.py",
+          "line": 71,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/session_tabs.py",
+          "line": 321,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/session_thread_sidebar.py",
+          "line": 51,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/thread_comms.py",
+          "line": 159,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/tool_call.py",
+          "line": 61,
+          "syntax": "AsyncFunctionDef",
+          "name": "recompose"
+        },
+        {
+          "path": "src/toad/widgets/tool_call.py",
+          "line": 50,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/widgets/tool_call.py",
+          "line": 278,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/widgets/tool_call.py",
+          "line": 72,
+          "syntax": "Attribute",
+          "name": "recompose"
+        },
+        {
+          "path": "src/toad/widgets/transcript_fragments.py",
+          "line": 173,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 266,
+          "syntax": "ClassDef",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 316,
+          "syntax": "FunctionDef",
+          "name": "fragment_views"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 323,
+          "syntax": "FunctionDef",
+          "name": "capture_admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 356,
+          "syntax": "AsyncFunctionDef",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 374,
+          "syntax": "FunctionDef",
+          "name": "trim"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 387,
+          "syntax": "AsyncFunctionDef",
+          "name": "update_fragments"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 473,
+          "syntax": "FunctionDef",
+          "name": "fragment_views"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 283,
+          "syntax": "Attribute",
+          "name": "_fragment_views"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 298,
+          "syntax": "Name",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 311,
+          "syntax": "Attribute",
+          "name": "_fragment_views"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 318,
+          "syntax": "Attribute",
+          "name": "_fragment_views"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 321,
+          "syntax": "Attribute",
+          "name": "_fragment_views"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 348,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 360,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 375,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 378,
+          "syntax": "Attribute",
+          "name": "_fragment_views"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 563,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 313,
+          "syntax": "Attribute",
+          "name": "_fragment_views"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 357,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 367,
+          "syntax": "Attribute",
+          "name": "_fragment_views"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 881,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 922,
+          "syntax": "Name",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 202,
+          "syntax": "Attribute",
+          "name": "recompose"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 254,
+          "syntax": "Attribute",
+          "name": "recompose"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 397,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 841,
+          "syntax": "Name",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 1002,
+          "syntax": "Attribute",
+          "name": "canonical_moved"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 1050,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 423,
+          "syntax": "Attribute",
+          "name": "_fragment_views"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 448,
+          "syntax": "Name",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 474,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 489,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 755,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 849,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 909,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 931,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 933,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 1008,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 365,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 398,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 409,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 446,
+          "syntax": "Name",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 708,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 713,
+          "syntax": "Attribute",
+          "name": "update_fragments"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 853,
+          "syntax": "Attribute",
+          "name": "update_fragments"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 895,
+          "syntax": "Name",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 904,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 934,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 948,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 976,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 995,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 1000,
+          "syntax": "Attribute",
+          "name": "trim"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 862,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 910,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 936,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 419,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 910,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 939,
+          "syntax": "Name",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 956,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 866,
+          "syntax": "Name",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 942,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 125,
+          "syntax": "FunctionDef",
+          "name": "start_materialization"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 172,
+          "syntax": "AsyncFunctionDef",
+          "name": "recompose"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 212,
+          "syntax": "AsyncFunctionDef",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 281,
+          "syntax": "FunctionDef",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 400,
+          "syntax": "AsyncFunctionDef",
+          "name": "recompose"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 598,
+          "syntax": "AsyncFunctionDef",
+          "name": "recompose"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 867,
+          "syntax": "FunctionDef",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 592,
+          "syntax": "Attribute",
+          "name": "start_materialization"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 616,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 852,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 601,
+          "syntax": "Attribute",
+          "name": "recompose"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 601,
+          "syntax": "Attribute",
+          "name": "recompose"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 625,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 627,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 629,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 632,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 404,
+          "syntax": "Attribute",
+          "name": "recompose"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 934,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 123,
+          "syntax": "Attribute",
+          "name": "start_materialization"
+        },
+        {
+          "path": "src/toad/work_preparation.py",
+          "line": 202,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/work_preparation.py",
+          "line": 204,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/work_preparation.py",
+          "line": 205,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/work_preparation.py",
+          "line": 207,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/workspace_sessions.py",
+          "line": 26,
+          "syntax": "AsyncFunctionDef",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/workspace_sessions.py",
+          "line": 45,
+          "syntax": "AsyncFunctionDef",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/workspace_sessions.py",
+          "line": 72,
+          "syntax": "AsyncFunctionDef",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/workspace_sessions.py",
+          "line": 104,
+          "syntax": "AsyncFunctionDef",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/workspace_sessions.py",
+          "line": 153,
+          "syntax": "AsyncFunctionDef",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/workspace_sessions.py",
+          "line": 138,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/workspace_sessions.py",
+          "line": 154,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "src/toad/workspace_sessions.py",
+          "line": 182,
+          "syntax": "Attribute",
+          "name": "remove"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "215d7ff28478512b146d8b2c7a771693cf9cabb0",
+      "root": "tests",
+      "modules": 394,
+      "parse_omissions": [],
+      "sites": [
+        {
+          "path": "tests/agent_activity_divider_pilot.py",
+          "line": 31,
+          "syntax": "alias",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "tests/agent_activity_divider_pilot.py",
+          "line": 157,
+          "syntax": "Name",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "tests/agent_activity_divider_pilot.py",
+          "line": 164,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/agent_activity_divider_pilot.py",
+          "line": 170,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/channel_disclosure_publication_pilot.py",
+          "line": 244,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/clipboard_native_pilot.py",
+          "line": 74,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/cold_context_installed_physical.py",
+          "line": 252,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/dm_rebind_paint_pilot.py",
+          "line": 64,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/external_cli_native_installed_pilot.py",
+          "line": 78,
+          "syntax": "AsyncFunctionDef",
+          "name": "retire"
+        },
+        {
+          "path": "tests/external_cli_native_installed_pilot.py",
+          "line": 219,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "tests/external_cli_native_installed_pilot.py",
+          "line": 263,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "tests/external_cli_native_installed_pilot.py",
+          "line": 265,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "tests/filter_mount_supersession_pilot.py",
+          "line": 23,
+          "syntax": "alias",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "tests/filter_mount_supersession_pilot.py",
+          "line": 140,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/filter_mount_supersession_pilot.py",
+          "line": 148,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/filter_mount_supersession_pilot.py",
+          "line": 56,
+          "syntax": "Name",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "tests/filter_mount_supersession_pilot.py",
+          "line": 111,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/filter_mount_supersession_pilot.py",
+          "line": 104,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/filter_mount_supersession_pilot.py",
+          "line": 187,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/filter_mount_supersession_pilot.py",
+          "line": 183,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/footer_pilot.py",
+          "line": 60,
+          "syntax": "Attribute",
+          "name": "recompose"
+        },
+        {
+          "path": "tests/fragment_divider_pilot.py",
+          "line": 21,
+          "syntax": "alias",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "tests/fragment_divider_pilot.py",
+          "line": 42,
+          "syntax": "Name",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "tests/fragment_divider_pilot.py",
+          "line": 53,
+          "syntax": "Name",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "tests/fragment_divider_pilot.py",
+          "line": 67,
+          "syntax": "Name",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "tests/guards/test_live_output.py",
+          "line": 91,
+          "syntax": "Attribute",
+          "name": "retire"
+        },
+        {
+          "path": "tests/guards/test_session_observation.py",
+          "line": 78,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/history_frame_publication_pilot.py",
+          "line": 53,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/history_frame_publication_pilot.py",
+          "line": 56,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/history_mounted_budget_pilot.py",
+          "line": 58,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 60,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 90,
+          "syntax": "Attribute",
+          "name": "trim"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 75,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 89,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 72,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/history_prefetch_pilot.py",
+          "line": 66,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/history_reflow_travel_pilot.py",
+          "line": 76,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/history_scroll_frames_pilot.py",
+          "line": 19,
+          "syntax": "alias",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "tests/history_scroll_frames_pilot.py",
+          "line": 59,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/history_scroll_frames_pilot.py",
+          "line": 53,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/history_scroll_frames_pilot.py",
+          "line": 59,
+          "syntax": "Name",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "tests/history_scroll_frames_pilot.py",
+          "line": 66,
+          "syntax": "Name",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "tests/history_stationary_feedback_pilot.py",
+          "line": 22,
+          "syntax": "alias",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "tests/history_stationary_feedback_pilot.py",
+          "line": 70,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/history_stationary_feedback_pilot.py",
+          "line": 70,
+          "syntax": "Attribute",
+          "name": "trim"
+        },
+        {
+          "path": "tests/history_stationary_feedback_pilot.py",
+          "line": 70,
+          "syntax": "Name",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "tests/history_stationary_feedback_pilot.py",
+          "line": 70,
+          "syntax": "Name",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 71,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 72,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 87,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 88,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 101,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 101,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "tests/in_out_underfill_pilot.py",
+          "line": 69,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/in_out_underfill_pilot.py",
+          "line": 108,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/in_out_underfill_pilot.py",
+          "line": 100,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/in_out_underfill_pilot.py",
+          "line": 49,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/in_out_underfill_pilot.py",
+          "line": 106,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/l0a_native_installed_pilot.py",
+          "line": 383,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/lazy_tools_pilot.py",
+          "line": 98,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/maintenance_cancel_process_group_pilot.py",
+          "line": 32,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/markdown_process_lifecycle_pilot.py",
+          "line": 125,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/markdown_return_reuse_pilot.py",
+          "line": 65,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/mcp_decision_pty_pilot.py",
+          "line": 87,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/message_categories_pilot.py",
+          "line": 111,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/message_filter_supersession_pilot.py",
+          "line": 64,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/message_filter_supersession_pilot.py",
+          "line": 61,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/native_loaded_return_cache_pilot.py",
+          "line": 23,
+          "syntax": "alias",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "tests/native_permission_ui.py",
+          "line": 89,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/native_scroll_recording_pilot.py",
+          "line": 71,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/native_scroll_recording_pilot.py",
+          "line": 66,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/native_scroll_recording_pilot.py",
+          "line": 70,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/native_widget_actions_installed_pilot.py",
+          "line": 135,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/navigation_terminal_fixture.py",
+          "line": 102,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 92,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 131,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 136,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 219,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 262,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 281,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 105,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 159,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 195,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 249,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 268,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 269,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 113,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 279,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/plan_status_installed_pilot.py",
+          "line": 49,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/projected_history_budget_pilot.py",
+          "line": 105,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/projected_history_budget_pilot.py",
+          "line": 76,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/projected_history_budget_pilot.py",
+          "line": 81,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/projected_history_budget_pilot.py",
+          "line": 62,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/projected_history_budget_pilot.py",
+          "line": 88,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/prompt_completion_installed_pilot.py",
+          "line": 144,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 132,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 161,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/relationship_poll_reflow_pilot.py",
+          "line": 41,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/response_source_custody_pilot.py",
+          "line": 151,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/retained_fragment_geometry_pilot.py",
+          "line": 75,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/retained_fragment_geometry_pilot.py",
+          "line": 434,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/retained_fragment_geometry_pilot.py",
+          "line": 431,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/retained_page_end_pilot.py",
+          "line": 8,
+          "syntax": "alias",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "tests/retained_page_end_pilot.py",
+          "line": 27,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/retained_page_end_pilot.py",
+          "line": 35,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/retained_page_end_pilot.py",
+          "line": 40,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "tests/retained_page_end_pilot.py",
+          "line": 30,
+          "syntax": "Attribute",
+          "name": "update_fragments"
+        },
+        {
+          "path": "tests/retained_page_end_pilot.py",
+          "line": 34,
+          "syntax": "Attribute",
+          "name": "trim"
+        },
+        {
+          "path": "tests/retained_page_end_pilot.py",
+          "line": 45,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/retained_page_end_pilot.py",
+          "line": 38,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/retained_page_end_pilot.py",
+          "line": 33,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/retained_tool_text_pilot.py",
+          "line": 97,
+          "syntax": "Attribute",
+          "name": "recompose"
+        },
+        {
+          "path": "tests/right_comms_integration_pilot.py",
+          "line": 194,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/selection_disclosure_pilot.py",
+          "line": 71,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/sidebar_pointer_focus_pilot.py",
+          "line": 30,
+          "syntax": "Name",
+          "name": "recompose"
+        },
+        {
+          "path": "tests/sidebar_pointer_focus_pilot.py",
+          "line": 30,
+          "syntax": "Attribute",
+          "name": "recompose"
+        },
+        {
+          "path": "tests/sidebar_pointer_focus_pilot.py",
+          "line": 38,
+          "syntax": "Name",
+          "name": "recompose"
+        },
+        {
+          "path": "tests/sidebar_retirement_installed_pilot.py",
+          "line": 79,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/sidebar_retirement_installed_pilot.py",
+          "line": 96,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 134,
+          "syntax": "Name",
+          "name": "retire"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 144,
+          "syntax": "Name",
+          "name": "retire"
+        },
+        {
+          "path": "tests/source_admission_trace_pilot.py",
+          "line": 9,
+          "syntax": "alias",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "tests/source_admission_trace_pilot.py",
+          "line": 26,
+          "syntax": "Name",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "tests/source_admission_trace_pilot.py",
+          "line": 29,
+          "syntax": "Name",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "tests/source_admission_trace_pilot.py",
+          "line": 48,
+          "syntax": "Name",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "tests/stale_selection_pilot.py",
+          "line": 32,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/t6_retirement_pilot.py",
+          "line": 43,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tab_order_pilot.py",
+          "line": 37,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/terminal_attention_installed_journey.py",
+          "line": 283,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tool_diff_lifecycle_pilot.py",
+          "line": 76,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/tool_diff_lifecycle_pilot.py",
+          "line": 80,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/tool_diff_lifecycle_pilot.py",
+          "line": 89,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/tool_diff_lifecycle_pilot.py",
+          "line": 109,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/tool_diff_pilot.py",
+          "line": 51,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 1426,
+          "syntax": "Name",
+          "name": "trim"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 1440,
+          "syntax": "Name",
+          "name": "trim"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 2084,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 2086,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 91,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 1940,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 1941,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 1942,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 1943,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 2091,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 1936,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 1939,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 1945,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 301,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 1431,
+          "syntax": "Name",
+          "name": "trim"
+        },
+        {
+          "path": "tests/transcript_lifecycle_pilot.py",
+          "line": 79,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/transcript_process_pilot.py",
+          "line": 40,
+          "syntax": "alias",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "tests/transcript_process_pilot.py",
+          "line": 250,
+          "syntax": "Name",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "tests/transcript_process_pilot.py",
+          "line": 295,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 93,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 94,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 116,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 165,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 80,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 90,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 124,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 143,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 152,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 123,
+          "syntax": "Attribute",
+          "name": "trim"
+        },
+        {
+          "path": "tests/transcript_teardown_pilot.py",
+          "line": 49,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/view_switch_latency.py",
+          "line": 68,
+          "syntax": "alias",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "tests/view_switch_latency.py",
+          "line": 71,
+          "syntax": "Name",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "tests/viewport_body_lifetime_pilot.py",
+          "line": 90,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/viewport_body_order_pilot.py",
+          "line": 299,
+          "syntax": "alias",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "tests/viewport_body_order_pilot.py",
+          "line": 342,
+          "syntax": "Name",
+          "name": "TranscriptPageView"
+        },
+        {
+          "path": "tests/viewport_body_order_pilot.py",
+          "line": 170,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/viewport_body_order_pilot.py",
+          "line": 198,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/viewport_body_order_pilot.py",
+          "line": 249,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/viewport_body_order_pilot.py",
+          "line": 268,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/viewport_body_order_pilot.py",
+          "line": 236,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/viewport_recent_tabs_pilot.py",
+          "line": 104,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/viewport_recent_tabs_pilot.py",
+          "line": 146,
+          "syntax": "Attribute",
+          "name": "fragment_views"
+        },
+        {
+          "path": "tests/watcher_startup_cancellation.py",
+          "line": 88,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/worker_native_size_pilot.py",
+          "line": 172,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/worker_preview_pilot.py",
+          "line": 200,
+          "syntax": "Attribute",
+          "name": "remove"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "215d7ff28478512b146d8b2c7a771693cf9cabb0",
+      "root": "tools",
+      "modules": 41,
+      "parse_omissions": [],
+      "sites": [
+        {
+          "path": "tools/performance/analyze_trace.py",
+          "line": 125,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tools/performance/capture_live.py",
+          "line": 83,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tools/performance/capture_live.py",
+          "line": 104,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tools/performance/capture_state.py",
+          "line": 291,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tools/performance/replay_state.py",
+          "line": 344,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tools/performance/replay_state.py",
+          "line": 335,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tools/performance/run_isolated.py",
+          "line": 179,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tools/performance/run_isolated.py",
+          "line": 189,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tools/performance/run_isolated.py",
+          "line": 191,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tools/performance/run_isolated.py",
+          "line": 199,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tools/performance/scroll_travel_observation.py",
+          "line": 72,
+          "syntax": "FunctionDef",
+          "name": "body_transition"
+        },
+        {
+          "path": "tools/performance/scroll_travel_observation.py",
+          "line": 77,
+          "syntax": "FunctionDef",
+          "name": "materializing"
+        },
+        {
+          "path": "tools/performance/scroll_travel_observation.py",
+          "line": 39,
+          "syntax": "Attribute",
+          "name": "materializing"
+        },
+        {
+          "path": "tools/performance/scroll_travel_observation.py",
+          "line": 78,
+          "syntax": "Attribute",
+          "name": "body_transition"
+        },
+        {
+          "path": "tools/performance/scroll_travel_observation.py",
+          "line": 81,
+          "syntax": "Attribute",
+          "name": "body_transition"
+        },
+        {
+          "path": "tools/performance/scroll_travel_observation.py",
+          "line": 39,
+          "syntax": "Attribute",
+          "name": "start_materialization"
+        },
+        {
+          "path": "tools/performance/sidebar_validation_driver.py",
+          "line": 175,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tools/performance/sidebar_validation_driver.py",
+          "line": 672,
+          "syntax": "Attribute",
+          "name": "remove"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "revision": "1bdc18c363cbc0f938537a71aa8ba0225d03e25e",
+      "root": "src/textual",
+      "modules": 249,
+      "parse_omissions": [],
+      "sites": [
+        {
+          "path": "src/textual/_arrange.py",
+          "line": 72,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/_arrange.py",
+          "line": 87,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/_arrange.py",
+          "line": 122,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/_compositor.py",
+          "line": 322,
+          "syntax": "Name",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/_compositor.py",
+          "line": 322,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/_compositor.py",
+          "line": 1382,
+          "syntax": "Name",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/_compositor.py",
+          "line": 1382,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/_compositor.py",
+          "line": 327,
+          "syntax": "Name",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/_compositor.py",
+          "line": 1389,
+          "syntax": "Name",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/_doc.py",
+          "line": 30,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/_node_list.py",
+          "line": 211,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/_segment_tools.py",
+          "line": 119,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/_spatial_map.py",
+          "line": 96,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/_wrap.py",
+          "line": 68,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 3585,
+          "syntax": "AsyncFunctionDef",
+          "name": "recompose"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 766,
+          "syntax": "Attribute",
+          "name": "_recompose_required"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 3581,
+          "syntax": "Attribute",
+          "name": "_recompose_required"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 3829,
+          "syntax": "Name",
+          "name": "recompose"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 3279,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 3582,
+          "syntax": "Attribute",
+          "name": "_recompose_required"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 3830,
+          "syntax": "Attribute",
+          "name": "_recompose_required"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 3830,
+          "syntax": "Name",
+          "name": "recompose"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 4566,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 3698,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 2879,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 3583,
+          "syntax": "Attribute",
+          "name": "recompose"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 3594,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 3697,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/binding.py",
+          "line": 267,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/compose.py",
+          "line": 94,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/compose.py",
+          "line": 79,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/content.py",
+          "line": 95,
+          "syntax": "FunctionDef",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/content.py",
+          "line": 980,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/content.py",
+          "line": 981,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/content.py",
+          "line": 1416,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/content.py",
+          "line": 724,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/content.py",
+          "line": 1651,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/content.py",
+          "line": 1171,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/content.py",
+          "line": 462,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/css/_styles_builder.py",
+          "line": 177,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/css/_styles_builder.py",
+          "line": 282,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/css/parse.py",
+          "line": 420,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/css/query.py",
+          "line": 407,
+          "syntax": "FunctionDef",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/css/query.py",
+          "line": 451,
+          "syntax": "Name",
+          "name": "recompose"
+        },
+        {
+          "path": "src/textual/css/styles.py",
+          "line": 954,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 416,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 1004,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 1006,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/demo/game.py",
+          "line": 572,
+          "syntax": "Attribute",
+          "name": "recompose"
+        },
+        {
+          "path": "src/textual/driver.py",
+          "line": 103,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/layouts/grid.py",
+          "line": 151,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/lazy.py",
+          "line": 139,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/lazy.py",
+          "line": 61,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/markup.py",
+          "line": 441,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/reactive.py",
+          "line": 217,
+          "syntax": "Name",
+          "name": "recompose"
+        },
+        {
+          "path": "src/textual/reactive.py",
+          "line": 525,
+          "syntax": "Name",
+          "name": "recompose"
+        },
+        {
+          "path": "src/textual/screen.py",
+          "line": 1283,
+          "syntax": "Attribute",
+          "name": "_recompose_required"
+        },
+        {
+          "path": "src/textual/screen.py",
+          "line": 1182,
+          "syntax": "Attribute",
+          "name": "_recompose_required"
+        },
+        {
+          "path": "src/textual/screen.py",
+          "line": 1284,
+          "syntax": "Attribute",
+          "name": "_recompose_required"
+        },
+        {
+          "path": "src/textual/screen.py",
+          "line": 994,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/screen.py",
+          "line": 1285,
+          "syntax": "Attribute",
+          "name": "recompose"
+        },
+        {
+          "path": "src/textual/selection.py",
+          "line": 67,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/strip.py",
+          "line": 705,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/strip.py",
+          "line": 707,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/strip.py",
+          "line": 577,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/walk.py",
+          "line": 133,
+          "syntax": "Name",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/walk.py",
+          "line": 133,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/walk.py",
+          "line": 138,
+          "syntax": "Name",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/walk.py",
+          "line": 143,
+          "syntax": "Name",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/walk.py",
+          "line": 172,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 1859,
+          "syntax": "AsyncFunctionDef",
+          "name": "recompose"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 4616,
+          "syntax": "FunctionDef",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 516,
+          "syntax": "Attribute",
+          "name": "_recompose_required"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 1855,
+          "syntax": "Attribute",
+          "name": "_recompose_required"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 4596,
+          "syntax": "Name",
+          "name": "recompose"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 1856,
+          "syntax": "Attribute",
+          "name": "_recompose_required"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 4597,
+          "syntax": "Attribute",
+          "name": "_recompose_required"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 634,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 879,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 1857,
+          "syntax": "Attribute",
+          "name": "recompose"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 1868,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widgets/_data_table.py",
+          "line": 1497,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/widgets/_directory_tree.py",
+          "line": 270,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/widgets/_directory_tree.py",
+          "line": 298,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/widgets/_directory_tree.py",
+          "line": 323,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/widgets/_footer.py",
+          "line": 453,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/widgets/_footer.py",
+          "line": 377,
+          "syntax": "Attribute",
+          "name": "recompose"
+        },
+        {
+          "path": "src/textual/widgets/_footer.py",
+          "line": 390,
+          "syntax": "Attribute",
+          "name": "recompose"
+        },
+        {
+          "path": "src/textual/widgets/_key_panel.py",
+          "line": 173,
+          "syntax": "Attribute",
+          "name": "recompose"
+        },
+        {
+          "path": "src/textual/widgets/_list_view.py",
+          "line": 236,
+          "syntax": "FunctionDef",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/widgets/_list_view.py",
+          "line": 259,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/widgets/_list_view.py",
+          "line": 268,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widgets/_list_view.py",
+          "line": 306,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widgets/_log.py",
+          "line": 235,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/widgets/_log.py",
+          "line": 233,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/widgets/_markdown.py",
+          "line": 283,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widgets/_markdown.py",
+          "line": 714,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widgets/_markdown.py",
+          "line": 1473,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widgets/_markdown.py",
+          "line": 1461,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widgets/_option_list.py",
+          "line": 830,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/widgets/_rich_log.py",
+          "line": 262,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/widgets/_select.py",
+          "line": 527,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/widgets/_tabbed_content.py",
+          "line": 468,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widgets/_tabs.py",
+          "line": 523,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widgets/_tabs.py",
+          "line": 567,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widgets/_toast.py",
+          "line": 143,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widgets/_toast.py",
+          "line": 187,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widgets/_tree.py",
+          "line": 495,
+          "syntax": "FunctionDef",
+          "name": "remove"
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Named syntax is source evidence; external dynamic aliases and dispatch are not fully resolved"
+  ],
+  "page_recompose_adjudication": {
+    "native_owner": "Widget.recompose owns generic batch, child Unmount completion, compose and Mount",
+    "internal_page_recompose_callers": [],
+    "direct_history_file_recompose_owner": "TranscriptFragmentView",
+    "page_reactive_recompose_fields": []
+  },
+  "class_spans": {
+    "src/toad/widgets/transcript_history.py::TranscriptHistory": {
+      "before": 578,
+      "after": 578,
+      "delta": 0
+    },
+    "src/toad/widgets/transcript_history.py::TranscriptPageView": {
+      "before": 123,
+      "after": 163,
+      "delta": 40
+    }
+  },
+  "native_after_unchanged": "Borrowed the already parsed native59 frozen1bd package; this correction changes only Toad source/control/observer consumers"
+}

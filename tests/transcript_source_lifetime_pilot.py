@@ -120,7 +120,7 @@ async def main():
                         edge = history.pages[0]
                         async with view.window.history_lock:
                             async with view.window.preserve_history(edge):
-                                await edge.trim(1, older=True)
+                                edge.trim(1, older=True)
                         original_fragments = history.fragment_views
                     elif cause == 'parked':
                         await history.retire_source(parked=True)

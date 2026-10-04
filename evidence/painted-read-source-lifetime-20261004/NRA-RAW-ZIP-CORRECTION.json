@@ -1,0 +1,11 @@
+{
+  "wheel": "/home/ts/wt/nra-skill-publish-20261002/.artifacts/family-flattened-collector-20261004/wheels/nominal_refactor_audit-0.1.0-py3-none-any.whl",
+  "wheel_sha256": "8d489731728ebf9f7e0f90ef2b14e7e3b5d2f90ed82bd8b1482d735f82869886",
+  "zip_member": "refactor_audit/measures.py",
+  "zip_member_sha256": "8f6127cb184801fbf2ca162adbece5c103c0fc6693f81197632668f710af7513",
+  "actual_e6f_floor_sha256": "8f6127cb184801fbf2ca162adbece5c103c0fc6693f81197632668f710af7513",
+  "correction": "Retained raw wheel ZIP matches actual original floor. Earlier fb6e value was stale installed extraction, incorrectly labeled wheel member. Historical logs, grant bytes, frozen Ready and raw keeper hashes are preserved.",
+  "original_discrepancy_record_sha256": "370f69793ffae4d06c0df760693b53d6b21508f15ce34ff98fb20f93f5a2152c",
+  "frozen_ready_sha256": "9899cc3edce78d85ca0761f3bd36216a3e8b932212f0801cbddeb4d35adc13fb",
+  "future_restore": "Within an issued purpose use normal installer no-cache and verify actual installed bytes; no shared-cache file mutation or public package access."
+}
