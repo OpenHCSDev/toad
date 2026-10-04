@@ -928,15 +928,14 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         async with self.lock:
             previous_start = self.pages[0], self.pages[0].start
             overlay_visible = self.filter.projection_visible()
+            snapshot, admission = self.source_snapshot(), edge.capture_admission()
             if local:
                 previous_children = set(edge.fragment_views)
-                snapshot = self.source_snapshot()
                 await edge.extend(older, lambda: snapshot.current(self))
                 self._require_publication()
                 protected.update(child for child in edge.fragment_views if child not in previous_children)
             elif page is not None:
                 assert fragments is not None
-                snapshot, admission = self.source_snapshot(), edge.capture_admission()
                 async with TranscriptPageView.acquire(
                     self, page, newest=older, fragments=fragments, batch_size=self.budget.admission_items,
                     before=edge if older else self.newer,
@@ -994,13 +993,11 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                 if remove_count >= count and len(self.pages) > 1:
                     self.pages.popleft() if side else self.pages.pop()
                     evicted.remove()
-                    self._require_publication()
                     excess -= count
                 else:
                     if not remove_count:
                         break
                     evicted.trim(min(remove_count, count), older=side)
-                    self._require_publication()
                     excess -= remove_count
             self.filter.canonical_moved(previous_start, overlay_visible)
             self._update_edges()
