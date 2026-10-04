@@ -1,7 +1,7 @@
 """Test-owned daemons need explicit teardown; closing a UI deliberately leaves them running."""
 
 import asyncio
-from contextlib import AsyncExitStack, asynccontextmanager
+from contextlib import AsyncExitStack, ExitStack, asynccontextmanager
 import os
 import hashlib
 import json
@@ -252,54 +252,125 @@ def retain_fixture_journals(paths, *, stage: Path, evidence: Path,
         retained.write_text(json.dumps(receipt, indent=2) + "\n")
         return  # Original leaves remain intact while actual custody is open.
     cold_root = cold_mount / "agent-comms-retained" / "history-sdk-fixture"
-    for path in paths:
-        before = path.stat()
-        with path.open("rb") as source:
-            digest = hashlib.file_digest(source, "sha256").hexdigest()
-        destination = cold_root / path.relative_to(path.anchor)
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        if destination.parent.stat().st_dev != cold_device:
-            raise OSError("Cold destination escaped the mounted filesystem")
-        if os.path.lexists(destination):
-            raise FileExistsError(destination)
-        partial = destination.with_name(destination.name + ".partial")
-        with path.open("rb") as source, partial.open("xb") as target:
-            shutil.copyfileobj(source, target)
-            target.flush()
-            os.fchmod(target.fileno(), stat.S_IMODE(before.st_mode))
-            os.fsync(target.fileno())
-        with partial.open("rb") as target:
-            if hashlib.file_digest(target, "sha256").hexdigest() != digest:
-                raise RuntimeError(f"Copied fixture journal differs: {path}")
-        current = path.stat()
-        if (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns) != (
-                current.st_dev, current.st_ino, current.st_size, current.st_mtime_ns):
-            raise RuntimeError(f"Original fixture journal changed: {path}")
-        record = {"path": str(path), "destination": str(destination), "sha256": digest,
-                  "original_dev": before.st_dev, "original_inode": before.st_ino,
-                  "bytes": before.st_size, "mtime_ns": before.st_mtime_ns,
-                  "mode": before.st_mode}
-        receipt["files"].append(record)
+    try:
+        # The shared retention directory is not ours to chmod. The private
+        # fixture subtree must demonstrate native access control before bytes.
+        cold_root.parent.mkdir(exist_ok=True)
+        parent = cold_root.parent.lstat()
+        if not stat.S_ISDIR(parent.st_mode) or parent.st_dev != cold_device:
+            raise OSError("Cold retention parent escaped the mounted filesystem")
+        for path in paths:
+            destination = cold_root / path.relative_to(path.anchor)
+            directories = [cold_root]
+            for component in destination.parent.relative_to(cold_root).parts:
+                directories.append(directories[-1] / component)
+            for directory in directories:
+                try:
+                    directory.mkdir(mode=0o700)
+                except FileExistsError:
+                    pass
+                _require_private_fixture_directory(directory, cold_device)
+            if os.path.lexists(destination):
+                raise FileExistsError(destination)
+            before = path.lstat()
+            identity = _fixture_source_identity(before)
+            partial = destination.with_name(destination.name + ".partial")
+            with ExitStack() as pending:
+                # Reading an unsupported target must not alter source atime.
+                # No-follow also refuses a changed journal link before copying.
+                descriptor = os.open(path, os.O_RDONLY | os.O_NOATIME | os.O_NOFOLLOW)
+                with os.fdopen(descriptor, "rb") as source:
+                    if _fixture_source_identity(os.fstat(source.fileno())) != identity:
+                        raise RuntimeError(f"Original fixture journal changed: {path}")
+                    digest = hashlib.file_digest(source, "sha256").hexdigest()
+                    source.seek(0)
+                    descriptor = os.open(partial, os.O_RDWR | os.O_CREAT | os.O_EXCL, 0o600)
+                    owned = os.fstat(descriptor)
+                    pending.callback(_remove_owned_fixture_copy, partial, owned.st_dev, owned.st_ino)
+                    with os.fdopen(descriptor, "w+b") as target:
+                        shutil.copyfileobj(source, target)
+                        target.flush()
+                        target.seek(0)
+                        if hashlib.file_digest(target, "sha256").hexdigest() != digest:
+                            raise RuntimeError(f"Copied fixture journal differs: {path}")
+                        os.fchmod(target.fileno(), stat.S_IMODE(before.st_mode))
+                        os.utime(target.fileno(), ns=(before.st_atime_ns, before.st_mtime_ns))
+                        os.fsync(target.fileno())
+                        if _fixture_copy_metadata(os.fstat(target.fileno())) != _fixture_copy_metadata(before):
+                            raise OSError(f"Cold filesystem does not preserve fixture metadata: {path}")
+                if _fixture_source_identity(path.lstat()) != identity:
+                    raise RuntimeError(f"Original fixture journal changed: {path}")
+                record = {"path": str(path), "destination": str(destination), "sha256": digest,
+                          "original_dev": before.st_dev, "original_inode": before.st_ino,
+                          "bytes": before.st_size, "mtime_ns": before.st_mtime_ns,
+                          "atime_ns": before.st_atime_ns, "mode": before.st_mode,
+                          "copied_metadata_verified": True, "private_directories_verified": True}
+                receipt["files"].append(record)
+                retained.write_text(json.dumps(receipt, indent=2) + "\n")
+                # Publish without replacing an existing entry, including a
+                # dangling link. Until source replacement, copies stay owned.
+                partial_info = partial.lstat()
+                if (partial_info.st_dev, partial_info.st_ino) != (owned.st_dev, owned.st_ino):
+                    raise RuntimeError(f"Owned fixture copy changed before publication: {partial}")
+                os.link(partial, destination)
+                published = destination.lstat()
+                pending.callback(_remove_owned_fixture_copy, destination, published.st_dev, published.st_ino)
+                if (published.st_dev, published.st_ino) != (owned.st_dev, owned.st_ino):
+                    raise RuntimeError(f"Published fixture copy differs from acquired resource: {destination}")
+                _remove_owned_fixture_copy(partial, owned.st_dev, owned.st_ino)
+                _sync_fixture_directory(destination.parent)
+                link = path.with_name(path.name + ".cold-link")
+                link.symlink_to(destination)
+                owned_link = link.lstat()
+                pending.callback(_remove_owned_fixture_copy, link, owned_link.st_dev, owned_link.st_ino)
+                if (not cold_mount.is_mount() or cold_mount.stat().st_dev != cold_device
+                        or destination.stat().st_dev != cold_device):
+                    raise OSError("Cold mount changed before source replacement")
+                for directory in directories:
+                    _require_private_fixture_directory(directory, cold_device)
+                if _fixture_copy_metadata(destination.stat()) != _fixture_copy_metadata(before):
+                    raise OSError(f"Cold fixture metadata changed before replacement: {path}")
+                if _fixture_source_identity(path.lstat()) != identity:
+                    raise RuntimeError(f"Original fixture journal changed: {path}")
+                os.replace(link, path)
+                pending.pop_all()
+                record["original_replaced"] = True
+                _sync_fixture_directory(path.parent)
+                descriptor = os.open(path, os.O_RDONLY | os.O_NOATIME)
+                with os.fdopen(descriptor, "rb") as original_path:
+                    if hashlib.file_digest(original_path, "sha256").hexdigest() != digest:
+                        raise RuntimeError(f"Retained fixture path differs: {path}")
+                record["verified_through_original_path"] = True
+                retained.write_text(json.dumps(receipt, indent=2) + "\n")
+    except (OSError, RuntimeError) as error:
+        receipt["retained_reason"] = str(error)
         retained.write_text(json.dumps(receipt, indent=2) + "\n")
-        # Publish without replacing any existing entry, including dangling links.
-        os.link(partial, destination)
-        partial.unlink()
-        _sync_fixture_directory(destination.parent)
-        link = path.with_name(path.name + ".cold-link")
-        link.symlink_to(destination)
-        if (not cold_mount.is_mount() or cold_mount.stat().st_dev != cold_device
-                or destination.stat().st_dev != cold_device):
-            receipt["retained_reason"] = "Cold mount changed before source replacement"
-            retained.write_text(json.dumps(receipt, indent=2) + "\n")
-            link.unlink()
-            return
-        os.replace(link, path)
-        _sync_fixture_directory(path.parent)
-        with path.open("rb") as original_path:
-            if hashlib.file_digest(original_path, "sha256").hexdigest() != digest:
-                raise RuntimeError(f"Retained fixture path differs: {path}")
-        record["verified_through_original_path"] = True
-        retained.write_text(json.dumps(receipt, indent=2) + "\n")
+
+
+def _fixture_copy_metadata(info):
+    """Native metadata that the retained resource must actually preserve."""
+    return (info.st_mode, info.st_uid, info.st_gid, info.st_size,
+            info.st_atime_ns, info.st_mtime_ns)
+
+
+def _fixture_source_identity(info):
+    return (info.st_dev, info.st_ino, info.st_ctime_ns, *_fixture_copy_metadata(info))
+
+
+def _require_private_fixture_directory(directory: Path, cold_device: int) -> None:
+    info = directory.lstat()
+    if (not stat.S_ISDIR(info.st_mode) or info.st_dev != cold_device
+            or info.st_uid != os.geteuid() or stat.S_IMODE(info.st_mode) != 0o700):
+        raise OSError(f"Cold filesystem does not provide private fixture access: {directory}")
+
+
+def _remove_owned_fixture_copy(path: Path, device: int, inode: int) -> None:
+    try:
+        info = path.lstat()
+    except FileNotFoundError:
+        return
+    if (info.st_dev, info.st_ino) == (device, inode):
+        path.unlink()
 
 
 def _sync_fixture_directory(directory: Path) -> None:
