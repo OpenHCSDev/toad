@@ -1,0 +1,215 @@
+{
+  "state": "SOURCE_ONLY_DRAFT; no package/import/build/grant/operator/public actions",
+  "comparison": "Read-only full Git blob to retained wheel ZIP byte comparison; no installed application imported or checked",
+  "source_window": {
+    "toad_main": "af692dc6feae5a8def3136e25024624311f088b0",
+    "core_main": "5c1103077e5a982365a6d801b98bcbdb1b03c547",
+    "textual": "180cbd9471bd6674647590108ca2fe5a627eb24f",
+    "audit": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10"
+  },
+  "wheel_relations": {
+    "toad439_retained": {
+      "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/wire439-main436-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "wheel_sha256": "06445ffc00b67834a88d14e57ac5dd5526cc823ff543477996279d6d8ce7c7ce",
+      "bytes": 2246337,
+      "available": true,
+      "git_head": "af692dc6feae5a8def3136e25024624311f088b0",
+      "compared_assets": 319,
+      "missing": [],
+      "changed": [],
+      "extra_package_members": [],
+      "all_assets_equal": true
+    },
+    "toad436_historical": {
+      "wheel": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "wheel_sha256": "5002977faca18b0f807999dced9e05f76144c039fd0cab719848bf4d544a7742",
+      "bytes": 2245559,
+      "available": true,
+      "git_head": "af692dc6feae5a8def3136e25024624311f088b0",
+      "compared_assets": 319,
+      "missing": [],
+      "changed": [
+        "src/toad/conversation_kind.py",
+        "src/toad/mounted_message_history.py",
+        "src/toad/screens/comms.py",
+        "src/toad/widgets/comms_chat.py",
+        "src/toad/widgets/history_anchor.py"
+      ],
+      "extra_package_members": [],
+      "all_assets_equal": false
+    },
+    "text59_retained": {
+      "wheel": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native59-filewheel-20261004/textual-8.2.8-py3-none-any.whl",
+      "wheel_sha256": "73d4ca971dd2891c2a2266a0c5c8629e3e0ff55e802456ae60d0fedfe72fdbaa",
+      "bytes": 768474,
+      "available": true,
+      "git_head": "180cbd9471bd6674647590108ca2fe5a627eb24f",
+      "compared_assets": 266,
+      "missing": [],
+      "changed": [],
+      "extra_package_members": [],
+      "all_assets_equal": true
+    },
+    "audit9a_retained": {
+      "wheel": "/home/ts/wt/nra-skill-publish-20261002/.artifacts/family-flattened-collector-20261004/wheels/nominal_refactor_audit-0.1.0-py3-none-any.whl",
+      "wheel_sha256": "8d489731728ebf9f7e0f90ef2b14e7e3b5d2f90ed82bd8b1482d735f82869886",
+      "bytes": 23532,
+      "available": true,
+      "git_head": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10",
+      "compared_assets": 10,
+      "missing": [],
+      "changed": [],
+      "extra_package_members": [],
+      "all_assets_equal": true
+    },
+    "core654_original_app_wheel": {
+      "wheel": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/c4-coordination-snapshot-owner-20261004/core-wheel/agent_comms-0.1.0-py3-none-any.whl",
+      "wheel_sha256": "952e35a927313120990d1ce6b9b77604ffa833ef34dd8411042a55ac67704b27",
+      "bytes": 880886,
+      "available": true,
+      "git_head": "b1a91fb561cfac4ea99f9a7b23f3dae9bb772f56",
+      "compared_assets": 347,
+      "missing": [],
+      "changed": [
+        "src/agent_comms/acp_extension.py",
+        "src/agent_comms/input_drain.py",
+        "src/agent_comms/owned_turn.py",
+        "src/agent_comms/queued_input.py",
+        "src/agent_comms/turn_progress.py",
+        "src/agent_comms/turn_runner.py"
+      ],
+      "extra_package_members": [],
+      "all_assets_equal": false,
+      "comparison_scope": "Initial654 source window only; mismatch retained, not used as656 source relation"
+    },
+    "core436_historical": {
+      "wheel": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/merged-core633-1a520528-wheel-20261004/agent_comms-0.1.0-py3-none-any.whl",
+      "wheel_sha256": "58a11a611069326b50b97e20f1080ce786b916e90be307495a4e4306157492f6",
+      "bytes": 880764,
+      "available": true,
+      "git_head": "b1a91fb561cfac4ea99f9a7b23f3dae9bb772f56",
+      "compared_assets": 347,
+      "missing": [],
+      "changed": [
+        "src/agent_comms/acp_extension.py",
+        "src/agent_comms/activity.py",
+        "src/agent_comms/history_views.py",
+        "src/agent_comms/input_drain.py",
+        "src/agent_comms/owned_turn.py",
+        "src/agent_comms/presentation.py",
+        "src/agent_comms/queued_input.py",
+        "src/agent_comms/turn_progress.py",
+        "src/agent_comms/turn_runner.py",
+        ".pi/APPEND_SYSTEM.md"
+      ],
+      "extra_package_members": [],
+      "all_assets_equal": false,
+      "comparison_scope": "Initial654 source window only; mismatch retained, not used as656 source relation"
+    },
+    "core656_retained": {
+      "wheel": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/c4-queued-reservation656-wheel-20261004/agent_comms-0.1.0-py3-none-any.whl",
+      "wheel_sha256": "5f1667ce64c58d67e153850be91dfb669ea9e347218f8d845937a1c12c778a9c",
+      "bytes": 881624,
+      "git_head": "5c1103077e5a982365a6d801b98bcbdb1b03c547",
+      "original_installed_source": "c656a64c4887fae14227b1e0a04a2b263bdaeade",
+      "tracked_assets": 344,
+      "forced_assets": 3,
+      "compared_assets": 347,
+      "missing": [],
+      "changed": [],
+      "extra_package_members": [],
+      "all_assets_equal": true,
+      "metadata_sha256": "9a02a0a276afadd2f609acae02a93606f53d85a904f40f0ef162f9ceafa1fc0c",
+      "full_src_stack_pi_pyproject_diff_vs_installed_source": [],
+      "build_required": false
+    }
+  },
+  "native_manifest_source_sha256": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
+  "native_tree": "dbc88ed9231d1275da3ce218aa8919a247e41ce1f010ce765e7ac0960193f4ac",
+  "core_vs436_changed_source": [
+    ".pi/APPEND_SYSTEM.md",
+    "src/agent_comms/acp_extension.py",
+    "src/agent_comms/activity.py",
+    "src/agent_comms/history_views.py",
+    "src/agent_comms/input_disposition.py",
+    "src/agent_comms/input_drain.py",
+    "src/agent_comms/owned_turn.py",
+    "src/agent_comms/presentation.py",
+    "src/agent_comms/queued_input.py",
+    "src/agent_comms/turn_progress.py",
+    "src/agent_comms/turn_runner.py"
+  ],
+  "toad_vs436_changed_package": [
+    "src/toad/conversation_kind.py",
+    "src/toad/mounted_message_history.py",
+    "src/toad/screens/comms.py",
+    "src/toad/widgets/comms_chat.py",
+    "src/toad/widgets/history_anchor.py"
+  ],
+  "initial_source_window": {
+    "toad_main": "af692dc6feae5a8def3136e25024624311f088b0",
+    "core_main": "b1a91fb561cfac4ea99f9a7b23f3dae9bb772f56",
+    "textual": "180cbd9471bd6674647590108ca2fe5a627eb24f",
+    "audit": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10"
+  },
+  "656_qualification": {
+    "state": "MERGED; seven cumulative distinct installed cases qualified",
+    "actual_main": "5c1103077e5a982365a6d801b98bcbdb1b03c547",
+    "ready_head": "5bd29311ae1a559a1457c83061020d0af5940602",
+    "original01": "6PASS/1FAIL14.192s; actualsavedSDK source and nativeSteer passed; originalfailedlog retained",
+    "changed02": "Only correctedreadmission assertion1PASS.878s, no nativeexecution",
+    "Debt_run": 37226434511,
+    "combined_installed_rerun": false
+  },
+  "toad_metadata_relation": {
+    "original_wheel_build_head": "0840fc60a85b6442cc8c4f9fd141482af0f8fe22",
+    "current_declared_core": "5c1103077e5a982365a6d801b98bcbdb1b03c547",
+    "same_wheel_build_inputs": {
+      "project": true,
+      "build_system": true,
+      "hatch": true,
+      "readme": true
+    },
+    "retained_metadata_sha256": "3fde2bfef1346f91a2bad2c6dfbca28a40710dc38ca987f66266a6064c3c43ee",
+    "source_pin_differences_are_tool_uv_only": true,
+    "full_pyproject_bytes_equal": false,
+    "origin": "Retained06445 filewheel and reviewed SHA, originalbuildhead honestlyretained; never manufactureVCSdirectURL",
+    "new_Toad_build_required": false
+  },
+  "lock_relation": {
+    "normal_declared_core": "5c1103077e5a982365a6d801b98bcbdb1b03c547",
+    "nonrevision_package_graph_equal_main": true,
+    "dependency_resolve_or_uvsync": false
+  },
+  "retired_source_copy_records": [
+    {
+      "record": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/finished-intermediate-source-batch70-retirement-receipt.json",
+      "record_sha256": "f4c5cbb2513703560f83100e604851eb09fef909a4e0a6fa83b8ca09e9d3e9f6",
+      "state": "COMPLETE",
+      "paths_removed": [
+        "/home/ts/.cache/uv/git-v1/checkouts/3749cf90a90c59f5/eb3778d6",
+        "/home/ts/.cache/uv/git-v1/checkouts/e0d6980a492da0bf/35692233",
+        "/home/ts/.cache/uv/git-v1/checkouts/e0d6980a492da0bf/97875906",
+        "/home/ts/.cache/uv/git-v1/checkouts/e0d6980a492da0bf/0de3ab02",
+        "/home/ts/.cache/uv/git-v1/checkouts/e0d6980a492da0bf/a3cade66",
+        "/home/ts/.cache/uv/git-v1/checkouts/58395aa9353f46e6/c26499bf6",
+        "/home/ts/.cache/uv/git-v1/checkouts/58395aa9353f46e6/cd81c620c"
+      ],
+      "published_Git_keepers_readable_after_retirement": true,
+      "claim": "Existing retirement record only; no new path census, cleanup grant or reclaimed-byte credit"
+    },
+    {
+      "record": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/finished-core-intermediate-batch71-retirement-receipt.json",
+      "record_sha256": "cd46d60d2d29a5cc6fbac71e1d390214cf52722e61f009cd9c8a2d8fd4b698cc",
+      "state": "COMPLETE",
+      "paths_removed": [
+        "/home/ts/.cache/uv/git-v1/checkouts/3749cf90a90c59f5/2d560e91",
+        "/home/ts/.cache/uv/git-v1/checkouts/3749cf90a90c59f5/dbcf3ae4"
+      ],
+      "published_Git_keepers_readable_after_retirement": true,
+      "claim": "Existing retirement record only; no new path census, cleanup grant or reclaimed-byte credit"
+    }
+  ],
+  "next_package_purpose": "NONE granted to Sch; newnamed existing-holder purpose afteractualW6wholehandback/freshBohrgrant required. Source-onlystageplan does not block original436publisher.",
+  "excluded": "W6/Core627/Toad434/schema10/7a2e and other unqualified product excluded; native086 remains the ordinarydeclaredpin"
+}
