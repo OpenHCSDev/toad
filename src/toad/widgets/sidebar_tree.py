@@ -82,6 +82,10 @@ class SidebarGroup(VerticalGroup):
     async def _sync_members(self) -> None:
         await self.reconcile_groups((self,))
 
+    def accepts_members(self):
+        """Native membership is valid until this group starts retirement."""
+        return self.is_attached and not self._closing and not self._pruning
+
     def thread_people(self):
         """Specializations supply the original people for a disclosure change."""
         raise NotImplementedError
@@ -112,10 +116,10 @@ class SidebarGroup(VerticalGroup):
 
         async with AsyncExitStack() as custody:
             admitted = []
-            for group in groups:
+            for group in dict.fromkeys(groups):
                 await custody.enter_async_context(group.member_lock)
-                if group.is_attached and not group._closing and not group._pruning:
-                    admitted.append(group)
+                admitted.append(group)
+            admitted = [group for group in admitted if group.accepts_members()]
             if not admitted:
                 return
             if sources is not None:
@@ -127,6 +131,7 @@ class SidebarGroup(VerticalGroup):
                           for person in group.thread_people()}
                 captured = await ThreadRowsWork.capture(
                     runtime, tuple(ThreadRowInput(person) for person in people.values()))
+                admitted = [group for group in admitted if group.accepts_members()]
             inputs, retained, witnesses = {}, {}, {}
             for group in admitted:
                 rows, retained[group], witnesses[group] = group.thread_row_inputs()
@@ -157,7 +162,7 @@ class SidebarGroup(VerticalGroup):
         The caller serializes updates and owns empty-state rows. Neither a
         title/status change nor a selection repaint remounts the list.
         """
-        if not self.is_attached or self._closing or self._pruning:
+        if not self.accepts_members():
             return ()
         keys = tuple(keys)
         wanted = set(keys)
@@ -168,7 +173,7 @@ class SidebarGroup(VerticalGroup):
             # Retire that exact set in one DOM operation, not an intermediate
             # remove/layout/message-pump turn for every member of the roster.
             await self.member_container.remove_children([rows.pop(key) for key in retired])
-            if not self.is_attached or self._closing or self._pruning:
+            if not self.accepts_members():
                 return ()
         mounted = []
         for key in keys:
@@ -179,7 +184,7 @@ class SidebarGroup(VerticalGroup):
             update(key, current)
         if mounted:
             await self.member_container.mount(*mounted)
-            if not self.is_attached or self._closing or self._pruning:
+            if not self.accepts_members():
                 return ()
         ordered = tuple(rows[key] for key in keys)
         reordered = bool(ordered) and tuple(self.member_container.children) != ordered

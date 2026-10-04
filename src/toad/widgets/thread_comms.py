@@ -137,7 +137,7 @@ class RelationshipRows(SidebarGroup):
         return inputs, self.rows, (self.model, tree.owner, tree._generation)
 
     async def _reconcile_members(self, prepared_rows, source) -> None:
-        if not self.is_mounted or not self.is_attached or self._pruning or self._closing:
+        if not self.is_mounted or not self.accepts_members():
             return
         tree = self.query_ancestor(ThreadCommsSidebar)
         model, owner, generation = source

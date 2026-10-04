@@ -146,7 +146,7 @@ class ChannelGroup(SidebarGroup):
         return inputs, self._members, snapshot
 
     async def _reconcile_members(self, prepared_rows, source) -> None:
-        if not self.is_attached or self._pruning or self._closing:
+        if not self.accepts_members():
             return
         sidebar = self.query_ancestor(CommsSidebar)
         snapshot = sidebar.projection.snapshot
