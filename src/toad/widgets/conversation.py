@@ -570,37 +570,29 @@ class ConversationSessionBinding(containers.Vertical):
         if self._directory_watcher is None:
             self._directory_watcher = DirectoryWatcher(self.project_path, self)
             self._directory_watcher.start()
-        if self.agent is not None:
-            self.agent_ready = self.agent.ready
-            return
-        if self._agent_data is not None:
-
-            async def start_agent() -> None:
-                """Start the agent after refreshing the UI."""
-                assert self._agent_data is not None
-                from toad.acp.agent import Agent
-
-                self.agent = Agent(
-                    self.project_path,
-                    self._agent_data,
-                    self._agent_session_id,
-                    self._session_pk,
-                )
-                self._native_agent_started_here = True
-                self.bind_agent(self.agent)
-                await self.agent.start()
-                self.publish_core(core_events.SessionSubtitleChanged(self.agent_title))
-
+        if self.agent is None and self._agent_data is not None:
             from toad.screens.workspace import WorkspaceScreen
-
             screen = self.screen
             if isinstance(screen, WorkspaceScreen):
-                screen.frame_presentation.defer(self, start_agent)
+                screen.frame_presentation.defer(self, self._start_agent)
             else:
-                self.call_after_refresh(start_agent)
-
+                self.call_after_refresh(self._start_agent)
         else:
-            self.agent_ready = True
+            self.agent_ready = self.agent.ready if self.agent is not None else True
+
+    def _start_agent(self) -> None:
+        """Admit one operational startup after the source's written frame."""
+        if self.agent is not None:
+            return
+        assert self._agent_data is not None
+        from toad.acp.agent import Agent
+
+        self.agent = Agent(self.project_path, self._agent_data,
+                           self._agent_session_id, self._session_pk)
+        self._native_agent_started_here = True
+        self.bind_agent(self.agent)
+        self.agent.controller.start_operation(self.agent.start())
+        self.publish_core(core_events.SessionSubtitleChanged(self.agent_title))
 
     @work
     async def watch_agent_ready(self, ready: bool) -> None:

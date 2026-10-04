@@ -1,0 +1,28 @@
+{
+  "state": "WHOLE Heisenberg429 style22 CODE/package/import/read/execution handback; original floor restored",
+  "time": 1791105807.4088225,
+  "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "original_floor": "Core611d416/Toad9138/Texta52/NRA d392/native2ea",
+  "original_archive_members_verified": 1459,
+  "all_original_bytes_readlinks_equal": true,
+  "all69_versions_equal": true,
+  "pip_check": "pass",
+  "original_activation_and_origins_equal": true,
+  "candidate_product_head": "4e2ad921800b33ee86b65960f564434e91579c8f",
+  "installed_actual_app_exit": 0,
+  "installed_actual_app_duration_seconds": 20.20678544207476,
+  "provider_calls": 0,
+  "native_inputs": 0,
+  "public_mutations": false,
+  "future_package_import_read_execution_claim": false,
+  "borrowers": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/final-borrowers.json",
+    "sha256": "9bced2a3c9448e7c6e90dfb33bb3c7d2261d01823148a64fd151453618810ee7",
+    "processes": 245,
+    "refs": 0,
+    "gaps": 0
+  },
+  "scratch_disposition": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/scratch-disposition.json",
+  "original_failed03_private_state_retained": "/home/ts/.cache/agent-scratch/startup429-native55-app-20261004-03",
+  "evidence_retained": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004"
+}
