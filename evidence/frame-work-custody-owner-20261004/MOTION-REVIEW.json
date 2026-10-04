@@ -1,0 +1,195 @@
+{
+  "assessment": "Body/chrome painted with discrete advances/repeated positions; full smoothness remains unproven",
+  "personal_during": [
+    {
+      "phase": "input-held-up",
+      "sheet": "live-14-7-frames.png",
+      "movie_band": [
+        22.512326313,
+        23.312326313
+      ],
+      "ui_pid": 151469,
+      "ui_birth": 55568385,
+      "before_monotonic_ns": 555759256016455,
+      "before_state": "S",
+      "after_monotonic_ns": 555775476520511,
+      "after_state": "S",
+      "assessment": "Personally viewed original48 consecutive frames during same UI lifetime: body/chrome present; discrete advances and repeated positions; no full-body blank evident; not smoothness/FPS/CPU proof.",
+      "sheet_path": "/home/ts/.cache/agent-scratch/frame418-native50-public-20261004-01/capture/live-14-7-frames.png",
+      "sheet_sha256": "caae04a651fe73802e013eb4cda539f557538b6bffa6b5ca3b3333ca10c65b1f",
+      "review_timing": "DURING original UI lifetime, same birth before and after personal view"
+    },
+    {
+      "phase": "input-held-down",
+      "sheet": "live-21-12-frames.png",
+      "movie_band": [
+        46.999358615,
+        47.799358615
+      ],
+      "ui_pid": 151469,
+      "ui_birth": 55568385,
+      "before_monotonic_ns": 555775476762059,
+      "before_state": "S",
+      "after_monotonic_ns": 555786888359553,
+      "after_state": "S",
+      "assessment": "Personally viewed original48 consecutive frames during same UI lifetime: body/chrome remain painted, discrete vertical advances/repeated positions; no full-body blank evident, not smoothness/FPS/CPU proof.",
+      "sheet_path": "/home/ts/.cache/agent-scratch/frame418-native50-public-20261004-01/capture/live-21-12-frames.png",
+      "sheet_sha256": "46d0703e6d53f7ae5f8e09e8c991dad65784246b7d3b30412f1a24ad8b51b63f",
+      "review_timing": "DURING original UI lifetime, same birth before and after personal view"
+    }
+  ],
+  "personal_after": [
+    {
+      "phase": "reverse",
+      "sheet": "/home/ts/.cache/agent-scratch/frame418-native50-public-20261004-01/capture/live-39-22-frames.png",
+      "movie_band": [
+        77.002755562,
+        77.802755562
+      ],
+      "assessment": "Viewed after failed original UI-alive probe; body/chrome painted, discrete advances/repeated positions. No DURING claim."
+    },
+    {
+      "phase": "end",
+      "sheet": "/home/ts/.cache/agent-scratch/frame418-native50-public-20261004-01/capture/live-43-24-frames.png",
+      "movie_band": [
+        84.95904362795409,
+        85.75904362795409
+      ],
+      "assessment": "AFTER UI exit; destination remains painted, stationary repeats legitimate. Marker interval, not held-key FPS."
+    },
+    {
+      "phase": "a-return",
+      "image": "/home/ts/.cache/agent-scratch/frame418-native50-public-20261004-01/capture/phase-a-return.png",
+      "assessment": "AFTER UI exit; original nra-architecture tab/history visible and draft retained; recorded warm assertions establish original source/window custody."
+    }
+  ],
+  "original_key_intervals": [
+    {
+      "label": "input-held-up",
+      "start": 22.512326313,
+      "seconds": 0.8,
+      "gesture_end": 24.288844134,
+      "complete": true,
+      "basis": "checked keydown start through keyup start; release completed"
+    },
+    {
+      "label": "input-held-down",
+      "start": 46.999358615,
+      "seconds": 0.8,
+      "gesture_end": 48.764310923,
+      "complete": true,
+      "basis": "checked keydown start through keyup start; release completed"
+    },
+    {
+      "label": "up",
+      "start": 59.118234707,
+      "seconds": 0.8,
+      "gesture_end": 60.878383855,
+      "complete": true,
+      "basis": "checked keydown start through keyup start; release completed"
+    },
+    {
+      "label": "down",
+      "start": 67.833705468,
+      "seconds": 0.8,
+      "gesture_end": 69.639278843,
+      "complete": true,
+      "basis": "checked keydown start through keyup start; release completed"
+    },
+    {
+      "label": "reverse",
+      "start": 77.002755562,
+      "seconds": 0.8,
+      "gesture_end": 78.784571956,
+      "complete": true,
+      "basis": "checked keydown start through keyup start; release completed"
+    },
+    {
+      "label": "end",
+      "start": 84.95904362795409,
+      "seconds": 0.8,
+      "gesture_end": 88.09825677599292,
+      "complete": true,
+      "basis": "phase markers"
+    }
+  ],
+  "writer_phases": [
+    {
+      "action": "input-held-up",
+      "intervals": {
+        "count": 99,
+        "median_ms": 12.18,
+        "p95_ms": 40.33,
+        "p99_ms": 124.32,
+        "max_ms": 147.68
+      },
+      "writer_receipts": 100
+    },
+    {
+      "action": "input-held-down",
+      "intervals": {
+        "count": 138,
+        "median_ms": 11.52,
+        "p95_ms": 27.83,
+        "p99_ms": 52.25,
+        "max_ms": 104.39
+      },
+      "writer_receipts": 139
+    },
+    {
+      "action": "up",
+      "intervals": {
+        "count": 148,
+        "median_ms": 10.55,
+        "p95_ms": 20.86,
+        "p99_ms": 23.3,
+        "max_ms": 125.48
+      },
+      "writer_receipts": 149
+    },
+    {
+      "action": "down",
+      "intervals": {
+        "count": 144,
+        "median_ms": 11.62,
+        "p95_ms": 23.64,
+        "p99_ms": 33.97,
+        "max_ms": 80.11
+      },
+      "writer_receipts": 145
+    },
+    {
+      "action": "reverse",
+      "intervals": {
+        "count": 146,
+        "median_ms": 11.46,
+        "p95_ms": 25.17,
+        "p99_ms": 30.64,
+        "max_ms": 117.57
+      },
+      "writer_receipts": 147
+    },
+    {
+      "action": "end",
+      "intervals": {
+        "count": 16,
+        "median_ms": 128.53,
+        "p95_ms": 499.67,
+        "p99_ms": 499.67,
+        "max_ms": 503.13
+      },
+      "writer_receipts": 17
+    }
+  ],
+  "writer_to_flush": {
+    "count": 1311,
+    "median_ms": 2.22,
+    "p95_ms": 12.07,
+    "p99_ms": 17.73,
+    "max_ms": 34.47
+  },
+  "timeline": "/home/ts/.cache/agent-scratch/frame418-native50-public-20261004-01/capture/frame-delivery.svg",
+  "scope": "Native writer completion; not changed pixels or terminal presentation FPS. Zero stationary motion is legitimate, not a stall classification.",
+  "recorder_nominal_fps": 60,
+  "no_smoothness_FPS_CPU_gain_claim": true
+}
