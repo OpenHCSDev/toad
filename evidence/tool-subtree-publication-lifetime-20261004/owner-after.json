@@ -1,33 +1,34 @@
 {
-  "source_tree": "01cad6a9601649f76e83e8c3018309edf530fb95",
-  "native_head": "9bdc8004fa75844257f92afb425bf9e951eae346",
+  "source_tree": "ae09fbd57b6ab8dedde5d9f19374188bab38726e",
+  "native_head": "44aca3441cc1ae7e4450e182259241dd7be56937",
   "packages": [
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
-      "revision": "01cad6a9601649f76e83e8c3018309edf530fb95",
+      "revision": "ae09fbd57b6ab8dedde5d9f19374188bab38726e",
       "root": "src/toad",
       "modules": 288,
       "omissions": []
     },
     {
       "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
-      "revision": "9bdc8004fa75844257f92afb425bf9e951eae346",
+      "revision": "44aca3441cc1ae7e4450e182259241dd7be56937",
       "root": "src/textual",
       "modules": 249,
       "omissions": []
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
-      "revision": "01cad6a9601649f76e83e8c3018309edf530fb95",
+      "revision": "ae09fbd57b6ab8dedde5d9f19374188bab38726e",
       "root": "tests",
       "modules": 394,
       "omissions": []
     }
   ],
   "production_sha256": {
-    "src/toad/tool_output.py": "e85537724f430373fdf399b4cd641fe1e55e93bc382a346b9b94713acd9da265",
-    "src/toad/widgets/tool_call.py": "46baa458c747bb3ff009c80d09ee63f2111a60852a5dd5e5da25529758c1bd4e",
-    "src/toad/widgets/viewport_body.py": "3d3bde9b7442acffdd8bc9e0bf50baf734ec4e8ecd4fa27d840f8394ee808f5d"
+    "src/toad/tool_output.py": "bb93c468a138c856691093918510b93d2f273db4bdf4de06ac356f6a2673bff9",
+    "src/toad/widgets/tool_call.py": "099875ac284c5f25fdb9ab5d3bc2e21663d8cb413e532f20da4705ed4560f3fe",
+    "src/toad/widgets/viewport_body.py": "7510014c067261ba3f87b7ea5ac03cfa22c3d73f2159c73c44fa15e63f3b8134",
+    "src/toad/widgets/conversation.py": "65a4ad60be8ab071a18a829a63d53becce86922890c4cc1866196a241e09510a"
   },
   "sites": [
     {
@@ -52,7 +53,7 @@
       "line": 42,
       "kind": "FunctionDef",
       "name": "prepare",
-      "source": "def prepare(self) -> TranscriptPage:\n        if not self.read.content_current():\n            raise StaleRevision(\"Published transcript inputs changed before admission\")\n        return self.p"
+      "source": "def prepare(self) -> TranscriptPage:\n        if not self.read.content_current():\n            raise StaleRevision(\"Published transcript inputs changed before adm"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -84,7 +85,111 @@
       "line": 18,
       "kind": "FunctionDef",
       "name": "prepare",
-      "source": "def prepare(self, controller) -> None:\n        app = self.target.app\n        controller.transcripts = controller.transcripts.with_runtime(\n            app.preparation, app.coordination_acces"
+      "source": "def prepare(self, controller) -> None:\n        app = self.target.app\n        controller.transcripts = controller.transcripts.with_runtime(\n            app.prepa"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/conversation_kind.py",
+      "line": 159,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/conversation_kind.py",
+      "line": 159,
+      "kind": "Attribute",
+      "name": "displayed",
+      "source": "scope.displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/conversation_kind.py",
+      "line": 37,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/conversation_kind.py",
+      "line": 37,
+      "kind": "Attribute",
+      "name": "displayed",
+      "source": "page.historical_display.displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/conversation_kind.py",
+      "line": 157,
+      "kind": "Attribute",
+      "name": "displayed",
+      "source": "scope.displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/conversation_kind.py",
+      "line": 161,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/conversation_kind.py",
+      "line": 162,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/conversation_kind.py",
+      "line": 163,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/conversation_kind.py",
+      "line": 225,
+      "kind": "Attribute",
+      "name": "displayed",
+      "source": "scope.displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/conversation_kind.py",
+      "line": 40,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/conversation_kind.py",
+      "line": 41,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/conversation_kind.py",
+      "line": 237,
+      "kind": "Attribute",
+      "name": "displayed",
+      "source": "scope.displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/conversation_kind.py",
+      "line": 348,
+      "kind": "Attribute",
+      "name": "displayed",
+      "source": "basis.displayed"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -176,6 +281,46 @@
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/frame_presentation.py",
+      "line": 63,
+      "kind": "FunctionDef",
+      "name": "displayed",
+      "source": "def displayed(self, frame):\n        pass"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/frame_presentation.py",
+      "line": 85,
+      "kind": "FunctionDef",
+      "name": "displayed",
+      "source": "def displayed(self, frame):\n        receipt = WritingFrame()\n        frame.state = receipt\n        FrameFlush.for_driver(frame.screen.app._driver).submit(partia"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/frame_presentation.py",
+      "line": 168,
+      "kind": "FunctionDef",
+      "name": "displayed",
+      "source": "def displayed(self):\n        self.state.displayed(self)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/frame_presentation.py",
+      "line": 169,
+      "kind": "Attribute",
+      "name": "displayed",
+      "source": "self.state.displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/frame_presentation.py",
+      "line": 204,
+      "kind": "Attribute",
+      "name": "displayed",
+      "source": "screen.frame_presentation.displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/fuzzy_index.py",
       "line": 22,
       "kind": "Attribute",
@@ -200,6 +345,22 @@
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/mounted_message_history.py",
+      "line": 365,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/mounted_message_history.py",
+      "line": 367,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/question_presentation.py",
       "line": 95,
       "kind": "AsyncFunctionDef",
@@ -212,7 +373,7 @@
       "line": 79,
       "kind": "AsyncFunctionDef",
       "name": "prepare",
-      "source": "async def prepare(self, task: RenderTask[ResultT]) -> None:\n        \"\"\"Warm a task; retained clients need no consumer delivery copy.\n\n        A renderer without retained resources still owns"
+      "source": "async def prepare(self, task: RenderTask[ResultT]) -> None:\n        \"\"\"Warm a task; retained clients need no consumer delivery copy.\n\n        A renderer without"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -241,10 +402,26 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/screens/workspace.py",
+      "line": 165,
+      "kind": "FunctionDef",
+      "name": "_prepare_compositor_refresh",
+      "source": "def _prepare_compositor_refresh(self) -> bool:\n        return self.viewport_presentation.prepare()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/workspace.py",
       "line": 166,
       "kind": "Attribute",
       "name": "prepare",
       "source": "self.viewport_presentation.prepare"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/workspace.py",
+      "line": 158,
+      "kind": "Attribute",
+      "name": "frame_windows",
+      "source": "self.viewport_presentation.frame_windows"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -308,7 +485,7 @@
       "line": 47,
       "kind": "FunctionDef",
       "name": "prepare",
-      "source": "def prepare(self) -> None:\n        self.revision += 1\n        self.ready.clear()\n        # Retained rows belong to their validated route. Hide a changed route\n        # before its first fram"
+      "source": "def prepare(self) -> None:\n        self.revision += 1\n        self.ready.clear()\n        # Retained rows belong to their validated route. Hide a changed route\n "
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -324,7 +501,7 @@
       "line": 111,
       "kind": "AsyncFunctionDef",
       "name": "sync",
-      "source": "async def sync(self) -> None:\n        \"\"\"Reconcile tracked rows before a resumed screen accepts input.\"\"\"\n        async with self.lock:\n            revision = self.service.views.revision()\n "
+      "source": "async def sync(self) -> None:\n        \"\"\"Reconcile tracked rows before a resumed screen accepts input.\"\"\"\n        async with self.lock:\n            revision = s"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -345,7 +522,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/tool_output.py",
-      "line": 58,
+      "line": 59,
       "kind": "AsyncFunctionDef",
       "name": "prepare",
       "source": "async def prepare(self, view: ToolCall) -> None:\n        pass"
@@ -353,15 +530,15 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/tool_output.py",
-      "line": 196,
+      "line": 197,
       "kind": "AsyncFunctionDef",
       "name": "prepare",
-      "source": "async def prepare(self, view: ToolCall) -> None:\n        from toad.render_tasks import PatchRenderTask\n\n        entry = self.warmup\n        assert entry is not None\n        try:\n            "
+      "source": "async def prepare(self, view: ToolCall) -> None:\n        from toad.render_tasks import PatchRenderTask\n\n        entry = self.warmup\n        assert entry is not "
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/tool_output.py",
-      "line": 229,
+      "line": 230,
       "kind": "AsyncFunctionDef",
       "name": "prepare",
       "source": "async def prepare(self, view: ToolCall) -> None:\n        await self.preparation.prepare(view)"
@@ -369,7 +546,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/tool_output.py",
-      "line": 385,
+      "line": 386,
       "kind": "FunctionDef",
       "name": "displayed_parts",
       "source": "def displayed_parts(self) -> tuple[ToolOutputPart, ...]:\n        return self.parts if self.view.expanded else ()"
@@ -377,31 +554,23 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/tool_output.py",
-      "line": 388,
-      "kind": "AsyncFunctionDef",
+      "line": 389,
+      "kind": "FunctionDef",
       "name": "sync",
-      "source": "async def sync(self) -> None:\n        from toad.widgets.conversation import Window\n        from toad.widgets.tool_call import ToolContent\n\n        view = self.view\n        body = view.query_"
+      "source": "def sync(self) -> AwaitComplete:\n        \"\"\"Admit the original body writer without awaiting it on a caller pump.\"\"\"\n        from toad.widgets.conversation impor"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/tool_output.py",
-      "line": 428,
+      "line": 430,
       "kind": "AsyncFunctionDef",
       "name": "prepare",
-      "source": "async def prepare(self, generation: int, parts: tuple[ToolOutputPart, ...]) -> None:\n        view = self.view\n        try:\n            for part in parts:\n                if generation != sel"
+      "source": "async def prepare(self, generation: int, parts: tuple[ToolOutputPart, ...]) -> None:\n        view = self.view\n        try:\n            for part in parts:\n      "
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/tool_output.py",
-      "line": 230,
-      "kind": "Attribute",
-      "name": "prepare",
-      "source": "self.preparation.prepare"
-    },
-    {
-      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
-      "path": "src/toad/tool_output.py",
-      "line": 413,
+      "line": 415,
       "kind": "Attribute",
       "name": "sync",
       "source": "body.sync"
@@ -409,7 +578,15 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/tool_output.py",
-      "line": 424,
+      "line": 231,
+      "kind": "Attribute",
+      "name": "prepare",
+      "source": "self.preparation.prepare"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/tool_output.py",
+      "line": 426,
       "kind": "Attribute",
       "name": "prepare",
       "source": "self.prepare"
@@ -417,7 +594,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/tool_output.py",
-      "line": 464,
+      "line": 466,
       "kind": "Attribute",
       "name": "sync",
       "source": "self.sync"
@@ -425,7 +602,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/tool_output.py",
-      "line": 435,
+      "line": 437,
       "kind": "Attribute",
       "name": "prepare",
       "source": "part.prepare"
@@ -436,7 +613,7 @@
       "line": 71,
       "kind": "FunctionDef",
       "name": "prepare",
-      "source": "def prepare(self) -> FilteredTranscriptBatch:\n        matches = []\n        stop = self.stop\n        if not self.selected:\n            return FilteredTranscriptBatch((), 0)\n        while stop"
+      "source": "def prepare(self) -> FilteredTranscriptBatch:\n        matches = []\n        stop = self.stop\n        if not self.selected:\n            return FilteredTranscriptB"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -448,11 +625,19 @@
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/acp_log.py",
+      "line": 90,
+      "kind": "Name",
+      "name": "get_current_worker",
+      "source": "get_current_worker"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/committed_presentation.py",
       "line": 221,
       "kind": "AsyncFunctionDef",
       "name": "prepare",
-      "source": "async def prepare(self, view: Conversation, history: CommittedHistory | None,\n                      page: TranscriptPage, captured: frozenset[Widget],\n                      is_current: Calla"
+      "source": "async def prepare(self, view: Conversation, history: CommittedHistory | None,\n                      page: TranscriptPage, captured: frozenset[Widget],\n         "
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -460,7 +645,7 @@
       "line": 245,
       "kind": "AsyncFunctionDef",
       "name": "prepare",
-      "source": "async def prepare(self, view, history, page, captured, is_current):\n        from toad.widgets.transcript_fragments import TranscriptRenderTask\n        from toad.work_preparation import Rende"
+      "source": "async def prepare(self, view, history, page, captured, is_current):\n        from toad.widgets.transcript_fragments import TranscriptRenderTask\n        from toad"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -468,7 +653,31 @@
       "line": 301,
       "kind": "AsyncFunctionDef",
       "name": "prepare",
-      "source": "async def prepare(self, view, history, page, captured, is_current):\n\n        if (history is None or not history.accepts_commit(page.after)\n                or not history.checkpoint_available"
+      "source": "async def prepare(self, view, history, page, captured, is_current):\n\n        if (history is None or not history.accepts_commit(page.after)\n                or no"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 215,
+      "kind": "Attribute",
+      "name": "membership",
+      "source": "message.membership"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 123,
+      "kind": "Name",
+      "name": "get_current_worker",
+      "source": "get_current_worker"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 288,
+      "kind": "Name",
+      "name": "get_current_worker",
+      "source": "get_current_worker"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -476,7 +685,7 @@
       "line": 238,
       "kind": "FunctionDef",
       "name": "sync",
-      "source": "def sync(self) -> None:\n        owner = self.owner\n        self.visible = bool(owner.activity)\n        self.auto_refresh = 1 if owner.activity and owner.started_at is not None else None\n    "
+      "source": "def sync(self) -> None:\n        owner = self.owner\n        self.visible = bool(owner.activity)\n        self.auto_refresh = 1 if owner.activity and owner.started"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -504,11 +713,67 @@
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 347,
+      "kind": "Attribute",
+      "name": "membership",
+      "source": "viewport.membership"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1531,
+      "kind": "Attribute",
+      "name": "update_tool_call",
+      "source": "existing_tool_call.update_tool_call"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 158,
+      "kind": "Attribute",
+      "name": "membership",
+      "source": "self.document_viewport.membership"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 300,
+      "kind": "Attribute",
+      "name": "accepts_frame",
+      "source": "self.document_viewport.accepts_frame"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/inline_message.py",
+      "line": 46,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/inline_message.py",
+      "line": 48,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/inline_message.py",
+      "line": 48,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/patch_diff.py",
       "line": 29,
       "kind": "FunctionDef",
       "name": "prepare",
-      "source": "def prepare(self, ansi: bool, dark: bool) -> \"PreparedPatch\":\n        \"\"\"Highlight the reported hunk once, independent of a mounted view.\"\"\"\n        def highlight_lines(lines: dict[int, str]"
+      "source": "def prepare(self, ansi: bool, dark: bool) -> \"PreparedPatch\":\n        \"\"\"Highlight the reported hunk once, independent of a mounted view.\"\"\"\n        def highlig"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -612,7 +877,7 @@
       "line": 56,
       "kind": "FunctionDef",
       "name": "sync",
-      "source": "def sync(self) -> AwaitComplete:\n        if self._mounted_parts == self.output.displayed_parts and not self.body_dormant:\n            return AwaitComplete()\n        return self.publish_body("
+      "source": "def sync(self) -> AwaitComplete:\n        if self._mounted_parts == self.output.displayed_parts and not self.body_dormant:\n            return AwaitComplete()\n   "
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -620,7 +885,15 @@
       "line": 61,
       "kind": "AsyncFunctionDef",
       "name": "materialize_native_body",
-      "source": "async def materialize_native_body(self) -> None:\n        async with self.batch():\n            output = self.output\n            parts = output.displayed_parts\n            if self._mounted_par"
+      "source": "async def materialize_native_body(self) -> None:\n        async with self.batch():\n            output = self.output\n            parts = output.displayed_parts\n  "
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 165,
+      "kind": "FunctionDef",
+      "name": "update_tool_call",
+      "source": "def update_tool_call(self, tool_call: ToolCallStatus) -> AwaitComplete:\n        \"\"\"Update metadata in place; materialize output only when expanded.\n\n        Arg"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -673,6 +946,30 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/tool_call.py",
+      "line": 178,
+      "kind": "Attribute",
+      "name": "sync",
+      "source": "self.output.sync"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 246,
+      "kind": "Attribute",
+      "name": "sync",
+      "source": "self.output.sync"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 361,
+      "kind": "Attribute",
+      "name": "sync",
+      "source": "self.output.sync"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/tool_call.py",
       "line": 57,
       "kind": "Attribute",
       "name": "_mounted_parts",
@@ -713,30 +1010,6 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/tool_call.py",
-      "line": 178,
-      "kind": "Attribute",
-      "name": "sync",
-      "source": "self.output.sync"
-    },
-    {
-      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
-      "path": "src/toad/widgets/tool_call.py",
-      "line": 246,
-      "kind": "Attribute",
-      "name": "sync",
-      "source": "self.output.sync"
-    },
-    {
-      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
-      "path": "src/toad/widgets/tool_call.py",
-      "line": 361,
-      "kind": "Attribute",
-      "name": "sync",
-      "source": "self.output.sync"
-    },
-    {
-      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
-      "path": "src/toad/widgets/tool_call.py",
       "line": 66,
       "kind": "Attribute",
       "name": "_mounted_parts",
@@ -772,7 +1045,7 @@
       "line": 722,
       "kind": "AsyncFunctionDef",
       "name": "prepare",
-      "source": "async def prepare() -> None:\n            # Reader replacement and source retirement both revoke this exact\n            # intent. One owned snapshot identity is the publication fence.\n       "
+      "source": "async def prepare() -> None:\n            # Reader replacement and source retirement both revoke this exact\n            # intent. One owned snapshot identity is "
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -820,7 +1093,7 @@
       "line": 125,
       "kind": "FunctionDef",
       "name": "start_materialization",
-      "source": "def start_materialization(self, body, work=None):\n        publication = AwaitComplete(self.before_publication())\n        paint = AwaitComplete(self.prepare_publication(body))\n\n        async "
+      "source": "def start_materialization(self, body, work=None, *, exit_on_error=False):\n        publication = AwaitComplete(self.before_publication())\n        paint = AwaitCo"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -860,20 +1133,20 @@
       "line": 388,
       "kind": "AsyncFunctionDef",
       "name": "batch",
-      "source": "async def batch(self, body, native_batch):\n        # The original window gate checks current coverage on every frame;\n        # width/style invalidation during this await cannot expose parti"
+      "source": "async def batch(self, body, native_batch):\n        # The original window gate checks current coverage on every frame;\n        # width/style invalidation during "
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 401,
+      "line": 400,
       "kind": "AsyncFunctionDef",
       "name": "recompose",
-      "source": "async def recompose(self, body, native_recompose):\n        if self.publishing:\n            await native_recompose()\n        else:\n            await super().recompose(body, native_recompose)"
+      "source": "async def recompose(self, body, native_recompose):\n        if self.publishing:\n            await native_recompose()\n        else:\n            await super().reco"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 503,
+      "line": 502,
       "kind": "FunctionDef",
       "name": "body_ready",
       "source": "def body_ready(self):\n        return self._body_measurement.ready(self)"
@@ -881,15 +1154,15 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 591,
+      "line": 590,
       "kind": "FunctionDef",
       "name": "publish_body",
-      "source": "def publish_body(self, work: Callable[[], Awaitable[None]]) -> AwaitComplete:\n        \"\"\"Source updates and reentry share the original materialization worker.\"\"\"\n        operation = self._bo"
+      "source": "def publish_body(self, work: Callable[[], Awaitable[None]], *, exit_on_error=False) -> AwaitComplete:\n        \"\"\"Source updates and reentry share the original m"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 596,
+      "line": 595,
       "kind": "FunctionDef",
       "name": "batch",
       "source": "def batch(self):\n        return self._body_measurement.batch(self, super().batch)"
@@ -897,15 +1170,15 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 599,
+      "line": 598,
       "kind": "AsyncFunctionDef",
       "name": "recompose",
-      "source": "async def recompose(self):\n        # Native recompose is also a publication, including direct callers.\n        # An admitted writer already owns its resource and must not join itself.\n      "
+      "source": "async def recompose(self):\n        # Native recompose is also a publication, including direct callers.\n        # An admitted writer already owns its resource an"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 605,
+      "line": 604,
       "kind": "AsyncFunctionDef",
       "name": "materialize_native_body",
       "source": "async def materialize_native_body(self):\n        raise NotImplementedError"
@@ -913,34 +1186,98 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 637,
+      "line": 636,
       "kind": "FunctionDef",
       "name": "capture_native_paint",
-      "source": "def capture_native_paint(self, current):\n        \"\"\"Capture once for retirement and preceding-source publication.\"\"\"\n        if (not current.ready(self) or not self.is_attached or self.lock."
+      "source": "def capture_native_paint(self, current):\n        \"\"\"Capture once for retirement and preceding-source publication.\"\"\"\n        if (not current.ready(self) or not "
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 784,
+      "line": 765,
+      "kind": "AsyncFunctionDef",
+      "name": "batch",
+      "source": "async def batch(self, body, native_batch):\n        \"\"\"Bound native publication borrows this original frame membership.\"\"\"\n        from toad.widgets.history_anch"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 779,
+      "kind": "FunctionDef",
+      "name": "frame_windows",
+      "source": "def frame_windows(self):\n        # Stopping preparation does not remove a still-visible native tree.\n        # Its membership owns paint through the final prune"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 800,
       "kind": "FunctionDef",
       "name": "visible_bodies",
-      "source": "def visible_bodies(self, windows):\n        \"\"\"Select paint bodies once from the original scene and native owner.\n\n        Nested windows own their own bodies. An enclosing window must not\n  "
+      "source": "def visible_bodies(self, windows):\n        \"\"\"Select paint bodies once from the original scene and native owner.\n\n        Nested windows own their own bodies. A"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 805,
+      "line": 821,
       "kind": "FunctionDef",
       "name": "prepare",
-      "source": "def prepare(self) -> bool:\n        screen = self.screen\n        if not screen.is_current:\n            return True\n        # This synchronous admission consumes one cohort from the original\n "
+      "source": "def prepare(self) -> bool:\n        screen = self.screen\n        if not screen.is_current:\n            return True\n        # This synchronous admission consumes "
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 495,
+      "line": 858,
+      "kind": "FunctionDef",
+      "name": "displayed",
+      "source": "def displayed(self) -> bool:\n        \"\"\"Native ancestry owns visibility, including a window mounted late.\n\n        Hydration can finish after its logical sessio"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 903,
+      "kind": "FunctionDef",
+      "name": "accepts_frame",
+      "source": "def accepts_frame(self) -> bool:\n        \"\"\"Only this resource's bound lifetime participates in publication.\"\"\"\n        return not self._suspended and self.memb"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 494,
       "kind": "Attribute",
       "name": "_body_viewport",
       "source": "self._body_viewport"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 892,
+      "kind": "Attribute",
+      "name": "_suspended",
+      "source": "self._suspended"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 894,
+      "kind": "Attribute",
+      "name": "membership",
+      "source": "self.membership"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1030,
+      "kind": "Attribute",
+      "name": "_suspended",
+      "source": "self._suspended"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1046,
+      "kind": "Attribute",
+      "name": "_suspended",
+      "source": "self._suspended"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -953,7 +1290,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 550,
+      "line": 549,
       "kind": "Attribute",
       "name": "_body_viewport",
       "source": "self._body_viewport"
@@ -961,7 +1298,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 593,
+      "line": 592,
       "kind": "Attribute",
       "name": "start_materialization",
       "source": "self._body_measurement.start_materialization"
@@ -969,7 +1306,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 597,
+      "line": 596,
       "kind": "Attribute",
       "name": "batch",
       "source": "self._body_measurement.batch"
@@ -977,7 +1314,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 597,
+      "line": 596,
       "kind": "Attribute",
       "name": "batch",
       "source": "super().batch"
@@ -985,7 +1322,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 634,
+      "line": 633,
       "kind": "Attribute",
       "name": "capture_native_paint",
       "source": "self.capture_native_paint"
@@ -993,7 +1330,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 714,
+      "line": 713,
       "kind": "Attribute",
       "name": "_body_viewport",
       "source": "self._body_viewport"
@@ -1001,7 +1338,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 716,
+      "line": 715,
       "kind": "Attribute",
       "name": "_body_viewport",
       "source": "self._body_viewport"
@@ -1009,10 +1346,18 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 817,
+      "line": 833,
       "kind": "Attribute",
       "name": "visible_bodies",
       "source": "self.visible_bodies"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 155,
+      "kind": "Name",
+      "name": "exit_on_error",
+      "source": "exit_on_error"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -1041,7 +1386,15 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 602,
+      "line": 592,
+      "kind": "Name",
+      "name": "exit_on_error",
+      "source": "exit_on_error"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 601,
       "kind": "Attribute",
       "name": "recompose",
       "source": "self._body_measurement.recompose"
@@ -1049,7 +1402,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 602,
+      "line": 601,
       "kind": "Attribute",
       "name": "recompose",
       "source": "super().recompose"
@@ -1057,7 +1410,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 625,
+      "line": 624,
       "kind": "Attribute",
       "name": "body_ready",
       "source": "self.body_ready"
@@ -1065,7 +1418,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 627,
+      "line": 626,
       "kind": "Attribute",
       "name": "_body_viewport",
       "source": "self._body_viewport"
@@ -1073,7 +1426,23 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 818,
+      "line": 792,
+      "kind": "Attribute",
+      "name": "frame_windows",
+      "source": "self.frame_windows"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 828,
+      "kind": "Attribute",
+      "name": "frame_windows",
+      "source": "self.frame_windows"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 834,
       "kind": "Attribute",
       "name": "body_ready",
       "source": "body.body_ready"
@@ -1081,7 +1450,23 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 1066,
+      "line": 905,
+      "kind": "Attribute",
+      "name": "_suspended",
+      "source": "self._suspended"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 905,
+      "kind": "Attribute",
+      "name": "displayed",
+      "source": "self.membership.displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1082,
       "kind": "Attribute",
       "name": "body_ready",
       "source": "body.body_ready"
@@ -1089,7 +1474,23 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 405,
+      "line": 383,
+      "kind": "Name",
+      "name": "get_current_worker",
+      "source": "get_current_worker"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 394,
+      "kind": "Attribute",
+      "name": "batch",
+      "source": "body.screen.viewport_presentation.batch"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 404,
       "kind": "Attribute",
       "name": "recompose",
       "source": "super().recompose"
@@ -1097,7 +1498,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 551,
+      "line": 550,
       "kind": "Attribute",
       "name": "_body_viewport",
       "source": "self._body_viewport"
@@ -1105,7 +1506,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 629,
+      "line": 628,
       "kind": "Attribute",
       "name": "_body_viewport",
       "source": "self._body_viewport"
@@ -1113,7 +1514,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 683,
+      "line": 682,
       "kind": "Attribute",
       "name": "_body_viewport",
       "source": "self._body_viewport"
@@ -1121,7 +1522,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 715,
+      "line": 714,
       "kind": "Attribute",
       "name": "_body_viewport",
       "source": "self._body_viewport"
@@ -1129,7 +1530,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 727,
+      "line": 726,
       "kind": "Attribute",
       "name": "_body_viewport",
       "source": "self._body_viewport"
@@ -1137,7 +1538,47 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 1119,
+      "line": 783,
+      "kind": "Attribute",
+      "name": "displayed",
+      "source": "window.document_viewport.membership.displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 905,
+      "kind": "Attribute",
+      "name": "membership",
+      "source": "self.membership"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 991,
+      "kind": "Attribute",
+      "name": "accepts_frame",
+      "source": "self.accepts_frame"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1001,
+      "kind": "Attribute",
+      "name": "accepts_frame",
+      "source": "self.accepts_frame"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1087,
+      "kind": "Attribute",
+      "name": "accepts_frame",
+      "source": "self.accepts_frame"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1135,
       "kind": "Name",
       "name": "batch",
       "source": "batch"
@@ -1145,10 +1586,18 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 1150,
+      "line": 1166,
       "kind": "Name",
       "name": "batch",
       "source": "batch"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1182,
+      "kind": "Attribute",
+      "name": "accepts_frame",
+      "source": "self.accepts_frame"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -1161,15 +1610,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 392,
-      "kind": "Attribute",
-      "name": "_body_viewport",
-      "source": "owner._body_viewport"
-    },
-    {
-      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
-      "path": "src/toad/widgets/viewport_body.py",
-      "line": 644,
+      "line": 643,
       "kind": "Attribute",
       "name": "body_ready",
       "source": "child.body_ready"
@@ -1177,7 +1618,15 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 1067,
+      "line": 783,
+      "kind": "Attribute",
+      "name": "membership",
+      "source": "window.document_viewport.membership"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1083,
       "kind": "Attribute",
       "name": "visible_bodies",
       "source": "window.screen.viewport_presentation.visible_bodies"
@@ -1185,7 +1634,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 1122,
+      "line": 1138,
       "kind": "Name",
       "name": "batch",
       "source": "batch"
@@ -1193,7 +1642,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 1130,
+      "line": 1146,
       "kind": "Name",
       "name": "batch",
       "source": "batch"
@@ -1201,7 +1650,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 1152,
+      "line": 1168,
       "kind": "Name",
       "name": "batch",
       "source": "batch"
@@ -1209,7 +1658,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 1171,
+      "line": 1187,
       "kind": "Attribute",
       "name": "body_ready",
       "source": "owner.body_ready"
@@ -1225,7 +1674,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 684,
+      "line": 683,
       "kind": "Attribute",
       "name": "_body_viewport",
       "source": "self._body_viewport"
@@ -1233,7 +1682,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 728,
+      "line": 727,
       "kind": "Attribute",
       "name": "_body_viewport",
       "source": "self._body_viewport"
@@ -1241,7 +1690,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 1154,
+      "line": 1170,
       "kind": "Name",
       "name": "batch",
       "source": "batch"
@@ -1249,7 +1698,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 1155,
+      "line": 1171,
       "kind": "Name",
       "name": "batch",
       "source": "batch"
@@ -1257,7 +1706,15 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 1104,
+      "line": 1197,
+      "kind": "Attribute",
+      "name": "accepts_frame",
+      "source": "self.accepts_frame"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1120,
       "kind": "Attribute",
       "name": "body_ready",
       "source": "owner.body_ready"
@@ -1265,7 +1722,7 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "src/toad/widgets/viewport_body.py",
-      "line": 1151,
+      "line": 1167,
       "kind": "Attribute",
       "name": "body_ready",
       "source": "owner.body_ready"
@@ -1284,7 +1741,7 @@
       "line": 278,
       "kind": "AsyncFunctionDef",
       "name": "prepare",
-      "source": "async def prepare(self, work: PreparationWork[ResultT]) -> None:\n        \"\"\"Warm the original bounded resource without copying an unused result.\"\"\"\n        await self._prepare(work)"
+      "source": "async def prepare(self, work: PreparationWork[ResultT]) -> None:\n        \"\"\"Warm the original bounded resource without copying an unused result.\"\"\"\n        awai"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -1324,7 +1781,7 @@
       "line": 123,
       "kind": "AsyncFunctionDef",
       "name": "prepare",
-      "source": "async def prepare(self, identity: str) -> \"SessionView\":\n        if view := self.views.get(identity):\n            return view\n        view = self.factories[identity]()\n        view.id = iden"
+      "source": "async def prepare(self, identity: str) -> \"SessionView\":\n        if view := self.views.get(identity):\n            return view\n        view = self.factories[iden"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -1336,11 +1793,35 @@
     },
     {
       "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/_node_list.py",
+      "line": 243,
+      "kind": "FunctionDef",
+      "name": "displayed",
+      "source": "def displayed(self) -> Sequence[Widget]:\n        \"\"\"Just the nodes where `display==True`.\"\"\"\n        if self._displayed_nodes[0] != self._updates:\n            s"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/_node_list.py",
+      "line": 267,
+      "kind": "Attribute",
+      "name": "displayed",
+      "source": "self.displayed"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/_work_decorator.py",
+      "line": 147,
+      "kind": "Name",
+      "name": "exit_on_error",
+      "source": "exit_on_error"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
       "path": "src/textual/app.py",
       "line": 3575,
       "kind": "AsyncFunctionDef",
       "name": "recompose",
-      "source": "async def recompose(self) -> None:\n        \"\"\"Recompose the widget.\n\n        Recomposing will remove children and call `self.compose` again to remount.\n        \"\"\"\n        if self._exit:\n   "
+      "source": "async def recompose(self) -> None:\n        \"\"\"Recompose the widget.\n\n        Recomposing will remove children and call `self.compose` again to remount.\n        "
     },
     {
       "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
@@ -1361,6 +1842,14 @@
     {
       "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
       "path": "src/textual/app.py",
+      "line": 2970,
+      "kind": "Name",
+      "name": "get_current_worker",
+      "source": "get_current_worker"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/app.py",
       "line": 3573,
       "kind": "Attribute",
       "name": "recompose",
@@ -1373,6 +1862,14 @@
       "kind": "Attribute",
       "name": "batch",
       "source": "self.screen.batch"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/command.py",
+      "line": 1084,
+      "kind": "Name",
+      "name": "get_current_worker",
+      "source": "get_current_worker"
     },
     {
       "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
@@ -1440,6 +1937,22 @@
     },
     {
       "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/dom.py",
+      "line": 493,
+      "kind": "Attribute",
+      "name": "displayed",
+      "source": "self._nodes.displayed"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/dom.py",
+      "line": 609,
+      "kind": "Name",
+      "name": "exit_on_error",
+      "source": "exit_on_error"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
       "path": "src/textual/reactive.py",
       "line": 217,
       "kind": "Name",
@@ -1489,10 +2002,26 @@
     {
       "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
       "path": "src/textual/screen.py",
-      "line": 1286,
+      "line": 1198,
+      "kind": "FunctionDef",
+      "name": "_prepare_compositor_refresh",
+      "source": "def _prepare_compositor_refresh(self) -> bool:\n        \"\"\"Prepare an admitted scene; return False while it cannot be painted.\n\n        Terminal refresh calls th"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/screen.py",
+      "line": 1282,
       "kind": "Attribute",
       "name": "recompose",
       "source": "self.recompose"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/screen.py",
+      "line": 1219,
+      "kind": "Attribute",
+      "name": "_prepare_compositor_refresh",
+      "source": "screen._prepare_compositor_refresh"
     },
     {
       "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
@@ -1500,7 +2029,7 @@
       "line": 1860,
       "kind": "AsyncFunctionDef",
       "name": "recompose",
-      "source": "async def recompose(self) -> None:\n        \"\"\"Recompose the widget.\n\n        Recomposing will remove children and call `self.compose` again to remount.\n        \"\"\"\n        if not self.is_att"
+      "source": "async def recompose(self) -> None:\n        \"\"\"Recompose the widget.\n\n        Recomposing will remove children and call `self.compose` again to remount.\n        "
     },
     {
       "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
@@ -1508,7 +2037,23 @@
       "line": 4654,
       "kind": "AsyncFunctionDef",
       "name": "batch",
-      "source": "async def batch(self) -> AsyncGenerator[None, None]:\n        \"\"\"Async context manager that combines widget locking and update batching.\n\n        Use this async context manager whenever you w"
+      "source": "async def batch(self) -> AsyncGenerator[None, None]:\n        \"\"\"Async context manager that combines widget locking and update batching.\n\n        Use this async "
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/widget.py",
+      "line": 1024,
+      "kind": "Attribute",
+      "name": "displayed",
+      "source": "parent._nodes.displayed"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/widget.py",
+      "line": 1055,
+      "kind": "Attribute",
+      "name": "displayed",
+      "source": "parent._nodes.displayed"
     },
     {
       "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
@@ -1533,6 +2078,22 @@
       "kind": "Attribute",
       "name": "recompose",
       "source": "self.recompose"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/widgets/_directory_tree.py",
+      "line": 531,
+      "kind": "Name",
+      "name": "get_current_worker",
+      "source": "get_current_worker"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/widgets/_directory_tree.py",
+      "line": 524,
+      "kind": "Name",
+      "name": "get_current_worker",
+      "source": "get_current_worker"
     },
     {
       "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
@@ -1655,6 +2216,46 @@
       "source": "batch"
     },
     {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/worker.py",
+      "line": 71,
+      "kind": "FunctionDef",
+      "name": "get_current_worker",
+      "source": "def get_current_worker() -> Worker:\n    \"\"\"Get the currently active worker.\n\n    Raises:\n        NoActiveWorker: If there is no active worker.\n\n    Returns:\n   "
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/worker.py",
+      "line": 176,
+      "kind": "Attribute",
+      "name": "exit_on_error",
+      "source": "self.exit_on_error"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/worker.py",
+      "line": 176,
+      "kind": "Name",
+      "name": "exit_on_error",
+      "source": "exit_on_error"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/worker.py",
+      "line": 404,
+      "kind": "Attribute",
+      "name": "exit_on_error",
+      "source": "self.exit_on_error"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/worker_manager.py",
+      "line": 115,
+      "kind": "Name",
+      "name": "exit_on_error",
+      "source": "exit_on_error"
+    },
+    {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "tests/activity_spinners_pilot.py",
       "line": 76,
@@ -1672,11 +2273,19 @@
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/blank_presentation_pilot.py",
+      "line": 418,
+      "kind": "Name",
+      "name": "get_current_worker",
+      "source": "get_current_worker"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "tests/canonical_wire_conversation_installed_pilot.py",
       "line": 108,
       "kind": "AsyncFunctionDef",
       "name": "prepare",
-      "source": "async def prepare(comms, project, requests, entered, release, hold_next):\n    release.set()\n    hold_next.clear()\n    package = Path(os.environ['AC_NATIVE_COPIED_PACKAGE'])\n    os.environ['A"
+      "source": "async def prepare(comms, project, requests, entered, release, hold_next):\n    release.set()\n    hold_next.clear()\n    package = Path(os.environ['AC_NATIVE_COPIE"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -1685,6 +2294,22 @@
       "kind": "Name",
       "name": "prepare",
       "source": "prepare"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/channel_partial_paint_pilot.py",
+      "line": 37,
+      "kind": "Attribute",
+      "name": "displayed",
+      "source": "page.display_scope.displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/channel_partial_paint_pilot.py",
+      "line": 39,
+      "kind": "Attribute",
+      "name": "displayed",
+      "source": "page.display_scope.displayed"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -1752,11 +2377,19 @@
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/channel_views_pilot.py",
+      "line": 94,
+      "kind": "Attribute",
+      "name": "membership",
+      "source": "message.membership"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "tests/channel_visibility_pilot.py",
       "line": 18,
       "kind": "AsyncFunctionDef",
       "name": "sync",
-      "source": "async def sync(app, pilot):\n    sidebar = app.screen.query_one(CommsSidebar)\n    await sidebar.observation.sync()\n    await pilot.pause()\n    group = next(group for group in sidebar.query(Ch"
+      "source": "async def sync(app, pilot):\n    sidebar = app.screen.query_one(CommsSidebar)\n    await sidebar.observation.sync()\n    await pilot.pause()\n    group = next(group"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -1820,7 +2453,7 @@
       "line": 60,
       "kind": "AsyncFunctionDef",
       "name": "prepare",
-      "source": "async def prepare(comms, project, *_args):\n    from acp.schema import TextContentBlock\n    from agent_comms.acp import CommsClient\n    from saved_state_user_journey_pilot import SavedStateSu"
+      "source": "async def prepare(comms, project, *_args):\n    from acp.schema import TextContentBlock\n    from agent_comms.acp import CommsClient\n    from saved_state_user_jou"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -1844,7 +2477,7 @@
       "line": 91,
       "kind": "AsyncFunctionDef",
       "name": "prepare",
-      "source": "async def prepare(comms, project, requests, entered, release, hold_next):\n        nonlocal cli, peer\n        release.set()\n        hold_next.clear()\n        other = project.parent / \"externa"
+      "source": "async def prepare(comms, project, requests, entered, release, hold_next):\n        nonlocal cli, peer\n        release.set()\n        hold_next.clear()\n        oth"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -1908,7 +2541,7 @@
       "line": 27,
       "kind": "AsyncFunctionDef",
       "name": "prepare",
-      "source": "async def prepare(comms, project, requests, entered, release, hold_next):\n    release.set()\n    hold_next.clear()\n    client = CommsClient(\n        comms, runtime_enabled=True,\n        priva"
+      "source": "async def prepare(comms, project, requests, entered, release, hold_next):\n    release.set()\n    hold_next.clear()\n    client = CommsClient(\n        comms, runti"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -1964,7 +2597,7 @@
       "line": 65,
       "kind": "AsyncFunctionDef",
       "name": "prepare",
-      "source": "async def prepare(comms, project, requests, entered, release, hold_next):\n    release.set()\n    client = CommsClient(comms, runtime_enabled=True,\n        private_nk_native_package=Path(os.en"
+      "source": "async def prepare(comms, project, requests, entered, release, hold_next):\n    release.set()\n    client = CommsClient(comms, runtime_enabled=True,\n        privat"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -1973,6 +2606,22 @@
       "kind": "Name",
       "name": "prepare",
       "source": "prepare"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/lazy_tools_pilot.py",
+      "line": 82,
+      "kind": "Attribute",
+      "name": "update_tool_call",
+      "source": "tools[-1].update_tool_call"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/lazy_tools_pilot.py",
+      "line": 62,
+      "kind": "Attribute",
+      "name": "update_tool_call",
+      "source": "tools[-1].update_tool_call"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -2009,6 +2658,30 @@
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 52,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 60,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 54,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/native_loaded_return_cache_pilot.py",
       "line": 269,
       "kind": "Attribute",
       "name": "body_ready",
@@ -2032,11 +2705,35 @@
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 98,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 263,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 115,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "tests/owner_replacement_recovery_installed_pilot.py",
       "line": 33,
       "kind": "AsyncFunctionDef",
       "name": "prepare",
-      "source": "async def prepare(comms, project, requests, entered, release, hold_next):\n    package = Path(os.environ['AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE'])\n    root_id = os.environ['AGENT_COMMS_PRIVAT"
+      "source": "async def prepare(comms, project, requests, entered, release, hold_next):\n    package = Path(os.environ['AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE'])\n    root_id = "
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -2080,6 +2777,14 @@
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/permission_pending_mount_pilot.py",
+      "line": 39,
+      "kind": "Name",
+      "name": "get_current_worker",
+      "source": "get_current_worker"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "tests/prepared_height_contract_pilot.py",
       "line": 50,
       "kind": "Attribute",
@@ -2096,11 +2801,139 @@
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 156,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 168,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 170,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 169,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 169,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 170,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/renderer_warmup_pilot.py",
+      "line": 18,
+      "kind": "Attribute",
+      "name": "displayed",
+      "source": "self.displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/renderer_warmup_pilot.py",
+      "line": 18,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/renderer_warmup_pilot.py",
+      "line": 43,
+      "kind": "Attribute",
+      "name": "displayed",
+      "source": "self.displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/renderer_warmup_pilot.py",
+      "line": 43,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/renderer_warmup_pilot.py",
+      "line": 58,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/renderer_warmup_pilot.py",
+      "line": 59,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/renderer_warmup_pilot.py",
+      "line": 60,
+      "kind": "Name",
+      "name": "displayed",
+      "source": "displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/renderer_warmup_pilot.py",
+      "line": 26,
+      "kind": "Attribute",
+      "name": "displayed",
+      "source": "self.displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/renderer_warmup_pilot.py",
+      "line": 49,
+      "kind": "Attribute",
+      "name": "displayed",
+      "source": "self.displayed"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 53,
+      "kind": "Attribute",
+      "name": "_suspended",
+      "source": "view.window.document_viewport._suspended"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "tests/restored_inbound_continuous_installed_pilot.py",
       "line": 61,
       "kind": "AsyncFunctionDef",
       "name": "prepare",
-      "source": "async def prepare(comms, project, requests, entered, release, hold_next):\n    package = Path(os.environ['AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE'])\n    root_id = os.environ['AGENT_COMMS_PRIVAT"
+      "source": "async def prepare(comms, project, requests, entered, release, hold_next):\n    package = Path(os.environ['AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE'])\n    root_id = "
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -2296,11 +3129,115 @@
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/retained_tool_text_pilot.py",
+      "line": 54,
+      "kind": "Attribute",
+      "name": "update_tool_call",
+      "source": "tool.update_tool_call"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/retained_tool_text_pilot.py",
+      "line": 56,
+      "kind": "Attribute",
+      "name": "update_tool_call",
+      "source": "tool.update_tool_call"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/retained_tool_text_pilot.py",
+      "line": 62,
+      "kind": "Attribute",
+      "name": "update_tool_call",
+      "source": "tool.update_tool_call"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/retained_tool_text_pilot.py",
+      "line": 65,
+      "kind": "Attribute",
+      "name": "update_tool_call",
+      "source": "tool.update_tool_call"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/retained_tool_text_pilot.py",
+      "line": 71,
+      "kind": "Attribute",
+      "name": "update_tool_call",
+      "source": "tool.update_tool_call"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/retained_tool_text_pilot.py",
+      "line": 80,
+      "kind": "Attribute",
+      "name": "update_tool_call",
+      "source": "tool.update_tool_call"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/retained_tool_text_pilot.py",
+      "line": 83,
+      "kind": "Attribute",
+      "name": "update_tool_call",
+      "source": "tool.update_tool_call"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/retained_tool_text_pilot.py",
+      "line": 89,
+      "kind": "Attribute",
+      "name": "update_tool_call",
+      "source": "tool.update_tool_call"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/retained_tool_text_pilot.py",
+      "line": 94,
+      "kind": "Attribute",
+      "name": "update_tool_call",
+      "source": "tool.update_tool_call"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/retained_tool_text_pilot.py",
+      "line": 99,
+      "kind": "Attribute",
+      "name": "update_tool_call",
+      "source": "tool.update_tool_call"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/retained_tool_text_pilot.py",
+      "line": 40,
+      "kind": "Attribute",
+      "name": "update_tool_call",
+      "source": "tool.update_tool_call"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "tests/saved_state_user_journey_pilot.py",
       "line": 349,
       "kind": "Attribute",
       "name": "body_ready",
       "source": "body.body_ready"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/selection_disclosure_pilot.py",
+      "line": 78,
+      "kind": "Attribute",
+      "name": "update_tool_call",
+      "source": "restored.update_tool_call"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/selection_disclosure_pilot.py",
+      "line": 66,
+      "kind": "Attribute",
+      "name": "update_tool_call",
+      "source": "tool.update_tool_call"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -2372,7 +3309,7 @@
       "line": 12,
       "kind": "AsyncFunctionDef",
       "name": "prepare",
-      "source": "async def prepare(comms, project, *_):\n    owner = comms.registry.require('beta')\n    # A genuine saved-owner/project mismatch is rejected by the ACP attachment\n    # boundary. No transport "
+      "source": "async def prepare(comms, project, *_):\n    owner = comms.registry.require('beta')\n    # A genuine saved-owner/project mismatch is rejected by the ACP attachment"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -2396,7 +3333,7 @@
       "line": 119,
       "kind": "AsyncFunctionDef",
       "name": "prepare",
-      "source": "async def prepare(comms, project, requests, entered, release, hold_next):\n    release.set()\n    client = CommsClient(comms, runtime_enabled=True,\n        private_nk_native_package=Path(os.en"
+      "source": "async def prepare(comms, project, requests, entered, release, hold_next):\n    release.set()\n    client = CommsClient(comms, runtime_enabled=True,\n        privat"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -2412,7 +3349,7 @@
       "line": 34,
       "kind": "AsyncFunctionDef",
       "name": "prepare",
-      "source": "async def prepare(comms, project, requests, entered, release, hold_next):\n    release.set()\n    comms.registry.declare(Thread(\"alpha\", frozenset({\"team\"}), str(project),\n                    "
+      "source": "async def prepare(comms, project, requests, entered, release, hold_next):\n    release.set()\n    comms.registry.declare(Thread(\"alpha\", frozenset({\"team\"}), str("
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -2424,11 +3361,27 @@
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/tool_diff_lifecycle_pilot.py",
+      "line": 60,
+      "kind": "Attribute",
+      "name": "update_tool_call",
+      "source": "tool.update_tool_call"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/tool_diff_pilot.py",
+      "line": 37,
+      "kind": "Attribute",
+      "name": "update_tool_call",
+      "source": "live.update_tool_call"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
       "path": "tests/transcript_filter_installed_journey.py",
       "line": 34,
       "kind": "AsyncFunctionDef",
       "name": "prepare",
-      "source": "async def prepare(comms, project, requests, entered, release, hold_next):\n    release.set()\n    client = CommsClient(comms, runtime_enabled=True,\n        private_nk_native_package=Path(os.en"
+      "source": "async def prepare(comms, project, requests, entered, release, hold_next):\n    release.set()\n    client = CommsClient(comms, runtime_enabled=True,\n        privat"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -2724,7 +3677,7 @@
       "line": 76,
       "kind": "FunctionDef",
       "name": "prepare",
-      "source": "def prepare(self):\n            if self.revision == \"blocked\":\n                entered.set()\n                if not release.wait(5):\n                    raise TimeoutError(\"Test did not relea"
+      "source": "def prepare(self):\n            if self.revision == \"blocked\":\n                entered.set()\n                if not release.wait(5):\n                    raise Ti"
     },
     {
       "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
@@ -2751,5 +3704,5 @@
       "source": "renderer.prepare"
     }
   ],
-  "limits": "AST sites include unrelated equal names; dynamic external aliases/overrides not resolved. Source evidence only, no behavior or CPU proof."
+  "limits": "AST includes unrelated equal names; dynamic external aliases/overrides not resolved. No behavior/CPU proof. Original modal source-counterexample closed only by native44aca source; joint installed proof pending."
 }

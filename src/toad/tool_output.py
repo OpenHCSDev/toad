@@ -20,6 +20,7 @@ from rich.text import Text
 from textual.content import Content
 from textual.css.query import NoMatches
 from textual.widget import Widget
+from textual.await_complete import AwaitComplete
 
 from acp import schema
 from agent_comms.mro_dispatch import MroDispatch, handles
@@ -385,14 +386,15 @@ class ToolOutput:
     def displayed_parts(self) -> tuple[ToolOutputPart, ...]:
         return self.parts if self.view.expanded else ()
 
-    async def sync(self) -> None:
+    def sync(self) -> AwaitComplete:
+        """Admit the original body writer without awaiting it on a caller pump."""
         from toad.widgets.conversation import Window
         from toad.widgets.tool_call import ToolContent
 
         view = self.view
         body = view.query_one_optional("#tool-content", ToolContent)
         if body is None:
-            return
+            return AwaitComplete()
         if view.expanded and not view.content_presentable and not body.children:
             self.prepare_hidden()
             if not self.hydration.pending:
@@ -402,7 +404,7 @@ class ToolOutput:
                 except NoMatches:
                     pass
                 view.call_after_refresh(self.hydrate_if_visible)
-            return
+            return AwaitComplete()
         self.hydration = IdleToolHydration()
         try:
             view.query_ancestor(Window).pending_tool_content.discard(view)
@@ -410,7 +412,7 @@ class ToolOutput:
             pass
         if not view.expanded:
             self.cancel_preparation()
-        await body.sync()
+        return body.sync()
 
     def prepare_hidden(self) -> None:
         view = self.view

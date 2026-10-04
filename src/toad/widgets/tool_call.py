@@ -56,7 +56,7 @@ class ToolContent(MeasuredViewportBody, containers.VerticalGroup):
     def sync(self) -> AwaitComplete:
         if self._mounted_parts == self.output.displayed_parts and not self.body_dormant:
             return AwaitComplete()
-        return self.publish_body(self.materialize_native_body)
+        return self.publish_body(self.materialize_native_body, exit_on_error=True)
 
     async def materialize_native_body(self) -> None:
         async with self.batch():
@@ -162,7 +162,7 @@ class ToolCall(MroDispatch, ConversationBlock, SnapshotPresentation, Categorized
         self._manual_expansion: bool | None = None
         self._auto_expanded = False
 
-    async def update_tool_call(self, tool_call: ToolCallStatus) -> None:
+    def update_tool_call(self, tool_call: ToolCallStatus) -> AwaitComplete:
         """Update metadata in place; materialize output only when expanded.
 
         Args:
@@ -175,7 +175,7 @@ class ToolCall(MroDispatch, ConversationBlock, SnapshotPresentation, Categorized
         content = self.tool_call_header_content
         if header.content != content:
             header.update(content)
-        await self.output.sync()
+        return self.output.sync()
 
     def get_block_menu(self) -> Iterable[MenuItem]:
         if self.expanded:
@@ -228,7 +228,7 @@ class ToolCall(MroDispatch, ConversationBlock, SnapshotPresentation, Categorized
         )
         yield ToolContent(id="tool-content")
 
-    async def on_mount(self) -> None:
+    def on_mount(self) -> None:
         from toad.widgets.conversation import Conversation
 
         self.watch(self.app, "theme", self.output.theme_changed, init=False)
@@ -243,7 +243,7 @@ class ToolCall(MroDispatch, ConversationBlock, SnapshotPresentation, Categorized
                 if self._manual_expansion is not None:
                     self._auto_expanded = False
                     self.expanded = self._manual_expansion
-        await self.output.sync()
+        self.output.sync()
 
     def _update_metadata(self) -> None:
         assert self.tool_call is not None
@@ -357,8 +357,8 @@ class ToolCall(MroDispatch, ConversationBlock, SnapshotPresentation, Categorized
             'failed', '$error-muted', '$error',
             filled=not self.app.theme.startswith('ansi-'))))
 
-    async def watch_expanded(self) -> None:
-        await self.output.sync()
+    def watch_expanded(self) -> None:
+        self.output.sync()
         try:
             self.query_one(ToolCallHeader).update(self.tool_call_header_content)
         except NoMatches:

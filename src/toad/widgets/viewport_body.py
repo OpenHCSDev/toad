@@ -122,7 +122,7 @@ class BodyMeasurement(ABC):
     async def materialize(self, body):
         await self.start_materialization(body).materialize(body)
 
-    def start_materialization(self, body, work=None):
+    def start_materialization(self, body, work=None, *, exit_on_error=False):
         publication = AwaitComplete(self.before_publication())
         paint = AwaitComplete(self.prepare_publication(body))
 
@@ -152,7 +152,7 @@ class BodyMeasurement(ABC):
                     body._body_measurement.publication_failed(body, worker))
                 raise
 
-        worker = body.run_worker(materialize(), group="body-materialization", exit_on_error=False)
+        worker = body.run_worker(materialize(), group="body-materialization", exit_on_error=exit_on_error)
         current = MaterializingBody(previous=self, worker=worker)
         body._update_body_measurement(current)
         body.refresh(layout=True)
@@ -388,15 +388,14 @@ class MaterializingBody(BodyMeasurement):
     async def batch(self, body, native_batch):
         # The original window gate checks current coverage on every frame;
         # width/style invalidation during this await cannot expose partial rows.
-        if self.rows > 0 and self.publishing and any(
-                owner._body_viewport is not None
-                for owner in body.walk_ancestors(with_self=True)
-                if isinstance(owner, MeasuredViewportBody)):
-            async with body.lock:
+        from toad.screens.workspace import WorkspaceScreen
+
+        if self.rows > 0 and self.publishing and isinstance(body.screen, WorkspaceScreen):
+            async with body.screen.viewport_presentation.batch(body, native_batch):
                 yield
-        else:
-            async with native_batch():
-                yield
+            return
+        async with native_batch():
+            yield
 
     async def recompose(self, body, native_recompose):
         if self.publishing:
@@ -588,9 +587,9 @@ class MeasuredViewportBody(ViewportBody):
             return
         await self._body_measurement.materialize(self)
 
-    def publish_body(self, work: Callable[[], Awaitable[None]]) -> AwaitComplete:
+    def publish_body(self, work: Callable[[], Awaitable[None]], *, exit_on_error=False) -> AwaitComplete:
         """Source updates and reentry share the original materialization worker."""
-        operation = self._body_measurement.start_materialization(self, work)
+        operation = self._body_measurement.start_materialization(self, work, exit_on_error=exit_on_error)
         return AwaitComplete(operation.materialize(self))
 
     def batch(self):
@@ -762,9 +761,26 @@ class ViewportPresentation:
         for window in self.anchors:
             window.retire_presentation_wait()
 
+    @asynccontextmanager
+    async def batch(self, body, native_batch):
+        """Bound native publication borrows this original frame membership."""
+        from toad.widgets.history_anchor import HistoryWindow
+
+        for ancestor in body.walk_ancestors():
+            if isinstance(ancestor, HistoryWindow):
+                if ancestor in self.windows:
+                    async with body.lock:
+                        yield
+                    return
+                break
+        async with native_batch():
+            yield
+
     def frame_windows(self):
+        # Stopping preparation does not remove a still-visible native tree.
+        # Its membership owns paint through the final prune, including close.
         return (window for window in self.windows
-                if window.document_viewport.accepts_frame())
+                if window.document_viewport.membership.displayed())
 
     def geometry_targets(self) -> tuple[Widget, ...]:
         """Keep reader anchors and live body boxes in the same native layout.
