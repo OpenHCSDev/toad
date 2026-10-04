@@ -1,0 +1,67 @@
+{
+  "status": "SCOPED_INSTALLED_LAYER_RESOURCE_PASS",
+  "pr52_head": "87baaf7975be43ecba4631b9ff1d681ceed0af18",
+  "pr53_head": "c8f443524157e18a948deb5cbb68c52dd347da07",
+  "installed_textual_source": "a818dcfd4a4a874af085f705559e134a00b7d189",
+  "wheel_sha256": "dfbd8fcbd37221f3c7934a8e7d7cd141bb592b1f0e35e9f034bffafe8e7f2a5a",
+  "cohort": {
+    "core": "62dca2914fbfbcc500714953ce981dda818cfd63",
+    "toad": "89eeada3268de541f47f6eb8f03bb64658090d5e",
+    "textual": "a818dcfd4a4a874af085f705559e134a00b7d189",
+    "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-086d511f2026b10d/node_modules/@earendil-works/pi-coding-agent"
+  },
+  "installed_source_proof": {
+    "module": "textual",
+    "head": "a818dcfd4a4a874af085f705559e134a00b7d189",
+    "location": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual",
+    "files": 266,
+    "python_files": 249,
+    "byte_equal": true,
+    "direct_url": {
+      "url": "file:///home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text53-filewheel-a818dcfd-20261004/textual-8.2.8-py3-none-any.whl",
+      "archive_info": {}
+    },
+    "inventory_sha256": "06e65803251c46ee6ec0b3903684eeba71d32de64b08779999d374fed2e75963"
+  },
+  "original_run": {
+    "receipt": "/home/ts/.cache/agent-scratch/f1-channel-actions-installed08/receipt.json",
+    "seconds": 49.30413615202997,
+    "result": "PASS",
+    "scope": "installed App native widget + same-root CLI; no provider/native input/public writes",
+    "physical_linux_driver": false,
+    "affected_check": "corrected-mounted-layer-owner-custom-duplicates-empty-restoration",
+    "actually_exercised": "Mounted real ToadApp CommsSidebar inherits authored Screen order including duplicate names and empty tuple, restores original Screen rule; native refresh/layout through Pilot. No separate custom property override in this installed subcase; original changed35-case native App batch covers that contract.",
+    "provider_calls": 0,
+    "native_inputs": 0
+  },
+  "evidence": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/f1-channel-actions-installed08/receipt.json",
+      "sha256": "b6dcd1f7ec9cc3ce41b18e656834a775af93bd6db18c7c12c5b115301199e24f",
+      "bytes": 9962
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/f1-start-owner-installed03/journey08.log",
+      "sha256": "b7e8818d542bea776cdf1ae11cd00dd966eea750eb1d2065b814b8f96f283afa",
+      "bytes": 9520
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/f1-start-owner-installed03/source-proof.json",
+      "sha256": "de6318a55d648bb278d88335ed4a2b27b3758849ee53bc74db4981004f3fce31",
+      "bytes": 8180
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/f1-start-owner-installed03/ownership.json",
+      "sha256": "1499846335f240dae08497ffb9bf353bb08bda363406460ae4fcfb45811842e3",
+      "bytes": 1061
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/f1-start-owner-installed03/textual-inventory.json",
+      "sha256": "bc1f8b02b01769f269b4c3b019ed129bf03112eae8484edc00ee2b25cc516591",
+      "bytes": 39856
+    }
+  ],
+  "retained_negative": "journey08.log contains shielded UnregisteredThreadError for deleted delete-a; retained and assigned F1 owner Sch, not claimed absent or resolved by native layer work.",
+  "boundary": "No new physical film or CPU/smoothness claim. Full F1 nativeStart/menu completion and whole terminal handoff stay Sch-owned; installed layer subcase is already PASS. Original422 rawfalse/clippedpeer/14keepers unchanged.",
+  "operations": "Read original files only; no package/process/import/check/wheel/source write.53 head unchanged."
+}

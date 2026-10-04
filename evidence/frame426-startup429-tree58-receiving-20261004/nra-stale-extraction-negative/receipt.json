@@ -1,0 +1,16 @@
+{
+  "state": "OriginalNRA8d wheel/Git correct; installed UV extracted cache omittedFamilyFlattened",
+  "artifact": {
+    "path": "/home/ts/wt/nra-skill-publish-20261002/.artifacts/family-flattened-collector-20261004/wheels/nominal_refactor_audit-0.1.0-py3-none-any.whl",
+    "sha256": "8d489731728ebf9f7e0f90ef2b14e7e3b5d2f90ed82bd8b1482d735f82869886"
+  },
+  "original_source": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10",
+  "original_sha256": "8f6127cb184801fbf2ca162adbece5c103c0fc6693f81197632668f710af7513",
+  "wheel_sha256": "8f6127cb184801fbf2ca162adbece5c103c0fc6693f81197632668f710af7513",
+  "installed_sha256": "fb6e2238b19c40a279942a0e2f840f97ccbf1ef6d44ea55f446f29b4f99fcd9b",
+  "whole_source_proof_refused": true,
+  "expected_hash_changed": false,
+  "correction": "Standard offline/no-cache reinstall ONLY exactoriginalNRAfilewheel",
+  "builds": 0,
+  "public_effects": 0
+}
