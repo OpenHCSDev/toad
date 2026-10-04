@@ -1,0 +1,65 @@
+{
+  "scope": "PROPOSED corrected historical-only App purpose; no current grant/access/run",
+  "wheels": [
+    {
+      "source": "759c821e4cf937d2872a7f7b7a8613f5eb3119aa",
+      "wheel": "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-w6-attachment-successor-source/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "ab640f006531a4b45515d1c6319217c2ed010532e37c20d42ac7101b9017b072",
+      "bytes": 901520,
+      "assets": 355,
+      "inventory": "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-w6-attachment-successor-source/source-proof.json",
+      "inventory_sha256": "0f84f3ecef6c73336086502ae11aa70f2a94d3b648c39754f14048eb67818469"
+    },
+    {
+      "source": "69ccc24b91ab64887c9fb77ba16e1d2dc7d4be8c",
+      "wheel": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-attachment-successor-source/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "13e2cbd52afca05d5066acb6758e9696c5a2165427d373d4db8b0229c1874ed9",
+      "bytes": 2248213,
+      "assets": 319,
+      "inventory": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-attachment-successor-source/source-proof.json",
+      "inventory_sha256": "715ae9080a328c003cfae06399168529470ba25529b4cf61cf144b4446475ec2"
+    }
+  ],
+  "control": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/test_context_manifest_navigation.py::test_authored_import_registered_app_and_local_user_correction",
+  "control_sha256": "43d2fd6bc652bee3431dfaa5b51272d621a56eba3b4e2061e6174f0522d79bd3",
+  "planned_pytest_args": [
+    "-o",
+    "addopts=",
+    "--noconftest",
+    "--basetemp",
+    "/home/ts/wt/w6e04",
+    "-s",
+    "-q",
+    "--tb=short",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/tests/test_context_manifest_navigation.py::test_authored_import_registered_app_and_local_user_correction"
+  ],
+  "planned_fixture": "/home/ts/wt/w6e04",
+  "planned_output": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-historical-installed04",
+  "diagnostics": "The original owner-debug.log in the authored tmp_path; names and lifecycle boundaries only",
+  "runtime_argv": "derive from actual eligible issued holder; installed imports must remain first; borrow existing system pytest after installed paths as original runner",
+  "activation": "Own CohortActivation/FieldCodec staging DTO only; original prefix activation/proof protected",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+  "native_manifest": "7a2e4aabdbc5af49dd9af942190d92086df2eb3489903674a74af51cf831cd33",
+  "native_tree": "0d7ff54a04d4f0ff175fc889e936ca3cea8b1f98eb8b73ed6215c3373cbd984d",
+  "execution": "NONE; predecessor441442 independently CLOSED, actual successor eligibility and issued holder/artifact grants required",
+  "closure": "Original issued eligible floor normal restore + owned App/native/socket/worker join + independent borrower handback; matching native READ handback",
+  "control_checkpoint": "c9324c8e57915c4c42063d9905892063e29335bb",
+  "runner_owner": "Existing BoundedRun.session/AttachedChild and joined stdout/stderr, original90-second supervision; no new runtime owner",
+  "full_W6_excluded": "Authentic AnnotationNode grouping/GUI correction and native input require a separate later purpose",
+  "argv_binding": [
+    "ISSUED_PREFIX/bin/python",
+    "-B",
+    "-c",
+    "existing original runner bootstrap (installed packages first; system pytest appended)",
+    "-o",
+    "addopts=",
+    "--noconftest",
+    "--basetemp",
+    "/home/ts/wt/w6e04",
+    "-s",
+    "-q",
+    "--tb=short",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/tests/test_context_manifest_navigation.py::test_authored_import_registered_app_and_local_user_correction"
+  ],
+  "restore": "Exact actual newly issued floor, including authoritative e6f NRA8f61 member when that floor applies; normal8d memberfb6e alone is not an exact restore. Whole1470/69/390 and independent cleanup/readback as issued."
+}
