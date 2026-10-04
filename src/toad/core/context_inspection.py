@@ -476,7 +476,7 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
         return False
 
     def contains_native(self, matches) -> bool:
-        """Ask the acquired native resource; unread states own no such resource.""""
+        """Ask the acquired native resource; unread states own no such resource."""
         return False
 
     @property
