@@ -67,7 +67,15 @@ def load_recorder():
                     click("phase-recorded-export-state.pickle", "widget", "Input#context-search"),
                     "key Home shift+End BackSpace", "key Return", "sleep 1", mark + "tree-restored",
                     selected("tree-restored", "TOAD_RECORDED_TRANSCRIPT_NODE"),
-                    "key space End Up space End Up Up", "sleep 2", mark + "exact-contributor",
+                    "key space", "sleep 1", mark + "transcript-expanded",
+                    "exec --sync " + shlex.join((sys.executable, str(Path(__file__).resolve()),
+                        "--reveal-context", "phase-transcript-expanded-state.pickle",
+                        os.environ["TOAD_RECORDED_COORDINATION_NODE"].rsplit('/contributor/',1)[0])),
+                    "key space", "sleep 1", mark + "contributor-expanded",
+                    "exec --sync " + shlex.join((sys.executable, str(Path(__file__).resolve()),
+                        "--reveal-context", "phase-contributor-expanded-state.pickle",
+                        os.environ["TOAD_RECORDED_COORDINATION_NODE"])),
+                    "sleep 2", mark + "exact-contributor",
                     selected("exact-contributor", "TOAD_RECORDED_COORDINATION_NODE"),
                     "sleep 2", mark + "recorded-coordination",
                     click("phase-recorded-coordination-state.pickle", "right_sidebar"),
@@ -166,7 +174,7 @@ async def run(options):
     from agent_comms.comms import Comms
     from agent_comms.field_codec import FieldCodec
     from agent_comms.input_disposition import InputDispositions
-    from toad.core.context_inspection import ContextInspection
+    from toad.core.context_inspection import ContextInspection, RecordedSegmentNode
     from original_owner_capture import CurrentTypedCapture
     recorder, recorder_path, ColdContextJourney = load_recorder()
 
@@ -222,8 +230,9 @@ async def run(options):
             recorded = next(n for n in inspection.recorded() if n.manifest == manifest)
             system, = (n for n in recorded.children() if n.segment.kind == "system_layer")
             transcript, = (n for n in recorded.children() if n.segment.kind == "transcript")
-            coordination, = (leaf for member in transcript.children() for leaf in member.children()
-                             if leaf.segment.kind == "coordination")
+            coordination, = (leaf for member in transcript.children() if isinstance(member, RecordedSegmentNode)
+                             for leaf in member.children() if isinstance(leaf, RecordedSegmentNode)
+                             and leaf.segment.kind == "coordination")
             assert 'review417' not in tags_before and 'review417-renamed' not in tags_before
             environment.update(TOAD_RECORDED_CONTEXT_AUDIT="1",
                 TOAD_RECORDED_REQUEST_NODE=recorded.key, TOAD_RECORDED_SYSTEM_NODE=system.key,
@@ -395,6 +404,19 @@ async def run(options):
 
 
 if __name__ == "__main__":
+    if sys.argv[1:2] == ["--reveal-context"]:
+        import subprocess
+        output = Path(os.environ["TOAD_VIDEO_OUTPUT"])
+        state, key = sys.argv[2:]
+        snapshot = pickle.loads((output/state).read_bytes())
+        context = next(v for v in snapshot['views'] if v['mode']==snapshot['metadata']['current_mode'])['context']
+        model, = (node for node in context['nodes'] if node['key']==key)
+        assert model['line'] >= 0, 'Original member must be expanded in the native Tree first'
+        assert os.environ['DISPLAY'] != ':0'
+        subprocess.run(['xdotool','key','Home'],check=True)
+        if model['line']:
+            subprocess.run(['xdotool','key','--repeat',str(model['line']),'--repeat-delay','5','Down'],check=True)
+        raise SystemExit(0)
     if sys.argv[1:2] == ["--select-context"]:
         helper = Path(__file__).resolve().parents[1] / "tools/performance/click_history.py"
         spec = importlib.util.spec_from_file_location("context_native_click", helper)

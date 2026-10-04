@@ -317,6 +317,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                             context_nodes.append({"key": model.data.key,
                                                   "label": model.label.plain,
                                                   "model_type": type(model.data).__name__,
+                                                  "line": model._line,
                                                   "expanded": model.is_expanded,
                                                   "target": target})
                         view["context"] = {
