@@ -1,5 +1,5 @@
 {
-  "state": "SOURCE_ONLY_WORKING_DRAFT;441then442 normalmain merge pending",
+  "state": "SOURCE_ONLY_WORKING_DRAFT; corrected442 ownerfreeze/green/actualmain relation pending",
   "source_window": {
     "toad_actual_main": "4cc4d531d07f3a7be29e824ee5ce8dc7ba60a024",
     "core_actual_main": "ad7e582f3e7536d3b76f95ec6da1e1fd8122ee20",
@@ -47,7 +47,8 @@
         "batrachian_toad-0.6.20.dist-info/entry_points.txt": "12cacbee8134076f2a99542ab81f8682c88f39cbea62228e9c3b950d319d4528",
         "batrachian_toad-0.6.20.dist-info/RECORD": "ef5439aef3bab0364e0a446b191581805b755eec47324ab32a3983bd8979074f"
       },
-      "source_inventory_sha256": "c81f6815efb3a299dda0bbc087eb08d8fdfe25c641b742360a9762ada16c18d3"
+      "source_inventory_sha256": "c81f6815efb3a299dda0bbc087eb08d8fdfe25c641b742360a9762ada16c18d3",
+      "scope": "Historical031/source8ac equality only; original22PASS preserved. Upcoming corrected442 production is not covered."
     },
     "toad_current_main": {
       "git_head": "4cc4d531d07f3a7be29e824ee5ce8dc7ba60a024",
@@ -499,8 +500,8 @@
   "installed_imports": 0,
   "App_SDK_provider_runs": 0,
   "public_guard_attempts": 0,
-  "source_dependency": "Parentnormalmerge441then442; exactmergedpackage/buildmetadata comparison before finalsourcepin",
-  "holder_dependency": "Bohrspecificeligiblepurpose after nextW6purpose actualterminal; no invented holder/loan",
+  "source_dependency": "441 actuallymerged b57;442b5ca Debt37236476663 failed one Live ForeignAbsenceProbe. Heis owns correction/freeze/green and Parentnormalmerge; exact mergedasset/buildmetadata proof before anywheelreuse/builddecision.",
+  "holder_dependency": "W6b889 independentlywholeclosed536888/764f236UID0; no ReaderPASS or loan. Future ordinaryreceiving exactBohrdisposition/freshpurpose after correctedsource/runtimeboundary.",
   "receiving_metadata": {
     "declared_core": "ad7e582f3e7536d3b76f95ec6da1e1fd8122ee20",
     "lock_change": "Only3existingCoreURL/revision references, same graph; no resolve",

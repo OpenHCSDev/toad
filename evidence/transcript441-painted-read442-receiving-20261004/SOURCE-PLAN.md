@@ -10,7 +10,9 @@ installed import, App, SDK, provider, public guard or publication occurs here.
 - Actual Core main: ad7e582f3e7536d3b76f95ec6da1e1fd8122ee20.
 - Actual Toad main at this checkpoint:4cc4d531d07f3a7be29e824ee5ce8dc7ba60a024.
 - Qualified combined441/442 installed product:03110866, determining4406ea17.
-  Parent owns normal merge order441 then442; that actual main relation is pending.
+  Parent has merged441. Exact442b5ca requiredDebt37236476663 FAILED one
+  ForeignAbsenceProbe in the Live read-fence. Heis owns the coherent correction;
+  its source freeze, finalgreen and actualmain relation are pending.
 - Text59:180cbd9471bd6674647590108ca2fe5a627eb24f.
 - NRA original source/artifact:9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10/8d4897.
 - Native086 manifest/tree stay unchanged; W6/7a/schema10 is excluded.
@@ -25,6 +27,10 @@ Retained8acfb48 ToAdwheel has all319 assets exact qualified031 source. It differ
 from current main4cc in FOUR production files: transcript_filter,
 transcript_source_preparation, transcript_state and widgets/transcript_history.
 The draft does not fold unmerged product or falsely call this wheel current-main.
+8ac is now the preserved ORIGINAL22-pass artifact; its equality is proved only
+against031. No equality to upcoming corrected442 production is inferred. A
+retained-or-build decision waits for Heis's coherent freeze and actualgreen merge,
+then exact package and buildmetadata comparisons. No build is authorized now.
 After Parent's normal441/442 merges, compare the actual merged319 assets and
 fullproject/buildsystem/hatch/README metadata before final source integration.
 The present receiving build inputs equal8ac's original inputs; only tooluv Core
@@ -76,9 +82,13 @@ backend paintedcursor/ACK writer or new complete workflow acceptance is claimed.
 Bohr independent wholeclosure f892/readbacka076 confirmed1470/69/390,249UID0
 actualholderrefs/gaps and preserved19 shared086 environment-only references.
 
-The new W6historical04b889 purpose has sequential style22 priority. Sch has no
-current holder claim. Coordinate its actual terminal, wholefloor handback and
-Bohr disposition before any fresh receiving package purpose. Eligibility alone
+W6historical04b889 is now independently wholeclosed: lifecycle536888 and
+readback764f confirm1470/69/390,236UID0refs/gaps and originalrunner absent. Its
+22.254975sFAIL reached attachment/model acquisition but selectedContextroot
+beforeEnter; focus/read/search/export remain unqualified. Sch7a execution is
+closed, keeper held. Sch has no current holder claim. An eligible receiving
+purpose still requires Bohr's exact fresh disposition/grant after corrected
+source/runtime boundary; the closure itself grants no package access. Eligibility alone
 is no loan; public334 is never a private staging or restore slot. No new holder,
 environment or artificial wait for completeCPU/performance is proposed.
 
