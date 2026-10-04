@@ -12,12 +12,77 @@ from agent_comms.comms import wire
 from agent_comms.threads import Thread
 from runtime_fixture import ToadApp
 from toad.widgets.comms_chat import CommsChatView
+from toad.channel_preparation import ChannelHistoryReader
 from runtime_fixture import refresh_comms
 
 async def until(predicate):
     async with asyncio.timeout(12):
         while not predicate():
             await asyncio.sleep(.02)
+
+async def checkpoint_checks(app, pilot, comms, root, checks):
+    """Borrow the original registered channel leaf in an existing App."""
+    comms.registry.declare(Thread('checkpoint-peer', frozenset({'checkpoint'}), str(root)))
+    comms.messaging.send('checkpoint-peer', '#checkpoint', 'ORIGINAL_CHECKPOINT_ROW')
+    actor = comms.messaging.user_identity(str(root)).name
+    entered, release = asyncio.Event(), asyncio.Event()
+    original_read = ChannelHistoryReader.read
+    worker = None
+
+    async def pending_read(reader, follow_tail):
+        if reader.source.target == '#checkpoint' and reader.source.loading:
+            entered.set()
+            await release.wait()
+        return await original_read(reader, follow_tail)
+
+    with patch.object(ChannelHistoryReader, 'read', pending_read):
+        try:
+            await channel_target('#checkpoint').open(NavigationContext(
+                app, app.selected_mode, root, actor,
+            ))
+            await until(entered.is_set)
+            chat = app.screen.query_one(CommsChatView)
+            history = chat.message_history
+            reader, window = history.reader, chat.window
+            checks['wire_original_reader_loading_blocks_checkpoint'] = (
+                history.is_attached and history in window.histories
+                and reader.source.loading and not history.source_checkpoint_available
+                and not history.checkpoint_available and history.blocks_visible_read)
+            checks['wire_original_read_admission_blocks_checkpoint'] = (
+                not history.state.accepts_source_work and history.blocks_visible_read)
+            release.set()
+            await until(lambda: history.state.accepts_source_work and not reader.source.loading)
+            checks['wire_accepted_reader_live_checkpoint_available'] = (
+                history.reader is reader and history.source_checkpoint_available
+                and history.checkpoint_available and not history.has_newer
+                and not history.blocks_visible_read
+                and [message.body for message, _ in history.rows] == ['ORIGINAL_CHECKPOINT_ROW'])
+
+            # The actual reader's restart creates its original loading request.
+            # Source state remains Live until the real refresh admits its worker.
+            entered.clear()
+            release.clear()
+            reader.restart()
+            checks['wire_live_loading_resource_revokes_checkpoint'] = (
+                history.state.accepts_source_work and reader.source.loading
+                and not history.source_checkpoint_available
+                and not history.checkpoint_available and history.blocks_visible_read)
+            worker = await chat._refresh()
+            await until(entered.is_set)
+            checks['wire_restart_read_admission_owns_checkpoint'] = (
+                worker is not None and not history.state.accepts_source_work
+                and not history.checkpoint_available and history.blocks_visible_read)
+            release.set()
+            await worker.wait()
+            checks['wire_restart_completion_restores_checkpoint'] = (
+                history.reader is reader and not reader.source.loading
+                and history.checkpoint_available and not history.blocks_visible_read)
+            assert all(checks.values()), checks
+            return history, reader, window, history._task
+        finally:
+            release.set()
+            if worker is not None:
+                await worker.wait()
 
 async def main():
     with tempfile.TemporaryDirectory(prefix='channel-visible-') as directory:
