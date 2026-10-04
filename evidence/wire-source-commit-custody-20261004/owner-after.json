@@ -2,35 +2,11 @@
   "packages": [
     {
       "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
-      "revision": "f9270c4f0fde2de5f49db5bcbf9590711f966174",
+      "revision": "e56cbe8825628ca916664529313657eb554a8d60",
       "root": "src/toad",
       "modules": 288,
       "parse_omissions": [],
       "named_sites": [
-        {
-          "path": "src/toad/channel_preparation.py",
-          "line": 61,
-          "kind": "FunctionDef",
-          "name": "restart"
-        },
-        {
-          "path": "src/toad/channel_preparation.py",
-          "line": 166,
-          "kind": "FunctionDef",
-          "name": "accept"
-        },
-        {
-          "path": "src/toad/channel_preparation.py",
-          "line": 169,
-          "kind": "FunctionDef",
-          "name": "restart"
-        },
-        {
-          "path": "src/toad/channel_preparation.py",
-          "line": 170,
-          "kind": "Attribute",
-          "name": "restart"
-        },
         {
           "path": "src/toad/conversation_kind.py",
           "line": 89,
@@ -171,37 +147,37 @@
         },
         {
           "path": "src/toad/mounted_message_history.py",
-          "line": 199,
+          "line": 197,
           "kind": "AsyncFunctionDef",
           "name": "mount_page"
         },
         {
           "path": "src/toad/mounted_message_history.py",
-          "line": 204,
+          "line": 202,
           "kind": "AsyncFunctionDef",
           "name": "_mount_page"
         },
         {
           "path": "src/toad/mounted_message_history.py",
-          "line": 242,
+          "line": 243,
           "kind": "AsyncFunctionDef",
           "name": "insert_page"
         },
         {
           "path": "src/toad/mounted_message_history.py",
-          "line": 375,
+          "line": 378,
           "kind": "FunctionDef",
           "name": "mark_visible"
         },
         {
           "path": "src/toad/mounted_message_history.py",
-          "line": 401,
+          "line": 404,
           "kind": "AsyncFunctionDef",
           "name": "mark_historical"
         },
         {
           "path": "src/toad/mounted_message_history.py",
-          "line": 420,
+          "line": 423,
           "kind": "AsyncFunctionDef",
           "name": "mark_page"
         },
@@ -237,37 +213,13 @@
         },
         {
           "path": "src/toad/mounted_message_history.py",
-          "line": 211,
-          "kind": "Attribute",
-          "name": "source_snapshot"
-        },
-        {
-          "path": "src/toad/mounted_message_history.py",
-          "line": 289,
+          "line": 292,
           "kind": "Attribute",
           "name": "remember_page"
         },
         {
           "path": "src/toad/mounted_message_history.py",
-          "line": 314,
-          "kind": "Attribute",
-          "name": "source_snapshot"
-        },
-        {
-          "path": "src/toad/mounted_message_history.py",
-          "line": 334,
-          "kind": "Attribute",
-          "name": "restart"
-        },
-        {
-          "path": "src/toad/mounted_message_history.py",
-          "line": 335,
-          "kind": "Attribute",
-          "name": "source_snapshot"
-        },
-        {
-          "path": "src/toad/mounted_message_history.py",
-          "line": 392,
+          "line": 395,
           "kind": "Attribute",
           "name": "painted_page"
         },
@@ -285,45 +237,27 @@
         },
         {
           "path": "src/toad/mounted_message_history.py",
-          "line": 240,
+          "line": 241,
           "kind": "Attribute",
           "name": "remember_page"
         },
         {
           "path": "src/toad/mounted_message_history.py",
-          "line": 350,
-          "kind": "Attribute",
-          "name": "source_snapshot"
-        },
-        {
-          "path": "src/toad/mounted_message_history.py",
-          "line": 369,
-          "kind": "Attribute",
-          "name": "accept"
-        },
-        {
-          "path": "src/toad/mounted_message_history.py",
-          "line": 397,
+          "line": 400,
           "kind": "Attribute",
           "name": "mark_page"
         },
         {
           "path": "src/toad/mounted_message_history.py",
-          "line": 413,
+          "line": 416,
           "kind": "Attribute",
           "name": "historical_receipts"
         },
         {
           "path": "src/toad/mounted_message_history.py",
-          "line": 437,
+          "line": 440,
           "kind": "Attribute",
           "name": "tail_receipt"
-        },
-        {
-          "path": "src/toad/mounted_message_history.py",
-          "line": 162,
-          "kind": "Attribute",
-          "name": "restart"
         },
         {
           "path": "src/toad/mounted_message_history.py",
@@ -333,37 +267,37 @@
         },
         {
           "path": "src/toad/mounted_message_history.py",
-          "line": 196,
+          "line": 194,
           "kind": "Attribute",
           "name": "_mount_page"
         },
         {
           "path": "src/toad/mounted_message_history.py",
-          "line": 201,
+          "line": 199,
           "kind": "Attribute",
           "name": "_mount_page"
         },
         {
           "path": "src/toad/mounted_message_history.py",
-          "line": 389,
+          "line": 392,
           "kind": "Attribute",
           "name": "mark_historical"
         },
         {
           "path": "src/toad/mounted_message_history.py",
-          "line": 436,
+          "line": 439,
           "kind": "Attribute",
           "name": "tail_receipt"
         },
         {
           "path": "src/toad/mounted_message_history.py",
-          "line": 436,
+          "line": 439,
           "kind": "Attribute",
           "name": "tail_receipt"
         },
         {
           "path": "src/toad/mounted_message_history.py",
-          "line": 461,
+          "line": 464,
           "kind": "Attribute",
           "name": "mark_visible"
         },
@@ -375,61 +309,7 @@
         },
         {
           "path": "src/toad/mounted_message_history.py",
-          "line": 327,
-          "kind": "Attribute",
-          "name": "_mount_page"
-        },
-        {
-          "path": "src/toad/mounted_message_history.py",
-          "line": 398,
-          "kind": "Attribute",
-          "name": "source_snapshot"
-        },
-        {
-          "path": "src/toad/mounted_message_history.py",
-          "line": 411,
-          "kind": "Attribute",
-          "name": "historical_receipts"
-        },
-        {
-          "path": "src/toad/mounted_message_history.py",
-          "line": 359,
-          "kind": "Attribute",
-          "name": "_mount_page"
-        },
-        {
-          "path": "src/toad/mounted_message_history.py",
-          "line": 384,
-          "kind": "Attribute",
-          "name": "historical_receipts"
-        },
-        {
-          "path": "src/toad/mounted_message_history.py",
-          "line": 386,
-          "kind": "Attribute",
-          "name": "historical_receipts"
-        },
-        {
-          "path": "src/toad/mounted_message_history.py",
-          "line": 410,
-          "kind": "Attribute",
-          "name": "historical_receipts"
-        },
-        {
-          "path": "src/toad/mounted_message_history.py",
-          "line": 441,
-          "kind": "Attribute",
-          "name": "channel_receipts"
-        },
-        {
-          "path": "src/toad/mounted_message_history.py",
-          "line": 455,
-          "kind": "Attribute",
-          "name": "tail_receipt"
-        },
-        {
-          "path": "src/toad/mounted_message_history.py",
-          "line": 362,
+          "line": 330,
           "kind": "Attribute",
           "name": "_mount_page"
         },
@@ -441,51 +321,69 @@
         },
         {
           "path": "src/toad/mounted_message_history.py",
-          "line": 440,
+          "line": 362,
           "kind": "Attribute",
-          "name": "channel_receipts"
+          "name": "_mount_page"
         },
         {
           "path": "src/toad/mounted_message_history.py",
-          "line": 452,
-          "kind": "Attribute",
-          "name": "restart"
-        },
-        {
-          "path": "src/toad/mounted_message_history.py",
-          "line": 456,
-          "kind": "Attribute",
-          "name": "channel_receipts"
-        },
-        {
-          "path": "src/toad/mounted_message_history.py",
-          "line": 457,
+          "line": 387,
           "kind": "Attribute",
           "name": "historical_receipts"
         },
         {
-          "path": "src/toad/transcript_source_preparation.py",
-          "line": 57,
-          "kind": "FunctionDef",
-          "name": "source_snapshot"
+          "path": "src/toad/mounted_message_history.py",
+          "line": 389,
+          "kind": "Attribute",
+          "name": "historical_receipts"
         },
         {
-          "path": "src/toad/transcript_source_preparation.py",
-          "line": 154,
+          "path": "src/toad/mounted_message_history.py",
+          "line": 413,
           "kind": "Attribute",
-          "name": "source_snapshot"
+          "name": "historical_receipts"
         },
         {
-          "path": "src/toad/transcript_source_preparation.py",
-          "line": 32,
+          "path": "src/toad/mounted_message_history.py",
+          "line": 444,
           "kind": "Attribute",
-          "name": "source_snapshot"
+          "name": "channel_receipts"
         },
         {
-          "path": "src/toad/transcript_source_preparation.py",
-          "line": 136,
+          "path": "src/toad/mounted_message_history.py",
+          "line": 458,
           "kind": "Attribute",
-          "name": "source_snapshot"
+          "name": "tail_receipt"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 365,
+          "kind": "Attribute",
+          "name": "_mount_page"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 417,
+          "kind": "Attribute",
+          "name": "historical_receipts"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 443,
+          "kind": "Attribute",
+          "name": "channel_receipts"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 459,
+          "kind": "Attribute",
+          "name": "channel_receipts"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 460,
+          "kind": "Attribute",
+          "name": "historical_receipts"
         },
         {
           "path": "src/toad/widgets/comms_chat.py",
@@ -510,7 +408,7 @@
     },
     {
       "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
-      "revision": "f9270c4f0fde2de5f49db5bcbf9590711f966174",
+      "revision": "e56cbe8825628ca916664529313657eb554a8d60",
       "root": "tests",
       "modules": 394,
       "parse_omissions": [],
@@ -565,9 +463,87 @@
         },
         {
           "path": "tests/message_dividers_pilot.py",
-          "line": 138,
+          "line": 218,
+          "kind": "Attribute",
+          "name": "tail_receipt"
+        },
+        {
+          "path": "tests/message_dividers_pilot.py",
+          "line": 216,
+          "kind": "Attribute",
+          "name": "channel_receipts"
+        },
+        {
+          "path": "tests/message_dividers_pilot.py",
+          "line": 217,
+          "kind": "Attribute",
+          "name": "historical_receipts"
+        },
+        {
+          "path": "tests/message_dividers_pilot.py",
+          "line": 74,
           "kind": "Attribute",
           "name": "mount_page"
+        },
+        {
+          "path": "tests/message_dividers_pilot.py",
+          "line": 80,
+          "kind": "Attribute",
+          "name": "channel_receipts"
+        },
+        {
+          "path": "tests/message_dividers_pilot.py",
+          "line": 165,
+          "kind": "Attribute",
+          "name": "mount_page"
+        },
+        {
+          "path": "tests/message_dividers_pilot.py",
+          "line": 245,
+          "kind": "Attribute",
+          "name": "channel_receipts"
+        },
+        {
+          "path": "tests/message_dividers_pilot.py",
+          "line": 245,
+          "kind": "Attribute",
+          "name": "historical_receipts"
+        },
+        {
+          "path": "tests/message_dividers_pilot.py",
+          "line": 246,
+          "kind": "Attribute",
+          "name": "tail_receipt"
+        },
+        {
+          "path": "tests/message_dividers_pilot.py",
+          "line": 107,
+          "kind": "Attribute",
+          "name": "channel_receipts"
+        },
+        {
+          "path": "tests/message_dividers_pilot.py",
+          "line": 232,
+          "kind": "Attribute",
+          "name": "channel_receipts"
+        },
+        {
+          "path": "tests/message_dividers_pilot.py",
+          "line": 232,
+          "kind": "Attribute",
+          "name": "historical_receipts"
+        },
+        {
+          "path": "tests/message_dividers_pilot.py",
+          "line": 233,
+          "kind": "Attribute",
+          "name": "tail_receipt"
+        },
+        {
+          "path": "tests/message_dividers_pilot.py",
+          "line": 224,
+          "kind": "Attribute",
+          "name": "_mount_page"
         }
       ],
       "unrelated_or_ambiguous_common_name_sites_not_resolved": 27
@@ -582,5 +558,15 @@
       "unrelated_or_ambiguous_common_name_sites_not_resolved": 0
     }
   ],
-  "limits": "AST names identify declarations and syntactic consumers, not runtime dispatch, external aliases, or callbacks. Source reading resolves the history/receipt/native teardown family; common accept/restart/snapshot sites outside that family remain unproved."
+  "limits": "AST names identify declarations and syntactic consumers, not runtime dispatch, external aliases, or callbacks. Source reading resolves the history/receipt/native teardown family; common accept/restart/snapshot sites outside that family remain unproved.",
+  "final_source_identity": {
+    "production_and_control_head": "e56cbe8825628ca916664529313657eb554a8d60",
+    "base": "fb0447639cdba02aee0342170600783d66dab6eb",
+    "changed_production_paths": [
+      "src/toad/conversation_kind.py",
+      "src/toad/mounted_message_history.py"
+    ],
+    "native_source_changed": false,
+    "runtime_launched": false
+  }
 }
