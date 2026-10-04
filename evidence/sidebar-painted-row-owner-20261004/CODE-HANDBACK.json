@@ -1,0 +1,27 @@
+{
+  "state": "WholeHeisenberg426 CODE/package/import/read/build/execution purpose CLOSED; original floor restored; independent source continuation retained",
+  "time": 1791101053.7982666,
+  "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "original_floor": "Core611d416/Toad9138/Texta52/NRA d392/native2ea",
+  "original_archive_members_verified": 1459,
+  "packages": 69,
+  "original_versions_and_direct_urls_equal": true,
+  "original_activation_and_source_proofs_equal": true,
+  "new_archive_created": false,
+  "candidate_artifacts_preserved": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame426-native55-20261004",
+  "original_installed_to_ad_head": "4d51775ac7e5f03e84b2338312cf252019bd5201",
+  "current_source_union_head": "c2e6b9f62",
+  "installed_app_scope": "3originalApp positives plus focusedframe7.781s; prior specializedfixture import negative preserved",
+  "physical_capture_launched": false,
+  "public_owner_inputs_publication_or_package_writes": false,
+  "private_scratch_empty_removed": true,
+  "before_restore_borrowers": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame426-native55-20261004/before-restore-root-borrowers.json",
+  "future_code_package_execution_claim": false,
+  "final_borrowers": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame426-native55-20261004/final-borrowers.json",
+    "sha256": "8b2b475c4ea7053f8cdcf2293ac8a969c0885f44aa9dedcdf618c0dac18300dd",
+    "processes": 225,
+    "gaps": 0,
+    "refs": 0
+  }
+}
