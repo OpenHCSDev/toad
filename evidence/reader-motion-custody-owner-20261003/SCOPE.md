@@ -23,8 +23,9 @@ velocity/reversal/growingEnd/PageDownvoid; uninterruptedanimation; IRC/DM,
 tabopening/sidebar/busyactivity; focus/draft/Undo/TC1T9T4 and whole configured
 user workflow. Useful qualified checkpoints ship without holding for final144Hz.
 
-Einstein607/413 owns the sequential style22 CODE loan and menu/command source;
-Heisenberg retains all body/viewport/frame/reader/preparation source. Kepler
+Einstein607/413 returned the sequential style22 CODE loan after his affected
+installed journey and exact normal-union restoration. Heisenberg retains all
+body/viewport/frame/reader/preparation source and the current holder. Kepler
 owns native Compositor/Widget/layout. Shared edits are coordinated directly.
 
 AST/source semantics choose the change, then one batched proportionate sanity
@@ -83,7 +84,7 @@ copied window reference, reentrant lock, fallback revision or new lifecycle type
 The native geometry fixture now mounts its original HistoryWindow directly under
 the real App Screen, preserving Conversation's nominal-block admission boundary.
 
-## Installed result
+## Earlier installed App result
 
 Both affected original App paths now pass: original curve survives compensation,
 explicit offset/tail targets remain selected, reader revision is preserved, original
@@ -107,3 +108,45 @@ comparator; its result is kept truthful. Normal package metadata pins Text49;
 its dependency metadata is unchanged, and the lock's original source references
 move together. No VCS clone/build or dependency resolve is performed for staging.
 Kepler owns native original ordering, Heisenberg owns sole joined real journey.
+
+## Scoped Ready from the completed joined journey
+
+Original415/49 recording completed140.726s: all16 warm/resource and7 input
+predicates pass,37 ready bodies retained across actual saved-history A/B/A,
+draft/Undo/editor/window preserved, original native owner3410935/birth54737389
+unchanged. Owned cleanup remaining[]/errors[]. Core605db620/Text49cb121/native89
+are the actual recorded pair, installed from the approved retained filewheels.
+All342 Core/319 Toad/266 Textual assets are exact;69 versions unchanged. Core605
+is distinct from the earlier Coredbcf App comparator. No new environment, clone,
+native build, provider input or public prompt.
+
+Exact held-key writer intervals (completion, not physical FPS): Up median12.50/
+p9530.33/worst192.11ms; Down11.04/23.92/101.43ms; reverse10.28/20.73/131.69ms.
+1368 writer flushes/unmatched0;1352 GIL samples/no reported errors, approximate
+alignment uncertainty0.0764s. Marker UI CPU Up71.69%,Down69.81%,reverse69.77%,
+mid-history post-Up18.36%,End idle19.65%. Marker spans include export tails;
+unmatched busy workloads do not establish a causal speed gain. End500ms includes
+stationary heartbeat and is not an animation-FPS measurement.
+
+Personally reviewed original48-consecutive-frame Up22.870..23.670,
+Down47.431..48.231 and reverse79.284..80.084 sheets: painted body/chrome,
+repeated positions and discrete advances, internal whitespace. No full-body blank
+evident in these bands; contact-sheet scale does not prove every text readable.
+Up before probe matched the live UI, but the late after probe found it absent:
+no fully bracketed personal DURING claim. Down/reverse and the parent Down
+witness are AFTER UI exit. Original raw assessment stays unreviewed;
+MOTION-REVIEW.json and the parent witness record this separate assessment.
+Original encoder255 and transferred UI/st custody are retained, not called an
+application exit0. Complete movie, required exports and native checks qualify
+the scoped resource/reader workflow, not smoothness or overall performance.
+
+Normal main join eb529624 retains accepted menu/command/context families. The
+three complete reader/filter/history files and both changed Conversation methods
+remain equal to installed066739; the entire union is not called byte-equal.
+Pin conflict resolution preserves main Core0e28 and changed Text49cb121; historical
+film Core605db620 remains truthful. No unchanged movie/App repeat.
+
+READY.json freezes ten original keeper hashes and the exact source/runtime and
+result. Reader destination, filter-source acquisition and native ordered-cohort
+behavior are ready at this scope. Full CPU/raster/runway/firstpaint/busy/IRC,
+uninterrupted animation and144Hz acceptance remain ACTIVE on the next branch.

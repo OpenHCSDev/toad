@@ -1,0 +1,97 @@
+{
+  "scope": "Personally inspected original consecutive Up/Down/reverse frames; selected scene/body returns after terminal. No smoothness acceptance.",
+  "recorded_utc": "2026-10-04T00:42:48.269096+00:00",
+  "reviewed": [
+    {
+      "event": "live_review_available",
+      "label": "live-14-7",
+      "available": true,
+      "phase": "input-held-up",
+      "interval_basis": "checked keydown start through keyup start; release completed",
+      "source_start_seconds": 22.8698787,
+      "source_end_seconds": 23.6698787,
+      "ui_identity": {
+        "pid": 3676742,
+        "start_ticks": 54956913
+      },
+      "ui_alive_before_and_after_encoding": true,
+      "encoding_started_monotonic": 549596.896879396,
+      "encoding_finished_monotonic": 549598.784144938,
+      "frames": "/home/ts/.cache/agent-scratch/reader415-native49-public-20261003-01/capture/live-14-7-frames.png",
+      "assessment": "unreviewed; inspect consecutive frames during or after the run"
+    },
+    {
+      "event": "live_review_available",
+      "label": "live-21-12",
+      "available": true,
+      "phase": "input-held-down",
+      "interval_basis": "checked keydown start through keyup start; release completed",
+      "source_start_seconds": 47.431435493,
+      "source_end_seconds": 48.231435493,
+      "ui_identity": {
+        "pid": 3676742,
+        "start_ticks": 54956913
+      },
+      "ui_alive_before_and_after_encoding": true,
+      "encoding_started_monotonic": 549621.636292652,
+      "encoding_finished_monotonic": 549624.547041063,
+      "frames": "/home/ts/.cache/agent-scratch/reader415-native49-public-20261003-01/capture/live-21-12-frames.png",
+      "assessment": "unreviewed; inspect consecutive frames during or after the run"
+    },
+    {
+      "event": "live_review_available",
+      "label": "live-39-22",
+      "available": true,
+      "phase": "reverse",
+      "interval_basis": "checked keydown start through keyup start; release completed",
+      "source_start_seconds": 79.28387602,
+      "source_end_seconds": 80.08387601999999,
+      "ui_identity": {
+        "pid": 3676742,
+        "start_ticks": 54956913
+      },
+      "ui_alive_before_and_after_encoding": true,
+      "encoding_started_monotonic": 549653.43562091,
+      "encoding_finished_monotonic": 549657.310608225,
+      "frames": "/home/ts/.cache/agent-scratch/reader415-native49-public-20261003-01/capture/live-39-22-frames.png",
+      "assessment": "unreviewed; inspect consecutive frames during or after the run"
+    }
+  ],
+  "assessment": "Body/chrome present, repeated positions and discrete advances; internal whitespace visible. No full-body blank evident in these selected bands. Contact-sheet scale does not prove every text readable. A-return paints saved nra-architecture body with draft retained; channel-open paints #openhcs history.",
+  "timing": "Up before probe original UI alive, late after probe UI absent: not a fully bracketed DURING witness. Down/reverse AFTER UI exit. Current reinspection AFTER terminal. Encoding-alive is not personal review.",
+  "original_probes": {
+    "heis-personal-review-before-up-down.json": {
+      "monotonic": 549659.325599442,
+      "ui_pid": 3676742,
+      "expected_birth": 54956913,
+      "3675834": {
+        "stat": "3675834 (python) R 3675785 3675785 3675785 0 -1 4194560 16371 973512 0 159 497 343 3974 815 20 0 1 0 54956395 93569024 16977 18446744073709551615 4337664 33413636 140737035353392 0 0 0 0 16797699 0 0 0 0 17 11 0 0 0 0 0 25165824 33413636 862900224 140737035358880 140737035359721 140737035359721 140737035366279 0\n",
+        "birth": 54956395
+      },
+      "3676742": {
+        "stat": "3676742 (toad) R 3676727 3676742 3676742 34833 3676742 4194304 138262 10586 4 0 3012 380 77 3 20 0 17 0 54956913 1386344448 61160 18446744073709551615 4337664 33413636 140732260700832 0 0 0 0 16781312 134873090 0 0 0 17 12 0 0 0 0 0 25165824 33413636 772493312 140732260709135 140732260709590 140732260709590 140732260716425 0\n",
+        "birth": 54956913
+      }
+    },
+    "heis-personal-review-after-up-before-down-reverse.json": {
+      "monotonic": 549741.730289769,
+      "ui_pid": 3676742,
+      "expected_birth": 54956913,
+      "3675834": {
+        "stat": "3675834 (python) S 3675785 3675785 3675785 0 -1 4194560 37371 1717383 0 498 902 581 16388 3049 20 0 1 0 54956395 155422720 31630 18446744073709551615 4337664 33413636 140737035353392 0 0 0 0 16781312 16387 1 0 0 17 14 0 0 0 0 0 25165824 33413636 862900224 140737035358880 140737035359721 140737035359721 140737035366279 0\n",
+        "birth": 54956395
+      },
+      "3676742": {
+        "stat": null,
+        "birth": null
+      }
+    },
+    "heis-personal-review-after-down-reverse.json": {
+      "monotonic": 549811.060574868,
+      "ui_before_down_reverse_absent": true,
+      "review_scope": "Up image acquired after original UI alive probe, but later after-probe absent: no fully bracketed DURING claim. Down/reverse personally viewed after UI exit. Body/chrome present, discrete advances/repeated positions; no smoothness claim."
+    }
+  },
+  "parent_witness": "parent-motion-review.json",
+  "raw_receipt_assessment_preserved": "unreviewed"
+}
