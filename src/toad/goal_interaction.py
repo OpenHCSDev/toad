@@ -185,7 +185,7 @@ class GoalSession:
         try:
             # The existing Agent boundary encodes the declared goal operation.
             # Goal state governs continuation, never interruption of an active turn.
-            await self.write(agent, agent.update_goal(action.declared_name, text))
+            await self.write(agent, agent.update_goal(action, text))
             if self.owns(agent):
                 view.prompt.focus()
         except (OSError, ValueError) as error:

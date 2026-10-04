@@ -6,6 +6,7 @@ from typing import Iterable, Literal, Sequence
 
 from toad.core.events import CoreEventStream, SessionChangedEvent, SessionClosedEvent
 from agent_comms.presentation import CoordinationSnapshot
+from toad.conversation_kind import ConversationKind
 
 
 
@@ -66,12 +67,12 @@ class CommsViewKey:
     root: str
     owner_mode: str
     me: str
-    kind: str
+    kind: type[ConversationKind]
     target: str
 
     @property
     def title(self) -> str:
-        return f"@{self.target}" if self.kind == "dm" else self.target
+        return self.kind.label(self.target)
 
 
 @dataclass(frozen=True)

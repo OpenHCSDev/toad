@@ -1,0 +1,164 @@
+{
+  "head": "11e138357982af03f4f20cf18d571d3665958a38",
+  "modules": 288,
+  "unparsed": [],
+  "sites": [
+    {
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 12,
+      "kind": "ImportFrom",
+      "text": "from toad.core.source_events import MessageHandlingRequested"
+    },
+    {
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 13,
+      "kind": "ImportFrom",
+      "text": "from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver"
+    },
+    {
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 26,
+      "kind": "ImportFrom",
+      "text": "from toad.widgets.wire_message_handling import WireMessageHandling"
+    },
+    {
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 29,
+      "kind": "ClassDef",
+      "text": "class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, ModalScreen):"
+    },
+    {
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 142,
+      "kind": "FunctionDef",
+      "text": "@handles(MessageHandlingRequested)"
+    },
+    {
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 149,
+      "kind": "AsyncFunctionDef",
+      "text": "async def publish_handling(self, item: HistoricalThread, generation: int) -> None:"
+    },
+    {
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 141,
+      "kind": "Call",
+      "text": "handles(MessageHandlingRequested)"
+    },
+    {
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 145,
+      "kind": "Call",
+      "text": "self.run_worker(partial(self.publish_handling, self.threads[index], self._selection_generation), group='historical-handling', exclusive=True)"
+    },
+    {
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 154,
+      "kind": "Call",
+      "text": "WireMessageHandling.within(content)"
+    },
+    {
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 155,
+      "kind": "Call",
+      "text": "WireMessageHandling.references_in(bodies)"
+    },
+    {
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 145,
+      "kind": "Call",
+      "text": "partial(self.publish_handling, self.threads[index], self._selection_generation)"
+    },
+    {
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 154,
+      "kind": "Attribute",
+      "text": "WireMessageHandling.within"
+    },
+    {
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 155,
+      "kind": "Attribute",
+      "text": "WireMessageHandling.references_in"
+    },
+    {
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 145,
+      "kind": "Attribute",
+      "text": "self.publish_handling"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 64,
+      "kind": "ImportFrom",
+      "text": "from toad.core_event_carrier import CoreEventReceiver"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 75,
+      "kind": "ImportFrom",
+      "text": "from toad.core.source_events import DirectoryChanged, CurrentWorkingDirectoryChanged, TranscriptCoverage, TranscriptSourceWorkFinished, MessageHandlingRequested"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 89,
+      "kind": "ImportFrom",
+      "text": "from toad.widgets.wire_message_handling import WireMessageHandling"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 330,
+      "kind": "ClassDef",
+      "text": "class ConversationWindowSettings(CoreEventReceiver):"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 644,
+      "kind": "ClassDef",
+      "text": "class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSessionBinding):"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1493,
+      "kind": "FunctionDef",
+      "text": "@handles(MessageHandlingRequested)"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1492,
+      "kind": "Call",
+      "text": "handles(MessageHandlingRequested)"
+    },
+    {
+      "path": "src/toad/widgets/wire_message_handling.py",
+      "line": 4,
+      "kind": "ImportFrom",
+      "text": "from toad.core.source_events import MessageHandlingRequested"
+    },
+    {
+      "path": "src/toad/widgets/wire_message_handling.py",
+      "line": 5,
+      "kind": "ImportFrom",
+      "text": "from toad.core_event_carrier import CoreEventReceiver"
+    },
+    {
+      "path": "src/toad/widgets/wire_message_handling.py",
+      "line": 8,
+      "kind": "ClassDef",
+      "text": "class WireMessageHandling(CoreEventReceiver):"
+    },
+    {
+      "path": "src/toad/widgets/wire_message_handling.py",
+      "line": 21,
+      "kind": "Call",
+      "text": "self.publish_core(MessageHandlingRequested())"
+    },
+    {
+      "path": "src/toad/widgets/wire_message_handling.py",
+      "line": 21,
+      "kind": "Call",
+      "text": "MessageHandlingRequested()"
+    }
+  ],
+  "limit": "Lexical AST evidence; complete receiver/event/handling lifetimes read semantically."
+}

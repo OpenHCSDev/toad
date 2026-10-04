@@ -1,3 +1,4 @@
+from agent_comms.goal_actions import SetGoalAction
 from agent_comms.goal_actions import GoalAction, ActiveGoalAction, PausedGoalAction, ClearGoalAction
 from runtime_fixture import coordination_update
 """A real owner save updates the mounted goal preview, independently of progress."""
@@ -53,7 +54,7 @@ async def main():
             )
             agent.coordination = coordination_update(str(comms.root), session)
             original = await agent.update_goal(
-                "set",
+                SetGoalAction,
                 "Work on draft PR #17 and report remaining gaps. "
                 + "Detailed acceptance criteria. " * 30,
             )

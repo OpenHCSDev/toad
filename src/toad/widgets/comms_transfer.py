@@ -11,6 +11,7 @@ import asyncio
 from functools import partial
 from abc import abstractmethod
 from agent_comms.declared_family import DeclaredFamily
+from agent_comms.field_codec import FieldCodec
 from toad.comms_root import RouteSelection
 
 from agent_comms.exporting import (
@@ -110,7 +111,7 @@ class Transfers:
     def submitted(self, selected: RouteSelection, request: TransferRequest | None) -> None:
         if request is not None:
             self.app.run_worker(partial(self.execute, selected, request),
-                                group=request.declared_name, exclusive=True, exit_on_error=False)
+                                group=FieldCodec.encode(type(request)), exclusive=True, exit_on_error=False)
 
     async def execute(self, selected: RouteSelection, request: TransferRequest) -> None:
         try:

@@ -1,3 +1,4 @@
+from agent_comms.goal_actions import SetGoalAction
 from agent_comms.goal_actions import GoalAction, ActiveGoalAction, PausedGoalAction, ClearGoalAction
 from runtime_fixture import coordination_update
 """Mounted goal UI polls the actual owner without notification or local mutations."""
@@ -78,7 +79,7 @@ async def main():
             )
             agent.coordination = coordination_update(str(comms.root), session)
             goal = await agent.update_goal(
-                "set",
+                SetGoalAction,
                 "OBJECTIVE_BEGIN "
                 + "Fully wrapped acceptance criteria. " * 40
                 + " OBJECTIVE_END",

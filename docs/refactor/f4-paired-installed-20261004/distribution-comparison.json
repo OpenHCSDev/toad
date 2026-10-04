@@ -1,0 +1,12 @@
+{
+  "distributions": 69,
+  "unchanged_dependency_origins": 65,
+  "changed_normal_filewheel_origins": [
+    "agent-comms",
+    "batrachian-toad",
+    "nominal-refactor-audit",
+    "textual"
+  ],
+  "versions_unchanged": true,
+  "first_comparison_failure": "receipt JSON strings compared to decoded JSON objects; normalized once for evidence comparison"
+}

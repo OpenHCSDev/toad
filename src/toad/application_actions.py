@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar
 
 from agent_comms.command import Command
 from agent_comms.declared_family import DeclaredFamily
+from agent_comms.field_codec import FieldCodec
 from textual.binding import Binding
 from textual.command import DiscoveryHit, Hit, Hits, Provider
 from toad.preferences import UiSettings
@@ -27,7 +28,7 @@ class KeyboundAction:
 
     @classmethod
     def binding(cls) -> Binding:
-        return Binding(cls.key, cls.declared_name, cls.description, tooltip=cls.tooltip,
+        return Binding(cls.key, FieldCodec.encode(cls), cls.description, tooltip=cls.tooltip,
                        show=cls.show, priority=cls.priority, system=cls.system,
                        group=cls.group, key_display=cls.key_display)
 

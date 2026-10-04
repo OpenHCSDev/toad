@@ -14,6 +14,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 from agent_comms.comms import Comms
+from agent_comms.field_codec import FieldCodec
 from toad.message_viewport import NotificationViewport
 from toad.constants import COMMS_REFRESH_INTERVAL
 from agent_comms.messages import Message as WireMessage
@@ -101,25 +102,21 @@ class CommsChatView(DeliveryFailureView, Conversation):
         project_path: Path,
         *,
         target: str,
-        kind: str,
+        kind: type[ConversationKind],
         me: str,
         wire_root: str | None = None,
     ) -> None:
         super().__init__(project_path)
         self.target = target
-        self.conversation_kind = ConversationKind.decode(kind)
+        self.conversation_kind = kind
         self._me = me
         self._unknown_send: tuple[str, int, str] | None = None
         self._human_admission_blocked = False
         self._send_block_reason = ""
         self._bound_root = Path(wire_root).resolve() if wire_root is not None else None
-        self.input_histories.bind_scope(f"comms:{kind}:{target}")
+        self.input_histories.bind_scope(f"comms:{FieldCodec.encode(kind)}:{target}")
         self.message_history = MountedMessageHistory(self)
         self._notification_task: asyncio.Task[None] | None = None
-
-    @property
-    def kind(self) -> str:
-        return self.conversation_kind.declared_name
 
     def compose(self) -> ComposeResult:
         with Window():

@@ -1,0 +1,15 @@
+{
+  "core_pin": "421cbaf069bbc21cfb10c0d7b98cc42635605c6a",
+  "joined_core_main": "486b83666509b5db711017916343853bf8b38237",
+  "joined_toad_main": "31c93c7c41a542c352f6b78eb4ae0d8d73f92a61",
+  "actual_installed_cut": {
+    "core": "497352d04ce698f43b7f2e9d8921c204aa08ade7",
+    "toad": "11e138357982af03f4f20cf18d571d3665958a38"
+  },
+  "qualified_release_source": "independent F1 installed10",
+  "repeat_app_runs": 0,
+  "release_files": {
+    "src/toad/session_presentation.py": "58bf8b6991371645f422341d44109c650f2c0579617a6d517f63897800672aa6",
+    "src/toad/widgets/conversation.py": "4b9404068ab9378578e30db4257ab24f2f1d3e7a8311e32b12f1b65831a1ea8b"
+  }
+}

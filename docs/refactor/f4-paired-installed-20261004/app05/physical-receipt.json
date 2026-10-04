@@ -1,0 +1,35 @@
+{
+  "terminal": {
+    "pid": 3190334,
+    "start_ticks": 57218619,
+    "returncode": null
+  },
+  "display": ":157",
+  "argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "-I",
+    "/home/ts/wt/toad-original-reply-handling-20261002/tests/f4_declared_family_installed_pilot.py"
+  ],
+  "terminal_after": {
+    "pid": 3190334,
+    "start_ticks": 57218619,
+    "returncode": 1
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 3190332,
+        "start_ticks": 57218610,
+        "returncode": 0
+      },
+      {
+        "pid": 3190334,
+        "start_ticks": 57218619,
+        "returncode": 1
+      }
+    ]
+  }
+}

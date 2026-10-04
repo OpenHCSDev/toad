@@ -8,6 +8,7 @@ import os
 
 from agent_comms.command import Command
 from agent_comms.declared_family import DeclaredFamily
+from agent_comms.field_codec import FieldCodec
 from toad.mcp_declarations import Declaration, Inventory
 
 
@@ -36,7 +37,7 @@ class MCPDecision(Command, DeclaredFamily, affix="Command"):
 
     @property
     def button_id(self) -> str:
-        return self.declared_name
+        return FieldCodec.encode(type(self))
 
     def available(self, selection: MCPSelection) -> bool:
         if os.name != 'posix' or not selection.eligible():
@@ -53,7 +54,7 @@ class MCPDecision(Command, DeclaredFamily, affix="Command"):
 
 class ProjectTrustDecision(MCPDecision):
     def arguments(self) -> tuple[str, str]:
-        return 'trust', self.declared_name
+        return 'trust', FieldCodec.encode(type(self))
 
     def permits(self, row: Declaration) -> bool:
         return row.scope.allows_trust_decision()
@@ -61,7 +62,7 @@ class ProjectTrustDecision(MCPDecision):
 
 class CallDecision(MCPDecision):
     def arguments(self) -> tuple[str, str]:
-        return 'calls', self.declared_name
+        return 'calls', FieldCodec.encode(type(self))
 
     def permits(self, row: Declaration) -> bool:
         return row.status.allows_call_decision()
