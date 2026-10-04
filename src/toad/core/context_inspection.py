@@ -121,7 +121,7 @@ class ManifestNode(ContextNode):
 
     @property
     def label(self):
-        return f"{self.segment.kind.replace('_', ' ')} · ~{self.segment.tokens:,} tokens"
+        return self.segment.public_description()
 
     def children(self):
         return (
@@ -132,7 +132,7 @@ class ManifestNode(ContextNode):
         )
 
     def detail(self):
-        return (f"{self.segment.kind}\nEstimate: {self.segment.tokens:,} tokens\n"
+        return (f"{self.segment.kind.public_title()}\nEstimate: {self.segment.tokens:,} tokens\n"
                 f"Original bytes: {self.segment.utf8_bytes:,}\n"
                 f"Digest: {self.segment.sha256}\n\n"
                 "This manifest records the request's sources and measurements, not its text. "
