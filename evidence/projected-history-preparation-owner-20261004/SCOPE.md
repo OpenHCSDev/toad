@@ -94,3 +94,24 @@ correction nor the prior ZIP import refusal proves configured continuous UI
 acceptance. The authored localhost saved-state reply and the configured
 real-retained source fixture remain distinct scopes. No App/import/provider/
 native run, package mutation, SDK input or physical recording was started.
+
+## Prepared affected installed control
+
+The existing prefetch pilot has a targeted --projected-only mode. It checks the
+installed distribution path before its new projection component cases, then
+borrows the original transcript_history_pilot App/private Comms registry and
+original native-format journal with alternating user/assistant records. Actual
+category selection drives the original filter, projected pager and lookahead.
+The observer executes original prefetch and body-preparation operations; it
+records incoming body dispatch only after that instance's original dispatcher
+returns. A revoked preparation that returns without dispatch earns no credit.
+
+This is an authored installed App control, not configured-provider or physical
+motion proof. Raw mixed-category intervals, selected assistant body dispatch,
+source retirement and runtime bounds are asserted. The unchanged original App
+context owns shutdown. The prior broad navigation body has identical AST under
+its new non-targeted branch, as recorded in projected-app-control-source.json.
+Temporary fixture output is removed by its original lifetime. No new harness,
+production change, execution, build or holder access occurred. Future purpose
+must bind the exact controls and installed source, then join owned children and
+restore the actual floor.
