@@ -1,0 +1,57 @@
+{
+  "state": "Prepared positive440candidate HELD Parent; all immediate Sch334 package/import/read/build/execution claims CLOSED",
+  "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Sch440-ordinary-receiving-package-issued-grant.json",
+  "grant_sha256": "f368ab1e9387bc8c86d05d236393b6146c89c666342c782c24290ab912394d53",
+  "issued_grant_modified": false,
+  "shared_lifecycle_owner": "Bohr only",
+  "target_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "source_head": "be1054e381f4dcb47b7535ea7861624b49afa959",
+  "component_heads": {
+    "core": "5c1103077e5a982365a6d801b98bcbdb1b03c547",
+    "toad": "af692dc6feae5a8def3136e25024624311f088b0",
+    "textual": "180cbd9471bd6674647590108ca2fe5a627eb24f",
+    "audit": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10",
+    "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+  },
+  "source_proof": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/wire439-coordination654-receiving-20261004/source-proof.json",
+  "activation": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/wire439-coordination654-receiving-20261004/candidate-activation.json",
+  "tracked_installed_source_assets": 942,
+  "forced_native_assets": 3,
+  "normal_packages": 69,
+  "original165_unchanged": true,
+  "unchanged_keeper_count": 468,
+  "native_full_trust": true,
+  "original_PREFIXactivation_written": false,
+  "shared_inode_inplace_writes": false,
+  "installer": "ordinary no-deps retained filewheels unlink/replace",
+  "NRA_reinstalled": false,
+  "new_builds": 0,
+  "VCS_clones": 0,
+  "App_native_provider_gates": 0,
+  "public_effects": 0,
+  "own_operations": [
+    {
+      "log": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/wire439-coordination654-receiving-20261004/install.log",
+      "exit": 0
+    },
+    {
+      "log": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/wire439-coordination654-receiving-20261004/pipcheck.log",
+      "exit": 0
+    },
+    {
+      "log": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/wire439-coordination654-receiving-20261004/verify-candidate.log",
+      "exit": 0
+    },
+    {
+      "log": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/wire439-coordination654-receiving-20261004/new-publication440/prepare.log",
+      "exit": 0
+    }
+  ],
+  "ongoing_owned_processes": [],
+  "new_cohort_source": "public436style22 read-only declaration/route observations",
+  "whole_cohort_require_original": true,
+  "gate_count": 37,
+  "public_guard_attempts": 0,
+  "next_loan_inferred": false,
+  "final_shared_census": "Requested originalBohr checker after terminal; record independent result separately"
+}
