@@ -1,0 +1,25 @@
+{
+  "stage": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "pins": {
+    "agent_comms": "d41601c16d74e9e3e4195b6527fb218b8fe14af9",
+    "toad": "9138bc6a3fb2d5e7d5fa517f139272a900192a50",
+    "textual": "a52e5b122b09e6414f8adb1fa04995ac9ad6961b"
+  },
+  "sdk": "0.12.1",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-2ea0a4d4ff2e3628/node_modules/@earendil-works/pi-coding-agent",
+  "state": "joined422/53 source installed; actual affected App/physical pending",
+  "staging_receipt": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/session422-native52-20261004/source-proof.json",
+  "bins": {
+    "python": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "toad": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/toad",
+    "agent-comms": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/agent-comms-agent",
+    "pi-comms-native": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/pi-comms-native"
+  },
+  "native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-2ea0a4d4ff2e3628/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+  "native_manifest": "2ea0a4d4ff2e362864c156e4b11642775b3f2a96e7f01522b346b6f6d9526936",
+  "native_tree": "61015ef9b5738be236d9de4dd2d59d24857a6f3b77baa69caa5332addaec280b",
+  "native_configuration_note": "Actual unchanged Core611/native2ea; own candidate only; fresh registry-derived physical source, no public route/input/owner writes."
+}

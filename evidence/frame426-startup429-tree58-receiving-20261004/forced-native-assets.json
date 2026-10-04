@@ -1,0 +1,17 @@
+[
+  {
+    "source": ".pi/APPEND_SYSTEM.md",
+    "installed": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/agent_comms/_native/APPEND_SYSTEM.md",
+    "sha256": "0646119d5a8668f37f40580a1c7a3fdbedb9a66c5fcf4eb2f57b1cfc8afb3c2a"
+  },
+  {
+    "source": "stack/pi-native.sha256",
+    "installed": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/agent_comms/_native/pi-native.sha256",
+    "sha256": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872"
+  },
+  {
+    "source": "stack/native-compaction-commit-child.mjs",
+    "installed": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/agent_comms/_native/native-compaction-commit-child.mjs",
+    "sha256": "186abb2f107b40327ff6410749727e83c9dd9df1487ade76051565544ec0a2a8"
+  }
+]

@@ -1,0 +1,45 @@
+{
+  "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "core": "9195325146f70886d7d879edbfcae74b12bd63c8",
+  "operator_core": "9195325146f70886d7d879edbfcae74b12bd63c8",
+  "toad": "8605373406a99af96510fd50bf5102b84c7cc291",
+  "textual": "456c27e18688e6c829c727f766561c9eb8640803",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-086d511f2026b10d/node_modules/@earendil-works/pi-coding-agent",
+  "archive_artifacts": [
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/f4-core421-receiver-wheels-20261004/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "d96ab5bb53e360591d8cff8e1e7eb85559eb7ac985c3047f6ffaef80f0dba935"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "bb575bc69672d86edab569e8bf6cbfad24ad49fbcef0b30f114a818b2b4d5f50"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text58-tree-cursor-filewheel-20261004/textual-8.2.8-py3-none-any.whl",
+      "sha256": "0ffc78c3a7d56212479e016e13683e5d921a0b3fc9fbecfd1f5151994ac2862f"
+    },
+    {
+      "path": "/home/ts/wt/nra-skill-publish-20261002/.artifacts/family-flattened-collector-20261004/wheels/nominal_refactor_audit-0.1.0-py3-none-any.whl",
+      "sha256": "8d489731728ebf9f7e0f90ef2b14e7e3b5d2f90ed82bd8b1482d735f82869886"
+    }
+  ],
+  "gate_files": [
+    "422-SCOPED-READY.json",
+    "426-APP-QUALIFIED.json",
+    "426-SCOPED-READY.json",
+    "427-historical-consumer-receipt.json",
+    "429-INSTALLED-APP.json",
+    "429-READY.json",
+    "53-SCOPED-INSTALLED-READY.json",
+    "58-SCOPED-READY.json",
+    "616-READY.json",
+    "F1-channel08-receipt.json",
+    "F1-native-delete10-receipt.json",
+    "F1-start07-receipt.json",
+    "F4-app06-physical-receipt.json",
+    "F4-app06-terminal-receipt.json",
+    "F4-core-installed-receipt.json",
+    "F4-paired-installed-final.json"
+  ],
+  "audit": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10"
+}
