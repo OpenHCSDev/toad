@@ -1,0 +1,18 @@
+{
+  "source_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "target_prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "whole_declared_native_schema_equal": true,
+  "source_target_product_equal": false,
+  "original_checkpoint_schema": "c4ff566ee8f2c15407d486291971c9ef52efb99801150311a9f0fe40cd8ce8d2",
+  "target_checkpoint_schema": "c4ff566ee8f2c15407d486291971c9ef52efb99801150311a9f0fe40cd8ce8d2",
+  "changed_derived_checkpoint": false,
+  "runtime_carry_reset_required": false,
+  "runtime_member": "PreserveRuntimeInstallation",
+  "owner_member": "PreserveOwnerRuntime",
+  "original_stores_opened": false,
+  "native_unchanged": true,
+  "source_interpreter_copy": false,
+  "canonical_source_core": "a38c06de24315fa868de45786e01fefadb0aaef1",
+  "whole_cohort_require_original": true,
+  "client_idle_guards_attempted": false
+}
