@@ -45,3 +45,34 @@ Original422 App warm/actor shutdown acceptance remains a distinct scope. Sch ret
 F1 package/process custody; the next changed existing native-delete App case after
 a normal422 source join must qualify whole shutdown. No duplicate recording,
 provider, new fixture or unchanged89ee rerun.
+
+
+## Published per-view release and shared sidebar ancestry batch
+
+ConversationSessionBinding constructs the source resources, so its existing close
+path now acquires Window before any asynchronous source join. That same acquired
+viewport is closed there. OperationalSessionPresentation no longer re-queries the
+Window after release. Explicit release and Conversation.on_unmount share the base
+source-resource cleanup; agent surface retirement and usage publication retain
+their distinct unmount lifetime. No missing-node guard, state flag or retry.
+
+The sole production release caller destroys the Conversation immediately afterward.
+Deleted its preliminary Contents.remove_children/editor/cursor/ask reset pass:
+Native MessagePump already owns descendant teardown during Conversation.remove.
+Eviction captures SessionViewState before release, and native binding detachment
+retires permission projections before pruning; source actors remain with their
+original OperationalSessionSources. This avoids a second DOM destruction/layout
+pass rather than hiding Window loss. Actual09 causality remains UNKNOWN; a Window
+already absent at resource acquisition still fails, with no false shutdown PASS.
+
+CommsRow and NewSessionButton now take their nearest tree/sidebar from the original
+DOM.walk_ancestors weak-parent traversal. Deleted both local parent-walk algorithms;
+all row selection/focus/animation/navigation consumers keep their original owner
+contract, including detached None and nearest-parent order. No cached parent copy.
+
+Working batch is source-only/untested, not Ready or a stalls-fixed/CPU-gain claim.
+F4 has the actual exclusive style22 package/import purpose after Sch's verified
+floor restore; no current App/film/package access by Heisenberg. One affected final
+App/installed workflow follows coherent source and actual handback. The wider
+thread-open/source/admission/preparation/measurement/frame/sidebar workflow stays
+active and is not replaced by these local progress checkpoints.
