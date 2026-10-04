@@ -30,7 +30,7 @@
     "packaged_native_manifest_sha256": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872"
   },
   "retained_text_wheel": "73d4ca971dd2891c2a2266a0c5c8629e3e0ff55e802456ae60d0fedfe72fdbaa frozen1bd product/sourceequal merged native59",
-  "retained_nra": "original8d",
+  "retained_nra": "Actual unchanged floor retained: nominal_refactor_advisor/measures.py SHA8f6127cb184801fbf2ca162adbece5c103c0fc6693f81197632668f710af7513. Original8d normal-wheel measures fb6e is explicitly NOT byte-equal to actual floor; preserve raw discrepancy/no semantic patch or fabricated source equality.",
   "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-086d511f2026b10d/node_modules/@earendil-works/pi-coding-agent",
   "native_manifest_sha256": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
   "native_tree_sha256": "dbc88ed9231d1275da3ce218aa8919a247e41ce1f010ce765e7ac0960193f4ac",
@@ -68,5 +68,6 @@
   },
   "build_backend_readonly_path": "/home/ts/.cache/uv/archive-v0/RgcgNn7xR1Zs9HSF/hatchling/__init__.py",
   "wheel_source_relation": "New442 state files change product; old4418c02 wheel cannot represent this cohort. Build once only under fresh purpose, bind all Git/WT/ZIP assets before install.",
-  "preceding_purpose_disposition": "Parent verified W6 attachment03 whole closure lifecycle cd2fb3/readback ddb84b: original1470/69/390 restored, no active W6 package claim. Fresh Bohr specific purpose and references required; no borrower clearance inferred from this relay."
+  "preceding_purpose_disposition": "Parent verified W6 attachment03 whole closure lifecycle cd2fb3/readback ddb84b: original1470/69/390 restored, no active W6 package claim. Fresh Bohr specific purpose and references required; no borrower clearance inferred from this relay.",
+  "restore_boundary": "Whole actual1470/69/390/origins, including original e6f tar NRA measures8f6127. If normal restore wheels change a member, restore exact original tar bytes/mode/link using atomic new inode; no shared-cache inode edit and no metadata lie. Candidate NRA remains unchanged; no NRA install/build."
 }
