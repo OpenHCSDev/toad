@@ -5,6 +5,7 @@ from pathlib import Path
 from threading import local
 
 from agent_comms.declared_family import DeclaredFamily
+from agent_comms.field_codec import FieldCodec
 from markdown_it import MarkdownIt
 from markdown_it.rules_core import StateCore, inline as inline_rule
 from markdown_it.token import Token
@@ -47,7 +48,7 @@ class ProjectTokenRule(DeclaredFamily, affix="TokenRule"):
         def native_rule(renderer, tokens, index, options, env):
             return cls.resolve(renderer, tokens[index], env["project_tokens"])
 
-        parser.add_render_rule(cls.declared_name, native_rule, fmt=ProjectTokenRenderer.__output__)
+        parser.add_render_rule(FieldCodec.encode(cls), native_rule, fmt=ProjectTokenRenderer.__output__)
 
     @classmethod
     @abstractmethod

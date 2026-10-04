@@ -1,3 +1,4 @@
+from agent_comms.goal_actions import SetGoalAction
 from runtime_fixture import coordination_update
 """Toad goal editing/history use the actual runtime owner and preserve identity."""
 
@@ -40,7 +41,7 @@ async def main():
                 project, {"name": "agent-comms", "run_command": {"*": "true"}}, None
             )
             agent.coordination = coordination_update(str(comms.root), session)
-            original = await agent.update_goal("set", "Original objective")
+            original = await agent.update_goal(SetGoalAction, "Original objective")
             changed = await agent.edit_goal(original, "Revised objective")
             assert changed.id == original.id
             assert changed.revision == original.revision + 1
