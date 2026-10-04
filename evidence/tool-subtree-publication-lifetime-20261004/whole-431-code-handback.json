@@ -1,0 +1,38 @@
+{
+  "state": "WHOLE actual431 CODE/import/read/execution handback; no future purpose",
+  "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "terminal": {
+    "exit_code": 0,
+    "duration_seconds": 11.64112398494035,
+    "pid": 417442,
+    "log": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/tool430-native59-20261004/app01.log",
+    "scratch": "/home/ts/.cache/agent-scratch/tool430-native59-app-20261004-01",
+    "provider_inputs": 0,
+    "physical_movie": false
+  },
+  "restored": {
+    "members": 1464,
+    "all_bytes_readlinks_modes_equal": true,
+    "post_installer_original_archive_repairs": [],
+    "actual431_floor_pins": {
+      "agent_comms": "9195325146f70886d7d879edbfcae74b12bd63c8",
+      "toad": "8605373406a99af96510fd50bf5102b84c7cc291",
+      "textual": "456c27e18688e6c829c727f766561c9eb8640803",
+      "refactor_audit": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10"
+    },
+    "archive_sha256": "b95d5336d9cdfa6a01d5c1557a7cb2a1922f1798ecd1ef59658cf65902521893",
+    "retained_431_activation": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/activation.json",
+    "process_pid_417442_absent": true,
+    "scratch_empty": true
+  },
+  "package_count": 69,
+  "pip_check": "PASS",
+  "borrower_census": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/tool430-handback-borrowers.json",
+  "borrower_sha256": "e8472c3fba96f249ed0795b291f016afa50deee204d2c4142efb37cdc75a4899",
+  "all_uid_processes": 219,
+  "refs": 0,
+  "permission_gaps": 0,
+  "future_claim": false,
+  "original159_activation_sourceproof": "byteexact; no repairs required",
+  "new_env_native_copy_source_clone_provider_movie": false
+}

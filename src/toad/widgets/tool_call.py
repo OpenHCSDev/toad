@@ -13,9 +13,10 @@ from textual.reactive import var
 from textual.css.query import NoMatches
 from textual import containers
 from textual.widgets import Static
+from textual.widget import Widget
 
 from toad.app import ToadApp
-from toad.tool_output import ToolOutput
+from toad.tool_output import ToolOutput, ToolOutputPart
 from toad.widgets.tool_content import ToolCallDiff
 from acp import schema as protocol
 from agent_comms.mro_dispatch import MroDispatch, handles
@@ -30,8 +31,57 @@ from toad.widgets.committed_presentation import SnapshotPresentation
 from toad.layout import trim_trailing_margin
 from textual.layout import WidgetPlacement
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
+from toad.widgets.viewport_body import MeasuredViewportBody
+from textual.await_complete import AwaitComplete
 
-class ToolContent(containers.VerticalGroup):
+class ToolContent(MeasuredViewportBody, containers.VerticalGroup):
+    def __init__(self, *args, **kwargs):
+        self._mounted_parts: tuple[ToolOutputPart, ...] | None = None
+        super().__init__(*args, **kwargs)
+
+    @property
+    def output(self) -> ToolOutput:
+        return self.query_ancestor(ToolCall).output
+
+    def reconstructible_children(self) -> tuple[Widget, ...]:
+        return tuple(self.children)
+
+    def retire_body_resources(self) -> None:
+        self.output.retire()
+        self._mounted_parts = None
+
+    def on_unmount(self) -> None:
+        self._mounted_parts = None
+
+    def sync(self) -> AwaitComplete:
+        if self._mounted_parts == self.output.displayed_parts and not self.body_dormant:
+            return AwaitComplete()
+        return self.publish_body(self.materialize_native_body, exit_on_error=True)
+
+    async def recompose(self) -> None:
+        # Preserve the native public recompose boundary before admitting work.
+        if not self.is_attached or self._pruning:
+            return
+        # This body composes decoded parts, not VerticalGroup's empty compose.
+        # Revoke the native attestation only after preceding writers have joined.
+        async def rebuild():
+            async with self.lock:
+                self._mounted_parts = None
+                await self.materialize_native_body()
+
+        await self._body_measurement.recompose(self, rebuild)
+
+    async def materialize_native_body(self) -> None:
+        async with self.batch():
+            output = self.output
+            parts = output.displayed_parts
+            if self._mounted_parts != parts:
+                retained = len(parts) == len(self._mounted_parts or ()) == len(self.children) == 1
+                if not retained or not parts[0].update_widget(self._mounted_parts[0], self.children[0]):
+                    await self.remove_children()
+                    await self.mount_all(widget for part in parts for widget in part.compose(output.view))
+                self._mounted_parts = parts
+
     @height_dependency(INDEPENDENT_HEIGHT)
     def process_layout(self, placements: list[WidgetPlacement]) -> list[WidgetPlacement]:
         return trim_trailing_margin(placements)
@@ -125,7 +175,7 @@ class ToolCall(MroDispatch, ConversationBlock, SnapshotPresentation, Categorized
         self._manual_expansion: bool | None = None
         self._auto_expanded = False
 
-    async def update_tool_call(self, tool_call: ToolCallStatus) -> None:
+    def update_tool_call(self, tool_call: ToolCallStatus) -> AwaitComplete:
         """Update metadata in place; materialize output only when expanded.
 
         Args:
@@ -138,7 +188,7 @@ class ToolCall(MroDispatch, ConversationBlock, SnapshotPresentation, Categorized
         content = self.tool_call_header_content
         if header.content != content:
             header.update(content)
-        await self.output.sync()
+        return self.output.sync()
 
     def get_block_menu(self) -> Iterable[MenuItem]:
         if self.expanded:
@@ -191,7 +241,7 @@ class ToolCall(MroDispatch, ConversationBlock, SnapshotPresentation, Categorized
         )
         yield ToolContent(id="tool-content")
 
-    async def on_mount(self) -> None:
+    def on_mount(self) -> None:
         from toad.widgets.conversation import Conversation
 
         self.watch(self.app, "theme", self.output.theme_changed, init=False)
@@ -206,7 +256,7 @@ class ToolCall(MroDispatch, ConversationBlock, SnapshotPresentation, Categorized
                 if self._manual_expansion is not None:
                     self._auto_expanded = False
                     self.expanded = self._manual_expansion
-        await self.output.sync()
+        self.output.sync()
 
     def _update_metadata(self) -> None:
         assert self.tool_call is not None
@@ -320,8 +370,8 @@ class ToolCall(MroDispatch, ConversationBlock, SnapshotPresentation, Categorized
             'failed', '$error-muted', '$error',
             filled=not self.app.theme.startswith('ansi-'))))
 
-    async def watch_expanded(self) -> None:
-        await self.output.sync()
+    def watch_expanded(self) -> None:
+        self.output.sync()
         try:
             self.query_one(ToolCallHeader).update(self.tool_call_header_content)
         except NoMatches:

@@ -1,0 +1,104 @@
+{
+  "status": "SCOPED INSTALLED READY; full performance ACTIVE",
+  "tested_toad_head": "5b2a4a62ab560b17b4da4b0ae4225d9dcc06a960",
+  "production_equal_to_interaction_checkpoint": "dbe465d8c98d2384bc3616036271e85744786980",
+  "native_head": "1bdc18c363cbc0f938537a71aa8ba0225d03e25e",
+  "core_head": "9195325146f70886d7d879edbfcae74b12bd63c8",
+  "native_manifest": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
+  "normal_packages": 69,
+  "source_assets": {
+    "Core": 339,
+    "Toad": 319,
+    "Textual": 266,
+    "diff": 3,
+    "NRA": 10
+  },
+  "app": {
+    "exit_code": 0,
+    "duration_seconds": 11.64112398494035,
+    "pid": 417442,
+    "log": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/tool430-native59-20261004/app01.log",
+    "scratch": "/home/ts/.cache/agent-scratch/tool430-native59-app-20261004-01",
+    "provider_inputs": 0,
+    "physical_movie": false
+  },
+  "checks": [
+    "pending MouseDown protects capture, viewport and committed row; replacement retires intent",
+    "direct ToolContent recompose preserves decoded source",
+    "captured pending native Unmount retires scene early and leaves Conversation input pump available",
+    "translucent modal refuses width/style-invalidated captured body before native display/damage",
+    "original chained writers join before latest commit; modal return and editor draft preserved",
+    "collapse and reentry consume same original part publication"
+  ],
+  "whole_app_shutdown": "PASS; terminal0, original private fixture empty, privileged219allUID0refs0gaps",
+  "whole_actual431_restore": "ALL1464 bytes/readlinks/modes PASS;69pipcheck PASS; original159/proof/activation unchanged; no archive repairs",
+  "tested_head_debt": {
+    "run": "37199993684",
+    "job": "111429540739",
+    "result": "SUCCESS",
+    "suite": "SKIPPED"
+  },
+  "new_head_production_equality": "pending docs-only publication; source stays tested5b",
+  "scope_limits": [
+    "Native App display admission, not physical terminal movie/writer smoothness or CPU gain",
+    "Modal exercised actual style capture loss and requested resize, not separate proof of background width commit",
+    "Zero-extent/unbound/manual batches retain generic native global fence",
+    "No claim all startup/lazy scroll/message-style stalls fixed; original full performance remains active",
+    "Diagnostic screenshot/export is not terminal admission proof",
+    "No public/package runtime change retained; actual431 floor restored; no future holder purpose"
+  ],
+  "keepers": {
+    "app_receipt": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/tool430-native59-20261004/app01/receipt.json",
+      "sha256": "35f9e127d617156c6176112892029f5a7de08843073bc365700737b01727b8c3"
+    },
+    "app_log": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/tool430-native59-20261004/app01.log",
+      "sha256": "3b47d9f7a14106d2b91180380a685b49b22e5a3a8e313a4b9748f1bf9da6eab1"
+    },
+    "terminal": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/tool430-native59-20261004/terminal.json",
+      "sha256": "3191e810ee21effc21145de91108f905058d6d5ea8ef8de661e87a119e452b55"
+    },
+    "source_proof": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/tool430-native59-20261004/source-proof.json",
+      "sha256": "a5bad61bf353bcf4c6c18dcdc46c2f753e9de6d143cfdaed5bbcd109050dce2a"
+    },
+    "candidate_activation": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/tool430-native59-20261004/candidate-activation.json",
+      "sha256": "badeae7883a0346ee347eea50c74a9398fb6727f558ce701e0761ddf6b16ae04"
+    },
+    "toad_inventory": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/tool430-native59-20261004/toad-inventory.json",
+      "sha256": "4480fc98eb73e0f15dee1a0a733e4ae335b11b0821d40930ce2bdaf74695e004"
+    },
+    "textual_inventory": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/tool430-native59-20261004/textual-inventory.json",
+      "sha256": "deb6201c25ca3f9d0dc333e65157c13cc97139569e88d513802beaba2c9559be"
+    },
+    "wheel_proof": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/tool430-native59-20261004/wheel-proof.json",
+      "sha256": "d7752d9831b049983b30eb50f8f60df033bc47ca3b0b5a1c8b21ebac8510c97b"
+    },
+    "whole_floor_restore": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/tool430-native59-20261004/whole-431-restored.json",
+      "sha256": "b53cf7bef60d10cbb0a6c9135d1171ff0f5ec7ad61803eebee26a20bc4f3711b"
+    },
+    "code_handback": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/tool430-native59-20261004/code-handback.json",
+      "sha256": "f44891b7d0997c205c371cebc69fba866b2c6e149909b18d1fc03f728a8c0e4d"
+    },
+    "borrowers": {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/tool430-handback-borrowers.json",
+      "sha256": "e8472c3fba96f249ed0795b291f016afa50deee204d2c4142efb37cdc75a4899"
+    },
+    "native_wheel_inventory": {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native59-filewheel-20261004/source-inventory.json",
+      "sha256": "f5337c0e251ece88e5ba2de4d29946c99a928980cae5dd180274e6dfeb6299a3"
+    },
+    "grant": {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Heis430-Text59-package-execution-grant.json",
+      "sha256": "36685aeb99af00612959dc6ef1978fb664de60f15b9b4f54f6cf00287abc8b31"
+    }
+  }
+}
