@@ -1,0 +1,277 @@
+{
+  "assessment": "Painted history/chrome with repeated positions and discrete advances; full smoothness unproven",
+  "personal_during": [
+    {
+      "phase": "input-held-up",
+      "sheet": "/home/ts/.cache/agent-scratch/sidebar420-native51-public-20261004-02/capture/live-14-7-frames.png",
+      "sheet_sha256": "ede1fded7ea0657a43ac2ed3db4d52c468c43a7b8d54273126ced7ea51d4e30f",
+      "movie_band": [
+        22.579170894,
+        23.379170894
+      ],
+      "ui_pid": 562864,
+      "ui_birth": 55868637,
+      "before": {
+        "monotonic_ns": 558814433370629,
+        "pid": 562864,
+        "expected_birth": 55868637,
+        "exists": true,
+        "birth": 55868637,
+        "state": "S"
+      },
+      "after": {
+        "monotonic_ns": 558833386899982,
+        "pid": 562864,
+        "expected_birth": 55868637,
+        "exists": true,
+        "birth": 55868637,
+        "state": "S"
+      },
+      "review_timing": "DURING same original UI lifetime; personal consecutive-sheet inspection, not live pixel playback",
+      "assessment": "Body/chrome painted, repeated positions and discrete advances; no full-body blank evident in selected band. Scale does not establish each text readable; no smoothness/FPS/CPU-gain claim."
+    },
+    {
+      "phase": "input-held-down",
+      "sheet": "/home/ts/.cache/agent-scratch/sidebar420-native51-public-20261004-02/capture/live-21-12-frames.png",
+      "sheet_sha256": "a59272db549fcfb39d32dfceaa31c54ba55abea7034263c80bb57f11f113920f",
+      "movie_band": [
+        47.739505381,
+        48.539505381
+      ],
+      "ui_pid": 562864,
+      "ui_birth": 55868637,
+      "before": {
+        "monotonic_ns": 558814433370629,
+        "pid": 562864,
+        "expected_birth": 55868637,
+        "exists": true,
+        "birth": 55868637,
+        "state": "S"
+      },
+      "after": {
+        "monotonic_ns": 558833386899982,
+        "pid": 562864,
+        "expected_birth": 55868637,
+        "exists": true,
+        "birth": 55868637,
+        "state": "S"
+      },
+      "review_timing": "DURING same original UI lifetime; personal consecutive-sheet inspection, not live pixel playback",
+      "assessment": "Body/chrome painted, repeated positions and discrete advances; no full-body blank evident in selected band. Scale does not establish each text readable; no smoothness/FPS/CPU-gain claim."
+    }
+  ],
+  "personal_after": [
+    {
+      "phase": "reverse",
+      "sheet": "/home/ts/.cache/agent-scratch/sidebar420-native51-public-20261004-02/capture/live-39-22-frames.png",
+      "sheet_sha256": "490eb49bf8a53e03efc0279abdea49de219e1b6fe5a4fdcf0b2d73fd041c7b1b",
+      "movie_band": [
+        82.65182905,
+        83.45182905
+      ],
+      "ui_pid": 562864,
+      "ui_birth": 55868637,
+      "review_timing": "AFTER collected terminal0; original UI cleanup complete",
+      "assessment": "Body/chrome remain painted. Reverse changes positions in steps; End includes stable repeated destination. No smoothness/continuous-playback claim."
+    },
+    {
+      "phase": "end",
+      "sheet": "/home/ts/.cache/agent-scratch/sidebar420-native51-public-20261004-02/capture/live-43-24-frames.png",
+      "sheet_sha256": "8ece03abf75be4e701bdd0a0e8090a023c9b6d6eb1430be7390bac48fe9cdc0f",
+      "movie_band": [
+        92.67918710003141,
+        93.47918710003141
+      ],
+      "ui_pid": 562864,
+      "ui_birth": 55868637,
+      "review_timing": "AFTER collected terminal0; original UI cleanup complete",
+      "assessment": "Body/chrome remain painted. Reverse changes positions in steps; End includes stable repeated destination. No smoothness/continuous-playback claim."
+    }
+  ],
+  "contributor_review": {
+    "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native51-installed420-review-20261004/personal-motion-review.json",
+    "sha256": "f360e0769fbc0d682b276856bb4d9f86db1f37547e5fb75c7776e630581b73ea",
+    "review": {
+      "reviewer": "Kepler",
+      "source_frozen": "e23e6365de7e5a5c03854268ea2b8b8e7738988a",
+      "original_capture": "/home/ts/.cache/agent-scratch/sidebar420-native51-public-20261004-02/capture",
+      "ui": {
+        "pid": 562864,
+        "birth": 55868637,
+        "alive_before_monotonic_ns": 558813280889358,
+        "alive_after_monotonic_ns": 558835045426380,
+        "same_identity_verified_before_after": true
+      },
+      "recorder": {
+        "pid": 562519,
+        "birth": 55867677,
+        "alive_before_monotonic_ns": 558813280802463,
+        "alive_after_monotonic_ns": 558835045339054
+      },
+      "existing_sheets": [
+        {
+          "file": "live-14-7-frames.png",
+          "sha256": "ede1fded7ea0657a43ac2ed3db4d52c468c43a7b8d54273126ced7ea51d4e30f"
+        },
+        {
+          "file": "live-21-12-frames.png",
+          "sha256": "a59272db549fcfb39d32dfceaa31c54ba55abea7034263c80bb57f11f113920f"
+        },
+        {
+          "file": "live-39-22-frames.png",
+          "sha256": "490eb49bf8a53e03efc0279abdea49de219e1b6fe5a4fdcf0b2d73fd041c7b1b"
+        }
+      ],
+      "assessment": "Reviewed original Up, Down, reverse sheets while original UI remained alive. Body and chrome painted throughout displayed sheets; positions repeat across frames and advance discretely. No full-body blank seen in these sheets. No smoothness, physical FPS or causal CPU-gain claim. Sheets are recorded intervals, not a live moving-screen observation.",
+      "constraints": [
+        "No original output writes/exports/new recording",
+        "No source/plugin/package/public changes",
+        "Public epoch and owned cleanup remain sole original recorder owner custody"
+      ],
+      "qualification": "Motion review only; terminal completion, runtime/original owner preservation and cleanup must come from original recorder receipt."
+    }
+  },
+  "original_key_intervals": [
+    {
+      "label": "input-held-up",
+      "start": 22.579170894,
+      "seconds": 0.8,
+      "gesture_end": 24.360107749,
+      "complete": true,
+      "basis": "checked keydown start through keyup start; release completed"
+    },
+    {
+      "label": "input-held-down",
+      "start": 47.739505381,
+      "seconds": 0.8,
+      "gesture_end": 49.544069676,
+      "complete": true,
+      "basis": "checked keydown start through keyup start; release completed"
+    },
+    {
+      "label": "up",
+      "start": 61.154492991,
+      "seconds": 0.8,
+      "gesture_end": 62.955839003,
+      "complete": true,
+      "basis": "checked keydown start through keyup start; release completed"
+    },
+    {
+      "label": "down",
+      "start": 71.855971315,
+      "seconds": 0.8,
+      "gesture_end": 73.700430217,
+      "complete": true,
+      "basis": "checked keydown start through keyup start; release completed"
+    },
+    {
+      "label": "reverse",
+      "start": 82.65182905,
+      "seconds": 0.8,
+      "gesture_end": 84.453716264,
+      "complete": true,
+      "basis": "checked keydown start through keyup start; release completed"
+    },
+    {
+      "label": "end",
+      "start": 92.67918710003141,
+      "seconds": 0.8,
+      "gesture_end": 95.92780979396775,
+      "complete": true,
+      "basis": "phase markers"
+    }
+  ],
+  "writer_phases": [
+    {
+      "action": "input-held-up",
+      "intervals": {
+        "count": 91,
+        "median_ms": 13.15,
+        "p95_ms": 34.75,
+        "p99_ms": 184.82,
+        "max_ms": 192.68
+      },
+      "writer_receipts": 92
+    },
+    {
+      "action": "input-held-down",
+      "intervals": {
+        "count": 144,
+        "median_ms": 11.47,
+        "p95_ms": 21.44,
+        "p99_ms": 27.13,
+        "max_ms": 107.75
+      },
+      "writer_receipts": 145
+    },
+    {
+      "action": "up",
+      "intervals": {
+        "count": 143,
+        "median_ms": 11.98,
+        "p95_ms": 21.89,
+        "p99_ms": 33.66,
+        "max_ms": 71.1
+      },
+      "writer_receipts": 144
+    },
+    {
+      "action": "down",
+      "intervals": {
+        "count": 122,
+        "median_ms": 14.05,
+        "p95_ms": 25.65,
+        "p99_ms": 30.86,
+        "max_ms": 100.72
+      },
+      "writer_receipts": 123
+    },
+    {
+      "action": "reverse",
+      "intervals": {
+        "count": 125,
+        "median_ms": 13.39,
+        "p95_ms": 25.59,
+        "p99_ms": 29.06,
+        "max_ms": 91.09
+      },
+      "writer_receipts": 126
+    },
+    {
+      "action": "end",
+      "intervals": {
+        "count": 8,
+        "median_ms": 434.0,
+        "p95_ms": 500.35,
+        "p99_ms": 500.35,
+        "max_ms": 501.18
+      },
+      "writer_receipts": 9
+    }
+  ],
+  "enqueue_to_writer": {
+    "count": 1363,
+    "median_ms": 2.2,
+    "p95_ms": 10.9,
+    "p99_ms": 17.0,
+    "max_ms": 40.14
+  },
+  "timeline": "/home/ts/.cache/agent-scratch/sidebar420-native51-public-20261004-02/capture/frame-delivery.svg",
+  "scope": "Native writer completion; not changed pixels or terminal presentation FPS. Zero stationary motion is legitimate, not a stall classification.",
+  "recorder_nominal_fps": 60,
+  "no_smoothness_FPS_CPU_gain_claim": true,
+  "parent_after_supplement": {
+    "source": "Direct parent observation in original thread",
+    "review_timing": "AFTER original UI exit only",
+    "before_monotonic_ns": 558879920222876,
+    "after_monotonic_ns": 558911087085650,
+    "ui_pid": 562864,
+    "ui_absent_both": true,
+    "recorder_alive_second_probe": true,
+    "sheets": [
+      "live-14-7-frames.png",
+      "live-21-12-frames.png"
+    ],
+    "assessment": "Body/chrome painted with discrete advances/repeated positions; no full-body blank in bands. NO parent DURING/smooth/CPU-gain claim. Separate Heisenberg and contributor bracketed DURING witnesses retain their original scope."
+  }
+}
