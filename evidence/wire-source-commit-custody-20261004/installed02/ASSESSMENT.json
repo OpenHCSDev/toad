@@ -1,0 +1,54 @@
+{
+  "state": "original successor affected App FAILED; not Ready",
+  "app_seconds": 18.503682179027237,
+  "control_head": "e4a25e7c3ac30556f3fb12373c15d9843563c6f3",
+  "product_reference": "96c8b1f3e0bc27fe1a996e88d10b525dbb7b26cf",
+  "failure": {
+    "path": "tests/message_dividers_pilot.py",
+    "line": 256,
+    "operation": "private_native_wire(root / archive)",
+    "exception": "RelationViolationError: Private bus writer has no durable protocol marker."
+  },
+  "reached": [
+    "corrected ordered canonical membership with replacement retained",
+    "source park/resume with pending old Unmount",
+    "actual pending native Mount cancellation preserves committed rows/style/bounds/receipt maps and releases original fences"
+  ],
+  "reached_basis": "Sequential source assertions before exact traceback, not a final App receipt; no app02.json was produced",
+  "unreached": [
+    "archived/live sequence overlap restyle",
+    "final complete whole App assertions"
+  ],
+  "source_chain": "private_native_wire calls wire(new root) before initialization; LocalRoute.bind_owners borrows still-active original PrivateNkLaunch environment and pin_private_nk_launch requires the new root durable marker. That archive must be original Comms service initialization, without replacing the live native route.",
+  "changed_control": "Only archive creation now uses original Comms + initialize_private_initial_protocol; source/input/provider unchanged; unrun",
+  "whole_floor_restore": {
+    "state": "WHOLE actual436 floor restored; sole439 code/import/execution claim closed",
+    "archive_sha256": "e6f27830a69a5e60902ecf8d25dccd46b43efefef75335e2679ef78c461aba5a",
+    "members_verified": 1470,
+    "packages": 69,
+    "protected_keepers_verified": 390,
+    "borrower_receipt": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/wire439-main436-successor-20261004/final-borrowers.json",
+    "borrower_receipt_sha256": "f9e33b85b59b0a8c228378f6412736f3dd9e13998d1e5b39c66b7c8592394565",
+    "borrowers": 0,
+    "gaps": 0,
+    "process_cleanup": {
+      "remaining_owned_pids": [],
+      "errors": [],
+      "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+      "processes": [
+        {
+          "pid": 2225280,
+          "start_ticks": 60781107,
+          "returncode": 1
+        }
+      ]
+    },
+    "original_origins_and_activation": "Exact archived original normal filewheel origins and original PREFIXactivation bytes; no counterfeit VCS metadata",
+    "provider_inputs": 0,
+    "physical_movie": false,
+    "future_holder_claim": false
+  },
+  "provider_inputs": 0,
+  "movie": false,
+  "SDK_inputs": 0
+}

@@ -1,0 +1,8 @@
+{
+  "head": "e4a25e7c3ac30556f3fb12373c15d9843563c6f3",
+  "product_reference": "96c8b1f3e0bc27fe1a996e88d10b525dbb7b26cf",
+  "production_delta": "ZERO",
+  "wheel_build_head": "0840fc60a85b6442cc8c4f9fd141482af0f8fe22",
+  "prior_original_failure": "../wire439-main436-20261004/terminal.json",
+  "changed_control_only": true
+}

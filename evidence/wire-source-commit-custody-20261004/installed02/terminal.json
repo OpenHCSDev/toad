@@ -1,0 +1,23 @@
+{
+  "source_head": "0840fc60a85b6442cc8c4f9fd141482af0f8fe22",
+  "control_head": "e4a25e7c3ac30556f3fb12373c15d9843563c6f3",
+  "provider_inputs": 0,
+  "physical_movie": false,
+  "scratch": "/home/ts/.cache/agent-scratch/wire439-source-commit-app-20261004-02",
+  "exit_code": 1,
+  "error": "Command '['/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python', '/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/message_dividers_pilot.py', '--row-publication']' returned non-zero exit status 1.",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/wire439-main436-successor-20261004/run-app.py\", line 24, in <module>\n    owner.run([str(prefix / 'bin/python'), str(wt / 'tests/message_dividers_pilot.py'), '--row-publication'], env=env, cwd=wt, timeout=75, stdout=log, stderr=log, observe=lambda: (out / 'active-app.json').write_text(json.dumps({'state': 'running', 'processes': [child.receipt() for child in owner.children]}) + '\\n'), observation_interval=.5)\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/record_installed_tui.py\", line 290, in run\n    raise subprocess.CalledProcessError(owned.process.returncode, argv, out, err)\nsubprocess.CalledProcessError: Command '['/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python', '/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/message_dividers_pilot.py', '--row-publication']' returned non-zero exit status 1.\n",
+  "duration_seconds": 18.503682179027237,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 2225280,
+        "start_ticks": 60781107,
+        "returncode": 1
+      }
+    ]
+  }
+}
