@@ -260,7 +260,7 @@ def retain_fixture_journals(paths, *, stage: Path, evidence: Path,
         destination.parent.mkdir(parents=True, exist_ok=True)
         if destination.parent.stat().st_dev != cold_device:
             raise OSError("Cold destination escaped the mounted filesystem")
-        if destination.exists():
+        if os.path.lexists(destination):
             raise FileExistsError(destination)
         partial = destination.with_name(destination.name + ".partial")
         with path.open("rb") as source, partial.open("xb") as target:
@@ -281,7 +281,9 @@ def retain_fixture_journals(paths, *, stage: Path, evidence: Path,
                   "mode": before.st_mode}
         receipt["files"].append(record)
         retained.write_text(json.dumps(receipt, indent=2) + "\n")
-        partial.rename(destination)
+        # Publish without replacing any existing entry, including dangling links.
+        os.link(partial, destination)
+        partial.unlink()
         _sync_fixture_directory(destination.parent)
         link = path.with_name(path.name + ".cold-link")
         link.symlink_to(destination)
