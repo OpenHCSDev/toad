@@ -1,0 +1,227 @@
+{
+  "coverage": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "c917a7c48144ce6e3f1daa6b68193451a8c94830",
+      "root": "src/toad",
+      "parsed": 288,
+      "omitted": []
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "revision": "cb12189d515ab9724551e5123fbe2088aed64893",
+      "root": "src/textual",
+      "parsed": 249,
+      "omitted": []
+    }
+  ],
+  "sites": [
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 60,
+      "kind": "ClassDef",
+      "source": "class FrameState(DeclaredFamily, affix='Frame'):\n    ready = False\n\n    def displayed(self, frame):\n        pass\n\n    def defer(self, frame,"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 84,
+      "kind": "ClassDef",
+      "source": "class PendingFrame(FrameState):\n\n    def displayed(self, frame):\n        receipt = WritingFrame()\n        frame.state = receipt\n        Fram"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 91,
+      "kind": "ClassDef",
+      "source": "class WritingFrame(FrameState):\n    pass"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 95,
+      "kind": "ClassDef",
+      "source": "class SuspendedFrame(FrameState):\n\n    def __init__(self, previous: FrameState):\n        self.previous = previous\n\n    def resume(self, fram"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 106,
+      "kind": "ClassDef",
+      "source": "class PresentedFrame(FrameState):\n    ready = True\n\n    def restore(self, frame):\n        frame.present()\n\n    def defer(self, frame, owner,"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 119,
+      "kind": "ClassDef",
+      "source": "class ClosedFrame(FrameState):\n\n    def defer(self, frame, owner, callback):\n        pass\n\n    def begin(self, frame):\n        pass\n\n    def"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 130,
+      "kind": "ClassDef",
+      "source": "class FramePresentation:\n\n    def __init__(self, screen: WorkspaceScreen):\n        self._screen = ref(screen)\n        self.state: FrameState"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 134,
+      "kind": "Attribute",
+      "source": "self.callbacks"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 67,
+      "kind": "Attribute",
+      "source": "frame.callbacks"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 110,
+      "kind": "Attribute",
+      "source": "frame.present"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 152,
+      "kind": "Attribute",
+      "source": "self.state.defer"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 160,
+      "kind": "Attribute",
+      "source": "self.present"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 166,
+      "kind": "Attribute",
+      "source": "self.callbacks"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 114,
+      "kind": "Attribute",
+      "source": "super().defer"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 167,
+      "kind": "Attribute",
+      "source": "self.callbacks"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 182,
+      "kind": "Attribute",
+      "source": "self.callbacks"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 194,
+      "kind": "Attribute",
+      "source": "screen.frame_presentation"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 174,
+      "kind": "Attribute",
+      "source": "self.screen.frame_presentation"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 505,
+      "kind": "Attribute",
+      "source": "self.screen.frame_presentation"
+    },
+    {
+      "path": "src/toad/screens/session_view.py",
+      "line": 85,
+      "kind": "Attribute",
+      "source": "self.screen.frame_presentation"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 120,
+      "kind": "Attribute",
+      "source": "self.frame_presentation"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 127,
+      "kind": "Attribute",
+      "source": "self.frame_presentation"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 272,
+      "kind": "Attribute",
+      "source": "self.frame_presentation"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 297,
+      "kind": "Attribute",
+      "source": "self.frame_presentation"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 63,
+      "kind": "Attribute",
+      "source": "screen.frame_presentation"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 84,
+      "kind": "Attribute",
+      "source": "screen.frame_presentation"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 600,
+      "kind": "Attribute",
+      "source": "screen.frame_presentation"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 699,
+      "kind": "Attribute",
+      "source": "screen.frame_presentation"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 850,
+      "kind": "Attribute",
+      "source": "self.window.screen.frame_presentation"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 986,
+      "kind": "Attribute",
+      "source": "self.window.screen.frame_presentation"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1139,
+      "kind": "Attribute",
+      "source": "self.window.screen.frame_presentation"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1089,
+      "kind": "Attribute",
+      "source": "screen.frame_presentation"
+    },
+    {
+      "path": "src/toad/workspace_chrome.py",
+      "line": 35,
+      "kind": "Attribute",
+      "source": "screen.frame_presentation"
+    },
+    {
+      "path": "src/toad/workspace_sessions.py",
+      "line": 141,
+      "kind": "Attribute",
+      "source": "self.app.workspace_screen.frame_presentation"
+    }
+  ],
+  "limits": [
+    "AST syntax does not prove dynamic receiver resolution, imported external aliases or callback effects."
+  ]
+}
