@@ -273,6 +273,14 @@ async def run(options):
         command = [str(runtime / "toad"), "acp",
             shlex.join((str(runtime / "python"), "-m", "agent_comms.acp")),
             declared.worktree, "--title", "Cold configured saved context", "--session", declared.name]
+        if options.staging_receipt:
+            probe_owner = recorder.ProcessOwner()
+            try:
+                probe = recorder.RuntimeSelection.from_environment(command, environment).publish_verified_stage(
+                    options.staging_receipt, probe_owner, environment, command)
+                (base / "installed-preflight.json").write_text(json.dumps(probe, indent=2) + "\n")
+            finally:
+                probe_owner.cleanup()
         sys.argv = [str(recorder_path), "--output", str(base / "capture"),
             "--owner", "Einstein-cold595-physical01", "--private-root", str(service.root),
             "--journey", ColdContextJourney.declared_name, "--capture-state",
@@ -453,6 +461,7 @@ if __name__ == "__main__":
     parser.add_argument("--original-thread", default="openhcs-audit-merged-runtime")
     parser.add_argument("--recorded-audit", action="store_true")
     parser.add_argument("--request-id", default="")
+    parser.add_argument("--staging-receipt", type=Path)
     parser.add_argument("--instruction-query", default="", help="Search the original public instructions in the same cold journey")
     parser.add_argument("--source-only", action="store_true", help="Finish only Core instruction search and authenticated reading; retain earlier native reader proof")
     asyncio.run(run(parser.parse_args()))
