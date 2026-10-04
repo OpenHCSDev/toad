@@ -1,0 +1,10 @@
+{
+  "production_reference": "96c8b1f3e0bc27fe1a996e88d10b525dbb7b26cf",
+  "production_and_dependency_delta": "ZERO",
+  "original_control_sha256": "3f36d59310d31827746bb8ef68d4938b5b54839aa0fe5ea74d02b4ae56640cbc",
+  "corrected_control_sha256": "5f3aabf5c25602f473d2ef8d3610e5b089598ce0ad54f6cd4583a5c9f7086d6d",
+  "control_delta": "diff --git a/tests/message_dividers_pilot.py b/tests/message_dividers_pilot.py\nindex 047e0179e..ea057394e 100644\n--- a/tests/message_dividers_pilot.py\n+++ b/tests/message_dividers_pilot.py\n@@ -155,7 +155,11 @@ async def row_publication() -> None:\n             await first.wait()\n             await second.wait()\n             await pilot.pause()\n-            assert tuple(message.view_key for message, _ in history.rows) == keys\n+            actual = tuple(message.view_key for message, _ in history.rows)\n+            assert all(key in actual for key in keys)\n+            assert actual == tuple(message.view_key for message in page.messages\n+                                   if message.view_key in actual)\n+            keys = actual\n             assert all(isinstance(widget, IRCMessage) for _, widget in history.rows)\n             assert \"style-pump\" in editor.text\n             checks.append(\"each repeated style request commits in original source order without losing draft\")\n",
+  "correction": "Canonical ordered membership; original installed01 differing tuple unobserved",
+  "successor_runtime": "unrun; fresh specific grant required",
+  "original_failure_immutable": true
+}

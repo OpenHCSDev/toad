@@ -1,0 +1,1 @@
+{"state":"pre-App verifier failed at copied grant native_manifest field; successor issued grant borrows actual436 preimage instead","exception":"KeyError: native_manifest","App_launched":false,"product_change":false,"correction":"Read original native_manifest and 390 protected keepers from actual436 preimage; do not rewrite issued grant"}

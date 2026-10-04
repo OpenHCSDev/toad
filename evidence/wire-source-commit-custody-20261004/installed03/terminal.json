@@ -1,0 +1,21 @@
+{
+  "source_head": "0840fc60a85b6442cc8c4f9fd141482af0f8fe22",
+  "control_head": "e05fdbd36e5db82fd62219fc4c0d309b830ce5f5",
+  "provider_inputs": 0,
+  "physical_movie": false,
+  "scratch": "/home/ts/.cache/agent-scratch/wire439-source-commit-app-20261004-03",
+  "exit_code": 0,
+  "duration_seconds": 19.62197612808086,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 2317968,
+        "start_ticks": 60956106,
+        "returncode": 0
+      }
+    ]
+  }
+}
