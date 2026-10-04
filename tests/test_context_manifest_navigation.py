@@ -402,13 +402,22 @@ def test_authentic_recorded_annotation_gui_correction(tmp_path, monkeypatch):
                 original = await system.source_text()
                 # Ranges come from the sealed emitted assembly; no substring
                 # search or today's file reread supplies request attribution.
-                spans = tuple(ContextSpan(system.segment.sha256, sentence)
+                file_ranges = tuple(coordinates
                     for coordinates in system.segment.source_spans
-                    if original_source in coordinates.provenance
+                    if original_source in coordinates.provenance)
+                assert "".join(coordinates.public_text(original.text)
+                              for coordinates in file_ranges) == authored
+                spans = tuple(ContextSpan(system.segment.sha256, sentence)
+                    for coordinates in file_ranges
                     for sentence in coordinates.sentences(original.text))
                 assert len(spans) == 2
                 assert all(system.segment.contains_span(span) for span in spans)
-                assert "".join(span.coordinates.public_text(original.text) for span in spans) == authored
+                # Sentence coordinates exclude whitespace-only separators;
+                # the original file ranges above still attest those bytes.
+                assert tuple(span.coordinates.public_text(original.text) for span in spans) == (
+                    "Keep the authored source unchanged.",
+                    "Deliver the authored answer.",
+                )
                 classifier = JevClassifier.version()
                 question = QuestionVersion.current(KindQuestion)
                 labels = tuple(ModelLabel(span, question, RuleSpan, classifier,
