@@ -142,3 +142,14 @@ and each operation retains its original attachment/source checks. Final affected
 App qualification must cover hidden cold mounts, current activation, retained
 returns and departure/closure during pending source work. This source edge was
 not proved as the cause of the old film; no runtime/performance claim.
+
+## Prepared status owns animation eligibility throughout the row family
+
+ThreadStatusRow.busy now derives directly from its existing PreparedThreadRow;
+the CSS -busy class remains its paint projection. Left and right timer admission
+and the row's advance_spinner all consume the same prepared fact. Deleted all
+three reads that reinterpreted CSS classes as status authority. Unavailable and
+retired rows already release that original prepared resource; action_status and
+native busy inputs keep PreparedThreadRow's original declared semantics. No extra
+busy store or new polling/animation rate. Affected installed row checks remain
+pending; this changes source ownership, not measured performance.

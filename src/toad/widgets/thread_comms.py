@@ -267,7 +267,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             return
         sidebar = self.query_ancestor(SideBar)
         if (self.screen.is_active and not sidebar.collapsed
-                and any(row.has_class("-busy") for group in self.groups.values() for row in group.rows.values())):
+                and any(row.busy for group in self.groups.values() for row in group.rows.values())):
             self._spinner_timer.resume()
         else:
             self._spinner_timer.pause()

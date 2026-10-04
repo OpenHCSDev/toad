@@ -62,7 +62,7 @@ class SidebarProjection:
         if timer is None:
             return
         active = self.sidebar.shows_rows() and self.sidebar.observation.enabled
-        if active and self.has_snapshot() and any(row.has_class("-busy") for row in self.rows):
+        if active and self.has_snapshot() and any(row.busy for row in self.rows):
             timer.resume()
         else:
             timer.pause()

@@ -50,8 +50,12 @@ class ThreadStatusRow(HoverSelection):
         self._spinner_phase = 0
         self._thread_presentation: PreparedThreadRow | None = None
 
+    @property
+    def busy(self) -> bool:
+        return self._thread_presentation is not None and self._thread_presentation.busy
+
     def advance_spinner(self, phase: int) -> None:
-        if self._spinner_phase == phase or not self.has_class("-busy"):
+        if self._spinner_phase == phase or not self.busy:
             return
         self._spinner_phase = phase
         if self._thread_presentation is not None:
