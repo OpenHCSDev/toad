@@ -146,10 +146,10 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         return SessionSurfaceSlot()
 
     async def prepare(self, screen: "MainScreen") -> None:
-        await screen.app.workspace_chrome.native.activate(screen, self)
+        await screen.app.workspace_chrome.native.activate(screen)
 
     async def retire(self, screen: "MainScreen") -> None:
-        await screen.app.workspace_chrome.native.retire(screen, self)
+        await screen.app.workspace_chrome.native.retire(screen)
 
     async def release_binding(self, conversation: Conversation, screen: "MainScreen") -> None:
         await self.sources.detach(conversation, screen)
@@ -159,9 +159,24 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         await self.sources.present(conversation)
 
     async def close(self, screen: "MainScreen") -> None:
-        await screen.app.workspace_chrome.native.dispose(screen, self)
-        await self.sources.close()
+        await screen.app.workspace_chrome.native.dispose(screen)
         self.state = None
+        await self.sources.close()
+
+    async def evict(self) -> None:
+        """Release the owned native tree while retaining its actual editor resource."""
+        if (conversation := self.widget) is None:
+            return
+        self.state = SessionViewState.capture(conversation)
+        await self.remove_native_tree()
+
+    async def remove_native_tree(self) -> None:
+        if (conversation := self.widget) is None:
+            return
+        await conversation.release_native_session()
+        await conversation.window.document_viewport.close()
+        await conversation.remove()
+        self.widget = None
 
 
 class NativeSessionSurface:
@@ -169,37 +184,36 @@ class NativeSessionSurface:
 
     def __init__(self, app: "ToadApp") -> None:
         self._app = ref(app)
-        self.owner: OperationalSessionPresentation | None = None
         self.view: MainScreen | None = None
         self._lock = asyncio.Lock()
 
     @property
     def widget(self) -> Conversation | None:
-        return self.owner.widget if self.owner is not None else None
+        return self.view.presentation.widget if self.view is not None else None
 
     def _presentations(self):
         app = self._app()
         return tuple(presentation for view in app.workspace_sessions.views.values()
                      for presentation in view.retained_native_presentations())
 
-    async def retire(self, screen: "MainScreen", owner: OperationalSessionPresentation) -> None:
+    async def retire(self, screen: "MainScreen") -> None:
         async with self._lock:
-            if self.owner is not owner or self.widget is None:
+            if self.view is not screen or self.widget is None:
                 return
             conversation = self.widget
             await conversation.transcript.suspend()
             for history in tuple(conversation.window.histories):
                 await history.retire_source(parked=True)
-            await owner.release_binding(conversation, screen)
+            await screen.presentation.release_binding(conversation, screen)
             conversation.display = False
-            self.owner = None
             self.view = None
 
-    async def activate(self, screen: "MainScreen", owner: OperationalSessionPresentation) -> None:
+    async def activate(self, screen: "MainScreen") -> None:
         async with self._lock:
-            if self.owner is owner and self.view is screen:
+            if self.view is screen:
                 return
-            assert self.owner is None, "Departing source must retire before admitting the next source"
+            assert self.view is None, "Departing source must retire before admitting the next source"
+            owner = screen.presentation
             returning = owner.widget is not None
             if not returning:
                 slot = screen.query_one(SessionSurfaceSlot)
@@ -214,7 +228,7 @@ class NativeSessionSurface:
                     owner.widget._initial_prompt = owner.state.initial_prompt
                 await content.mount(owner.widget, before=slot)
             conversation = owner.widget
-            self.owner, self.view = owner, screen
+            self.view = screen
             await owner.attach_binding(conversation)
             if owner.state is not None:
                 owner.state.restore(conversation)
@@ -236,7 +250,7 @@ class NativeSessionSurface:
         app = self._app()
         budget = selected.window.document_viewport.budget
         candidates = {screen.id: (screen, owner) for screen, owner in self._presentations()
-                      if owner is not self.owner}
+                      if screen is not self.view}
         widgets = source_bytes = 0
         for identity in app.tab_order.recent:
             if identity not in candidates:
@@ -249,39 +263,22 @@ class NativeSessionSurface:
                        if (body := key()) is not None)
             if (widgets + count > budget.widget_limit(app.size.height)
                     or source_bytes + size > app.preparation.max_bytes):
-                await self._evict(screen, owner)
+                await owner.evict()
             else:
                 widgets += count
                 source_bytes += size
 
-    async def _evict(self, screen: "MainScreen", owner: OperationalSessionPresentation) -> None:
-        if (conversation := owner.widget) is None:
-            return
-        owner.state = SessionViewState.capture(conversation)
-        await self._remove(owner)
-
-    async def _remove(self, owner: OperationalSessionPresentation) -> None:
-        if (conversation := owner.widget) is None:
-            return
-        await conversation.release_native_session()
-        await conversation.window.document_viewport.close()
-        await conversation.remove()
-        owner.widget = None
-
-    async def dispose(self, screen: "MainScreen", owner: OperationalSessionPresentation) -> None:
+    async def dispose(self, screen: "MainScreen") -> None:
         """Finalize a live tree before pruning; a closed tab retains no editor."""
         async with self._lock:
-            if self.owner is owner:
+            owner = screen.presentation
+            if self.view is screen:
                 await owner.release_binding(owner.widget, screen)
-                self.owner = self.view = None
-            await self._remove(owner)
-            owner.state = None
+                self.view = None
+            await owner.remove_native_tree()
 
     async def close(self) -> None:
         async with self._lock:
-            if self.owner is not None:
-                await self.owner.release_binding(self.widget, self.view)
-            self.owner = self.view = None
-            for screen, owner in self._presentations():
-                await self._remove(owner)
-                owner.state = None
+            if self.view is not None:
+                await self.view.presentation.release_binding(self.widget, self.view)
+            self.view = None

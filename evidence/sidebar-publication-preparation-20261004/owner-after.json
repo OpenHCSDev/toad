@@ -1,0 +1,391 @@
+{
+  "roots": [
+    {
+      "root": "src/toad",
+      "revision": "HEAD",
+      "parsed": 288,
+      "omitted": []
+    },
+    {
+      "root": "src/textual",
+      "revision": "e23e6365de7e5a5c03854268ea2b8b8e7738988a",
+      "parsed": 249,
+      "omitted": []
+    }
+  ],
+  "sites": [
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 82,
+      "kind": "ClassDef",
+      "name": "ThreadRowsWork"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 103,
+      "kind": "FunctionDef",
+      "name": "for_rows"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 88,
+      "kind": "Name",
+      "name": "ThreadRowsWork"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 161,
+      "kind": "Attribute",
+      "name": "reconcile_groups"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 109,
+      "kind": "Name",
+      "name": "ThreadRowsWork"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 67,
+      "kind": "Name",
+      "name": "SidebarGroup"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 129,
+      "kind": "FunctionDef",
+      "name": "thread_row_inputs"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 148,
+      "kind": "AsyncFunctionDef",
+      "name": "_reconcile_members"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 108,
+      "kind": "Name",
+      "name": "ThreadRowsWork"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 149,
+      "kind": "Attribute",
+      "name": "accepts_members"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 36,
+      "kind": "ClassDef",
+      "name": "SidebarGroup"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 85,
+      "kind": "FunctionDef",
+      "name": "accepts_members"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 93,
+      "kind": "FunctionDef",
+      "name": "thread_row_inputs"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 101,
+      "kind": "AsyncFunctionDef",
+      "name": "_reconcile_members"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 108,
+      "kind": "AsyncFunctionDef",
+      "name": "reconcile_groups"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 57,
+      "kind": "Attribute",
+      "name": "member_lock"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 83,
+      "kind": "Attribute",
+      "name": "reconcile_groups"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 165,
+      "kind": "Attribute",
+      "name": "accepts_members"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 28,
+      "kind": "Name",
+      "name": "SidebarGroup"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 137,
+      "kind": "Attribute",
+      "name": "thread_row_inputs"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 176,
+      "kind": "Attribute",
+      "name": "accepts_members"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 187,
+      "kind": "Attribute",
+      "name": "accepts_members"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 120,
+      "kind": "Attribute",
+      "name": "member_lock"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 122,
+      "kind": "Attribute",
+      "name": "accepts_members"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 143,
+      "kind": "Attribute",
+      "name": "for_rows"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 157,
+      "kind": "Attribute",
+      "name": "_reconcile_members"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 132,
+      "kind": "Name",
+      "name": "ThreadRowsWork"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 134,
+      "kind": "Attribute",
+      "name": "accepts_members"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 152,
+      "kind": "Name",
+      "name": "ThreadRowsWork"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 106,
+      "kind": "Name",
+      "name": "SidebarGroup"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 128,
+      "kind": "FunctionDef",
+      "name": "thread_row_inputs"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 139,
+      "kind": "AsyncFunctionDef",
+      "name": "_reconcile_members"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 464,
+      "kind": "Name",
+      "name": "SidebarGroup"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 140,
+      "kind": "Attribute",
+      "name": "accepts_members"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 399,
+      "kind": "Name",
+      "name": "ThreadRowsWork"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 434,
+      "kind": "Attribute",
+      "name": "reconcile_groups"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 465,
+      "kind": "FunctionDef",
+      "name": "_update_body_measurement"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 460,
+      "kind": "Attribute",
+      "name": "_update_body_measurement"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 463,
+      "kind": "Attribute",
+      "name": "_update_body_measurement"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 472,
+      "kind": "Attribute",
+      "name": "_invalidate_layout"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 480,
+      "kind": "Attribute",
+      "name": "_update_body_measurement"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 484,
+      "kind": "Attribute",
+      "name": "_update_body_measurement"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 551,
+      "kind": "Attribute",
+      "name": "_update_body_measurement"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 667,
+      "kind": "Attribute",
+      "name": "_update_body_measurement"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 636,
+      "kind": "Attribute",
+      "name": "_update_body_measurement"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 655,
+      "kind": "Attribute",
+      "name": "_update_body_measurement"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 539,
+      "kind": "Attribute",
+      "name": "_update_body_measurement"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 542,
+      "kind": "Attribute",
+      "name": "_update_body_measurement"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 545,
+      "kind": "Attribute",
+      "name": "_update_body_measurement"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 344,
+      "kind": "FunctionDef",
+      "name": "_measurement_updated"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 351,
+      "kind": "FunctionDef",
+      "name": "_invalidate_layout"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 346,
+      "kind": "Attribute",
+      "name": "_layout_updates"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 515,
+      "kind": "Attribute",
+      "name": "_layout_updates"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 359,
+      "kind": "Attribute",
+      "name": "_measurement_updated"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 1433,
+      "kind": "Attribute",
+      "name": "_layout_updates"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 1456,
+      "kind": "Attribute",
+      "name": "_invalidate_layout"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 1901,
+      "kind": "Attribute",
+      "name": "_layout_updates"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 1915,
+      "kind": "Attribute",
+      "name": "_layout_updates"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 1945,
+      "kind": "Attribute",
+      "name": "_layout_updates"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 341,
+      "kind": "Attribute",
+      "name": "_measurement_updated"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 363,
+      "kind": "Attribute",
+      "name": "_measurement_updated"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 4596,
+      "kind": "Attribute",
+      "name": "_invalidate_layout"
+    }
+  ],
+  "limits": "Toad working source; native frozen e23. Static names/inheritance, not dynamic external aliases/overrides."
+}

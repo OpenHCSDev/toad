@@ -704,22 +704,20 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         demand = lookahead.demand
         edges = demand.edges(*edges)
         rows = max(1, self.window.size.height)
-        rounds = min(self.budget.reserve_batches,
-                     1 + lookahead.ahead_rows(rows) // rows)
         pages = tuple(dict.fromkeys((self.pages[0], self.pages[-1])))
+        count = lookahead.preparation_count(rows)
+        # Source pages and terminal viewports are different units. Borrow the
+        # original pages' actual fragment extent; the reader/runtime bounds
+        # transport rounds and storage independently of native admission.
+        fragments_per_page = max(1, min(len(page.fragments) for page in pages))
+        rounds = max(1, (count + fragments_per_page - 1) // fragments_per_page)
         admissions = tuple(page.capture_admission() for page in pages)
-        intent = edges, rounds, self.selected_categories, demand, admissions
+        intent = edges, rounds, count, self.selected_categories, demand, admissions
         if intent == self._prefetch_intent:
             return
         self._prefetch_intent = intent
         if self._prefetch_worker is not None and not self._prefetch_worker.is_finished:
             self._prefetch_worker.cancel()
-
-        # Transport completion does not exhaust the current page's local
-        # admission. Its unmounted leaves still need the stationary runway;
-        # the original reader skips absent transport edges itself.
-        if not rounds:
-            return
 
         async def prepare() -> None:
             # Reader replacement and source retirement both revoke this exact
@@ -732,7 +730,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             )
             # The source page already owns these unmounted leaves. Prepare its
             # actual neighboring range, never another paging cursor or list.
-            count = lookahead.admission(self.budget, rows)
             for page in pages:
                 await page.prepare_adjacent(preparation, demand, count, current)
             async for prepared in reader.prefetch(*edges, current, rounds=rounds):
@@ -761,11 +758,9 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         viewport = self.window.content_region
         if not region.overlaps(viewport):
             return
-        # Paging and paint share the original exposed-body readiness owner.
-        # A mounted body may still be restoring; hidden descendants do not
-        # belong to this viewport's foreground admission.
-        if not self.window.document_viewport.visible_bodies_ready:
-            return
+        # Original published geometry admits source work, even while a body is
+        # preparing. Its worker owns read/prepare/native mutation; the existing
+        # viewport frame owner alone decides when those bodies may be painted.
         if self._follow_source_tail and self.has_newer:
             self._request_page(False)
             return

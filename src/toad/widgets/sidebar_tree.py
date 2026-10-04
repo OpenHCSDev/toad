@@ -1,6 +1,7 @@
 """Shared disclosure, row navigation and keyed tree presentation mechanics."""
 
 import asyncio
+from contextlib import AsyncExitStack
 
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -79,43 +80,81 @@ class SidebarGroup(VerticalGroup):
         await self._sync_members()
 
     async def _sync_members(self) -> None:
-        from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork
+        await self.reconcile_groups((self,))
 
-        async with self.member_lock:
-            if not self.is_attached or self._closing or self._pruning:
-                return
-            inputs = await ThreadRowsWork.capture(
-                self.app.preparation,
-                tuple(ThreadRowInput(person) for person in self.thread_people()),
-            )
-            await self._reconcile_members(inputs)
+    def accepts_members(self):
+        """Native membership is valid until this group starts retirement."""
+        return self.is_attached and not self._closing and not self._pruning
 
     def thread_people(self):
         """Specializations supply the original people for a disclosure change."""
         raise NotImplementedError
 
-    async def _reconcile_members(self, captured) -> None:
+    def thread_row_inputs(self):
+        """Return decorated inputs, retained rows and original source custody."""
+        raise NotImplementedError
+
+    def present(self, source):
+        """Apply this publication's original group source under member custody."""
+        raise NotImplementedError
+
+    async def _reconcile_members(self, prepared_rows, source) -> None:
         """Specializations reconcile their model-owned members here."""
 
     def rows_changed(self) -> None:
         """Specializations invalidate navigation after native row changes."""
 
-    async def prepare_thread_rows(self, inputs, rows, captured):
-        """Prepare changed row inputs; retained native rows own their frames."""
-        from toad.sidebar_preparation import ThreadRowsWork
+    @classmethod
+    async def reconcile_groups(cls, groups, captured=None, *, sources=None):
+        """Prepare a publication once, then mutate its original keyed groups.
 
-        prepared, pending = {}, {}
-        for key, source in captured.for_rows(inputs).items():
-            row = rows.get(key)
-            current = row.thread_preparation(source) if row is not None else None
-            if current is None:
-                pending[key] = source
-            else:
-                prepared[key] = current
-        if pending:
-            values = await self.app.preparation.submit(ThreadRowsWork(tuple(pending.values())))
-            prepared.update(zip(pending, values))
-        return prepared
+        Member locks cover both preparation and native delivery. Identical
+        decorated inputs share one detached result within this publication;
+        retained rows still own reuse between publications.
+        """
+        from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork
+
+        async with AsyncExitStack() as custody:
+            admitted = []
+            for group in dict.fromkeys(groups):
+                await custody.enter_async_context(group.member_lock)
+                admitted.append(group)
+            admitted = [group for group in admitted if group.accepts_members()]
+            if not admitted:
+                return
+            if sources is not None:
+                for group in admitted:
+                    group.present(sources[group])
+            runtime = admitted[0].app.preparation
+            if captured is None:
+                people = {person.thread.name: person for group in admitted
+                          for person in group.thread_people()}
+                captured = await ThreadRowsWork.capture(
+                    runtime, tuple(ThreadRowInput(person) for person in people.values()))
+                admitted = [group for group in admitted if group.accepts_members()]
+            inputs, retained, witnesses = {}, {}, {}
+            for group in admitted:
+                rows, retained[group], witnesses[group] = group.thread_row_inputs()
+                inputs.update(((group, key), row) for key, row in rows.items())
+            # ThreadRowsWork decorates the whole publication through one
+            # captured-person lookup, rather than rebuilding it per group.
+            prepared = {group: {} for group in admitted}
+            missing, pending = {}, {}
+            for (group, key), source in captured.for_rows(inputs).items():
+                row = retained[group].get(key)
+                current = row.thread_preparation(source) if row is not None else None
+                if current is None:
+                    pending[source] = None
+                    missing[group, key] = source
+                else:
+                    prepared[group][key] = current
+            if pending:
+                values = await runtime.submit(ThreadRowsWork(tuple(pending)))
+                pending.update(zip(pending, values))
+            for (group, key), source in missing.items():
+                prepared[group][key] = pending[source]
+            for group in admitted:
+                await group._reconcile_members(prepared[group], witnesses[group])
 
     async def reconcile_rows(self, keys, rows, create, update, *, replace=None):
         """Retain rows by identity; specialize their construction and content only.
@@ -123,7 +162,7 @@ class SidebarGroup(VerticalGroup):
         The caller serializes updates and owns empty-state rows. Neither a
         title/status change nor a selection repaint remounts the list.
         """
-        if not self.is_attached or self._closing or self._pruning:
+        if not self.accepts_members():
             return ()
         keys = tuple(keys)
         wanted = set(keys)
@@ -134,7 +173,7 @@ class SidebarGroup(VerticalGroup):
             # Retire that exact set in one DOM operation, not an intermediate
             # remove/layout/message-pump turn for every member of the roster.
             await self.member_container.remove_children([rows.pop(key) for key in retired])
-            if not self.is_attached or self._closing or self._pruning:
+            if not self.accepts_members():
                 return ()
         mounted = []
         for key in keys:
@@ -145,7 +184,7 @@ class SidebarGroup(VerticalGroup):
             update(key, current)
         if mounted:
             await self.member_container.mount(*mounted)
-            if not self.is_attached or self._closing or self._pruning:
+            if not self.accepts_members():
                 return ()
         ordered = tuple(rows[key] for key in keys)
         reordered = bool(ordered) and tuple(self.member_container.children) != ordered
