@@ -139,6 +139,7 @@ async def started_target_connections(base):
     from l0a_native_installed_pilot import main as native_journey
     from toad.acp.agent_session import AgentSession
     from toad.conversation_kind import DmConversation
+    from functools import partial
 
     evidence = base / 'start-connections'
     evidence.mkdir()
@@ -187,8 +188,8 @@ async def started_target_connections(base):
             await start_from_dm()
             assert comms.registry.require('peer').process_alive
             assert calls == [], 'No B source is open; A must not reconnect'
-            await app.preparation.run_thread(comms.threads.rename_managed_thread,
-                'peer', 'peer-current', owner_pid=comms.registry.require('peer').pid)
+            await app.preparation.run_thread(partial(comms.threads.rename_managed_thread,
+                'peer', 'peer-current', owner_pid=comms.registry.require('peer').pid))
             peer_mode = await app.thread_navigation.open(owner_mode=actor_mode,
                 project_path=project, target='peer')
             peer_source = app.session_navigation.source(peer_mode)
