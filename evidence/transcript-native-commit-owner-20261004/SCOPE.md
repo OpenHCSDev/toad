@@ -12,6 +12,8 @@ End acquires the destination before replacing the source pages. Trim, page evict
 
 The first checkpoint's hosted Debt failure was solely `TranscriptHistory` GodClassExcess +8. Its original run and positive remain in `initial-debt-failure.json`. `TranscriptPageView.acquire` now owns page construction, selected categories, awaited Mount, original source-current admission and rejected-resource retirement for both extension and End. Those duplicated producer decisions were removed from `TranscriptHistory`; this is resource acquisition and transfer, rather than a size-only class split. Page extension receives the original caller's current-source witness explicitly, preserving the existing independently mounted PageView consumer as well as canonical and projected history.
 
+The pager captures one original source/edge admission before selecting local extension or acquiring another page. Rechecks remain after awaited Mount/body source work. The two rechecks after old native prune were removed: prune now synchronously changes scene membership and starts its independent finisher, so there is no intervening await or source release at those two sites. Current `TranscriptHistory` source span is 578 lines, equal to determining main; `TranscriptPageView` remains below the class threshold. No unrelated deletion or ratchet waiver is used. Exact hosted qualification of the new head is still required.
+
 `FilterState.remove` owns exact logical admission removal as well as the original projected resource retirement. A superseded projection's cleanup cannot clear a newer filter admission. Both filtered source transitions and the canonical pager use that family.
 
 ## Source evidence and limitations
