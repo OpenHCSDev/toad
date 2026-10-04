@@ -1,0 +1,1588 @@
+{
+  "source": "1b802bf2",
+  "loader": "original audit.Package.load",
+  "roots": [
+    {
+      "root": "src",
+      "modules": 288,
+      "unparsed": []
+    },
+    {
+      "root": "tests",
+      "modules": 393,
+      "unparsed": []
+    }
+  ],
+  "sites": [
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 71,
+      "kind": "declaration",
+      "name": "Agent",
+      "bases": [
+        "AgentBase"
+      ]
+    },
+    {
+      "path": "src/toad/acp/log_records.py",
+      "line": 95,
+      "kind": "family name",
+      "source": "self.source.declared_name"
+    },
+    {
+      "path": "src/toad/acp/log_records.py",
+      "line": 105,
+      "kind": "family name",
+      "source": "self.source.declared_name"
+    },
+    {
+      "path": "src/toad/acp/log_records.py",
+      "line": 115,
+      "kind": "family name",
+      "source": "self.source.declared_name"
+    },
+    {
+      "path": "src/toad/acp/log_records.py",
+      "line": 219,
+      "kind": "family name",
+      "source": "cls.declared_name"
+    },
+    {
+      "path": "src/toad/acp/log_records.py",
+      "line": 58,
+      "kind": "family name",
+      "source": "source.declared_name"
+    },
+    {
+      "path": "src/toad/acp/status.py",
+      "line": 33,
+      "kind": "declaration",
+      "name": "ToolCallStatus",
+      "bases": [
+        "DeclaredFamily"
+      ]
+    },
+    {
+      "path": "src/toad/acp/status.py",
+      "line": 38,
+      "kind": "family name",
+      "source": "PendingToolCallStatus.declared_name"
+    },
+    {
+      "path": "src/toad/agent_schema.py",
+      "line": 45,
+      "kind": "family name",
+      "source": "value.declared_name"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 299,
+      "kind": "constructor",
+      "source": "Transfers(self)"
+    },
+    {
+      "path": "src/toad/application_actions.py",
+      "line": 50,
+      "kind": "declaration",
+      "name": "NativeAction",
+      "bases": [
+        "Command",
+        "Generic[Context]"
+      ]
+    },
+    {
+      "path": "src/toad/application_actions.py",
+      "line": 30,
+      "kind": "family name",
+      "source": "cls.declared_name"
+    },
+    {
+      "path": "src/toad/application_actions.py",
+      "line": 56,
+      "kind": "family name",
+      "source": "cls.declared_name"
+    },
+    {
+      "path": "src/toad/conversation_kind.py",
+      "line": 13,
+      "kind": "declaration",
+      "name": "ConversationKind",
+      "bases": [
+        "DeclaredFamily"
+      ]
+    },
+    {
+      "path": "src/toad/conversation_markdown.py",
+      "line": 42,
+      "kind": "declaration",
+      "name": "ProjectTokenRule",
+      "bases": [
+        "DeclaredFamily"
+      ]
+    },
+    {
+      "path": "src/toad/conversation_markdown.py",
+      "line": 50,
+      "kind": "family name",
+      "source": "cls.declared_name"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 173,
+      "kind": "family name",
+      "source": "self.message.declared_name"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 172,
+      "kind": "family name",
+      "source": "self.segment.declared_name"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 308,
+      "kind": "family name",
+      "source": "segment.declared_name"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 313,
+      "kind": "family name",
+      "source": "segment.declared_name"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 128,
+      "kind": "family name",
+      "source": "Session.declared_name"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 192,
+      "kind": "family name",
+      "source": "Session.declared_name"
+    },
+    {
+      "path": "src/toad/goal_display.py",
+      "line": 68,
+      "kind": "family name",
+      "source": "self.goal.state.declared_name"
+    },
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 21,
+      "kind": "family name",
+      "source": "cls.declared_name"
+    },
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 188,
+      "kind": "consumer",
+      "source": "agent.update_goal(action.declared_name, text)"
+    },
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 188,
+      "kind": "family name",
+      "source": "action.declared_name"
+    },
+    {
+      "path": "src/toad/mcp_commands.py",
+      "line": 26,
+      "kind": "declaration",
+      "name": "MCPDecision",
+      "bases": [
+        "Command",
+        "DeclaredFamily"
+      ]
+    },
+    {
+      "path": "src/toad/mcp_commands.py",
+      "line": 39,
+      "kind": "family name",
+      "source": "self.declared_name"
+    },
+    {
+      "path": "src/toad/mcp_commands.py",
+      "line": 56,
+      "kind": "family name",
+      "source": "self.declared_name"
+    },
+    {
+      "path": "src/toad/mcp_commands.py",
+      "line": 64,
+      "kind": "family name",
+      "source": "self.declared_name"
+    },
+    {
+      "path": "src/toad/mcp_declarations.py",
+      "line": 151,
+      "kind": "family name",
+      "source": "self.scope.declared_name"
+    },
+    {
+      "path": "src/toad/mcp_declarations.py",
+      "line": 156,
+      "kind": "family name",
+      "source": "self.status.declared_name"
+    },
+    {
+      "path": "src/toad/mcp_declarations.py",
+      "line": 156,
+      "kind": "family name",
+      "source": "self.call_policy.declared_name"
+    },
+    {
+      "path": "src/toad/mcp_declarations.py",
+      "line": 219,
+      "kind": "family name",
+      "source": "scope.declared_name"
+    },
+    {
+      "path": "src/toad/navigation_preparation.py",
+      "line": 55,
+      "kind": "constructor",
+      "source": "CommsViewKey(str(root), self.owner_mode, me, self.kind.declared_name, target)"
+    },
+    {
+      "path": "src/toad/navigation_preparation.py",
+      "line": 55,
+      "kind": "family name",
+      "source": "self.kind.declared_name"
+    },
+    {
+      "path": "src/toad/project_link.py",
+      "line": 59,
+      "kind": "family name",
+      "source": "declaration.declared_name"
+    },
+    {
+      "path": "src/toad/project_link.py",
+      "line": 170,
+      "kind": "family name",
+      "source": "self.declared_name"
+    },
+    {
+      "path": "src/toad/project_link.py",
+      "line": 197,
+      "kind": "family name",
+      "source": "self.declared_name"
+    },
+    {
+      "path": "src/toad/question_actions.py",
+      "line": 77,
+      "kind": "family name",
+      "source": "cls.declared_name"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 33,
+      "kind": "declaration",
+      "name": "CommsScreen",
+      "bases": [
+        "CoreEventReceiver",
+        "SessionView",
+        "NavigationOwner"
+      ]
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 144,
+      "kind": "constructor",
+      "source": "CommsChatView(self.project_path, me=self.me, target=self.target, kind=self.kind, wire_root=self.wire_root)"
+    },
+    {
+      "path": "src/toad/screens/mcp_inventory.py",
+      "line": 109,
+      "kind": "family name",
+      "source": "row.scope.declared_name"
+    },
+    {
+      "path": "src/toad/screens/mcp_inventory.py",
+      "line": 109,
+      "kind": "family name",
+      "source": "row.status.declared_name"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 146,
+      "kind": "family name",
+      "source": "agent.kind.declared_name"
+    },
+    {
+      "path": "src/toad/session_admission.py",
+      "line": 126,
+      "kind": "declaration",
+      "name": "HistorySessionAdmission",
+      "bases": [
+        "SessionAdmission"
+      ]
+    },
+    {
+      "path": "src/toad/session_admission.py",
+      "line": 135,
+      "kind": "constructor",
+      "source": "CommsScreen(project_path=self.project, owner_mode=key.owner_mode, me=key.me, target=key.target, kind=self.kind.declared_name, recovery_root=self.recovery_root, wire_root=key.root)"
+    },
+    {
+      "path": "src/toad/session_admission.py",
+      "line": 136,
+      "kind": "family name",
+      "source": "self.kind.declared_name"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 149,
+      "kind": "constructor",
+      "source": "HistorySessionAdmission(f'comms-{next(self.identities)}', prepared.key, kind, project_path, prepared.recovery_root)"
+    },
+    {
+      "path": "src/toad/session_tracker.py",
+      "line": 63,
+      "kind": "declaration",
+      "name": "CommsViewKey",
+      "bases": []
+    },
+    {
+      "path": "src/toad/setting_choices.py",
+      "line": 17,
+      "kind": "family name",
+      "source": "cls.declared_name"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 46,
+      "kind": "family name",
+      "source": "self.owner.declared_name"
+    },
+    {
+      "path": "src/toad/slash_command.py",
+      "line": 71,
+      "kind": "family name",
+      "source": "self.declared_name"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 122,
+      "kind": "family name",
+      "source": "self.definition.declaration.declared_name"
+    },
+    {
+      "path": "src/toad/widget_actions.py",
+      "line": 17,
+      "kind": "family name",
+      "source": "declaration.declared_name"
+    },
+    {
+      "path": "src/toad/widgets/acp_log.py",
+      "line": 103,
+      "kind": "family name",
+      "source": "self.view.declared_name"
+    },
+    {
+      "path": "src/toad/widgets/acp_log.py",
+      "line": 49,
+      "kind": "family name",
+      "source": "kind.declared_name"
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 94,
+      "kind": "declaration",
+      "name": "CommsChatView",
+      "bases": [
+        "DeliveryFailureView",
+        "Conversation"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 122,
+      "kind": "family name",
+      "source": "self.conversation_kind.declared_name"
+    },
+    {
+      "path": "src/toad/widgets/comms_transfer.py",
+      "line": 102,
+      "kind": "declaration",
+      "name": "Transfers",
+      "bases": []
+    },
+    {
+      "path": "src/toad/widgets/comms_transfer.py",
+      "line": 113,
+      "kind": "family name",
+      "source": "request.declared_name"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 585,
+      "kind": "constructor",
+      "source": "Agent(self.project_path, self._agent_data, self._agent_session_id, self._session_pk)"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1690,
+      "kind": "family name",
+      "source": "choice.declared_name"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 262,
+      "kind": "family name",
+      "source": "category.declared_name"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1397,
+      "kind": "family name",
+      "source": "row.state.declared_name"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1397,
+      "kind": "family name",
+      "source": "row.calls.declared_name"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 84,
+      "kind": "family name",
+      "source": "status.declared_name"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 80,
+      "kind": "family name",
+      "source": "self.declared_name"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 33,
+      "kind": "family name",
+      "source": "self.declared_name"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 35,
+      "kind": "family name",
+      "source": "self.declared_name"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 86,
+      "kind": "family name",
+      "source": "self.declared_name"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 335,
+      "kind": "family name",
+      "source": "kind.declared_name"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 334,
+      "kind": "family name",
+      "source": "kind.declared_name"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 488,
+      "kind": "family name",
+      "source": "action.declared_name"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 249,
+      "kind": "family name",
+      "source": "category.declared_name"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 189,
+      "kind": "family name",
+      "source": "self._message_category.declared_name"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 238,
+      "kind": "family name",
+      "source": "self._message_category.declared_name"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 239,
+      "kind": "family name",
+      "source": "category.declared_name"
+    },
+    {
+      "path": "tests/agent_activity_divider_pilot.py",
+      "line": 49,
+      "kind": "constructor",
+      "source": "Agent(root, {'name': 'Activity fixture', 'identity': 'fixture', 'run_command': {'*': 'true'}}, 'activity-fixture')"
+    },
+    {
+      "path": "tests/agent_process_retirement_installed_pilot.py",
+      "line": 42,
+      "kind": "constructor",
+      "source": "Agent(root, AgentDefinition('cancelled-start', 'Cancelled start', {'*': 'true'}), None)"
+    },
+    {
+      "path": "tests/agent_process_retirement_installed_pilot.py",
+      "line": 80,
+      "kind": "constructor",
+      "source": "Agent(root, AgentDefinition('retirement', 'Retirement', {'*': command}), None)"
+    },
+    {
+      "path": "tests/agent_selection_configured_installed_pilot.py",
+      "line": 104,
+      "kind": "family name",
+      "source": "source.thinking_level.declared_name"
+    },
+    {
+      "path": "tests/agent_selection_configured_installed_pilot.py",
+      "line": 162,
+      "kind": "family name",
+      "source": "service.registry.require(child.name).thinking_level.declared_name"
+    },
+    {
+      "path": "tests/attachment_request_pilot.py",
+      "line": 132,
+      "kind": "constructor",
+      "source": "Agent(root, DATA, 'beta')"
+    },
+    {
+      "path": "tests/attachment_request_pilot.py",
+      "line": 74,
+      "kind": "constructor",
+      "source": "Agent(root, DATA, 'old-session' if first_kind == 'load' else None)"
+    },
+    {
+      "path": "tests/attachment_request_pilot.py",
+      "line": 153,
+      "kind": "constructor",
+      "source": "Agent(root, DATA, 'beta')"
+    },
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 249,
+      "kind": "family name",
+      "source": "category.declared_name"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 129,
+      "kind": "family name",
+      "source": "source.thinking_level.declared_name"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 194,
+      "kind": "family name",
+      "source": "source.thinking_level.declared_name"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 277,
+      "kind": "constructor",
+      "source": "Agent(root, AgentDefinition('argv-control', 'argv-control', {'*': 'true'}), 'argv-session')"
+    },
+    {
+      "path": "tests/checkpoint_source_pivot_pilot.py",
+      "line": 46,
+      "kind": "constructor",
+      "source": "Agent(root, AgentDefinition('custody', 'custody', {}), None)"
+    },
+    {
+      "path": "tests/clipboard_native_pilot.py",
+      "line": 111,
+      "kind": "family name",
+      "source": "SystemClipboard.declared_name"
+    },
+    {
+      "path": "tests/clipboard_native_pilot.py",
+      "line": 124,
+      "kind": "family name",
+      "source": "TerminalClipboard.declared_name"
+    },
+    {
+      "path": "tests/clipboard_native_pilot.py",
+      "line": 126,
+      "kind": "family name",
+      "source": "SystemClipboard.declared_name"
+    },
+    {
+      "path": "tests/cold_context_installed_physical.py",
+      "line": 135,
+      "kind": "family name",
+      "source": "source.thinking_level.declared_name"
+    },
+    {
+      "path": "tests/cold_context_installed_physical.py",
+      "line": 189,
+      "kind": "family name",
+      "source": "ColdContextJourney.declared_name"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 514,
+      "kind": "family name",
+      "source": "ForkCliCommand.declared_name"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 515,
+      "kind": "family name",
+      "source": "StopCliCommand.declared_name"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 516,
+      "kind": "family name",
+      "source": "StartCliCommand.declared_name"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 517,
+      "kind": "family name",
+      "source": "ArchiveCliCommand.declared_name"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 518,
+      "kind": "family name",
+      "source": "ReadTargetCliCommand.declared_name"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 664,
+      "kind": "family name",
+      "source": "ForkCliCommand.declared_name"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 665,
+      "kind": "family name",
+      "source": "StopCliCommand.declared_name"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 666,
+      "kind": "family name",
+      "source": "StartCliCommand.declared_name"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 667,
+      "kind": "family name",
+      "source": "ArchiveCliCommand.declared_name"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 668,
+      "kind": "family name",
+      "source": "ReadTargetCliCommand.declared_name"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 686,
+      "kind": "family name",
+      "source": "ReadTargetCliCommand.declared_name"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 846,
+      "kind": "family name",
+      "source": "ForkCliCommand.declared_name"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 847,
+      "kind": "family name",
+      "source": "StopCliCommand.declared_name"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 848,
+      "kind": "family name",
+      "source": "StartCliCommand.declared_name"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 849,
+      "kind": "family name",
+      "source": "ArchiveCliCommand.declared_name"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 850,
+      "kind": "family name",
+      "source": "ReadTargetCliCommand.declared_name"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 672,
+      "kind": "family name",
+      "source": "ReadTargetCliCommand.declared_name"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 702,
+      "kind": "family name",
+      "source": "StopCliCommand.declared_name"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 712,
+      "kind": "family name",
+      "source": "ArchiveCliCommand.declared_name"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 325,
+      "kind": "family name",
+      "source": "snapshot.outcomes[0].attempt.state.declared_name"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 129,
+      "kind": "family name",
+      "source": "summaries[0].state.declared_name"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 200,
+      "kind": "family name",
+      "source": "summaries[0].state.declared_name"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 215,
+      "kind": "family name",
+      "source": "comms.registry.require('beta').goal.state.declared_name"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 293,
+      "kind": "family name",
+      "source": "row.state.declared_name"
+    },
+    {
+      "path": "tests/context_compaction_native_installed_pilot.py",
+      "line": 189,
+      "kind": "family name",
+      "source": "summaries[0].state.declared_name"
+    },
+    {
+      "path": "tests/context_compaction_native_installed_pilot.py",
+      "line": 165,
+      "kind": "family name",
+      "source": "comms.registry.require('beta').goal.state.declared_name"
+    },
+    {
+      "path": "tests/context_usage_pilot.py",
+      "line": 29,
+      "kind": "constructor",
+      "source": "Agent(root, AgentDefinition.decode({'name': 'Fixture', 'identity': 'fixture', 'short_name': 'fixture', 'run_command': {'*': 'true'}, 'protocol': 'acp'}), 'fixture')"
+    },
+    {
+      "path": "tests/conversation_kind_pilot.py",
+      "line": 29,
+      "kind": "family name",
+      "source": "kind.declared_name"
+    },
+    {
+      "path": "tests/coordination_context_pilot.py",
+      "line": 55,
+      "kind": "constructor",
+      "source": "Agent(root, {'name': 'Fixture', 'identity': 'fixture', 'short_name': 'fixture', 'run_command': {'*': 'true'}, 'protocol': 'acp'}, 'fixture')"
+    },
+    {
+      "path": "tests/cursor_request_pilot.py",
+      "line": 86,
+      "kind": "constructor",
+      "source": "Agent(root, DATA, initial_session)"
+    },
+    {
+      "path": "tests/default_route_prompt_selection_pilot.py",
+      "line": 19,
+      "kind": "constructor",
+      "source": "Agent(project, AgentDefinition('fake', 'fake', {'*': 'true'}), None)"
+    },
+    {
+      "path": "tests/default_route_retirement_pilot.py",
+      "line": 96,
+      "kind": "constructor",
+      "source": "Agent(sandbox, {'name': 'fixture', 'run_command': {'*': 'true'}}, None)"
+    },
+    {
+      "path": "tests/filter_mount_supersession_pilot.py",
+      "line": 104,
+      "kind": "family name",
+      "source": "child.fragment.events[0].declared_name"
+    },
+    {
+      "path": "tests/first_fork_native_installed_pilot.py",
+      "line": 100,
+      "kind": "family name",
+      "source": "ForkCliCommand.declared_name"
+    },
+    {
+      "path": "tests/first_fork_native_installed_pilot.py",
+      "line": 39,
+      "kind": "family name",
+      "source": "ForkCliCommand.declared_name"
+    },
+    {
+      "path": "tests/goal_edit_owner_pilot.py",
+      "line": 39,
+      "kind": "constructor",
+      "source": "Agent(project, {'name': 'agent-comms', 'run_command': {'*': 'true'}}, None)"
+    },
+    {
+      "path": "tests/goal_edit_owner_pilot.py",
+      "line": 43,
+      "kind": "consumer",
+      "source": "agent.update_goal('set', 'Original objective')"
+    },
+    {
+      "path": "tests/goal_edit_owner_pilot.py",
+      "line": 47,
+      "kind": "family name",
+      "source": "changed.state.declared_name"
+    },
+    {
+      "path": "tests/goal_edit_owner_pilot.py",
+      "line": 47,
+      "kind": "family name",
+      "source": "original.state.declared_name"
+    },
+    {
+      "path": "tests/goal_objective_edit_pilot.py",
+      "line": 51,
+      "kind": "constructor",
+      "source": "Agent(project, {'name': 'agent-comms', 'run_command': {'*': 'true'}}, None)"
+    },
+    {
+      "path": "tests/goal_objective_edit_pilot.py",
+      "line": 60,
+      "kind": "consumer",
+      "source": "comms.goals.update_goal(session, ActiveGoalAction(progress='Renamed parent thread to pr17 and forked implementation.', expect=GoalPrecondition(goal_id=original.id)))"
+    },
+    {
+      "path": "tests/goal_objective_edit_pilot.py",
+      "line": 55,
+      "kind": "consumer",
+      "source": "agent.update_goal('set', 'Work on draft PR #17 and report remaining gaps. ' + 'Detailed acceptance criteria. ' * 30)"
+    },
+    {
+      "path": "tests/goal_objective_edit_pilot.py",
+      "line": 156,
+      "kind": "family name",
+      "source": "comms.registry.require(session).goal.state.declared_name"
+    },
+    {
+      "path": "tests/goal_pause_owner_pilot.py",
+      "line": 49,
+      "kind": "consumer",
+      "source": "comms.goals.update_goal('beta', SetGoalAction(text='One explicitly resumed controlled continuation'), actor=OwnerInvocable, owner_store=store)"
+    },
+    {
+      "path": "tests/goal_pause_owner_pilot.py",
+      "line": 53,
+      "kind": "consumer",
+      "source": "comms.goals.update_goal('beta', PausedGoalAction(), actor=OwnerInvocable)"
+    },
+    {
+      "path": "tests/goal_pause_owner_pilot.py",
+      "line": 119,
+      "kind": "family name",
+      "source": "StartCliCommand.declared_name"
+    },
+    {
+      "path": "tests/goal_pause_owner_pilot.py",
+      "line": 120,
+      "kind": "family name",
+      "source": "StopCliCommand.declared_name"
+    },
+    {
+      "path": "tests/goal_pause_owner_pilot.py",
+      "line": 129,
+      "kind": "family name",
+      "source": "StartCliCommand.declared_name"
+    },
+    {
+      "path": "tests/goal_retry_pilot.py",
+      "line": 49,
+      "kind": "family name",
+      "source": "view.goal_display.snapshot.state.declared_name"
+    },
+    {
+      "path": "tests/goal_server_poll_pilot.py",
+      "line": 76,
+      "kind": "constructor",
+      "source": "Agent(project, {'name': 'agent-comms', 'run_command': {'*': 'true'}}, None)"
+    },
+    {
+      "path": "tests/goal_server_poll_pilot.py",
+      "line": 86,
+      "kind": "consumer",
+      "source": "comms.goals.update_goal(session, StandbyGoalAction(wait_for=['peer'], progress='Progress details. ' * 40 + ' PROGRESS_END', expect=GoalPrecondition(goal_id=goal.id)))"
+    },
+    {
+      "path": "tests/goal_server_poll_pilot.py",
+      "line": 80,
+      "kind": "consumer",
+      "source": "agent.update_goal('set', 'OBJECTIVE_BEGIN ' + 'Fully wrapped acceptance criteria. ' * 40 + ' OBJECTIVE_END')"
+    },
+    {
+      "path": "tests/goal_server_poll_pilot.py",
+      "line": 169,
+      "kind": "consumer",
+      "source": "comms.goals.update_goal(session, EditGoalAction(text='Changed through owner backend', expect=GoalPrecondition(goal_id=current.id, expected_goal=current)), actor=OwnerInvocable)"
+    },
+    {
+      "path": "tests/goal_server_poll_pilot.py",
+      "line": 192,
+      "kind": "consumer",
+      "source": "comms.goals.update_goal(session, EditGoalAction(text='Concurrent owner edit', expect=GoalPrecondition(goal_id=current.id, expected_goal=current)), actor=OwnerInvocable)"
+    },
+    {
+      "path": "tests/goal_server_poll_pilot.py",
+      "line": 105,
+      "kind": "family name",
+      "source": "conversation.goal_display.snapshot.state.declared_name"
+    },
+    {
+      "path": "tests/goal_server_poll_pilot.py",
+      "line": 199,
+      "kind": "family name",
+      "source": "conversation.goal_display.snapshot.state.declared_name"
+    },
+    {
+      "path": "tests/goal_server_poll_pilot.py",
+      "line": 197,
+      "kind": "family name",
+      "source": "conversation.goal_display.snapshot.state.declared_name"
+    },
+    {
+      "path": "tests/goal_set_owner_pilot.py",
+      "line": 38,
+      "kind": "constructor",
+      "source": "Agent(project, {'name': 'agent-comms', 'run_command': {'*': 'true'}}, None)"
+    },
+    {
+      "path": "tests/goal_set_owner_pilot.py",
+      "line": 41,
+      "kind": "consumer",
+      "source": "Agent.update_goal(toad_agent, 'set', 'Finish the task')"
+    },
+    {
+      "path": "tests/goal_set_owner_pilot.py",
+      "line": 42,
+      "kind": "family name",
+      "source": "goal.state.declared_name"
+    },
+    {
+      "path": "tests/goal_state_installed_journey.py",
+      "line": 56,
+      "kind": "consumer",
+      "source": "comms.goals.update_goal('beta', ClearGoalAction(), actor=OwnerInvocable)"
+    },
+    {
+      "path": "tests/goal_state_installed_journey.py",
+      "line": 80,
+      "kind": "consumer",
+      "source": "comms.goals.update_goal('beta', ClearGoalAction(), actor=OwnerInvocable)"
+    },
+    {
+      "path": "tests/goal_state_installed_journey.py",
+      "line": 97,
+      "kind": "family name",
+      "source": "ForkCliCommand.declared_name"
+    },
+    {
+      "path": "tests/guards/test_acp_specification_ownership.py",
+      "line": 17,
+      "kind": "family name",
+      "source": "family.decode(spelling).declared_name"
+    },
+    {
+      "path": "tests/guards/test_acp_specification_ownership.py",
+      "line": 15,
+      "kind": "family name",
+      "source": "member.declared_name"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 67,
+      "kind": "constructor",
+      "source": "Agent(root, AgentDefinition('local-output-proof', 'Local output proof', {'*': ''}), None)"
+    },
+    {
+      "path": "tests/guards/test_plan_presentation.py",
+      "line": 53,
+      "kind": "family name",
+      "source": "ReviewingPlanStatus.declared_name"
+    },
+    {
+      "path": "tests/guards/test_transcript_publication.py",
+      "line": 186,
+      "kind": "constructor",
+      "source": "Agent(root, AgentDefinition.decode({'name': 'Source', 'identity': 'source', 'short_name': 'source', 'run_command': {'*': 'true'}, 'protocol': 'acp'}), 'publication-source')"
+    },
+    {
+      "path": "tests/history_availability_installed_pilot.py",
+      "line": 40,
+      "kind": "constructor",
+      "source": "Agent(root, {'identity': 'saved-page-proof', 'name': 'Saved page proof', 'run_command': {'*': ''}}, None, None)"
+    },
+    {
+      "path": "tests/history_edge_scheduling_pilot.py",
+      "line": 385,
+      "kind": "family name",
+      "source": "journey.declared_name"
+    },
+    {
+      "path": "tests/human_mark_read_pilot.py",
+      "line": 23,
+      "kind": "family name",
+      "source": "ReadTargetCliCommand.declared_name"
+    },
+    {
+      "path": "tests/initial_session_title_pilot.py",
+      "line": 137,
+      "kind": "constructor",
+      "source": "Agent(root, agent_data, None)"
+    },
+    {
+      "path": "tests/initial_session_title_pilot.py",
+      "line": 71,
+      "kind": "constructor",
+      "source": "Agent(root, agent_data, None)"
+    },
+    {
+      "path": "tests/initial_session_title_pilot.py",
+      "line": 100,
+      "kind": "constructor",
+      "source": "Agent(root, agent_data, thread, agent.session.pk)"
+    },
+    {
+      "path": "tests/input_failure_pilot.py",
+      "line": 45,
+      "kind": "constructor",
+      "source": "Agent(root, {'name': 'Fixture', 'run_command': {'*': 'true'}}, 'fixture')"
+    },
+    {
+      "path": "tests/irc_wrap_pilot.py",
+      "line": 55,
+      "kind": "family name",
+      "source": "event.event.target.declared_name"
+    },
+    {
+      "path": "tests/l0a_archive_history_pilot.py",
+      "line": 59,
+      "kind": "consumer",
+      "source": "comms.goals.update_goal('peer', SetGoalAction(text='Retain the goal revisions'))"
+    },
+    {
+      "path": "tests/l0a_archive_history_pilot.py",
+      "line": 36,
+      "kind": "family name",
+      "source": "action.declared_name"
+    },
+    {
+      "path": "tests/l0a_archive_history_pilot.py",
+      "line": 81,
+      "kind": "family name",
+      "source": "ArchiveCliCommand.declared_name"
+    },
+    {
+      "path": "tests/l0a_archive_history_pilot.py",
+      "line": 84,
+      "kind": "family name",
+      "source": "RetainAction.declared_name"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "line": 74,
+      "kind": "constructor",
+      "source": "Agent(root, AgentDefinition('custody', 'custody', {}), 'late-native')"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "line": 74,
+      "kind": "constructor",
+      "source": "Agent(root, AgentDefinition('custody', 'custody', {}), 'late-native')"
+    },
+    {
+      "path": "tests/main_menu_transfer_pilot.py",
+      "line": 79,
+      "kind": "family name",
+      "source": "ThreadImportRequest.declared_name"
+    },
+    {
+      "path": "tests/markdown_token_rules_pilot.py",
+      "line": 55,
+      "kind": "family name",
+      "source": "SoftbreakTokenRule.declared_name"
+    },
+    {
+      "path": "tests/markdown_token_rules_pilot.py",
+      "line": 57,
+      "kind": "family name",
+      "source": "SoftbreakTokenRule.declared_name"
+    },
+    {
+      "path": "tests/mcp_decision_pty_pilot.py",
+      "line": 169,
+      "kind": "family name",
+      "source": "command.declared_name"
+    },
+    {
+      "path": "tests/mcp_decision_pty_pilot.py",
+      "line": 189,
+      "kind": "family name",
+      "source": "command.declared_name"
+    },
+    {
+      "path": "tests/mcp_decision_pty_pilot.py",
+      "line": 192,
+      "kind": "family name",
+      "source": "command.declared_name"
+    },
+    {
+      "path": "tests/mcp_decision_pty_pilot.py",
+      "line": 192,
+      "kind": "family name",
+      "source": "changed.status.declared_name"
+    },
+    {
+      "path": "tests/mcp_decision_pty_pilot.py",
+      "line": 192,
+      "kind": "family name",
+      "source": "changed.call_policy.declared_name"
+    },
+    {
+      "path": "tests/mcp_decision_pty_pilot.py",
+      "line": 211,
+      "kind": "family name",
+      "source": "command.declared_name"
+    },
+    {
+      "path": "tests/mcp_decision_pty_pilot.py",
+      "line": 213,
+      "kind": "family name",
+      "source": "command.declared_name"
+    },
+    {
+      "path": "tests/mcp_decision_pty_pilot.py",
+      "line": 221,
+      "kind": "family name",
+      "source": "row.scope.declared_name"
+    },
+    {
+      "path": "tests/mcp_decision_pty_pilot.py",
+      "line": 168,
+      "kind": "family name",
+      "source": "row.scope.declared_name"
+    },
+    {
+      "path": "tests/mcp_decision_pty_pilot.py",
+      "line": 188,
+      "kind": "family name",
+      "source": "row.scope.declared_name"
+    },
+    {
+      "path": "tests/mcp_decision_pty_pilot.py",
+      "line": 243,
+      "kind": "family name",
+      "source": "row.scope.declared_name"
+    },
+    {
+      "path": "tests/message_categories_pilot.py",
+      "line": 72,
+      "kind": "family name",
+      "source": "category.declared_name"
+    },
+    {
+      "path": "tests/midturn_compaction_pilot.py",
+      "line": 28,
+      "kind": "constructor",
+      "source": "Agent(root, {'name': 'Fixture', 'identity': 'fixture', 'short_name': 'fixture', 'run_command': {'*': 'true'}, 'protocol': 'acp'}, 'fixture')"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 222,
+      "kind": "consumer",
+      "source": "comms.goals.update_goal(name, SetGoalAction(text=f'SELECTED_GOAL_{name.upper()}'))"
+    },
+    {
+      "path": "tests/native_message_parts_pilot.py",
+      "line": 41,
+      "kind": "constructor",
+      "source": "Agent(root, {'name': 'Fixture', 'identity': 'fixture', 'short_name': 'fixture', 'run_command': {'*': 'true'}, 'protocol': 'acp'}, 'fixture')"
+    },
+    {
+      "path": "tests/native_permission_ui.py",
+      "line": 140,
+      "kind": "constructor",
+      "source": "Agent(root / 'project', AGENT_DATA, SESSION_ID)"
+    },
+    {
+      "path": "tests/native_terminal_retention_pilot.py",
+      "line": 312,
+      "kind": "constructor",
+      "source": "Agent(root, AgentDefinition.decode({'name': 'Fixture', 'identity': 'fixture', 'short_name': 'fixture', 'run_command': {'*': 'true'}, 'protocol': 'acp'}), 'fixture')"
+    },
+    {
+      "path": "tests/navigation_terminal_fixture.py",
+      "line": 170,
+      "kind": "constructor",
+      "source": "Agent(root, data, 'fixture-owner')"
+    },
+    {
+      "path": "tests/navigation_terminal_fixture.py",
+      "line": 83,
+      "kind": "family name",
+      "source": "kind.declared_name"
+    },
+    {
+      "path": "tests/navigation_terminal_fixture.py",
+      "line": 92,
+      "kind": "family name",
+      "source": "event.declared_name"
+    },
+    {
+      "path": "tests/navigation_terminal_fixture.py",
+      "line": 183,
+      "kind": "family name",
+      "source": "event_category(event).declared_name"
+    },
+    {
+      "path": "tests/nominal_tool_menu_pilot.py",
+      "line": 49,
+      "kind": "family name",
+      "source": "StopCliCommand.declared_name"
+    },
+    {
+      "path": "tests/observed_thread_activity_pilot.py",
+      "line": 77,
+      "kind": "constructor",
+      "source": "Agent(root, AgentDefinition('fixture', 'Observed fixture', {'*': 'true'}), 'fixture')"
+    },
+    {
+      "path": "tests/original_turn_resource_real_installed_pilot.py",
+      "line": 148,
+      "kind": "family name",
+      "source": "source.thinking_level.declared_name"
+    },
+    {
+      "path": "tests/original_turn_resource_real_installed_pilot.py",
+      "line": 96,
+      "kind": "family name",
+      "source": "source.thinking_level.declared_name"
+    },
+    {
+      "path": "tests/owner_poll_latency_pilot.py",
+      "line": 38,
+      "kind": "constructor",
+      "source": "Agent(root, {'name': 'fixture', 'run_command': {'*': 'false'}}, None)"
+    },
+    {
+      "path": "tests/owner_reader_reuse_pilot.py",
+      "line": 39,
+      "kind": "constructor",
+      "source": "Agent(root, {'name': 'fixture', 'run_command': {'*': 'false'}}, None)"
+    },
+    {
+      "path": "tests/permission_pending_mount_pilot.py",
+      "line": 26,
+      "kind": "constructor",
+      "source": "Agent(root, AgentDefinition.decode({'name': 'RPC', 'identity': 'fixture', 'short_name': 'fixture', 'run_command': {'*': 'true'}, 'protocol': 'acp'}), 'session')"
+    },
+    {
+      "path": "tests/projected_history_budget_pilot.py",
+      "line": 53,
+      "kind": "family name",
+      "source": "event.declared_name"
+    },
+    {
+      "path": "tests/prompt_popup_new_case_pilot.py",
+      "line": 44,
+      "kind": "family name",
+      "source": "ReviewPopup.declared_name"
+    },
+    {
+      "path": "tests/provider_login_installed_physical.py",
+      "line": 94,
+      "kind": "family name",
+      "source": "ProviderLoginJourney.declared_name"
+    },
+    {
+      "path": "tests/queue_admission_pilot.py",
+      "line": 66,
+      "kind": "constructor",
+      "source": "Agent(root, AGENT, 'beta')"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 59,
+      "kind": "constructor",
+      "source": "Agent(root, AgentDefinition('custody', 'custody', {}), None)"
+    },
+    {
+      "path": "tests/retained_history_projection_pilot.py",
+      "line": 45,
+      "kind": "constructor",
+      "source": "Agent(root, AgentDefinition('retained-source', 'retained-source', {}), None)"
+    },
+    {
+      "path": "tests/right_comms_pilot.py",
+      "line": 158,
+      "kind": "family name",
+      "source": "event.event.target.declared_name"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 524,
+      "kind": "family name",
+      "source": "ForkCliCommand.declared_name"
+    },
+    {
+      "path": "tests/session_route_installed_pilot.py",
+      "line": 47,
+      "kind": "family name",
+      "source": "WireExportRequest.declared_name"
+    },
+    {
+      "path": "tests/sidebar_custody_installed_journey.py",
+      "line": 46,
+      "kind": "family name",
+      "source": "DeclarationSidebarCommand.declared_name"
+    },
+    {
+      "path": "tests/sidebar_custody_installed_journey.py",
+      "line": 43,
+      "kind": "family name",
+      "source": "DeclarationSidebarCommand.declared_name"
+    },
+    {
+      "path": "tests/snapshot_cancellation_custody_pilot.py",
+      "line": 216,
+      "kind": "constructor",
+      "source": "Agent(root, AgentDefinition('custody', 'custody', {}), None)"
+    },
+    {
+      "path": "tests/stop_responsiveness_pilot.py",
+      "line": 74,
+      "kind": "family name",
+      "source": "StopCliCommand.declared_name"
+    },
+    {
+      "path": "tests/tab_clipboard_native_app.py",
+      "line": 36,
+      "kind": "family name",
+      "source": "self.clipboard_transport.declared_name"
+    },
+    {
+      "path": "tests/tab_clipboard_native_app.py",
+      "line": 48,
+      "kind": "family name",
+      "source": "self.clipboard_transport.declared_name"
+    },
+    {
+      "path": "tests/test_agent_configuration.py",
+      "line": 50,
+      "kind": "family name",
+      "source": "BudgetConfigurationSetting.declared_name"
+    },
+    {
+      "path": "tests/test_agent_session.py",
+      "line": 18,
+      "kind": "constructor",
+      "source": "Agent(tmp_path, AgentDefinition.decode({'identity': 'session', 'name': 'session', 'run_command': {'*': 'true'}}), 'original')"
+    },
+    {
+      "path": "tests/test_client_session.py",
+      "line": 13,
+      "kind": "constructor",
+      "source": "Agent(root, AgentDefinition('client-session', 'client-session', {'*': 'true'}), 'before')"
+    },
+    {
+      "path": "tests/test_conversation_submission.py",
+      "line": 19,
+      "kind": "family name",
+      "source": "AnnotatedInputSubmission.declared_name"
+    },
+    {
+      "path": "tests/test_input_custody.py",
+      "line": 15,
+      "kind": "constructor",
+      "source": "Agent(tmp_path, AgentDefinition('input-custody', 'input-custody', {'*': 'true'}), 'A')"
+    },
+    {
+      "path": "tests/test_input_history.py",
+      "line": 41,
+      "kind": "family name",
+      "source": "ReviewInputHistory.declared_name"
+    },
+    {
+      "path": "tests/test_session_updates.py",
+      "line": 11,
+      "kind": "constructor",
+      "source": "Agent(tmp_path, AgentDefinition('updates', 'updates', {'*': 'true'}), 'A')"
+    },
+    {
+      "path": "tests/test_tab_clipboard_owners.py",
+      "line": 41,
+      "kind": "family name",
+      "source": "FutureClipboard.declared_name"
+    },
+    {
+      "path": "tests/thread_unread_start_pilot.py",
+      "line": 206,
+      "kind": "family name",
+      "source": "StartCliCommand.declared_name"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1615,
+      "kind": "family name",
+      "source": "target.declared_name"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1319,
+      "kind": "family name",
+      "source": "sampling.declared_name"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1320,
+      "kind": "family name",
+      "source": "threads.declared_name"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1640,
+      "kind": "family name",
+      "source": "target.declared_name"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1641,
+      "kind": "family name",
+      "source": "args.journey.declared_name"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1647,
+      "kind": "family name",
+      "source": "args.review_timing.declared_name"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1035,
+      "kind": "family name",
+      "source": "self.declared_name"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1126,
+      "kind": "family name",
+      "source": "self.declared_name"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1691,
+      "kind": "family name",
+      "source": "args.profile_sampling.declared_name"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1692,
+      "kind": "family name",
+      "source": "args.profile_threads.declared_name"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1291,
+      "kind": "family name",
+      "source": "sampling.declared_name"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1292,
+      "kind": "family name",
+      "source": "threads.declared_name"
+    },
+    {
+      "path": "tests/transcript_filter_installed_journey.py",
+      "line": 69,
+      "kind": "family name",
+      "source": "category.declared_name"
+    },
+    {
+      "path": "tests/transcript_filter_installed_journey.py",
+      "line": 111,
+      "kind": "family name",
+      "source": "canonical.state.declared_name"
+    },
+    {
+      "path": "tests/transcript_filter_installed_journey.py",
+      "line": 170,
+      "kind": "family name",
+      "source": "canonical.state.declared_name"
+    },
+    {
+      "path": "tests/transcript_filter_installed_journey.py",
+      "line": 64,
+      "kind": "family name",
+      "source": "category.declared_name"
+    },
+    {
+      "path": "tests/transcript_filter_installed_journey.py",
+      "line": 115,
+      "kind": "family name",
+      "source": "canonical.filter.overlay.state.declared_name"
+    },
+    {
+      "path": "tests/transcript_filter_installed_journey.py",
+      "line": 174,
+      "kind": "family name",
+      "source": "canonical.filter.overlay.state.declared_name"
+    },
+    {
+      "path": "tests/transcript_filter_installed_journey.py",
+      "line": 84,
+      "kind": "family name",
+      "source": "h.state.declared_name"
+    },
+    {
+      "path": "tests/transcript_reader_reuse.py",
+      "line": 52,
+      "kind": "constructor",
+      "source": "Agent(root, AgentDefinition.decode({'name': 'Fixture', 'identity': 'fixture', 'short_name': 'fixture', 'run_command': {'*': 'true'}, 'protocol': 'acp'}), 'fixture')"
+    },
+    {
+      "path": "tests/transcript_reader_reuse.py",
+      "line": 99,
+      "kind": "constructor",
+      "source": "Agent(root, AgentDefinition.decode({'name': 'Fixture', 'identity': 'fixture', 'short_name': 'fixture', 'run_command': {'*': 'true'}, 'protocol': 'acp'}), 'fixture')"
+    },
+    {
+      "path": "tests/typed_comms_command_pilot.py",
+      "line": 49,
+      "kind": "constructor",
+      "source": "Agent(root, {'name': 'T2', 'identity': 't2', 'short_name': 't2', 'run_command': {'*': 'true'}, 'protocol': 'acp'}, 'pilot')"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 186,
+      "kind": "constructor",
+      "source": "Agent(root, AgentDefinition('body-order', 'body-order', {}), None)"
+    }
+  ]
+}

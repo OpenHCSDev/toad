@@ -1,6 +1,7 @@
 """A blocked goal offers explicit Retry and reaches the executing owner."""
 
 from toad.goal_display import GoalDisplay
+from agent_comms.goal_actions import GoalAction, RetryGoalAction
 
 import asyncio
 import os
@@ -16,9 +17,9 @@ from toad.widgets.goal_bar import GoalBar
 class FakeAgent:
     def __init__(self, goal: Goal):
         self.goal = goal
-        self.actions: list[str] = []
+        self.actions: list[type[GoalAction]] = []
 
-    async def update_goal(self, action: str, text: str = "") -> Goal:
+    async def update_goal(self, action: type[GoalAction], text: str = "") -> Goal:
         self.actions.append(action)
         self.goal = Goal(self.goal.text, self.goal.id, state=ActiveGoal())
         return self.goal
@@ -45,7 +46,7 @@ async def mounted_retry_control(root: Path) -> None:
         assert str(bar.query_one("#goal-toggle").render()) == "Retry"
         await pilot.click("#goal-toggle")
         await pilot.pause()
-        assert fake.actions == ["retry"]
+        assert fake.actions == [RetryGoalAction]
         assert view.goal_display.snapshot.state.declared_name == "active"
 
 
