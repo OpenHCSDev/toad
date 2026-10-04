@@ -40,7 +40,20 @@ async def select_context_source(pilot, tree, key):
         tree.content_region.offset - tree.scroll_offset
     ).intersection(geometry.clip).intersection(tree.scrollable_content_region)
     assert target, "Original source label is outside the sidebar viewport"
-    point = target.offset
+    # The native label region includes the disclosure glyph. Its cells carry
+    # toggle=True and intentionally do not select a node. Borrow the painted
+    # label's own node/line metadata instead of treating any Tree hit as a
+    # source selection or assuming a fixed prefix width.
+    from textual.geometry import Offset
+    points = (Offset(x, target.y) for x in range(target.x, target.right))
+    point = next((point for point in points
+        if (style := pilot.app.screen.get_style_at(*point)).meta.get("node") == node.id
+        and style.meta.get("line") == node.line
+        and not style.meta.get("toggle", False)), None)
+    assert point is not None, "Original source label has no painted selection cell"
+    print(json.dumps({"context_pointer": {"key": key, "node": node.id,
+        "line": node.line, "screen": tuple(point),
+        "native_style": pilot.app.screen.get_style_at(*point).meta}}), flush=True)
     assert pilot.app.screen.get_widget_at(point.x, point.y)[0] is tree
     assert await pilot.click(tree, offset=tuple(point - tree.region.offset))
     # MouseDown owns focus, Click owns selection. Neither an automatic root
@@ -329,9 +342,9 @@ async def inspect_authentic_annotation_gui(controller, session, *, project, sess
     from agent_comms.thread_identity import ThreadRole
     from agent_comms.turn_context import ContextSpan, FileProvenance
     from agent_comms.working_memory_annotations import WorkingMemoryAnnotations
-    from agent_comms.working_memory_labels import AnswerProbability, HumanLabel, JevClassifier, ModelLabel, QuestionVersion
+    from agent_comms.working_memory_labels import HumanLabel, JevClassifier, ModelLabel, QuestionVersion
     from agent_comms.working_memory_policy import DisabledAnnotationPolicy
-    from agent_comms.working_memory_questions import CommitmentSpan, KindQuestion, OtherSpan, RuleSpan
+    from agent_comms.working_memory_questions import CommitmentSpan, KindQuestion, RuleSpan
     from textual.widgets import Button, TextArea
     from native_proof_cases import read_proof_rows
     from l0a_native_installed_pilot import until
@@ -348,8 +361,6 @@ async def inspect_authentic_annotation_gui(controller, session, *, project, sess
     original_source = FileProvenance(str(system_file), hashlib.sha256(original_file).hexdigest())
     authored = original_file.decode()
     monkeypatch.setattr(ToadApp, "CSS_PATH", files("toad").joinpath("toad.tcss"))
-    with WorkingMemoryAnnotations.reading(service.root / "coordination.sqlite3") as db:
-        assert tuple(SpanAnnotationsRow.select(db)) == ()
     history = service.bus.log.context_manifests(session, service.registry)
     (sealed,) = (manifest for manifest in history if manifest.request_id)
     manifest = ContextManifest.for_request(history, sealed.turn, sealed.require_request_id())
@@ -381,15 +392,18 @@ async def inspect_authentic_annotation_gui(controller, session, *, project, sess
     )
     classifier = JevClassifier.version()
     question = QuestionVersion.current(KindQuestion)
-    labels = tuple(ModelLabel(span, question, RuleSpan, classifier,
-        (AnswerProbability(RuleSpan, .7), AnswerProbability(CommitmentSpan, .2),
-         AnswerProbability(OtherSpan, .1)), .8,
-        f"authored-local-control-{index}", classifier.pin)
-        for index, span in enumerate(spans))
-    with Coordination(str(service.root / "coordination.sqlite3")) as store:
-        with store.session.transaction() as db:
-            for label in labels:
-                SpanAnnotationsRow(label=label, created_at_ms=store.session.now()).insert(db)
+    # Controlled rows are authored once outside the GUI consumer. A
+    # continuation reads their persisted addresses; it neither requires an
+    # empty store nor creates another classifier answer after a partial run.
+    labels = []
+    for span in spans:
+        rows = await Coordination.run_worker(partial(WorkingMemoryAnnotations.labels,
+            service.root / "coordination.sqlite3", span, question, classifier))
+        (row,) = rows
+        label = row.label
+        assert isinstance(label, ModelLabel) and not isinstance(label, HumanLabel)
+        assert label.span == span and label.question == question and label.classifier == classifier
+        labels.append(label)
     assert all(label.working_memory_section == "Unclassified" for label in labels)
     native_before_gui = session_file.read_bytes()
     definition = AgentDefinition.decode({"name": "Authored W6 annotation source",
@@ -397,7 +411,20 @@ async def inspect_authentic_annotation_gui(controller, session, *, project, sess
         "run_command": {"*": shlex.join((sys.executable, "-m", "agent_comms.acp"))}})
     app = ToadApp(agent_data=definition, project_dir=str(project),
                   agent_session_id=session)
-    async with app.run_test(size=(130, 44)) as pilot:
+    def dispatched(message):
+        from textual import events
+        from textual._context import active_message_pump
+        pump = active_message_pump.get()
+        if isinstance(pump, ContextTree):
+            if isinstance(message, (events.MouseDown, events.MouseUp, events.Click)):
+                controller._debug_log(f"W6: native ContextTree.{type(message).__name__} "
+                    f"at={message.screen_offset} style={message.style.meta} "
+                    f"cursor_line={pump.cursor_line} "
+                    f"intent_key={pump.intent.selected.key if pump.intent.selected else None}")
+            elif isinstance(message, ContextTree.NodeHighlighted):
+                controller._debug_log(f"W6: native Tree highlight node={message.node.id}")
+
+    async with app.run_test(size=(130, 44), message_hook=dispatched) as pilot:
         await app.selected_session.wait_content_ready()
         conversation = app.selected_session.conversation
         await until(pilot, lambda: conversation.agent is not None)
@@ -525,6 +552,40 @@ def test_authentic_recorded_annotation_gui_correction(tmp_path, monkeypatch):
                 assert response.stop_reason == "end_turn"
                 assert native.provider.posts == 1 and len(native.saved_inputs()) == 1
                 assert not controller.annotations.tasks
+                # Only this one-input producer owns controlled model rows.
+                # Later zero-input GUI continuations consume their membership.
+                from agent_comms.coordinator import Coordination
+                from agent_comms.coordination_tables.annotations import SpanAnnotationsRow
+                from agent_comms.turn_context import ContextSpan, FileProvenance
+                from agent_comms.working_memory_labels import (
+                    AnswerProbability, JevClassifier, ModelLabel, QuestionVersion,
+                )
+                from agent_comms.working_memory_questions import (
+                    CommitmentSpan, KindQuestion, OtherSpan, RuleSpan,
+                )
+                inspection = ContextInspection.read(controller._comms, session)
+                (request,) = inspection.recorded()
+                (system,) = (source for root in request.children()
+                    for source in root.original_segments()
+                    if source.segment.kind is SystemLayerSegment)
+                original = await system.source_text()
+                file_source = FileProvenance(str(system_file), hashlib.sha256(original_file).hexdigest())
+                spans = tuple(ContextSpan(system.segment.sha256, sentence)
+                    for coordinates in system.segment.source_spans
+                    if file_source in coordinates.provenance
+                    for sentence in coordinates.sentences(original.text))
+                assert len(spans) == 2 and all(system.segment.contains_span(span) for span in spans)
+                classifier = JevClassifier.version()
+                question = QuestionVersion.current(KindQuestion)
+                with Coordination(str(controller._comms.root / "coordination.sqlite3")) as store:
+                    with store.session.transaction() as db:
+                        assert not SpanAnnotationsRow.select(db)
+                        for index, span in enumerate(spans):
+                            label = ModelLabel(span, question, RuleSpan, classifier,
+                                (AnswerProbability(RuleSpan, .7), AnswerProbability(CommitmentSpan, .2),
+                                 AnswerProbability(OtherSpan, .1)), .8,
+                                f"authored-local-control-{index}", classifier.pin)
+                            SpanAnnotationsRow(label=label, created_at_ms=store.session.now()).insert(db)
                 await inspect_authentic_annotation_gui(controller, session,
                     project=native.project, session_file=native.session,
                     system_file=system_file, original_file=original_file, monkeypatch=monkeypatch)
