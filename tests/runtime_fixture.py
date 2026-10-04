@@ -213,7 +213,7 @@ def request_target(app, command, subject):
 
 
 def retain_fixture_journals(paths, *, stage: Path, evidence: Path,
-                           cold_mount: Path = Path("/run/media/ts/hdd")) -> None:
+                           cold_mount: Path = Path("/run/media/ts/hdd")) -> dict:
     """Cold-retain exact owned SDK copies after terminal keeper publication.
 
     This does not dispose source history or change SessionManager. The existing
@@ -244,13 +244,13 @@ def retain_fixture_journals(paths, *, stage: Path, evidence: Path,
     except (OSError, subprocess.CalledProcessError) as error:
         receipt["retained_reason"] = str(error)
         retained.write_text(json.dumps(receipt, indent=2) + "\n")
-        return
+        return receipt
     borrowers = json.loads(census.read_text())
     retained.write_text(json.dumps(receipt, indent=2) + "\n")
     if borrowers["gaps"] or any(borrowers["refs"][str(path)] for path in paths):
         receipt["retained_reason"] = "Borrowers or census permission gaps remain"
         retained.write_text(json.dumps(receipt, indent=2) + "\n")
-        return  # Original leaves remain intact while actual custody is open.
+        return receipt  # Original leaves remain intact while actual custody is open.
     cold_root = cold_mount / "agent-comms-retained" / "history-sdk-fixture"
     try:
         # The shared retention directory is not ours to chmod. The private
@@ -345,6 +345,8 @@ def retain_fixture_journals(paths, *, stage: Path, evidence: Path,
     except (OSError, RuntimeError) as error:
         receipt["retained_reason"] = str(error)
         retained.write_text(json.dumps(receipt, indent=2) + "\n")
+
+    return receipt
 
 
 def _fixture_copy_metadata(info):

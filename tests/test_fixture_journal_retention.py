@@ -54,7 +54,7 @@ class JournalRetention(unittest.TestCase):
         self.mounted = True
         self.gaps = []
         self.refs = []
-        original_stat, original_fstat = Path.stat, os.fstat
+        original_stat, original_lstat, original_fstat = Path.stat, Path.lstat, os.fstat
         original_is_mount, original_is_file = Path.is_mount, Path.is_file
         device = original_stat(self.cold).st_dev + 1
 
@@ -65,6 +65,10 @@ class JournalRetention(unittest.TestCase):
 
         def authored_stat(path, *args, **kwargs):
             info = original_stat(path, *args, **kwargs)
+            return device_result(info) if path.is_relative_to(self.cold) else info
+
+        def authored_lstat(path, *args, **kwargs):
+            info = original_lstat(path, *args, **kwargs)
             return device_result(info) if path.is_relative_to(self.cold) else info
 
         def authored_fstat(descriptor):
@@ -84,6 +88,7 @@ class JournalRetention(unittest.TestCase):
         # permissions, timestamps, hardlink publication and rename use the real
         # local filesystem; this does not qualify the actual HDD's metadata.
         contexts.enter_context(patch.object(Path, "stat", authored_stat))
+        contexts.enter_context(patch.object(Path, "lstat", authored_lstat))
         contexts.enter_context(patch.object(os, "fstat", authored_fstat))
         contexts.enter_context(patch.object(Path, "is_mount", lambda path:
             self.mounted if path == self.cold else original_is_mount(path)))
@@ -92,9 +97,10 @@ class JournalRetention(unittest.TestCase):
         contexts.enter_context(patch.object(subprocess, "run", authored_census))
 
     def retain(self):
-        OWNER["retain_fixture_journals"]([self.source], stage=self.stage,
-                                        evidence=self.evidence, cold_mount=self.cold)
-        return json.loads((self.evidence / "journal-retention.json").read_text())
+        receipt = OWNER["retain_fixture_journals"]([self.source], stage=self.stage,
+                                                  evidence=self.evidence, cold_mount=self.cold)
+        self.assertEqual(receipt, json.loads((self.evidence / "journal-retention.json").read_text()))
+        return receipt
 
     def assert_original(self, expected=None):
         self.assertFalse(self.source.is_symlink())
