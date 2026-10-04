@@ -1,0 +1,531 @@
+{
+  "coverage": [
+    {
+      "directory": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "src/toad",
+      "revision": "HEAD",
+      "modules": 288,
+      "unparsed": []
+    },
+    {
+      "directory": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "revision": "HEAD",
+      "modules": 249,
+      "unparsed": []
+    }
+  ],
+  "sites": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/acp/agent_controller.py",
+      "line": 110,
+      "kind": "declaration",
+      "source": "restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/acp/agent_controller.py",
+      "line": 96,
+      "kind": "call",
+      "source": "self.restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/frame_presentation.py",
+      "line": 79,
+      "kind": "declaration",
+      "source": "restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/frame_presentation.py",
+      "line": 109,
+      "kind": "declaration",
+      "source": "restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/frame_presentation.py",
+      "line": 100,
+      "kind": "call",
+      "source": "self.previous.restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/render_protocol.py",
+      "line": 59,
+      "kind": "declaration",
+      "source": "restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/render_protocol.py",
+      "line": 68,
+      "kind": "declaration",
+      "source": "restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/render_protocol.py",
+      "line": 82,
+      "kind": "declaration",
+      "source": "restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/render_protocol.py",
+      "line": 51,
+      "kind": "call",
+      "source": "cls.restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/render_protocol.py",
+      "line": 65,
+      "kind": "call",
+      "source": "cls.restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "line": 212,
+      "kind": "call",
+      "source": "WindowRestoration.geometry"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/session_presentation.py",
+      "line": 49,
+      "kind": "declaration",
+      "source": "restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/session_presentation.py",
+      "line": 55,
+      "kind": "call",
+      "source": "self.reader_position.restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/session_presentation.py",
+      "line": 220,
+      "kind": "call",
+      "source": "owner.state.restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/sidebar_navigation.py",
+      "line": 143,
+      "kind": "call",
+      "source": "channel.scroll_to"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/sidebar_navigation.py",
+      "line": 144,
+      "kind": "call",
+      "source": "panels.scroll_to"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/transcript_publication.py",
+      "line": 619,
+      "kind": "call",
+      "source": "position.restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/transcript_source_preparation.py",
+      "line": 132,
+      "kind": "call",
+      "source": "request.restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/transcript_source_preparation.py",
+      "line": 146,
+      "kind": "call",
+      "source": "request.restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/transcript_state.py",
+      "line": 135,
+      "kind": "declaration",
+      "source": "restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/transcript_state.py",
+      "line": 139,
+      "kind": "call",
+      "source": "TailReaderPosition().restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/transcript_state.py",
+      "line": 139,
+      "kind": "call",
+      "source": "TailReaderPosition"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/conversation.py",
+      "line": 471,
+      "kind": "Store",
+      "source": "self._filter_scroll_positions"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/conversation.py",
+      "line": 696,
+      "kind": "Load",
+      "source": "self._filter_scroll_positions"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/conversation.py",
+      "line": 697,
+      "kind": "Load",
+      "source": "self._filter_scroll_positions"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/conversation.py",
+      "line": 720,
+      "kind": "call",
+      "source": "window.scroll_to"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/history_anchor.py",
+      "line": 24,
+      "kind": "declaration",
+      "source": "WindowRestoration"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/history_anchor.py",
+      "line": 61,
+      "kind": "declaration",
+      "source": "ReaderPosition"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/history_anchor.py",
+      "line": 79,
+      "kind": "declaration",
+      "source": "TailReaderPosition"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/history_anchor.py",
+      "line": 85,
+      "kind": "declaration",
+      "source": "OffsetReaderPosition"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/history_anchor.py",
+      "line": 303,
+      "kind": "declaration",
+      "source": "HistoryAnchor"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/history_anchor.py",
+      "line": 371,
+      "kind": "declaration",
+      "source": "RecordAnchor"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/history_anchor.py",
+      "line": 30,
+      "kind": "declaration",
+      "source": "restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/history_anchor.py",
+      "line": 38,
+      "kind": "declaration",
+      "source": "geometry"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/history_anchor.py",
+      "line": 42,
+      "kind": "Load",
+      "source": "window.scroll_target_y"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/history_anchor.py",
+      "line": 69,
+      "kind": "call",
+      "source": "OffsetReaderPosition"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/history_anchor.py",
+      "line": 94,
+      "kind": "call",
+      "source": "window.scroll_to"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/history_anchor.py",
+      "line": 132,
+      "kind": "call",
+      "source": "position.restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/history_anchor.py",
+      "line": 314,
+      "kind": "call",
+      "source": "RecordAnchor"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/history_anchor.py",
+      "line": 33,
+      "kind": "call",
+      "source": "self.geometry"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/history_anchor.py",
+      "line": 68,
+      "kind": "call",
+      "source": "TailReaderPosition"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/history_anchor.py",
+      "line": 208,
+      "kind": "call",
+      "source": "WindowRestoration.geometry"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/history_anchor.py",
+      "line": 218,
+      "kind": "call",
+      "source": "WindowRestoration.geometry"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/history_anchor.py",
+      "line": 50,
+      "kind": "call",
+      "source": "window.app.animator.transform_running_animation"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/history_anchor.py",
+      "line": 53,
+      "kind": "Store",
+      "source": "window.scroll_target_y"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/project_directory_tree.py",
+      "line": 82,
+      "kind": "call",
+      "source": "self.scroll_to"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/project_panel.py",
+      "line": 116,
+      "kind": "call",
+      "source": "self._intent.restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/project_tree_intent.py",
+      "line": 33,
+      "kind": "declaration",
+      "source": "restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/thread_comms.py",
+      "line": 198,
+      "kind": "call",
+      "source": "container.scroll_to"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/thread_comms.py",
+      "line": 196,
+      "kind": "call",
+      "source": "container.scroll_to"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 117,
+      "kind": "declaration",
+      "source": "restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 193,
+      "kind": "declaration",
+      "source": "restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 228,
+      "kind": "declaration",
+      "source": "restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 319,
+      "kind": "declaration",
+      "source": "restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 403,
+      "kind": "declaration",
+      "source": "restore"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 644,
+      "kind": "call",
+      "source": "previous.restore"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/_animator.py",
+      "line": 538,
+      "kind": "declaration",
+      "source": "transform_running_animation"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/_compositor.py",
+      "line": 1023,
+      "kind": "Store",
+      "source": "widget.scroll_target_y"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/_compositor.py",
+      "line": 933,
+      "kind": "Load",
+      "source": "Widget.scroll_target_y"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/drivers/win32.py",
+      "line": 171,
+      "kind": "declaration",
+      "source": "restore"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/screen.py",
+      "line": 1833,
+      "kind": "Store",
+      "source": "widget.scroll_target_y"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/scroll_view.py",
+      "line": 126,
+      "kind": "declaration",
+      "source": "scroll_to"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 3066,
+      "kind": "declaration",
+      "source": "scroll_to"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 884,
+      "kind": "Store",
+      "source": "self.scroll_target_y"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 3157,
+      "kind": "call",
+      "source": "self.scroll_to"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 3201,
+      "kind": "call",
+      "source": "self.scroll_to"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 3307,
+      "kind": "call",
+      "source": "self.scroll_to"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 3384,
+      "kind": "call",
+      "source": "self.scroll_to"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 3461,
+      "kind": "call",
+      "source": "self.scroll_to"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 3539,
+      "kind": "call",
+      "source": "self.scroll_to"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 3613,
+      "kind": "call",
+      "source": "self.scroll_to"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 3646,
+      "kind": "call",
+      "source": "self.scroll_to"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 3681,
+      "kind": "call",
+      "source": "self.scroll_to"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 3716,
+      "kind": "call",
+      "source": "self.scroll_to"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 5080,
+      "kind": "call",
+      "source": "self.scroll_to"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 2998,
+      "kind": "Store",
+      "source": "self.scroll_target_y"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 3021,
+      "kind": "Store",
+      "source": "self.scroll_target_y"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 2793,
+      "kind": "Load",
+      "source": "node.scroll_target_y"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 3462,
+      "kind": "Load",
+      "source": "self.scroll_target_y"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 3503,
+      "kind": "Load",
+      "source": "self.scroll_target_y"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 3540,
+      "kind": "Load",
+      "source": "self.scroll_target_y"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 3581,
+      "kind": "Load",
+      "source": "self.scroll_target_y"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 3003,
+      "kind": "Load",
+      "source": "self.scroll_target_y"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_data_table.py",
+      "line": 1608,
+      "kind": "Store",
+      "source": "self.scroll_target_y"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_directory_tree.py",
+      "line": 371,
+      "kind": "call",
+      "source": "self.scroll_to"
+    }
+  ],
+  "limits": "AST names and call expressions are source evidence; runtime receiver resolution and external subclasses are not proved."
+}

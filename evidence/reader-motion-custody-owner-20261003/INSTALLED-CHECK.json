@@ -1,0 +1,57 @@
+{
+  "state": "working installed source checkpoint, DRAFT not physical Ready",
+  "source": {
+    "qualification": "source equal installed candidate, two affected real App checks pass; physical motion pending",
+    "head": "b6b58956f0c44ed83e70d5bfe6b97e36d0d72369",
+    "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/reader415-mount-filewheel-20261003/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "0c7c695796ce0d01b14043506040a705a0f622215c673cf508c88603009ec3fb",
+    "toad_assets": 319,
+    "protected_dependency_assets": 611,
+    "packages": 69,
+    "direct_url": {
+      "url": "file:///home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/reader415-mount-filewheel-20261003/batrachian_toad-0.6.20-py3-none-any.whl",
+      "archive_info": {}
+    },
+    "actual_core": "dbcf3ae4a47b629c85027c0def993a9614fadc6c",
+    "actual_text": "3efcc03803400c10ee60199331869d899a0fcc71",
+    "native": "89b56aea0bb128c4bf3e2c979de8a5afa79ac88b1f51a74c49cc1cab46da60d2",
+    "current_default_claim": false
+  },
+  "checks": [
+    {
+      "test": "tests/history_anchor_geometry_pilot.py",
+      "exit_code": 1,
+      "seconds": 5.223497710074298,
+      "log": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/reader415-mount-filewheel-20261003/history_anchor_geometry_pilot.log",
+      "final_corrected_exit": 0,
+      "final_corrected_log": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/reader415-mount-filewheel-20261003/history_anchor_geometry-reader-policy.log"
+    },
+    {
+      "test": "tests/message_filter_supersession_pilot.py",
+      "exit_code": 0,
+      "seconds": 5.926981567987241,
+      "log": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/reader415-mount-filewheel-20261003/message_filter_supersession_pilot.log"
+    }
+  ],
+  "original_negative_paths": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/reader415-filewheel-20261003",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/reader415-final-filewheel-20261003"
+  ],
+  "fixture_corrections": [
+    "Original native App has no settings; use real ToadApp",
+    "Conversation admits nominal blocks; native geometry probe mounts under actual Screen",
+    "Current Screen owns placement/retain_geometry; use window.screen and window descendants",
+    "Record placement control selects offset policy after explicit tail case"
+  ],
+  "native_changes": null,
+  "next_native_join": {
+    "head": "cb12189d515ab9724551e5123fbe2088aed64893",
+    "wheel": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text49-filewheel-cb12189d-20261003/textual-8.2.8-py3-none-any.whl",
+    "sha256": "b10f3877a32f201f915cfcc36843b5549a9a1b4e9da890b8badbc48cd254b4f1"
+  },
+  "limits": [
+    "No new physical film yet; original412 film is historical, not new source qualification",
+    "No performance gain/smoothness/144Hz claim",
+    "Native retained-row/scene ordering change source qualified independently; installed join pending"
+  ]
+}

@@ -1,0 +1,235 @@
+{
+  "modules": 288,
+  "unparsed": [],
+  "sites": [
+    {
+      "file": "src/toad/acp/agent_configuration.py",
+      "line": 61,
+      "kind": "declaration",
+      "source": "selected"
+    },
+    {
+      "file": "src/toad/block_navigation.py",
+      "line": 38,
+      "kind": "declaration",
+      "source": "selected"
+    },
+    {
+      "file": "src/toad/block_navigation.py",
+      "line": 52,
+      "kind": "declaration",
+      "source": "selected"
+    },
+    {
+      "file": "src/toad/block_navigation.py",
+      "line": 71,
+      "kind": "declaration",
+      "source": "selected"
+    },
+    {
+      "file": "src/toad/block_navigation.py",
+      "line": 107,
+      "kind": "declaration",
+      "source": "selected"
+    },
+    {
+      "file": "src/toad/mounted_message_history.py",
+      "line": 99,
+      "kind": "declaration",
+      "source": "source_identity"
+    },
+    {
+      "file": "src/toad/navigation_target.py",
+      "line": 61,
+      "kind": "declaration",
+      "source": "selected"
+    },
+    {
+      "file": "src/toad/navigation_target.py",
+      "line": 130,
+      "kind": "declaration",
+      "source": "selected"
+    },
+    {
+      "file": "src/toad/screens/historical_sessions.py",
+      "line": 89,
+      "kind": "declaration",
+      "source": "selected"
+    },
+    {
+      "file": "src/toad/transcript_filter.py",
+      "line": 115,
+      "kind": "Load",
+      "source": "owner.projected_source"
+    },
+    {
+      "file": "src/toad/transcript_filter.py",
+      "line": 115,
+      "kind": "Load",
+      "source": "snapshot.selected"
+    },
+    {
+      "file": "src/toad/transcript_filter.py",
+      "line": 245,
+      "kind": "Load",
+      "source": "owner.selected_categories"
+    },
+    {
+      "file": "src/toad/transcript_filter.py",
+      "line": 282,
+      "kind": "Load",
+      "source": "self.owner.selected_categories"
+    },
+    {
+      "file": "src/toad/transcript_filter.py",
+      "line": 335,
+      "kind": "Load",
+      "source": "self.owner.source_snapshot"
+    },
+    {
+      "file": "src/toad/transcript_filter.py",
+      "line": 300,
+      "kind": "Load",
+      "source": "owner.selected_categories"
+    },
+    {
+      "file": "src/toad/transcript_source_preparation.py",
+      "line": 21,
+      "kind": "declaration",
+      "source": "HistorySourceSnapshot"
+    },
+    {
+      "file": "src/toad/transcript_source_preparation.py",
+      "line": 57,
+      "kind": "declaration",
+      "source": "source_snapshot"
+    },
+    {
+      "file": "src/toad/transcript_source_preparation.py",
+      "line": 59,
+      "kind": "Load",
+      "source": "self.source_identity"
+    },
+    {
+      "file": "src/toad/transcript_source_preparation.py",
+      "line": 154,
+      "kind": "Load",
+      "source": "self.source_snapshot"
+    },
+    {
+      "file": "src/toad/transcript_source_preparation.py",
+      "line": 32,
+      "kind": "Load",
+      "source": "owner.source_snapshot"
+    },
+    {
+      "file": "src/toad/transcript_source_preparation.py",
+      "line": 136,
+      "kind": "Load",
+      "source": "self.source_snapshot"
+    },
+    {
+      "file": "src/toad/widgets/comms_sidebar.py",
+      "line": 257,
+      "kind": "declaration",
+      "source": "selected"
+    },
+    {
+      "file": "src/toad/widgets/transcript_history.py",
+      "line": 436,
+      "kind": "declaration",
+      "source": "source_identity"
+    },
+    {
+      "file": "src/toad/widgets/transcript_history.py",
+      "line": 465,
+      "kind": "declaration",
+      "source": "projected_source"
+    },
+    {
+      "file": "src/toad/widgets/transcript_history.py",
+      "line": 565,
+      "kind": "declaration",
+      "source": "selected_categories"
+    },
+    {
+      "file": "src/toad/widgets/transcript_history.py",
+      "line": 1016,
+      "kind": "declaration",
+      "source": "selected_categories"
+    },
+    {
+      "file": "src/toad/widgets/transcript_history.py",
+      "line": 210,
+      "kind": "Store",
+      "source": "self.selected_categories"
+    },
+    {
+      "file": "src/toad/widgets/transcript_history.py",
+      "line": 437,
+      "kind": "Load",
+      "source": "self.selected_categories"
+    },
+    {
+      "file": "src/toad/widgets/transcript_history.py",
+      "line": 543,
+      "kind": "Load",
+      "source": "self.selected_categories"
+    },
+    {
+      "file": "src/toad/widgets/transcript_history.py",
+      "line": 558,
+      "kind": "Load",
+      "source": "self.selected_categories"
+    },
+    {
+      "file": "src/toad/widgets/transcript_history.py",
+      "line": 711,
+      "kind": "Load",
+      "source": "self.selected_categories"
+    },
+    {
+      "file": "src/toad/widgets/transcript_history.py",
+      "line": 797,
+      "kind": "Load",
+      "source": "self.source_snapshot"
+    },
+    {
+      "file": "src/toad/widgets/transcript_history.py",
+      "line": 840,
+      "kind": "Load",
+      "source": "self.source_snapshot"
+    },
+    {
+      "file": "src/toad/widgets/transcript_history.py",
+      "line": 241,
+      "kind": "Load",
+      "source": "self.selected_categories"
+    },
+    {
+      "file": "src/toad/widgets/transcript_history.py",
+      "line": 698,
+      "kind": "Load",
+      "source": "self.selected_categories"
+    },
+    {
+      "file": "src/toad/widgets/transcript_history.py",
+      "line": 752,
+      "kind": "Load",
+      "source": "self.selected_categories"
+    },
+    {
+      "file": "src/toad/widgets/transcript_history.py",
+      "line": 833,
+      "kind": "Load",
+      "source": "self.selected_categories"
+    },
+    {
+      "file": "src/toad/widgets/transcript_history.py",
+      "line": 903,
+      "kind": "Load",
+      "source": "self.selected_categories"
+    }
+  ],
+  "limits": "No dynamic receiver proof"
+}

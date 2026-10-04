@@ -1,0 +1,17 @@
+{
+  "scope": "AFTER_TERMINAL_PERSONAL_DOWN_SHEET_REVIEW",
+  "sheet": "/home/ts/.cache/agent-scratch/reader415-native49-public-20261003-01/capture/live-21-12-frames.png",
+  "sheet_sha256": "a2bbd95ac877d0f1d04ba9dc3fd8c17c4f39d287c4a9009cd63e0bc9d2171293",
+  "before_view": {
+    "utc": "2026-10-04T00:37:47.442695+00:00",
+    "monotonic": 549906.619761864,
+    "recorder_pid": 3675834,
+    "recorder_birth": 54956395,
+    "recorder_exists": false,
+    "ui_pid": 3676742,
+    "ui_birth": 54956913,
+    "ui_exists": false
+  },
+  "assessment": "Inspected original consecutive Down sheet. Body/chrome present with repeated positions and discrete advances; no full-body blank visible in this band. Text at contact-sheet scale does not prove every message readable. Original UI and recorder already absent before personal viewing; no DURING or smoothness/CPU/FPS claim. No new export, capture or client.",
+  "recorded_at_utc": "2026-10-04T00:40:38.926562+00:00"
+}
