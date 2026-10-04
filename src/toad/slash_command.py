@@ -45,10 +45,10 @@ class CommandPresentation:
     def parse_arguments(self, arguments: str) -> SlashCommand:
         return type(self).parse(arguments)
 
-    def completion(self, context: TargetContext | None, available_actions):
+    def completion(self, context: TargetContext | None):
         return (self,)
 
-    def target_choices(self, context: TargetContext | None, available_actions):
+    def target_choices(self, context: TargetContext | None):
         return ()
 
     def highlight_input(self, text: str, arguments_started: bool) -> Content:

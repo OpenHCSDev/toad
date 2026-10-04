@@ -1,9 +1,10 @@
+from runtime_fixture import request_target
 """Stop waits off the UI loop, survives view closure, and reports failures."""
 from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import DirectTarget, channel_target
 
-from toad.thread_actions import StopAction
+from agent_comms.cli_commands import StopCliCommand
 import asyncio
 import os
 import tempfile
@@ -70,12 +71,12 @@ async def main():
                 with patch.object(type(comms.owners), "stop", slow_stop), patch.object(app, "notify", notify):
                     await pilot.click(row, button=3)
                     await pilot.pause()
-                    stop = next(item for item in app.screen.query(ContextMenuItem) if item.action == StopAction.declared_name)
+                    stop = next(item for item in app.screen.query(ContextMenuItem) if item.action == StopCliCommand.declared_name)
                     await pilot.click(stop)
                     await until(started.is_set)
                     await pilot.pause()
-                    assert app.thread_actions.pending["victim"] == "Stopping…"
-                    assert "Stopping…" in row.render().plain
+                    assert app.thread_actions.pending["victim"] == StopCliCommand.help + "…"
+                    assert StopCliCommand.help + "…" in row.render().plain
                     # UI callbacks and keystrokes must complete before shutdown.
                     app.selected_session.conversation.prompt.focus()
                     await pilot.press(*"keep typing")
@@ -84,7 +85,7 @@ async def main():
                     await pilot.pause()
                     await asyncio.wait_for(app.select_session(channel), 2)
                     await pilot.pause()
-                    app.thread_actions.invoke(StopAction(), "victim", "actor")
+                    request_target(app, StopCliCommand, "victim", "actor")
                     await pilot.pause()
                     assert stopped == ["victim"]
                     assert not release.is_set()
@@ -93,8 +94,8 @@ async def main():
                     release.set()
                     await until(lambda: not app.thread_actions.pending)
                     assert comms.registry.status("victim").stopped
-                    assert any("Stopped @victim" in message for message, _ in notices)
-                    app.thread_actions.invoke(StopAction(), "refuses-stop", "actor")
+                    assert any(StopCliCommand.help in message for message, _ in notices)
+                    request_target(app, StopCliCommand, "refuses-stop", "actor")
                     await until(lambda: not app.thread_actions.pending)
                     assert comms.registry.status("refuses-stop").active
                     assert any(message == "Refused test stop" and severity == "error"

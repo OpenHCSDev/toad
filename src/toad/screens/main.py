@@ -31,7 +31,6 @@ from toad.navigation_target import NavigationContext, NavigationOwner
 from toad.screens.session_view import SessionView
 from toad.session_tracker import SidebarState
 from toad.widgets.comms_chat import resolve_session_thread, session_thread_name
-from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.core.input_events import SelectTarget
 from toad.widgets.comms_sidebar import CommsSidebar, CoordinationStatus
 from toad.widgets.conversation import Conversation, ThreadLoading
@@ -41,7 +40,6 @@ from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton
 from toad.widgets.recovery_view import RecoveryView
 from toad.widgets.thread_comms import ThreadCommsSidebar
 from toad.widgets.comms_chat import resolve_session_thread, session_thread_name
-from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.core.input_events import SelectTarget
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar
 from toad.widgets.side_bar import SideBar, SideBarCollapsible

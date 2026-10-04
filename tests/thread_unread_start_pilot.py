@@ -4,7 +4,7 @@ from toad.core.events import CommsUpdated
 
 from toad.navigation_target import channel_target
 
-from toad.thread_actions import StartAction
+from agent_comms.cli_commands import StartCliCommand
 import asyncio
 import json
 import os
@@ -203,7 +203,7 @@ async def main():
             await pilot.pause()
             assert await pilot.click(stopped_row, button=3)
             await pilot.pause()
-            item = next(item for item in app.screen.query(ContextMenuItem) if item.action == StartAction.declared_name)
+            item = next(item for item in app.screen.query(ContextMenuItem) if item.action == StartCliCommand.declared_name)
             await pilot.click(item)
             async with asyncio.timeout(15):
                 while not (
