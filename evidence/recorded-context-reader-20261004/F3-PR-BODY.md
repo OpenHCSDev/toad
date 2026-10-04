@@ -1,41 +1,51 @@
 ## Current scope
 
-Draft, not Ready. F3 is folded into existing PR417. Whole recorded human audit remains owned here; functional receiving delivery is independent.
+Draft, not Ready. F3 remains in existing PR417. Recorded instruction audit is unfinished; useful receiving delivery is independent. No current package/capture loan is held.
 
-Existing ContextInspection/ContextNode/ContextExplorer own recorded selection, search and reader resources. Original ContextManifest and authenticated context_recorded_segment own exact request/contributor membership and text. No current-preview substitution, reconstructed prompt, source store, codec, retry or native fault patch.
+Existing ContextInspection/ContextNode own original recorded request and contributor text. ContextExplorer uses the inspection state and the native Tree. Original ContextManifest/context_recorded_segment retain authenticated request/child membership. No current-preview substitution, reconstructed prompt, source store, codec, retry or native fault patch.
 
-Normal421/615 source is joined. Against determining candidate0b99, two production files add478/delete138 lines. Contributor publication keeps the original native TreeNodes and lets Tree own cursor rebasing; `_loaded` and its consumers are deleted. Search error/result, full read and copy use the same selected observation.
+## Complete owner and consumer correction
 
-## F3 owner and deleted copies
+Source batch7d0df2a8, corrected docstring88b58f56, changes the two existing production files by184 additions/155 deletions against6e4617732. It fixes the owner relationships behind the hosted debt failure37180819953/job111372858521 rather than changing the collector or hiding its findings.
 
-The explorer now holds one InspectionState, using the existing DeclaredFamily mechanism. Reading-owner states carry route/observed revision. Holding states carry ContextInspection; native-readable and unavailable members carry mandatory native data or the actual error. No nullable native/error combination, second observation store or codec.
+- InspectionState/NativeInspection native_present False/True is deleted. Existing contains_native borrows the actual native resource; native_matches queries that behavior for unread scope or exact native identity. All production/capture/App consumers use the same behavior.
+- ContextTree extends the existing native Tree with the original sole context-node index, reconciliation, disclosure, retirement and cursor restoration. Those implementations and the index are deleted from ContextExplorer. It uses original TreeNode construction/add/remove and native cursor rebasing; no node factory, second index or semantic source cache. The shared owns_node admission protects mounted/indexed native source nodes; data-less root/group nodes remain ordinary native Tree containers. Lazy disclosure and inspected-empty-leaf outcomes are preserved.
+- Existing ContextTreeIntent owns selection rebind, reader reacquisition and selected search publication. Deferred restoration first checks the retained source choice, then the Tree checks actual node membership/model/cursor. Contributor updates do not replace a human cursor.
+- Search error/result publication uses the original _reading cancellation/mount/owner-root fence plus inspection and intent currentness. Native read/source/revision fences are retained. Full read/copy/export use the same selected native source; no copied selected-key authority.
+- Capture exporter, registered ACP App fixture and both native focused-tree control consumers migrated. No _context_nodes/native_present production-field consumers remain. The external diagnostic native_present output key still reports the actual acquired resource.
 
-Deleted widget fields: owner/wire_root/_inspection/_native/_observed_revision. Deleted widget manifest/source field comparisons and native-missing orchestration. The capture exporter and original App contributor fixture use that same state. Native success/failure, incoming observations, contributor refresh, source/currentness and search scope belong to the state family. Textual retains actual Worker cancellation, event subscription retirement and Tree resources.
+Mendel's exact ManifestNode label/detail patch stays unchanged: existing SegmentManifest.public_description and kind.public_title own descriptions. Its Core622 typed producer is required for the next paired App. No compatibility branch or old string-kind support was added.
 
-ContextInspection.changed_since owns the recorded-manifest collection relation. Existing Core ContextManifest.changed_since remains its public segment-difference operation, unchanged. A contributor refresh cannot overwrite a native result acquired during its await; a detached/rebound recipient cannot accept the earlier result. Original 505 Tree retention/lazy expansion/cursor behavior is preserved.
+## Source result and limits
 
-F3 adds299/deletes109 production lines. Before/after AST covers288 Toad+311 Core+249 Textual modules, zero omissions; after also covers393 tests and39 performance tools. No retired explorer-field consumers. Lexical evidence does not claim dynamic callback/MRO resolution; those lifetimes were read directly. Final source compile sanity passed, but installed F3/App acceptance has not run. See F3-SOURCE.md, F3-before.json and F3-after.json.
+F3-tree-owner-after.json records exactbase7c75c449 and source88b58f56 using the original reported collector definitions from9a98d72e, verified AST-identical for those measures and their shared recognition behavior. All288 production modules at both revisions parsed; all393 tests and39 performance tools parsed, zero omissions. The five changed Python files compile.
+
+| Reported measure | Core delta | Explorer delta |
+| --- | ---: | ---: |
+| ForeignAbsenceProbe | 0 | 0 |
+| LongBooleanChain | 0 | -2 |
+| BooleanChainTerms | 0 | -10 |
+
+These are the reported measures, not a claim that the full hosted ratchet or installed App passed. Lexical AST references do not prove dynamic callback/MRO dispatch; native Tree and worker lifetimes were read directly. The initial local checker failed on a missing sparse zero-count key; the next parse refused an extra docstring quote in7d0. Both are recorded;88b58 fixes the delimiter. No check omission is counted as zero.
+
+F3-TREE-OWNER.md and F3-tree-owner-after.json describe the complete source relationships and consumer migration. Prior F3-before/F3-after evidence remains tied to its earlier checkpoint. No installed package/App, capture, input, priming, fork or provider was launched for this correction.
 
 ## Actual installed result retained
 
-Physical10 whole journey **FAILED**,187.728s; this is not F3 or whole PR417 acceptance:
+Physical10 whole journey FAILED,187.728s; this is not F3 or whole PR417 acceptance:
 
-- Actual registered ACP App retained the same recorded System /0 TreeNode, cursor and reader while original contributors left and returned.
-- Physical recorded System /0 selection, One fact search, fullscreen20,854-character original text and matching clipboard passed. Fullscreen pixels visibly show System Layer and the standing instruction list; that review was after UI exit.
+- Original registered ACP App retained the same recorded System /0 TreeNode, cursor and reader through contributor removal/return.
+- Physical recorded System /0, One fact search, fullscreen20,854-character original text and matching clipboard passed. Fullscreen pixels were reviewed after UI exit.
 - Measured footer143609/272000 equals original AgentInfo from native preparation/StatsRequest/AgentEventConsumer, not segment totals.
-- Thread/channel tag edit/rename/delete and slash phases retained; original tags restored. Parent bracketed DURING menu/context-open witness is retained verbatim. System image review was after UI exit.
-- Export button was below the visible sidebar viewport. Existing WidgetTarget refused zero visible Button#context-export; export and distinct nested Coordination child were not reached. No EOF/native/backend fault inferred.
+- Thread/channel tag/rename/delete and slash phases retained; tags restored. Parent's bracketed DURING menu/context-open witness is retained verbatim; the System-image review was after exit.
+- The export Button was below the sidebar viewport. WidgetTarget refused zero visible Button#context-export. Export and distinct nested Coordination child were not reached. No EOF/native/backend fault inferred.
 
-The published remaining control uses native focus-next from the export Input and fresh focused-widget geometry. Reader-only continuation omits the already-qualified menu ritual. It has not run. F3 final App must cover attachment/read completion/contributor publication and retirement; same c603p01 recorded export/exact child remains unfinished.
+Remaining control uses original native focus-next from export Input and fresh focused geometry. Reader-only continuation omits already-qualified menus. It is published but unrun. Final affected App must verify the changed state/Tree callback/retirement family, then the same c603p01 exact recorded export/distinct-child scope. No new fork/input/priming/provider is needed or authorized by this source checkpoint. Original01-10 negatives, source proofs and UNKNOWN remain preserved.
 
-Original01-09 negatives and source/UNKNOWN custody remain preserved. Same sealed request f948ca63-c6b5-4ca5-a4d5-f7c624762478; no fork/input/priming/provider call.
+## Ownership and handback
 
-## Package and ownership boundary
+Physical10 whole615/419/Text50/native086 handback is complete:927 assets/all69 versions, original activation, truthful filewheel origin, children absent/cleanup[]errors0. Frozen485421 is untouched; no current borrower claim or new loan assumed.
 
-Physical10 whole615/419/Text50/native086 handback is complete:927 assets/all69 versions and original activation restored, truthful normal filewheel origin, children absent/cleanup[]errors0. No current borrower claim, package write, run or new loan assumed; frozen485421 remains untouched.
+Sch owns F1 channel policy/forms and existing SessionAdmissions/workspace_sessions/close_presentation retirement of missing current/hidden incarnations. This change touches no deletion/navigation policy. F3 unmount detaches its original state and Tree node resources.
 
-Sch owns channel deletion policy/forms and navigation/view closure in #621/#424. F3 touches no deletion semantics or SessionNavigation/Workspace methods. Its only related behavior is inspection retirement on actual explorer unmount.
-
-## Shared F4 consumer adoption
-
-Exact Mendel425 afab8fe8 was cherry-picked as27a5fc9d4: ManifestNode.label/detail only,2+/2-. They use the existing SegmentManifest.public_description and ContextSegment.public_title. The rest of the complete module AST is unchanged; compilation passed. F4-ADOPTED.md records exact source/API operands. This requires the paired Core622 typed kind relation; old Core615 metadata has not been changed or claimed runnable with this source. Mendel owns F4 installed decoded-label acceptance, independent of417 export/distinct-child acceptance. No package/holder/run change.
+Mendel owns F4's decoded contributor/recorded-label acceptance independently of417 export. ManifestNode.label/detail are the only shared adoption. No other active viewport/paint source is edited.
