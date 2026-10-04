@@ -18,3 +18,9 @@ Validation last: one affected real App batch must hold actual startup/preflight 
 ## Actual execution dependency
 
 #426 caf415 merged actual main42f1cc9f after its four App scoped acceptance; it does not qualify startup/hydration responsiveness. The style22 holder is now exclusively Einstein417/nativeTree58. No new Heis code/import/execution purpose has been granted; no package access or App launch is part of this source checkpoint. Next installed qualification requires his real whole handback and a fresh named purpose, retaining existing floor/proofs. The source and acceptance preparation continue independently.
+
+## Final affected acceptance mode
+
+The existing `blank_presentation_pilot --startup-only` now exercises the actual Conversation pump while original AgentProcess preflight is held, then hidden/return and cancel/whole close. The same original App holds a native CommsChatView mount, verifies CommsScreen pump admission, actual driver editor keys and Resize events, then hidden completion without focus theft and warm return. Controlled barriers hold original operations and call their original implementation afterward; they do not supply replacement protocol/state answers. No provider prompt or native child input is sent. Test code is prepared but has NOT run. Pilot global all-pump/animation completion is not treated as source readiness; the check uses the original driver, actual owner callback delivery and actual Screen refresh boundary.
+
+Mendel retained Core421 wheel d96ab5 binds all342assets byte equal merged7a5 and immutable086; it is distinct from old486b. Bohr now explicitly issued startup-only purpose at `style22-Heis429-startup-package-execution-grant.json` after reader12 exact1459/69/0borrower handback. This is actual new custody, superseding the earlier pending-purpose note, not permission for a film/provider/other purpose.

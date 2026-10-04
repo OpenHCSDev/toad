@@ -325,6 +325,139 @@ async def frame_admission():
     print("PASS original frame/source admission; pending I/O leaves native paint free", flush=True)
 
 
+async def startup_hydration():
+    """Actual startup and mount work remain pending while their own pumps run."""
+    from threading import Event
+    from textual import events
+    from textual.geometry import Size
+    from unittest.mock import patch
+    from agent_comms.threads import Thread
+    from runtime_fixture import private_native_wire
+    from toad.acp.maintenance_ingress import preflight
+    from toad.screens.comms import CommsScreen
+    from toad.widgets.comms_chat import CommsChatView
+    from toad.conversation_kind import ChannelConversation
+    from toad.session_admission import HistorySessionAdmission
+    from toad.session_tracker import CommsViewKey
+
+    with TemporaryDirectory(prefix="toad-start-hydrate-", dir=os.environ["TMPDIR"]) as directory:
+        root = Path(directory)
+        os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"),
+                          XDG_CONFIG_HOME=str(root / "config"),
+                          XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
+        comms = private_native_wire(root / "wire")
+        comms.registry.declare(Thread("pump-owner", frozenset({"pump"}), str(root)))
+        entered, release, finished = Event(), Event(), Event()
+
+        def held_preflight(*args, **kwargs):
+            entered.set()
+            try:
+                assert release.wait(5), "startup preflight control was not released"
+                return preflight(*args, **kwargs)
+            finally:
+                finished.set()
+
+        async def input_and_resize(owner, editor, text, size):
+            app.screen.set_focus(editor, scroll_visible=False)
+            # Use the original driver input path, without Pilot's global
+            # all-pump barrier (the child mount is deliberately pending).
+            await app._press_keys(text)
+            pumped = asyncio.Event()
+            owner.call_later(pumped.set)
+            async with asyncio.timeout(5):
+                await pumped.wait()
+            requested = Size(*size)
+            app._driver._size = requested
+            app.post_message(events.Resize(requested, requested))
+            async with asyncio.timeout(5):
+                while app.screen.size != requested:
+                    await app.screen.wait_for_refresh()
+                await app.screen.wait_for_refresh()
+            assert text in editor.text and owner.is_attached
+            assert text in "\n".join(strip.text for strip in app.screen._compositor.render_strips())
+
+        data = {"name": "Pending startup", "identity": "pending-startup", "short_name": "pending",
+                "protocol": "acp", "run_command": {"*": "true"}}
+        app = InstalledApp(agent_data=data, project_dir=str(root))
+        with patch("toad.acp.maintenance_ingress.preflight", held_preflight):
+            try:
+                async with app.run_test(size=(100, 35)) as pilot:
+                    async with asyncio.timeout(5):
+                        await asyncio.to_thread(entered.wait)
+                    first = app.selected_session
+                    conversation = first.conversation
+                    agent = conversation.agent
+                    assert agent is not None and agent.process.responses
+                    await input_and_resize(conversation, conversation.prompt.prompt_text_area,
+                                           "startup-pump", (104, 36))
+                    await app.session_navigation.new(lambda: MainScreen(root))
+                    assert first.presentation.sources.agent is agent
+                    assert agent.process.responses and agent.process.runner is None
+                    await app.select_session(first.id)
+                    assert first.conversation.agent is agent
+                    assert conversation.prompt.text == "startup-pump"
+                    await app.workspace_sessions.close(first.id)
+                    assert not agent.process.responses and agent.process.runner is None
+                    assert not agent.process.accepts_updates
+                    assert app._exception is None
+            finally:
+                release.set()
+                async with asyncio.timeout(5):
+                    await asyncio.to_thread(finished.wait)
+
+        mounted, continue_mount = asyncio.Event(), asyncio.Event()
+
+        class HeldChat(CommsChatView):
+            async def initialize_view(self):
+                mounted.set()
+                await continue_mount.wait()
+                await super().initialize_view()
+
+        def pending_chat(screen):
+            return HeldChat(screen.project_path, me=screen.me, target=screen.target,
+                            kind=screen.kind, wire_root=screen.wire_root)
+
+        app = InstalledApp(project_dir=str(root))
+        with patch.object(CommsScreen, "create_chat", pending_chat):
+            async with app.run_test(size=(100, 35)) as pilot:
+                await app.selected_session.wait_content_ready()
+                first = app.selected_session
+                key = CommsViewKey(str(comms.root), first.id, "pump-owner", ChannelConversation, "#pump")
+                admission = HistorySessionAdmission("pending-hydration", key, ChannelConversation, root, None, ())
+                opening = asyncio.create_task(app.session_navigation.admit(admission))
+                try:
+                    async with asyncio.timeout(5):
+                        await mounted.wait()
+                    view = app.workspace_sessions.require(admission.mode)
+                    editor = view.query_one(PromptTextArea)
+                    await input_and_resize(view, editor, "hydration-pump", (106, 37))
+                    assert not opening.done() and not view._content_ready.is_set()
+                    await app.select_session(first.id)
+                    focused = app.screen.focused
+                    continue_mount.set()
+                    assert await opening == admission.mode
+                    assert app.selected_session is first and app.screen.focused is focused
+                    await app.select_session(view.id)
+                    assert view.query_one(PromptTextArea) is editor and editor.text == "hydration-pump"
+                    assert app._exception is None
+                finally:
+                    continue_mount.set()
+                    await asyncio.gather(opening, return_exceptions=True)
+        evidence = Path(os.environ["TOAD_STARTUP_EVIDENCE"])
+        evidence.mkdir(parents=True, exist_ok=True)
+        (evidence / "receipt.json").write_text(json.dumps({
+            "result": "pass", "installed_toad": __import__("toad").__file__,
+            "startup_owner_pump_input_resize_while_preflight_pending": True,
+            "startup_hidden_return_same_operational_owner": True,
+            "close_revokes_pending_startup_without_runner": True,
+            "hydration_owner_pump_input_resize_while_mount_pending": True,
+            "hidden_hydration_preserves_selected_focus": True,
+            "whole_app_close": True, "provider_calls": 0, "native_inputs": 0,
+            "scope": "Original App, Agent/preflight, native mount/worker/input pumps and compositor; controlled pending work, no terminal movie or smoothness claim",
+        }, indent=2) + "\n")
+    print("PASS actual startup/hydration pumps, input, resize, hidden return and whole close", flush=True)
+
+
 async def main():
     with TemporaryDirectory(prefix="toad-session-surface-", dir=os.environ["TMPDIR"]) as directory:
         root = Path(directory)
@@ -481,7 +614,8 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(frame_admission() if "--frame-only" in sys.argv else
+    asyncio.run(startup_hydration() if "--startup-only" in sys.argv else
+                frame_admission() if "--frame-only" in sys.argv else
                 response_projection() if "--response-only" in sys.argv else
                 danger_projection() if "--danger-only" in sys.argv else
                 layout_preferences() if "--layout-only" in sys.argv else main())

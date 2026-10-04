@@ -1,0 +1,306 @@
+{
+  "base": "42f1cc9f26d2f7e6f9c9b3728484e07902dcf832",
+  "head": "d0ca24c2455c45ce7813daf4c7edcd11a0fc08bd",
+  "roots": [
+    {
+      "root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad",
+      "parsed": 288,
+      "unparsed": []
+    },
+    {
+      "root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests",
+      "parsed": 394,
+      "unparsed": []
+    },
+    {
+      "root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools",
+      "parsed": 41,
+      "unparsed": []
+    },
+    {
+      "root": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual",
+      "parsed": 249,
+      "unparsed": []
+    }
+  ],
+  "sites": [
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 162,
+      "declaration": "start"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 138,
+      "attribute": "start_operation",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 164,
+      "attribute": "start",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 48,
+      "declaration": "start"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 123,
+      "declaration": "start_operation"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 45,
+      "attribute": "disposition",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 49,
+      "attribute": "disposition",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 132,
+      "attribute": "disposition",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 117,
+      "attribute": "disposition",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 132,
+      "attribute": "disposition",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 177,
+      "declaration": "_start_hydration"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 198,
+      "declaration": "_load_content"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 225,
+      "declaration": "close_presentation"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 80,
+      "attribute": "_content_ready",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 81,
+      "attribute": "_content_error",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 82,
+      "attribute": "_content_loaded",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 201,
+      "attribute": "_content_loaded",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 172,
+      "attribute": "_content_loaded",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 179,
+      "attribute": "_content_loaded",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 192,
+      "attribute": "prepare_prompt",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 199,
+      "attribute": "_content_loaded",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 222,
+      "attribute": "_content_error",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 223,
+      "attribute": "_content_error",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 173,
+      "attribute": "_start_hydration",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 180,
+      "attribute": "_load_content",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 215,
+      "attribute": "_content_error",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 232,
+      "attribute": "_content_ready",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 235,
+      "attribute": "close_presentation",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 241,
+      "attribute": "prepare_prompt",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 249,
+      "attribute": "prepare_prompt",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 218,
+      "attribute": "_content_ready",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 221,
+      "attribute": "_content_ready",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 231,
+      "attribute": "_content_error",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 136,
+      "attribute": "_content_loaded",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 173,
+      "declaration": "prepare_prompt"
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 164,
+      "attribute": "prepare_prompt",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 183,
+      "attribute": "prepare_prompt",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 567,
+      "declaration": "start_native_session"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 583,
+      "declaration": "_start_agent"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 594,
+      "attribute": "start_operation",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1691,
+      "attribute": "start_native_session",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 572,
+      "attribute": "start",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 594,
+      "attribute": "start",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 773,
+      "attribute": "start",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 2032,
+      "attribute": "start",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 577,
+      "attribute": "_start_agent",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 579,
+      "attribute": "_start_agent",
+      "context": "Load"
+    }
+  ],
+  "removed": {
+    "_hydrate_queued": 0,
+    "_content_loading": 0
+  },
+  "limits": "AST exact names/declarations/attributes; dynamic external aliases and overrides not resolved. No behavioral proof from AST."
+}
