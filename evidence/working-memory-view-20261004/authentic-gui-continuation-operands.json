@@ -71,7 +71,7 @@
   "helper_source_head": "0730dc71e145da4fbb4719ce81c4046b35ff96a7",
   "helper_path": "/home/ts/wt/comms-field-codec-closure-20260928/tests/native_backend_fixture.py",
   "helper_sha256": "a4cb188d5b472f5445cc8ba653137075455907c8e06cf0e95eb01793c4ce7575",
-  "helper_change": "Mendel granted @staticmethod/removal of unused self on existing NativeBackendFixture.native_arguments only. Three existing instance callers preserved; continuation borrows same declaration with original isolation flags and explicit --no-tools --system-prompt original file.",
+  "helper_change": "Mendel granted @staticmethod/removal of unused self on existing NativeBackendFixture.native_arguments only. Two existing instance callers preserved; continuation borrows same declaration with original isolation flags and explicit --no-tools --system-prompt original file.",
   "wheels": [
     {
       "source": "759c821e4cf937d2872a7f7b7a8613f5eb3119aa",

@@ -1,17 +1,27 @@
 # W6 current checkpoint
 
-Historical04 remains a failed selection before Enter; read, search and export were not reached. Its logs and whole handback remain unchanged. The later context read after focus does not establish which native pointer or node publication caused the failure.
+## What works at the actual observed scope
 
-## What changed
+Authentic01 sent exactly one authored localhost ACP input. The SDK sealed request `527f6dcf-963f-4a91-95a3-f0d6ca38aff8` for original `project` incarnation `1791153029.938912`; the original WireLog manifest attests two file-attributed sentence spans and contains_span membership. The whole 65-byte file range includes its newlines. Sentence coordinates omit whitespace-only separators.
 
-The existing ContextNode family resolves an addressed descendant. ContextTree reveals that path for the original intent when a HumanLabel moves an annotation into a previously unopened Obeys or Promised group. Annotation children have distinct native navigation keys while borrowing the original request/segment/contributor reader. The flat-index-only restoration and duplicate ancestor-expansion loop are replaced.
+The control failed before labels or App at an incorrect assertion that concatenated sentence text equals the complete file. That assertion is corrected at its consumer; no producer, file, input, request or native artifact was changed. Raw failure and the independently verified whole holder/artifact handback are retained in `authentic01/` and `authentic01-assessment.json`.
 
-The shared pointer control reacquires the mounted node by its original key after awaited layout. Cursor, focus, membership and intent assertions remain required. Mouse dispatch diagnostics observe the original metadata. This is a source correction, not a measured explanation or App pass.
+This is not an AnnotationNode GUI pass. Historical03/04 selection failures and the earlier90s unknown wait remain unchanged; historical ReferenceNode App read/search/export remain separately unfinished.
 
-## Next actual acceptance
+## What changed in the continuation
 
-The prepared authentic control uses the unchanged NativeBackendFixture/open_owner and one original ACP session/prompt through the localhost LoopbackProvider. An explicit authored system file preserves context-file isolation. The SDK must seal the original request; its captured assembly ranges, exact file provenance and contains_span relation supply the label addresses. Two explicitly controlled local labels are corrected through the mounted GUI and ACP into effective USER HumanLabels, visibly Obeys and Promised. No manifest or historical instruction proof is constructed.
+`inspect_authentic_annotation_gui` now owns the shared authentic source, controlled label, mounted GUI correction and effective USER refresh assertions for both the original producer control and the zero-input continuation. The continuation borrows the existing source through ThreadManagement.restore_stopped, OwnerLifecycle.acquire_thread and SessionLifecycle.bind_owned with runtime enabled. It does not invoke a fresh native fixture, claim another thread, attach another session, initialize another bus, load a session or send a prompt.
 
-Final operands and exact normal wheels are in authentic-annotation-gui-final-operands.json. The current union includes merged441; old13e2 and intermediate preparation wheels do not match this source. No shared native fixture, frozen producer, native artifact, Core or Text implementation was changed.
+Exact incarnation/session/source/input-proof hashes and original request/turn membership are checked before acquisition. ContextInspection reads the original recorded source and validates the original spans. Two controlled, uncalibrated local ModelLabels address those spans; GUI corrections must traverse the original ACP operation and effective HumanLabel into visible Obeys and Promised groups. Cursor, focus, membership and intent assertions remain required. No sealed manifest or context wording is constructed.
 
-No holder or execution loan is active. A future purpose must explicitly allow that one authored localhost native input and use the matching immutable7a artifact. Historical acceptance remains separately unfinished. Annotation workers, paid disclosure and calibration remain off; W7/W8 and full working memory are not ready.
+Mendel granted the one shared helper signature change: NativeBackendFixture.native_arguments is static because it uses no instance facts. Its two existing instance call sites still use the original declaration; the continuation borrows the same isolation flags and explicit authored system file without constructing another provider/session.
+
+## Next acceptance and authority
+
+`authentic-gui-continuation-operands.json` binds the original source/request/span addresses, current control, helper checkpoint and planned scratch/output. This is source preparation only; it has not been collected or run. Future acceptance is one bounded registered App with ZERO additional input, provider call or native prompt.
+
+No package/import/execution purpose is active. After ordinary444 actual whole preparation handback, Bohr must issue a fresh specific eligible-holder purpose and Sch must renew exact7a artifact execution against those literal issued bytes. Restore the actual issued floor, not an assumed historical436 floor. Public334 and other owners' candidates remain untouched.
+
+Product src, pyproject and lock are unchanged versus bee4062; existing Coreab640355 and Toad57bf319 wheels remain valid. The Toad union contains441, not442/ec36. No wheel rebuild, SDK repetition or native artifact change is needed for these test-source changes.
+
+DefaultOFF/external disclosure and actual Codex exclusion remain intact. W7 empirical thresholds, W8, historical App acceptance and the full authentic GUI correction remain unfinished.
