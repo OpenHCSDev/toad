@@ -398,7 +398,7 @@ async def run(options):
         sys.argv = [str(recorder_path), "--output", str(base / "capture"),
             "--owner", "Einstein-cold595-physical01", "--private-root", str(service.root),
             "--journey", ColdContextJourney.declared_name, "--capture-state",
-            "--review-timing", "deferred", "--fps", "20", "--width", "1500",
+            "--review-timing", "deferred", "--still-images", "--fps", "20", "--width", "1500",
             "--height", "1100", "--fit-window", "--startup-wait", "10",
             "--max-duration", "240" if options.recorded_audit else "110" if options.instruction_query else "65",
             "--tail-seconds", "2", "--", *command]
