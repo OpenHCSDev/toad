@@ -1,0 +1,10 @@
+{
+  "original_head": "18ff6034a08d23cb0b7520ae6509ebc61033a47d",
+  "normal_main": "60117384236faa82ed01202bda56a7709fc139c5",
+  "merge_head": "fd7db2651c62eef65e87868631759ff9ad92a021",
+  "delta": "Only automatic F0 Debt ratchet workflow plus this source-only receipt; product/pins/pkg/activation/operands unchanged",
+  "original_ready_sha256": "effe080dce4bbc299aefbce9ae330b92d5fa36a9c34297a0bfa818e07ed3457d",
+  "original_frozen_artifacts_verified": 155,
+  "public_effects": 0,
+  "installed_gate_runs": 0
+}
