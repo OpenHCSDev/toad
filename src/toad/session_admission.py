@@ -133,7 +133,7 @@ class HistorySessionAdmission(SessionAdmission):
         from toad.screens.comms import CommsScreen
         key = self.key
         return CommsScreen(project_path=self.project, owner_mode=key.owner_mode, me=key.me,
-                           target=key.target, kind=self.kind.declared_name,
+                           target=key.target, kind=self.kind,
                            recovery_root=self.recovery_root, wire_root=key.root)
 
     @property

@@ -44,6 +44,27 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
         return target
 
     @classmethod
+    def historical_thread(cls, target: str) -> str | None:
+        return None
+
+    @classmethod
+    async def toggle_irc(cls, screen) -> None:
+        from toad.navigation_target import FeedTarget
+
+        await screen.open_sidebar_target(FeedTarget())
+
+    @classmethod
+    async def toggle_dm(cls, screen) -> None:
+        from toad.navigation_target import DirectTarget
+        from toad.widgets.comms_sidebar import CommsSidebar
+
+        sidebar = screen.query_one(CommsSidebar)
+        peers = [name for name in sorted(sidebar.observation.registry_names())
+                 if name != screen.me]
+        if peers:
+            await screen.open_sidebar_target(DirectTarget(peers[0]))
+
+    @classmethod
     def unread(cls, snapshot, target):
         from toad.session_tracker import ExactUnread
         return ExactUnread(snapshot.channel_unread.get(target, 0)) if snapshot else ExactUnread()
@@ -223,6 +244,14 @@ class ChannelConversation(ConversationKind):
 
 class DmConversation(ConversationKind):
     @classmethod
+    def historical_thread(cls, target: str) -> str:
+        return target
+
+    @classmethod
+    async def toggle_dm(cls, screen) -> None:
+        await screen.action_back_to_agent()
+
+    @classmethod
     def unread(cls, snapshot, target):
         from toad.session_tracker import ExactUnread
         return ExactUnread(snapshot.unread.get(target, 0)) if snapshot else ExactUnread()
@@ -321,6 +350,10 @@ class DmConversation(ConversationKind):
 
 
 class IrcConversation(ChannelConversation):
+    @classmethod
+    async def toggle_irc(cls, screen) -> None:
+        await screen.action_back_to_agent()
+
     @classmethod
     def label(cls, target: str) -> str:
         return f"{target} · all comms"

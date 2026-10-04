@@ -14,6 +14,7 @@ from textual.widget import Widget
 from textual.widgets import Button, Static
 
 from toad import messages
+from toad.conversation_kind import ConversationKind
 from toad.app import ToadApp
 from toad.widgets.comms_chat import CommsChatView
 from toad.core.input_events import SelectHistoricalIdentity
@@ -26,7 +27,6 @@ from toad.navigation_target import NavigationContext, NavigationOwner
 from toad.widgets.recovery_view import RecoveryView
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import SideBar, ThreadSidebar, TabHistoryControls
-from toad.navigation_target import FeedTarget, DirectTarget, NavigationContext, NavigationOwner
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
 
 
@@ -63,7 +63,7 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
         owner_mode: str,
         me: str,
         target: str,
-        kind: str,
+        kind: type[ConversationKind],
         recovery_root: str | None = None,
         wire_root: str | None = None,
     ) -> None:
@@ -167,7 +167,7 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
             self.notify("No preserved history sources are attached yet.")
             return
         self.app.push_screen(HistoricalSessions(comms, threads,
-            name=self.target if self.kind == "dm" else None))
+            name=self.kind.historical_thread(self.target)))
 
     def on_mount(self) -> None:
         if not self._content_loaded:
@@ -272,21 +272,10 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
             await self.app.select_session(self.owner_mode)
 
     async def action_toggle_irc(self) -> None:
-        if self.kind == "irc":
-            await self.action_back_to_agent()
-        else:
-            await self.open_sidebar_target(FeedTarget())
+        await self.kind.toggle_irc(self)
 
     async def action_toggle_dm(self) -> None:
-        if self.kind == "dm":
-            await self.action_back_to_agent()
-            return
-        sidebar = self.query_one(CommsSidebar)
-        peers = [
-            name for name in sorted(sidebar.observation.registry_names()) if name != self.me
-        ]
-        if peers:
-            await self.open_sidebar_target(DirectTarget(peers[0]))
+        await self.kind.toggle_dm(self)
 
     def action_session_previous(self) -> None:
         self.app.session_navigation.events.publish(session_requests.SessionNavigate(self.owner_mode, -1))

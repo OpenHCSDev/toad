@@ -24,7 +24,7 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.acp_failure import ACPFailure
 from agent_comms.field_codec import FieldCodec
-from agent_comms.goal_actions import RetryGoalAction
+from agent_comms.goal_actions import GoalAction
 from agent_comms.goal_presentation import GoalExecution
 from agent_comms.goals import Goal
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage, TranscriptReadIdentity
@@ -402,26 +402,10 @@ class Agent(AgentBase):
         self.events.publish(core_events.CommsUpdated(self.coordination, self.session_id))
         return result.current
 
-    async def update_goal(self, action: str, text: str = "") -> Goal | None:
-        if action == "set":
-            result = await self.controller.request_owner("set_goal", text=text)
-        else:
-            goal, _ = await self.get_goal_snapshot()
-            if goal is None:
-                raise ValueError("The goal changed; refresh its state.")
-            if action == "retry":
-                if goal.state.toggle is not RetryGoalAction:
-                    raise ValueError("The blocked goal changed; refresh its state.")
-                result = await self.controller.request_owner(
-                    "retry_goal", goal_id=goal.id, expected_revision=goal.revision
-                )
-            else:
-                result = await self.controller.request_owner(
-                    "update_goal",
-                    status=action,
-                    goal_id=goal.id,
-                    expected_revision=goal.revision,
-                )
+    async def update_goal(self, action: type[GoalAction], text: str = "") -> Goal | None:
+        result = await action.submit_control(
+            self.get_goal_snapshot, self.controller.request_owner, text,
+        )
         return (
             FieldCodec.decode(Goal, result["goal"])
             if result["goal"] is not None

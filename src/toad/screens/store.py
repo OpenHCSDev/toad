@@ -1,4 +1,5 @@
 from toad.core import session_requests, input_events
+from agent_comms.field_codec import FieldCodec
 from toad.core.preference_events import PreferenceChanged
 from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 from agent_comms.mro_dispatch import handles
@@ -143,7 +144,7 @@ class AgentItem(containers.VerticalGroup):
         with containers.Grid():
             yield widgets.Label(agent.name, id="name")
             tag = pill(
-                agent.kind.declared_name,
+                FieldCodec.encode(agent.kind),
                 "$primary-muted 50%",
                 "$text-primary",
                 filled=not self.app.theme.startswith("ansi-"),
