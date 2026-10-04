@@ -45,12 +45,30 @@ class ContextNode(ABC):
         """Only original public content is searchable, never private reasoning."""
         return ""
 
-    def find(self, query: str):
-        """Walk original references on demand; do not build a second text index."""
+    def _find_public(self, query):
         if query in self.public_text().casefold():
             yield self
         for child in self.children():
-            yield from child.find(query)
+            yield from child._find_public(query)
+
+    async def find(self, query: str, *, limit=100):
+        """Search one observed tree in one worker, without a second text index."""
+        from itertools import islice
+
+        def read():
+            return tuple(islice(self._find_public(query), limit))
+
+        for match in await Coordination.run_worker(read):
+            yield match
+
+    @staticmethod
+    def search_roots(inspection, native):
+        if native is None:
+            raise ValueError("Current native context is not loaded; a selected recorded request can be read separately")
+        return (*inspection.contributors(native), *inspection.active(native))
+
+    def search_description(self):
+        return "Current public context"
 
     async def read(self):
         return await Coordination.run_worker(self.detail)
@@ -84,6 +102,17 @@ class ReferenceNode(ContextNode):
     async def read(self):
         original = await self.read_source(self.source)
         return f"{original.description}\n\n{original.text}"
+
+    def search_roots(self, inspection, native):
+        return (self,)
+
+    def search_description(self):
+        return self.label
+
+    async def find(self, query, *, limit=100):
+        original = await self.read_source(self.source)
+        if query in original.text.casefold() or query in original.description.casefold():
+            yield self
 
 
 @dataclass(frozen=True)
@@ -122,15 +151,81 @@ class RecordedTurnNode(ContextNode):
         return f"Request {turn.occurrence.generation} · {turn.identity.value[:12]}"
 
     def children(self):
-        return tuple(ManifestNode(f"{self.key}/{i}", segment,
-                                 partial(self.inspection.recorded_source, self.manifest, i))
-                     for i, segment in enumerate(self.manifest.segments))
+        return tuple(RecordedSegmentNode(f"{self.key}/{i}", self.manifest,
+                                         self.inspection, i)
+                     for i in range(len(self.manifest.segments)))
+
+    def search_roots(self, inspection, native):
+        return (self,)
+
+    def search_description(self):
+        return self.label
 
     def detail(self):
         return (f"Recorded turn · {self.manifest.turn.require_recorded().identity.value}\n"
                 f"Counter: {self.manifest.counter}\n\n"
                 "Historical request observation, not an additional active context section. "
                 "Segment counts are estimates, not provider measurements.")
+
+    async def read(self):
+        parts = [self.detail()]
+        for child in self.children():
+            parts.append(await child.read())
+        return "\n\n".join(parts)
+
+    async def find(self, query, *, limit=100):
+        count = 0
+        for child in self.children():
+            async for match in child.find(query, limit=limit - count):
+                yield match
+                count += 1
+                if count == limit:
+                    return
+
+
+@dataclass(frozen=True)
+class RecordedSegmentNode(RecordedTurnNode):
+    """An original request and navigation coordinate borrow its authenticated reader."""
+    position: int
+    contributors: tuple[int, ...] = ()
+
+    @property
+    def segment(self):
+        return self.manifest.selected_segment(self.position, self.contributors)
+
+    @property
+    def label(self):
+        return self.segment.public_description()
+
+    def children(self):
+        segment = self.segment
+        return (
+            *(RecordedSegmentNode(f"{self.key}/contributor/{i}", self.manifest,
+                                  self.inspection, self.position, (*self.contributors, i))
+              for i in range(len(segment.contributors))),
+            *(ReferenceNode(f"{self.key}/source/{i}", source,
+                            partial(self.inspection.recorded_source,
+                                    self.manifest, self.position))
+              for i, source in enumerate(segment.provenance)),
+        )
+
+    async def source_text(self):
+        return await self.inspection.recorded_segment(
+            self.manifest, self.position, self.contributors)
+
+    async def read(self):
+        original = await self.source_text()
+        return f"{original.description}\n\n{original.text}"
+
+    async def find(self, query, *, limit=100):
+        # One complete selected value includes its annotation children. Search
+        # that value once; opening a child still uses that exact child's path.
+        original = await self.source_text()
+        if query in original.text.casefold() or query in original.description.casefold():
+            yield self
+
+    def search_description(self):
+        return f"{super().search_description()} · {self.manifest.turn.require_recorded().identity.value[:12]}"
 
 
 @dataclass(frozen=True)
@@ -268,13 +363,18 @@ class ContextInspection:
         return tuple(RecordedTurnNode(f"turn/{identity}", manifest, self)
                      for identity, manifest in reversed(turns.items()))
 
-    def find(self, native, query: str, *, limit=100):
+    async def find(self, native, query: str, selected: ContextNode | None = None, *, limit=100):
         """Bound result widgets, while searching the original available public text."""
-        from itertools import islice
-
         normalized = query.casefold()
-        nodes = (*self.contributors(native), *self.active(native)) if native is not None else ()
-        return tuple(islice((match for node in nodes for match in node.find(normalized)), limit))
+        roots = selected.search_roots if selected is not None else ContextNode.search_roots
+        nodes = await Coordination.run_worker(partial(roots, self, native))
+        matches = []
+        for node in nodes:
+            async for match in node.find(normalized, limit=limit - len(matches)):
+                matches.append(match)
+                if len(matches) == limit:
+                    return tuple(matches)
+        return tuple(matches)
 
     async def _request(self, action, **parameters):
         owner = await Coordination.run_worker(partial(self.service.registry.require, self.owner.name))
@@ -302,6 +402,12 @@ class ContextInspection:
         payload = await self._request("context_reference",
             turn=FieldCodec.encode(manifest.turn), request_id=manifest.require_request_id(),
             segment=position, source=FieldCodec.encode(source))
+        return FieldCodec.decode(ContextSourceText, payload)
+
+    async def recorded_segment(self, manifest, position, contributors=()):
+        payload = await self._request("context_recorded_segment",
+            turn=FieldCodec.encode(manifest.turn), request_id=manifest.require_request_id(),
+            segment=position, contributors=contributors)
         return FieldCodec.decode(ContextSourceText, payload)
 
     def active(self, context: NativeContextData):

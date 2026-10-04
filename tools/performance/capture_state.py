@@ -318,7 +318,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                             "native_present": node._native is not None,
                             "status": str(node.query_one(".context-status", Static).content),
                             "detail": detail.text,
-                            "selected": node.intent.selected,
+                            "selected": node.intent.selected.key if node.intent.selected is not None else None,
                             "query": node.intent.query,
                             "clipboard": app.clipboard,
                             "maximized": node.screen.maximized is detail,

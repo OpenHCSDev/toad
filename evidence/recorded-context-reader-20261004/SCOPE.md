@@ -28,3 +28,36 @@ Before/after AST reuses NRA/refactor-audit Package; report omissions and dynamic
 limits. Publish coherent code before final checks. Combine original sealed-request
 read/search/full-reader, actual606 footer and real terminal menu/slash controls in
 one useful installed check; do not repeat03/05 current-reader rituals.
+
+## Coherent source checkpoint
+
+RecordedTurnNode now renders the original request through its member readers.
+The one added RecordedSegmentNode member is a behavior-owning navigation resource,
+not a second context payload: it stores the original manifest and contributor
+coordinate; segment, digest, provenance and text are derived from the existing
+ContextManifest.selected_segment and authenticated RPC. Its read/search/children
+hooks carry exact selected-child behavior. ManifestNode remains metadata for
+current annotations, which do not possess a sealed historical request identity.
+This distinction prevents inventing request authority for a current annotation.
+
+ContextInspection sends context_recorded_segment with original turn/request ID,
+root position and contributor tuple; FieldCodec decodes ContextSourceText once.
+No root substitution or reconstructed wording. Recorded reads/copy/export share
+the same node. Search reads one complete selected value once; opening a child
+uses that exact child's coordinate. Empty public text remains empty. Historical
+missing request IDs or unavailable original SDK values fail at their original
+owner and are displayed by the existing unavailable reader/search presentation.
+
+Search is an async family contract: loaded current observations traverse in one
+bounded read worker; authenticated recorded/source reads await the existing RPC.
+The existing reader intent now retains its selected model resource rather than
+a detached string key, so a zero-match recorded query cannot silently retarget
+the next query to today's base. New source identity clears that choice. Native
+Tree rematerialization refreshes the same resource; no provenance/index store.
+Capture exports the derived key, preserving its original external shape.
+
+606 source chain is NativeSessionPreparation.input_ready -> original StatsRequest
+-> open(observe) -> TurnRunner.observe_selected_preparation -> AgentEventConsumer
+and ACP usage/coordination -> ContextMeasurement -> Conversation UpdateStatusLine.
+No segment-based footer estimate, status copy or extra publisher is added.
+Final installed check must observe this real chain, not seed a measurement.

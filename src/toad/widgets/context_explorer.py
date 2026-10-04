@@ -25,7 +25,7 @@ from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibility
 class ContextTreeIntent:
     """Only reader choices survive disposable sidebar widget retirement."""
     expanded: set[str] = field(default_factory=set)
-    selected: str | None = None
+    selected: ContextNode | None = None
     query: str = ""
 
 
@@ -54,7 +54,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
     def compose(self):
         yield Static("Context · select a segment to inspect", markup=False,
                      classes="context-status")
-        yield Input(self.intent.query, placeholder="Search public instructions and messages · Enter",
+        yield Input(self.intent.query, placeholder="Search current context or selected recorded request · Enter",
                     id="context-search")
         with Horizontal(classes="context-controls"):
             yield Button("Search", id="context-find")
@@ -111,6 +111,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         self.owner, self.wire_root = owner, root
         self._inspection, self._native = None, None
         self._observed_revision = None
+        self.intent.selected = None
         self.query_one(Tree).clear()
         self.query_one(TextArea).load_text("No context selected.")
         self.action_refresh()
@@ -204,8 +205,8 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             f"{owner} · recorded manifests only\nCurrent detail unavailable: {unavailable}")
 
     def _present(self, inspection, native):
-        if self.intent.query and native is not None:
-            self._search(inspection, native, self.intent.query)
+        if self.intent.query:
+            self._search(inspection, native, self.intent.query, self.intent.selected)
             return
         self.workers.cancel_group(self, "context-search")
         tree = self.query_one(Tree)
@@ -237,8 +238,10 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
                     self._expand(node)
                     node.expand()
                     pending.extend(node.children)
-        if self.intent.selected in self._context_nodes:
-            model = self._context_nodes[self.intent.selected].data
+        selected = self.intent.selected
+        if selected is not None and selected.key in self._context_nodes:
+            model = self._context_nodes[selected.key].data
+            self.intent.selected = model
             self.call_after_refresh(self._restore_cursor, model)
         else:
             # A pending/unavailable original observation cannot revoke the
@@ -256,16 +259,13 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         event.stop()
         if self._inspection is not None:
             self._present(self._inspection, self._native)
-            if self._native is None and self.intent.query:
-                self.query_one(".context-status", Static).update(
-                    "Current public text is not loaded; search resumes when the native read completes.")
 
     @work(group="context-search", exclusive=True, exit_on_error=False)
-    async def _search(self, inspection, native, query):
+    async def _search(self, inspection, native, query, selected):
         status = self.query_one(".context-status", Static)
         status.update("Searching original public context…")
         try:
-            matches = await Coordination.run_worker(partial(inspection.find, native, query))
+            matches = await inspection.find(native, query, selected)
         except (OSError, ValueError, RuntimeError, RequestError) as error:
             if self._searching(inspection, native, query):
                 status.update(f"Context search unavailable: {error}")
@@ -277,11 +277,12 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         self._loaded.clear()
         with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
             tree.clear()
-            tree.root.set_label(f"Current public context · {query}")
+            description = selected.search_description() if selected is not None else "Current public context"
+            tree.root.set_label(f"{description} · {query}")
             tree.root.expand()
             for model in matches:
                 self._add(tree.root, model)
-        status.update(f"{len(matches)} matching sources · first 100 shown · recorded request text is separate evidence")
+        status.update(f"{len(matches)} matching sources · first 100 shown · {description}")
         self._restore_reader("Select a matching original source to read its full public text.")
 
     def _searching(self, inspection, native, query):
@@ -347,7 +348,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
     def _restore_cursor(self, model):
         node = self._context_nodes.get(model.key)
         if (self._owns_node(node) and node.data is model
-                and self.intent.selected == model.key):
+                and self.intent.selected is model):
             # Restoring this exact reader choice owns its detail publication.
             # A second queued highlight must not cancel/re-read the same source.
             with self.prevent(Tree.NodeHighlighted):
@@ -386,7 +387,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
     def node_highlighted(self, event):
         event.stop()
         if self._owns_node(event.node):
-            self.intent.selected = event.node.data.key
+            self.intent.selected = event.node.data
             self._show_detail(event.node.data)
 
     def _selected(self, model):
