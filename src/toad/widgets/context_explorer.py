@@ -242,6 +242,14 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         if selected is not None and selected.key in self._context_nodes:
             model = self._context_nodes[selected.key].data
             self.intent.selected = model
+            # A rematerialized selected request still belongs to its original
+            # Tree path. Reveal that path before moving its native cursor;
+            # group disclosure is a rendering resource, not source authority.
+            ancestor = self._context_nodes[selected.key].parent
+            with self.prevent(Tree.NodeExpanded):
+                while ancestor is not None:
+                    ancestor.expand()
+                    ancestor = ancestor.parent
             self.call_after_refresh(self._restore_cursor, model)
         else:
             # A pending/unavailable original observation cannot revoke the
@@ -267,10 +275,10 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         try:
             matches = await inspection.find(native, query, selected)
         except (OSError, ValueError, RuntimeError, RequestError) as error:
-            if self._searching(inspection, native, query):
+            if self._searching(inspection, native, query, selected):
                 status.update(f"Context search unavailable: {error}")
             return
-        if not self._searching(inspection, native, query):
+        if not self._searching(inspection, native, query, selected):
             return
         tree = self.query_one(Tree)
         self._context_nodes.clear()
@@ -285,12 +293,13 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         status.update(f"{len(matches)} matching sources · first 100 shown · {description}")
         self._restore_reader("Select a matching original source to read its full public text.")
 
-    def _searching(self, inspection, native, query):
+    def _searching(self, inspection, native, query, selected):
         return (self.is_attached and not get_current_worker().is_cancelled
                 and self._inspection is not None
                 and inspection.same_native_source(self._inspection)
                 and self._native is native
-                and self.intent.query == query)
+                and self.intent.query == query
+                and self.intent.selected is selected)
 
     @on(Button.Pressed, "#context-read-full")
     @work(group="context-full-read", exclusive=True, exit_on_error=False)
@@ -387,6 +396,8 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
     def node_highlighted(self, event):
         event.stop()
         if self._owns_node(event.node):
+            if self.intent.selected is not event.node.data:
+                self.workers.cancel_group(self, "context-search")
             self.intent.selected = event.node.data
             self._show_detail(event.node.data)
 
