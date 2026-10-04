@@ -13,7 +13,9 @@ The explorer has one inspection state in `core/context_inspection.py`. Its route
 
 ## Complete consumers
 
-Production acquisition/presentation/search is confined to ContextInspection/its state family and ContextExplorer. MainScreen supplies identity through set_identity; ContextSessionPanel constructs the explorer with existing intent. The capture-state exporter and cold_context_installed_physical App contributor test were migrated, with no compatibility aliases. Before AST covers 288 Toad, 311 Core and 249 Textual modules with zero parse omissions. Lexical references do not prove dynamic MRO/callback resolution; those owners and handlers were read directly. After evidence accompanies this checkpoint.
+Production acquisition/presentation/search is confined to ContextInspection/its state family and ContextExplorer. MainScreen supplies identity through set_identity; ContextSessionPanel constructs the explorer with existing intent. The capture-state exporter and cold_context_installed_physical App contributor test were migrated, with no compatibility aliases. Before AST covers 288 Toad, 311 Core and 249 Textual modules with zero parse omissions. Lexical references do not prove dynamic MRO/callback resolution; those owners and handlers were read directly. After evidence covers the same production roots plus 393 test modules and 39 performance-tool modules, again with zero parse omissions. It finds no retired explorer lifecycle attribute consumer. The source sanity compiled those production modules and the four changed files in Python 3.14.7; it detects syntax errors, not installed import/App behavior.
+
+The F3 production batch adds 299 lines and deletes 109. Across the full PR417 product delta against determining candidate 0b99, the two files add 478 and delete 138 lines.
 
 ## Actual strength and remaining work
 

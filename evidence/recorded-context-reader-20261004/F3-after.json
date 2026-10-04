@@ -1,0 +1,867 @@
+{
+  "roots": [
+    {
+      "root": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "head": "26a15804862c8e38b04207620ae22c820ff61b83",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "root": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "head": "8f16339673835114f526d7431032576099764af5",
+      "parsed": 311,
+      "omissions": []
+    },
+    {
+      "root": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "b263e4e707846025fd6b70448749c7a36c0a2d81",
+      "parsed": 249,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "head": "26a15804862c8e38b04207620ae22c820ff61b83",
+      "parsed": 393,
+      "omissions": []
+    },
+    {
+      "root": "tools/performance",
+      "head": "26a15804862c8e38b04207620ae22c820ff61b83",
+      "parsed": 39,
+      "omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "root": "src/toad",
+      "file": "src/toad/acp/attachment_presentation.py",
+      "line": 7,
+      "kind": "ImportFrom",
+      "expression": "from toad.private_native_cursor import CursorStatus"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/agent_presentation.py",
+      "line": 7,
+      "kind": "ImportFrom",
+      "expression": "from toad.private_native_cursor import CursorStatus"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 332,
+      "kind": "ClassDef",
+      "expression": "@dataclass(frozen=True)\nclass ContextInspection:\n    \"\"\"Original observed objects and selection identity, shared by any frontend.\"\"\"\n    owner: Thread\n    manifests: tuple[ContextManifest, ...]\n    source: SessionObservation\n    service: Co"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 419,
+      "kind": "ClassDef",
+      "expression": "class InspectionState(DeclaredFamily, affix='Inspection'):\n    \"\"\"One inspection lifetime; Textual owns workers and Tree resources separately.\"\"\"\n    name = ''\n    root = None\n    native_present = False\n\n    @classmethod\n    def for_owner(c"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 487,
+      "kind": "ClassDef",
+      "expression": "class DetachedInspection(InspectionState):\n\n    async def acquire(self, service, revision) -> InspectionState:\n        return self"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 493,
+      "kind": "ClassDef",
+      "expression": "@dataclass(frozen=True)\nclass ReadingOwnerInspection(InspectionState):\n    name: str = field()\n    root: str = field()\n\n    def observed_at(self, revision) -> bool:\n        return False\n\n    def observe(self, revision) -> InspectionState:\n "
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 505,
+      "kind": "ClassDef",
+      "expression": "@dataclass(frozen=True)\nclass ObservedOwnerInspection(ReadingOwnerInspection):\n    revision: int\n\n    def observed_at(self, revision) -> bool:\n        return self.revision == revision"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 513,
+      "kind": "ClassDef",
+      "expression": "@dataclass(frozen=True)\nclass HoldingInspection(InspectionState):\n    inspection: ContextInspection\n    revision: int\n\n    @property\n    def name(self):\n        return self.inspection.owner.name\n\n    @property\n    def root(self):\n        re"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 575,
+      "kind": "ClassDef",
+      "expression": "@dataclass(frozen=True)\nclass NativeInspection(HoldingInspection):\n    native: NativeContextData\n    native_present = True\n\n    def receive_inspection(self, acquired) -> InspectionState:\n        if self.same_source(acquired.inspection):\n   "
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 626,
+      "kind": "ClassDef",
+      "expression": "@dataclass(frozen=True)\nclass UnavailableNativeInspection(HoldingInspection):\n    error: str\n\n    def receive_inspection(self, acquired) -> InspectionState:\n        if self.same_source(acquired.inspection):\n            return UnavailableNat"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 66,
+      "kind": "FunctionDef",
+      "expression": "@staticmethod\ndef search_roots(current_roots):\n    return current_roots()"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 105,
+      "kind": "FunctionDef",
+      "expression": "def search_roots(self, current_roots):\n    return (self,)"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 157,
+      "kind": "FunctionDef",
+      "expression": "def search_roots(self, current_roots):\n    return (self,)"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 345,
+      "kind": "FunctionDef",
+      "expression": "def same_native_source(self, other: ContextInspection):\n    \"\"\"Compare original SDK source/launch facts, not roster presentation.\"\"\"\n    return self.source == other.source and self.owner.publication_identity == other.owner.publication_ident"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 359,
+      "kind": "FunctionDef",
+      "expression": "def changed_since(self, previous: ContextInspection) -> bool:\n    \"\"\"Whether the original recorded request observations changed.\"\"\"\n    return self.manifests != previous.manifests"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 487,
+      "kind": "Name",
+      "expression": "InspectionState"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 493,
+      "kind": "Name",
+      "expression": "InspectionState"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 505,
+      "kind": "Name",
+      "expression": "ReadingOwnerInspection"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 513,
+      "kind": "Name",
+      "expression": "InspectionState"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 575,
+      "kind": "Name",
+      "expression": "HoldingInspection"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 626,
+      "kind": "Name",
+      "expression": "HoldingInspection"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 145,
+      "kind": "Name",
+      "expression": "ContextInspection"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 427,
+      "kind": "Name",
+      "expression": "InspectionState"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 437,
+      "kind": "Name",
+      "expression": "InspectionState"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 440,
+      "kind": "Name",
+      "expression": "InspectionState"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 446,
+      "kind": "Name",
+      "expression": "InspectionState"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 464,
+      "kind": "Name",
+      "expression": "InspectionState"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 467,
+      "kind": "Name",
+      "expression": "InspectionState"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 470,
+      "kind": "Name",
+      "expression": "InspectionState"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 488,
+      "kind": "Name",
+      "expression": "InspectionState"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 500,
+      "kind": "Name",
+      "expression": "InspectionState"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 514,
+      "kind": "Name",
+      "expression": "ContextInspection"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 528,
+      "kind": "Name",
+      "expression": "InspectionState"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 549,
+      "kind": "Name",
+      "expression": "InspectionState"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 552,
+      "kind": "Name",
+      "expression": "InspectionState"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 579,
+      "kind": "Name",
+      "expression": "InspectionState"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 587,
+      "kind": "Name",
+      "expression": "InspectionState"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 597,
+      "kind": "Name",
+      "expression": "InspectionState"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 629,
+      "kind": "Name",
+      "expression": "InspectionState"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 345,
+      "kind": "Name",
+      "expression": "ContextInspection"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 359,
+      "kind": "Name",
+      "expression": "ContextInspection"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 444,
+      "kind": "Name",
+      "expression": "HoldingInspection"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 501,
+      "kind": "Name",
+      "expression": "ObservedOwnerInspection"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 532,
+      "kind": "Attribute",
+      "expression": "inspection.same_native_source"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 559,
+      "kind": "Attribute",
+      "expression": "selected.search_roots"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 559,
+      "kind": "Attribute",
+      "expression": "ContextNode.search_roots"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 590,
+      "kind": "Name",
+      "expression": "NativeInspection"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 429,
+      "kind": "Name",
+      "expression": "ReadingOwnerInspection"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 429,
+      "kind": "Name",
+      "expression": "DetachedInspection"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 535,
+      "kind": "Attribute",
+      "expression": "inspection.changed_since"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 550,
+      "kind": "Name",
+      "expression": "NativeInspection"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 553,
+      "kind": "Name",
+      "expression": "UnavailableNativeInspection"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 581,
+      "kind": "Name",
+      "expression": "NativeInspection"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 600,
+      "kind": "Name",
+      "expression": "NativeInspection"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 631,
+      "kind": "Name",
+      "expression": "UnavailableNativeInspection"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/core/context_inspection.py",
+      "line": 443,
+      "kind": "Name",
+      "expression": "ContextInspection"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/directory_watcher.py",
+      "line": 252,
+      "kind": "Attribute",
+      "expression": "self._observed_revision"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/directory_watcher.py",
+      "line": 272,
+      "kind": "Attribute",
+      "expression": "self._observed_revision"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/directory_watcher.py",
+      "line": 279,
+      "kind": "Attribute",
+      "expression": "self._observed_revision"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/screens/main.py",
+      "line": 316,
+      "kind": "ImportFrom",
+      "expression": "from toad.widgets.context_explorer import ContextExplorer"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/screens/main.py",
+      "line": 316,
+      "kind": "alias",
+      "expression": "ContextExplorer"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/screens/main.py",
+      "line": 317,
+      "kind": "Name",
+      "expression": "ContextExplorer"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 15,
+      "kind": "ImportFrom",
+      "expression": "from toad.core.context_inspection import ContextNode, DetachedInspection, HoldingInspection, InspectionState"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 32,
+      "kind": "ClassDef",
+      "expression": "class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):\n    DEFAULT_CSS = '\\n    ContextExplorer { height: auto; }\\n    ContextExplorer > .context-status { height: auto; color: $text-muted; }\\n    ContextExplorer > Tr"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 16,
+      "kind": "alias",
+      "expression": "DetachedInspection"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 16,
+      "kind": "alias",
+      "expression": "HoldingInspection"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 16,
+      "kind": "alias",
+      "expression": "InspectionState"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 102,
+      "kind": "Name",
+      "expression": "DetachedInspection"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 165,
+      "kind": "Name",
+      "expression": "HoldingInspection"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 183,
+      "kind": "Name",
+      "expression": "HoldingInspection"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 281,
+      "kind": "Name",
+      "expression": "HoldingInspection"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 46,
+      "kind": "Name",
+      "expression": "InspectionState"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 109,
+      "kind": "Name",
+      "expression": "InspectionState"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/widgets/conversation.py",
+      "line": 92,
+      "kind": "ImportFrom",
+      "expression": "from toad.private_native_cursor import CursorStatus"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/widgets/native_history.py",
+      "line": 6,
+      "kind": "ImportFrom",
+      "expression": "from toad.private_native_cursor import LABELS, TOOLTIP, CursorStatus"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/widgets/session_thread_panels.py",
+      "line": 118,
+      "kind": "ImportFrom",
+      "expression": "from toad.widgets.context_explorer import ContextExplorer, ContextTreeIntent"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/widgets/session_thread_panels.py",
+      "line": 118,
+      "kind": "alias",
+      "expression": "ContextExplorer"
+    },
+    {
+      "root": "src/toad",
+      "file": "src/toad/widgets/session_thread_panels.py",
+      "line": 121,
+      "kind": "Name",
+      "expression": "ContextExplorer"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/assignment_states.py",
+      "line": 442,
+      "kind": "ImportFrom",
+      "expression": "from .historical_native_inputs import FailedTriageHistoricalNativeInput"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/attempt_recovery.py",
+      "line": 64,
+      "kind": "ImportFrom",
+      "expression": "from agent_comms.coordinated_runtime_schema import assert_native_runtime_schema"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/context_tokens.py",
+      "line": 8,
+      "kind": "ImportFrom",
+      "expression": "from .native_package import verify_native_package"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/continued_private_session.py",
+      "line": 13,
+      "kind": "ImportFrom",
+      "expression": "from .coordinated_runtime_schema import assert_native_runtime_schema"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/coordinated_runtime_schema.py",
+      "line": 17,
+      "kind": "ImportFrom",
+      "expression": "from . import triage_native_sources"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/cursor_owner.py",
+      "line": 10,
+      "kind": "ImportFrom",
+      "expression": "from .coordinated_runtime_schema import assert_native_runtime_schema"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/cursor_owner.py",
+      "line": 13,
+      "kind": "ImportFrom",
+      "expression": "from .historical_native_inputs import HistoricalNativeInput"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/historical_native_inputs.py",
+      "line": 23,
+      "kind": "ImportFrom",
+      "expression": "from .coordinated_runtime_schema import assert_native_runtime_schema"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/native_compaction_writer.py",
+      "line": 18,
+      "kind": "ImportFrom",
+      "expression": "from .native_package import COMPACTION_HELPER, verify_native_package"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/native_input_record.py",
+      "line": 135,
+      "kind": "ImportFrom",
+      "expression": "from .triage_native_sources import TriageNativeSources"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/native_input_record.py",
+      "line": 141,
+      "kind": "ImportFrom",
+      "expression": "from .triage_native_sources import TriageNativeSources"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/native_input_record.py",
+      "line": 228,
+      "kind": "ImportFrom",
+      "expression": "from .historical_native_inputs import FullHistoricalNativeInput"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/native_pi.py",
+      "line": 771,
+      "kind": "ImportFrom",
+      "expression": "from .native_package import NativePackageError, verify_native_package"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/native_prompt_binding.py",
+      "line": 25,
+      "kind": "ImportFrom",
+      "expression": "from .coordinated_runtime_schema import assert_native_runtime_schema"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/native_runtime_input.py",
+      "line": 38,
+      "kind": "ImportFrom",
+      "expression": "from .coordinated_runtime_schema import install_native_runtime_schema"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/native_runtime_input.py",
+      "line": 148,
+      "kind": "ImportFrom",
+      "expression": "from .coordinated_runtime_schema import assert_native_runtime_schema"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/native_session_reopen.py",
+      "line": 11,
+      "kind": "ImportFrom",
+      "expression": "from .native_package import verify_native_package"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/native_source_cursor.py",
+      "line": 14,
+      "kind": "ImportFrom",
+      "expression": "from .coordinated_runtime_schema import assert_native_runtime_schema"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/native_source_cursor.py",
+      "line": 19,
+      "kind": "ImportFrom",
+      "expression": "from .historical_native_inputs import HistoricalNativeInput"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/owner_compaction_prepare.py",
+      "line": 21,
+      "kind": "ImportFrom",
+      "expression": "from .native_package import verify_native_package"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/owner_compaction_runtime.py",
+      "line": 25,
+      "kind": "ImportFrom",
+      "expression": "from .selected_pi_route import prepare_selected_native_source"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/private_send_admission.py",
+      "line": 20,
+      "kind": "ImportFrom",
+      "expression": "from .coordinated_runtime_schema import assert_native_runtime_schema"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/private_send_stage.py",
+      "line": 14,
+      "kind": "ImportFrom",
+      "expression": "from .coordinated_runtime_schema import assert_native_runtime_schema"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/proven_source_coverage.py",
+      "line": 26,
+      "kind": "ImportFrom",
+      "expression": "from .coordinated_runtime_schema import assert_native_runtime_schema"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/proven_source_coverage.py",
+      "line": 28,
+      "kind": "ImportFrom",
+      "expression": "from .historical_native_inputs import HistoricalNativeInput, read_historical_native_inputs"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/selected_participant.py",
+      "line": 16,
+      "kind": "ImportFrom",
+      "expression": "from .coordinated_runtime_schema import assert_native_runtime_schema"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/selected_request.py",
+      "line": 12,
+      "kind": "ImportFrom",
+      "expression": "from .selected_result import publish_native_failure"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/selected_tool_broker.py",
+      "line": 30,
+      "kind": "ImportFrom",
+      "expression": "from .coordinated_runtime_schema import assert_native_runtime_schema"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/selected_triage.py",
+      "line": 143,
+      "kind": "ImportFrom",
+      "expression": "from .selected_result import publish_native_failure"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/selected_triage.py",
+      "line": 182,
+      "kind": "ImportFrom",
+      "expression": "from .historical_native_inputs import TriageHistoricalNativeInput"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/source_proof_requirement.py",
+      "line": 14,
+      "kind": "ImportFrom",
+      "expression": "from .historical_native_inputs import HistoricalNativeInput"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/thread_management.py",
+      "line": 32,
+      "kind": "ImportFrom",
+      "expression": "from .native_fork import fork_native_session"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/turn_context.py",
+      "line": 700,
+      "kind": "FunctionDef",
+      "expression": "def changed_since(self, previous: ContextManifest) -> dict:\n    \"\"\"An inspection projection, never a retained input copy.\"\"\"\n    return {'previous_turn': FieldCodec.encode(previous.turn), 'turn': FieldCodec.encode(self.turn), 'removed': [Fi"
+    },
+    {
+      "root": "src/agent_comms",
+      "file": "src/agent_comms/turn_context.py",
+      "line": 698,
+      "kind": "Attribute",
+      "expression": "self.changed_since"
+    },
+    {
+      "root": "tests",
+      "file": "tests/cold_context_installed_physical.py",
+      "line": 202,
+      "kind": "alias",
+      "expression": "ContextExplorer"
+    },
+    {
+      "root": "tests",
+      "file": "tests/cold_context_installed_physical.py",
+      "line": 261,
+      "kind": "alias",
+      "expression": "ContextInspection"
+    },
+    {
+      "root": "tests",
+      "file": "tests/cold_context_installed_physical.py",
+      "line": 286,
+      "kind": "Name",
+      "expression": "ContextInspection"
+    },
+    {
+      "root": "tests",
+      "file": "tests/cold_context_installed_physical.py",
+      "line": 221,
+      "kind": "Name",
+      "expression": "ContextExplorer"
+    },
+    {
+      "root": "tests",
+      "file": "tests/cold_context_installed_physical.py",
+      "line": 478,
+      "kind": "Name",
+      "expression": "ContextInspection"
+    }
+  ],
+  "ambiguity": "Lexical AST evidence only; runtime callback/MRO dispatch was read semantically, not resolved by this parser.",
+  "retired_explorer_attributes": [],
+  "source_sanity": {
+    "python": "3.14.7",
+    "failure_detected": "Syntax/compile errors after moving state and consumer bindings",
+    "compiled_production_modules": 848,
+    "changed_files_compiled": 4,
+    "retired_explorer_attributes": 0,
+    "installed_app_checked": false,
+    "provider_calls": 0,
+    "package_writes": 0
+  }
+}
