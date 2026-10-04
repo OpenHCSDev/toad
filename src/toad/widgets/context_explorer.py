@@ -36,14 +36,14 @@ class ContextTreeIntent:
             self.selected = model
             show_detail(model)
 
-    def restore(self, nodes, restore_node):
+    def restore(self, resolve, restore_node):
         if self.selected is None:
             return False
-        node = nodes.get(self.selected.key)
+        node = resolve(self.selected.key)
         if node is None:
             return False
         self.selected = node.data
-        restore_node(node, self.selected)
+        restore_node(self.selected)
         return True
 
     def with_selected(self, model, consume):
@@ -132,17 +132,35 @@ class ContextTree(Tree[ContextNode]):
                     self._expand(node)
                     node.expand()
                     pending.extend(node.children)
-        if not self.intent.restore(self.context_nodes, self._reveal_restored):
+        if not self.intent.restore(self.reveal, self._reveal_restored):
             self.show_placeholder(placeholder)
 
-    def _reveal_restored(self, node, model):
+    def reveal(self, key):
+        """Materialize the current path without authoring a reader choice."""
+        node = self.context_nodes.get(key)
+        if node is None:
+            for root in tuple(self.context_nodes.values()):
+                path = root.data.reader_path(key)
+                if not path:
+                    continue
+                node = root
+                with self.prevent(Tree.NodeExpanded):
+                    for model in path[1:]:
+                        self._expand(node)
+                        node.expand()
+                        node = self.context_nodes[model.key]
+                break
+        if node is not None:
+            with self.prevent(Tree.NodeExpanded):
+                ancestor = node.parent
+                while ancestor is not None:
+                    ancestor.expand()
+                    ancestor = ancestor.parent
+        return node
+
+    def _reveal_restored(self, model):
         # The retained intent owns the reader choice. Native initialization may
         # already highlight a data-less root or group before this callback.
-        ancestor = node.parent
-        with self.prevent(Tree.NodeExpanded):
-            while ancestor is not None:
-                ancestor.expand()
-                ancestor = ancestor.parent
         self.call_after_refresh(self.intent.with_selected, model, self._restore_cursor)
 
     def _restore_cursor(self, model):

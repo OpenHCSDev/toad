@@ -21,6 +21,35 @@ from agent_comms.turn_context import (
 from toad.core.context_inspection import ContextInspection, ManifestNode, NativeSegmentNode
 
 
+async def select_context_source(pilot, tree, key):
+    """Borrow the mounted Tree's current source after layout acquisitions."""
+    await pilot.wait_for_scheduled_animations()
+    tree.scroll_visible(animate=False, immediate=True)
+    node = tree.reveal(key)
+    assert node is not None
+    tree.scroll_to_node(node, animate=False)
+    await pilot.wait_for_scheduled_animations()
+    # A context publication can reconcile or retire nodes during either await.
+    # The original key addresses the source; the mounted Tree owns its node.
+    node = tree.context_nodes[key]
+    assert tree.owns_node(node)
+    label = tree._get_label_region(node.line)
+    assert label is not None
+    geometry = pilot.app.screen.find_widget(tree)
+    target = label.translate(
+        tree.content_region.offset - tree.scroll_offset
+    ).intersection(geometry.clip).intersection(tree.scrollable_content_region)
+    assert target, "Original source label is outside the sidebar viewport"
+    point = target.offset
+    assert pilot.app.screen.get_widget_at(point.x, point.y)[0] is tree
+    assert await pilot.click(tree, offset=tuple(point - tree.region.offset))
+    # MouseDown owns focus, Click owns selection. Neither an automatic root
+    # highlight nor a click somewhere in the Tree admits the requested source.
+    assert tree.cursor_node is node and pilot.app.focused is tree
+    assert tree.owns_node(node) and tree.intent.selected is node.data
+    return node
+
+
 def test_imported_instruction_reference_read_search_export_remains_historical(tmp_path):
     source = tmp_path / "authored-codex.jsonl"
     records = [
@@ -182,6 +211,12 @@ def test_authored_import_registered_app_and_local_user_correction(tmp_path, monk
                        f"{worker.group}/{worker.name} {message.state.name}")
             elif isinstance(message, CoreEventMessage):
                 record(f"W6: original {type(message.event).__name__} dispatch")
+            elif isinstance(message, (events.MouseDown, events.MouseUp, events.Click)):
+                pump = active_message_pump.get()
+                record(f"W6: {type(pump).__name__}.{type(message).__name__} "
+                       f"at={message.screen_offset} style={message.style.meta}")
+            elif isinstance(message, ContextTree.NodeHighlighted):
+                record(f"W6: native Tree highlight node={message.node.id}")
 
         try:
             record("W6: original local USER correction committed; controller constructed")
@@ -201,28 +236,6 @@ def test_authored_import_registered_app_and_local_user_correction(tmp_path, monk
             app = ToadApp(agent_data=definition, project_dir=str(project), agent_session_id=owner.name)
             record("W6: entering original registered App startup and screen barrier")
             async with app.run_test(size=(130, 44), message_hook=dispatched) as pilot:
-                async def select_reference(tree, node):
-                    # Disclosure owns its queued ancestor scroll. A Tree line
-                    # alone does not put the Tree in the sidebar's viewport.
-                    await pilot.wait_for_scheduled_animations()
-                    tree.scroll_visible(animate=False, immediate=True)
-                    tree.scroll_to_node(node, animate=False)
-                    await pilot.wait_for_scheduled_animations()
-                    geometry = app.screen.find_widget(tree)
-                    label = tree._get_label_region(node.line)
-                    assert label is not None
-                    target = label.translate(
-                        tree.content_region.offset - tree.scroll_offset
-                    ).intersection(geometry.clip).intersection(tree.scrollable_content_region)
-                    assert target, "Original source label is outside the sidebar viewport"
-                    point = target.offset
-                    assert app.screen.get_widget_at(point.x, point.y)[0] is tree
-                    assert await pilot.click(tree, offset=tuple(point - tree.region.offset))
-                    # Screen MouseDown owns focus; Tree Click owns the source.
-                    # Keep both original oracles before keyboard dispatch.
-                    assert tree.cursor_node is node and app.focused is tree
-                    assert explorer.intent.selected is node.data
-
                 record("W6: App entered; awaiting original content readiness")
                 await app.selected_session.wait_content_ready()
                 record("W6: content ready; awaiting frame-admitted ACP agent construction")
@@ -252,9 +265,7 @@ def test_authored_import_registered_app_and_local_user_correction(tmp_path, monk
                 async with asyncio.timeout(20):
                     while reference.key not in tree.context_nodes:
                         await pilot.pause(.025)
-                node = tree.context_nodes[reference.key]
-                node.parent.expand()
-                await select_reference(tree, node)
+                await select_context_source(pilot, tree, reference.key)
                 record("W6: original imported source selected; dispatching native Enter")
                 await pilot.press("enter")
                 async with asyncio.timeout(10):
@@ -277,8 +288,7 @@ def test_authored_import_registered_app_and_local_user_correction(tmp_path, monk
                     while "1 matching sources" not in explorer.query_one(".context-status", Static).render().plain:
                         await pilot.pause(.025)
                 record("W6: historical search completed")
-                selected = tree.context_nodes[reference.key]
-                await select_reference(tree, selected)
+                await select_context_source(pilot, tree, reference.key)
                 exported = tmp_path / "historical-source.txt"
                 explorer.query_one("#context-export-path", Input).value = str(exported)
                 export_button = explorer.query_one("#context-export", Button)
@@ -303,6 +313,201 @@ def test_authored_import_registered_app_and_local_user_correction(tmp_path, monk
         assert source.read_bytes() == original
         assert InputDispositions(service.root / InputDispositions.filename).read() == inputs
         assert service.registry.require(receipt.thread).incarnation == original_owner.incarnation
+
+    asyncio.run(mounted())
+
+
+def test_authentic_recorded_annotation_gui_correction(tmp_path, monkeypatch):
+    """One separately granted localhost input authors the request being audited.
+
+    Controlled model rows address that request's original assembly spans.
+    Human corrections must traverse the mounted GUI and original ACP/RPC.
+    """
+    import os
+    from importlib.resources import files
+    from pathlib import Path
+    import shlex
+    import sys
+
+    from acp.agent.router import build_agent_router
+    from agent_comms.coordination_tables.annotations import AnnotationRequestsRow, SpanAnnotationsRow
+    from agent_comms.coordinator import Coordination
+    from agent_comms.native_package import verify_native_package
+    from agent_comms.thread_identity import ThreadRole
+    from agent_comms.turn_context import ContextSpan, FileProvenance
+    from agent_comms.working_memory_annotations import WorkingMemoryAnnotations
+    from agent_comms.working_memory_labels import (
+        AnswerProbability, HumanLabel, JevClassifier, ModelLabel, QuestionVersion,
+    )
+    from agent_comms.working_memory_policy import DisabledAnnotationPolicy
+    from agent_comms.working_memory_questions import (
+        CommitmentSpan, KindQuestion, OtherSpan, RuleSpan,
+    )
+    from textual.widgets import Button, TextArea
+    from native_backend_fixture import native_backend_fixture
+    from l0a_native_installed_pilot import until
+    from runtime_fixture import ToadApp
+    from toad.agent_schema import AgentDefinition
+    from toad.core.context_inspection import AnnotationNode
+    from toad.widgets.comms_menu import ContextMenu, ContextMenuItem
+    from toad.widgets.context_explorer import ContextExplorer, ContextTree
+    from toad.widgets.side_bar import SideBar, SideBarCollapsible, SideBarToggle
+
+    package = Path(os.environ["PI_COMPACTION_TEST_PACKAGE"])
+    assert package.resolve() == Path(os.environ["AC_NATIVE_COPIED_PACKAGE"]).resolve()
+    verify_native_package(package)
+    system_file = tmp_path / "authored-system.txt"
+    authored = "Keep the authored source unchanged.\nDeliver the authored answer.\n"
+    system_file.write_text(authored)
+    original_file = system_file.read_bytes()
+    original_source = FileProvenance(str(system_file), hashlib.sha256(original_file).hexdigest())
+    for name, directory in (("XDG_CONFIG_HOME", "config"), ("XDG_STATE_HOME", "state"),
+                            ("XDG_DATA_HOME", "data"), ("XDG_CACHE_HOME", "cache")):
+        monkeypatch.setenv(name, str(tmp_path / directory))
+    monkeypatch.setenv("TOAD_TEST_ATTEMPT", str(tmp_path))
+    monkeypatch.setenv("AGENT_COMMS_DEBUG_LOG", str(tmp_path / "owner-debug.log"))
+    monkeypatch.setattr(ToadApp, "CSS_PATH", files("toad").joinpath("toad.tcss"))
+    for key in ("PYTHONPATH", "AGENT_COMMS_ANNOTATION_POLICY", "PI_PROMPT", "PI_AGENT_ID",
+                "PI_PARENT_ID", "PI_TASK", "AGENT_COMMS_THREAD", "AGENT_COMMS_STARTUP_INPUT_KEY"):
+        monkeypatch.delenv(key, raising=False)
+
+    async def mounted():
+        async with native_backend_fixture(tmp_path) as native:
+            # Preserve --no-context-files. Explicit system-file loading is the
+            # original W1 assembly path, not an AGENTS.md discovery bypass.
+            options = ("--no-tools", "--system-prompt", str(system_file))
+            async with native.open_owner(runtime_enabled=True, native_options=options) as (controller, session):
+                service = controller._comms
+                owner = service.registry.require(session)
+                assert isinstance(controller.annotations.policy, DisabledAnnotationPolicy)
+                router = build_agent_router(controller)
+                print("W6 GUI: issuing one original authored localhost ACP input", flush=True)
+                response = await router("session/prompt", {
+                    "sessionId": session,
+                    "prompt": [{"type": "text", "text": "Give the authored local answer."}],
+                }, False)
+                assert response.stop_reason == "end_turn"
+                assert native.provider.posts == 1 and len(native.saved_inputs()) == 1
+                assert not controller.annotations.tasks
+                history = service.bus.log.context_manifests(session, service.registry)
+                (sealed,) = (manifest for manifest in history if manifest.request_id)
+                manifest = ContextManifest.for_request(history, sealed.turn, sealed.require_request_id())
+                assert manifest.thread == owner.incarnation
+                inspection = ContextInspection.read(service, session)
+                (request,) = inspection.recorded()
+                assert request.manifest == manifest
+                (system,) = (source for root in request.children()
+                             for source in root.original_segments()
+                             if source.segment.kind is SystemLayerSegment)
+                original = await system.source_text()
+                # Ranges come from the sealed emitted assembly; no substring
+                # search or today's file reread supplies request attribution.
+                spans = tuple(ContextSpan(system.segment.sha256, sentence)
+                    for coordinates in system.segment.source_spans
+                    if original_source in coordinates.provenance
+                    for sentence in coordinates.sentences(original.text))
+                assert len(spans) == 2
+                assert all(system.segment.contains_span(span) for span in spans)
+                assert "".join(span.coordinates.public_text(original.text) for span in spans) == authored
+                classifier = JevClassifier.version()
+                question = QuestionVersion.current(KindQuestion)
+                labels = tuple(ModelLabel(span, question, RuleSpan, classifier,
+                    (AnswerProbability(RuleSpan, .7), AnswerProbability(CommitmentSpan, .2),
+                     AnswerProbability(OtherSpan, .1)), .8,
+                    f"authored-local-control-{index}", classifier.pin)
+                    for index, span in enumerate(spans))
+                with Coordination(str(service.root / "coordination.sqlite3")) as store:
+                    with store.session.transaction() as db:
+                        for label in labels:
+                            SpanAnnotationsRow(label=label, created_at_ms=store.session.now()).insert(db)
+                assert all(label.working_memory_section == "Unclassified" for label in labels)
+                native_after_input = native.session.read_bytes()
+                definition = AgentDefinition.decode({"name": "Authored W6 annotation source",
+                    "identity": "agent-comms.openhcs.dev", "short_name": "comms", "protocol": "acp",
+                    "run_command": {"*": shlex.join((sys.executable, "-m", "agent_comms.acp"))}})
+                app = ToadApp(agent_data=definition, project_dir=str(native.project),
+                              agent_session_id=session)
+                async with app.run_test(size=(130, 44)) as pilot:
+                    await app.selected_session.wait_content_ready()
+                    conversation = app.selected_session.conversation
+                    await until(pilot, lambda: conversation.agent is not None)
+                    agent = conversation.agent
+                    await agent.session.settled.wait()
+                    assert agent.ready and agent.session_id == session
+                    await pilot.pause()
+                    fact = app.coordination_facts[app.selected_session]
+                    assert fact.thread == owner.incarnation
+                    assert Path(fact.wire_root).resolve() == service.root.resolve()
+                    panel, = (bar for bar in app.selected_session.query(SideBar) if bar.right)
+                    assert await pilot.click(panel.query_one(SideBarToggle))
+                    await panel.wait_content_ready()
+                    explorer = app.selected_session.query_one(ContextExplorer)
+                    explorer.query_ancestor(SideBarCollapsible).collapsed = False
+                    explorer.action_refresh()
+                    tree = explorer.query_one(ContextTree)
+                    for label, answer in zip(labels, (RuleSpan, CommitmentSpan), strict=True):
+                        current = ContextInspection.read(service, session)
+                        (model,) = (annotation for _, groups, _ in current.working_memory()
+                                    for group in groups for annotation in group.children()
+                                    if annotation.annotation.span == label.span)
+                        await until(pilot, lambda: any(
+                            group.data.reader_path(model.key)
+                            for group in tree.context_nodes.values()))
+                        await select_context_source(pilot, tree, model.key)
+                        await pilot.press("enter")
+                        span_text = label.span.coordinates.public_text(original.text)
+                        await until(pilot, lambda: span_text in explorer.query_one(TextArea).text)
+                        assert original_source.public_description() in explorer.query_one(TextArea).text
+                        button = explorer.query_one("#context-correct", Button)
+                        button.scroll_visible(animate=False, immediate=True)
+                        await pilot.wait_for_scheduled_animations()
+                        assert await pilot.click(button)
+                        await until(pilot, lambda: isinstance(app.screen, ContextMenu))
+                        menu = app.screen
+                        (item,) = (item for item in menu.query(ContextMenuItem)
+                                   if item.action == answer.declared_name)
+                        assert await pilot.click(item)
+                        await until(pilot, lambda: app.screen is not menu)
+                        await until(pilot, lambda: any(
+                            isinstance(node.data, AnnotationNode)
+                            and isinstance(node.data.annotation, HumanLabel)
+                            and node.data.annotation.span == label.span
+                            and node.data.annotation.answer is answer
+                            for node in tree.context_nodes.values()))
+                        rows = await Coordination.run_worker(partial(
+                            WorkingMemoryAnnotations.labels,
+                            service.root / "coordination.sqlite3", label.span, question, classifier))
+                        effective = SpanAnnotationsRow.effective(rows)
+                        assert isinstance(effective, HumanLabel) and effective.answer is answer
+                        assert service.registry.require(effective.author.name).role is ThreadRole.USER
+                        assert effective.span == label.span
+                        groups = ContextInspection.read(service, session).working_memory()
+                        (section,) = (title for title, sources, _ in groups
+                                     for source in sources for annotation in source.children()
+                                     if annotation.annotation == effective)
+                        assert section == effective.working_memory_section
+                        (refreshed,) = (node for node in tree.context_nodes.values()
+                                        if isinstance(node.data, AnnotationNode)
+                                        and node.data.annotation == effective)
+                        await select_context_source(pilot, tree, refreshed.data.key)
+                        await pilot.press("enter")
+                        await until(pilot, lambda: effective.public_description()
+                                    in explorer.query_one(TextArea).text)
+                        assert span_text in explorer.query_one(TextArea).text
+                        print(f"W6 GUI: original USER correction visible in {section}", flush=True)
+                assert service.bus.log.context_manifests(session, service.registry) == history
+                assert native.session.read_bytes() == native_after_input
+                assert system_file.read_bytes() == original_file
+                assert native.provider.posts == 1 and len(native.saved_inputs()) == 1
+                assert not controller.annotations.tasks
+                with WorkingMemoryAnnotations.reading(service.root / "coordination.sqlite3") as db:
+                    assert tuple(AnnotationRequestsRow.select(db)) == ()
+                print(json.dumps({"original_request": manifest.require_request_id(),
+                    "original_turn": FieldCodec.encode(manifest.turn),
+                    "actual_span_coordinates": [FieldCodec.encode(span) for span in spans],
+                    "localhost_posts": native.provider.posts, "native_inputs": len(native.saved_inputs()),
+                    "external_annotations": 0, "scope": "Authentic AnnotationNode GUI, not W7 calibration"}),
+                    flush=True)
 
     asyncio.run(mounted())
 

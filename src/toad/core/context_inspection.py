@@ -42,6 +42,17 @@ class ContextNode(ABC):
     def children(self) -> tuple[ContextNode, ...]:
         return ()
 
+    def reader_path(self, key: str) -> tuple[ContextNode, ...]:
+        """Resolve an addressed descendant through this original model family."""
+        if key == self.key:
+            return (self,)
+        if key.startswith(self.key + "/"):
+            for child in self.children():
+                path = child.reader_path(key)
+                if path:
+                    return (self, *path)
+        return ()
+
     def detail(self) -> str:
         return "No text recorded for this observation."
 
@@ -299,6 +310,15 @@ class AnnotationSourceNode(ContextNode):
 
     def children(self):
         return self.answers
+
+    def reader_path(self, key):
+        # Label refinement can move an original answer between sections. Its
+        # request/span key stays owned by the answer, not the grouping label.
+        for answer in self.answers:
+            path = answer.reader_path(key)
+            if path:
+                return (self, *path)
+        return super().reader_path(key)
 
     def detail(self):
         return (self.label + "\n\nOriginal source descriptions group these answers. "
