@@ -21,3 +21,9 @@ OperationalSessionSources retains original Agent, Shell and DirectoryWatcher ins
 AgentController.attach already rejects an attachment to the same original target and retires the incoming binding. Consequently repeated bind_agent call sites do not prove a repeated ACP restore or native start; there is allocation/subscription work to trace, not grounds to add another duplicate caller guard. Weak targets and absent unstarted actors remain genuine states.
 
 Main420 merged901771fc normally joined on this SAME branch at e880cffd, with no additional src/tests/tools change. Draft422 now bases actual main; source checkpoint c17a4ecc remains exact. No new installed run, package write, native copy, environment or source clone was started.
+
+## Joined source complete for affected verification
+
+Actor transfer review did not find a second Agent/Shell/DirectoryWatcher creation algorithm in OperationalSessionSources. It transfers the SAME original actor instances before tree eviction; actor classes own attachment, and those three lifetimes may be independently absent. They are preserved. This is the native admission/tree-release owner family, not blanket TC1/T4 closure or a new actor-state wrapper.
+
+Determining native source pin now frozen Text52 2e8ce333 (production6b432682), based on merged Text51. Its existing Widget layer inheritance owner and Compositor traversal share the original declaration; native21 controls and normal266-file artifact are Kepler's source qualification. ToAd Core611d416/native2ea/SDK12.1 and normal69 graph unchanged. Next batched acceptance: original installed blank_presentation_pilot warmA/B/A/editor/Undo/shell detach/return/shutdown (0provider), then one configured real saved-history motion/profile with source return and original during-UI motion inspection. This also qualifies Text52 at its exact scope. No old420 repeat, new environment or VCS clone.
