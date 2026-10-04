@@ -1,0 +1,4841 @@
+{
+  "packages": [
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "af692dc6feae5a8def3136e25024624311f088b0",
+      "root": "src/toad",
+      "modules": 288,
+      "parse_omissions": [],
+      "sites": [
+        {
+          "path": "src/toad/acp/agent_configuration.py",
+          "line": 30,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/acp/agent_session.py",
+          "line": 264,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/acp/agent_session.py",
+          "line": 141,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/acp/agent_session.py",
+          "line": 267,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/acp/maintenance_ingress.py",
+          "line": 63,
+          "syntax": "FunctionDef",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/acp/maintenance_ingress.py",
+          "line": 87,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/acp/maintenance_ingress.py",
+          "line": 233,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/acp/maintenance_ingress.py",
+          "line": 134,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/agent_surface.py",
+          "line": 166,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/agent_surface.py",
+          "line": 172,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/ansi/_ansi.py",
+          "line": 1692,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/ansi/_ansi.py",
+          "line": 1495,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/cli.py",
+          "line": 306,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/cli.py",
+          "line": 308,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/cli.py",
+          "line": 203,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/conversation_markdown.py",
+          "line": 104,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/conversation_markdown.py",
+          "line": 152,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/conversation_submission.py",
+          "line": 272,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/core/session_requests.py",
+          "line": 69,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/core/session_requests.py",
+          "line": 28,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/core/session_requests.py",
+          "line": 29,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/core/session_requests.py",
+          "line": 50,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/core/session_requests.py",
+          "line": 50,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/core/session_requests.py",
+          "line": 59,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/core/session_requests.py",
+          "line": 79,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/core/session_requests.py",
+          "line": 87,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/core/session_requests.py",
+          "line": 98,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/core/session_requests.py",
+          "line": 98,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/core/session_requests.py",
+          "line": 40,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/core/session_requests.py",
+          "line": 30,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/core/session_requests.py",
+          "line": 31,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/directory.py",
+          "line": 50,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/directory.py",
+          "line": 49,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/file_kind.py",
+          "line": 19,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/file_kind.py",
+          "line": 59,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/live_output.py",
+          "line": 102,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/live_output.py",
+          "line": 118,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/mcp_declarations.py",
+          "line": 221,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 333,
+          "syntax": "AsyncFunctionDef",
+          "name": "_publish_latest"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 254,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 293,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 150,
+          "syntax": "Attribute",
+          "name": "preserve_history"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 256,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 281,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 256,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 258,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 375,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 453,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "src/toad/navigation_preparation.py",
+          "line": 103,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/question_presentation.py",
+          "line": 74,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/question_presentation.py",
+          "line": 77,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/question_presentation.py",
+          "line": 80,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/question_presentation.py",
+          "line": 84,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/question_presentation.py",
+          "line": 87,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/question_presentation.py",
+          "line": 77,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/question_presentation.py",
+          "line": 80,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/question_presentation.py",
+          "line": 83,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/screens/agent_modal.py",
+          "line": 87,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/screens/comms.py",
+          "line": 207,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "src/toad/screens/comms.py",
+          "line": 208,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/screens/historical_sessions.py",
+          "line": 100,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "src/toad/screens/historical_sessions.py",
+          "line": 127,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/screens/historical_sessions.py",
+          "line": 135,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/screens/historical_sessions.py",
+          "line": 120,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 189,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/screens/permissions.py",
+          "line": 169,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/screens/workspace.py",
+          "line": 52,
+          "syntax": "Attribute",
+          "name": "_geometry_revision"
+        },
+        {
+          "path": "src/toad/screens/workspace.py",
+          "line": 57,
+          "syntax": "Attribute",
+          "name": "_geometry_revision"
+        },
+        {
+          "path": "src/toad/screens/workspace.py",
+          "line": 317,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/screens/workspace.py",
+          "line": 324,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/screens/workspace.py",
+          "line": 332,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 72,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 160,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 73,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 90,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 95,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 161,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 162,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 168,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 90,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 91,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 73,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 93,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 94,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 164,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 166,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 167,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/session_presentation.py",
+          "line": 177,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/session_presentation.py",
+          "line": 228,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/setting_effects.py",
+          "line": 22,
+          "syntax": "Attribute",
+          "name": "prepare_scroll"
+        },
+        {
+          "path": "src/toad/shell.py",
+          "line": 206,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/sidebar_observation.py",
+          "line": 41,
+          "syntax": "FunctionDef",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/sidebar_projection.py",
+          "line": 41,
+          "syntax": "FunctionDef",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/sidebar_projection.py",
+          "line": 50,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/sidebar_projection.py",
+          "line": 115,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/sidebar_projection.py",
+          "line": 121,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/sidebar_projection.py",
+          "line": 132,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/thread_navigation.py",
+          "line": 85,
+          "syntax": "AsyncFunctionDef",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 41,
+          "syntax": "AsyncFunctionDef",
+          "name": "canonical_moved"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 56,
+          "syntax": "AsyncFunctionDef",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 195,
+          "syntax": "AsyncFunctionDef",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 199,
+          "syntax": "AsyncFunctionDef",
+          "name": "canonical_moved"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 276,
+          "syntax": "AsyncFunctionDef",
+          "name": "canonical_moved"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 284,
+          "syntax": "AsyncFunctionDef",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 246,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 281,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 304,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 205,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 277,
+          "syntax": "Attribute",
+          "name": "canonical_moved"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 287,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 314,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 197,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 291,
+          "syntax": "Attribute",
+          "name": "preserve_history"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 346,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 347,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 133,
+          "syntax": "Attribute",
+          "name": "preserve_history"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 292,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 134,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 685,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 686,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 687,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 688,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 576,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 783,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 210,
+          "syntax": "Attribute",
+          "name": "preserve_history"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 213,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 465,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 138,
+          "syntax": "AsyncFunctionDef",
+          "name": "_publish_latest"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 206,
+          "syntax": "FunctionDef",
+          "name": "prepare_scroll"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 42,
+          "syntax": "Attribute",
+          "name": "_prefetch_worker"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 43,
+          "syntax": "Attribute",
+          "name": "_prefetch_intent"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 89,
+          "syntax": "Attribute",
+          "name": "_prefetch_intent"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 118,
+          "syntax": "Attribute",
+          "name": "_prefetch_intent"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 187,
+          "syntax": "Attribute",
+          "name": "_prefetch_intent"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 198,
+          "syntax": "Attribute",
+          "name": "_prefetch_intent"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 84,
+          "syntax": "Attribute",
+          "name": "prepare_scroll"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 100,
+          "syntax": "Attribute",
+          "name": "prepare_scroll"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 116,
+          "syntax": "Attribute",
+          "name": "_prefetch_worker"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 203,
+          "syntax": "Attribute",
+          "name": "prepare_scroll"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 133,
+          "syntax": "Attribute",
+          "name": "_publish_latest"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 117,
+          "syntax": "Attribute",
+          "name": "_prefetch_worker"
+        },
+        {
+          "path": "src/toad/visuals/columns.py",
+          "line": 240,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/committed_presentation.py",
+          "line": 232,
+          "syntax": "Attribute",
+          "name": "preserve_history"
+        },
+        {
+          "path": "src/toad/widgets/comms_sidebar.py",
+          "line": 476,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/widgets/comms_sidebar.py",
+          "line": 477,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 124,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 134,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 255,
+          "syntax": "FunctionDef",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 267,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1288,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 2104,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 890,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1064,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1295,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1423,
+          "syntax": "Attribute",
+          "name": "preserve_history"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 2108,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 604,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1255,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1337,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1441,
+          "syntax": "Attribute",
+          "name": "preserve_history"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1891,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1902,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1904,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1969,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1987,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/coordination_context.py",
+          "line": 47,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/widgets/coordination_context.py",
+          "line": 70,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/widgets/coordination_context.py",
+          "line": 72,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 262,
+          "syntax": "AsyncFunctionDef",
+          "name": "preserve_history"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 273,
+          "syntax": "AsyncFunctionDef",
+          "name": "preserve_reader"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 114,
+          "syntax": "Name",
+          "name": "history_layout_ready"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 42,
+          "syntax": "Attribute",
+          "name": "scroll_target_y"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 291,
+          "syntax": "Attribute",
+          "name": "_geometry_revision"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 61,
+          "syntax": "Attribute",
+          "name": "scroll_target_y"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 147,
+          "syntax": "Attribute",
+          "name": "history_layout_ready"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 152,
+          "syntax": "Attribute",
+          "name": "history_layout_ready"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 312,
+          "syntax": "Attribute",
+          "name": "history_layout_ready"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 300,
+          "syntax": "Attribute",
+          "name": "_geometry_revision"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 306,
+          "syntax": "Attribute",
+          "name": "history_layout_ready"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 80,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 148,
+          "syntax": "Attribute",
+          "name": "history_layout_ready"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 153,
+          "syntax": "Attribute",
+          "name": "history_layout_ready"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 298,
+          "syntax": "Attribute",
+          "name": "_geometry_revision"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 81,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 269,
+          "syntax": "Attribute",
+          "name": "preserve_reader"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 307,
+          "syntax": "Attribute",
+          "name": "history_layout_ready"
+        },
+        {
+          "path": "src/toad/widgets/menu.py",
+          "line": 114,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/menu.py",
+          "line": 118,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/patch_diff.py",
+          "line": 146,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/patch_diff.py",
+          "line": 147,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/patch_diff.py",
+          "line": 153,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/patch_diff.py",
+          "line": 377,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/path_search.py",
+          "line": 225,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/widgets/presentation_window.py",
+          "line": 249,
+          "syntax": "FunctionDef",
+          "name": "preparation_count"
+        },
+        {
+          "path": "src/toad/widgets/presentation_window.py",
+          "line": 257,
+          "syntax": "FunctionDef",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/widgets/presentation_window.py",
+          "line": 193,
+          "syntax": "Attribute",
+          "name": "delivery_seconds"
+        },
+        {
+          "path": "src/toad/widgets/presentation_window.py",
+          "line": 194,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/widgets/presentation_window.py",
+          "line": 220,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/widgets/presentation_window.py",
+          "line": 223,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/widgets/presentation_window.py",
+          "line": 227,
+          "syntax": "Attribute",
+          "name": "delivery_seconds"
+        },
+        {
+          "path": "src/toad/widgets/presentation_window.py",
+          "line": 206,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/widgets/presentation_window.py",
+          "line": 264,
+          "syntax": "Name",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/widgets/presentation_window.py",
+          "line": 264,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/widgets/presentation_window.py",
+          "line": 238,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/widgets/presentation_window.py",
+          "line": 238,
+          "syntax": "Attribute",
+          "name": "delivery_seconds"
+        },
+        {
+          "path": "src/toad/widgets/presentation_window.py",
+          "line": 244,
+          "syntax": "Attribute",
+          "name": "scroll_target_y"
+        },
+        {
+          "path": "src/toad/widgets/presentation_window.py",
+          "line": 260,
+          "syntax": "Attribute",
+          "name": "preparation_count"
+        },
+        {
+          "path": "src/toad/widgets/presentation_window.py",
+          "line": 206,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/widgets/project_panel.py",
+          "line": 90,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/widgets/project_panel.py",
+          "line": 183,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/widgets/project_panel.py",
+          "line": 195,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/project_tree_intent.py",
+          "line": 27,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/project_tree_intent.py",
+          "line": 53,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/question.py",
+          "line": 192,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/widgets/question.py",
+          "line": 237,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/widgets/question.py",
+          "line": 243,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/widgets/retiring_sidebar.py",
+          "line": 39,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "src/toad/widgets/retiring_sidebar.py",
+          "line": 41,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "src/toad/widgets/session_details.py",
+          "line": 96,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/session_sort.py",
+          "line": 71,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/session_tabs.py",
+          "line": 303,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "src/toad/widgets/session_tabs.py",
+          "line": 321,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/session_tabs.py",
+          "line": 324,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/widgets/session_thread_sidebar.py",
+          "line": 51,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/side_bar.py",
+          "line": 727,
+          "syntax": "Attribute",
+          "name": "mount_all"
+        },
+        {
+          "path": "src/toad/widgets/side_bar.py",
+          "line": 732,
+          "syntax": "Attribute",
+          "name": "mount_all"
+        },
+        {
+          "path": "src/toad/widgets/sidebar_tree.py",
+          "line": 175,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "src/toad/widgets/sidebar_tree.py",
+          "line": 186,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/widgets/streaming_markdown.py",
+          "line": 159,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "src/toad/widgets/streaming_markdown.py",
+          "line": 164,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/widgets/thread_comms.py",
+          "line": 159,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/thread_comms.py",
+          "line": 161,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/widgets/thread_comms.py",
+          "line": 423,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/widgets/tool_call.py",
+          "line": 81,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "src/toad/widgets/tool_call.py",
+          "line": 82,
+          "syntax": "Attribute",
+          "name": "mount_all"
+        },
+        {
+          "path": "src/toad/widgets/transcript_fragments.py",
+          "line": 173,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 295,
+          "syntax": "FunctionDef",
+          "name": "capture_admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 328,
+          "syntax": "AsyncFunctionDef",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 342,
+          "syntax": "AsyncFunctionDef",
+          "name": "trim"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 350,
+          "syntax": "AsyncFunctionDef",
+          "name": "update_fragments"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 696,
+          "syntax": "FunctionDef",
+          "name": "prepare_scroll"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 791,
+          "syntax": "AsyncFunctionDef",
+          "name": "_publish_latest"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 878,
+          "syntax": "AsyncFunctionDef",
+          "name": "_extend_and_trim"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 704,
+          "syntax": "Name",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 704,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 718,
+          "syntax": "Attribute",
+          "name": "_prefetch_intent"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 743,
+          "syntax": "Attribute",
+          "name": "_prefetch_worker"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 838,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 360,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 452,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 497,
+          "syntax": "Attribute",
+          "name": "prepare_scroll"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 692,
+          "syntax": "Attribute",
+          "name": "_prefetch_intent"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 708,
+          "syntax": "Attribute",
+          "name": "preparation_count"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 715,
+          "syntax": "Name",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 716,
+          "syntax": "Attribute",
+          "name": "_prefetch_intent"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 794,
+          "syntax": "Attribute",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 838,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 314,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 316,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 316,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 325,
+          "syntax": "Name",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 344,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 360,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 705,
+          "syntax": "Name",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 719,
+          "syntax": "Attribute",
+          "name": "_prefetch_worker"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 1008,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 333,
+          "syntax": "Attribute",
+          "name": "mount_all"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 372,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 374,
+          "syntax": "Attribute",
+          "name": "preserve_history"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 448,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 453,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 714,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 719,
+          "syntax": "Attribute",
+          "name": "_prefetch_worker"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 720,
+          "syntax": "Attribute",
+          "name": "_prefetch_worker"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 808,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 819,
+          "syntax": "Attribute",
+          "name": "preserve_history"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 861,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 961,
+          "syntax": "Attribute",
+          "name": "canonical_moved"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 372,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 666,
+          "syntax": "Attribute",
+          "name": "preserve_history"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 672,
+          "syntax": "Attribute",
+          "name": "update_fragments"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 725,
+          "syntax": "Attribute",
+          "name": "_prefetch_intent"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 726,
+          "syntax": "Name",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 726,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 734,
+          "syntax": "Name",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 738,
+          "syntax": "Name",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 812,
+          "syntax": "Attribute",
+          "name": "update_fragments"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 861,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 869,
+          "syntax": "Attribute",
+          "name": "preserve_history"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 890,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 667,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 820,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 821,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 823,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 829,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 870,
+          "syntax": "Attribute",
+          "name": "_extend_and_trim"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 899,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 952,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 958,
+          "syntax": "Attribute",
+          "name": "trim"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 377,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 383,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 953,
+          "syntax": "FunctionDef",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 968,
+          "syntax": "Attribute",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 1023,
+          "syntax": "Attribute",
+          "name": "prepare_scroll"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 1092,
+          "syntax": "Name",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 1092,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 685,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 934,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 1005,
+          "syntax": "Attribute",
+          "name": "prepare_scroll"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 1178,
+          "syntax": "Name",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 1096,
+          "syntax": "Attribute",
+          "name": "admission"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 1101,
+          "syntax": "Name",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 1120,
+          "syntax": "Name",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 1159,
+          "syntax": "Name",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 1166,
+          "syntax": "Name",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 1183,
+          "syntax": "Attribute",
+          "name": "preserve_reader"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 1192,
+          "syntax": "Name",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 1104,
+          "syntax": "Name",
+          "name": "demand"
+        },
+        {
+          "path": "src/toad/work_preparation.py",
+          "line": 202,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/work_preparation.py",
+          "line": 204,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/work_preparation.py",
+          "line": 205,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/work_preparation.py",
+          "line": 207,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/toad/workspace_sessions.py",
+          "line": 131,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/toad/workspace_sessions.py",
+          "line": 182,
+          "syntax": "Attribute",
+          "name": "remove"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "af692dc6feae5a8def3136e25024624311f088b0",
+      "root": "tests",
+      "modules": 394,
+      "parse_omissions": [],
+      "sites": [
+        {
+          "path": "tests/admission_scope_installed_pilot.py",
+          "line": 31,
+          "syntax": "Attribute",
+          "name": "admission"
+        },
+        {
+          "path": "tests/admission_scope_installed_pilot.py",
+          "line": 32,
+          "syntax": "Attribute",
+          "name": "admission"
+        },
+        {
+          "path": "tests/admission_scope_installed_pilot.py",
+          "line": 39,
+          "syntax": "Attribute",
+          "name": "admission"
+        },
+        {
+          "path": "tests/admission_scope_installed_pilot.py",
+          "line": 57,
+          "syntax": "Attribute",
+          "name": "admission"
+        },
+        {
+          "path": "tests/agent_activity_divider_pilot.py",
+          "line": 164,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/app_focus_latency_pilot.py",
+          "line": 39,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/blank_presentation_pilot.py",
+          "line": 432,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "tests/blank_presentation_pilot.py",
+          "line": 433,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "tests/blank_presentation_pilot.py",
+          "line": 437,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "tests/blank_presentation_pilot.py",
+          "line": 444,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "tests/block_interaction_pilot.py",
+          "line": 63,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "tests/block_interaction_pilot.py",
+          "line": 70,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/channel_disclosure_publication_pilot.py",
+          "line": 244,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/channel_disclosure_publication_pilot.py",
+          "line": 247,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/checkpoint_source_pivot_pilot.py",
+          "line": 54,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/clipboard_native_pilot.py",
+          "line": 74,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/close_session_latency_pilot.py",
+          "line": 27,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/cold_context_installed_physical.py",
+          "line": 252,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/cold_context_installed_physical.py",
+          "line": 259,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/committed_history_pilot.py",
+          "line": 71,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/dm_rebind_paint_pilot.py",
+          "line": 64,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/existing_thread_link_pilot.py",
+          "line": 60,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/existing_thread_link_pilot.py",
+          "line": 109,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/file_path_preview_pilot.py",
+          "line": 243,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/file_preview_latency_pilot.py",
+          "line": 31,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/file_preview_latency_pilot.py",
+          "line": 35,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/filter_mount_supersession_pilot.py",
+          "line": 39,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/filter_mount_supersession_pilot.py",
+          "line": 70,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/filter_mount_supersession_pilot.py",
+          "line": 134,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/filter_mount_supersession_pilot.py",
+          "line": 148,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/filter_mount_supersession_pilot.py",
+          "line": 111,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/filter_mount_supersession_pilot.py",
+          "line": 175,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/fragment_divider_pilot.py",
+          "line": 41,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "tests/fragment_divider_pilot.py",
+          "line": 47,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "tests/fragment_divider_pilot.py",
+          "line": 61,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "tests/fragment_divider_pilot.py",
+          "line": 75,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "tests/guards/test_agent_controller.py",
+          "line": 52,
+          "syntax": "Attribute",
+          "name": "admission"
+        },
+        {
+          "path": "tests/guards/test_session_observation.py",
+          "line": 54,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/guards/test_session_observation.py",
+          "line": 78,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/guards/test_transcript_publication.py",
+          "line": 152,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "tests/guards/test_transcript_publication.py",
+          "line": 171,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "tests/guards/test_transcript_publication.py",
+          "line": 203,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "tests/guards/test_transcript_publication.py",
+          "line": 84,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/history_anchor_geometry_pilot.py",
+          "line": 41,
+          "syntax": "Attribute",
+          "name": "scroll_target_y"
+        },
+        {
+          "path": "tests/history_anchor_geometry_pilot.py",
+          "line": 45,
+          "syntax": "Attribute",
+          "name": "scroll_target_y"
+        },
+        {
+          "path": "tests/history_anchor_geometry_pilot.py",
+          "line": 52,
+          "syntax": "Attribute",
+          "name": "scroll_target_y"
+        },
+        {
+          "path": "tests/history_anchor_geometry_pilot.py",
+          "line": 28,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/history_anchor_geometry_pilot.py",
+          "line": 74,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/history_frame_publication_pilot.py",
+          "line": 182,
+          "syntax": "Name",
+          "name": "remove_children"
+        },
+        {
+          "path": "tests/history_frame_publication_pilot.py",
+          "line": 182,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "tests/history_frame_publication_pilot.py",
+          "line": 61,
+          "syntax": "Attribute",
+          "name": "history_layout_ready"
+        },
+        {
+          "path": "tests/history_frame_publication_pilot.py",
+          "line": 186,
+          "syntax": "Name",
+          "name": "remove_children"
+        },
+        {
+          "path": "tests/history_frame_publication_pilot.py",
+          "line": 110,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "tests/history_frame_publication_pilot.py",
+          "line": 157,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "tests/history_mounted_budget_pilot.py",
+          "line": 34,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 88,
+          "syntax": "Attribute",
+          "name": "preserve_history"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 68,
+          "syntax": "Attribute",
+          "name": "preserve_history"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 89,
+          "syntax": "Attribute",
+          "name": "trim"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 63,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 71,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/history_prefetch_pilot.py",
+          "line": 41,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/history_prefetch_pilot.py",
+          "line": 66,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/history_prefetch_pilot.py",
+          "line": 85,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/history_reflow_travel_pilot.py",
+          "line": 73,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "tests/history_reflow_travel_pilot.py",
+          "line": 81,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "tests/history_reflow_travel_pilot.py",
+          "line": 82,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "tests/history_reflow_travel_pilot.py",
+          "line": 75,
+          "syntax": "Attribute",
+          "name": "preserve_history"
+        },
+        {
+          "path": "tests/history_reflow_travel_pilot.py",
+          "line": 45,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/history_reflow_travel_pilot.py",
+          "line": 76,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/history_reflow_travel_pilot.py",
+          "line": 92,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "tests/history_reflow_travel_pilot.py",
+          "line": 66,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "tests/history_scroll_frames_pilot.py",
+          "line": 59,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/history_stationary_feedback_pilot.py",
+          "line": 70,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/history_stationary_feedback_pilot.py",
+          "line": 70,
+          "syntax": "Attribute",
+          "name": "trim"
+        },
+        {
+          "path": "tests/history_stationary_feedback_pilot.py",
+          "line": 64,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 71,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 73,
+          "syntax": "Attribute",
+          "name": "_prefetch_worker"
+        },
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 71,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 88,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 101,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 84,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 84,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 88,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 101,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 100,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 100,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "tests/hot_path_invalidation_pilot.py",
+          "line": 33,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/in_out_underfill_pilot.py",
+          "line": 42,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/in_out_underfill_pilot.py",
+          "line": 69,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/in_out_underfill_pilot.py",
+          "line": 79,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/in_out_underfill_pilot.py",
+          "line": 108,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/in_out_underfill_pilot.py",
+          "line": 125,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/l0a_native_installed_pilot.py",
+          "line": 383,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/l0a_native_installed_pilot.py",
+          "line": 393,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/late_native_after_join_pilot.py",
+          "line": 83,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/late_native_application_pilot.py",
+          "line": 83,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/lazy_tools_pilot.py",
+          "line": 58,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/lazy_tools_pilot.py",
+          "line": 100,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "tests/lazy_tools_pilot.py",
+          "line": 98,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/long_message_pilot.py",
+          "line": 28,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "tests/long_message_pilot.py",
+          "line": 66,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "tests/maintenance_cancel_process_group_pilot.py",
+          "line": 32,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/markdown_process_lifecycle_pilot.py",
+          "line": 125,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/markdown_process_pilot.py",
+          "line": 48,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/markdown_return_reuse_pilot.py",
+          "line": 65,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/mcp_decision_pty_pilot.py",
+          "line": 87,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/message_categories_pilot.py",
+          "line": 88,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/message_categories_pilot.py",
+          "line": 109,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/message_dividers_pilot.py",
+          "line": 169,
+          "syntax": "Attribute",
+          "name": "_geometry_revision"
+        },
+        {
+          "path": "tests/message_dividers_pilot.py",
+          "line": 172,
+          "syntax": "Attribute",
+          "name": "_geometry_revision"
+        },
+        {
+          "path": "tests/message_dividers_pilot.py",
+          "line": 83,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/message_dividers_pilot.py",
+          "line": 175,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/message_filter_latency_pilot.py",
+          "line": 31,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/message_filter_supersession_pilot.py",
+          "line": 51,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/native_permission_ui.py",
+          "line": 89,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/native_permission_ui.py",
+          "line": 92,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/native_scroll_recording_pilot.py",
+          "line": 71,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/native_scroll_recording_pilot.py",
+          "line": 66,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/native_scroll_recording_pilot.py",
+          "line": 70,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/native_widget_actions_installed_pilot.py",
+          "line": 131,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/native_widget_actions_installed_pilot.py",
+          "line": 135,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/navigation_preparation_pilot.py",
+          "line": 42,
+          "syntax": "AsyncFunctionDef",
+          "name": "admission"
+        },
+        {
+          "path": "tests/navigation_preparation_pilot.py",
+          "line": 192,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "tests/navigation_terminal_fixture.py",
+          "line": 102,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/navigation_terminal_fixture.py",
+          "line": 174,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 131,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 219,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 85,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 101,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 105,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 128,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 142,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 143,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 156,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 159,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 166,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 185,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 191,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 195,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 201,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 220,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 238,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 249,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 259,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 268,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 269,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 107,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/offscreen_tool_hydration_pilot.py",
+          "line": 37,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/plan_status_installed_pilot.py",
+          "line": 49,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/profile_hot_paths_pilot.py",
+          "line": 50,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/projected_history_budget_pilot.py",
+          "line": 49,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/projected_history_budget_pilot.py",
+          "line": 105,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/prompt_completion_installed_pilot.py",
+          "line": 135,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/prompt_completion_installed_pilot.py",
+          "line": 144,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/prompt_popup_new_case_pilot.py",
+          "line": 54,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/relationship_poll_reflow_pilot.py",
+          "line": 29,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/relationship_poll_reflow_pilot.py",
+          "line": 41,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/relationship_poll_reflow_pilot.py",
+          "line": 43,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/resize_render_pilot.py",
+          "line": 31,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "tests/response_source_custody_pilot.py",
+          "line": 67,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/response_source_custody_pilot.py",
+          "line": 151,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/resume_style_revision_pilot.py",
+          "line": 30,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/resume_style_revision_pilot.py",
+          "line": 33,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/retained_body_transfer_pilot.py",
+          "line": 31,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/retained_fragment_geometry_pilot.py",
+          "line": 48,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/retained_fragment_geometry_pilot.py",
+          "line": 50,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/retained_fragment_geometry_pilot.py",
+          "line": 161,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/retained_fragment_geometry_pilot.py",
+          "line": 434,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/retained_fragment_geometry_pilot.py",
+          "line": 431,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/retained_history_projection_pilot.py",
+          "line": 77,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/retained_page_end_pilot.py",
+          "line": 40,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "tests/retained_page_end_pilot.py",
+          "line": 30,
+          "syntax": "Attribute",
+          "name": "update_fragments"
+        },
+        {
+          "path": "tests/retained_page_end_pilot.py",
+          "line": 32,
+          "syntax": "Attribute",
+          "name": "preserve_history"
+        },
+        {
+          "path": "tests/retained_page_end_pilot.py",
+          "line": 34,
+          "syntax": "Attribute",
+          "name": "trim"
+        },
+        {
+          "path": "tests/retained_page_scope_pilot.py",
+          "line": 64,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/retained_tool_text_pilot.py",
+          "line": 102,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/right_comms_integration_pilot.py",
+          "line": 194,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/scroll_select_latency_pilot.py",
+          "line": 141,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/selection_disclosure_pilot.py",
+          "line": 71,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/shared_channels_pilot.py",
+          "line": 200,
+          "syntax": "Name",
+          "name": "mount"
+        },
+        {
+          "path": "tests/shared_channels_pilot.py",
+          "line": 205,
+          "syntax": "Name",
+          "name": "mount"
+        },
+        {
+          "path": "tests/sidebar_collapse_latency_pilot.py",
+          "line": 52,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/sidebar_metadata_reflow_pilot.py",
+          "line": 81,
+          "syntax": "Name",
+          "name": "remove_children"
+        },
+        {
+          "path": "tests/sidebar_metadata_reflow_pilot.py",
+          "line": 81,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "tests/sidebar_metadata_reflow_pilot.py",
+          "line": 36,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/sidebar_metadata_reflow_pilot.py",
+          "line": 84,
+          "syntax": "Name",
+          "name": "remove_children"
+        },
+        {
+          "path": "tests/sidebar_retirement_installed_pilot.py",
+          "line": 79,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/sidebar_retirement_installed_pilot.py",
+          "line": 96,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 44,
+          "syntax": "Name",
+          "name": "mount"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 44,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 40,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 47,
+          "syntax": "Name",
+          "name": "mount"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 123,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/stale_selection_pilot.py",
+          "line": 32,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/submission_native_installed_pilot.py",
+          "line": 62,
+          "syntax": "Attribute",
+          "name": "admission"
+        },
+        {
+          "path": "tests/submission_native_installed_pilot.py",
+          "line": 88,
+          "syntax": "Attribute",
+          "name": "admission"
+        },
+        {
+          "path": "tests/submission_native_installed_pilot.py",
+          "line": 126,
+          "syntax": "Attribute",
+          "name": "admission"
+        },
+        {
+          "path": "tests/t6_retirement_pilot.py",
+          "line": 43,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tab_clipboard_native_app.py",
+          "line": 26,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/tab_order_pilot.py",
+          "line": 37,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/tail_anchor_policy_pilot.py",
+          "line": 26,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/tail_anchor_policy_pilot.py",
+          "line": 47,
+          "syntax": "Attribute",
+          "name": "preserve_history"
+        },
+        {
+          "path": "tests/tail_anchor_policy_pilot.py",
+          "line": 63,
+          "syntax": "Attribute",
+          "name": "preserve_history"
+        },
+        {
+          "path": "tests/tail_anchor_policy_pilot.py",
+          "line": 39,
+          "syntax": "Attribute",
+          "name": "preserve_history"
+        },
+        {
+          "path": "tests/tail_anchor_policy_pilot.py",
+          "line": 54,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/tail_anchor_policy_pilot.py",
+          "line": 40,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/tail_anchor_policy_pilot.py",
+          "line": 68,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/terminal_attention_installed_journey.py",
+          "line": 283,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/test_t4_turn_navigation.py",
+          "line": 41,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "tests/test_t4_turn_navigation.py",
+          "line": 43,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/thread_activation_pilot.py",
+          "line": 99,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "tests/thread_activation_pilot.py",
+          "line": 130,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/thread_activation_pilot.py",
+          "line": 145,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "tests/thread_layout_pilot.py",
+          "line": 67,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "tests/thread_layout_pilot.py",
+          "line": 75,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "tests/thread_layout_pilot.py",
+          "line": 84,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "tests/throbber_busy_pilot.py",
+          "line": 53,
+          "syntax": "Attribute",
+          "name": "_geometry_revision"
+        },
+        {
+          "path": "tests/throbber_busy_pilot.py",
+          "line": 57,
+          "syntax": "Attribute",
+          "name": "_geometry_revision"
+        },
+        {
+          "path": "tests/tool_diff_lifecycle_pilot.py",
+          "line": 46,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/tool_diff_lifecycle_pilot.py",
+          "line": 76,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/tool_diff_lifecycle_pilot.py",
+          "line": 77,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/tool_diff_lifecycle_pilot.py",
+          "line": 80,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/tool_diff_lifecycle_pilot.py",
+          "line": 87,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/tool_diff_lifecycle_pilot.py",
+          "line": 89,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/tool_diff_lifecycle_pilot.py",
+          "line": 91,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/tool_diff_lifecycle_pilot.py",
+          "line": 109,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/tool_diff_pilot.py",
+          "line": 51,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 1426,
+          "syntax": "Name",
+          "name": "trim"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 1440,
+          "syntax": "Name",
+          "name": "trim"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 2084,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 2086,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 91,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 1940,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 1941,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 1942,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 1943,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 2091,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 1936,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 1939,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 1945,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 301,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 1431,
+          "syntax": "Name",
+          "name": "trim"
+        },
+        {
+          "path": "tests/transcript_filter_installed_journey.py",
+          "line": 132,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "tests/transcript_history_pilot.py",
+          "line": 38,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "tests/transcript_lifecycle_pilot.py",
+          "line": 79,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/transcript_process_pilot.py",
+          "line": 199,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "tests/transcript_process_pilot.py",
+          "line": 295,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 80,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 50,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 93,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 94,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 159,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 165,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 80,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 90,
+          "syntax": "Name",
+          "name": "admission"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 111,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 90,
+          "syntax": "Attribute",
+          "name": "capture_admission"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 152,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 122,
+          "syntax": "Attribute",
+          "name": "preserve_history"
+        },
+        {
+          "path": "tests/transcript_source_lifetime_pilot.py",
+          "line": 123,
+          "syntax": "Attribute",
+          "name": "trim"
+        },
+        {
+          "path": "tests/transcript_teardown_pilot.py",
+          "line": 49,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/unread_paint_only_pilot.py",
+          "line": 35,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/user_input_worker_pilot.py",
+          "line": 28,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/view_switch_latency.py",
+          "line": 100,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/view_switch_latency.py",
+          "line": 105,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/viewport_body_lifetime_pilot.py",
+          "line": 108,
+          "syntax": "Attribute",
+          "name": "history_layout_ready"
+        },
+        {
+          "path": "tests/viewport_body_lifetime_pilot.py",
+          "line": 36,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/viewport_body_lifetime_pilot.py",
+          "line": 74,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/viewport_body_lifetime_pilot.py",
+          "line": 88,
+          "syntax": "Attribute",
+          "name": "history_layout_ready"
+        },
+        {
+          "path": "tests/viewport_body_lifetime_pilot.py",
+          "line": 90,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/viewport_body_lifetime_pilot.py",
+          "line": 79,
+          "syntax": "Attribute",
+          "name": "preserve_history"
+        },
+        {
+          "path": "tests/viewport_body_lifetime_pilot.py",
+          "line": 101,
+          "syntax": "Attribute",
+          "name": "preserve_history"
+        },
+        {
+          "path": "tests/viewport_body_order_pilot.py",
+          "line": 46,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/viewport_body_order_pilot.py",
+          "line": 118,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/viewport_body_order_pilot.py",
+          "line": 170,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/viewport_body_order_pilot.py",
+          "line": 350,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/viewport_body_order_pilot.py",
+          "line": 365,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/viewport_bounded_runway_churn_pilot.py",
+          "line": 36,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/viewport_demand_custody_pilot.py",
+          "line": 80,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "tests/viewport_demand_custody_pilot.py",
+          "line": 40,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/viewport_demand_custody_pilot.py",
+          "line": 65,
+          "syntax": "Name",
+          "name": "demand"
+        },
+        {
+          "path": "tests/viewport_demand_custody_pilot.py",
+          "line": 59,
+          "syntax": "Name",
+          "name": "demand"
+        },
+        {
+          "path": "tests/viewport_demand_custody_pilot.py",
+          "line": 90,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "tests/viewport_demand_custody_pilot.py",
+          "line": 88,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "tests/viewport_demand_custody_pilot.py",
+          "line": 67,
+          "syntax": "Name",
+          "name": "demand"
+        },
+        {
+          "path": "tests/viewport_demand_custody_pilot.py",
+          "line": 68,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "tests/viewport_idle_cadence_pilot.py",
+          "line": 90,
+          "syntax": "Attribute",
+          "name": "delivery_seconds"
+        },
+        {
+          "path": "tests/viewport_idle_cadence_pilot.py",
+          "line": 104,
+          "syntax": "Attribute",
+          "name": "delivery_seconds"
+        },
+        {
+          "path": "tests/viewport_idle_cadence_pilot.py",
+          "line": 88,
+          "syntax": "Attribute",
+          "name": "history_layout_ready"
+        },
+        {
+          "path": "tests/viewport_idle_cadence_pilot.py",
+          "line": 119,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "tests/viewport_idle_cadence_pilot.py",
+          "line": 121,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "tests/viewport_idle_cadence_pilot.py",
+          "line": 39,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/viewport_idle_cadence_pilot.py",
+          "line": 54,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/viewport_idle_cadence_pilot.py",
+          "line": 102,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "tests/viewport_rapid_scroll_pilot.py",
+          "line": 55,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/viewport_rapid_scroll_pilot.py",
+          "line": 114,
+          "syntax": "Attribute",
+          "name": "admission"
+        },
+        {
+          "path": "tests/viewport_rapid_scroll_pilot.py",
+          "line": 22,
+          "syntax": "Attribute",
+          "name": "admission"
+        },
+        {
+          "path": "tests/viewport_runway_pilot.py",
+          "line": 33,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/viewport_warm_trim_pilot.py",
+          "line": 42,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/watcher_startup_cancellation.py",
+          "line": 88,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tests/worker_native_size_pilot.py",
+          "line": 172,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/worker_preview_pilot.py",
+          "line": 139,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tests/worker_preview_pilot.py",
+          "line": 200,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tests/workspace_native_paint_retention_pilot.py",
+          "line": 32,
+          "syntax": "Attribute",
+          "name": "mount"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "af692dc6feae5a8def3136e25024624311f088b0",
+      "root": "tools",
+      "modules": 41,
+      "parse_omissions": [],
+      "sites": [
+        {
+          "path": "tools/performance/analyze_trace.py",
+          "line": 125,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tools/performance/capture_live.py",
+          "line": 83,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tools/performance/capture_live.py",
+          "line": 104,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tools/performance/capture_state.py",
+          "line": 291,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tools/performance/capture_state.py",
+          "line": 418,
+          "syntax": "Attribute",
+          "name": "history_layout_ready"
+        },
+        {
+          "path": "tools/performance/capture_state.py",
+          "line": 417,
+          "syntax": "Attribute",
+          "name": "history_layout_ready"
+        },
+        {
+          "path": "tools/performance/capture_state.py",
+          "line": 449,
+          "syntax": "Attribute",
+          "name": "delivery_seconds"
+        },
+        {
+          "path": "tools/performance/capture_state.py",
+          "line": 445,
+          "syntax": "Attribute",
+          "name": "admission"
+        },
+        {
+          "path": "tools/performance/capture_state.py",
+          "line": 447,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "tools/performance/replay_state.py",
+          "line": 344,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tools/performance/replay_state.py",
+          "line": 335,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tools/performance/replay_state.py",
+          "line": 256,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tools/performance/replay_state.py",
+          "line": 252,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "tools/performance/run_isolated.py",
+          "line": 179,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tools/performance/run_isolated.py",
+          "line": 189,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tools/performance/run_isolated.py",
+          "line": 191,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tools/performance/run_isolated.py",
+          "line": 199,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tools/performance/scroll_travel_observation.py",
+          "line": 39,
+          "syntax": "Attribute",
+          "name": "admission"
+        },
+        {
+          "path": "tools/performance/scroll_travel_observation.py",
+          "line": 43,
+          "syntax": "Attribute",
+          "name": "_extend_and_trim"
+        },
+        {
+          "path": "tools/performance/scroll_travel_observation.py",
+          "line": 52,
+          "syntax": "Attribute",
+          "name": "_extend_and_trim"
+        },
+        {
+          "path": "tools/performance/scroll_travel_observation.py",
+          "line": 188,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "tools/performance/scroll_travel_observation.py",
+          "line": 195,
+          "syntax": "Attribute",
+          "name": "demand"
+        },
+        {
+          "path": "tools/performance/sidebar_validation_driver.py",
+          "line": 175,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "tools/performance/sidebar_validation_driver.py",
+          "line": 672,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "tools/performance/sidebar_validation_driver.py",
+          "line": 542,
+          "syntax": "Attribute",
+          "name": "history_layout_ready"
+        },
+        {
+          "path": "tools/performance/sidebar_validation_driver.py",
+          "line": 542,
+          "syntax": "Attribute",
+          "name": "history_layout_ready"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "revision": "1bdc18c363cbc0f938537a71aa8ba0225d03e25e",
+      "root": "src/textual",
+      "modules": 249,
+      "parse_omissions": [],
+      "sites": [
+        {
+          "path": "src/textual/_arrange.py",
+          "line": 72,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/_arrange.py",
+          "line": 87,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/_arrange.py",
+          "line": 122,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/_compositor.py",
+          "line": 1394,
+          "syntax": "FunctionDef",
+          "name": "_get_renders"
+        },
+        {
+          "path": "src/textual/_compositor.py",
+          "line": 322,
+          "syntax": "Name",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/_compositor.py",
+          "line": 322,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/_compositor.py",
+          "line": 1382,
+          "syntax": "Name",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/_compositor.py",
+          "line": 1382,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/_compositor.py",
+          "line": 87,
+          "syntax": "Attribute",
+          "name": "_geometry_revision"
+        },
+        {
+          "path": "src/textual/_compositor.py",
+          "line": 1660,
+          "syntax": "Attribute",
+          "name": "_get_renders"
+        },
+        {
+          "path": "src/textual/_compositor.py",
+          "line": 327,
+          "syntax": "Name",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/_compositor.py",
+          "line": 1001,
+          "syntax": "Attribute",
+          "name": "scroll_target_y"
+        },
+        {
+          "path": "src/textual/_compositor.py",
+          "line": 1389,
+          "syntax": "Name",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/_compositor.py",
+          "line": 911,
+          "syntax": "Attribute",
+          "name": "scroll_target_y"
+        },
+        {
+          "path": "src/textual/_doc.py",
+          "line": 30,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/_node_list.py",
+          "line": 211,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/_segment_tools.py",
+          "line": 119,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/_spatial_map.py",
+          "line": 96,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/_wrap.py",
+          "line": 68,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 2535,
+          "syntax": "FunctionDef",
+          "name": "mount"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 2564,
+          "syntax": "FunctionDef",
+          "name": "mount_all"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 2562,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 2592,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 3279,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 4566,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 3577,
+          "syntax": "Attribute",
+          "name": "mount_all"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 3698,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 2879,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 4575,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 3594,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 3595,
+          "syntax": "Attribute",
+          "name": "mount_all"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 3697,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 3768,
+          "syntax": "Attribute",
+          "name": "prune"
+        },
+        {
+          "path": "src/textual/await_remove.py",
+          "line": 39,
+          "syntax": "FunctionDef",
+          "name": "prune"
+        },
+        {
+          "path": "src/textual/await_remove.py",
+          "line": 124,
+          "syntax": "FunctionDef",
+          "name": "call_when_ready"
+        },
+        {
+          "path": "src/textual/await_remove.py",
+          "line": 87,
+          "syntax": "Attribute",
+          "name": "call_when_ready"
+        },
+        {
+          "path": "src/textual/binding.py",
+          "line": 267,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/compose.py",
+          "line": 94,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/compose.py",
+          "line": 79,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/content.py",
+          "line": 95,
+          "syntax": "FunctionDef",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/content.py",
+          "line": 980,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/content.py",
+          "line": 981,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/content.py",
+          "line": 1416,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/content.py",
+          "line": 724,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/content.py",
+          "line": 1651,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/content.py",
+          "line": 1171,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/content.py",
+          "line": 462,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/css/_styles_builder.py",
+          "line": 177,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/css/_styles_builder.py",
+          "line": 282,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/css/parse.py",
+          "line": 420,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/css/query.py",
+          "line": 407,
+          "syntax": "FunctionDef",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/css/query.py",
+          "line": 413,
+          "syntax": "Attribute",
+          "name": "prune"
+        },
+        {
+          "path": "src/textual/css/styles.py",
+          "line": 954,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 416,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 1004,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 1006,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/dom.py",
+          "line": 144,
+          "syntax": "Name",
+          "name": "_geometry_revision"
+        },
+        {
+          "path": "src/textual/dom.py",
+          "line": 150,
+          "syntax": "Attribute",
+          "name": "_geometry_revision"
+        },
+        {
+          "path": "src/textual/dom.py",
+          "line": 154,
+          "syntax": "Attribute",
+          "name": "_geometry_revision"
+        },
+        {
+          "path": "src/textual/driver.py",
+          "line": 103,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/layouts/grid.py",
+          "line": 151,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/lazy.py",
+          "line": 58,
+          "syntax": "AsyncFunctionDef",
+          "name": "mount"
+        },
+        {
+          "path": "src/textual/lazy.py",
+          "line": 63,
+          "syntax": "Name",
+          "name": "mount"
+        },
+        {
+          "path": "src/textual/lazy.py",
+          "line": 138,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/textual/lazy.py",
+          "line": 139,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/lazy.py",
+          "line": 60,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/textual/lazy.py",
+          "line": 61,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/lazy.py",
+          "line": 119,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/textual/markup.py",
+          "line": 441,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/screen.py",
+          "line": 1852,
+          "syntax": "Attribute",
+          "name": "scroll_target_y"
+        },
+        {
+          "path": "src/textual/screen.py",
+          "line": 994,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/selection.py",
+          "line": 67,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/strip.py",
+          "line": 705,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/strip.py",
+          "line": 707,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/strip.py",
+          "line": 577,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/walk.py",
+          "line": 133,
+          "syntax": "Name",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/walk.py",
+          "line": 133,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/walk.py",
+          "line": 138,
+          "syntax": "Name",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/walk.py",
+          "line": 143,
+          "syntax": "Name",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/walk.py",
+          "line": 172,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 1518,
+          "syntax": "FunctionDef",
+          "name": "mount"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 1607,
+          "syntax": "FunctionDef",
+          "name": "mount_all"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 4616,
+          "syntax": "FunctionDef",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 4625,
+          "syntax": "FunctionDef",
+          "name": "remove_children"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 450,
+          "syntax": "Name",
+          "name": "scroll_target_y"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 903,
+          "syntax": "Attribute",
+          "name": "scroll_target_y"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 1637,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 1682,
+          "syntax": "Attribute",
+          "name": "mount_all"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 4622,
+          "syntax": "Attribute",
+          "name": "prune"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 4649,
+          "syntax": "Attribute",
+          "name": "prune"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 634,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 879,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 3014,
+          "syntax": "Attribute",
+          "name": "scroll_target_y"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 3037,
+          "syntax": "Attribute",
+          "name": "scroll_target_y"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 1868,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 2809,
+          "syntax": "Attribute",
+          "name": "scroll_target_y"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 3478,
+          "syntax": "Attribute",
+          "name": "scroll_target_y"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 3519,
+          "syntax": "Attribute",
+          "name": "scroll_target_y"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 3556,
+          "syntax": "Attribute",
+          "name": "scroll_target_y"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 3597,
+          "syntax": "Attribute",
+          "name": "scroll_target_y"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 5022,
+          "syntax": "Attribute",
+          "name": "mount_all"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 1871,
+          "syntax": "Attribute",
+          "name": "mount_all"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 3019,
+          "syntax": "Attribute",
+          "name": "scroll_target_y"
+        },
+        {
+          "path": "src/textual/widgets/_content_switcher.py",
+          "line": 128,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/textual/widgets/_data_table.py",
+          "line": 1608,
+          "syntax": "Attribute",
+          "name": "scroll_target_y"
+        },
+        {
+          "path": "src/textual/widgets/_data_table.py",
+          "line": 1497,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/widgets/_directory_tree.py",
+          "line": 227,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "src/textual/widgets/_directory_tree.py",
+          "line": 483,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "src/textual/widgets/_directory_tree.py",
+          "line": 270,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/widgets/_directory_tree.py",
+          "line": 298,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/widgets/_directory_tree.py",
+          "line": 323,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/widgets/_footer.py",
+          "line": 453,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/widgets/_footer.py",
+          "line": 436,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "src/textual/widgets/_footer.py",
+          "line": 450,
+          "syntax": "Attribute",
+          "name": "mount_all"
+        },
+        {
+          "path": "src/textual/widgets/_list_view.py",
+          "line": 236,
+          "syntax": "FunctionDef",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/widgets/_list_view.py",
+          "line": 246,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/textual/widgets/_list_view.py",
+          "line": 259,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/widgets/_list_view.py",
+          "line": 268,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widgets/_list_view.py",
+          "line": 283,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/textual/widgets/_list_view.py",
+          "line": 306,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widgets/_list_view.py",
+          "line": 338,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "src/textual/widgets/_log.py",
+          "line": 235,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/widgets/_log.py",
+          "line": 233,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/widgets/_markdown.py",
+          "line": 283,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widgets/_markdown.py",
+          "line": 284,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/textual/widgets/_markdown.py",
+          "line": 714,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widgets/_markdown.py",
+          "line": 725,
+          "syntax": "Attribute",
+          "name": "mount_all"
+        },
+        {
+          "path": "src/textual/widgets/_markdown.py",
+          "line": 1473,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widgets/_markdown.py",
+          "line": 1458,
+          "syntax": "Attribute",
+          "name": "mount_all"
+        },
+        {
+          "path": "src/textual/widgets/_markdown.py",
+          "line": 1549,
+          "syntax": "Attribute",
+          "name": "mount_all"
+        },
+        {
+          "path": "src/textual/widgets/_markdown.py",
+          "line": 1461,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widgets/_markdown.py",
+          "line": 1462,
+          "syntax": "Attribute",
+          "name": "mount_all"
+        },
+        {
+          "path": "src/textual/widgets/_option_list.py",
+          "line": 830,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/widgets/_rich_log.py",
+          "line": 262,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/widgets/_select.py",
+          "line": 527,
+          "syntax": "Attribute",
+          "name": "extend"
+        },
+        {
+          "path": "src/textual/widgets/_tabbed_content.py",
+          "line": 448,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/textual/widgets/_tabbed_content.py",
+          "line": 488,
+          "syntax": "Attribute",
+          "name": "remove_children"
+        },
+        {
+          "path": "src/textual/widgets/_tabbed_content.py",
+          "line": 468,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widgets/_tabs.py",
+          "line": 486,
+          "syntax": "Attribute",
+          "name": "mount"
+        },
+        {
+          "path": "src/textual/widgets/_tabs.py",
+          "line": 523,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widgets/_tabs.py",
+          "line": 567,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widgets/_toast.py",
+          "line": 143,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widgets/_toast.py",
+          "line": 202,
+          "syntax": "Attribute",
+          "name": "mount_all"
+        },
+        {
+          "path": "src/textual/widgets/_toast.py",
+          "line": 187,
+          "syntax": "Attribute",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widgets/_tree.py",
+          "line": 495,
+          "syntax": "FunctionDef",
+          "name": "remove"
+        },
+        {
+          "path": "src/textual/widgets/_tree.py",
+          "line": 506,
+          "syntax": "FunctionDef",
+          "name": "remove_children"
+        }
+      ]
+    }
+  ],
+  "limits": "Names/AST evidence only; external dynamic aliases and callbacks unproved. Native frozen59 read only. No tests/runtime/package purpose."
+}

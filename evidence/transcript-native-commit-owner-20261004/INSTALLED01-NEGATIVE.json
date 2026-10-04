@@ -1,0 +1,103 @@
+{
+  "state": "Original44101 terminalFAIL; five reached original checks true; remaining cases unrun",
+  "source_head": "9d3a151e3934e1cd59b44226f3027d0fe26387c4",
+  "product_reference": "215d7ff28478512b146d8b2c7a771693cf9cabb0",
+  "terminal_seconds": 7.671773587004282,
+  "exit_code": 1,
+  "checks": {
+    "trim_commits_before_original_unmount": true,
+    "replacement_progresses_while_retired_child_attached": true,
+    "end_commits_destination_without_old_unmount_join": true,
+    "editor_and_source_pump_progress_during_unmount": true,
+    "resize_pump_progresses_before_unmount_completion": true
+  },
+  "app_exception_at_progress": "None",
+  "failure": "Driver read cleared native MessagePump._task after child Unmount/unregister completion; asyncio.shield(None) TypeError. No product fault inferred.",
+  "original_native_contract": "MessagePump._process_messages finally clears self._task; AwaitRemove acquires task resources at prune before completion. Corrected whole control family captures those same original Task references before prune/cancellation or held event release, never after completion.",
+  "unreached": [
+    "fragment/page Mount cancellation",
+    "prepared Filtered supersession",
+    "revision/park/loader delayed admission",
+    "success receipt/whole-close assertions"
+  ],
+  "whole_handback": {
+    "state": "WHOLE actual436 floor restored; sole441 code/import/read/execution/build claim closed",
+    "app_exit": 1,
+    "archive_sha256": "e6f27830a69a5e60902ecf8d25dccd46b43efefef75335e2679ef78c461aba5a",
+    "members_verified": 1470,
+    "packages": 69,
+    "protected_keepers_verified": 390,
+    "borrower_receipt": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441-main440-20261004/final-borrowers.json",
+    "borrower_receipt_sha256": "78ec09a6fb19550e42fd2b18ebbcd22bc0d3054dd2c19c823bf43ecbdd8aaaeb",
+    "borrowers": 0,
+    "gaps": 0,
+    "process_cleanup": {
+      "remaining_owned_pids": [],
+      "errors": [],
+      "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+      "processes": [
+        {
+          "pid": 28259,
+          "start_ticks": 62193193,
+          "returncode": 1
+        }
+      ]
+    },
+    "original_origins_and_activation": "Exact archived original normal filewheel origins and PREFIXactivation bytes",
+    "provider_inputs": 0,
+    "physical_movie": false,
+    "native086_read_execution_handed_back": true,
+    "future_holder_claim": false
+  },
+  "keeper_hashes": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441-main440-20261004/issued-grant.json",
+      "sha256": "76b3f286ff3e70fd49dd98d8f8fb066eb56882b9c349f7efd4c21317b9ecee57"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441-main440-20261004/SOURCE-CONTROL-OPERANDS.json",
+      "sha256": "132972b69286fa3404289f816aed3e8f05ec368dbd85ad290d368209e6c8e0b0"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441-main440-20261004/wheel-proof.json",
+      "sha256": "a863f63db1cda01882866f5cb0be850032986af0554dc111afffcd3f10e21cbc"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441-main440-20261004/toad-inventory.json",
+      "sha256": "e5b55d29406438de8aee2cb2a9e5093b3cffb4db7b76fbccd7b1c66180243edc"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441-main440-20261004/agent_comms-inventory.json",
+      "sha256": "6b0f8d84e56d96e546796bac0175d3211a9dd8f706523951e9a866d8bb1576fe"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441-main440-20261004/source-proof.json",
+      "sha256": "6986d914f4f9adb381a2bdc14099f1d4e085bfab31dca868cdbcddcf3046039b"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441-main440-20261004/candidate-activation.json",
+      "sha256": "7348f3b4db78a30dadacf5554be01c080d4a98ee258f610ae0c96edde7ce63df"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441-main440-20261004/terminal.json",
+      "sha256": "854ac65c32851fca08eafa10c61847501d4f4812a2373dbe19520694cbbb47a9"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441-main440-20261004/app.log",
+      "sha256": "34ff4879d13c9c224917ec06829a5a937ee3a67fe8ecb0e0b51713c1d3112df1"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441-main440-20261004/app/progress.json",
+      "sha256": "8a5fe1e3774241f3d137650a27dd4f1329ae0b5385a3e97cd919c2fa5fe55eab"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441-main440-20261004/code-handback.json",
+      "sha256": "58d2d5a86606aa6b69c6d1629729359ece01701da6c7df2a860c6f6c3b29107b"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/transcript441-main440-20261004/final-borrowers.json",
+      "sha256": "78ec09a6fb19550e42fd2b18ebbcd22bc0d3054dd2c19c823bf43ecbdd8aaaeb"
+    }
+  ],
+  "scope": "Partial installed original App input/resize/source admission during pending Unmount, not full acceptance/physical/CPU/smoothness. No next run or loan inferred."
+}

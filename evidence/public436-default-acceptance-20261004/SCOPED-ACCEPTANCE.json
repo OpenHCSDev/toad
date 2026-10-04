@@ -1,0 +1,141 @@
+{
+  "scope": "Actual public436 saved startup/sidebar/thread A-B-A/draft and reader motion phases, plus separately completed ordinary Undo/channel tail; no whole original02 PASS or smoothness/gain claim",
+  "public_native": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
+  "original02": {
+    "completed": false,
+    "capture_completed": false,
+    "termination": "interaction deadline before Undo export/channel",
+    "input_checks": {
+      "input_remains_focused": true,
+      "original_editor_window_and_mode": true,
+      "draft_and_caret_preserved": true,
+      "input_pageup_moves_history": true,
+      "input_pagedown_moves_history": true,
+      "input_pageup_reaches_original_window": true,
+      "input_pagedown_reaches_original_window": true
+    },
+    "unknown_original_ctrl_z_outcome": true
+  },
+  "original03": {
+    "completed": false,
+    "termination": "Authored openhcs argument failed exact #openhcs channel lookup before clicking; target contract/product unchanged"
+  },
+  "corrected04": {
+    "completed": true,
+    "capture_completed": true,
+    "duration_seconds": 67.6584675029153,
+    "checks": {
+      "original_saved_history_loaded": true,
+      "original_channel_identity_retained": true,
+      "channel_window_retained": true,
+      "channel_messages_published": true,
+      "hidden_native_window_not_admitted": true,
+      "hidden_channel_window_not_admitted": true,
+      "shown_channel_window_admitted": true,
+      "shown_native_window_admitted": true,
+      "native_tab_returned": true,
+      "peer_selected": true,
+      "source_view_retained": true,
+      "editor_retained": true,
+      "history_window_retained": true,
+      "draft_typed": true,
+      "draft_retained_on_return": true,
+      "undo_restored_original_draft": true,
+      "returned_saved_body_ready": true,
+      "end_saved_body_ready": true
+    },
+    "runtime_unchanged": true,
+    "original_owner_before": {
+      "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "mode": "existing_thread",
+      "name": "nra-architecture",
+      "identity": {
+        "pid": 3307810,
+        "start_time": 61697363
+      },
+      "original_owner_alive": true
+    },
+    "original_owner_after": {
+      "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "mode": "existing_thread",
+      "name": "nra-architecture",
+      "identity": {
+        "pid": 3307810,
+        "start_time": 61697363
+      },
+      "original_owner_alive": true
+    },
+    "terminal_exit": {
+      "pid": 3655060,
+      "start_ticks": 61926579,
+      "returncode": 0
+    },
+    "cleanup": {
+      "remaining_owned_pids": [],
+      "errors": []
+    }
+  },
+  "physical_assessment": {
+    "02": "Personal Up/Down review AFTER UI exit: body/chrome painted, discrete advances and repeats, no full-body blank seen in those bands; no DURING or FPS claim",
+    "04": "Personal original undo/channel-return/native-return PNG review AFTER terminal: editor Undo output restored, channel messages and both native/channel chrome painted; still images are not motion evidence"
+  },
+  "remaining": [
+    "441 source is not installed; no affected source App acceptance",
+    "Unfinished smoothness/runway/CPU and causal gap attribution",
+    "No new provider/input/notification/status/fork acceptance claimed"
+  ],
+  "keepers": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/public436-continuous-20261004-02/capture/receipt.json",
+      "sha256": "8b6c67a6987cd4887f5889cdd44098ba959648381fa1a7e8efd353baf31ae067"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/public436-continuous-20261004-02/capture/input-paging-review.json",
+      "sha256": "5a8ca1394acee269c02cb4555a7921baf8ccc77c0a64395d74aaf0af63e2addd"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/public436-continuous-20261004-02/capture/frame-delivery.json",
+      "sha256": "e4c3769c54fea8044220b11b156ce51640d947b9f6e32a8d81ff9d65e0437239"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/public436-continuous-20261004-02/capture/profile-review.json",
+      "sha256": "8eb360dee97736c4e7decad275d595a9a316e787c624b2473c2d6dabbfd6dd63"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/public436-continuous-20261004-02/completed-phase-assessment.json",
+      "sha256": "a6ff18b40afcde9554882ea2699d8d71c537124d2f7278d40f660ba25e07a692"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/public436-continuous-20261004-02/gap-correlation.json",
+      "sha256": "3c92d8bd7594c4c4abb05d291c50ca71274274e2564473964059cbc9a1626d8a"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/public436-continuous-20261004-02/personal-motion-review.json",
+      "sha256": "bf15198630d89f9c1ab2c9078f07b65d64e4af23270df4ecc4574aa36dcee80e"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/public436-undo-channel-tail-20261004-03/capture/receipt.json",
+      "sha256": "ae264ea3adfd3f69ba547989b5ef9226d765e3a2ee3707a2db99ba21246f849c"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/public436-undo-channel-tail-20261004-04/capture/receipt.json",
+      "sha256": "0059222d2d4ec0f8e8f59a3acf37dc6c758d64d6c9359576fa26c2f8dcc26e66"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/public436-undo-channel-tail-20261004-04/capture/retained-lifetime-review.json",
+      "sha256": "21fb34a39a8f69d99048b72e223a31d0ccc86e202e95a35fbff9073fdc407e82"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/public436-undo-channel-tail-20261004-04/capture/phase-undo.png",
+      "sha256": "e9d1603002ab13f80ce7dc8e57ca5fd4fda31956139baca5711cca4b1c5544f2"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/public436-undo-channel-tail-20261004-04/capture/phase-channel-return.png",
+      "sha256": "13b3cc74b933a72d5c55a14cca62cfb5768bb3b7b197e5e71690146b097380d6"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/public436-undo-channel-tail-20261004-04/capture/phase-native-return.png",
+      "sha256": "ccc80d6bb2f796f9cd8512d641a8eb285ae19881c955adf3d9758d63791930cb"
+    }
+  ]
+}

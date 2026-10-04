@@ -1,0 +1,336 @@
+{
+  "state": "scoped ordinary public440 acceptance, separate from changed uninstalled441",
+  "capture_completed": true,
+  "completed": true,
+  "duration_seconds": 62.44476242805831,
+  "terminal_exit": {
+    "pid": 3802505,
+    "start_ticks": 62011013,
+    "returncode": 0
+  },
+  "checks": {
+    "original_saved_history_loaded": true,
+    "original_channel_identity_retained": true,
+    "channel_window_retained": true,
+    "channel_messages_published": true,
+    "hidden_native_window_not_admitted": true,
+    "hidden_channel_window_not_admitted": true,
+    "shown_channel_window_admitted": true,
+    "shown_native_window_admitted": true,
+    "native_tab_returned": true,
+    "peer_selected": true,
+    "source_view_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_typed": true,
+    "draft_retained_on_return": true,
+    "undo_restored_original_draft": true,
+    "returned_saved_body_ready": true,
+    "end_saved_body_ready": true
+  },
+  "runtime_unchanged": true,
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3728859,
+      "start_time": 61955571
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3728859,
+      "start_time": 61955571
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 3802479,
+        "start_ticks": 62010805,
+        "returncode": 0
+      },
+      {
+        "pid": 3802502,
+        "start_ticks": 62010999,
+        "returncode": 0
+      },
+      {
+        "pid": 3802505,
+        "start_ticks": 62011013,
+        "returncode": 0
+      },
+      {
+        "pid": 3802513,
+        "start_ticks": 62011019,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 3802521,
+        "start_ticks": 62011090,
+        "returncode": 0
+      },
+      {
+        "pid": 3802527,
+        "start_ticks": 62011101,
+        "returncode": 0
+      },
+      {
+        "pid": 3802528,
+        "start_ticks": 62011112,
+        "returncode": 0
+      },
+      {
+        "pid": 3803130,
+        "start_ticks": 62011922,
+        "returncode": 0
+      },
+      {
+        "pid": 3803158,
+        "start_ticks": 62011951,
+        "returncode": 0
+      },
+      {
+        "pid": 3803224,
+        "start_ticks": 62011985,
+        "returncode": 0
+      },
+      {
+        "pid": 3803383,
+        "start_ticks": 62012024,
+        "returncode": 0
+      },
+      {
+        "pid": 3803715,
+        "start_ticks": 62012186,
+        "returncode": 0
+      },
+      {
+        "pid": 3803724,
+        "start_ticks": 62012199,
+        "returncode": 0
+      },
+      {
+        "pid": 3804111,
+        "start_ticks": 62012413,
+        "returncode": 0
+      },
+      {
+        "pid": 3804546,
+        "start_ticks": 62012582,
+        "returncode": 0
+      },
+      {
+        "pid": 3804816,
+        "start_ticks": 62012761,
+        "returncode": 0
+      },
+      {
+        "pid": 3804821,
+        "start_ticks": 62012870,
+        "returncode": 0
+      },
+      {
+        "pid": 3804822,
+        "start_ticks": 62013024,
+        "returncode": 0
+      },
+      {
+        "pid": 3804877,
+        "start_ticks": 62013234,
+        "returncode": 0
+      },
+      {
+        "pid": 3805431,
+        "start_ticks": 62013389,
+        "returncode": 0
+      },
+      {
+        "pid": 3805786,
+        "start_ticks": 62013488,
+        "returncode": 0
+      },
+      {
+        "pid": 3805787,
+        "start_ticks": 62013502,
+        "returncode": 0
+      },
+      {
+        "pid": 3806194,
+        "start_ticks": 62013716,
+        "returncode": 0
+      },
+      {
+        "pid": 3806491,
+        "start_ticks": 62013870,
+        "returncode": 0
+      },
+      {
+        "pid": 3806596,
+        "start_ticks": 62014039,
+        "returncode": 0
+      },
+      {
+        "pid": 3806601,
+        "start_ticks": 62014147,
+        "returncode": 0
+      },
+      {
+        "pid": 3806803,
+        "start_ticks": 62014361,
+        "returncode": 0
+      },
+      {
+        "pid": 3806814,
+        "start_ticks": 62014529,
+        "returncode": 0
+      },
+      {
+        "pid": 3806967,
+        "start_ticks": 62014697,
+        "returncode": 0
+      },
+      {
+        "pid": 3806974,
+        "start_ticks": 62014800,
+        "returncode": 0
+      },
+      {
+        "pid": 3806976,
+        "start_ticks": 62015012,
+        "returncode": 0
+      },
+      {
+        "pid": 3806987,
+        "start_ticks": 62015172,
+        "returncode": 0
+      },
+      {
+        "pid": 3807000,
+        "start_ticks": 62015268,
+        "returncode": 0
+      },
+      {
+        "pid": 3807001,
+        "start_ticks": 62015281,
+        "returncode": 0
+      },
+      {
+        "pid": 3807139,
+        "start_ticks": 62015505,
+        "returncode": 0
+      },
+      {
+        "pid": 3807150,
+        "start_ticks": 62015661,
+        "returncode": 0
+      },
+      {
+        "pid": 3807214,
+        "start_ticks": 62015761,
+        "returncode": 0
+      },
+      {
+        "pid": 3807215,
+        "start_ticks": 62015775,
+        "returncode": 0
+      },
+      {
+        "pid": 3807512,
+        "start_ticks": 62015988,
+        "returncode": 0
+      },
+      {
+        "pid": 3807723,
+        "start_ticks": 62016144,
+        "returncode": 0
+      },
+      {
+        "pid": 3807802,
+        "start_ticks": 62016254,
+        "returncode": 0
+      },
+      {
+        "pid": 3807964,
+        "start_ticks": 62016467,
+        "returncode": 0
+      },
+      {
+        "pid": 3807998,
+        "start_ticks": 62016634,
+        "returncode": 0
+      },
+      {
+        "pid": 3808011,
+        "start_ticks": 62016732,
+        "returncode": 0
+      },
+      {
+        "pid": 3808040,
+        "start_ticks": 62016944,
+        "returncode": 0
+      },
+      {
+        "pid": 3808054,
+        "start_ticks": 62017304,
+        "returncode": 0
+      },
+      {
+        "pid": 3808066,
+        "start_ticks": 62017333,
+        "returncode": 0
+      },
+      {
+        "pid": 3808207,
+        "start_ticks": 62017367,
+        "returncode": 0
+      },
+      {
+        "pid": 3808508,
+        "start_ticks": 62017560,
+        "returncode": 0
+      }
+    ]
+  },
+  "scope": "Original isolated st/driver saved history, native/channel actual returns, sidebar current rows/status, editor draft and Undo. No model/provider/native input, package mutation, held scroll, movie or profile.",
+  "personal_review": {
+    "timing": "AFTER owned terminal; personally viewed existing warm-start/channel-return/native-return PNGs",
+    "observation": "Saved body rows, sidebar Ready/Stopped/current handling status, #openhcs IRC history and editor/chrome painted. No fresh status/event-delivery or physical motion claim."
+  },
+  "limits": [
+    "Still images are not smoothness/FPS/CPU evidence.",
+    "Installed440 includes439; this does not qualify changed441.",
+    "Earlier43602 deadlineFAIL and03 authored selectorFAIL are unchanged."
+  ],
+  "keepers": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/public440-ordinary-display-20261004-01/capture/receipt.json",
+      "sha256": "58db45f86a5760720fe944a98c6a8443ea38b9ebc52e68fb0a8d60f27c31cc9f"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/public440-ordinary-display-20261004-01/capture/phase-warm-start.png",
+      "sha256": "f358add157ebb304b3a7c4161dd01f6d505c280b978e6112057d5cbdf7afb7c4"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/public440-ordinary-display-20261004-01/capture/phase-channel-return.png",
+      "sha256": "cf9aec13cbf9ceb7fec8522dcd456f27029fffc6b0bb0b3c72a784ab817b37db"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/public440-ordinary-display-20261004-01/capture/phase-native-return.png",
+      "sha256": "ccc80d6bb2f796f9cd8512d641a8eb285ae19881c955adf3d9758d63791930cb"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/public440-ordinary-display-20261004-01/admission.json",
+      "sha256": "f7539d0ba1f7a70ecffcad910fc1a4bddfa1923ac3d0c843dec0cdbc0e5ec474"
+    }
+  ]
+}

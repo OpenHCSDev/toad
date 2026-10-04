@@ -1,0 +1,12 @@
+{
+  "run": 37227292592,
+  "job": 111509477277,
+  "original_status": "FAILURE",
+  "base_revision": "af692dc6feae5a8def3136e25024624311f088b0",
+  "head_revision": "8a5cdeae93951ad50728f64efba0d5eca63e27f4",
+  "positive_delta": {
+    "GodClassExcess:src/toad/widgets/transcript_history.py::TranscriptHistory": 8
+  },
+  "original_log_sha256": "e5c8db6b7f5aeaf0f02a806ca22f15ebf1b3ba944a0ee3d585b4f724fe574cd9",
+  "source": "https://github.com/OpenHCSDev/toad/actions/runs/37227292592/job/111509477277"
+}
