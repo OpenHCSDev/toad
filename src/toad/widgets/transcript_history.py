@@ -7,10 +7,10 @@ from toad.widgets.message_filter import OtherCategory
 
 import asyncio
 from collections import deque
-from contextlib import ExitStack
+from contextlib import ExitStack, asynccontextmanager
 from dataclasses import dataclass, replace
 from functools import partial
-from collections.abc import Awaitable, Callable, Iterator
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from typing import TYPE_CHECKING
 from weakref import ref
 
@@ -290,6 +290,23 @@ class TranscriptPageView(VerticalGroup):
     def _body(self, fragment: TranscriptFragment) -> TranscriptFragmentView:
         return TranscriptFragmentView(fragment, self.visible_categories)
 
+    @classmethod
+    @asynccontextmanager
+    async def acquire(
+        cls, owner: TranscriptHistory, page: TranscriptPage, *, fragments,
+        batch_size: int, before: Widget, current: Callable[[], bool], newest: bool = True,
+    ) -> AsyncIterator[TranscriptPageView]:
+        """Acquire a page until its original source transfers native custody."""
+        view = cls(page, fragments=fragments, batch_size=batch_size, newest=newest)
+        view.visible_categories = owner.selected_categories
+        with ExitStack() as acquisition:
+            acquisition.callback(owner.remove_children, (view,))
+            await owner.mount(view, before=before)
+            if not current():
+                raise _PublicationRetired
+            yield view
+            acquisition.pop_all()
+
     def compose(self) -> ComposeResult:
         self._fragment_views = tuple(self._body(fragment)
                                      for fragment in self.fragments[self.start:self.stop])
@@ -336,9 +353,8 @@ class TranscriptPageView(VerticalGroup):
         fragments = demand.neighbors(self.fragments, self.start, self.stop, count)
         await preparation.prepare_fragments(fragments, keep_going, batch_size=self.batch_size)
 
-    async def extend(self, older: bool) -> None:
-        owner = self.query_ancestor(TranscriptHistory)
-        snapshot, admission = owner.source_snapshot(), self.capture_admission()
+    async def extend(self, older: bool, current: Callable[[], bool]) -> None:
+        admission = self.capture_admission()
         selected = self.extension_slice(older)
         added = tuple(self._body(fragment) for fragment in self.fragments[selected])
         previous = self.fragment_views
@@ -346,7 +362,7 @@ class TranscriptPageView(VerticalGroup):
             if added:
                 acquisition.callback(self.remove_children, added)
                 await self.mount_all(added, before=previous[0] if older and previous else None)
-            if not snapshot.current(owner) or self.capture_admission() != admission:
+            if not current() or self.capture_admission() != admission:
                 raise _PublicationRetired
             self._fragment_views = (*added, *previous) if older else (*previous, *added)
             if older:
@@ -842,20 +858,19 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             if not snapshot.current(self) or not request.current(window):
                 return False
             async with window.preserve_history(None):
-                with ExitStack() as acquisition:
-                    if view.capture_admission().interval != CommittedInterval(page.before, page.after):
-                        view = TranscriptPageView(
-                            page, fragments=fragments, batch_size=destination_admission,
-                        )
-                        view.visible_categories = self.selected_categories
-                        acquisition.callback(self.remove_children, (view,))
-                        await self.mount(view, before=self.newer)
-                    if not snapshot.current(self) or not request.current(window):
-                        return False
-                    retired = tuple(previous for previous in self.pages if previous is not view)
+                previous = tuple(self.pages)
+                if view.capture_admission().interval == CommittedInterval(page.before, page.after):
                     self.pages = deque([view])
-                    acquisition.pop_all()
-                self.remove_children(retired)
+                else:
+                    try:
+                        async with TranscriptPageView.acquire(
+                            self, page, fragments=fragments, batch_size=destination_admission,
+                            before=self.newer, current=lambda: snapshot.current(self) and request.current(window),
+                        ) as view:
+                            self.pages = deque([view])
+                    except _PublicationRetired:
+                        return False
+                self.remove_children(tuple(retired for retired in previous if retired is not view))
                 self._update_edges()
             return True
 
@@ -915,26 +930,22 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             overlay_visible = self.filter.projection_visible()
             if local:
                 previous_children = set(edge.fragment_views)
-                await edge.extend(older)
+                snapshot = self.source_snapshot()
+                await edge.extend(older, lambda: snapshot.current(self))
                 self._require_publication()
                 protected.update(child for child in edge.fragment_views if child not in previous_children)
             elif page is not None:
                 assert fragments is not None
-                view = TranscriptPageView(
-                    page, newest=older, fragments=fragments, batch_size=self.budget.admission_items,
-                )
-                view.visible_categories = self.selected_categories
                 snapshot, admission = self.source_snapshot(), edge.capture_admission()
-                with ExitStack() as acquisition:
-                    acquisition.callback(self.remove_children, (view,))
-                    await self.mount(view, before=edge if older else self.newer)
-                    if not snapshot.current(self) or edge.capture_admission() != admission:
-                        raise _PublicationRetired
+                async with TranscriptPageView.acquire(
+                    self, page, newest=older, fragments=fragments, batch_size=self.budget.admission_items,
+                    before=edge if older else self.newer,
+                    current=lambda: snapshot.current(self) and edge.capture_admission() == admission,
+                ) as view:
                     if older:
                         self.pages.appendleft(view)
                     else:
                         self.pages.append(view)
-                    acquisition.pop_all()
                 protected.update(view.fragment_views)
                 protected.add(view)
                 await self._report_coverage(page, fragments)
@@ -1038,7 +1049,8 @@ class ProjectedTranscriptHistory(TranscriptHistory):
 
     async def _admit_initial(self) -> None:
         self._require_publication()
-        await self.pages[0].extend(False)
+        snapshot = self.source_snapshot()
+        await self.pages[0].extend(False, lambda: snapshot.current(self))
         self._require_publication()
         self._update_edges()
 

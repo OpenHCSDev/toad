@@ -56,7 +56,8 @@ async def main(output):
                 resource = history.pages[0]
 
                 async def admit(older):
-                    children = tuple(resource.children)
+                    snapshot = history.source_snapshot()
+                    children = tuple(resource.fragment_views)
                     calls = []
 
                     def trace(frame, event, arg):
@@ -68,10 +69,10 @@ async def main(output):
                         async with view.window.preserve_history(children[0]):
                             sys.setprofile(trace)
                             try:
-                                await resource.extend(older)
+                                await resource.extend(older, lambda: snapshot.current(history))
                             finally:
                                 sys.setprofile(None)
-                            current = tuple(resource.children)
+                            current = tuple(resource.fragment_views)
                             results.append({
                                 "direction": "older" if older else "newer",
                                 "mount_transactions": calls,
@@ -85,8 +86,8 @@ async def main(output):
 
                 await admit(True)
                 async with view.window.history_lock:
-                    async with view.window.preserve_history(resource.children[0]):
-                        await resource.trim(resource.batch_size, older=False)
+                    async with view.window.preserve_history(resource.fragment_views[0]):
+                        resource.trim(resource.batch_size, older=False)
                 await admit(False)
                 await admit(False)  # Complete local range performs no mount.
                 receipt = {

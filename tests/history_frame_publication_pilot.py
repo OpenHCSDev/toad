@@ -50,9 +50,10 @@ class PublicationApp(ToadApp):
                          for strip in strips[region.y:region.bottom])
         self.frames.append(dict(clock=monotonic(), incomplete=incomplete,
                                 admissions=[dict(admitted=page.stop - page.start,
-                                                 mounted=len(page.children))
+                                                 mounted=len(page.fragment_views),
+                                                 native_children=len(page.children))
                                             for history in window.histories for page in history.pages
-                                            if page.stop - page.start != len(page.children)],
+                                            if page.stop - page.start != len(page.fragment_views)],
                                 composing=[type(node).__name__ for node in visible
                                            if isinstance(node, Widget) and not node.is_mounted
                                            and window in node.ancestors],

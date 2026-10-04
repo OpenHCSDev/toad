@@ -69,7 +69,7 @@ async def main(output):
                 await pilot.pause(.05)
                 resource = history.pages[0]
                 admission = resource.capture_admission()
-                children = tuple(resource.children)
+                children = tuple(resource.fragment_views)
                 worker = history._prefetch_worker
                 if worker is not None:
                     await asyncio.wait_for(worker.wait(), 10)
@@ -84,7 +84,7 @@ async def main(output):
                     "admitted_range": [admission.start, admission.stop],
                     "prepared_indexes": prepared_indexes,
                     "idle_local_worker_exists": worker is not None,
-                    "original_children_unchanged": tuple(resource.children) == children,
+                    "original_children_unchanged": tuple(resource.fragment_views) == children,
                     "original_admission_unchanged": resource.capture_admission() == admission,
                     "transport_reads": len(reads),
                     "prepared_bytes": app.preparation.retained_bytes,
@@ -98,7 +98,7 @@ async def main(output):
                 assert resource.start > 0 and not viewport.lookahead.travel_rows
                 assert worker is not None and prepared_indexes, "Idle local source runway was skipped"
                 assert all(index < admission.start or index >= admission.stop for index in prepared_indexes)
-                assert tuple(resource.children) == children and resource.capture_admission() == admission
+                assert tuple(resource.fragment_views) == children and resource.capture_admission() == admission
                 assert not reads and app.preparation.retained_bytes <= app.preparation.max_bytes
                 assert view.agent is None and app._exception is None
             finally:
