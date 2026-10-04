@@ -1,0 +1,30 @@
+{
+  "status": "SCOPED_READY_CORRECTED_NATIVE_JOIN; full performance and separate F1 shutdown failure remain open",
+  "qualified_source_join_head": "7b46427cb2b0aebf84b1ebfb26f99826a6b461cb",
+  "toad_product_source": "9138bc6a3fb2d5e7d5fa517f139272a900192a50",
+  "textual_source": "a818dcfd4a4a874af085f705559e134a00b7d189",
+  "wheel_sha256": "dfbd8fcbd37221f3c7934a8e7d7cd141bb592b1f0e35e9f034bffafe8e7f2a5a",
+  "installed_changed_native_confirmation": {
+    "original_log": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/f1-start-owner-installed03/journey08.log",
+    "sha256": "b7e8818d542bea776cdf1ae11cd00dd966eea750eb1d2065b814b8f96f283afa",
+    "result": "PASS",
+    "seconds": 49.30413615202997,
+    "check": "corrected-mounted-layer-owner-custom-duplicates-empty-restoration",
+    "scope": "Sch original mounted App uses corrected layer resource: custom/duplicate/empty/restoration. Other F1 assertions are separately owned; no new film.",
+    "source_proof": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/f1-start-owner-installed03/source-proof.json",
+    "source_proof_sha256": "de6318a55d648bb278d88335ed4a2b27b3758849ee53bc74db4981004f3fce31",
+    "textual_inventory": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/f1-start-owner-installed03/textual-inventory.json",
+    "textual_inventory_sha256": "bc1f8b02b01769f269b4c3b019ed129bf03112eae8484edc00ee2b25cc516591"
+  },
+  "whole_code_handback": {
+    "receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/f1-start-owner-installed03/style22-original-floor-handback.json",
+    "sha256": "c6f275df600fcab6650476fe331ee63c5f4c978b4015d6d0e1b31cb56de6a9ad",
+    "restored_floor": "611d416/Toad9138/Texta52/native2ea normal69; all927 original source assets/origins/proof/activation restored",
+    "future_sch_claim": false
+  },
+  "historical_binding": "Original422 SCOPED-READY and14 rawkeepers unchanged; film usesa52/Core611d416/native2ea, rawFALSE clippedpeer. Correcteda818 qualification supplied separately by08.",
+  "current_pin_scope": "Core966e761d/main421 pin is normal determining-main metadata.08 is not installed acceptance of that Core with every422 feature.",
+  "separate_failure": "09 native-delete callback acceptance passed; whole shutdown FAILED NoMatches Window; exact cleanup retired and terminal143 preserved. Parent owns remaining source closure. No inferred shutdown PASS from08 or prior422 App.",
+  "remaining": "Fullperformance, physical clippedpeer return/IRC tail, TC1/T4, steppedmotion and actualpresentation/input-to-paint/144Hz; no overallCPUgain/smoothness claim.",
+  "heisenberg_new_launch_or_package_write": false
+}

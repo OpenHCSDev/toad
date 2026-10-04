@@ -85,3 +85,18 @@ CORRECTED-NATIVE-JOIN.json records exact pins and artifact provenance. Sch's F1
 lease remains exclusive. After actual package handback, only the changed installed
 layer/style resource confirmation is needed; no repeated physical recording.
 Full stepped-motion/CPU/sidebar/tab/144Hz and clipped-peer return scope remain open.
+
+
+## Corrected native installed resource confirmation — existing gate08
+
+Sch's original installed gate08 passed the mounted layer-resource custom/duplicate/
+empty/restoration check inside its49.304s actual App run. CORRECTED-NATIVE-INSTALLED-
+READY.json binds original log, source proof, native inventory and corrected wheel
+a818/dfbd without another run. This closes the pending changed native layer/style
+resource boundary; it does not expand original422 partial physical scope.
+
+Whole style22 handback restored original611d416/9138/a52/2ea69 floor and all927
+source assets/origins/activation/proof. Failed native-delete09 remains separate: its
+callback assertions passed but whole shutdown failed. Parent owns remaining09
+source closure; neither08 nor prior422 shutdown proves that repaired. Fullperformance
+continues; no new movie, package write or provider.
