@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from contextlib import ExitStack
 from dataclasses import dataclass
 from functools import partial
 from typing import TYPE_CHECKING
@@ -38,7 +39,7 @@ class FilterState(DeclaredFamily, affix="Filter"):
     def older_visible(self, owner) -> bool:
         return False
 
-    async def canonical_moved(self, filtering, previous, visible) -> None:
+    def canonical_moved(self, filtering, previous, visible) -> None:
         pass
 
     def owns_source(self, source: PreparedPageSource) -> bool:
@@ -53,8 +54,9 @@ class FilterState(DeclaredFamily, affix="Filter"):
     def retire(self, filtering: TranscriptFilter) -> None:
         pass
 
-    async def remove(self, owner: TranscriptHistory) -> None:
-        pass
+    def remove(self, filtering: TranscriptFilter) -> None:
+        if filtering.state is self:
+            filtering.clear()
 
     @abstractmethod
     def has_older(self, owner: TranscriptHistory) -> bool: ...
@@ -129,12 +131,15 @@ class SeekingFilter(NoFilter):
                 viewport = snapshot.window.content_region
                 anchor = next((child for child in owner.fragment_views
                                if child in visible and visible[child][0].overlaps(viewport)), None)
-                filtering.state = Filtered(projection)
                 async with snapshot.window.preserve_history(anchor):
-                    await owner.mount(projection, before=owner.pages[0])
-                    filtering.require_projection(snapshot, projection)
-                    await projection.admit_initial()
-                    filtering.require_projection(snapshot, projection)
+                    with ExitStack() as acquisition:
+                        filtering.state = admitted_state = Filtered(projection)
+                        acquisition.callback(admitted_state.remove, filtering)
+                        await owner.mount(projection, before=owner.pages[0])
+                        filtering.require_projection(snapshot, projection)
+                        await projection.admit_initial()
+                        filtering.require_projection(snapshot, projection)
+                        acquisition.pop_all()
                 admitted = bool(projection.fragment_views)
                 owner._update_edges()
                 if not admitted:
@@ -192,17 +197,18 @@ class Filtered(FilterState):
         self.view.display = False
         filtering.owner.run_worker(partial(filtering.retire, self), group="filter-reset")
 
-    async def remove(self, owner):
+    def remove(self, filtering):
+        super().remove(filtering)
         if self.view.is_attached:
-            await self.view.remove()
+            self.view.remove()
 
-    async def canonical_moved(self, filtering, previous, visible):
+    def canonical_moved(self, filtering, previous, visible):
         owner = filtering.owner
         if visible or previous == (owner.pages[0], owner.pages[0].start):
             return
         # Eviction must expose the newly omitted interval, not skip it with
         # the projection's previously accepted backward cursor.
-        await filtering.remove()
+        filtering.remove()
         owner.invalidate_projection()
 
     async def advance(self, filtering, snapshot):
@@ -273,23 +279,21 @@ class TranscriptFilter:
     @property
     def older_visible(self): return self.state.older_visible(self.owner)
 
-    async def canonical_moved(self, previous, visible):
-        await self.state.canonical_moved(self, previous, visible)
+    def canonical_moved(self, previous, visible):
+        self.state.canonical_moved(self, previous, visible)
 
     def covers_incoming(self, sequence): return self.state.covers_incoming(sequence)
     def projection_visible(self): return self.state.visible(self.owner)
     def request_force(self): self.demand = RequestedScanDemand()
     def clear(self): self.state = FilterState.for_selection(self.owner.selected_categories)
 
-    async def remove(self) -> None:
-        retired = self.state
-        self.clear()
-        await retired.remove(self.owner)
+    def remove(self) -> None:
+        self.state.remove(self)
 
     async def retire(self, retired: FilterState) -> None:
         async with self.owner.window.history_lock:
             async with self.owner.window.preserve_history(None):
-                await retired.remove(self.owner)
+                retired.remove(self)
         if self.owner.is_attached:
             self.owner._scroll_changed()
 

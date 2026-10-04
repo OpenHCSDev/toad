@@ -1,0 +1,20 @@
+{
+  "state": "Qualified440 candidate prepared; parent-only original guarded one-use publication not executed",
+  "target_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "source_prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "native_schema_equal": true,
+  "derived_checkpoint_schema_equal": true,
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-086d511f2026b10d/node_modules/@earendil-works/pi-coding-agent",
+  "operator_manifest": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/wire439-coordination654-receiving-20261004/canonical-source-preparation/canonical-manifest.json",
+  "operator_manifest_sha256": "dc6d73fa16df192f14644df0c55a464486af68af6a96a77298bbd62b6abf61ba",
+  "source_proof_sha256": "d045d784d74cd7db3b066396f184787b72bb5084f499fa3be88b46e6e5e51594",
+  "activation_sha256": "29393d9108e66106a08aab69e8a8f7af90c492e36e71e89dff7ff289d6cfdb2a",
+  "runtime_sha256": "717ca469bd2330bcf868ceaf572e8b128795ef3dd54885497f8e16c4680aabae",
+  "gate_count": 37,
+  "public_effects": 0,
+  "new_publication_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/wire439-coordination654-receiving-20261004/new-publication440/publication-receipt.json",
+  "unchanged_journeys_repeated": false,
+  "parent_public_execution": true,
+  "historical_PREFIXactivation_written": false,
+  "source_interpreter_copy": false
+}
