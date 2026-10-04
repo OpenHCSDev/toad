@@ -1,5 +1,5 @@
 {
-  "state": "Published joined source/control only; W6 exclusive purpose OPEN, no current grant/reservation/build/import/install/App",
+  "state": "Published joined source/control; Parent confirms W6 whole handback, no Heis issued purpose/build/import/install/App yet",
   "source_head": "8a98a037c29f1a8689a8b6230bad424fe02123b2",
   "product_reference": "4406ea17d1e11ffc72c6baec98ecdae37e532130",
   "production_delta": "",
@@ -50,7 +50,7 @@
   "app_control_sha256": "7725402f9008b30f4bcf01712e12bd3646c4b2e8bc57b143b1919637ef6e1cdd",
   "app_scope": "ONE remaining original441/ec9+442 App: Mount cancellation, stale filter/source fences, genuine provisional/Working/Live-tail/filter and scene-revoked read fence during held child Unmount, input/resize/End/wholeclose. Prior five positives are not new progress credit. No backend painted-cursor writer witness/ack-loss, provider/native input/movie/CPU/FPS claim.",
   "conditions": [
-    "W6 actual whole handback, fresh Bohr specific grant and matched Sch086 conditional authority precede any build/prefix access/install/import/App.",
+    "After W6 whole handback, fresh Bohr specific grant/borrower clearance and matched Sch086 conditional authority precede any build/prefix access/install/import/App.",
     "Filewheel/Git ZIP asset equality and honest ArchiveDirectURL before installed App.",
     "Original whole NativePackage and FullTrust verification; no native override.",
     "Own DTO/proof paths only; original PREFIXactivation and390/frozen operators unchanged.",
@@ -67,5 +67,6 @@
     "PYTHONPATH": "/home/ts/.cache/uv/archive-v0/RgcgNn7xR1Zs9HSF"
   },
   "build_backend_readonly_path": "/home/ts/.cache/uv/archive-v0/RgcgNn7xR1Zs9HSF/hatchling/__init__.py",
-  "wheel_source_relation": "New442 state files change product; old4418c02 wheel cannot represent this cohort. Build once only under fresh purpose, bind all Git/WT/ZIP assets before install."
+  "wheel_source_relation": "New442 state files change product; old4418c02 wheel cannot represent this cohort. Build once only under fresh purpose, bind all Git/WT/ZIP assets before install.",
+  "preceding_purpose_disposition": "Parent verified W6 attachment03 whole closure lifecycle cd2fb3/readback ddb84b: original1470/69/390 restored, no active W6 package claim. Fresh Bohr specific purpose and references required; no borrower clearance inferred from this relay."
 }
