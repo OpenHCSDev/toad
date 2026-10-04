@@ -1,0 +1,3412 @@
+{
+  "roots": [
+    {
+      "root": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "head": "9dfae6d7882f10e701c1b9c33e6b1cc4a205a006",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "root": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "head": "8f16339673835114f526d7431032576099764af5",
+      "parsed": 311,
+      "omissions": []
+    },
+    {
+      "root": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "b263e4e707846025fd6b70448749c7a36c0a2d81",
+      "parsed": 249,
+      "omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "file": "src/toad/acp/agent_configuration.py",
+      "line": 11,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/acp/agent_configuration.py",
+      "line": 34,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/acp/agent_controller.py",
+      "line": 11,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/acp/agent_controller.py",
+      "line": 44,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/acp/agent_process.py",
+      "line": 8,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/acp/agent_process.py",
+      "line": 15,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/acp/client_session.py",
+      "line": 9,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/acp/client_session.py",
+      "line": 39,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/acp/log_records.py",
+      "line": 12,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/acp/log_records.py",
+      "line": 15,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/acp/log_records.py",
+      "line": 213,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/acp/permission_controller.py",
+      "line": 6,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/acp/permission_controller.py",
+      "line": 16,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/acp/sdk_boundary.py",
+      "line": 6,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/acp/sdk_boundary.py",
+      "line": 41,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/acp/session_updates.py",
+      "line": 9,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/acp/shell_command.py",
+      "line": 4,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/acp/shell_command.py",
+      "line": 7,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/acp/status.py",
+      "line": 2,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/acp/status.py",
+      "line": 7,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/acp/status.py",
+      "line": 33,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/acp/terminal_controller.py",
+      "line": 3,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/acp/terminal_controller.py",
+      "line": 10,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/agent_presentation.py",
+      "line": 5,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/agent_presentation.py",
+      "line": 17,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/agent_schema.py",
+      "line": 5,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/agent_schema.py",
+      "line": 11,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/ansi/_ansi.py",
+      "line": 13,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/ansi/_ansi.py",
+      "line": 58,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/ansi/_ansi.py",
+      "line": 621,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/ansi/_stream_parser.py",
+      "line": 221,
+      "kind": "Attribute",
+      "name": "_reading",
+      "expression": "self._reading"
+    },
+    {
+      "file": "src/toad/ansi/_stream_parser.py",
+      "line": 283,
+      "kind": "Attribute",
+      "name": "_reading",
+      "expression": "self._reading"
+    },
+    {
+      "file": "src/toad/ansi/_stream_parser.py",
+      "line": 284,
+      "kind": "Attribute",
+      "name": "_reading",
+      "expression": "self._reading"
+    },
+    {
+      "file": "src/toad/ansi/_stream_parser.py",
+      "line": 288,
+      "kind": "Attribute",
+      "name": "_reading",
+      "expression": "self._reading"
+    },
+    {
+      "file": "src/toad/ansi/_stream_parser.py",
+      "line": 295,
+      "kind": "Attribute",
+      "name": "_reading",
+      "expression": "self._reading"
+    },
+    {
+      "file": "src/toad/ansi/_stream_parser.py",
+      "line": 292,
+      "kind": "Attribute",
+      "name": "_reading",
+      "expression": "self._reading"
+    },
+    {
+      "file": "src/toad/application_actions.py",
+      "line": 9,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/application_actions.py",
+      "line": 70,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/block_navigation.py",
+      "line": 4,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/block_navigation.py",
+      "line": 9,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/block_navigation.py",
+      "line": 32,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/catalog_actions.py",
+      "line": 7,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/catalog_actions.py",
+      "line": 17,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/clipboard.py",
+      "line": 7,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/clipboard.py",
+      "line": 12,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/conversation_actions.py",
+      "line": 4,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/conversation_actions.py",
+      "line": 12,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/conversation_kind.py",
+      "line": 8,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/conversation_kind.py",
+      "line": 13,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/conversation_markdown.py",
+      "line": 7,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/conversation_markdown.py",
+      "line": 42,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/conversation_submission.py",
+      "line": 11,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/conversation_submission.py",
+      "line": 21,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/conversation_turn.py",
+      "line": 5,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/conversation_turn.py",
+      "line": 10,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/conversation_turn.py",
+      "line": 148,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 15,
+      "kind": "import",
+      "expression": "from agent_comms.native_turn_context import NativeContextData"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 20,
+      "kind": "import",
+      "expression": "from agent_comms.turn_context import ContextManifest, ContextSegment, ContextSourceText, NativeMessages, Provenance, SegmentManifest"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 30,
+      "kind": "ClassDef",
+      "name": "ContextNode",
+      "expression": "@dataclass(frozen=True)\nclass ContextNode(ABC):\n    \"\"\"Navigation coordinate and original reference, never context authority.\"\"\"\n    key: str\n\n    @property\n    def label(self) -> str:\n        return "
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 333,
+      "kind": "ClassDef",
+      "name": "ContextInspection",
+      "expression": "@dataclass(frozen=True)\nclass ContextInspection:\n    \"\"\"Original observed objects and selection identity, shared by any frontend.\"\"\"\n    owner: Thread\n    manifests: tuple[ContextManifest, ...]\n    so"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 65,
+      "kind": "FunctionDef",
+      "name": "search_roots",
+      "expression": "@staticmethod\ndef search_roots(inspection, native):\n    if native is None:\n        raise ValueError('Current native context is not loaded; a selected recorded request can be read separately')\n    retu"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 88,
+      "kind": "Name",
+      "name": "ContextNode",
+      "expression": "ContextNode"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 106,
+      "kind": "FunctionDef",
+      "name": "search_roots",
+      "expression": "def search_roots(self, inspection, native):\n    return (self,)"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 119,
+      "kind": "Name",
+      "name": "ContextNode",
+      "expression": "ContextNode"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 144,
+      "kind": "Name",
+      "name": "ContextNode",
+      "expression": "ContextNode"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 158,
+      "kind": "FunctionDef",
+      "name": "search_roots",
+      "expression": "def search_roots(self, inspection, native):\n    return (self,)"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 226,
+      "kind": "Name",
+      "name": "ContextNode",
+      "expression": "ContextNode"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 312,
+      "kind": "Name",
+      "name": "ContextNode",
+      "expression": "ContextNode"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 346,
+      "kind": "FunctionDef",
+      "name": "same_native_source",
+      "expression": "def same_native_source(self, other: ContextInspection):\n    \"\"\"Compare original SDK source/launch facts, not roster presentation.\"\"\"\n    return self.source == other.source and self.owner.publication_i"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 145,
+      "kind": "Name",
+      "name": "ContextManifest",
+      "expression": "ContextManifest"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 146,
+      "kind": "Name",
+      "name": "ContextInspection",
+      "expression": "ContextInspection"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 38,
+      "kind": "Name",
+      "name": "ContextNode",
+      "expression": "ContextNode"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 336,
+      "kind": "Name",
+      "name": "ContextManifest",
+      "expression": "ContextManifest"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 346,
+      "kind": "Name",
+      "name": "ContextInspection",
+      "expression": "ContextInspection"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 363,
+      "kind": "Attribute",
+      "name": "search_roots",
+      "expression": "selected.search_roots"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 363,
+      "kind": "Attribute",
+      "name": "search_roots",
+      "expression": "ContextNode.search_roots"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 407,
+      "kind": "Name",
+      "name": "NativeContextData",
+      "expression": "NativeContextData"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 412,
+      "kind": "Name",
+      "name": "NativeContextData",
+      "expression": "NativeContextData"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 360,
+      "kind": "Name",
+      "name": "ContextNode",
+      "expression": "ContextNode"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 363,
+      "kind": "Name",
+      "name": "ContextNode",
+      "expression": "ContextNode"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 386,
+      "kind": "Name",
+      "name": "NativeContextData",
+      "expression": "NativeContextData"
+    },
+    {
+      "file": "src/toad/core/events.py",
+      "line": 12,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/core/events.py",
+      "line": 22,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/directory_watcher.py",
+      "line": 252,
+      "kind": "Attribute",
+      "name": "_observed_revision",
+      "expression": "self._observed_revision"
+    },
+    {
+      "file": "src/toad/directory_watcher.py",
+      "line": 272,
+      "kind": "Attribute",
+      "name": "_observed_revision",
+      "expression": "self._observed_revision"
+    },
+    {
+      "file": "src/toad/directory_watcher.py",
+      "line": 279,
+      "kind": "Attribute",
+      "name": "_observed_revision",
+      "expression": "self._observed_revision"
+    },
+    {
+      "file": "src/toad/file_kind.py",
+      "line": 3,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/file_kind.py",
+      "line": 6,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/frame_presentation.py",
+      "line": 11,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/frame_presentation.py",
+      "line": 18,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/frame_presentation.py",
+      "line": 60,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/goal_display.py",
+      "line": 7,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/goal_display.py",
+      "line": 12,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/goal_interaction.py",
+      "line": 8,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/goal_interaction.py",
+      "line": 16,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/input_history.py",
+      "line": 7,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/input_history.py",
+      "line": 11,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/live_output.py",
+      "line": 10,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/live_output.py",
+      "line": 23,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/mcp_commands.py",
+      "line": 10,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/mcp_commands.py",
+      "line": 26,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/mcp_declarations.py",
+      "line": 11,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/mcp_declarations.py",
+      "line": 14,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/mcp_declarations.py",
+      "line": 40,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/mcp_declarations.py",
+      "line": 60,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/mcp_outcomes.py",
+      "line": 3,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/mcp_outcomes.py",
+      "line": 6,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/mounted_message_history.py",
+      "line": 6,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/mounted_message_history.py",
+      "line": 27,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/navigation_preparation.py",
+      "line": 14,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/navigation_preparation.py",
+      "line": 68,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/navigation_target.py",
+      "line": 6,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/navigation_target.py",
+      "line": 44,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/permission_presentation.py",
+      "line": 7,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/permission_presentation.py",
+      "line": 11,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/plan.py",
+      "line": 9,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/plan.py",
+      "line": 13,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/project_link.py",
+      "line": 15,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/project_link.py",
+      "line": 53,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/prompt_actions.py",
+      "line": 2,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/prompt_actions.py",
+      "line": 6,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/prompt_cursor.py",
+      "line": 9,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/prompt_cursor.py",
+      "line": 38,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/prompt_cursor.py",
+      "line": 81,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/question_actions.py",
+      "line": 7,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/question_actions.py",
+      "line": 15,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/question_presentation.py",
+      "line": 4,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/question_presentation.py",
+      "line": 7,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/render_backend.py",
+      "line": 11,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/render_backend.py",
+      "line": 32,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/render_choices.py",
+      "line": 10,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/render_choices.py",
+      "line": 15,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/render_protocol.py",
+      "line": 12,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/render_protocol.py",
+      "line": 98,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/render_protocol.py",
+      "line": 174,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/response_delivery.py",
+      "line": 8,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/response_delivery.py",
+      "line": 15,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/screens/main.py",
+      "line": 316,
+      "kind": "import",
+      "expression": "from toad.widgets.context_explorer import ContextExplorer"
+    },
+    {
+      "file": "src/toad/screens/main.py",
+      "line": 317,
+      "kind": "Name",
+      "name": "ContextExplorer",
+      "expression": "ContextExplorer"
+    },
+    {
+      "file": "src/toad/screens/workspace.py",
+      "line": 18,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/screens/workspace.py",
+      "line": 60,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/session_admission.py",
+      "line": 14,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/session_admission.py",
+      "line": 26,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/setting_choices.py",
+      "line": 8,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/setting_choices.py",
+      "line": 21,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/setting_choices.py",
+      "line": 69,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/setting_choices.py",
+      "line": 95,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/setting_choices.py",
+      "line": 139,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/setting_choices.py",
+      "line": 157,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/setting_choices.py",
+      "line": 170,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/setting_choices.py",
+      "line": 186,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/settings.py",
+      "line": 13,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/settings.py",
+      "line": 186,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/sidebar_layout.py",
+      "line": 9,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/sidebar_layout.py",
+      "line": 14,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/sidebar_layout.py",
+      "line": 50,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/slash_command.py",
+      "line": 13,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/slash_command.py",
+      "line": 64,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/slash_command.py",
+      "line": 157,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/surface_binding.py",
+      "line": 4,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/surface_binding.py",
+      "line": 7,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/terminal_attention.py",
+      "line": 10,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/terminal_attention.py",
+      "line": 19,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/terminal_attention.py",
+      "line": 43,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/terminal_execution.py",
+      "line": 24,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/terminal_execution.py",
+      "line": 64,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/terminal_execution.py",
+      "line": 248,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/tool_output.py",
+      "line": 17,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/tool_output.py",
+      "line": 18,
+      "kind": "import",
+      "expression": "from agent_comms.lifecycle import LifecycleState"
+    },
+    {
+      "file": "src/toad/tool_output.py",
+      "line": 36,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/tool_output.py",
+      "line": 315,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/tool_output.py",
+      "line": 315,
+      "kind": "Name",
+      "name": "LifecycleState",
+      "expression": "LifecycleState"
+    },
+    {
+      "file": "src/toad/transcript_filter.py",
+      "line": 10,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/transcript_filter.py",
+      "line": 20,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/transcript_filter.py",
+      "line": 214,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/transcript_state.py",
+      "line": 9,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/transcript_state.py",
+      "line": 10,
+      "kind": "import",
+      "expression": "from agent_comms.lifecycle import LifecycleState"
+    },
+    {
+      "file": "src/toad/transcript_state.py",
+      "line": 17,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/transcript_state.py",
+      "line": 17,
+      "kind": "Name",
+      "name": "LifecycleState",
+      "expression": "LifecycleState"
+    },
+    {
+      "file": "src/toad/transcript_state.py",
+      "line": 116,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/widgets/comms_transfer.py",
+      "line": 13,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/widgets/comms_transfer.py",
+      "line": 34,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 17,
+      "kind": "import",
+      "expression": "from toad.core.context_inspection import ContextInspection, ContextNode"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 25,
+      "kind": "ClassDef",
+      "name": "ContextTreeIntent",
+      "expression": "@dataclass\nclass ContextTreeIntent:\n    \"\"\"Only reader choices survive disposable sidebar widget retirement.\"\"\"\n    expanded: set[str] = field(default_factory=set)\n    selected: ContextNode | None = N"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 32,
+      "kind": "ClassDef",
+      "name": "ContextExplorer",
+      "expression": "class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):\n    DEFAULT_CSS = '\\n    ContextExplorer { height: auto; }\\n    ContextExplorer > .context-status { height: auto; color: "
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 121,
+      "kind": "FunctionDef",
+      "name": "_reading",
+      "expression": "def _reading(self, owner, root):\n    return self.is_attached and (not get_current_worker().is_cancelled) and ((owner, root) == (self.owner, self.wire_root))"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 333,
+      "kind": "FunctionDef",
+      "name": "_searching",
+      "expression": "def _searching(self, inspection, native, query, selected):\n    return self.is_attached and (not get_current_worker().is_cancelled) and (self._inspection is not None) and inspection.same_native_source("
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 28,
+      "kind": "Name",
+      "name": "ContextNode",
+      "expression": "ContextNode"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 48,
+      "kind": "Attribute",
+      "name": "_inspection",
+      "expression": "self._inspection"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 49,
+      "kind": "Attribute",
+      "name": "_native",
+      "expression": "self._native"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 50,
+      "kind": "Attribute",
+      "name": "_observed_revision",
+      "expression": "self._observed_revision"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 111,
+      "kind": "Attribute",
+      "name": "_observed_revision",
+      "expression": "self._observed_revision"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 133,
+      "kind": "Attribute",
+      "name": "_observed_revision",
+      "expression": "self._observed_revision"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 44,
+      "kind": "Name",
+      "name": "ContextTreeIntent",
+      "expression": "ContextTreeIntent"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 48,
+      "kind": "Name",
+      "name": "ContextInspection",
+      "expression": "ContextInspection"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 95,
+      "kind": "Attribute",
+      "name": "_observed_revision",
+      "expression": "self._observed_revision"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 110,
+      "kind": "Attribute",
+      "name": "_inspection",
+      "expression": "self._inspection"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 110,
+      "kind": "Attribute",
+      "name": "_native",
+      "expression": "self._native"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 145,
+      "kind": "Attribute",
+      "name": "_inspection",
+      "expression": "self._inspection"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 164,
+      "kind": "Attribute",
+      "name": "_inspection",
+      "expression": "self._inspection"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 194,
+      "kind": "Attribute",
+      "name": "_native",
+      "expression": "self._native"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 195,
+      "kind": "Attribute",
+      "name": "_native",
+      "expression": "self._native"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 306,
+      "kind": "Attribute",
+      "name": "_inspection",
+      "expression": "self._inspection"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 152,
+      "kind": "Attribute",
+      "name": "_native",
+      "expression": "self._native"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 163,
+      "kind": "Attribute",
+      "name": "_native",
+      "expression": "self._native"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 191,
+      "kind": "Attribute",
+      "name": "_inspection",
+      "expression": "self._inspection"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 198,
+      "kind": "Attribute",
+      "name": "_inspection",
+      "expression": "self._inspection"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 307,
+      "kind": "Attribute",
+      "name": "_inspection",
+      "expression": "self._inspection"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 307,
+      "kind": "Attribute",
+      "name": "_native",
+      "expression": "self._native"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 319,
+      "kind": "Attribute",
+      "name": "_searching",
+      "expression": "self._searching"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 335,
+      "kind": "Attribute",
+      "name": "_inspection",
+      "expression": "self._inspection"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 336,
+      "kind": "Attribute",
+      "name": "same_native_source",
+      "expression": "inspection.same_native_source"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 336,
+      "kind": "Attribute",
+      "name": "_inspection",
+      "expression": "self._inspection"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 337,
+      "kind": "Attribute",
+      "name": "_native",
+      "expression": "self._native"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 62,
+      "kind": "Name",
+      "name": "ContextNode",
+      "expression": "ContextNode"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 143,
+      "kind": "Attribute",
+      "name": "_reading",
+      "expression": "self._reading"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 147,
+      "kind": "Attribute",
+      "name": "same_native_source",
+      "expression": "inspection.same_native_source"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 151,
+      "kind": "Attribute",
+      "name": "_native",
+      "expression": "self._native"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 157,
+      "kind": "Attribute",
+      "name": "_native",
+      "expression": "self._native"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 166,
+      "kind": "Attribute",
+      "name": "_native",
+      "expression": "self._native"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 178,
+      "kind": "Attribute",
+      "name": "_reading",
+      "expression": "self._reading"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 191,
+      "kind": "Attribute",
+      "name": "_reading",
+      "expression": "self._reading"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 192,
+      "kind": "Attribute",
+      "name": "same_native_source",
+      "expression": "inspection.same_native_source"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 192,
+      "kind": "Attribute",
+      "name": "_inspection",
+      "expression": "self._inspection"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 316,
+      "kind": "Attribute",
+      "name": "_searching",
+      "expression": "self._searching"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 155,
+      "kind": "Attribute",
+      "name": "_reading",
+      "expression": "self._reading"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 160,
+      "kind": "Attribute",
+      "name": "_native",
+      "expression": "self._native"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 170,
+      "kind": "Attribute",
+      "name": "_native",
+      "expression": "self._native"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 142,
+      "kind": "Name",
+      "name": "ContextInspection",
+      "expression": "ContextInspection"
+    },
+    {
+      "file": "src/toad/widgets/message_filter.py",
+      "line": 4,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/widgets/message_filter.py",
+      "line": 25,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/widgets/prompt_popup.py",
+      "line": 7,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/widgets/prompt_popup.py",
+      "line": 22,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/widgets/prompt_popup.py",
+      "line": 18,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/widgets/session_thread_panels.py",
+      "line": 4,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/widgets/session_thread_panels.py",
+      "line": 20,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/widgets/session_thread_panels.py",
+      "line": 118,
+      "kind": "import",
+      "expression": "from toad.widgets.context_explorer import ContextExplorer, ContextTreeIntent"
+    },
+    {
+      "file": "src/toad/widgets/session_thread_panels.py",
+      "line": 121,
+      "kind": "Name",
+      "name": "ContextExplorer",
+      "expression": "ContextExplorer"
+    },
+    {
+      "file": "src/toad/widgets/session_thread_panels.py",
+      "line": 120,
+      "kind": "Name",
+      "name": "ContextTreeIntent",
+      "expression": "ContextTreeIntent"
+    },
+    {
+      "file": "src/toad/widgets/tool_content.py",
+      "line": 13,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/widgets/tool_content.py",
+      "line": 14,
+      "kind": "import",
+      "expression": "from agent_comms.lifecycle import LifecycleState"
+    },
+    {
+      "file": "src/toad/widgets/tool_content.py",
+      "line": 52,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/toad/widgets/tool_content.py",
+      "line": 52,
+      "kind": "Name",
+      "name": "LifecycleState",
+      "expression": "LifecycleState"
+    },
+    {
+      "file": "src/toad/workspace_sessions.py",
+      "line": 6,
+      "kind": "import",
+      "expression": "from agent_comms.declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/toad/workspace_sessions.py",
+      "line": 13,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/acp_extension.py",
+      "line": 18,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/acp_extension.py",
+      "line": 40,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/acp_extension.py",
+      "line": 186,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/acp_extension.py",
+      "line": 304,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/acp_extension.py",
+      "line": 486,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/acp_failure.py",
+      "line": 14,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/acp_failure.py",
+      "line": 21,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/acp_failure.py",
+      "line": 202,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/activity.py",
+      "line": 15,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/activity.py",
+      "line": 51,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/activity.py",
+      "line": 79,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/agent_activity.py",
+      "line": 21,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/agent_activity.py",
+      "line": 36,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/agent_events.py",
+      "line": 16,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/agent_events.py",
+      "line": 155,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/assignment_states.py",
+      "line": 11,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/assignment_states.py",
+      "line": 12,
+      "kind": "import",
+      "expression": "from .lifecycle import LifecycleState"
+    },
+    {
+      "file": "src/agent_comms/assignment_states.py",
+      "line": 43,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/assignment_states.py",
+      "line": 43,
+      "kind": "Name",
+      "name": "LifecycleState",
+      "expression": "LifecycleState"
+    },
+    {
+      "file": "src/agent_comms/attempt_states.py",
+      "line": 14,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/attempt_states.py",
+      "line": 15,
+      "kind": "import",
+      "expression": "from .lifecycle import LifecycleState"
+    },
+    {
+      "file": "src/agent_comms/attempt_states.py",
+      "line": 20,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/attempt_states.py",
+      "line": 20,
+      "kind": "Name",
+      "name": "LifecycleState",
+      "expression": "LifecycleState"
+    },
+    {
+      "file": "src/agent_comms/channels.py",
+      "line": 11,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/channels.py",
+      "line": 104,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/checkpoint_seals.py",
+      "line": 10,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/checkpoint_seals.py",
+      "line": 62,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/child_process.py",
+      "line": 30,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/child_process.py",
+      "line": 159,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/child_process.py",
+      "line": 716,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/child_process.py",
+      "line": 909,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/child_process.py",
+      "line": 1427,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/cli_commands.py",
+      "line": 27,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/cli_commands.py",
+      "line": 106,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/cli_commands.py",
+      "line": 885,
+      "kind": "import",
+      "expression": "from .native_turn_context import NativeContextData"
+    },
+    {
+      "file": "src/agent_comms/cli_commands.py",
+      "line": 246,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/cli_commands.py",
+      "line": 266,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/cli_commands.py",
+      "line": 913,
+      "kind": "Name",
+      "name": "NativeContextData",
+      "expression": "NativeContextData"
+    },
+    {
+      "file": "src/agent_comms/cli_commands.py",
+      "line": 234,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/compaction_result.py",
+      "line": 11,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/compaction_result.py",
+      "line": 15,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/compaction_states.py",
+      "line": 16,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/compaction_states.py",
+      "line": 17,
+      "kind": "import",
+      "expression": "from .lifecycle import LifecycleState"
+    },
+    {
+      "file": "src/agent_comms/compaction_states.py",
+      "line": 45,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/compaction_states.py",
+      "line": 45,
+      "kind": "Name",
+      "name": "LifecycleState",
+      "expression": "LifecycleState"
+    },
+    {
+      "file": "src/agent_comms/compaction_states.py",
+      "line": 103,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/compaction_states.py",
+      "line": 103,
+      "kind": "Name",
+      "name": "LifecycleState",
+      "expression": "LifecycleState"
+    },
+    {
+      "file": "src/agent_comms/compaction_states.py",
+      "line": 312,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/compaction_states.py",
+      "line": 312,
+      "kind": "Name",
+      "name": "LifecycleState",
+      "expression": "LifecycleState"
+    },
+    {
+      "file": "src/agent_comms/compaction_states.py",
+      "line": 351,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/compaction_states.py",
+      "line": 31,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/config_options.py",
+      "line": 25,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/config_options.py",
+      "line": 44,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/debt_ratchet.py",
+      "line": 16,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/debt_ratchet.py",
+      "line": 21,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/declared_family.py",
+      "line": 86,
+      "kind": "ClassDef",
+      "name": "DeclaredFamily",
+      "expression": "class DeclaredFamily(ABC, metaclass=_FamilyMeta):\n    \"\"\"A family root owns one registry; names and capability views derive from members.\n\n    Declare a root with ``affix=\"Scope\"`` (or omit it for uns"
+    },
+    {
+      "file": "src/agent_comms/declared_family.py",
+      "line": 96,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/declared_family.py",
+      "line": 98,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/declared_family.py",
+      "line": 53,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/delivery_policy.py",
+      "line": 12,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/delivery_policy.py",
+      "line": 56,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/execution_states.py",
+      "line": 17,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/execution_states.py",
+      "line": 18,
+      "kind": "import",
+      "expression": "from .lifecycle import LifecycleState"
+    },
+    {
+      "file": "src/agent_comms/execution_states.py",
+      "line": 23,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/execution_states.py",
+      "line": 23,
+      "kind": "Name",
+      "name": "LifecycleState",
+      "expression": "LifecycleState"
+    },
+    {
+      "file": "src/agent_comms/exporting.py",
+      "line": 21,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/exporting.py",
+      "line": 29,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/exporting.py",
+      "line": 106,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/exporting.py",
+      "line": 197,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/field_codec.py",
+      "line": 27,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/field_codec.py",
+      "line": 257,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/field_codec.py",
+      "line": 108,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/field_codec.py",
+      "line": 297,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/field_codec.py",
+      "line": 318,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/field_codec.py",
+      "line": 381,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/field_codec.py",
+      "line": 395,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/field_codec.py",
+      "line": 456,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/field_codec.py",
+      "line": 492,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/field_codec.py",
+      "line": 239,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/field_codec.py",
+      "line": 272,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/fresh_private_session.py",
+      "line": 26,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/fresh_private_session.py",
+      "line": 98,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/fresh_private_session.py",
+      "line": 152,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/fresh_private_session.py",
+      "line": 193,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/goal_actions.py",
+      "line": 12,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/goal_actions.py",
+      "line": 99,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/goal_attempt_phase.py",
+      "line": 9,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/goal_attempt_phase.py",
+      "line": 11,
+      "kind": "import",
+      "expression": "from .lifecycle import LifecycleState"
+    },
+    {
+      "file": "src/agent_comms/goal_attempt_phase.py",
+      "line": 15,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/goal_attempt_phase.py",
+      "line": 15,
+      "kind": "Name",
+      "name": "LifecycleState",
+      "expression": "LifecycleState"
+    },
+    {
+      "file": "src/agent_comms/goal_generation.py",
+      "line": 9,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/goal_generation.py",
+      "line": 15,
+      "kind": "import",
+      "expression": "from .lifecycle import LifecycleState"
+    },
+    {
+      "file": "src/agent_comms/goal_generation.py",
+      "line": 22,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/goal_generation.py",
+      "line": 22,
+      "kind": "Name",
+      "name": "LifecycleState",
+      "expression": "LifecycleState"
+    },
+    {
+      "file": "src/agent_comms/goal_states.py",
+      "line": 9,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/goal_states.py",
+      "line": 11,
+      "kind": "import",
+      "expression": "from .lifecycle import LifecycleState"
+    },
+    {
+      "file": "src/agent_comms/goal_states.py",
+      "line": 18,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/goal_states.py",
+      "line": 50,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/goal_states.py",
+      "line": 50,
+      "kind": "Name",
+      "name": "LifecycleState",
+      "expression": "LifecycleState"
+    },
+    {
+      "file": "src/agent_comms/goals.py",
+      "line": 9,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/goals.py",
+      "line": 17,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/goals.py",
+      "line": 180,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/historical_native_inputs.py",
+      "line": 20,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/historical_native_inputs.py",
+      "line": 35,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/import_records.py",
+      "line": 9,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/import_records.py",
+      "line": 31,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/import_records.py",
+      "line": 101,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/import_records.py",
+      "line": 188,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/import_records.py",
+      "line": 340,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/input_attempt.py",
+      "line": 10,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/input_attempt.py",
+      "line": 49,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/input_origin.py",
+      "line": 9,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/input_origin.py",
+      "line": 24,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/lifecycle.py",
+      "line": 13,
+      "kind": "ClassDef",
+      "name": "LifecycleState",
+      "expression": "class LifecycleState(ABC):\n    declared_name: ClassVar[str]\n\n    @classmethod\n    @abstractmethod\n    def successors(cls) -> tuple[type[LifecycleState], ...]:\n        \"\"\"States reachable by an ordinar"
+    },
+    {
+      "file": "src/agent_comms/lifecycle.py",
+      "line": 21,
+      "kind": "Name",
+      "name": "LifecycleState",
+      "expression": "LifecycleState"
+    },
+    {
+      "file": "src/agent_comms/lifecycle.py",
+      "line": 18,
+      "kind": "Name",
+      "name": "LifecycleState",
+      "expression": "LifecycleState"
+    },
+    {
+      "file": "src/agent_comms/maintenance_barrier.py",
+      "line": 20,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/maintenance_barrier.py",
+      "line": 22,
+      "kind": "import",
+      "expression": "from .lifecycle import LifecycleState"
+    },
+    {
+      "file": "src/agent_comms/maintenance_barrier.py",
+      "line": 29,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/maintenance_barrier.py",
+      "line": 29,
+      "kind": "Name",
+      "name": "LifecycleState",
+      "expression": "LifecycleState"
+    },
+    {
+      "file": "src/agent_comms/native_admission_epoch.py",
+      "line": 13,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/native_admission_epoch.py",
+      "line": 22,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/native_arguments.py",
+      "line": 10,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/native_arguments.py",
+      "line": 14,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/native_compaction_request.py",
+      "line": 16,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/native_compaction_request.py",
+      "line": 41,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/native_entries.py",
+      "line": 15,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/native_entries.py",
+      "line": 45,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/native_file_artifact.py",
+      "line": 5,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/native_file_artifact.py",
+      "line": 9,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/native_input_record.py",
+      "line": 15,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/native_input_record.py",
+      "line": 53,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/native_input_record.py",
+      "line": 247,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/native_tools.py",
+      "line": 16,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/native_tools.py",
+      "line": 24,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/native_turn_context.py",
+      "line": 8,
+      "kind": "import",
+      "expression": "from .turn_context import ContextManifest, ContextSegment, ContextSourceText, MeasuredNativeSegment, PreviewProvenance, Provenance, SegmentManifest, TurnContext"
+    },
+    {
+      "file": "src/agent_comms/native_turn_context.py",
+      "line": 42,
+      "kind": "ClassDef",
+      "name": "NativeContextData",
+      "expression": "@dataclass(frozen=True)\nclass NativeContextData(PiResponseData):\n    strict_fields = True\n    counter: str\n    identity: NativeSessionIdentity\n    segments: tuple[MeasuredNativeSegment, ...]\n    contr"
+    },
+    {
+      "file": "src/agent_comms/native_turn_context.py",
+      "line": 26,
+      "kind": "Name",
+      "name": "ContextManifest",
+      "expression": "ContextManifest"
+    },
+    {
+      "file": "src/agent_comms/notification_assignment.py",
+      "line": 9,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/notification_assignment.py",
+      "line": 36,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/obligation_states.py",
+      "line": 10,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/obligation_states.py",
+      "line": 11,
+      "kind": "import",
+      "expression": "from .lifecycle import LifecycleState"
+    },
+    {
+      "file": "src/agent_comms/obligation_states.py",
+      "line": 15,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/obligation_states.py",
+      "line": 15,
+      "kind": "Name",
+      "name": "LifecycleState",
+      "expression": "LifecycleState"
+    },
+    {
+      "file": "src/agent_comms/owner_compaction_prepare.py",
+      "line": 20,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/owner_compaction_prepare.py",
+      "line": 62,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/pi_commands.py",
+      "line": 16,
+      "kind": "import",
+      "expression": "from .native_turn_context import NativeContextData"
+    },
+    {
+      "file": "src/agent_comms/pi_commands.py",
+      "line": 22,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/pi_commands.py",
+      "line": 86,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/pi_commands.py",
+      "line": 477,
+      "kind": "Name",
+      "name": "NativeContextData",
+      "expression": "NativeContextData"
+    },
+    {
+      "file": "src/agent_comms/pi_commands.py",
+      "line": 482,
+      "kind": "Name",
+      "name": "NativeContextData",
+      "expression": "NativeContextData"
+    },
+    {
+      "file": "src/agent_comms/pi_events.py",
+      "line": 13,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/pi_events.py",
+      "line": 38,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/pi_helper.py",
+      "line": 13,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/pi_helper.py",
+      "line": 27,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/pi_payloads.py",
+      "line": 16,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/pi_payloads.py",
+      "line": 139,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/pi_payloads.py",
+      "line": 247,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/pi_payloads.py",
+      "line": 346,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/pi_payloads.py",
+      "line": 384,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/pi_payloads.py",
+      "line": 687,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/pi_payloads.py",
+      "line": 763,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/pi_payloads.py",
+      "line": 835,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/pi_payloads.py",
+      "line": 978,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/pi_payloads.py",
+      "line": 1055,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/pi_payloads.py",
+      "line": 1105,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/pi_payloads.py",
+      "line": 1133,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/pi_payloads.py",
+      "line": 72,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/pi_payloads.py",
+      "line": 98,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/pi_vocabulary.py",
+      "line": 7,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/pi_vocabulary.py",
+      "line": 10,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/pi_vocabulary.py",
+      "line": 121,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/pi_vocabulary.py",
+      "line": 200,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/private_bus_checkpoint.py",
+      "line": 41,
+      "kind": "import",
+      "expression": "from .turn_context import ContextManifest"
+    },
+    {
+      "file": "src/agent_comms/private_bus_checkpoint.py",
+      "line": 407,
+      "kind": "Name",
+      "name": "ContextManifest",
+      "expression": "ContextManifest"
+    },
+    {
+      "file": "src/agent_comms/private_bus_checkpoint.py",
+      "line": 256,
+      "kind": "Name",
+      "name": "ContextManifest",
+      "expression": "ContextManifest"
+    },
+    {
+      "file": "src/agent_comms/private_bus_checkpoint.py",
+      "line": 280,
+      "kind": "Name",
+      "name": "ContextManifest",
+      "expression": "ContextManifest"
+    },
+    {
+      "file": "src/agent_comms/private_path.py",
+      "line": 20,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/private_path.py",
+      "line": 48,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/private_path.py",
+      "line": 149,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/recovery_states.py",
+      "line": 8,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/recovery_states.py",
+      "line": 12,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/relationships.py",
+      "line": 21,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/relationships.py",
+      "line": 299,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/reservation_rules.py",
+      "line": 10,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/reservation_rules.py",
+      "line": 74,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/response_policy.py",
+      "line": 11,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/response_policy.py",
+      "line": 19,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/restart_queue.py",
+      "line": 22,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/restart_queue.py",
+      "line": 43,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/restart_refusals.py",
+      "line": 6,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/restart_refusals.py",
+      "line": 10,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/retained_task_facts.py",
+      "line": 14,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/retained_task_facts.py",
+      "line": 33,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/runtime_requests.py",
+      "line": 20,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/runtime_requests.py",
+      "line": 23,
+      "kind": "import",
+      "expression": "from .turn_context import ContextManifest, ContextSourceText, PreviewProvenance, Provenance, RecordedContextTurn"
+    },
+    {
+      "file": "src/agent_comms/runtime_requests.py",
+      "line": 42,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/runtime_requests.py",
+      "line": 378,
+      "kind": "Name",
+      "name": "ContextManifest",
+      "expression": "ContextManifest"
+    },
+    {
+      "file": "src/agent_comms/selected_source.py",
+      "line": 12,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/selected_source.py",
+      "line": 27,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/selected_source.py",
+      "line": 41,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/selected_source.py",
+      "line": 111,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/selected_triage.py",
+      "line": 12,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/selected_triage.py",
+      "line": 22,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/selected_triage.py",
+      "line": 109,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/selected_triage.py",
+      "line": 158,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/selected_write_plan.py",
+      "line": 35,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/selected_write_plan.py",
+      "line": 60,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/session_load.py",
+      "line": 8,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/session_load.py",
+      "line": 18,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/task_sources.py",
+      "line": 9,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/task_sources.py",
+      "line": 27,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/task_sources.py",
+      "line": 96,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/task_sources.py",
+      "line": 126,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/task_sources.py",
+      "line": 170,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/thread_execution.py",
+      "line": 9,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/thread_execution.py",
+      "line": 26,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/thread_presentation.py",
+      "line": 8,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/thread_presentation.py",
+      "line": 17,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/thread_status.py",
+      "line": 9,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/thread_status.py",
+      "line": 17,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/todos.py",
+      "line": 19,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/todos.py",
+      "line": 91,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/todos.py",
+      "line": 219,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/tools.py",
+      "line": 17,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/tools.py",
+      "line": 50,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/tools.py",
+      "line": 89,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/transcript_events.py",
+      "line": 9,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/transcript_events.py",
+      "line": 18,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/transcript_updates.py",
+      "line": 18,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/transcript_updates.py",
+      "line": 24,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/turn_context.py",
+      "line": 12,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/turn_context.py",
+      "line": 638,
+      "kind": "ClassDef",
+      "name": "ContextManifest",
+      "expression": "@dataclass(frozen=True)\nclass ContextManifest:\n    thread: ThreadIncarnation\n    turn: ContextTurn\n    segments: tuple[SegmentManifest, ...]\n    counter: str\n    request_id: str | None = field(default"
+    },
+    {
+      "file": "src/agent_comms/turn_context.py",
+      "line": 26,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/turn_context.py",
+      "line": 275,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/turn_context.py",
+      "line": 593,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/turn_context.py",
+      "line": 700,
+      "kind": "FunctionDef",
+      "name": "changed_since",
+      "expression": "def changed_since(self, previous: ContextManifest) -> dict:\n    \"\"\"An inspection projection, never a retained input copy.\"\"\"\n    return {'previous_turn': FieldCodec.encode(previous.turn), 'turn': Fiel"
+    },
+    {
+      "file": "src/agent_comms/turn_context.py",
+      "line": 668,
+      "kind": "Name",
+      "name": "ContextManifest",
+      "expression": "ContextManifest"
+    },
+    {
+      "file": "src/agent_comms/turn_context.py",
+      "line": 781,
+      "kind": "Name",
+      "name": "ContextManifest",
+      "expression": "ContextManifest"
+    },
+    {
+      "file": "src/agent_comms/turn_context.py",
+      "line": 698,
+      "kind": "Attribute",
+      "name": "changed_since",
+      "expression": "self.changed_since"
+    },
+    {
+      "file": "src/agent_comms/turn_context.py",
+      "line": 700,
+      "kind": "Name",
+      "name": "ContextManifest",
+      "expression": "ContextManifest"
+    },
+    {
+      "file": "src/agent_comms/turn_context.py",
+      "line": 782,
+      "kind": "Name",
+      "name": "ContextManifest",
+      "expression": "ContextManifest"
+    },
+    {
+      "file": "src/agent_comms/turn_context.py",
+      "line": 681,
+      "kind": "Name",
+      "name": "ContextManifest",
+      "expression": "ContextManifest"
+    },
+    {
+      "file": "src/agent_comms/turn_failure.py",
+      "line": 9,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/turn_failure.py",
+      "line": 18,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/turn_phase.py",
+      "line": 9,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/turn_phase.py",
+      "line": 25,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/typed_table.py",
+      "line": 30,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/typed_table.py",
+      "line": 51,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/typed_table.py",
+      "line": 381,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/typed_table.py",
+      "line": 178,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/typed_table.py",
+      "line": 202,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/wake_policy.py",
+      "line": 10,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/wake_policy.py",
+      "line": 21,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/wake_policy.py",
+      "line": 55,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/wire_metadata.py",
+      "line": 12,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/wire_metadata.py",
+      "line": 26,
+      "kind": "import",
+      "expression": "from .turn_context import ContextManifest"
+    },
+    {
+      "file": "src/agent_comms/wire_metadata.py",
+      "line": 44,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/wire_metadata.py",
+      "line": 63,
+      "kind": "Name",
+      "name": "ContextManifest",
+      "expression": "ContextManifest"
+    },
+    {
+      "file": "src/agent_comms/wire_record.py",
+      "line": 18,
+      "kind": "import",
+      "expression": "from .declared_family import DeclaredFamily"
+    },
+    {
+      "file": "src/agent_comms/wire_record.py",
+      "line": 180,
+      "kind": "import",
+      "expression": "from .turn_context import ContextManifest"
+    },
+    {
+      "file": "src/agent_comms/wire_record.py",
+      "line": 91,
+      "kind": "Name",
+      "name": "DeclaredFamily",
+      "expression": "DeclaredFamily"
+    }
+  ],
+  "limits": "Lexical AST declarations/imports/attributes; dynamic callbacks and MRO were read, not inferred from the census."
+}

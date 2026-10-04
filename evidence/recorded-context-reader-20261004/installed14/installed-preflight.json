@@ -1,0 +1,125 @@
+{
+  "selection": "AGENT_COMMS_RUNTIME_ROOT",
+  "bin_directory": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin",
+  "launcher": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/toad",
+  "launcher_sha256": "770edf280e54f364674a773ceff563177a7b5a9793a802816c4f7c898a175083",
+  "launcher_links": {
+    "command": {
+      "selected_path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/toad",
+      "resolved_path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/toad",
+      "sha256": "770edf280e54f364674a773ceff563177a7b5a9793a802816c4f7c898a175083"
+    },
+    "acp": {
+      "selected_path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-acp",
+      "resolved_path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-acp",
+      "sha256": "0ed5ad356c6d43f3cd31ae5bac5e3709f4a1f81a5d9df41dc02c9860ab9df237"
+    }
+  },
+  "entrypoints": {
+    "toad": {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/toad",
+      "sha256": "770edf280e54f364674a773ceff563177a7b5a9793a802816c4f7c898a175083"
+    },
+    "agent-comms-acp": {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-acp",
+      "sha256": "0ed5ad356c6d43f3cd31ae5bac5e3709f4a1f81a5d9df41dc02c9860ab9df237"
+    }
+  },
+  "activation_path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/activation.json",
+  "activation_sha256": "3381fc21fbf3da2c1526e8cede23559f0c4c94a5b8a90de5f345fe6227554684",
+  "activation": {
+    "stage": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+    "pins": {
+      "agent_comms": "7a5c5fc2e79f2e32e4f340eaba573bf1bfec69bf",
+      "toad": "bf3e95c16e9b9e971956cf5e062167a8c2d4727f",
+      "textual": "c1c1ebe5c40499f75dc370c26a7818588114e71d",
+      "refactor_audit": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10"
+    },
+    "sdk": "0.12.1",
+    "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-086d511f2026b10d/node_modules/@earendil-works/pi-coding-agent",
+    "state": "Normal69 qualified merged F1/F4/422/standalone427/correctedText53/originalNRA9a/native086; F3/417/426/55/W1/JeV excluded",
+    "staging_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/session422-native53-f1-f4-receiving-20261004/source-proof.json",
+    "bins": {
+      "python": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+      "toad": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/toad",
+      "agent-comms": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms",
+      "agent-comms-acp": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-acp",
+      "agent-comms-agent": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-agent",
+      "pi-comms-native": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/pi-comms-native"
+    },
+    "native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-086d511f2026b10d/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+    "native_manifest": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
+    "native_tree": "dbc88ed9231d1275da3ce218aa8919a247e41ce1f010ce765e7ac0960193f4ac",
+    "native_configuration_note": "Released receiving holder /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002; original activation/source/native and saved-source qualification proof archived. Public source, named rollback and other borrowed holders are untouched. Core/native and frontend follow this complete installed proof; no provider/public changes from packaging and no environment/native build."
+  },
+  "observed": {
+    "python": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+    "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+    "packages": {
+      "toad": {
+        "origin": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/__init__.py",
+        "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+        "source_tree_sha256": "204f1cc63497e8698daddae421e35180d0f4f91313ef0f96209e0440f1d98003",
+        "distribution": "batrachian-toad",
+        "version": "0.6.20",
+        "direct_url": {
+          "url": "file:///home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/recorded-context417-source-closure/intent04b-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+          "archive_info": {}
+        }
+      },
+      "textual": {
+        "origin": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/textual/__init__.py",
+        "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+        "source_tree_sha256": "b352b9ffbc33f4ac48d528e4401b5b36179c6b6ec384034e1be583a30d2e8e41",
+        "distribution": "textual",
+        "version": "8.2.8",
+        "direct_url": {
+          "url": "file:///home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text58-tree-cursor-filewheel-20261004/textual-8.2.8-py3-none-any.whl",
+          "archive_info": {}
+        }
+      },
+      "agent_comms": {
+        "origin": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/agent_comms/__init__.py",
+        "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+        "source_tree_sha256": "59b0819e58ac14bf527bf1291692935ae7bb29d3bfec5f8ee7e6918f37a6fb6f",
+        "distribution": "agent-comms",
+        "version": "0.1.0",
+        "direct_url": {
+          "url": "file:///home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/f4-core421-receiver-wheels-20261004/agent_comms-0.1.0-py3-none-any.whl",
+          "archive_info": {}
+        }
+      }
+    }
+  },
+  "verified_candidate": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/recorded-context417-source-closure/reader14-stage/staging-receipt.json",
+    "sha256": "f07d11b94f1f871ddb7298917288625871e6a0d9da05eb4dba322fc2a1fd4e82",
+    "activation": {
+      "stage": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+      "pins": {
+        "agent_comms": "7a5c5fc2e79f2e32e4f340eaba573bf1bfec69bf",
+        "toad": "04b771d763de5a404181526ec72a0d44c190c27e",
+        "textual": "0bc23a0741dacfdaca5c6043d453c46bbfa4e1c2",
+        "refactor_audit": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10"
+      },
+      "sdk": "0.12.1",
+      "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-086d511f2026b10d/node_modules/@earendil-works/pi-coding-agent",
+      "state": "F3 typed StateTree and recorded reader assets verified; affected installed journey pending",
+      "staging_receipt": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/recorded-context417-source-closure/reader14-stage/source-proof.json",
+      "bins": {
+        "python": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+        "toad": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/toad",
+        "agent-comms": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms",
+        "agent-comms-acp": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-acp",
+        "agent-comms-agent": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-agent",
+        "pi-comms-native": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/pi-comms-native"
+      },
+      "native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-086d511f2026b10d/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+      "native_manifest": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
+      "native_tree": "dbc88ed9231d1275da3ce218aa8919a247e41ce1f010ce765e7ac0960193f4ac",
+      "native_configuration_note": "Owned private reader only. Original c603p01 request retained; matched native086, no public changes or inputs."
+    }
+  }
+}

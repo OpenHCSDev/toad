@@ -1,9 +1,9 @@
 # Accepted context and subtree receiving source
 
-Normal source join of merged Core637, ToAd430 and Text59. Every retained wheel is byte-equal to the merged package assets; no build is needed. Original Core project and Text Poetry metadata are unchanged. The parsed lock differs only in the two exact source revision identities; no dependency resolution or VCS clone was performed.
+Normal join of merged Core637, ToAd430/417 and Text59. Retained Core190ace and Text73d are byte-equal to merged package assets. Accepted417 adds exactly the two context owner files to430, so this published source requires one combined normal ToAd wheel; stacking old430 and417 wheels is excluded.
 
-637 supplies the original installed registered ACP/App current-preview result. Its actual contributors were Coordination and User Input; unavailable-awareness emission is not claimed. 430/59 supplies its original changed structural App result and independently closed exact431 restoration. Original negatives and readiness boundaries remain intact.
+Only source revisions changed in dependency metadata; original project metadata and dependency graph remain intact. The normal417 merge had one Text revision conflict, resolved to actual merged180 with source-equal qualified1bd assets. No VCS clone, dependency resolution or new environment.
 
-This is a source checkpoint, not a new installed candidate or publication authority. Next is a named closed existing holder with matching currentfloor archive/readback and fresh Bohr package-only grant, then one retained-filewheel stage and new original cohort/operator freeze. Parent owns public admission, execution and default physical acceptance.
+Original637 installed current-preview,430/59 structural App and41713/14 registered/recorded qualifications retain their actual scopes and negatives. No App/provider/movie/wholeperformance repeat is planned.
 
-Old431159,428165 and421155 artifacts are unchanged. 638/640,417,627 and other unqualified work are excluded.
+This is source preparation, not installed or publication Ready. Stage only after Bohr grants one existing closed holder from its actual floor archive/readback and fresh clearance. Parent owns original guarded publication and default physical acceptance. Original431159,428165 and421155 artifacts remain unchanged. 638/640,627 and unqualified followups are excluded.

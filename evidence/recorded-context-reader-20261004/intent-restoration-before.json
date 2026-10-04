@@ -1,0 +1,829 @@
+{
+  "roots": [
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "rev": "HEAD",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "rev": "0bc23a0741dacfdaca5c6043d453c46bbfa4e1c2",
+      "parsed": 249,
+      "omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 25,
+      "node": "ClassDef",
+      "expression": "ContextTreeIntent"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 49,
+      "node": "FunctionDef",
+      "expression": "with_selected"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 126,
+      "node": "FunctionDef",
+      "expression": "restore_reader"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 138,
+      "node": "FunctionDef",
+      "expression": "_reveal_restored"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 148,
+      "node": "FunctionDef",
+      "expression": "_restore_cursor"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 188,
+      "node": "FunctionDef",
+      "expression": "selected"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 28,
+      "node": "Name",
+      "expression": "selected"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 45,
+      "node": "Attribute",
+      "expression": "self.selected"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 268,
+      "node": "Attribute",
+      "expression": "self.intent.selected"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 385,
+      "node": "Attribute",
+      "expression": "self.query_one(ContextTree).cursor_node"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 402,
+      "node": "Attribute",
+      "expression": "self.query_one(ContextTree).cursor_node"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 418,
+      "node": "Attribute",
+      "expression": "self.query_one(ContextTree).cursor_node"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 35,
+      "node": "Attribute",
+      "expression": "self.selected"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 36,
+      "node": "Attribute",
+      "expression": "self.selected"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 40,
+      "node": "Attribute",
+      "expression": "self.selected"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 46,
+      "node": "Attribute",
+      "expression": "self.selected"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 50,
+      "node": "Attribute",
+      "expression": "self.selected"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 87,
+      "node": "Attribute",
+      "expression": "self.restore_reader"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 96,
+      "node": "Attribute",
+      "expression": "self.restore_reader"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 140,
+      "node": "Attribute",
+      "expression": "self.cursor_node"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 204,
+      "node": "Name",
+      "expression": "ContextTreeIntent"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 441,
+      "node": "Attribute",
+      "expression": "self.intent.selected"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 32,
+      "node": "Attribute",
+      "expression": "self.selected"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 32,
+      "node": "Name",
+      "expression": "selected"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 42,
+      "node": "Attribute",
+      "expression": "self.selected"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 135,
+      "node": "Attribute",
+      "expression": "self._reveal_restored"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 146,
+      "node": "Attribute",
+      "expression": "self.intent.with_selected"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 146,
+      "node": "Attribute",
+      "expression": "self._restore_cursor"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 189,
+      "node": "Attribute",
+      "expression": "self.cursor_node"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 346,
+      "node": "Attribute",
+      "expression": "self.intent.selected"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 372,
+      "node": "Name",
+      "expression": "selected"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 374,
+      "node": "Name",
+      "expression": "selected"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 380,
+      "node": "Name",
+      "expression": "selected"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 439,
+      "node": "Attribute",
+      "expression": "self.intent.selected"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 445,
+      "node": "Attribute",
+      "expression": "self.query_one(ContextTree).selected"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 151,
+      "node": "Attribute",
+      "expression": "self.cursor_node"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 151,
+      "node": "Attribute",
+      "expression": "self.cursor_node"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 153,
+      "node": "Attribute",
+      "expression": "self.move_cursor"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 189,
+      "node": "Attribute",
+      "expression": "self.cursor_node"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 367,
+      "node": "Name",
+      "expression": "selected"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 369,
+      "node": "Name",
+      "expression": "selected"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 374,
+      "node": "Name",
+      "expression": "selected"
+    },
+    {
+      "file": "src/toad/widgets/session_thread_panels.py",
+      "line": 56,
+      "node": "Name",
+      "expression": "selected"
+    },
+    {
+      "file": "src/toad/widgets/session_thread_panels.py",
+      "line": 56,
+      "node": "Attribute",
+      "expression": "widget.view_state.selected"
+    },
+    {
+      "file": "src/toad/widgets/session_thread_panels.py",
+      "line": 57,
+      "node": "Attribute",
+      "expression": "widget.selected"
+    },
+    {
+      "file": "src/toad/widgets/session_thread_panels.py",
+      "line": 57,
+      "node": "Name",
+      "expression": "selected"
+    },
+    {
+      "file": "src/toad/widgets/session_thread_panels.py",
+      "line": 120,
+      "node": "Name",
+      "expression": "ContextTreeIntent"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 839,
+      "node": "FunctionDef",
+      "expression": "cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 963,
+      "node": "FunctionDef",
+      "expression": "move_cursor"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1145,
+      "node": "FunctionDef",
+      "expression": "watch_cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1178,
+      "node": "FunctionDef",
+      "expression": "watch_show_root"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 658,
+      "node": "Name",
+      "expression": "cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 182,
+      "node": "Name",
+      "expression": "selected"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 973,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 974,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1179,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1476,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1477,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1483,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1491,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1499,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1504,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1513,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1545,
+      "node": "Name",
+      "expression": "cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1545,
+      "node": "Attribute",
+      "expression": "self.cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1551,
+      "node": "Name",
+      "expression": "cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1551,
+      "node": "Attribute",
+      "expression": "self.cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1557,
+      "node": "Name",
+      "expression": "cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1557,
+      "node": "Attribute",
+      "expression": "self.cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1567,
+      "node": "Name",
+      "expression": "cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1567,
+      "node": "Attribute",
+      "expression": "self.cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1589,
+      "node": "Name",
+      "expression": "cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1589,
+      "node": "Attribute",
+      "expression": "self.cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 995,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1004,
+      "node": "Attribute",
+      "expression": "self.move_cursor"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1010,
+      "node": "Attribute",
+      "expression": "Tree.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1149,
+      "node": "Attribute",
+      "expression": "self.cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1295,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1356,
+      "node": "Name",
+      "expression": "selected"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1478,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1484,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1489,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1490,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1492,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1497,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1498,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1500,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1505,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1514,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1533,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1558,
+      "node": "Name",
+      "expression": "cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1568,
+      "node": "Name",
+      "expression": "cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1588,
+      "node": "Attribute",
+      "expression": "self.cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1602,
+      "node": "Attribute",
+      "expression": "self.move_cursor"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1602,
+      "node": "Name",
+      "expression": "cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 975,
+      "node": "Attribute",
+      "expression": "self.cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 977,
+      "node": "Attribute",
+      "expression": "self.cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 996,
+      "node": "Attribute",
+      "expression": "self.move_cursor"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1150,
+      "node": "Attribute",
+      "expression": "self.cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1296,
+      "node": "Attribute",
+      "expression": "self.cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1297,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1298,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1299,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1403,
+      "node": "Name",
+      "expression": "selected"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1412,
+      "node": "Name",
+      "expression": "selected"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1426,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1459,
+      "node": "Name",
+      "expression": "cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1483,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1519,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1536,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1546,
+      "node": "Name",
+      "expression": "cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1547,
+      "node": "Attribute",
+      "expression": "self.move_cursor"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1552,
+      "node": "Name",
+      "expression": "cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1553,
+      "node": "Attribute",
+      "expression": "self.move_cursor"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1559,
+      "node": "Name",
+      "expression": "cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1569,
+      "node": "Name",
+      "expression": "cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1585,
+      "node": "Attribute",
+      "expression": "self.cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1297,
+      "node": "Attribute",
+      "expression": "self.cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1466,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1466,
+      "node": "Name",
+      "expression": "cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1546,
+      "node": "Name",
+      "expression": "cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1547,
+      "node": "Name",
+      "expression": "cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1552,
+      "node": "Name",
+      "expression": "cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1561,
+      "node": "Attribute",
+      "expression": "self.move_cursor"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1563,
+      "node": "Attribute",
+      "expression": "self.move_cursor"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1575,
+      "node": "Attribute",
+      "expression": "self.move_cursor"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1585,
+      "node": "Attribute",
+      "expression": "self.cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1412,
+      "node": "Name",
+      "expression": "selected"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1461,
+      "node": "Name",
+      "expression": "cursor_line"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1553,
+      "node": "Name",
+      "expression": "cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1561,
+      "node": "Name",
+      "expression": "cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1571,
+      "node": "Name",
+      "expression": "cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1573,
+      "node": "Attribute",
+      "expression": "self.move_cursor"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1572,
+      "node": "Name",
+      "expression": "cursor_node"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 978,
+      "node": "Attribute",
+      "expression": "self.cursor_line"
+    }
+  ],
+  "scope": "Lexical declarations/writes/reads/calls; source semantics choose ownership. Dynamic dispatch is not resolved by AST."
+}

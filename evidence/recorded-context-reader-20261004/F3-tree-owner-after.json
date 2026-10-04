@@ -1,0 +1,251 @@
+{
+  "base": "7c75c4497c5b7d8b012b0be2d2ae0345f03ebc7f",
+  "source_head": "88b58f561a534752a6680c6f5fe5b90a1efca319",
+  "collector": "9a98d72e",
+  "collector_definitions_identical": true,
+  "counts": {
+    "7c75c4497c5b7d8b012b0be2d2ae0345f03ebc7f": {
+      "src/toad/core/context_inspection.py": {
+        "ForeignAbsenceProbe": 1,
+        "LongBooleanChain": 1,
+        "BooleanChainTerms": 4
+      },
+      "src/toad/widgets/context_explorer.py": {
+        "ForeignAbsenceProbe": 6,
+        "LongBooleanChain": 3,
+        "BooleanChainTerms": 14
+      }
+    },
+    "88b58f561a534752a6680c6f5fe5b90a1efca319": {
+      "src/toad/core/context_inspection.py": {
+        "ForeignAbsenceProbe": 1,
+        "LongBooleanChain": 1,
+        "BooleanChainTerms": 4
+      },
+      "src/toad/widgets/context_explorer.py": {
+        "ForeignAbsenceProbe": 6,
+        "LongBooleanChain": 1,
+        "BooleanChainTerms": 4
+      }
+    }
+  },
+  "delta": {
+    "src/toad/core/context_inspection.py": {
+      "ForeignAbsenceProbe": 0,
+      "LongBooleanChain": 0,
+      "BooleanChainTerms": 0
+    },
+    "src/toad/widgets/context_explorer.py": {
+      "ForeignAbsenceProbe": 0,
+      "LongBooleanChain": -2,
+      "BooleanChainTerms": -10
+    }
+  },
+  "packages": {
+    "base": {
+      "modules": 288,
+      "omissions": []
+    },
+    "src/toad": {
+      "modules": 288,
+      "omissions": []
+    },
+    "tests": {
+      "modules": 393,
+      "omissions": []
+    },
+    "tools/performance": {
+      "modules": 39,
+      "omissions": []
+    }
+  },
+  "owner_consumers": [
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 616,
+      "reference": "current.contains_native"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 564,
+      "reference": "current.contains_native"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 567,
+      "reference": "captured.native_matches"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 122,
+      "reference": "self.owns_node"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 179,
+      "reference": "self.owns_node"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 185,
+      "reference": "self.owns_node"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 204,
+      "reference": "ContextTreeIntent"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 403,
+      "reference": "self.query_one(ContextTree).owns_node"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 438,
+      "reference": "self.query_one(ContextTree).owns_node"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 150,
+      "reference": "self.owns_node"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 189,
+      "reference": "self.owns_node"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 218,
+      "reference": "ContextTree"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 379,
+      "reference": "self.state.search_current"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 380,
+      "reference": "self.intent.search_current"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 385,
+      "reference": "ContextTree"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 386,
+      "reference": "self.query_one(ContextTree).owns_node"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 402,
+      "reference": "ContextTree"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 418,
+      "reference": "ContextTree"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 419,
+      "reference": "self.query_one(ContextTree).owns_node"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 169,
+      "reference": "self.owns_node"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 269,
+      "reference": "ContextTree"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 349,
+      "reference": "ContextTree"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 375,
+      "reference": "ContextTree"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 403,
+      "reference": "ContextTree"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 438,
+      "reference": "ContextTree"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 79,
+      "reference": "self.owns_node"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 386,
+      "reference": "ContextTree"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 419,
+      "reference": "ContextTree"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 445,
+      "reference": "ContextTree"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 120,
+      "reference": "ContextTreeIntent"
+    },
+    {
+      "path": "tests/cold_context_installed_physical.py",
+      "line": 224,
+      "reference": "explorer.state.contains_native"
+    },
+    {
+      "path": "tools/performance/capture_state.py",
+      "line": 330,
+      "reference": "node.state.contains_native"
+    }
+  ],
+  "source_compile": {
+    "pass": true,
+    "paths": [
+      "src/toad/core/context_inspection.py",
+      "src/toad/widgets/context_explorer.py",
+      "tests/cold_context_installed_physical.py",
+      "tools/performance/capture_state.py",
+      "tools/performance/click_history.py"
+    ]
+  },
+  "limits": {
+    "installed_app_run": false,
+    "full_hosted_ratchet": "Not claimed: only the reported original measures were checked",
+    "dynamic_resolution": "Lexical AST references do not prove callback or MRO dispatch",
+    "provider_calls": 0,
+    "package_writes": 0
+  },
+  "preserved_check_failures": [
+    {
+      "source_head": "7d0df2a88ca91de84a0c3975f170e1c5d29f5e7d",
+      "failure": "Initial adapter requested missing sparse zero-count key; no result receipt produced."
+    },
+    {
+      "source_head": "7d0df2a88ca91de84a0c3975f170e1c5d29f5e7d",
+      "failure": "Complete Package.load refused context_inspection.py due extra docstring quote at line479. Corrected in 88b58f56."
+    }
+  ]
+}

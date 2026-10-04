@@ -1,0 +1,41 @@
+{
+  "scope": "Source-only normal main union; original App13 and reader14 acceptance retained; separate Core637 current-preview acceptance",
+  "toad_main": "d667eb201b3e37159ae8a686240e21a7b5de26bb",
+  "normal_merge": "c4867e82fa3d4e926685ee5df169a2bc2cb0899a",
+  "accepted_toad_source": "04b771d763de5a404181526ec72a0d44c190c27e",
+  "owned_files_equal": [
+    "src/toad/core/context_inspection.py",
+    "src/toad/widgets/context_explorer.py"
+  ],
+  "core_old": "9195325146f70886d7d879edbfcae74b12bd63c8",
+  "core_merged637": "5e3f68c5825e80ffe52ba431082a8c13a78428f9",
+  "core_accepted637_head": "79c9d6d32540a1f30ed82df791c4f347a5aa53f1",
+  "core_dependency_and_native_declaration_diff": "ZERO pyproject.toml/uv.lock/stack/pi-native.sha256",
+  "lock_change": "Exact existing Git source operands advanced; package/dependency declarations retained; no resolver/package operation",
+  "textual_pin": "1bdc18c363cbc0f938537a71aa8ba0225d03e25e",
+  "retained_receipt_sha256": {
+    "installed13/ASSESSMENT.md": "770a167052e5b171a37fceac05dcac844d04a3de7d9f6ccc7a19fdf267f7955b",
+    "installed13/terminal-receipt.json": "4fafc68653effcd2b7dc90ef41fad37812fbeef58b3f052b7a30b7dd95dcaf7c",
+    "installed14/ASSESSMENT.md": "79989ecd036023d34e578a3ef4b0cecea0fba04cc301fa7cd1cdda5bf8d4fda1",
+    "installed14/terminal-receipt.json": "38e10b67db032655ad341d004554e5a76ebdd4a4e9d6d06840ae274fec882bc0",
+    "installed14/capture-receipt.json": "77b97b0333a88385d7b593e8d1cb3f439bbbddc942447091f2f16c2868fd6a41",
+    "installed14/code-handback.json": "660f67eb47f43a71bc5f566ae1cee096b52cea880a23fc1fd049ed954a2490d9"
+  },
+  "core637_handback": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Einstein637-final-handback.json",
+  "new_packages_runs_provider_inputs_forks": 0,
+  "holder_purpose": "CLOSED; no current import/build/package/execution claim",
+  "readiness": "Scoped source and original installed App/recorded-reader acceptance; no fresh joined runtime or performance claim",
+  "inherited_main_delta_vs_installed04b": [
+    "src/toad/tool_output.py",
+    "src/toad/widgets/committed_presentation.py",
+    "src/toad/widgets/conversation.py",
+    "src/toad/widgets/history_anchor.py",
+    "src/toad/widgets/tool_call.py",
+    "src/toad/widgets/viewport_body.py",
+    "tests/cold_context_installed_physical.py",
+    "tests/retained_tool_text_pilot.py",
+    "tests/tools/record_installed_tui.py"
+  ],
+  "retired_core_member_imports_in_toad": "No lexical references to awareness_context/wake_injection or moved ContextSegment leaves in src/tests/tools",
+  "core_public_inspection_delta": "turn_context.py changes only ContextSegment discovery_package root declaration; runtime_requests.py unchanged; old producer member wire names/fields preserved"
+}

@@ -1,0 +1,31 @@
+{
+  "state": "WHOLE417 style22 CODE/PACKAGE/IMPORT/READ/BUILD/EXECUTION loan CLOSED",
+  "time": 1791106780.9518054,
+  "original_floor": "Core611d416/Toad9138/Texta52/NRAd392/native2ea normal69",
+  "all_original_archive_members_verified": 1459,
+  "prefix_members_verified": 1454,
+  "packages": 69,
+  "pip_check": "69 compatible",
+  "borrowers": {
+    "scope": "privileged proc cwd/exe/argv/environment/FD/maps",
+    "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+    "references": [],
+    "permission_gaps": []
+  },
+  "app_reader_lifetime": {
+    "native_tree_node_retained": true,
+    "selected_original": "turn/b2c6b72bbcb444b4979b42e821680cf3/0",
+    "contributor_remove_and_return": true,
+    "actual_registered_acp_app": true,
+    "retirement_and_remount": true
+  },
+  "whole_result": "FAILED_NO_REPLAY: KeyError(stage) in pre-recorder staging DTO operand",
+  "physical_recorder_started": false,
+  "native_child_retired": true,
+  "saved_source_unchanged": true,
+  "public_source_unchanged": true,
+  "original_inputs_unchanged": true,
+  "providers": 0,
+  "native_inputs": 0,
+  "future_package_or_execution_claim": false
+}

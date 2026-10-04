@@ -1,6 +1,6 @@
 {
-  "state": "NORMAL MERGED SOURCE/PINS CHECKPOINT; not staged or new operator Ready",
-  "source_main": "d667eb201b3e37159ae8a686240e21a7b5de26bb",
+  "state": "NORMAL MERGED637/430/417/59 SOURCE/PINS CHECKPOINT; combined ToAd wheel pending, not staged/operator Ready",
+  "source_main": "57ebe1c91f587fb4337ab0548f0ada3c665582eb",
   "core_pin": "5e3f68c5825e80ffe52ba431082a8c13a78428f9",
   "textual_pin": "180cbd9471bd6674647590108ca2fe5a627eb24f",
   "audit": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10",
@@ -24,19 +24,6 @@
       "forced_assets": 3
     },
     {
-      "module": "toad",
-      "qualified_wheel_source": "5b2a4a62ab560b17b4da4b0ae4225d9dcc06a960",
-      "actual_merged_head": "d667eb201b3e37159ae8a686240e21a7b5de26bb",
-      "all_merged_package_assets_equal_qualified_source": true,
-      "compared_paths": [
-        "src/toad"
-      ],
-      "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/tool430-native59-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
-      "sha256": "caec8cb834def340defba3ea9c4d8645d323b3c34e4ab314dc220798c4511eb7",
-      "assets": 319,
-      "forced_assets": 0
-    },
-    {
       "module": "textual",
       "qualified_wheel_source": "1bdc18c363cbc0f938537a71aa8ba0225d03e25e",
       "actual_merged_head": "180cbd9471bd6674647590108ca2fe5a627eb24f",
@@ -50,16 +37,18 @@
       "forced_assets": 0
     }
   ],
-  "new_build_needed": false,
+  "new_build_needed": true,
   "source_update": "Only Core/Text revision identities in pyproject and lock; original Core project and Text Poetry metadata unchanged; parsed lock differs only those identities; no dependency resolve/VCS clone",
   "private_preparation_negative": "First source-plan inspection assumed Text PEP621 project; KeyError before any file mutation. Corrected to original Text tool.poetry metadata; no product failure/check or package launch.",
   "qualified_scopes": {
     "637": "Original installed current-preview registeredACP/App16.280123s; ordinary declaration discovery, Coordination/UserInput and4native segments. No unavailable-awareness emission this read; all8 cold source kinds independently checked. Original negatives retained.",
-    "430_59": "Original changed App11.64112398494035s, pending unmount/mouse/viewport/end, two writers/join/latest commit, ToolContent recompose, editor, style loss/resize, collapse/draft/whole shutdown. Actual4311464 restore independently closed; no physical/CPU/smooth/firstpaint/allstalls claim."
+    "430_59": "Original changed App11.64112398494035s, pending unmount/mouse/viewport/end, two writers/join/latest commit, ToolContent recompose, editor, style loss/resize, collapse/draft/whole shutdown. Actual4311464 restore independently closed; no physical/CPU/smooth/firstpaint/allstalls claim.",
+    "417": "Parent accepted original13registered SDK/App lifetime plus14recorded six receipt scopes; exact owned context2files byteequal installed04b, inherited430 union independentlyaccepted. Original07-13 fixture/physical negatives remain unchanged; no new model input/fork/film/reader repetition."
   },
   "original_proofs": {
     "637": "/home/ts/wt/comms-field-codec-closure-20260928/evidence/context-segment-loading-20261004/installed-current-preview",
-    "430": "evidence/tool-subtree-publication-lifetime-20261004/430-SCOPED-READY.json"
+    "430": "evidence/tool-subtree-publication-lifetime-20261004/430-SCOPED-READY.json",
+    "417": "evidence/recorded-context-reader-20261004/{installed13,installed14,normal-main637-join.json}"
   },
   "protected_operations": {
     "431": {
@@ -79,15 +68,22 @@
   },
   "exclusions": [
     "638/640 pending independent qualification",
-    "417 full recorded followup",
     "627/W1",
+    "639 private study",
     "unqualified followups"
   ],
-  "remaining_step": "Bohr specific actual closed-holder purpose/disposition and matching currentfloor archive/readback/fresh grant before one retained-filewheel-only stage; no packagewriter inferred. Parent owns original guarded one-use execution/default physical acceptance.",
+  "remaining_step": "ONE direct normal combined ToAd wheel, then Bohr actual closed-holder purpose/archive/readback/fresh grant before filewheel stage. Parent owns new guarded operator/default acceptance; no old frozen operator authority.",
   "package_writes": 0,
   "public_effects": 0,
   "new_envs": 0,
   "native_builds": 0,
   "native_copies": 0,
-  "new_vcs_clones": 0
+  "new_vcs_clones": 0,
+  "superseded_to_ad_wheel": {
+    "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/tool430-native59-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "caec8cb834def340defba3ea9c4d8645d323b3c34e4ab314dc220798c4511eb7",
+    "reason": "Normal accepted417 adds exactly core/context_inspection.py and widgets/context_explorer.py; original430 wheel does not represent combined source and will not be stacked"
+  },
+  "combined_to_ad_wheel_plan": "ONE normal filewheel directly from this published owned checkout; original319assets exact finalunion; unchanged Core/Text/NRA/dependencies retained",
+  "merge_conflict": "Normal417 merge had exactly one pyproject Text revision conflict; chose actualmerged180 over sourceequalqualified1bd. Core merged5e preserved; uv lock normal automatic merge retained both actualsource identities. No reset/force/rebase."
 }
