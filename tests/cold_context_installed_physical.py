@@ -40,7 +40,16 @@ def load_recorder():
                 return "exec --sync " + shlex.join((sys.executable, str(Path(__file__).resolve()),
                     "--select-context", state, kind))
             if os.environ.get("TOAD_RECORDED_CONTEXT_AUDIT") == "1":
-                selected = lambda phase, field: select("phase-" + phase + "-state.pickle", "exact:" + os.environ[field])
+                def selected(phase, field):
+                    # Reveal by the original materialized Tree line, then acquire
+                    # fresh clipped geometry before the actual pointer selection.
+                    revealed = "revealed-" + phase + "-" + field.lower()
+                    return "\n".join((
+                        click("phase-" + phase + "-state.pickle", "context_tree"),
+                        "exec --sync " + shlex.join((sys.executable, str(Path(__file__).resolve()),
+                            "--reveal-context", "phase-" + phase + "-state.pickle", os.environ[field])),
+                        "sleep .2", mark + revealed,
+                        select("phase-" + revealed + "-state.pickle", "exact:" + os.environ[field])))
                 export = os.environ["TOAD_CONTEXT_AUDIT_EXPORT"]
                 return "\n".join((
                     mark + "saved --wait-history-seconds 12 --wait-history-thread configured-source",

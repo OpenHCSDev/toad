@@ -167,12 +167,6 @@ class RecordedTurnNode(ContextNode):
                 "Historical request observation, not an additional active context section. "
                 "Segment counts are estimates, not provider measurements.")
 
-    async def read(self):
-        parts = [self.detail()]
-        for child in self.children():
-            parts.append(await child.read())
-        return "\n\n".join(parts)
-
     async def find(self, query, *, limit=100):
         count = 0
         for child in self.children():
