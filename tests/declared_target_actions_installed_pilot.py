@@ -241,7 +241,6 @@ async def journey(args):
     base.mkdir(parents=True, exist_ok=False)
     project = base / 'project'
     project.mkdir()
-    await started_target_connections(base)
     os.environ.update(XDG_CONFIG_HOME=str(base / 'config'), XDG_STATE_HOME=str(base / 'state'),
                       XDG_DATA_HOME=str(base / 'data'), AGENT_COMMS_ROOT=str(base / 'wire'))
     os.environ.pop('NO_COLOR', None)
@@ -257,7 +256,7 @@ async def journey(args):
                                            ViewPredicate(AnyOfMatch, frozenset({'first'}))))
     before = {'root_id': os.environ['AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID'],
               'incarnation': FieldCodec.encode(original), 'inputs': 0}
-    checks = ['actual-start-dm-peer-not-actor-bound-native-root-alias-connection']
+    checks = []
     # Observe the original installed implementation without replacing queries,
     # application state or protocol. This catches a catalog consumer returning
     # to synchronous UI-loop I/O in the same affected workflow.
@@ -422,4 +421,10 @@ if __name__ == '__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--physical',action='store_true')
-    asyncio.run(journey(parser.parse_args()))
+    parser.add_argument('--start-only', action='store_true', help='Original SDK/ACP Start-target resource control')
+    args = parser.parse_args()
+    if args.start_only:
+        args.output.mkdir(parents=True, exist_ok=False)
+        asyncio.run(started_target_connections(args.output.resolve()))
+    else:
+        asyncio.run(journey(args))
