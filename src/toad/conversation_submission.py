@@ -14,6 +14,7 @@ from toad.acp.client_session import ClientSessionRequest
 from agent_comms.acp_extension import PendingQueueProjection
 from toad.widgets.prompt import Prompt
 from toad.widgets.user_input import UserInput
+from toad.command_catalog import CommandCatalog
 
 
 @dataclass(frozen=True)
@@ -101,7 +102,7 @@ class AgentInputSubmission(InputSubmission):
     async def execute(self, owner):
         view = owner.view
         view.transcript.invalidate()
-        if self.text.startswith('/') and await view.command_catalog.execute(self.text, view):
+        if self.text.startswith('/') and await CommandCatalog.execute(self.text, view):
             return
         execution = owner.begin(self)
         if execution is None:

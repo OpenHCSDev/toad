@@ -20,7 +20,7 @@ from textual.widgets._markdown import MarkdownBlock
 from viewport_recent_tabs_pilot import settled
 
 from toad.screens.comms import CommsScreen
-from toad.thread_actions import ForkAction
+from agent_comms.cli_commands import ForkCliCommand
 from toad.widgets.channel_participants import ChannelParticipants
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_menu import ContextMenuItem
@@ -521,16 +521,16 @@ async def fork_and_first_input(app, pilot, comms, first, entered, release, hold_
     assert await pilot.click(row, button=3)
     await until(pilot, lambda: bool(app.screen.query(ContextMenuItem)))
     fork = next(item for item in app.screen.query(ContextMenuItem)
-                if item.action == ForkAction.declared_name)
+                if item.action == ForkCliCommand.declared_name)
     assert await pilot.click(fork)
     dialog = await wait_fork_dialog(app, pilot)
-    entry = dialog.query_one("#fork-name", Input)
+    entry = dialog.query_one("#command-field-name", Input)
     assert await pilot.click(entry)
     entry.value = "journey-child"
-    assert app.screen.query_one("#fork-tags", Input).value == "team"
+    assert app.screen.query_one("#command-field-tags", Input).value == "team"
     from textual.widgets import TextArea
-    dialog.query_one("#fork-task", TextArea).text = "JOURNEY_FORK_INPUT"
-    app.screen.query_one("#fork-tags", Input).value = "refactor"
+    dialog.query_one("#command-field-task", TextArea).text = "JOURNEY_FORK_INPUT"
+    app.screen.query_one("#command-field-tags", Input).value = "refactor"
     entered.clear()
     release.clear()
     hold_next.set()

@@ -21,7 +21,7 @@ async def dialog_content_only():
     from agent_comms.threads import Thread
     from agent_comms.field_codec import FieldCodec
     from runtime_fixture import private_native_wire
-    from toad.widgets.comms_fork_dialog import ForkDialog
+    from toad.widgets.comms_command_dialog import CommandDialog
     evidence = Path(os.environ['FORK_DIALOG_EVIDENCE'])
     evidence.mkdir(parents=True, exist_ok=False)
     project = evidence / 'project'
@@ -34,25 +34,28 @@ async def dialog_content_only():
     app = InstalledApp(project_dir=str(project))
     async with app.run_test(size=(100, 38)) as pilot:
         await app.selected_session.wait_content_ready()
-        app.push_screen(ForkDialog(parent), results.append)
+        from agent_comms.cli_commands import ForkCliCommand
+        definition = next(item for item in ForkCliCommand.target_catalog(comms, parent.name, project=str(project))
+                          if item['command'] == ForkCliCommand.declared_name)
+        app.push_screen(CommandDialog(definition, parent.name), results.append)
         dialog = await wait_fork_dialog(app, pilot)
-        await until(pilot, lambda: dialog.query_one_optional('#fork-tags', Input) is not None)
-        assert dialog.query_one('#fork-tags', Input).value == 'keep, team'
-        dialog.query_one('#fork-name', Input).value = 'fork-child'
-        editor = dialog.query_one('#fork-task')
+        await until(pilot, lambda: dialog.query_one_optional('#command-field-tags', Input) is not None)
+        assert dialog.query_one('#command-field-tags', Input).value == 'keep, team'
+        dialog.query_one('#command-field-name', Input).value = 'fork-child'
+        editor = dialog.query_one('#command-field-task')
         assert await pilot.click(editor)
         app.post_message(events.Paste(task))
         await pilot.pause()
         app.save_screenshot(str(evidence / 'pasted-task.svg'))
-        assert await pilot.click('#fork-create')
+        assert await pilot.click('#command-apply')
         await until(pilot, lambda: bool(results))
         spec = results[0]
         (evidence / 'dialog-content.json').write_text(json.dumps({
-            'expected_task': task, 'actual_spec': FieldCodec.encode(spec),
+            'expected_task': task, 'actual_fields': spec,
             'provider_calls': 0, 'owner_starts': 0,
         }, indent=2)+'\n')
-        assert spec.name == 'fork-child' and spec.tags == parent.tags
-        assert spec.task == task, (spec.task, task)
+        assert spec['name'] == 'fork-child' and spec['tags'] == 'keep, team'
+        assert spec['task'] == task, (spec['task'], task)
         assert app._exception is None
     (evidence / 'complete.txt').write_text('PASS: native dialog paste preserves full task text\n')
 
@@ -78,7 +81,7 @@ async def open_fork_dialog(app, pilot, comms, release, hold_next):
     from saved_state_user_journey_pilot import reveal_thread_row
     from toad.widgets.comms_sidebar import ChannelGroup
     from toad.widgets.comms_menu import ContextMenuItem
-    from toad.thread_actions import ForkAction
+    from agent_comms.cli_commands import ForkCliCommand
     row = await reveal_thread_row(app, pilot, 'beta', '#team')
     group = row.query_ancestor(ChannelGroup)
     point = row.region.offset
@@ -94,7 +97,7 @@ async def open_fork_dialog(app, pilot, comms, release, hold_next):
     evidence.write_text(json.dumps(receipt, indent=2) + '\n')
     await until(pilot, lambda: bool(app.screen.query(ContextMenuItem)))
     menu_item = next(item for item in app.screen.query(ContextMenuItem)
-                     if item.action == ForkAction.declared_name)
+                     if item.action == ForkCliCommand.declared_name)
     assert await pilot.click(menu_item)
     dialog = await wait_fork_dialog(app, pilot)
     return parent_view, dialog
@@ -109,9 +112,9 @@ async def task_admission(app, pilot, agent, comms, entered, release, hold_next, 
     task = '  First task instruction.\n\n    Preserve the second paragraph and its indentation.\n'
     name = 'multiline-task-fork'
     inherited = comms.registry.require('beta').tags
-    assert dialog.query_one('#fork-tags', Input).value == ', '.join(sorted(inherited))
-    dialog.query_one('#fork-name', Input).value = name
-    editor = dialog.query_one('#fork-task', TextArea)
+    assert dialog.query_one('#command-field-tags', Input).value == ', '.join(sorted(inherited))
+    dialog.query_one('#command-field-name', Input).value = name
+    editor = dialog.query_one('#command-field-task', TextArea)
     assert await pilot.click(editor)
     app.post_message(events.Paste(task))
     await pilot.pause()
@@ -146,11 +149,11 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     from runtime_fixture import wait_channel_roster
     from toad.widgets.comms_sidebar import CommsRow, ChannelGroup, CommsSidebar
     parent_view, dialog = await open_fork_dialog(app, pilot, comms, release, hold_next)
-    entry = dialog.query_one("#fork-name", Input)
+    entry = dialog.query_one("#command-field-name", Input)
     assert await pilot.click(entry)
     entry.value = "immediate-fork"
     inherited_tags = comms.registry.require('beta').tags
-    tags_editor = app.screen.query_one('#fork-tags', Input)
+    tags_editor = app.screen.query_one('#command-field-tags', Input)
     assert tags_editor.value == ', '.join(sorted(inherited_tags))
     # Empty task is a ready child, not an automatic model input. Its tags are
     # editable declarations: retain the parent, add one and remove one here.
@@ -171,7 +174,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                         continue
                     assert Path(process_root).resolve() == comms.root.resolve()
                     # The launcher publishes identity before its exec handshake
-                    # completes. Suspending that launcher would deadlock ForkAction
+                    # completes. Suspending that launcher would deadlock ForkCliCommand
                     # itself, before any physical opening could be exercised.
                     if process.cmdline()[1:3] == ["-m", "agent_comms.worker"]:
                         process.suspend()
@@ -183,7 +186,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     # This guarantees an actual cold attach rather than a repaired warm fork.
     held_startup = asyncio.create_task(hold_actual_startup())
     try:
-        assert await pilot.click('#fork-create')
+        assert await pilot.click('#command-apply')
         process = await held_startup
         project = parent_view.project_path
         await until(pilot, lambda: "immediate-fork" in comms.registry.all_threads())

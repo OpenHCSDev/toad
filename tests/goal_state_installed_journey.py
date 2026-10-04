@@ -18,7 +18,7 @@ from toad.screens.goal_details import GoalDetails
 from toad.widgets.goal_bar import GoalBar
 from toad.widgets.comms_menu import ContextMenuItem
 from toad.widgets.comms_sidebar import CommsRow
-from toad.thread_actions import ForkAction
+from agent_comms.cli_commands import ForkCliCommand
 from runtime_fixture import wait_channel_roster, wait_fork_dialog
 from manual_live_turn_status import require_current_activity
 
@@ -94,12 +94,12 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert await pilot.click(row, button=3)
     await until(pilot, lambda: bool(app.screen.query(ContextMenuItem)))
     fork = next(item for item in app.screen.query(ContextMenuItem)
-                if item.action == ForkAction.declared_name)
+                if item.action == ForkCliCommand.declared_name)
     assert await pilot.click(fork)
     dialog = await wait_fork_dialog(app, pilot)
-    dialog.query_one("#fork-name", Input).value = "goal-child"
-    assert dialog.query_one("#fork-tags", Input).value == "team"
-    assert await pilot.click("#fork-create")
+    dialog.query_one("#command-field-name", Input).value = "goal-child"
+    assert dialog.query_one("#command-field-tags", Input).value == "team"
+    assert await pilot.click("#command-apply")
     await until(pilot, lambda: "goal-child" in comms.registry.all_threads())
     child_screen = await click_thread(app, pilot, "goal-child")
     await until(pilot, lambda: comms.registry.require("goal-child").process_alive)

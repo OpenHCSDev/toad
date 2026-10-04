@@ -13,7 +13,7 @@ from agent_comms.acp_extension import (
 
 from toad.navigation_target import DirectTarget
 
-from toad.thread_actions import StartAction, StopAction, ArchiveAction, AcknowledgeAction, ForkAction
+from agent_comms.cli_commands import StartCliCommand, StopCliCommand, ArchiveCliCommand, ReadTargetCliCommand, ForkCliCommand
 import asyncio
 import json
 import os
@@ -511,11 +511,11 @@ async def main() -> None:
             menu_items = list(app.screen.query(ContextMenuItem))
             assert [item.action for item in menu_items] == [
                 "pin",
-                ForkAction.declared_name,
-                StopAction.declared_name,
-                StartAction.declared_name,
-                ArchiveAction.declared_name,
-                AcknowledgeAction.declared_name,
+                ForkCliCommand.declared_name,
+                StopCliCommand.declared_name,
+                StartCliCommand.declared_name,
+                ArchiveCliCommand.declared_name,
+                ReadTargetCliCommand.declared_name,
                 "copy",
                 "close_view",
             ]
@@ -661,15 +661,15 @@ async def main() -> None:
             assert isinstance(app.screen, ContextMenu)
             assert [item.action for item in app.screen.query(ContextMenuItem)] == [
                 "pin",
-                ForkAction.declared_name,
-                StopAction.declared_name,
-                StartAction.declared_name,
-                ArchiveAction.declared_name,
-                AcknowledgeAction.declared_name,
+                ForkCliCommand.declared_name,
+                StopCliCommand.declared_name,
+                StartCliCommand.declared_name,
+                ArchiveCliCommand.declared_name,
+                ReadTargetCliCommand.declared_name,
                 "copy",
             ]
             ack_item = next(item for item in app.screen.query(ContextMenuItem)
-                            if item.action == AcknowledgeAction.declared_name)
+                            if item.action == ReadTargetCliCommand.declared_name)
             await pilot.click(ack_item)
             await pilot.pause()
             assert isinstance(app.screen, MainScreen)
@@ -683,7 +683,7 @@ async def main() -> None:
             assert isinstance(app.screen, ContextMenu)
             assert [item.action for item in app.screen.query(ContextMenuItem)] == [
                 "pin",
-                AcknowledgeAction.declared_name,
+                ReadTargetCliCommand.declared_name,
                 "copy",
             ]
             await pilot.press("down", "enter")
@@ -699,7 +699,7 @@ async def main() -> None:
             stop_item = next(
                 item
                 for item in app.screen.query(ContextMenuItem)
-                if item.action == StopAction.declared_name
+                if item.action == StopCliCommand.declared_name
             )
             await pilot.click(stop_item)
             await pilot.pause()
@@ -709,7 +709,7 @@ async def main() -> None:
             archive_item = next(
                 item
                 for item in app.screen.query(ContextMenuItem)
-                if item.action == ArchiveAction.declared_name
+                if item.action == ArchiveCliCommand.declared_name
             )
             await pilot.click(archive_item)
             await pilot.pause()
@@ -843,11 +843,11 @@ async def main() -> None:
             assert isinstance(app.screen, ContextMenu)
             assert [item.action for item in app.screen.query(ContextMenuItem)] == [
                 "pin",
-                ForkAction.declared_name,
-                StopAction.declared_name,
-                StartAction.declared_name,
-                ArchiveAction.declared_name,
-                AcknowledgeAction.declared_name,
+                ForkCliCommand.declared_name,
+                StopCliCommand.declared_name,
+                StartCliCommand.declared_name,
+                ArchiveCliCommand.declared_name,
+                ReadTargetCliCommand.declared_name,
                 "copy",
             ]
             await pilot.press("escape")

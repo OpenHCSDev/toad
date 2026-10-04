@@ -133,8 +133,8 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await click(row, button=3)
     await until(pilot, lambda: bool(app.screen.query(ContextMenuItem)))
     menu = {item.action: item.render().plain for item in app.screen.query(ContextMenuItem)}
-    context = chat.command_target_context()
-    assert menu == {command.command.removeprefix("/"): command.label(context) for command in context.command_choices()}
+    context = await chat.command_target_context()
+    assert menu == {command.command.removeprefix("/"): command.label(context) for command in await context.command_choices()}
     await mark("03-pointer-menu")
     await click(next(item for item in app.screen.query(ContextMenuItem) if item.action == "pin"))
     await until(pilot, lambda: comms.channels.catalog.read().resolve("#team").pinned)

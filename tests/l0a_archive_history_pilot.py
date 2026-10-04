@@ -1,7 +1,8 @@
 """Installed Toad menu archives a real isolated thread and retains its history."""
 from runtime_fixture import coordination_update
 
-from toad.thread_actions import ArchiveAction, ThreadAction
+from agent_comms.cli_commands import ArchiveCliCommand
+from agent_comms.cli_commands import CliCommand
 import asyncio
 import os
 from pathlib import Path
@@ -27,14 +28,14 @@ async def until(pilot, predicate):
 
 
 async def main():
-    class RetainAction(ArchiveAction):
+    class RetainAction(ArchiveCliCommand):
         """One new declaration must appear and run through the mounted menu."""
 
-    menu = ThreadAction.menu()
+    menu = CliCommand.members_with(CliCommand)
     assert RetainAction in menu
     assert len({action.declared_name for action in menu}) == len(menu)
     for action in menu:
-        assert action.menu_label() and action.pending
+        assert action.help
 
     artifacts = Path(__file__).resolve().parents[1] / ".artifacts"
     artifacts.mkdir(exist_ok=True)
@@ -77,7 +78,7 @@ async def main():
             await pilot.pause()
             assert isinstance(app.screen, ContextMenu)
             actions = [item.action for item in app.screen.query(ContextMenuItem)]
-            assert ArchiveAction.declared_name in actions
+            assert ArchiveCliCommand.declared_name in actions
             assert "comms_delete" not in actions
             archive = next(item for item in app.screen.query(ContextMenuItem)
                            if item.action == RetainAction.declared_name)
