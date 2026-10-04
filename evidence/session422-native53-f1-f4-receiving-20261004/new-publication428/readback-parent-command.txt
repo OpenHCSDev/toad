@@ -1,0 +1,1 @@
+/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python -I /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/session422-native53-f1-f4-receiving-20261004/new-publication428/readback_publication.py

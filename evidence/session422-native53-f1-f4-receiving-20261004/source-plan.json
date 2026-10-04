@@ -1,0 +1,46 @@
+{
+  "state": "Published final qualified F1/F4/422/corrected53 union; package-only staging before new operation",
+  "owner": {
+    "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+    "core": "7a5c5fc2e79f2e32e4f340eaba573bf1bfec69bf",
+    "operator_core": "7a5c5fc2e79f2e32e4f340eaba573bf1bfec69bf",
+    "toad": "bf3e95c16e9b9e971956cf5e062167a8c2d4727f",
+    "textual": "c1c1ebe5c40499f75dc370c26a7818588114e71d",
+    "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-086d511f2026b10d/node_modules/@earendil-works/pi-coding-agent",
+    "archive_artifacts": [
+      {
+        "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/f4-core421-receiver-wheels-20261004/agent_comms-0.1.0-py3-none-any.whl",
+        "sha256": "d96ab5bb53e360591d8cff8e1e7eb85559eb7ac985c3047f6ffaef80f0dba935"
+      },
+      {
+        "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/session422-native53-f1-f4-receiving-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+        "sha256": "f46388433b6c9db1fe62446f13475091d40ea67681646988a68c1eb7a8787b7c"
+      },
+      {
+        "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text53-filewheel-a818dcfd-20261004/textual-8.2.8-py3-none-any.whl",
+        "sha256": "dfbd8fcbd37221f3c7934a8e7d7cd141bb592b1f0e35e9f034bffafe8e7f2a5a"
+      },
+      {
+        "path": "/home/ts/wt/nra-skill-publish-20261002/.artifacts/family-flattened-collector-20261004/wheels/nominal_refactor_audit-0.1.0-py3-none-any.whl",
+        "sha256": "8d489731728ebf9f7e0f90ef2b14e7e3b5d2f90ed82bd8b1482d735f82869886"
+      }
+    ],
+    "gate_files": [
+      "422-SCOPED-READY.json",
+      "427-historical-consumer-receipt.json",
+      "53-SCOPED-INSTALLED-READY.json",
+      "616-READY.json",
+      "F1-channel08-receipt.json",
+      "F1-native-delete10-receipt.json",
+      "F1-start07-receipt.json",
+      "F4-app06-physical-receipt.json",
+      "F4-app06-terminal-receipt.json",
+      "F4-core-installed-receipt.json",
+      "F4-paired-installed-final.json"
+    ],
+    "audit": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10"
+  },
+  "previous_stage_superseded": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/session422-native53-core616-receiving-20261004/superseded-stage/disposition.json",
+  "archive_grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-current416-next422-Sch-package-only-grant.json",
+  "scope": "No F3/417/426/55/W1/JeV; no changed acceptance repeated; no native/environment/dependency build"
+}
