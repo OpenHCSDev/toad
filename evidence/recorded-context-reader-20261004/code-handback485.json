@@ -1,0 +1,30 @@
+{
+  "state": "WHOLE485_CODE_HANDOFF_NO_FUTURE_CLAIM",
+  "prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "pins": {
+    "agent_comms": "d41601c16d74e9e3e4195b6527fb218b8fe14af9",
+    "toad": "2420f4c71b6c15ee5cb67f5c30c4b38b57815d89",
+    "textual": "3d6d4146fa04b0b0d46445b98b0c9bcc2761ef25"
+  },
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-2ea0a4d4ff2e3628/node_modules/@earendil-works/pi-coding-agent",
+  "sdk": "0.12.1",
+  "distributions": 69,
+  "toad_assets_exact": 319,
+  "restore_wheel": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/final41549/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+  "restore_wheel_sha256": "c6b91a26c6253d3dad32d1d414cbea1678b95f8a9f6e66e88b4f20c79186fde4",
+  "source_proof": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/recorded-context-reader-20261004/restored485-source-proof.json",
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 232428,
+        "start_ticks": 55711477,
+        "returncode": 0
+      }
+    ]
+  },
+  "physical09": "FAILED; exactsystem control missing; originals unchanged/nativechildretired/recordercleanupempty",
+  "future_package_import_build_claim": false
+}

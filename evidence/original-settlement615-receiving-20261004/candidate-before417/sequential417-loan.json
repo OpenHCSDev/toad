@@ -1,0 +1,40 @@
+{
+  "state": "EXPLICIT_SHORT_SEQUENTIAL_417_CODE_READ_BUILD_CAPTURE_LOAN_BEFORE_RECEIVING_FREEZE",
+  "owner": "Einstein417",
+  "prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "receiving_branch": "deploy/original-settlement615-receiving-20261004",
+  "receiving_head": "58e650216f5694bf9e06e95a15c538944b172367",
+  "declared_source_head": "0b99b39b816085ebbff96c37d2ea54644cb6aeb3",
+  "core": "8f16339673835114f526d7431032576099764af5",
+  "textual": "b263e4e707846025fd6b70448749c7a36c0a2d81",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-086d511f2026b10d/node_modules/@earendil-works/pi-coding-agent",
+  "native_manifest": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
+  "native_tree": "dbc88ed9231d1275da3ce218aa8919a247e41ce1f010ce765e7ac0960193f4ac",
+  "restore_file_wheels": [
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/original-settlement615-wheels/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "04016102e2d13ae5a5d4fabc3ada865dd39dbb8a22277d39e514202bfe0c4424"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame418-stage-20261004/live611-toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "5fa15f7d2e59cd919feedf8e49c9154dad218015356665aa525bbd82e53b4f3b"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text50-filewheel-ff5cc9c7-20261003/textual-8.2.8-py3-none-any.whl",
+      "sha256": "ddd4ae0e0a5fae1dc7465b4772e7f8bd31630d35c118a85cbc53a3cf423adbb3"
+    }
+  ],
+  "original_candidate_activation": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/original-settlement615-receiving-20261004/candidate-before417/activation.json",
+  "activation_sha256": "a5e325c2b10d162fe97268560bae982fe7c73ad38c95780af71473960151d403",
+  "original_candidate_source_proof": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/original-settlement615-receiving-20261004/candidate-before417/source-proof.json",
+  "source_proof_sha256": "5a4bc124eb61917b1ed655c88bd66a3a3e0eb1d4436277a95c5375cf102deb27",
+  "candidate_schema_relation": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/original-settlement615-receiving-20261004/candidate-schema-relation.json",
+  "readable_original_fixture": "/home/ts/.cache/agent-scratch/c603p01/wire",
+  "provider_calls_allowed": 0,
+  "new_forks_allowed": 0,
+  "new_model_inputs_allowed": 0,
+  "unchanged_Core_Text_native_writes_allowed": false,
+  "requirement": "Normaljoin coherentCore615/API source first; original exact recorded consumer gate; onfailure preserve negatives/UNKNOWN and restore qualifiedcandidate filewheel/activation/sourceproof/69 versions; always terminal/cleanup and explicitWHOLEhandback before anySchwrite/freeze",
+  "Sch_package_import_write_claim": "SUSPENDED_UNTIL_EXPLICIT_WHOLE_HANDBACK",
+  "functional615_held_by_recorded_failure": false
+}
