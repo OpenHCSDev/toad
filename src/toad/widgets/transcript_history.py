@@ -764,11 +764,9 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         viewport = self.window.content_region
         if not region.overlaps(viewport):
             return
-        # Paging and paint share the original exposed-body readiness owner.
-        # A mounted body may still be restoring; hidden descendants do not
-        # belong to this viewport's foreground admission.
-        if not self.window.document_viewport.visible_bodies_ready:
-            return
+        # Original published geometry admits source work, even while a body is
+        # preparing. Its worker owns read/prepare/native mutation; the existing
+        # viewport frame owner alone decides when those bodies may be painted.
         if self._follow_source_tail and self.has_newer:
             self._request_page(False)
             return
