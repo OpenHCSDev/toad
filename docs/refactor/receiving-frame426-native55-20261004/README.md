@@ -1,9 +1,9 @@
-# Qualified426/Text55 successor source
+# Qualified426/429/Text55 successor source
 
-Normal actual main42f1cc9f includes accepted F1/F4/426 and corrected Text55. Core7a5c and originalNRA9a/native086 remain unchanged. This is source preparation only; no package/import/execution/public slot assumed.
+Normal merged mainbf3a79c2 includes qualified426+429, accepted F1/F4 and corrected Text55. Core7a5c/NRA9a/native086 remain unchanged. Core632 measurement-only source is not an installed runtime change. This is source preparation only; no package/import/execution/public slot is assumed.
 
-The retained Text55 wheel exactly matches all266 merged assets. Original426 ToAd wheel has319 assets; 15 asset differences carry the independently accepted F4 consumer family; two files contain exact original426 methods alongside changed F4 methods. A final merged ToAd filewheel will be needed at an explicitly granted package window. No wheel is rebuilt here and no new source clone/environment/native copy is made.
+Readback confirms the retained429 ToAd wheel matches all319 joined assets; retained Text55 matches all266. Both original filewheels can be reused, so this source union needs no new build. The older426 wheel relation is historical and retained separately.
 
-Original fourApp acceptance remains at its measured source scope. No responsiveness/speed/public/nativegoal claim. Tree58, F3, JeV, unfinished startup429 and W1 are excluded.
+Original426 fourApp acceptance and429 pending-start/hydration20.2068s App acceptance retain their actual scopes and originalfixture negatives. No responsiveness/speed/provider/public/nativegoal claim. Tree58, F3, JeV, unfinished followups and W1 are excluded.
 
-Merged428 sourcehead, prefix, all165 operands and Ready200b remain unchanged. The active user client is protected; no publisher/readback or admission retry occurs.
+Frozen428630a sourcehead/prefix/165 operands/Ready200b remain untouched; no publication/readback/guard retry or active user-client action.

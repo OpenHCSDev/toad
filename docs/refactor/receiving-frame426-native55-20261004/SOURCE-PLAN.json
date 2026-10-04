@@ -1,6 +1,6 @@
 {
-  "state": "SOURCE-ONLY successor: qualified merged426/Text55; no package slot or public operation authorized",
-  "source_main": "42f1cc9f26d2f7e6f9c9b3728484e07902dcf832",
+  "state": "SOURCE-ONLY successor: qualified merged426/429/Text55; no package slot/public operation authorized",
+  "source_main": "bf3a79c2a930c3b23433636378bb9ac8b08e1a69",
   "core_pin": "7a5c5fc2e79f2e32e4f340eaba573bf1bfec69bf",
   "textual_pin": "ace479c7e602a1f804bc8cc6b6fd5bf90d518733",
   "native": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
@@ -8,29 +8,14 @@
   "retained_wheel_readback": [
     {
       "module": "toad",
-      "actual_merged_head": "42f1cc9f26d2f7e6f9c9b3728484e07902dcf832",
-      "original_build_record": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame426-native55-20261004/wheel-proof.json",
-      "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame426-native55-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
-      "sha256": "3155d3c2a2f398a007b705e9537d1b82d33be10f019ab757171fe1ef00114b2d",
+      "actual_merged_head": "bf3a79c2a930c3b23433636378bb9ac8b08e1a69",
+      "original_build_record": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/wheel-proof.json",
+      "original_build_head": "4e2ad921800b33ee86b65960f564434e91579c8f",
+      "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "bb575bc69672d86edab569e8bf6cbfad24ad49fbcef0b30f114a818b2b4d5f50",
       "assets": 319,
-      "all_assets_equal": false,
-      "different_assets": [
-        "toad/acp/agent.py",
-        "toad/acp/status.py",
-        "toad/application_actions.py",
-        "toad/conversation_kind.py",
-        "toad/conversation_markdown.py",
-        "toad/core/context_inspection.py",
-        "toad/goal_interaction.py",
-        "toad/mcp_commands.py",
-        "toad/navigation_preparation.py",
-        "toad/screens/comms.py",
-        "toad/screens/store.py",
-        "toad/session_admission.py",
-        "toad/session_tracker.py",
-        "toad/widgets/comms_chat.py",
-        "toad/widgets/comms_transfer.py"
-      ]
+      "all_assets_equal": true,
+      "different_assets": []
     },
     {
       "module": "textual",
@@ -43,8 +28,8 @@
       "different_assets": []
     }
   ],
-  "qualified_scope": "OriginalfourApp source/frame admission/globalpaint/sidebar cases; no new public physical/nativegoal/whole426 speed claim. OriginalF4 typedmethods independently accepted; whole two-file union not relabeled as original426 App.",
-  "remaining_package_boundary": "RetainedText55 wheel exact. Original426 ToAdwheel predates acceptedF4 normalunion and differs in15 assets; CommsScreen/SessionAdmission have original426 ownedmethods exact while F4 methods differ. Remaining13 acceptedF4 consumer assets differ. Finalmerged ToAdfilewheel needed once explicitpackageslot/purpose granted; no build now. UnchangedCore421/NRA9a/dependencies/native reused.",
+  "qualified_scope": "Original426 fourApp source/admission/globalpaint/sidebar scope retained; original429 pending-start/hydration App20.2068 input/resize/nativepaint/hidden-return actor/draft/focus/wholeclose. Originalthreefixture negatives retained; no startup-pump/UI-speed/public-physical/nativegoal claim.",
+  "remaining_package_boundary": "Original429 wheel exactall319 finalmergedassets; existingText55b064 exactall266. No additionalToAdwheel build necessary for this source union; existingCore421/NRA9a/dependencies/native086 reused. Staging stillrequires original namedpackagepurpose/grant; frozen428 cannotbe replaced.",
   "protected428_ready": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/session422-native53-f1-f4-receiving-20261004/new-publication428/ready-receipt.json",
   "protected428_ready_sha256": "200b686231e79d78b037bea4e91be48bc8ff33f395785a647e7cc8842dc4920f",
   "protected428_artifacts": 165,
@@ -58,7 +43,35 @@
     "Tree58",
     "F3/417",
     "JeV",
-    "unqualifiedstartup429",
+    "unqualifiedstartupfollowup",
     "W1"
-  ]
+  ],
+  "previous_426_only_source_checkpoint": "5182377148fa61da1e293036dce8354958ae7084",
+  "source_join_head": "0fa5406850162842ddc8dc0c1cc0b32ca5bf3b27",
+  "previous_426_wheel_relation": {
+    "module": "toad",
+    "actual_merged_head": "42f1cc9f26d2f7e6f9c9b3728484e07902dcf832",
+    "original_build_record": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame426-native55-20261004/wheel-proof.json",
+    "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/frame426-native55-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "3155d3c2a2f398a007b705e9537d1b82d33be10f019ab757171fe1ef00114b2d",
+    "assets": 319,
+    "all_assets_equal": false,
+    "different_assets": [
+      "toad/acp/agent.py",
+      "toad/acp/status.py",
+      "toad/application_actions.py",
+      "toad/conversation_kind.py",
+      "toad/conversation_markdown.py",
+      "toad/core/context_inspection.py",
+      "toad/goal_interaction.py",
+      "toad/mcp_commands.py",
+      "toad/navigation_preparation.py",
+      "toad/screens/comms.py",
+      "toad/screens/store.py",
+      "toad/session_admission.py",
+      "toad/session_tracker.py",
+      "toad/widgets/comms_chat.py",
+      "toad/widgets/comms_transfer.py"
+    ]
+  }
 }
