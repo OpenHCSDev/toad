@@ -37,3 +37,11 @@ The e29f successor initialized fresh private schema10 and persisted/decoded orig
 All1470originalfiles/69origins/390proofs restored,244-process privileged0refs/0gaps, both leases closed; original negatives unchanged. Existing MainScreen content readiness, SideBar hydration, attached runtime proxy subscription and ContextInspection workers were read; no measured blocked phase was retained.
 
 The same App control now derives its cleanup attempt from its unique private root (instead of a reusable test basename), isolates XDG_CACHE_HOME, enables the original Core debug-log capability and emits ordinary acquisition/readiness/read/search/export/retirement boundary lines. A future runner uses -s to preserve those lines on interruption. No new timer/store/framework, copied runtime state, artificial timeout or production patch. Syntax/whitespace only; changed control remains unexecuted. No new holder/READ loan inferred; source/debug evidence must select any production fix, not another blind same-path run.
+
+## Current source and published runtime
+
+Normally joined merged439 source-commit receipt ownership. No W6 source override, native producer change or repeated installed check. The historical c632 wheel remains the original accepted package input; it does not describe the newer union's two changed history files.
+
+Source trace confirms imported references are acquired and presented before the separate native-preview worker. Original ReferenceNode owns authenticated historical read/search/export. MainScreen and SideBar own mounted readiness; the original90-second output does not establish which wait was pending. The existing driver now isolates its attempt/cache and retains ordinary stage output through the existing ACP diagnostics; it remains unexecuted and is not a product hang fix.
+
+Style22 is now the PUBLIC current436 runtime, with no private W6 borrower or restore purpose. No package/import/run was started after publication. The remaining registered App acceptance requires an eligible future holder; actual Codex sessions, model input and disclosure remain excluded.
