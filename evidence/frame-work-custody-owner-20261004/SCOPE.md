@@ -28,3 +28,22 @@ Full scope remains ACTIVE: CPU/raster/cold/firstpaint/warm A/B/A/boundedrunway,
 velocity/reversal/growingEnd/void, input/focus/draft/Undo/TC1T9T4, IRC/DM/busy,
 sidebar/tab/compaction, uninterrupted motion and configurable144Hz6.944ms target.
 Kepler owns native Compositor/Widget; Heisenberg owns this Toad frame family.
+
+## Published implementation checkpoint
+
+Production bc6decd00f867e90cf7b78690015ac8b4672c1d8: original FramePresentation
+now admits each owner/callback once. PresentedFrame joins its existing callback
+resource and after-refresh requests the same release method used by actual writer
+completion. That method checks original frame readiness, removes the resource
+once and sends work through the original message pump. Pending/suspended scene
+work remains queued; closing clears it. Deleted direct PresentedFrame publication
+and the separate present() callback-clear/invoke implementation. All11 original
+production defer consumers inherit this change without local queues or guards.
+One production file11 deleted/22 added; no native/capture/provider edit.
+
+AST after288 Toad modules/zero omissions; owner-before also249 native/zero
+omissions. Source WIP, not Ready: no changed installed App/film qualification yet.
+415/49 source/film remains frozen and can ship independently. Next batch prevents
+duplicate viewport admission scheduling and stale scene callback release through
+the real App's frame lifetime; the next changed saved-history journey measures
+actual consequences. No speed/dominance claim from this source correction.
