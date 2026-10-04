@@ -1,6 +1,8 @@
 """Native parameter editing for one backend-declared operation."""
 from __future__ import annotations
 
+from agent_comms.cli_commands import TargetAction
+
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalScroll
 from textual.screen import ModalScreen
@@ -17,20 +19,21 @@ class CommandDialog(ModalScreen[dict[str, str]]):
     """
     BINDINGS = [('escape', 'cancel', 'Cancel'), ('ctrl+enter', 'submit', 'Apply')]
 
-    def __init__(self, definition, target):
+    def __init__(self, definition: TargetAction, target: str):
         super().__init__()
         self.definition, self.target = definition, target
 
     def compose(self) -> ComposeResult:
         with Vertical(id='command-box'):
-            yield Static(f"{self.definition['label']} — {self.target}", markup=False)
-            if self.definition['confirmation']:
-                yield Static(self.definition['confirmation'], markup=False)
+            yield Static(f"{self.definition.label} — {self.target}", markup=False)
+            if self.definition.confirmation:
+                yield Static(self.definition.confirmation, markup=False)
             with VerticalScroll(id='command-fields'):
-                for key, parameter in self.definition['parameters']['properties'].items():
-                    yield Static(parameter['description'], markup=False)
-                    widget = TextArea if parameter['multiline'] else Input
-                    yield widget(parameter['editor_default'], name=key,
+                for parameter in self.definition.editable_fields:
+                    key = parameter.name
+                    yield Static(parameter.description, markup=False)
+                    widget = TextArea if parameter.multiline else Input
+                    yield widget(parameter.editor_default, name=key,
                                  id='command-field-' + key.replace('_', '-'))
             yield Button('Apply', id='command-apply', variant='primary')
             yield Button('Cancel', id='command-cancel')
