@@ -181,7 +181,7 @@ async def started_target_connections(base):
                               if item.declaration is StartCliCommand)
             from toad.thread_actions import ThreadAction
             ThreadAction.collect(context, definition)
-            await until(pilot, lambda: not app.thread_actions.pending)
+            await app.thread_actions.close()
 
         threading.setprofile_all_threads(observe)
         try:
@@ -216,7 +216,7 @@ async def started_target_connections(base):
             definition = next(item for item in await app.preparation.run_thread(context.available_actions)
                               if item.declaration is StartCliCommand)
             ThreadAction.collect(context, definition)
-            await until(pilot, lambda: not app.thread_actions.pending)
+            await app.thread_actions.close()
             assert calls == [peer, peer] and peer.session.connected
             assert actor.process.process is actor_process and actor_process.returncode is None
             assert actor_source.conversation.contents is actor_contents
