@@ -50,8 +50,8 @@ provider, new fixture or unchanged89ee rerun.
 ## Published per-view release and shared sidebar ancestry batch
 
 ConversationSessionBinding constructs the source resources, so its existing close
-path now acquires Window before any asynchronous source join. That same acquired
-viewport is closed there. OperationalSessionPresentation no longer re-queries the
+path now acquires Window and its original cached DocumentViewport before any asynchronous source join. That same acquired
+viewport is closed there, with no lazy construction after teardown has started. OperationalSessionPresentation no longer re-queries the
 Window after release. Explicit release and Conversation.on_unmount share the base
 source-resource cleanup; agent surface retirement and usage publication retain
 their distinct unmount lifetime. No missing-node guard, state flag or retry.
