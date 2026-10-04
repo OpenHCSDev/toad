@@ -1,3 +1,17 @@
+## Current accepted scope
+
+Recorded-reader F3 scope is qualified; current-preview declaration loading remains a separately owned integration defect. Reader14 completed148.609624s/exit0: sameoriginal sealedrequest, exact System/0 search/fullread/copy/export equality, distinct authenticated Coordination contributor, native-owner-correlated143609/272000 footer. Zero provider/input/fork/priming, original operands unchanged, ownedcleanup empty. Parent/author pixel review AFTER terminal only.
+
+Whole334 purpose released with candidateHELD Parentdisposition; original165 receipts/activation unchanged. No current borrow, futureloan, public installation or full-headless/performance claim. Normal main union preserves installed04b production exactly; metadata-only Core919/Textmerged58 source-equal join.
+
+Evidence: `evidence/recorded-context-reader-20261004/installed14/ASSESSMENT.md`, exact terminal/capture receipts, matched candidate sourceproof+CohortActivation, selectedtext, four exact pixels and wholehandback. Required hostedDebt applies to final union at merge; no extra App/provider run.
+
+Existing ContextInspection state family owns attachment/holding/retirement; ContextTreeIntent owns original selected-source succession, and original native Tree owns lazy cursor projection. Deferred callbacks retain mounted/current member/model fences; copied native-default selection gates are deleted. Full search/read/copy/export publishes only for the original selected observation. Typed ManifestNode uses original SegmentManifest/ContextSegment description behavior.
+
+Current preview error: `Unknown ContextSegment name: unavailable_awareness`. Complete Core family-loading correction is separate source work; no fallback/frontend import/unknown-kind compatibility.
+
+## Preserved earlier history (superseded readiness, unchanged negatives)
+
 ## Current scope
 
 Source checkpoint; **draft, not Ready**. Existing ContextInspection/ContextNode/ContextExplorer own recorded selection, search and reader resources. Original ContextManifest and authenticated context_recorded_segment own request identity and exact contributor text. No current-preview substitution, frontend prompt reconstruction, provenance store or alternative codec.

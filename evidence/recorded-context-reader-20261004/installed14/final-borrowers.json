@@ -1,0 +1,99 @@
+{
+  "scope": "privileged proc cwd/exe/argv/environment/FD/maps",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "references": [
+    {
+      "pid": 287415,
+      "field": "environ"
+    },
+    {
+      "pid": 288457,
+      "field": "environ"
+    },
+    {
+      "pid": 288822,
+      "field": "environ"
+    },
+    {
+      "pid": 289351,
+      "field": "environ"
+    },
+    {
+      "pid": 289460,
+      "field": "environ"
+    },
+    {
+      "pid": 290149,
+      "field": "environ"
+    },
+    {
+      "pid": 290286,
+      "field": "environ"
+    },
+    {
+      "pid": 290306,
+      "field": "environ"
+    },
+    {
+      "pid": 290454,
+      "field": "environ"
+    },
+    {
+      "pid": 290660,
+      "field": "environ"
+    },
+    {
+      "pid": 291126,
+      "field": "environ"
+    },
+    {
+      "pid": 291728,
+      "field": "environ"
+    },
+    {
+      "pid": 292131,
+      "field": "environ"
+    },
+    {
+      "pid": 292616,
+      "field": "environ"
+    },
+    {
+      "pid": 293076,
+      "field": "environ"
+    },
+    {
+      "pid": 293237,
+      "field": "environ"
+    },
+    {
+      "pid": 293239,
+      "field": "environ"
+    },
+    {
+      "pid": 293264,
+      "field": "environ"
+    },
+    {
+      "pid": 293276,
+      "field": "environ"
+    },
+    {
+      "pid": 374681,
+      "field": "environ"
+    },
+    {
+      "pid": 1253898,
+      "field": "environ"
+    },
+    {
+      "pid": 1261808,
+      "field": "environ"
+    },
+    {
+      "pid": 1354743,
+      "field": "environ"
+    }
+  ],
+  "permission_gaps": []
+}
