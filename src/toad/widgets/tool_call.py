@@ -16,7 +16,7 @@ from textual.widgets import Static
 from textual.widget import Widget
 
 from toad.app import ToadApp
-from toad.tool_output import ToolOutput
+from toad.tool_output import ToolOutput, ToolOutputPart
 from toad.widgets.tool_content import ToolCallDiff
 from acp import schema as protocol
 from agent_comms.mro_dispatch import MroDispatch, handles
@@ -32,8 +32,13 @@ from toad.layout import trim_trailing_margin
 from textual.layout import WidgetPlacement
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from toad.widgets.viewport_body import MeasuredViewportBody
+from textual.await_complete import AwaitComplete
 
 class ToolContent(MeasuredViewportBody, containers.VerticalGroup):
+    def __init__(self, *args, **kwargs):
+        self._mounted_parts: tuple[ToolOutputPart, ...] | None = None
+        super().__init__(*args, **kwargs)
+
     @property
     def output(self) -> ToolOutput:
         return self.query_ancestor(ToolCall).output
@@ -43,9 +48,26 @@ class ToolContent(MeasuredViewportBody, containers.VerticalGroup):
 
     def retire_body_resources(self) -> None:
         self.output.retire()
+        self._mounted_parts = None
+
+    def on_unmount(self) -> None:
+        self._mounted_parts = None
+
+    def sync(self) -> AwaitComplete:
+        if self._mounted_parts == self.output.displayed_parts and not self.body_dormant:
+            return AwaitComplete()
+        return self.publish_body(self.materialize_native_body)
 
     async def materialize_native_body(self) -> None:
-        await self.output._sync_widgets(self)
+        async with self.batch():
+            output = self.output
+            parts = output.displayed_parts
+            if self._mounted_parts != parts:
+                retained = len(parts) == len(self._mounted_parts or ()) == len(self.children) == 1
+                if not retained or not parts[0].update_widget(self._mounted_parts[0], self.children[0]):
+                    await self.remove_children()
+                    await self.mount_all(widget for part in parts for widget in part.compose(output.view))
+                self._mounted_parts = parts
 
     @height_dependency(INDEPENDENT_HEIGHT)
     def process_layout(self, placements: list[WidgetPlacement]) -> list[WidgetPlacement]:

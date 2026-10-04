@@ -30,7 +30,7 @@ from toad.widgets.worker_static import WorkerStatic
 
 if TYPE_CHECKING:
     from textual.worker import Worker
-    from toad.widgets.tool_call import ToolCall, ToolContent
+    from toad.widgets.tool_call import ToolCall
 
 
 class ToolOutputPart(DeclaredFamily, affix="ToolOutputPart"):
@@ -351,7 +351,6 @@ class ToolOutput:
         self._view = ref(view)
         self.parts: tuple[ToolOutputPart, ...] = ()
         self.suppress_auto_expansion = False
-        self._mounted: tuple[ToolOutputPart, ...] | None = None
         self.hydration: ToolHydration = IdleToolHydration()
         self._warming: tuple[ToolOutputPart, ...] = ()
         self._theme: tuple[bool, bool] | None = None
@@ -382,6 +381,10 @@ class ToolOutput:
         dimensions = [size for part in self.parts if (size := part.preview_dimensions) is not None]
         return bool(dimensions) and sum(size[0] for size in dimensions) <= 16000 and sum(size[1] for size in dimensions) <= 200
 
+    @property
+    def displayed_parts(self) -> tuple[ToolOutputPart, ...]:
+        return self.parts if self.view.expanded else ()
+
     async def sync(self) -> None:
         from toad.widgets.conversation import Window
         from toad.widgets.tool_call import ToolContent
@@ -407,28 +410,7 @@ class ToolOutput:
             pass
         if not view.expanded:
             self.cancel_preparation()
-            if not body.children:
-                self._mounted = None
-                return
-        elif self._mounted == self.parts and not body.body_dormant:
-            return
-        await body.publish_body(partial(self._sync_widgets, body))
-
-    async def _sync_widgets(self, body: ToolContent) -> None:
-        """The body's native writer owns replacement and reentry alike."""
-        async with body.lock:
-            view = self.view
-            parts = self.parts
-            if not view.expanded:
-                if body.children:
-                    await body.remove_children()
-                self._mounted = None
-            elif self._mounted != parts:
-                retained = len(parts) == len(self._mounted or ()) == len(body.children) == 1
-                if not retained or not parts[0].update_widget(self._mounted[0], body.children[0]):
-                    await body.remove_children()
-                    await body.mount_all(widget for part in parts for widget in part.compose(view))
-                self._mounted = parts
+        await body.sync()
 
     def prepare_hidden(self) -> None:
         view = self.view
@@ -493,4 +475,3 @@ class ToolOutput:
             self.view.query_ancestor(Window).pending_tool_content.discard(self.view)
         except NoMatches:
             pass
-        self._mounted = None

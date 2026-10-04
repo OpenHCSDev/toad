@@ -26,7 +26,7 @@ from textual.walk import walk_depth_first
 from textual._measurement import NATIVE_WIDGET_HEIGHT, height_dependency
 from textual.geometry import Size
 from textual._paint_state import PaintState
-from textual.worker import WorkerCancelled
+from textual.worker import WorkerCancelled, NoActiveWorker, get_current_worker
 from textual.worker import Worker
 from textual.await_complete import AwaitComplete
 
@@ -120,10 +120,57 @@ class BodyMeasurement(ABC):
         return MeasuredBody(self.width, self.rows, self.widgets)
 
     async def materialize(self, body):
-        await body.start_materialization(self).materialize(body)
+        await self.start_materialization(body).materialize(body)
+
+    def start_materialization(self, body, work=None):
+        publication = AwaitComplete(self.before_publication())
+        paint = AwaitComplete(self.prepare_publication(body))
+
+        async def materialize():
+            try:
+                # Identity guards prevent an old commit; joining its actual
+                # worker also prevents old native writes after the new commit.
+                await publication
+                [prepared] = await paint
+                if prepared is not self:
+                    # A pending predecessor's unchanged resource is already
+                    # in this chain, including capture/width/style updates
+                    # made while we joined it. Only a new capture replaces it.
+                    # Width is the body's content measurement. An offscreen
+                    # widget's last committed outer size is not a new demand.
+                    # Genuine measurement/resize hooks have already updated
+                    # this original resource while byte preparation awaited.
+                    if prepared.width != body._body_measurement.width:
+                        prepared = prepared.invalidated()
+                    body._update_body_measurement(body._body_measurement.publication_prepared(worker, prepared))
+                await (body.materialize_native_body() if work is None else work())
+                if body.is_attached:
+                    body._update_body_measurement(
+                        body._body_measurement.publication_finished(body, worker))
+            except BaseException:
+                body._update_body_measurement(
+                    body._body_measurement.publication_failed(body, worker))
+                raise
+
+        worker = body.run_worker(materialize(), group="body-materialization", exit_on_error=False)
+        current = MaterializingBody(previous=self, worker=worker)
+        body._update_body_measurement(current)
+        body.refresh(layout=True)
+        return current
 
     async def before_publication(self) -> None:
         """Settled resources have no outstanding native writer to join."""
+
+    def publishes_from(self, worker) -> bool:
+        return False
+
+    @asynccontextmanager
+    async def batch(self, body, native_batch):
+        async with native_batch():
+            yield
+
+    async def recompose(self, body, native_recompose):
+        await body.publish_body(native_recompose)
 
     async def prepare_publication(self, body):
         return self
@@ -327,6 +374,36 @@ class MaterializingBody(BodyMeasurement):
         # an old paint snapshot after the body's LRU has released it.
         return self.worker.wait()
 
+    def publishes_from(self, worker) -> bool:
+        return self.worker is worker or self.previous.publishes_from(worker)
+
+    @property
+    def publishing(self) -> bool:
+        try:
+            return self.publishes_from(get_current_worker())
+        except NoActiveWorker:
+            return False
+
+    @asynccontextmanager
+    async def batch(self, body, native_batch):
+        # The original window gate checks current coverage on every frame;
+        # width/style invalidation during this await cannot expose partial rows.
+        if self.rows > 0 and self.publishing and any(
+                owner._body_viewport is not None
+                for owner in body.walk_ancestors(with_self=True)
+                if isinstance(owner, MeasuredViewportBody)):
+            async with body.lock:
+                yield
+        else:
+            async with native_batch():
+                yield
+
+    async def recompose(self, body, native_recompose):
+        if self.publishing:
+            await native_recompose()
+        else:
+            await super().recompose(body, native_recompose)
+
     def publication_finished(self, body, worker):
         if self.worker is worker:
             if body._body_measurement is self:
@@ -513,44 +590,17 @@ class MeasuredViewportBody(ViewportBody):
 
     def publish_body(self, work: Callable[[], Awaitable[None]]) -> AwaitComplete:
         """Source updates and reentry share the original materialization worker."""
-        operation = self.start_materialization(self._body_measurement, work)
+        operation = self._body_measurement.start_materialization(self, work)
         return AwaitComplete(operation.materialize(self))
 
-    def start_materialization(self, previous, work=None):
-        publication = AwaitComplete(previous.before_publication())
-        paint = AwaitComplete(previous.prepare_publication(self))
+    def batch(self):
+        return self._body_measurement.batch(self, super().batch)
 
-        async def materialize():
-            try:
-                # Identity guards prevent an old commit; joining its actual
-                # worker also prevents old native writes after the new commit.
-                await publication
-                [prepared] = await paint
-                if prepared is not previous:
-                    # A pending predecessor's unchanged resource is already
-                    # in this chain, including capture/width/style updates
-                    # made while we joined it. Only a new capture replaces it.
-                    # Width is the body's content measurement. An offscreen
-                    # widget's last committed outer size is not a new demand.
-                    # Genuine measurement/resize hooks have already updated
-                    # this original resource while byte preparation awaited.
-                    if prepared.width != self._body_measurement.width:
-                        prepared = prepared.invalidated()
-                    self._update_body_measurement(self._body_measurement.publication_prepared(worker, prepared))
-                await (self.materialize_native_body() if work is None else work())
-                if self.is_attached:
-                    self._update_body_measurement(
-                        self._body_measurement.publication_finished(self, worker))
-            except BaseException:
-                self._update_body_measurement(
-                    self._body_measurement.publication_failed(self, worker))
-                raise
+    async def recompose(self):
+        # Native recompose is also a publication, including direct callers.
+        # An admitted writer already owns its resource and must not join itself.
+        await self._body_measurement.recompose(self, super().recompose)
 
-        worker = self.run_worker(materialize(), group="body-materialization", exit_on_error=False)
-        current = MaterializingBody(previous=previous, worker=worker)
-        self._update_body_measurement(current)
-        self.refresh(layout=True)
-        return current
 
     async def materialize_native_body(self):
         raise NotImplementedError
