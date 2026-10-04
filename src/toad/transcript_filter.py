@@ -112,7 +112,7 @@ class SeekingFilter(NoFilter):
         from toad.widgets.transcript_history import ProjectedTranscriptHistory, _PublicationRetired
 
         owner = filtering.owner
-        source = owner.projected_source(snapshot.selected)
+        source = owner.projected_source(owner.selected_categories)
         try:
             prepared = await source.boundary()
             if not snapshot.current(owner):
