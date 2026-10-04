@@ -8,6 +8,9 @@ from pathlib import Path
 from typing import ClassVar
 
 from agent_comms.comms import Comms
+from agent_comms.mro_dispatch import handles
+from toad.core.source_events import MessageHandlingRequested
+from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from agent_comms import HistoricalMessage, HistoricalThread
 from agent_comms.presentation import MessageNotification
 from textual import on
@@ -23,7 +26,7 @@ from toad.widgets.transcript_history import TranscriptHistory
 from toad.widgets.wire_message_handling import WireMessageHandling
 
 
-class HistoricalSessions(ProjectPathOwner, WorkspaceScreen, ModalScreen):
+class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, ModalScreen):
     BINDINGS: ClassVar = [("escape", "close", "Back to chats")]
     DEFAULT_CSS = """
     HistoricalSessions { align: center middle; background: $background 60%; }
@@ -135,8 +138,8 @@ class HistoricalSessions(ProjectPathOwner, WorkspaceScreen, ModalScreen):
     def action_focus_prompt(self) -> None:
         self.query_one(HistoryWindow).jump_to_latest()
 
-    @on(WireMessageHandling.Requested)
-    def request_message_handling(self, message: WireMessageHandling.Requested) -> None:
+    @handles(MessageHandlingRequested)
+    def request_message_handling(self, message: CoreEventMessage) -> None:
         message.stop()
         index = self.query_one("#saved-identity", Select).value
         self.run_worker(partial(self.publish_handling, self.threads[index],
