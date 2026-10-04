@@ -105,8 +105,8 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
         return super().source_publication_available and self.current
 
     @property
-    def checkpoint_available(self):
-        return (self.state.accepts_source_work and self.reader is not None
+    def source_checkpoint_available(self):
+        return (self.reader is not None
                 and not self.reader.source.loading)
 
     def paging_window(self):
