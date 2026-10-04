@@ -1,0 +1,1361 @@
+{
+  "head": "4aef0806",
+  "roots": [
+    {
+      "root": "src/toad",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "parsed": 393,
+      "omissions": []
+    },
+    {
+      "root": "tools",
+      "parsed": 41,
+      "omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 110,
+      "kind": "AsyncFunctionDef",
+      "source": "async def restore(self, binding):"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 94,
+      "kind": "Attribute",
+      "source": "self.agent.permissions.present"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 96,
+      "kind": "Attribute",
+      "source": "self.restore"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 52,
+      "kind": "AsyncFunctionDef",
+      "source": "async def present(self, surface):"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 128,
+      "kind": "FunctionDef",
+      "source": "def present(self):"
+    },
+    {
+      "path": "src/toad/agent_presentation.py",
+      "line": 51,
+      "kind": "AsyncFunctionDef",
+      "source": "async def restore_saved_history(self, view) -> None:"
+    },
+    {
+      "path": "src/toad/agent_presentation.py",
+      "line": 67,
+      "kind": "AsyncFunctionDef",
+      "source": "async def restore_saved_history(self, view):"
+    },
+    {
+      "path": "src/toad/agent_presentation.py",
+      "line": 107,
+      "kind": "AsyncFunctionDef",
+      "source": "async def restore_saved_history(self, view):"
+    },
+    {
+      "path": "src/toad/agent_presentation.py",
+      "line": 111,
+      "kind": "Attribute",
+      "source": "view.transcript.restore_native"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 79,
+      "kind": "FunctionDef",
+      "source": "def restore(self, frame):"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 109,
+      "kind": "FunctionDef",
+      "source": "def restore(self, frame):"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 177,
+      "kind": "FunctionDef",
+      "source": "def present(self) -> None:"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 100,
+      "kind": "Attribute",
+      "source": "self.previous.restore"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 110,
+      "kind": "Attribute",
+      "source": "frame.present"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 175,
+      "kind": "Attribute",
+      "source": "self.present"
+    },
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 154,
+      "kind": "FunctionDef",
+      "source": "def present(self, modal) -> None:"
+    },
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 54,
+      "kind": "Attribute",
+      "source": "session.present"
+    },
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 113,
+      "kind": "Attribute",
+      "source": "session.present"
+    },
+    {
+      "path": "src/toad/input_history.py",
+      "line": 52,
+      "kind": "FunctionDef",
+      "source": "def present(self, prompt, entry: HistoryEntry) -> None:"
+    },
+    {
+      "path": "src/toad/input_history.py",
+      "line": 76,
+      "kind": "FunctionDef",
+      "source": "def present(self, prompt, entry):"
+    },
+    {
+      "path": "src/toad/input_history.py",
+      "line": 77,
+      "kind": "Attribute",
+      "source": "super().present"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 59,
+      "kind": "FunctionDef",
+      "source": "def restore(cls, value: object) -> object: ..."
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 68,
+      "kind": "FunctionDef",
+      "source": "def restore(cls, value):"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 82,
+      "kind": "FunctionDef",
+      "source": "def restore(cls, value):"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 51,
+      "kind": "Attribute",
+      "source": "cls.restore"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 65,
+      "kind": "Attribute",
+      "source": "cls.restore"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 200,
+      "kind": "AsyncFunctionDef",
+      "source": "async def _load_content(self) -> None:"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 224,
+      "kind": "AsyncFunctionDef",
+      "source": "async def wait_content_ready(self) -> None:"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 79,
+      "kind": "Attribute",
+      "source": "self._content_ready"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 80,
+      "kind": "Attribute",
+      "source": "self._content_error"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 81,
+      "kind": "Attribute",
+      "source": "self._content_loaded"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 82,
+      "kind": "Attribute",
+      "source": "self._content_loading"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 203,
+      "kind": "Attribute",
+      "source": "self._content_loading"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 204,
+      "kind": "Attribute",
+      "source": "self._content_loaded"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 173,
+      "kind": "Attribute",
+      "source": "self._content_loaded"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 201,
+      "kind": "Attribute",
+      "source": "self._content_loading"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 226,
+      "kind": "Attribute",
+      "source": "self._content_error"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 227,
+      "kind": "Attribute",
+      "source": "self._content_error"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 180,
+      "kind": "Attribute",
+      "source": "self._content_loaded"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 182,
+      "kind": "Attribute",
+      "source": "self._load_content"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 219,
+      "kind": "Attribute",
+      "source": "self._content_error"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 222,
+      "kind": "Attribute",
+      "source": "self._content_ready"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 225,
+      "kind": "Attribute",
+      "source": "self._content_ready"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 137,
+      "kind": "Attribute",
+      "source": "self._content_loaded"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 183,
+      "kind": "AsyncFunctionDef",
+      "source": "async def prepare_presentation(self) -> None:"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 249,
+      "kind": "FunctionDef",
+      "source": "def _start_content_hydration(self) -> None:"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 255,
+      "kind": "AsyncFunctionDef",
+      "source": "async def _load_content(self) -> None:"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 279,
+      "kind": "AsyncFunctionDef",
+      "source": "async def wait_content_ready(self) -> None:"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 175,
+      "kind": "Attribute",
+      "source": "self._content_loaded"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 176,
+      "kind": "Attribute",
+      "source": "self._content_loading"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 177,
+      "kind": "Attribute",
+      "source": "self._content_ready"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 178,
+      "kind": "Attribute",
+      "source": "self._content_error"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 502,
+      "kind": "Attribute",
+      "source": "self._content_loaded"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 188,
+      "kind": "Attribute",
+      "source": "self._start_content_hydration"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 252,
+      "kind": "Attribute",
+      "source": "self._content_loading"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 268,
+      "kind": "Attribute",
+      "source": "self._content_loaded"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 282,
+      "kind": "Attribute",
+      "source": "self._content_error"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 187,
+      "kind": "Attribute",
+      "source": "super().prepare_presentation"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 250,
+      "kind": "Attribute",
+      "source": "self._content_loaded"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 250,
+      "kind": "Attribute",
+      "source": "self._content_loading"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 274,
+      "kind": "Attribute",
+      "source": "self._content_error"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 281,
+      "kind": "Attribute",
+      "source": "self._content_error"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 285,
+      "kind": "Attribute",
+      "source": "self._content_ready"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 505,
+      "kind": "Attribute",
+      "source": "self._start_content_hydration"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 546,
+      "kind": "Attribute",
+      "source": "self._content_loaded"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 190,
+      "kind": "Attribute",
+      "source": "sidebar.prepare_presentation"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 238,
+      "kind": "Attribute",
+      "source": "self._content_loaded"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 253,
+      "kind": "Attribute",
+      "source": "self._load_content"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 277,
+      "kind": "Attribute",
+      "source": "self._content_ready"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 280,
+      "kind": "Attribute",
+      "source": "self._content_ready"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 503,
+      "kind": "Attribute",
+      "source": "self._content_ready"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 258,
+      "kind": "Attribute",
+      "source": "sidebar.wait_content_ready"
+    },
+    {
+      "path": "src/toad/screens/session_view.py",
+      "line": 63,
+      "kind": "AsyncFunctionDef",
+      "source": "async def prepare_presentation(self) -> None:"
+    },
+    {
+      "path": "src/toad/session_admission.py",
+      "line": 144,
+      "kind": "Attribute",
+      "source": "sessions.app.workspace_sessions.require(self.mode).wait_content_ready"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 49,
+      "kind": "FunctionDef",
+      "source": "def restore(self, conversation: Conversation) -> None:"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 85,
+      "kind": "AsyncFunctionDef",
+      "source": "async def attach_binding(self, conversation: Conversation) -> None: ..."
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 102,
+      "kind": "AsyncFunctionDef",
+      "source": "async def present(self, conversation: Conversation) -> None:"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 157,
+      "kind": "AsyncFunctionDef",
+      "source": "async def attach_binding(self, conversation: Conversation) -> None:"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 55,
+      "kind": "Attribute",
+      "source": "self.reader_position.restore"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 159,
+      "kind": "Attribute",
+      "source": "self.sources.present"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 232,
+      "kind": "Attribute",
+      "source": "owner.attach_binding"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 234,
+      "kind": "Attribute",
+      "source": "owner.state.restore"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 236,
+      "kind": "Attribute",
+      "source": "conversation.prepare_retained_session"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 114,
+      "kind": "Name",
+      "source": "present"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 211,
+      "kind": "Name",
+      "source": "present"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 213,
+      "kind": "Name",
+      "source": "present"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 173,
+      "kind": "Name",
+      "source": "present"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 212,
+      "kind": "Name",
+      "source": "present"
+    },
+    {
+      "path": "src/toad/thread_navigation.py",
+      "line": 103,
+      "kind": "Attribute",
+      "source": "view.wait_content_ready"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 545,
+      "kind": "AsyncFunctionDef",
+      "source": "async def restore_native(self, agent) -> None:"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 565,
+      "kind": "AsyncFunctionDef",
+      "source": "async def reveal_retained(self, history: TranscriptHistory) -> None:"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 554,
+      "kind": "Attribute",
+      "source": "self.reveal_retained"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 619,
+      "kind": "Attribute",
+      "source": "position.restore"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 132,
+      "kind": "Attribute",
+      "source": "request.restore"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 146,
+      "kind": "Attribute",
+      "source": "request.restore"
+    },
+    {
+      "path": "src/toad/transcript_state.py",
+      "line": 136,
+      "kind": "FunctionDef",
+      "source": "def restore(self, window) -> None:"
+    },
+    {
+      "path": "src/toad/transcript_state.py",
+      "line": 140,
+      "kind": "Attribute",
+      "source": "TailReaderPosition().restore"
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 437,
+      "kind": "Attribute",
+      "source": "delivery_failure(error).present"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 178,
+      "kind": "FunctionDef",
+      "source": "def present(self, view: ChannelView) -> None:"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 541,
+      "kind": "AsyncFunctionDef",
+      "source": "async def prepare_retained_session(self) -> None:"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1606,
+      "kind": "Attribute",
+      "source": "history.present"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 715,
+      "kind": "Attribute",
+      "source": "position.restore"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1610,
+      "kind": "Attribute",
+      "source": "request.present"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 547,
+      "kind": "Attribute",
+      "source": "agent.presentation.restore_saved_history"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 30,
+      "kind": "FunctionDef",
+      "source": "def restore(self, window: \"HistoryWindow\") -> None:"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 142,
+      "kind": "Attribute",
+      "source": "position.restore"
+    },
+    {
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 116,
+      "kind": "Attribute",
+      "source": "self._intent.restore"
+    },
+    {
+      "path": "src/toad/widgets/project_tree_intent.py",
+      "line": 33,
+      "kind": "AsyncFunctionDef",
+      "source": "async def restore(self, tree: \"ProjectDirectoryTree\") -> None:"
+    },
+    {
+      "path": "src/toad/widgets/retiring_sidebar.py",
+      "line": 25,
+      "kind": "AsyncFunctionDef",
+      "source": "async def prepare_presentation(self) -> None:"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 730,
+      "kind": "AsyncFunctionDef",
+      "source": "async def wait_content_ready(self) -> None:"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 97,
+      "kind": "FunctionDef",
+      "source": "def present(self, source):"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 127,
+      "kind": "Attribute",
+      "source": "group.present"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 125,
+      "kind": "FunctionDef",
+      "source": "def present(self, model: RelationshipGroup):"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 117,
+      "kind": "AsyncFunctionDef",
+      "source": "async def restore(self, body) -> None: ..."
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 193,
+      "kind": "AsyncFunctionDef",
+      "source": "async def restore(self, body):"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 228,
+      "kind": "AsyncFunctionDef",
+      "source": "async def restore(self, body):"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 319,
+      "kind": "AsyncFunctionDef",
+      "source": "async def restore(self, body):"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 403,
+      "kind": "AsyncFunctionDef",
+      "source": "async def restore(self, body):"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 644,
+      "kind": "Attribute",
+      "source": "previous.restore"
+    },
+    {
+      "path": "src/toad/workspace_sessions.py",
+      "line": 145,
+      "kind": "Attribute",
+      "source": "destination.prepare_presentation"
+    },
+    {
+      "path": "tests/activity_spinners_pilot.py",
+      "line": 108,
+      "kind": "Attribute",
+      "source": "right.wait_content_ready"
+    },
+    {
+      "path": "tests/agent_startup_failure_installed_pilot.py",
+      "line": 38,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/async_tab_activation_pilot.py",
+      "line": 65,
+      "kind": "Name",
+      "source": "present"
+    },
+    {
+      "path": "tests/async_tab_activation_pilot.py",
+      "line": 97,
+      "kind": "Attribute",
+      "source": "ChannelGroup.present"
+    },
+    {
+      "path": "tests/async_tab_activation_pilot.py",
+      "line": 70,
+      "kind": "Name",
+      "source": "present"
+    },
+    {
+      "path": "tests/blank_presentation_pilot.py",
+      "line": 374,
+      "kind": "Attribute",
+      "source": "sidebar.wait_content_ready"
+    },
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 352,
+      "kind": "Attribute",
+      "source": "irc_app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 478,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 225,
+      "kind": "Attribute",
+      "source": "irc_app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 445,
+      "kind": "Attribute",
+      "source": "receiver_app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 304,
+      "kind": "Attribute",
+      "source": "receiver_app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/channel_disclosure_publication_pilot.py",
+      "line": 40,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/channel_disclosure_publication_pilot.py",
+      "line": 241,
+      "kind": "Attribute",
+      "source": "right.wait_content_ready"
+    },
+    {
+      "path": "tests/channel_roster_retention_pilot.py",
+      "line": 98,
+      "kind": "Name",
+      "source": "present"
+    },
+    {
+      "path": "tests/channel_roster_retention_pilot.py",
+      "line": 98,
+      "kind": "Name",
+      "source": "present"
+    },
+    {
+      "path": "tests/checkpoint_source_pivot_pilot.py",
+      "line": 43,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 266,
+      "kind": "Attribute",
+      "source": "thread_sidebar.wait_content_ready"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 417,
+      "kind": "Attribute",
+      "source": "local_sidebar.wait_content_ready"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 116,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 385,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/context_usage_pilot.py",
+      "line": 27,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/core_events_native_installed_pilot.py",
+      "line": 71,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/cursor_extent_pilot.py",
+      "line": 37,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/declared_target_actions_installed_pilot.py",
+      "line": 89,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/editor_key_burst_pilot.py",
+      "line": 29,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/external_cli_native_installed_pilot.py",
+      "line": 156,
+      "kind": "Attribute",
+      "source": "channel_screen.wait_content_ready"
+    },
+    {
+      "path": "tests/external_cli_native_installed_pilot.py",
+      "line": 184,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/external_cli_native_installed_pilot.py",
+      "line": 195,
+      "kind": "Attribute",
+      "source": "dm_screen.wait_content_ready"
+    },
+    {
+      "path": "tests/first_fork_native_installed_pilot.py",
+      "line": 36,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/first_fork_native_installed_pilot.py",
+      "line": 250,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/guards/test_goal_interaction.py",
+      "line": 39,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 37,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/history_anchor_geometry_pilot.py",
+      "line": 44,
+      "kind": "Attribute",
+      "source": "OffsetReaderPosition(50, ()).restore"
+    },
+    {
+      "path": "tests/history_anchor_geometry_pilot.py",
+      "line": 51,
+      "kind": "Attribute",
+      "source": "TailReaderPosition().restore"
+    },
+    {
+      "path": "tests/history_anchor_geometry_pilot.py",
+      "line": 70,
+      "kind": "Attribute",
+      "source": "anchor.restore"
+    },
+    {
+      "path": "tests/history_frame_publication_pilot.py",
+      "line": 129,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/history_frame_publication_pilot.py",
+      "line": 145,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/history_page_batch_mount_pilot.py",
+      "line": 47,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/history_reflow_travel_pilot.py",
+      "line": 28,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/history_stationary_feedback_pilot.py",
+      "line": 49,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 58,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/input_history_native_installed_pilot.py",
+      "line": 31,
+      "kind": "Attribute",
+      "source": "state.restore"
+    },
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "line": 63,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "line": 484,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "line": 64,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "line": 64,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/message_categories_pilot.py",
+      "line": 68,
+      "kind": "Attribute",
+      "source": "sidebar.wait_content_ready"
+    },
+    {
+      "path": "tests/native_goal_read_first_paint_pilot.py",
+      "line": 19,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 190,
+      "kind": "Attribute",
+      "source": "sources[0].wait_content_ready"
+    },
+    {
+      "path": "tests/native_permission_ui.py",
+      "line": 136,
+      "kind": "Attribute",
+      "source": "app.screen.wait_content_ready"
+    },
+    {
+      "path": "tests/native_terminal_retention_pilot.py",
+      "line": 264,
+      "kind": "Name",
+      "source": "present"
+    },
+    {
+      "path": "tests/native_terminal_retention_pilot.py",
+      "line": 274,
+      "kind": "Name",
+      "source": "present"
+    },
+    {
+      "path": "tests/native_terminal_retention_pilot.py",
+      "line": 310,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/pending_thread_open_pilot.py",
+      "line": 93,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/pending_thread_open_pilot.py",
+      "line": 77,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/permission_pending_mount_pilot.py",
+      "line": 97,
+      "kind": "Attribute",
+      "source": "agent.permissions.present"
+    },
+    {
+      "path": "tests/permission_pending_mount_pilot.py",
+      "line": 24,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 103,
+      "kind": "Attribute",
+      "source": "sidebar.prepare_presentation"
+    },
+    {
+      "path": "tests/prepared_height_contract_pilot.py",
+      "line": 32,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 308,
+      "kind": "Attribute",
+      "source": "channel.wait_content_ready"
+    },
+    {
+      "path": "tests/recovery_view_boundaries_pilot.py",
+      "line": 106,
+      "kind": "Attribute",
+      "source": "right.wait_content_ready"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 56,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/restored_inbound_continuous_installed_pilot.py",
+      "line": 163,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 40,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/retained_history_projection_pilot.py",
+      "line": 43,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/retained_history_projection_pilot.py",
+      "line": 56,
+      "kind": "Attribute",
+      "source": "view.transcript.reveal_retained"
+    },
+    {
+      "path": "tests/retained_history_projection_pilot.py",
+      "line": 83,
+      "kind": "Attribute",
+      "source": "view.transcript.reveal_retained"
+    },
+    {
+      "path": "tests/retained_input_origin_observer.py",
+      "line": 184,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/retained_page_end_pilot.py",
+      "line": 20,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/retained_page_scope_pilot.py",
+      "line": 60,
+      "kind": "Attribute",
+      "source": "first.wait_content_ready"
+    },
+    {
+      "path": "tests/right_comms_integration_pilot.py",
+      "line": 31,
+      "kind": "Attribute",
+      "source": "sidebar.wait_content_ready"
+    },
+    {
+      "path": "tests/right_comms_integration_pilot.py",
+      "line": 171,
+      "kind": "Attribute",
+      "source": "app.screen.wait_content_ready"
+    },
+    {
+      "path": "tests/runtime_fixture.py",
+      "line": 113,
+      "kind": "Attribute",
+      "source": "sidebar.wait_content_ready"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 271,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/sidebar_edge_anchor_installed_pilot.py",
+      "line": 67,
+      "kind": "Attribute",
+      "source": "right.wait_content_ready"
+    },
+    {
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 34,
+      "kind": "Attribute",
+      "source": "MainScreen.prepare_presentation"
+    },
+    {
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 110,
+      "kind": "Attribute",
+      "source": "bar.wait_content_ready"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 107,
+      "kind": "Attribute",
+      "source": "sidebar.prepare_presentation"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 42,
+      "kind": "Attribute",
+      "source": "sidebar.wait_content_ready"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 109,
+      "kind": "Attribute",
+      "source": "sidebar.wait_content_ready"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 159,
+      "kind": "Attribute",
+      "source": "sidebar.wait_content_ready"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 167,
+      "kind": "Attribute",
+      "source": "sidebar.prepare_presentation"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 168,
+      "kind": "Attribute",
+      "source": "sidebar.wait_content_ready"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 189,
+      "kind": "Attribute",
+      "source": "sidebar.wait_content_ready"
+    },
+    {
+      "path": "tests/snapshot_cancellation_custody_pilot.py",
+      "line": 212,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/source_admission_trace_pilot.py",
+      "line": 19,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/transcript_filter_installed_journey.py",
+      "line": 59,
+      "kind": "Attribute",
+      "source": "sidebar.wait_content_ready"
+    },
+    {
+      "path": "tests/transcript_source_lifetime_pilot.py",
+      "line": 42,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 39,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 322,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/viewport_bounded_runway_churn_pilot.py",
+      "line": 28,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/viewport_demand_custody_pilot.py",
+      "line": 33,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 33,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/viewport_layout_reentry_pilot.py",
+      "line": 20,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/viewport_layout_reentry_pilot.py",
+      "line": 73,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/viewport_layout_reentry_pilot.py",
+      "line": 76,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/viewport_runway_pilot.py",
+      "line": 26,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/viewport_warm_trim_pilot.py",
+      "line": 35,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/welcome_source_return_pilot.py",
+      "line": 20,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/welcome_source_return_pilot.py",
+      "line": 43,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/worker_native_size_pilot.py",
+      "line": 53,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/workspace_native_paint_retention_pilot.py",
+      "line": 26,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    },
+    {
+      "path": "tests/workspace_native_paint_retention_pilot.py",
+      "line": 46,
+      "kind": "Attribute",
+      "source": "app.selected_session.wait_content_ready"
+    }
+  ],
+  "limits": "Static named source; no dynamic alias/override proof."
+}
