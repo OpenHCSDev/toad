@@ -1,0 +1,94 @@
+{
+  "state": "Published 416; scoped ordinary default startup and right-sidebar opening accepted",
+  "merged_commit_reported_by_parent": "516c2c9a",
+  "ready_head": "e1a4e48a5f539cde1ecda55670513a21838d7b9f",
+  "current_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "core": "d41601c16d74e9e3e4195b6527fb218b8fe14af9",
+  "native_manifest": "2ea0a4d4ff2e362864c156e4b11642775b3f2a96e7f01522b346b6f6d9526936",
+  "raw_publication_phase_preserved": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "readback_original": {
+    "state": "Published target identity/link/route readback complete; ordinary default physical verification remains parent-owned",
+    "observed_at": 1791079530.6107583,
+    "raw_publication_phase": "retained-batch-launched-configurations-verified-public-ui-pending",
+    "raw_publication_sha256": "596840f212e269709801ebe52e7cbb6adba0e7dc02f937ff01bd8ea7b7fc09b9",
+    "publisher_duration_seconds": 40.68523406982422,
+    "publisher_processes_remaining": [],
+    "target_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+    "owner_count": 19,
+    "all_same_thread_births": true,
+    "all_new_process_identities_alive": true,
+    "all_settings_equal_except_process": true,
+    "same_original_root_and_root_id": true,
+    "source_target_schema_equal": true,
+    "source_target_product_equal": false,
+    "public_writes": 0,
+    "stops": 0,
+    "starts": 0,
+    "provider_calls": 0,
+    "native_inputs": 0,
+    "publication_repeated": false,
+    "physical_verification": "Pending parent/Heisenberg terminal-authorized run; no claim from this readback"
+  },
+  "ordinary_default_scope": "Ordinary installed saved-history/right-sidebar opening/hydration, not category-change, full-menu semantics, recorded root/exact-child search/fullreading, smoother motion or latency comparison",
+  "initial_session_details_needs_attention_preserved": true,
+  "category_toggle_not_executed": true,
+  "full_recorded417_excluded": true,
+  "terminal_exit": {
+    "pid": 137153,
+    "start_ticks": 55518845,
+    "returncode": 0
+  },
+  "capture_encoder_returncode": 255,
+  "runtime_unchanged": true,
+  "new_inputs": 0,
+  "provider_calls": 0,
+  "archive_actions": "Copied concise original receipts and logs byte-for-byte; no publication/readback/UI repeated; no package or operands changed",
+  "reviewed_images_original_keeper": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published416-20261004",
+  "files": {
+    "publication-original.json": {
+      "sha256": "596840f212e269709801ebe52e7cbb6adba0e7dc02f937ff01bd8ea7b7fc09b9",
+      "bytes": 39840,
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published416-20261004/publication-original.json"
+    },
+    "publication-terminal.json": {
+      "sha256": "da266fec2358b048a6798e7de22f16748f50d7e6a953ed8ad6b103db66e8773d",
+      "bytes": 280,
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published416-20261004/publication-terminal.json"
+    },
+    "publication-stdout.log": {
+      "sha256": "4362dad3162e99d9ef84d963e62cf249792dbdfaf56c2351f3fa4a25231a9cea",
+      "bytes": 70,
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published416-20261004/publication-stdout.log"
+    },
+    "publication-stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published416-20261004/publication-stderr.log"
+    },
+    "readback-original.json": {
+      "sha256": "6820ba7e3758bd3fbe656166894b93a834d60ca5561d882a9155a450b63a4269",
+      "bytes": 1083,
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published416-20261004/readback-original.json"
+    },
+    "readback-stdout.log": {
+      "sha256": "6820ba7e3758bd3fbe656166894b93a834d60ca5561d882a9155a450b63a4269",
+      "bytes": 1083,
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published416-20261004/readback-stdout.log"
+    },
+    "readback-stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published416-20261004/readback-stderr.log"
+    },
+    "default-receipt-original.json": {
+      "sha256": "82d02c82c630728e1676e7be35544772f7639bb2f03afcb436527ce31046bf45",
+      "bytes": 30383,
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published416-20261004/default-receipt-original.json"
+    },
+    "default-acceptance.json": {
+      "sha256": "1ca239e7a1c18ce686363c2d68194110b2a72f610b441cff58f1740632af7b8d",
+      "bytes": 2068,
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published416-20261004/default-acceptance.json"
+    }
+  }
+}

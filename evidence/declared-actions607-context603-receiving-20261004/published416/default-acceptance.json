@@ -1,0 +1,35 @@
+{
+  "result": "accepted-ordinary-default-startup-and-right-sidebar-expansion",
+  "command": [
+    "/home/ts/bin/toad-comms",
+    "openhcs-helper"
+  ],
+  "publisher_duration_seconds": 40.68523406982422,
+  "owner_count": 19,
+  "all_thread_births_settings_preserved": true,
+  "duration_seconds": 86.62367508304305,
+  "capture_completed": true,
+  "completed": true,
+  "runtime_unchanged": true,
+  "terminal_exit": {
+    "pid": 137153,
+    "start_ticks": 55518845,
+    "returncode": 0
+  },
+  "cleanup_remaining": [],
+  "cleanup_errors": [],
+  "personal_image_review": "before.png while original UI alive: saved helper history/roster Ready/editor. right-sidebar.png and after.png personally viewed: native Thread/Comms/filter controls open beside retained history, no full-body blank. No complete bracketed DURING claim. Session details Needs attention was present initially and remains separate cursor projection; not full status acceptance.",
+  "physical_actions": [
+    "clicked original visible right-sidebar toggle once"
+  ],
+  "unqualified_actions": "Category checkbox capture attempt was after bounded UI exit: xdotool could not open isolated display and capture_live refused absent PID; no filtering action executed. Earlier screenshot used wrong window ID and refused before correct original window screenshot. No UI/provider repeat.",
+  "providers": 0,
+  "submitted_inputs": 0,
+  "scope": "Ordinary installed saved-history/right-sidebar opening/hydration, not category-change, full-menu semantics, recorded root/exact-child search/fullreading, smoother motion or latency comparison",
+  "raw_recording_disposition": "Dispose completed observation media/profiles/duplicate exports; concise original receipt and reviewed small images retained",
+  "raw_receipt_sha256": "82d02c82c630728e1676e7be35544772f7639bb2f03afcb436527ce31046bf45",
+  "reviewed_image_sha256": {
+    "right-sidebar-reviewed.png": "51cb6eb62d1d52439d278b57d135c6d0bc11af42d343809980e285734c2754fd",
+    "after-reviewed.png": "738e9323bda1bbd7a974f5d9308991446b1849d16935f44e0306c5eceb3af1a7"
+  }
+}
