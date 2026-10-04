@@ -33,9 +33,9 @@ class WindowRestoration(ABC):
         with self.geometry(window):
             self._restore(window)
 
-    @staticmethod
+    @classmethod
     @contextmanager
-    def geometry(window: "HistoryWindow"):
+    def geometry(cls, window: "HistoryWindow"):
         """Own native reflow and its compensation as one reader restoration."""
         restoring = window._restoring
         previous = window.scroll_y
@@ -44,15 +44,21 @@ class WindowRestoration(ABC):
         try:
             yield
         finally:
-            if not restoring:
-                compensation = window.scroll_y - previous
-                if compensation:
-                    window.app.animator.transform_running_animation(
-                        window, "scroll_y", lambda value: value + compensation,
-                    )
-                    window.scroll_target_y = destination + compensation
-                window.document_viewport.lookahead.relocated(compensation)
-            window._restoring = restoring
+            try:
+                if not restoring:
+                    compensation = window.scroll_y - previous
+                    cls._translate_motion(window, destination, compensation)
+                    window.document_viewport.lookahead.relocated(compensation)
+            finally:
+                window._restoring = restoring
+
+    @staticmethod
+    def _translate_motion(window: "HistoryWindow", destination: float, compensation: float) -> None:
+        if compensation:
+            window.app.animator.transform_running_animation(
+                window, "scroll_y", lambda value: value + compensation,
+            )
+            window.scroll_target_y = destination + compensation
 
     @abstractmethod
     def _restore(self, window: "HistoryWindow") -> None: ...
@@ -60,6 +66,10 @@ class WindowRestoration(ABC):
 
 class ReaderPosition(WindowRestoration):
     """Source-owned reader intent, independent of retired widget geometry."""
+
+    @staticmethod
+    def _translate_motion(window: "HistoryWindow", destination: float, compensation: float) -> None:
+        """Explicit native navigation owns its new destination, not the old curve."""
 
     @classmethod
     def capture(cls, window: "HistoryWindow") -> "ReaderPosition":

@@ -468,7 +468,7 @@ class ConversationSessionBinding(containers.Vertical):
         self.set_reactive(ConversationSessionBinding.working_directory, str(project_path))
         self.output = LiveOutput(self)
         self._loading: Loading | None = None
-        self._filter_scroll_positions = {}
+        self._filter_reader_positions = {}
         self._mcp_live_note: Note | None = None
         self._private_cursor_sequence = 0
         self.submissions = ConversationSubmissions(self)
@@ -691,12 +691,12 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         self, previous: frozenset[type[MessageCategory]], selected: frozenset[type[MessageCategory]],
     ) -> None:
         from toad.widgets.message_filter import apply_block_filter
+        from toad.widgets.history_anchor import ReaderPosition
 
         window = self.window
-        self._filter_scroll_positions[previous] = (window.scroll_y, window.follows_tail)
-        position = self._filter_scroll_positions.get(
-            selected, (window.scroll_y, window.follows_tail)
-        )
+        current = ReaderPosition.capture(window)
+        self._filter_reader_positions[previous] = current
+        position = self._filter_reader_positions.get(selected, current)
         self.navigation.index = -1
         self.screen.clear_selection()
         for block in self.contents.children:
@@ -712,12 +712,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
                 or window.scroll_revision != revision
             ):
                 return
-            scroll_y, following = position
-            if following:
-                window.anchor()
-            else:
-                window.release_anchor()
-                window.scroll_to(y=scroll_y, animate=False, immediate=True)
+            position.restore(window)
 
         self.call_after_refresh(restore_position)
 
