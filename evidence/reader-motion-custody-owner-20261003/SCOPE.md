@@ -31,3 +31,32 @@ AST/source semantics choose the change, then one batched proportionate sanity
 and changed installed motion/profile journey with personal consecutive-frame
 inspection. No test-first investigation, new timers/caches/queues/mirrors,
 unchanged films, provider inputs or original-session mutations.
+
+## Working source checkpoint
+
+Existing WindowRestoration owns restoration custody and velocity relocation once.
+Its geometry hook translates the original running curve and destination. Existing
+ReaderPosition overrides that hook because native explicit offset/tail navigation
+already cancels the former curve and owns the new destination. Previously the
+shared geometry exit could replace that destination with former-target+delta.
+No new class, flags, cache, scheduler or animation clock.
+
+Conversation category readers now capture and restore existing ReaderPosition;
+the copied (scroll_y, follows_tail) representation and tail/offset dispatch are
+deleted. Original selection/generation/scroll-revision checks remain. Session,
+transcript painted callback, latest-request and filter consumers share the owner.
+RecordAnchor and native clamp/layout geometry still translate active animation.
+This does not establish the remaining lazy-frame withholding cause or a speed gain.
+
+Before AST uses the existing refactor-audit Package parser across all 288 Toad
+and 249 native modules: zero parse omissions, 85 targeted declarations/calls/
+reads/writes. Runtime receiver resolution/external subclasses are not proved.
+The nominal correction addresses IMPL-12 copied reader behavior and IDEN-1
+geometry compensation incorrectly owning an explicit navigation destination.
+
+Next validation is one existing native App geometry/animation/reader case plus
+original category-source supersession App, after this coherent source batch.
+These detect overwritten destinations, lost animation custody and stale filtered
+publication. Installed physical motion/profile remains required before Ready;
+full performance is open. Original412 film is not qualification of these bytes.
+Style22 has now been explicitly returned by Einstein; no new environment needed.
