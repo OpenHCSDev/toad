@@ -235,6 +235,59 @@ async def started_target_connections(base):
                          fixture_stage=base / 'start-fixture', app_type=ToadApp)
 
 
+async def deleted_native_connections(base):
+    """Delete a stopped B with a hidden native view and selected A-to-B history."""
+    from l0a_native_installed_pilot import main as native_journey
+    from toad.conversation_kind import DmConversation
+    evidence = base / 'native-view-delete'
+    evidence.mkdir()
+    os.environ.update(L0A_EVIDENCE=str(evidence), TMPDIR=str(base))
+
+    async def acceptance(app, pilot, actor, comms, _entered, _release, _hold, requests):
+        actor_mode = app.selected_mode
+        actor_source = app.selected_session
+        project = actor_source.project_path
+        original = comms.registry.require('beta')
+        comms.registry.declare(Thread('peer', frozenset({'native-delete'}), str(project),
+            model=original.model, thinking_level=original.thinking_level), StoppedThreadStatus())
+        comms.threads.restore_stopped(comms.registry.snapshot(), ('peer',))
+        await app.preparation.run_thread(comms.owners.start, 'peer')
+        native_mode = await app.thread_navigation.open(owner_mode=actor_mode,
+            project_path=project, target='peer')
+        native_source = app.session_navigation.source(native_mode)
+        await until(pilot, lambda: native_source.conversation.agent is not None)
+        peer = native_source.conversation.agent
+        await until(pilot, peer.session.settled.is_set)
+        assert peer.session.connected
+        history_mode = await app.session_navigation.history(owner_mode=actor_mode,
+            project_path=project, me='beta', target='peer', kind=DmConversation)
+        assert app.selected_mode == history_mode
+        assert native_mode in app.workspace_sessions.views
+        actor_process = actor.process.process
+        actor_contents = actor_source.conversation.contents
+        inputs = comms.root / 'input_dispositions.json'
+        before_inputs = inputs.read_bytes() if inputs.exists() else None
+        await peer.stop()
+        await app.preparation.run_thread(comms.owners.stop, 'peer')
+        result = await command(comms.root, 'delete-tag', '--name', 'native-delete',
+            '--disposition', FieldCodec.encode(DeleteThreadsTagDisposition), '--confirmed')
+        assert [item['name'] for item in result['removed_threads']] == ['peer']
+        await until(pilot, lambda: all(mode not in app.workspace_sessions.views
+            and app.session_navigation.get(mode) is None for mode in (native_mode, history_mode)))
+        assert not native_source.is_attached
+        assert actor.process.process is actor_process and actor_process.returncode is None
+        assert actor_source.conversation.contents is actor_contents and actor.session.connected
+        assert (inputs.read_bytes() if inputs.exists() else None) == before_inputs
+        assert requests == []
+        (evidence / 'receipt.json').write_text(json.dumps({
+            'result': 'PASS', 'closed_current_history_and_hidden_native': True,
+            'actor_connection_and_reader_unchanged': True, 'input_bytes_unchanged': True,
+            'provider_calls': 0, 'native_inputs': 0}, indent=2)+'\n')
+
+    await native_journey(acceptance=acceptance, provider_request_budget=0,
+                         fixture_stage=base / 'delete-fixture', app_type=ToadApp)
+
+
 async def journey(args):
     start = time.monotonic()
     base = args.output.resolve()
@@ -422,9 +475,13 @@ if __name__ == '__main__':
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--physical',action='store_true')
     parser.add_argument('--start-only', action='store_true', help='Original SDK/ACP Start-target resource control')
+    parser.add_argument('--delete-native-only', action='store_true', help='Current history and hidden native view retirement')
     args = parser.parse_args()
     if args.start_only:
         args.output.mkdir(parents=True, exist_ok=False)
         asyncio.run(started_target_connections(args.output.resolve()))
+    elif args.delete_native_only:
+        args.output.mkdir(parents=True, exist_ok=False)
+        asyncio.run(deleted_native_connections(args.output.resolve()))
     else:
         asyncio.run(journey(args))
