@@ -454,9 +454,15 @@ if __name__ == "__main__":
         model, = (node for node in context['nodes'] if node['key']==key)
         assert model['line'] >= 0, 'Original member must be expanded in the native Tree first'
         assert os.environ['DISPLAY'] != ':0'
-        subprocess.run(['xdotool','key','Home'],check=True)
-        if model['line']:
-            subprocess.run(['xdotool','key','--repeat',str(model['line']),'--repeat-delay','5','Down'],check=True)
+        # Borrow the native cursor position, not an assumed Home origin. The
+        # original selected reader may be restored during a contributor update;
+        # walking through unrelated current branches also uses their old height.
+        cursor = context['cursor_line']
+        assert cursor >= 0, 'Original focused Tree must have a native cursor'
+        distance = model['line'] - cursor
+        if distance:
+            subprocess.run(['xdotool','key','--repeat',str(abs(distance)),
+                            '--repeat-delay','5','Down' if distance > 0 else 'Up'],check=True)
         raise SystemExit(0)
     if sys.argv[1:2] == ["--select-context"]:
         helper = Path(__file__).resolve().parents[1] / "tools/performance/click_history.py"

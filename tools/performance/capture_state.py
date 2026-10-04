@@ -326,6 +326,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                                                   "expanded": model.is_expanded,
                                                   "target": target})
                         view["context"] = {
+                            "cursor_line": tree.cursor_line,
                             "owner": node.owner, "root": node.wire_root,
                             "native_present": node._native is not None,
                             "status": str(node.query_one(".context-status", Static).content),

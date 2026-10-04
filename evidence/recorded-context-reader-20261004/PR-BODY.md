@@ -21,3 +21,18 @@ No new prompt, fork, priming or provider call. Original input/manifest/public an
 Contributor membership can change by design during the original nonblocking awareness acquisition; this permits the observed row shift without proving a lock failure. No producer/611/runtime patch or EOF attribution is inferred. The controller selects the original native cursor once, rather than repeating selection at a stale pixel.
 
 Remaining: matched configured recorded-system search/full read and exact contributor acceptance after the published control correction. Previous485 exclusive package loan explicitly granted after CURRENT414 archive/readback and fresh borrower clearance. Physical09 is the one remaining changed-control journey; recorded scope stays unqualified until its terminal result. Same original request/fork/incarnation; no new input/provider/fork. Live334 remains untouched.
+
+## Latest actual09 / released485 handback
+
+133.860s whole journey failed: revealed cursor selected Compaction Summary/1, not
+System Layer/0, before Return. Summary text198526chars was read; scoped search
+returned zero matches, then helper refused missing system result. No EOF.
+Original source/input/manifest unchanged, child retired/cleanup empty. Parent
+thread-menu and request observations were bracketed DURING; summary image view
+was unbracketed. Detailed original source/cursor chain: PHYSICAL09.md.
+
+Qualified41641549 restored normally, Core611/Text49/native2ea retained, all319
+Toad assets and stage preflight pass; whole485 CODE handback has no future claim.
+Source-only shared reveal correction now borrows native cursor_line and relative
+Up/Down rather than Home/absolute traversal. Not run, no Ready claim. Actual
+selected-system/exact contributor/search/full-reader/copy/export remain pending.
