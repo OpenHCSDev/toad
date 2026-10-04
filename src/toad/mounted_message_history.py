@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 from abc import abstractmethod
 from functools import cached_property
+from contextlib import asynccontextmanager
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.message_page import MessagePage
 from agent_comms.messages import Message as WireMessage
@@ -133,17 +134,34 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
         if self.reader is not None:
             await self.reader.aclose()
 
+    @asynccontextmanager
+    async def native_publication(self, *, older: bool = False):
+        """Own one row mutation and reader compensation through the original window."""
+        window = self.window
+        async with window.history_lock:
+            if self.rows:
+                anchor, protected = window.protect_history(
+                    (widget for _, widget in self.rows), older=older,
+                    fallback=self.rows[0 if older else -1][1],
+                )
+            else:
+                anchor, protected = None, set()
+            async with window.preserve_history(anchor):
+                yield protected
+            window.check_follow()
+
     async def paint_receipt(self, receipt):
         # A source read may be working. The original native publication fence,
         # never its I/O admission, controls visible delivery of this receipt.
-        async with self.window.history_lock:
+        async with self.native_publication() as protected:
             if not self.source_publication_available:
                 return
             if self.has_newer:
                 await self.remove_children(widget for _, widget in self.rows)
                 self.rows.clear()
                 self.reader.restart()
-            await self._mount_page(MessagePage((receipt,), self.has_older, False), older=False)
+            await self._mount_page(MessagePage((receipt,), self.has_older, False),
+                                   older=False, protected=protected)
             self.window.anchor()
         self._scroll_changed()
 
@@ -166,20 +184,21 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
 
     async def toggle_style(self) -> None:
         """Re-render only the bounded visible history when switching styles."""
-        async with self.window.history_lock:
+        async with self.native_publication():
             self.style = self.style.next()
             records = [message for message, _ in self.rows]
-            with self.app.batch_update():
-                await self.remove_children(widget for _, widget in self.rows)
-                self.rows = [(message, self.view.message_block(message)) for message in records]
-                await self.mount(*(widget for _, widget in self.rows))
-            self.window.scroll_end(animate=False)
+            await self.remove_children(widget for _, widget in self.rows)
+            self.rows = [(message, self.view.message_block(message)) for message in records]
+            await self.mount(*(widget for _, widget in self.rows))
+        self.window.scroll_end(animate=False)
 
     async def mount_page(self, page: MessagePage, *, older: bool) -> None:
-        async with self.window.history_lock:
-            await self._mount_page(page, older=older)
+        async with self.native_publication(older=older) as protected:
+            await self._mount_page(page, older=older, protected=protected)
 
-    async def _mount_page(self, page: MessagePage, *, older: bool) -> None:
+    async def _mount_page(
+        self, page: MessagePage, *, older: bool, protected: set[Widget],
+    ) -> None:
         """Publish under the caller's original native tree transaction."""
         from toad.comms_root import root_is_current
         if (not self.source_publication_available or self.reader is None
@@ -195,19 +214,8 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
                 self.has_newer = page.has_newer
             self.view.conversation_kind.remember_page(self, page, older)
             return
-        if self.rows:
-            anchor, protected = self.window.protect_history(
-                (widget for _, widget in self.rows), older=older,
-                fallback=self.rows[0 if older else -1][1],
-            )
-        else:
-            anchor, protected = None, set()
-        async with self.window.preserve_history(anchor):
-            if not self.source_publication_available or not root_is_current(self.reader.comms.root):
-                return
-            await self.insert_page(page, pairs, older=older, protected=protected)
+        await self.insert_page(page, pairs, older=older, protected=protected)
         self.view.conversation_kind.remember_page(self, page, older)
-        self.window.check_follow()
 
     async def insert_page(
         self, page: MessagePage, pairs: list[tuple[WireMessage, Widget]], *, older: bool,
@@ -273,9 +281,9 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
         edge = self.rows[0 if older else -1][0].view_cursor
         page = await reader.page(before=edge if older else None,
                                  after=None if older else edge, limit=limit)
-        async with self.window.history_lock:
+        async with self.native_publication(older=older) as protected:
             if snapshot.current(self):
-                await self._mount_page(page, older=older)
+                await self._mount_page(page, older=older, protected=protected)
 
     async def _publish_latest(self, request: LatestViewportRequest) -> bool:
         reader = self.reader
@@ -291,7 +299,7 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
     async def publish(self, read: HistoryReadResult) -> bool:
         """Validate and advance the original source inside native publication."""
         from toad.comms_root import root_is_current
-        async with self.window.history_lock:
+        async with self.native_publication() as protected:
             reader = self.reader
             if (reader is None or not self.source_publication_available
                     or not root_is_current(reader.comms.root)
@@ -316,11 +324,11 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
                                              if ("", seq) in mounted}
                     self.tail_receipt = None
                     self.has_older = page.has_older
-                    await self._mount_page(page, older=False)
+                    await self._mount_page(page, older=False, protected=protected)
                     if loading := self.query_one_optional("#history-loading"):
                         await loading.remove()
                 elif page.messages and self.follows_tail:
-                    await self._mount_page(page, older=False)
+                    await self._mount_page(page, older=False, protected=protected)
                 elif page.messages:
                     self.has_newer = True
             if not reader.current(read, self.follows_tail) or not root_is_current(reader.comms.root):
