@@ -227,8 +227,8 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
         for worker in self.workers.cancel_group(self, "comms-content"):
             try:
                 await worker.wait()
-            except WorkerCancelled:
-                pass
+            except WorkerCancelled as error:
+                self._content_error = error
         self._content_ready.set()
 
     async def on_unmount(self) -> None:

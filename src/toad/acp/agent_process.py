@@ -46,9 +46,15 @@ class AgentProcess:
         self.custody = ExitStack()
 
     async def start(self):
-        self.agent.session.starting()
         self.disposition = ActiveProcessDisposition()
         self.retirement = None
+        try:
+            await asyncio.to_thread(
+                self.agent.presentation.log_path.parent.mkdir, parents=True, exist_ok=True
+            )
+        except OSError:
+            pass
+        self.agent.session.starting()
         # Freeze exactly the environment and working directory passed to the
         # child. A relative wire root is relative to the child cwd, not Toad's.
         # Preflight is early denial; the actual spawn takes the core wire lock.
