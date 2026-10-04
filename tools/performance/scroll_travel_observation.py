@@ -16,14 +16,13 @@ class ScrollTravelObservation:
         from textual.widgets import TextArea
         from toad.widgets.history_anchor import HistoryWindow
         from toad.widgets.presentation_window import DirectionalPreparation
-        from toad.widgets.viewport_body import DocumentViewport, MeasuredViewportBody
+        from toad.widgets.viewport_body import BodyMeasurement, DocumentViewport, MeasuredViewportBody
         from toad.widgets.transcript_history import TranscriptHistory
         from toad.sidebar_projection import SidebarProjection
         from toad.widgets.sidebar_viewport import SidebarViewport
         from textual.widget import Widget
         from textual._animator import Animator
 
-        self.stream = path.open("x", buffering=1)
         self.written = 0
         self.observer_ns = 0
         self.sidebar_viewport_type = SidebarViewport
@@ -37,7 +36,7 @@ class ScrollTravelObservation:
             HistoryWindow.action_page_down.__code__: self.history_page_down,
             DirectionalPreparation.relocated.__code__: self.relocating,
             DocumentViewport.admission.__code__: self.full_admission,
-            MeasuredViewportBody.start_materialization.__code__: self.materializing,
+            BodyMeasurement.start_materialization.__code__: self.materializing,
             MeasuredViewportBody.retire_native_body.__code__: self.retiring,
             TranscriptHistory._resource_fragment_budget.__code__: self.fragment_budget,
             TranscriptHistory._extend_and_trim.__code__: self.page_extension,
@@ -54,6 +53,7 @@ class ScrollTravelObservation:
             Animator.transform_running_animation.__code__: self.animation_transformed,
         }
         self.tool = sys.monitoring.PROFILER_ID
+        self.stream = path.open("x", buffering=1)
 
     def emit(self, event, **values):
         self.written += 1
@@ -69,17 +69,16 @@ class ScrollTravelObservation:
                   restoring=window._restoring,
                   caller=caller.co_name, caller_source=caller.co_filename)
 
-    def body_transition(self, event, native):
-        body = native['self']
+    def body_transition(self, event, body):
         viewport = body._body_viewport
         self.emit(event, body=id(body), window=id(viewport.window) if viewport is not None else None,
                   state=type(body._body_measurement).__name__)
 
     def materializing(self, native):
-        self.body_transition('body_materialization', native)
+        self.body_transition('body_materialization', native['body'])
 
     def retiring(self, native):
-        self.body_transition('body_retirement_attempt', native)
+        self.body_transition('body_retirement_attempt', native['self'])
 
     def full_admission(self, native):
         caller = sys._getframe(2).f_back.f_code

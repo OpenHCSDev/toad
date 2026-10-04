@@ -55,7 +55,7 @@ async def main(observe):
                 # later admission and trimming, including native text copying.
                 # Establish a real selectable endpoint before scrolling it out
                 # of view; cold document bodies no longer keep text widgets.
-                chosen = next(child for child in history.pages[0].children
+                chosen = next(child for child in history.pages[0].fragment_views
                               if child in app.screen._compositor.visible_widgets
                               and child.query(MarkdownParagraph))
                 text = chosen.query_one(MarkdownParagraph)

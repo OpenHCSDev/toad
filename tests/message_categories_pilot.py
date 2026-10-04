@@ -108,7 +108,7 @@ async def main():
             )
             await view.contents.mount(history)
             await pilot.pause()
-            fragments = {leaf._message_category: leaf for leaf in history.pages[0].children}
+            fragments = {leaf._message_category: leaf for leaf in history.pages[0].fragment_views}
             assert set(fragments) == set(MessageCategory.members_with(MessageCategory))
             assert all(widget.message_category == kind for kind, widget in live.items() if kind != OtherCategory)
 

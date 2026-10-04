@@ -50,7 +50,7 @@ async def main():
                 positioning = history.reserve_source_work()
                 window.scroll_to(y=1, animate=False, immediate=True)
                 await pilot.pause()
-                marker = history.pages[0].children[0]
+                marker = history.pages[0].fragment_views[0]
                 expected = marker.region.y - window.content_region.y
                 frames = []
                 app.observed = marker, window, frames
@@ -58,10 +58,10 @@ async def main():
                 entered, release = asyncio.Event(), asyncio.Event()
                 original = TranscriptPageView.extend
 
-                async def delayed_extend(view, older):
+                async def delayed_extend(view, older, current):
                     entered.set()
                     await release.wait()
-                    await original(view, older)
+                    await original(view, older, current)
 
                 with patch.object(TranscriptPageView, "extend", delayed_extend):
                     history._request_page(True)

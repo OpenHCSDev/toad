@@ -97,7 +97,7 @@ async def main():
             conversation.visible_categories = all_categories()
             await pilot.pause()
             assert sparse.filter.overlay is None or not sparse.filter.overlay.display
-            assert any(leaf.display for leaf in sparse.pages[-1].children), (
+            assert any(leaf.display for leaf in sparse.pages[-1].fragment_views), (
                 "Unchecking did not restore retained native transcript")
             conversation.visible_categories = frozenset(MessageCategory.members_with(RoutedMessage))
             async with asyncio.timeout(8):

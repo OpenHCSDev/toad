@@ -101,7 +101,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     source_geometry = [
         (page.start, page.stop, page.region, tuple(
             (node.region, tuple(type(child).__name__ for child in node.children))
-            for node in page.children
+            for node in page.fragment_views
         )) for pager in window.histories for page in pager.pages
     ]
     editor = conversation.prompt.prompt_text_area
@@ -143,7 +143,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             print("RECENT_FRAGMENT_GEOMETRY", source_geometry, [
                 (page.start, page.stop, page.region, tuple(
                     (node.region, tuple(type(child).__name__ for child in node.children))
-                    for node in page.children
+                    for node in page.fragment_views
                 )) for pager in window.histories for page in pager.pages
             ], flush=True)
             print("RECENT_RESPONSE_GEOMETRY", source_responses,
