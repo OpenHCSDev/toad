@@ -44,10 +44,12 @@ def load_recorder():
                     # Reveal by the original materialized Tree line, then acquire
                     # fresh clipped geometry before the actual pointer selection.
                     revealed = "revealed-" + phase + "-" + field.lower()
+                    focused = "focused-" + phase + "-" + field.lower()
                     return "\n".join((
                         click("phase-" + phase + "-state.pickle", "context_tree"),
+                        mark + focused,
                         "exec --sync " + shlex.join((sys.executable, str(Path(__file__).resolve()),
-                            "--reveal-context", "phase-" + phase + "-state.pickle", os.environ[field])),
+                            "--reveal-context", "phase-" + focused + "-state.pickle", os.environ[field])),
                         "sleep .2", mark + revealed,
                         select("phase-" + revealed + "-state.pickle", "exact:" + os.environ[field])))
                 export = os.environ["TOAD_CONTEXT_AUDIT_EXPORT"]
@@ -295,7 +297,7 @@ async def run(options):
             "--journey", ColdContextJourney.declared_name, "--capture-state",
             "--review-timing", "deferred", "--fps", "20", "--width", "1500",
             "--height", "1100", "--fit-window", "--startup-wait", "10",
-            "--max-duration", "130" if options.recorded_audit else "110" if options.instruction_query else "65",
+            "--max-duration", "240" if options.recorded_audit else "110" if options.instruction_query else "65",
             "--tail-seconds", "2", "--", *command]
         (base / "caller.json").write_text(json.dumps(sys.argv, indent=2) + "\n")
         with (base / "recorder.log").open("w") as log:
@@ -430,6 +432,7 @@ if __name__ == "__main__":
         output = Path(os.environ["TOAD_VIDEO_OUTPUT"])
         state, key = sys.argv[2:]
         snapshot = pickle.loads((output/state).read_bytes())
+        assert snapshot['metadata']['screen']['focused']['class'] == 'Tree', 'Physical reveal requires the actually focused Tree'
         context = next(v for v in snapshot['views'] if v['mode']==snapshot['metadata']['current_mode'])['context']
         model, = (node for node in context['nodes'] if node['key']==key)
         assert model['line'] >= 0, 'Original member must be expanded in the native Tree first'
