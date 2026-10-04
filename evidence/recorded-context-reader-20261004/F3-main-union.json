@@ -1,0 +1,20 @@
+{
+  "head": "33efa1997a4a874b29164c32ca817e039a3d85d6",
+  "integrated_main": "34633149ff3dbcf994e9c1d4a895e470ccad749b",
+  "parents": [
+    "138def29005b950c7fb1ee46501fc3cef09f96c4",
+    "34633149ff3dbcf994e9c1d4a895e470ccad749b"
+  ],
+  "source_owner_receipt": "F3-tree-owner-after.json",
+  "two_owner_files_byte_equal_to": "138def29005b950c7fb1ee46501fc3cef09f96c4",
+  "conflict": "tools/performance/click_history.py only",
+  "resolution": "Retain main native wheel/drag/within controls; retain417 declared menu right-click, context reveal and selected-resource admission. One original gesture execution now carries the requested click button.",
+  "helper_compile": true,
+  "current_pins": {
+    "note": "Normal main determining metadata retained unchanged; typed622 producer still required for F4 labels before the paired App."
+  },
+  "installed_app_run": false,
+  "package_writes": 0,
+  "provider_calls": 0,
+  "historical_main_whitespace": "Imported original evidence includes trailing blank lines; unchanged raw records were preserved, not rewritten for diff-check."
+}

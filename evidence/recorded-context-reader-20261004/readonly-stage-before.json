@@ -1,0 +1,67 @@
+{
+  "head": "17ded362d0f537cdfd979d329dbbc9482a3e910a",
+  "parsed_test_modules": 394,
+  "parse_omissions": [],
+  "sites": [
+    {
+      "file": "tests/cold_context_installed_physical.py",
+      "line": 393,
+      "node": "Attribute",
+      "name": "publish_verified_stage"
+    },
+    {
+      "file": "tests/cold_context_installed_physical.py",
+      "line": 393,
+      "node": "Attribute",
+      "name": "RuntimeSelection"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 354,
+      "node": "ClassDef",
+      "name": "RuntimeSelection"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 376,
+      "node": "FunctionDef",
+      "name": "publish_verified_stage"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 1018,
+      "node": "Name",
+      "name": "RuntimeSelection"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 1099,
+      "node": "Name",
+      "name": "RuntimeSelection"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 1044,
+      "node": "Name",
+      "name": "RuntimeSelection"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 1076,
+      "node": "Name",
+      "name": "RuntimeSelection"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 1175,
+      "node": "Name",
+      "name": "RuntimeSelection"
+    },
+    {
+      "file": "tests/tools/record_installed_tui.py",
+      "line": 1122,
+      "node": "Name",
+      "name": "RuntimeSelection"
+    }
+  ]
+}

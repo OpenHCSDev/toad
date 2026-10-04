@@ -1,0 +1,23 @@
+{
+  "state": "WHOLE417 style22 CODE/PACKAGE/IMPORT/READ/BUILD/EXECUTION loan CLOSED",
+  "time": 1791104146.6611001,
+  "original_floor": "Core611d416/Toad9138/Texta52/NRA d392/native2ea",
+  "all_original_archive_members_verified": 1459,
+  "prefix_members_verified": 1454,
+  "packages": 69,
+  "pip_check": "69 compatible",
+  "borrowers": {
+    "scope": "privileged proc cwd/exe/argv/environment/FD/maps",
+    "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+    "references": [],
+    "permission_gaps": []
+  },
+  "result": "25.434s App remount retained-selection assertion failed before recorder; no physical images or movie",
+  "native_child_retired": true,
+  "saved_source_unchanged": true,
+  "public_source_unchanged": true,
+  "original_inputs_unchanged": true,
+  "providers": 0,
+  "native_inputs": 0,
+  "future_package_or_execution_claim": false
+}

@@ -373,25 +373,34 @@ class RuntimeSelection:
         if env.get("AGENT_COMMS_RUNTIME_ROOT"):
             env["AGENT_COMMS_RUNTIME_ROOT"] = str(self.bin_directory.resolve())
 
-    def publish_verified_stage(self, staging_receipt, owner, env, command):
-        """Publish a verified cohort and require the existing recorder preflight.
+    def verify_stage(self, staging_receipt, owner, env, command):
+        """Borrow candidate identity without publishing or rewriting its floor.
 
-        This artifact records immutable package identity. Live activation belongs
-        to the canonical route and launcher, never to this metadata's state.
+        CohortActivation and InstalledSourceProof own their original relation.
+        The existing activation remains a separate floor observation during a
+        sequential package loan; it is never relabelled as this candidate.
         """
-        verified = json.loads(Path(staging_receipt).read_text())
-        stage = self.bin_directory.parent.resolve()
-        if Path(verified["stage"]).resolve() != stage:
+        from agent_comms.field_codec import FieldCodec
+        from publish_retained_summary import CohortActivation, InstalledSourceProof
+
+        activation = FieldCodec.decode(CohortActivation,
+            json.loads(Path(staging_receipt).read_text()))
+        proof = FieldCodec.decode(InstalledSourceProof,
+            json.loads(activation.staging_receipt.read_text()))
+        proof.require_activation(activation)
+        if activation.stage.resolve() != self.bin_directory.parent.resolve():
             raise ValueError("Verified staging receipt belongs to another candidate")
-        activation = {
-            key: verified[key] for key in ("stage", "pins", "sdk", "native_package")
+        observed = self.receipt(owner, env, command)
+        for module, package in observed["observed"]["packages"].items():
+            source = next(source for source in proof.sources if source.module == module)
+            source.require_package(module, Path(package["origin"]).parent,
+                                   package["direct_url"], proof.archive_artifacts)
+        observed["verified_candidate"] = {
+            "path": str(Path(staging_receipt).resolve()),
+            "sha256": digest(Path(staging_receipt)),
+            "activation": FieldCodec.encode(activation),
         }
-        activation["state"] = "verified-immutable-cohort"
-        activation["staging_receipt_sha256"] = digest(Path(staging_receipt))
-        pending = stage / ".activation.json.pending"
-        pending.write_text(json.dumps(activation, indent=2) + "\n")
-        pending.replace(stage / "activation.json")
-        return self.receipt(owner, env, command)
+        return observed
 
     def receipt(self, owner, env, command):
         observed = self.from_environment(command, env)
@@ -1756,14 +1765,15 @@ def record(args):
             if args.fit_window:
                 owner.run(["xdotool", "windowsize", window, str(args.width - 20), str(args.height - 20)], env)
             receipt["window"] = window
-            capture = owner.start([
-                "ffmpeg", "-nostdin", "-y", "-loglevel", "warning", "-threads", "1", "-f", "x11grab",
-                "-framerate", str(args.fps), "-video_size", f"{args.width}x{args.height}",
-                "-i", env["DISPLAY"], "-t", str(args.max_duration), "-c:v", "libx264", "-preset", "ultrafast",
-                "-crf", "26", "-threads", "1", "-r", str(args.fps), "-fps_mode", "cfr", "-pix_fmt", "yuv420p",
-                "-g", str(args.fps), "-movflags", "+frag_keyframe+empty_moov+default_base_moof",
-                str(output / "terminal.mp4"),
-            ], stderr=stack.enter_context((output / "capture.log").open("w")))
+            if not args.still_images:
+                capture = owner.start([
+                    "ffmpeg", "-nostdin", "-y", "-loglevel", "warning", "-threads", "1", "-f", "x11grab",
+                    "-framerate", str(args.fps), "-video_size", f"{args.width}x{args.height}",
+                    "-i", env["DISPLAY"], "-t", str(args.max_duration), "-c:v", "libx264", "-preset", "ultrafast",
+                    "-crf", "26", "-threads", "1", "-r", str(args.fps), "-fps_mode", "cfr", "-pix_fmt", "yuv420p",
+                    "-g", str(args.fps), "-movflags", "+frag_keyframe+empty_moov+default_base_moof",
+                    str(output / "terminal.mp4"),
+                ], stderr=stack.enter_context((output / "capture.log").open("w")))
             started = time.monotonic()
             finish_deadline = started + args.max_duration
             deadline = finish_deadline - args.finalize_seconds
@@ -1774,6 +1784,7 @@ def record(args):
             receipt["finish_deadline_monotonic"] = finish_deadline
             receipt["finalize_seconds"] = args.finalize_seconds
             receipt["terminal_pid"] = terminal_pid
+            receipt["movie_requested"] = not args.still_images
             print(f"Recording isolated display {env['DISPLAY']}: {output}", flush=True)
 
             def remaining():
@@ -1870,10 +1881,11 @@ def record(args):
             receipt["duration_seconds"] = time.monotonic() - started
             if args.profile:
                 terminal.export(output, receipt)
-            capture.stop(signal.SIGINT)
-            receipt["capture_returncode"] = capture.process.returncode
-            if capture.process.returncode not in (0, 255):
-                raise RuntimeError(f"Video recorder exited {capture.process.returncode}")
+            if capture is not None:
+                capture.stop(signal.SIGINT)
+                receipt["capture_returncode"] = capture.process.returncode
+                if capture.process.returncode not in (0, 255):
+                    raise RuntimeError(f"Video recorder exited {capture.process.returncode}")
             receipt["capture_completed"] = True
             # Capture completion only answers whether video was retained.
             # Requested state exports are independent application evidence.
@@ -1900,12 +1912,14 @@ def record(args):
             if not args.profile and receipt["terminal_exit"]["returncode"] != 0:
                 raise RuntimeError(f"Installed terminal did not exit successfully: {receipt['terminal_exit']}")
             xvfb.stop()
-            info = owner.run(["ffprobe", "-v", "error", "-show_streams", "-show_format", "-of", "json",
-                              str(output / "terminal.mp4")], env, stdout=subprocess.PIPE, text=True)
-            receipt["video"] = json.loads(info.stdout)
-            duration = float(receipt["video"]["format"]["duration"])
-            if args.review_start >= duration:
-                raise ValueError(f"Review start {args.review_start}s is outside the {duration}s recording")
+            duration = receipt["duration_seconds"]
+            if not args.still_images:
+                info = owner.run(["ffprobe", "-v", "error", "-show_streams", "-show_format", "-of", "json",
+                                  str(output / "terminal.mp4")], env, stdout=subprocess.PIPE, text=True)
+                receipt["video"] = json.loads(info.stdout)
+                duration = float(receipt["video"]["format"]["duration"])
+                if args.review_start >= duration:
+                    raise ValueError(f"Review start {args.review_start}s is outside the {duration}s recording")
             events = phase_events(output)
             receipt["events"] = events
             receipt["frame_review"] = frame_review(
@@ -1915,7 +1929,9 @@ def record(args):
             receipt["journey_review"] = args.journey.review(output, receipt)
             receipt["review_intervals"] = args.journey.review_intervals(
                 args, output, duration, origin_ns=round(started * 1e9))
-            names = ["terminal.mp4", "before.png", "after.png"]
+            names = ["before.png", "after.png"]
+            if not args.still_images:
+                names.append("terminal.mp4")
             if args.capture_state:
                 names.extend(path.name for name in ("before", "after", "phase")
                              for path in output.glob(f"{name}-*") if path.is_file() and path.stat().st_size)
@@ -1925,7 +1941,8 @@ def record(args):
             names.extend(path.name for path in output.glob("*-click-target.json"))
             names.extend(path.name for path in output.glob("live-*-frames.png"))
             names.extend(receipt["frame_review"].get("artifacts", ()))
-            names.extend(args.review_timing.generate(output, args, env, owner, receipt["review_intervals"]))
+            if not args.still_images:
+                names.extend(args.review_timing.generate(output, args, env, owner, receipt["review_intervals"]))
             receipt["artifacts"] = {name: {"bytes": (output / name).stat().st_size,
                                          "sha256": digest(output / name)} for name in names}
             if any(item["bytes"] == 0 for item in receipt["artifacts"].values()):
@@ -2163,6 +2180,8 @@ def main():
     parser.add_argument("--review-recording", type=Path, help="Encode a retained capture; no UI, ACP or native process launches")
     parser.add_argument("--review-timing", type=ReviewTiming.decode, default=InlineReviewTiming,
                         help="Clip encoding lifetime: " + ", ".join(ReviewTiming.names()))
+    parser.add_argument("--still-images", action="store_true",
+                        help="Retain actual phase PNG/state exports without starting a movie recorder")
     parser.add_argument("--profile", action="store_true", help="Sample actual UI and Python workers with installed py-spy")
     parser.add_argument("--capture-state", action="store_true",
                         help="Export loaded DTOs/SVG at before/after and physical phase markers using capture_live --sudo")
@@ -2195,6 +2214,8 @@ def main():
     parser.add_argument("--sheet-columns", type=int, default=4)
     parser.add_argument("command", nargs=argparse.REMAINDER)
     args = parser.parse_args()
+    if args.still_images and args.review_timing is not DeferredReviewTiming:
+        parser.error("Still images require deferred review; there is no video to encode")
     if args.scroll_travel and not args.capture_state:
         parser.error("Scroll-travel observation requires --capture-state")
     if not math.isfinite(args.scroll_idle_seconds) or not 0 < args.scroll_idle_seconds < args.max_duration:

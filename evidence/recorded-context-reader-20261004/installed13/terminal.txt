@@ -1,0 +1,21 @@
+{"state": "FAILED_NO_REPLAY", "fixture": "/home/ts/.cache/agent-scratch/c603p01", "selected_file": "/home/ts/.cache/agent-scratch/c603p01/native-forks/2026-10-03T23-35-19-597Z_01a1041f-412f-7603-9e0a-a11593894fcd.jsonl", "selected_bytes": 42665741, "selected_sha256_before": "75354edad8e2f871d4f334873d8e4b9a75ed8379fd9d523d10bc076621f0a164", "public_file": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T16-50-21-634Z_01a0f85f-c742-756b-9a21-4f02f7bea72e.jsonl", "public_sha256_before": "b733f5ddbd17d7524f18a872ecfd061fa31d790f2eee5a89eeb9cb41020457f4", "model": "openai-codex/gpt-6.1-sol", "thinking": "high", "providers": 0, "native_inputs": 0, "priming_calls": 0, "python": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python", "activation": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/activation.json", "sealed_request": "f948ca63-c6b5-4ca5-a4d5-f7c624762478", "recorded_system": "turn/b2c6b72bbcb444b4979b42e821680cf3/0", "recorded_coordination": "turn/b2c6b72bbcb444b4979b42e821680cf3/2/contributor/119/contributor/0", "controller": {"pid": 4005438, "start_time": 58224981}, "app_reader_lifetime": {"native_tree_node_retained": true, "selected_original": "turn/b2c6b72bbcb444b4979b42e821680cf3/0", "contributor_remove_and_return": true, "actual_registered_acp_app": true, "retirement_and_remount": true}, "error": "KeyError('stage')", "captured_phases": [], "menu_original_tags_restored": true, "native_process": {"pid": 4005886, "start_time": 58226444}, "native_child_retired": true, "selected_sha256_after": "75354edad8e2f871d4f334873d8e4b9a75ed8379fd9d523d10bc076621f0a164", "selected_source_unchanged": true, "public_sha256_after": "b733f5ddbd17d7524f18a872ecfd061fa31d790f2eee5a89eeb9cb41020457f4", "public_source_unchanged": true, "original_inputs_unchanged": true, "native_input_rows_after": 1, "elapsed_seconds": 19.92025608289987}
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/cold_context_installed_physical.py", line 582, in <module>
+    asyncio.run(run(parser.parse_args()))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/cold_context_installed_physical.py", line 393, in run
+    probe = recorder.RuntimeSelection.from_environment(command, environment).publish_verified_stage(
+        options.staging_receipt, probe_owner, environment, command)
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/tools/record_installed_tui.py", line 384, in publish_verified_stage
+    if Path(verified["stage"]).resolve() != stage:
+            ~~~~~~~~^^^^^^^^^
+KeyError: 'stage'

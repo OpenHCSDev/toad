@@ -1,0 +1,109 @@
+{
+  "scope": "No recorded whole-journey PASS.08 visible menu/current phases retained; original inputs/source unchanged",
+  "runs": [
+    {
+      "run": 1,
+      "state": "FAILED_NO_REPLAY",
+      "elapsed_seconds": 44.007314188056625,
+      "terminal_receipt": "/home/ts/.cache/agent-scratch/recorded-context417-physical01/terminal-receipt.json",
+      "terminal_sha256": "f06b65cd24b03109cf720f54c07aab4acac4fd0dc2d07e334f27534190abad29",
+      "saved_source_unchanged": true,
+      "public_source_unchanged": true,
+      "original_inputs_unchanged": true,
+      "native_child_retired": true,
+      "cleanup_remaining": [],
+      "cleanup_errors": []
+    },
+    {
+      "run": 2,
+      "state": "FAILED_NO_REPLAY",
+      "elapsed_seconds": 42.63230094802566,
+      "terminal_receipt": "/home/ts/.cache/agent-scratch/recorded-context417-physical02/terminal-receipt.json",
+      "terminal_sha256": "aea7b007864a582c57b73ae6e133761721ef12219d0092fbaac2d419fa551aa0",
+      "saved_source_unchanged": true,
+      "public_source_unchanged": true,
+      "original_inputs_unchanged": true,
+      "native_child_retired": true,
+      "cleanup_remaining": [],
+      "cleanup_errors": []
+    },
+    {
+      "run": 3,
+      "state": "FAILED_NO_REPLAY",
+      "elapsed_seconds": 44.48092343902681,
+      "terminal_receipt": "/home/ts/.cache/agent-scratch/recorded-context417-physical03/terminal-receipt.json",
+      "terminal_sha256": "ff405467e3e007ca2105b986ccd07e93b2b3b2e1dbd1d8f799b8c49a695526e7",
+      "saved_source_unchanged": true,
+      "public_source_unchanged": true,
+      "original_inputs_unchanged": true,
+      "native_child_retired": true,
+      "cleanup_remaining": [],
+      "cleanup_errors": []
+    },
+    {
+      "run": 4,
+      "state": "FAILED_NO_REPLAY",
+      "elapsed_seconds": 44.394811803940684,
+      "terminal_receipt": "/home/ts/.cache/agent-scratch/recorded-context417-physical04/terminal-receipt.json",
+      "terminal_sha256": "10a043cee555c10c1ac3f22d44b71ab89a7ef7e72f0745ffa4c6a22f5600bf83",
+      "saved_source_unchanged": true,
+      "public_source_unchanged": true,
+      "original_inputs_unchanged": true,
+      "native_child_retired": true,
+      "cleanup_remaining": [],
+      "cleanup_errors": []
+    },
+    {
+      "run": 5,
+      "state": "FAILED_NO_REPLAY",
+      "elapsed_seconds": 41.65546217910014,
+      "terminal_receipt": "/home/ts/.cache/agent-scratch/recorded-context417-physical05/terminal-receipt.json",
+      "terminal_sha256": "8e4bd6f3b243248fcf7721bb9840d4ea3b014959879b6ad2b38ec871cc0caf1c",
+      "saved_source_unchanged": true,
+      "public_source_unchanged": true,
+      "original_inputs_unchanged": true,
+      "native_child_retired": true,
+      "cleanup_remaining": [],
+      "cleanup_errors": []
+    },
+    {
+      "run": 6,
+      "state": "FAILED_NO_REPLAY",
+      "elapsed_seconds": 44.38262706401292,
+      "terminal_receipt": "/home/ts/.cache/agent-scratch/recorded-context417-physical06/terminal-receipt.json",
+      "terminal_sha256": "b9e4173d3d845bb4aeab0bafb4ff1337e61a42abe494b5b41a17e34b52f9eaee",
+      "saved_source_unchanged": true,
+      "public_source_unchanged": true,
+      "original_inputs_unchanged": true,
+      "native_child_retired": true,
+      "cleanup_remaining": [],
+      "cleanup_errors": []
+    },
+    {
+      "run": 7,
+      "state": "FAILED_NO_REPLAY",
+      "elapsed_seconds": 47.08428159810137,
+      "terminal_receipt": "/home/ts/.cache/agent-scratch/recorded-context417-physical07/terminal-receipt.json",
+      "terminal_sha256": "df95fa2e0b7384b072b5456ca17d153a38a120a2d4c9bcfd0e79d4b5b96fb91c",
+      "saved_source_unchanged": true,
+      "public_source_unchanged": true,
+      "original_inputs_unchanged": true,
+      "native_child_retired": true,
+      "cleanup_remaining": [],
+      "cleanup_errors": []
+    },
+    {
+      "run": 8,
+      "state": "FAILED_NO_REPLAY",
+      "elapsed_seconds": 135.66226790391374,
+      "terminal_receipt": "/home/ts/.cache/agent-scratch/recorded-context417-physical08/terminal-receipt.json",
+      "terminal_sha256": "c00da686aae759e9e13e0f439fb35f41f077478973200ea18a61497981616104",
+      "saved_source_unchanged": true,
+      "public_source_unchanged": true,
+      "original_inputs_unchanged": true,
+      "native_child_retired": true,
+      "cleanup_remaining": [],
+      "cleanup_errors": []
+    }
+  ]
+}
