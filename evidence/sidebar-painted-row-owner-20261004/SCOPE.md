@@ -193,3 +193,13 @@ drain them while inactive; source I/O stays on owner.call_later, outside that na
 callback lifetime. No native callback change is needed. The release-only e523
 Conversation/session_presentation family is byte-unchanged and remains Sch's
 separate F1 seam. No App/film/package use; actual F4 handback remains required.
+
+## Normal F1 source join and installed App checkpoint
+
+At 4d51775ac7e5f03e84b2338312cf252019bd5201, normal main31c93/F1 admission, close, reconnect and event binding are retained. Against that main the determining production delta is 12 files, 121 additions and 149 deletions. Earlier source-only sections above describe their historical checkpoints, not current validation status.
+
+Normal filewheels qualified all927 source assets and unchanged69 package versions, with Core486b/Native086 and frozen Native55bb936. Installed original App checks passed warm A/B/A/editor/draft Undo/shell and whole shutdown (14.394s), sidebar pointer drag/resize/collapse (10.988s), and cold body/reversal/End plus idle boundedness (39.695s). The rapid case recorded idle0.030CPU seconds, pending work0 and warm bodies48; these are that App interval, not a historical comparison or physical-motion measurement.
+
+The fourth batch case failed on import before any App or fixture because CORE_FIXTURE_TESTS was absent. Its specialized compaction fixture retains an UNKNOWN outcome; it was not borrowed/replayed to fill this frame check. A focused mode in the original blank_presentation_pilot instead passed in7.781s: hidden-source callbacks stay retained, inactive workspace callbacks stay retained, and actual native content paints while a current-source callback awaits its own resource. It awaits the original frame admission, avoiding Pilot's all-pump idle barrier around deliberately pending I/O. This proves installed App/compositor behavior with the synchronous test driver, not a Linux terminal writer or native goal RPC. Original failure remains in APP-QUALIFIED.json and its original log.
+
+The current real public route is Native2ea; the matched F1/Core486b package declares Native086. No public recording or attachment was launched, and no route/package override is allowed. Physical motion qualification waits only for an actual matching original route; no new fixture/provider/source fork or unchanged422 film. Full CPU/smoothness/runway/IRC scope remains active. Exact source head Debt passed; native current0017 Debt also passed with byte-identical frozen source/tests/pyproject.
