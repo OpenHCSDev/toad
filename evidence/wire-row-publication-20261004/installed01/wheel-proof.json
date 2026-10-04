@@ -1,0 +1,12 @@
+{
+  "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/wire432-main436-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+  "sha256": "99417b444a4b21c55937d29d8ce33f611cc5ca7dde9263663fac8e9382698134",
+  "source_head": "9ac8a48efb8c3bd44a28a056c5b0711918039dc5",
+  "assets": 319,
+  "byte_equal": true,
+  "build_backend": "hatchling==1.28.0",
+  "retained_backend": "/home/ts/.cache/uv/archive-v0/RgcgNn7xR1Zs9HSF",
+  "seconds": 0.7783511630259454,
+  "build_exit": 0,
+  "new_environment": false
+}

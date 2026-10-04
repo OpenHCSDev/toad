@@ -81,3 +81,26 @@ None of these claims is established by source or the prior #430 Tool/modal App.
 There is no package/import/execution lease now. A fresh actual holder purpose and
 archive precede installation. No old #430 App/movie/provider/saved input is repeated.
 Full rapid-scroll/sidebar/thread-open/CPU/144Hz acceptance remains unfinished.
+
+## Original changed installed scope, 2026-10-04
+
+Normal main43682639679 is joined. Product source is byte-equal the original
+9ac8a48e wheel; current33f5a36e changes only authored control API/oracles.
+The final original App passed12.781s (15.539s whole owned process), eight checks.
+Native current-source display/resize/editor input remained admitted while an
+old actual Unmount stayed pending; repeated styles preserved source order/draft;
+unchanged rows retained geometry; source park joined original workers before
+resume; whole App/process cleanup passed. The four original authored runner/
+control negatives remain under installed01 with their exact classification.
+No product change or deadline increase was made in response to those negatives.
+
+Actual436 floor1470 members and all390115/274/PREFIXactivation/Ready keepers
+restore byte/mode/readlink exact;69/pipcheck,226 all-UID0refs/0gaps. Original
+filewheel origins are exact, not fabricated VCS provenance. Bohr/Parent/Sch
+received whole handback; no future package/import/execution claim remains.
+
+SCOPED-READY.json binds original source/wheel/App/terminal/handback and negatives.
+Native display is not physical terminal writer, smoothness, FPS or causal CPU
+proof. Interrupted acquisition/new receipt-tail/bounds-acknowledgement and full
+performance remain open. No unchanged App/movie/provider/SDK input followed
+this passing result. Useful source acceptance is separate from those targets.

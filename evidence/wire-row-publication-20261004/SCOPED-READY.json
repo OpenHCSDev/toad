@@ -1,0 +1,179 @@
+{
+  "state": "SCOPED INSTALLED READY; full structural/performance objective remains active",
+  "tested_control_head": "33f5a36e2719aaebf5c08f01056e9ed319ef4fd9",
+  "installed_product_head": "9ac8a48efb8c3bd44a28a056c5b0711918039dc5",
+  "production_equal_current": true,
+  "normal_main": "82639679fa82a4c370f5e5b9821001b0ead19d52",
+  "wheel": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/wire432-main436-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "99417b444a4b21c55937d29d8ce33f611cc5ca7dde9263663fac8e9382698134",
+    "source_head": "9ac8a48efb8c3bd44a28a056c5b0711918039dc5",
+    "assets": 319,
+    "byte_equal": true,
+    "build_backend": "hatchling==1.28.0",
+    "retained_backend": "/home/ts/.cache/uv/archive-v0/RgcgNn7xR1Zs9HSF",
+    "seconds": 0.7783511630259454,
+    "build_exit": 0,
+    "new_environment": false
+  },
+  "source_assets": {
+    "agent_comms": 344,
+    "toad": 319,
+    "textual": 266,
+    "textual_diff_view": 3,
+    "refactor_audit": 10
+  },
+  "package_count": 69,
+  "native": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
+  "app": {
+    "state": "affected installed App complete",
+    "seconds": 12.781365682953037,
+    "checks": [
+      "new rows commit; pending old native Unmount owns no Window/App paint fence",
+      "actual resize/current-source native display admission before old Unmount ends",
+      "editor input and same CommsScreen pump remain admitted during style worker",
+      "each repeated style request commits in original source order without losing draft",
+      "unchanged native rows do not manufacture reader layout",
+      "source park joins cancelled row worker while native retirement keeps committed rows",
+      "original source park/resume retains admitted native rows and draft",
+      "whole original App/runtime cleanup"
+    ],
+    "native_display_boundary": true,
+    "physical_or_cpu_claim": false
+  },
+  "terminal": {
+    "source_head": "9ac8a48efb8c3bd44a28a056c5b0711918039dc5",
+    "provider_inputs": 0,
+    "physical_movie": false,
+    "scratch": "/home/ts/.cache/agent-scratch/wire432-row-publication-app-20261004-01",
+    "exit_code": 0,
+    "duration_seconds": 15.539372983039357,
+    "cleanup": {
+      "remaining_owned_pids": [],
+      "errors": [],
+      "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+      "processes": [
+        {
+          "pid": 1303895,
+          "start_ticks": 60109115,
+          "returncode": 0
+        }
+      ]
+    }
+  },
+  "handback": {
+    "state": "WHOLE actual436 floor restored; sole432 code/import/execution claim closed",
+    "archive_sha256": "e6f27830a69a5e60902ecf8d25dccd46b43efefef75335e2679ef78c461aba5a",
+    "members_verified": 1470,
+    "packages": 69,
+    "protected_keepers_verified": 390,
+    "borrower_receipt": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/wire432-main436-20261004/final-borrowers.json",
+    "borrower_receipt_sha256": "aa598087d904451ded44f073f78765eb8b18b23495c3432ce676c6fff81ae392",
+    "borrowers": 0,
+    "gaps": 0,
+    "process_cleanup": {
+      "remaining_owned_pids": [],
+      "errors": [],
+      "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+      "processes": [
+        {
+          "pid": 1303895,
+          "start_ticks": 60109115,
+          "returncode": 0
+        }
+      ]
+    },
+    "original_origins_and_activation": "Exact archived original normal filewheel origins and original PREFIXactivation bytes; no counterfeit VCS metadata",
+    "provider_inputs": 0,
+    "physical_movie": false,
+    "future_holder_claim": false
+  },
+  "debt": {
+    "head": "33f5a36e2719aaebf5c08f01056e9ed319ef4fd9",
+    "conclusion": "SUCCESS",
+    "run": 37210774844,
+    "job": 111461340623
+  },
+  "raw_keepers": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/wire432-main436-20261004/app01.json",
+      "committed_keeper": "evidence/wire-row-publication-20261004/installed01/app01.json",
+      "sha256": "f9fad53f5077e710989473886cf4c1c8bf68e40319ed496f0807bc498909fd49"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/wire432-main436-20261004/app01.log",
+      "committed_keeper": "evidence/wire-row-publication-20261004/installed01/app01.log",
+      "sha256": "f66e9223648c26a52b4c341fcc46fa033ea5059f318a7bbc512355160a2b5691"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/wire432-main436-20261004/terminal.json",
+      "committed_keeper": "evidence/wire-row-publication-20261004/installed01/terminal.json",
+      "sha256": "404b8f47e33110f209cce561351a3a1b4b1f2f3e6b3afb4e1e8baf844100a099"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/wire432-main436-20261004/source-proof.json",
+      "committed_keeper": "evidence/wire-row-publication-20261004/installed01/source-proof.json",
+      "sha256": "39a24d994c2b1301b5df9e8e5e9fe3016cca1465093978bef17ebbf2a237929b"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/wire432-main436-20261004/candidate-activation.json",
+      "committed_keeper": "evidence/wire-row-publication-20261004/installed01/candidate-activation.json",
+      "sha256": "6e95295067ffd7a87a1e411f81f766c5e53372dbe7fbddd0b14306408b5e66e7"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/wire432-main436-20261004/wheel-proof.json",
+      "committed_keeper": "evidence/wire-row-publication-20261004/installed01/wheel-proof.json",
+      "sha256": "f3bcff67ea9966d6fa31e5600235fd731e96655c0d0f748a628deb50e81f7e9d"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/wire432-main436-20261004/code-handback.json",
+      "committed_keeper": "evidence/wire-row-publication-20261004/installed01/code-handback.json",
+      "sha256": "7420083d3d6aedcaff9cdd15c2621e5b1476fec518314875ccce4d27e6bc486a"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/wire432-main436-20261004/final-borrowers.json",
+      "committed_keeper": "evidence/wire-row-publication-20261004/installed01/final-borrowers.json",
+      "sha256": "aa598087d904451ded44f073f78765eb8b18b23495c3432ce676c6fff81ae392"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/wire432-main436-20261004/issued-grant.json",
+      "committed_keeper": "evidence/wire-row-publication-20261004/installed01/issued-grant.json",
+      "sha256": "7d059665eb28af99c0c61a1b552600f00590111b6663083ae6a9d2c8e1d34ecb"
+    }
+  ],
+  "retained_original_negatives": [
+    {
+      "path": "evidence/wire-row-publication-20261004/installed01/prelaunch-argument-negative",
+      "classification": "Authored runner passed unsupported argument names; no child spawned.",
+      "production_changed": false
+    },
+    {
+      "path": "evidence/wire-row-publication-20261004/installed01/pre-App-constructor-negative",
+      "classification": "Authored control passed a MainScreen identity as an unsupported ToadApp constructor argument; corrected to original project admission.",
+      "production_changed": false
+    },
+    {
+      "path": "evidence/wire-row-publication-20261004/installed01/worker-property-negative",
+      "classification": "Authored control read nonexistent Worker.is_done; corrected all four sites to original Worker.is_finished.",
+      "production_changed": false
+    },
+    {
+      "path": "evidence/wire-row-publication-20261004/installed01/worker-manager-callback-negative",
+      "classification": "Actual worker joins completed; manager removal belongs to Task.add_done_callback. Original assertion conflated terminal work with immediate registry removal; now asserts original terminal worker state.",
+      "production_changed": false
+    }
+  ],
+  "scope": "Original private registered wire, native row mount/commit/old-Unmount resource lifetime; Screen input/resize/current-source display and repeated style ordering; unchanged page geometry; original source parking/cancellation/resume and draft/wholeclose.",
+  "remaining": [
+    "interrupted new-row acquisition",
+    "new source receipt/tail publication and bounded paging/read acknowledgement",
+    "physical DM/IRC/sidebar/rapid motion and CPU gain/144Hz acceptance"
+  ],
+  "limits": [
+    "Native display admission is not terminal-writer or physical motion proof.",
+    "No provider/native SDK input, movie, source fork, environment, dependency change, Core/Text/native build.",
+    "No causal CPU improvement claim or repeat of accepted430/429 cases."
+  ],
+  "owner": "Heis",
+  "future_holder_claim": false
+}

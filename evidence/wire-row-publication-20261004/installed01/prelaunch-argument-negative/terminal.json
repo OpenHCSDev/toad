@@ -1,0 +1,16 @@
+{
+  "source_head": "9ac8a48efb8c3bd44a28a056c5b0711918039dc5",
+  "provider_inputs": 0,
+  "physical_movie": false,
+  "scratch": "/home/ts/.cache/agent-scratch/wire432-row-publication-app-20261004-01",
+  "exit_code": 1,
+  "error": "ChildLaunch.spawn() got an unexpected keyword argument 'on_observe'",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/wire432-main436-20261004/run-app.py\", line 24, in <module>\n    owner.run([str(prefix / 'bin/python'), str(wt / 'tests/message_dividers_pilot.py'), '--row-publication'], env=env, cwd=wt, timeout=75, stdout=log, stderr=log, on_observe=lambda: (out / 'active-app.json').write_text(json.dumps({'state': 'running', 'processes': [child.receipt() for child in owner.children]}) + '\\n'), observe_interval=.5)\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/record_installed_tui.py\", line 270, in run\n    owned = self.start(argv, env=env, stdout=stdout, **kwargs)\n  File \"/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/record_installed_tui.py\", line 223, in start\n    child = launch.spawn(**kwargs)\nTypeError: ChildLaunch.spawn() got an unexpected keyword argument 'on_observe'\n",
+  "duration_seconds": 0.0011783830123022199,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": []
+  }
+}
