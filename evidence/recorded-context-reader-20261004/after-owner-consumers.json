@@ -4,7 +4,7 @@
     {
       "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
       "root": "src/toad",
-      "head": "2a51899968e56124b78fe3c3364630d3125539fc",
+      "head": "7a8131295c28f99cf372cad51de7e09993209a5d",
       "parsed": 288,
       "unparsed": [],
       "sites": [
@@ -12,7 +12,7 @@
           "path": "src/toad/acp/agent_configuration.py",
           "line": 61,
           "kind": "FunctionDef",
-          "source": "@property"
+          "source": "def selected(self) -> SessionConfigSelectOption | None:"
         },
         {
           "path": "src/toad/acp/agent_process.py",
@@ -24,7 +24,7 @@
           "path": "src/toad/acp/log_records.py",
           "line": 187,
           "kind": "FunctionDef",
-          "source": "@classmethod"
+          "source": "def read(cls, path: Path, budget: int, before: int | None = None) -> LogPage:"
         },
         {
           "path": "src/toad/acp/log_records.py",
@@ -138,37 +138,37 @@
           "path": "src/toad/ansi/_ansi.py",
           "line": 63,
           "kind": "FunctionDef",
-          "source": "@classmethod"
+          "source": "def read(cls, introducer: str) -> PatternCheck:"
         },
         {
           "path": "src/toad/ansi/_ansi.py",
           "line": 71,
           "kind": "FunctionDef",
-          "source": "@classmethod"
+          "source": "def read(cls, introducer: str) -> PatternCheck:"
         },
         {
           "path": "src/toad/ansi/_ansi.py",
           "line": 89,
           "kind": "FunctionDef",
-          "source": "@classmethod"
+          "source": "def read(cls, introducer: str) -> PatternCheck:"
         },
         {
           "path": "src/toad/ansi/_ansi.py",
           "line": 125,
           "kind": "FunctionDef",
-          "source": "@classmethod"
+          "source": "def read(cls, introducer: str) -> PatternCheck:"
         },
         {
           "path": "src/toad/ansi/_ansi.py",
           "line": 167,
           "kind": "FunctionDef",
-          "source": "@classmethod"
+          "source": "def read(cls, introducer: str) -> PatternCheck:"
         },
         {
           "path": "src/toad/ansi/_ansi.py",
           "line": 207,
           "kind": "FunctionDef",
-          "source": "@classmethod"
+          "source": "def read(cls, introducer: str) -> PatternCheck:"
         },
         {
           "path": "src/toad/ansi/_ansi.py",
@@ -186,25 +186,25 @@
           "path": "src/toad/block_navigation.py",
           "line": 38,
           "kind": "FunctionDef",
-          "source": "@property"
+          "source": "def selected(self) -> Widget | None: ..."
         },
         {
           "path": "src/toad/block_navigation.py",
           "line": 52,
           "kind": "FunctionDef",
-          "source": "@property"
+          "source": "def selected(self):"
         },
         {
           "path": "src/toad/block_navigation.py",
           "line": 71,
           "kind": "FunctionDef",
-          "source": "@property"
+          "source": "def selected(self):"
         },
         {
           "path": "src/toad/block_navigation.py",
           "line": 107,
           "kind": "FunctionDef",
-          "source": "@property"
+          "source": "def selected(self):"
         },
         {
           "path": "src/toad/block_navigation.py",
@@ -222,7 +222,7 @@
           "path": "src/toad/channel_preparation.py",
           "line": 51,
           "kind": "FunctionDef",
-          "source": "def read(self, follow_tail: bool=True) -> HistoryReadResult:"
+          "source": "def read(self, follow_tail: bool = True) -> HistoryReadResult:"
         },
         {
           "path": "src/toad/channel_preparation.py",
@@ -276,7 +276,7 @@
           "path": "src/toad/command_catalog.py",
           "line": 20,
           "kind": "AsyncFunctionDef",
-          "source": "@classmethod"
+          "source": "async def read(cls, app, advertised: Sequence[AgentAdvertisedCommand],"
         },
         {
           "path": "src/toad/comms_root.py",
@@ -357,40 +357,70 @@
           "source": "selected"
         },
         {
+          "path": "src/toad/conversation_submission.py",
+          "line": 22,
+          "kind": "Name",
+          "source": "source_text"
+        },
+        {
+          "path": "src/toad/conversation_submission.py",
+          "line": 27,
+          "kind": "Attribute",
+          "source": "self.source_text"
+        },
+        {
+          "path": "src/toad/conversation_submission.py",
+          "line": 111,
+          "kind": "Attribute",
+          "source": "self.source_text"
+        },
+        {
+          "path": "src/toad/conversation_submission.py",
+          "line": 77,
+          "kind": "Attribute",
+          "source": "self.source_text"
+        },
+        {
+          "path": "src/toad/conversation_submission.py",
+          "line": 79,
+          "kind": "Attribute",
+          "source": "self.source_text"
+        },
+        {
+          "path": "src/toad/conversation_submission.py",
+          "line": 80,
+          "kind": "Attribute",
+          "source": "self.source_text"
+        },
+        {
           "path": "src/toad/core/context_inspection.py",
           "line": 30,
           "kind": "ClassDef",
-          "source": "@dataclass(frozen=True)"
+          "source": "class ContextNode(ABC):"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 88,
+          "kind": "ClassDef",
+          "source": "class ReferenceNode(ContextNode):"
         },
         {
           "path": "src/toad/core/context_inspection.py",
           "line": 144,
           "kind": "ClassDef",
-          "source": "@dataclass(frozen=True)"
+          "source": "class RecordedTurnNode(ContextNode):"
         },
         {
           "path": "src/toad/core/context_inspection.py",
-          "line": 187,
+          "line": 181,
           "kind": "ClassDef",
-          "source": "@dataclass(frozen=True)"
+          "source": "class RecordedSegmentNode(RecordedTurnNode):"
         },
         {
           "path": "src/toad/core/context_inspection.py",
-          "line": 339,
+          "line": 333,
           "kind": "ClassDef",
-          "source": "@dataclass(frozen=True)"
-        },
-        {
-          "path": "src/toad/core/context_inspection.py",
-          "line": 21,
-          "kind": "alias",
-          "source": "ContextManifest"
-        },
-        {
-          "path": "src/toad/core/context_inspection.py",
-          "line": 21,
-          "kind": "alias",
-          "source": "ContextSourceText"
+          "source": "class ContextInspection:"
         },
         {
           "path": "src/toad/core/context_inspection.py",
@@ -438,73 +468,61 @@
           "path": "src/toad/core/context_inspection.py",
           "line": 170,
           "kind": "AsyncFunctionDef",
-          "source": "async def read(self):"
-        },
-        {
-          "path": "src/toad/core/context_inspection.py",
-          "line": 176,
-          "kind": "AsyncFunctionDef",
           "source": "async def find(self, query, *, limit=100):"
         },
         {
           "path": "src/toad/core/context_inspection.py",
-          "line": 187,
+          "line": 181,
           "kind": "Name",
           "source": "RecordedTurnNode"
         },
         {
           "path": "src/toad/core/context_inspection.py",
-          "line": 216,
+          "line": 206,
+          "kind": "AsyncFunctionDef",
+          "source": "async def source_text(self):"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 210,
           "kind": "AsyncFunctionDef",
           "source": "async def read(self):"
         },
         {
           "path": "src/toad/core/context_inspection.py",
-          "line": 220,
+          "line": 214,
           "kind": "AsyncFunctionDef",
           "source": "async def find(self, query, *, limit=100):"
         },
         {
           "path": "src/toad/core/context_inspection.py",
-          "line": 232,
+          "line": 226,
           "kind": "Name",
           "source": "ContextNode"
         },
         {
           "path": "src/toad/core/context_inspection.py",
-          "line": 318,
+          "line": 312,
           "kind": "Name",
           "source": "ContextNode"
         },
         {
           "path": "src/toad/core/context_inspection.py",
-          "line": 347,
+          "line": 341,
           "kind": "FunctionDef",
-          "source": "@classmethod"
+          "source": "def read(cls, comms, owner):"
         },
         {
           "path": "src/toad/core/context_inspection.py",
-          "line": 366,
+          "line": 360,
           "kind": "AsyncFunctionDef",
-          "source": "async def find(self, native, query: str, selected: ContextNode | None=None, *, limit=100):"
-        },
-        {
-          "path": "src/toad/core/context_inspection.py",
-          "line": 407,
-          "kind": "AsyncFunctionDef",
-          "source": "async def recorded_segment(self, manifest, position, contributors=()):"
+          "source": "async def find(self, native, query: str, selected: ContextNode | None = None, *, limit=100):"
         },
         {
           "path": "src/toad/core/context_inspection.py",
           "line": 58,
           "kind": "FunctionDef",
           "source": "def read():"
-        },
-        {
-          "path": "src/toad/core/context_inspection.py",
-          "line": 145,
-          "kind": "Name",
-          "source": "ContextManifest"
         },
         {
           "path": "src/toad/core/context_inspection.py",
@@ -520,33 +538,9 @@
         },
         {
           "path": "src/toad/core/context_inspection.py",
-          "line": 342,
-          "kind": "Name",
-          "source": "ContextManifest"
-        },
-        {
-          "path": "src/toad/core/context_inspection.py",
-          "line": 352,
+          "line": 346,
           "kind": "Name",
           "source": "ContextInspection"
-        },
-        {
-          "path": "src/toad/core/context_inspection.py",
-          "line": 399,
-          "kind": "Name",
-          "source": "ContextSourceText"
-        },
-        {
-          "path": "src/toad/core/context_inspection.py",
-          "line": 405,
-          "kind": "Name",
-          "source": "ContextSourceText"
-        },
-        {
-          "path": "src/toad/core/context_inspection.py",
-          "line": 411,
-          "kind": "Name",
-          "source": "ContextSourceText"
         },
         {
           "path": "src/toad/core/context_inspection.py",
@@ -562,67 +556,49 @@
         },
         {
           "path": "src/toad/core/context_inspection.py",
-          "line": 90,
-          "kind": "Name",
-          "source": "ContextSourceText"
-        },
-        {
-          "path": "src/toad/core/context_inspection.py",
-          "line": 121,
-          "kind": "Name",
-          "source": "ContextSourceText"
-        },
-        {
-          "path": "src/toad/core/context_inspection.py",
-          "line": 179,
+          "line": 173,
           "kind": "Attribute",
           "source": "child.find"
         },
         {
           "path": "src/toad/core/context_inspection.py",
-          "line": 213,
+          "line": 211,
           "kind": "Attribute",
-          "source": "self.inspection.recorded_segment"
+          "source": "self.source_text"
         },
         {
           "path": "src/toad/core/context_inspection.py",
-          "line": 234,
-          "kind": "Name",
-          "source": "ContextSourceText"
+          "line": 217,
+          "kind": "Attribute",
+          "source": "self.source_text"
         },
         {
           "path": "src/toad/core/context_inspection.py",
-          "line": 320,
-          "kind": "Name",
-          "source": "ContextSourceText"
-        },
-        {
-          "path": "src/toad/core/context_inspection.py",
-          "line": 366,
+          "line": 360,
           "kind": "Name",
           "source": "ContextNode"
         },
         {
           "path": "src/toad/core/context_inspection.py",
-          "line": 369,
+          "line": 363,
           "kind": "Name",
           "source": "selected"
         },
         {
           "path": "src/toad/core/context_inspection.py",
-          "line": 369,
+          "line": 363,
           "kind": "Name",
           "source": "selected"
         },
         {
           "path": "src/toad/core/context_inspection.py",
-          "line": 369,
+          "line": 363,
           "kind": "Name",
           "source": "ContextNode"
         },
         {
           "path": "src/toad/core/context_inspection.py",
-          "line": 373,
+          "line": 367,
           "kind": "Attribute",
           "source": "node.find"
         },
@@ -634,21 +610,33 @@
         },
         {
           "path": "src/toad/core/context_inspection.py",
-          "line": 363,
+          "line": 357,
           "kind": "Name",
           "source": "RecordedTurnNode"
         },
         {
           "path": "src/toad/core/context_inspection.py",
-          "line": 173,
-          "kind": "Attribute",
-          "source": "child.read"
+          "line": 131,
+          "kind": "Name",
+          "source": "ReferenceNode"
         },
         {
           "path": "src/toad/core/context_inspection.py",
-          "line": 203,
+          "line": 197,
           "kind": "Name",
           "source": "RecordedSegmentNode"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 200,
+          "kind": "Name",
+          "source": "ReferenceNode"
+        },
+        {
+          "path": "src/toad/core/context_inspection.py",
+          "line": 238,
+          "kind": "Name",
+          "source": "ReferenceNode"
         },
         {
           "path": "src/toad/db.py",
@@ -780,7 +768,7 @@
           "path": "src/toad/navigation_preparation.py",
           "line": 28,
           "kind": "FunctionDef",
-          "source": "@abstractmethod"
+          "source": "def read(self) -> ResultT:"
         },
         {
           "path": "src/toad/navigation_preparation.py",
@@ -858,7 +846,7 @@
           "path": "src/toad/screens/historical_sessions.py",
           "line": 89,
           "kind": "AsyncFunctionDef",
-          "source": "@on(Select.Changed, '#saved-identity')"
+          "source": "async def selected(self, event: Select.Changed) -> None:"
         },
         {
           "path": "src/toad/screens/historical_sessions.py",
@@ -871,12 +859,6 @@
           "line": 174,
           "kind": "Name",
           "source": "read"
-        },
-        {
-          "path": "src/toad/screens/main.py",
-          "line": 316,
-          "kind": "alias",
-          "source": "ContextExplorer"
         },
         {
           "path": "src/toad/screens/main.py",
@@ -918,7 +900,7 @@
           "path": "src/toad/session_observation.py",
           "line": 84,
           "kind": "AsyncFunctionDef",
-          "source": "@abstractmethod"
+          "source": "async def read(self, agent): ..."
         },
         {
           "path": "src/toad/session_observation.py",
@@ -951,6 +933,48 @@
           "source": "selected"
         },
         {
+          "path": "src/toad/settings.py",
+          "line": 200,
+          "kind": "Attribute",
+          "source": "self._present"
+        },
+        {
+          "path": "src/toad/settings.py",
+          "line": 105,
+          "kind": "Attribute",
+          "source": "group._present"
+        },
+        {
+          "path": "src/toad/settings.py",
+          "line": 237,
+          "kind": "Attribute",
+          "source": "self._parent._present"
+        },
+        {
+          "path": "src/toad/settings.py",
+          "line": 244,
+          "kind": "Attribute",
+          "source": "self._present"
+        },
+        {
+          "path": "src/toad/settings.py",
+          "line": 214,
+          "kind": "Attribute",
+          "source": "self._present"
+        },
+        {
+          "path": "src/toad/shell.py",
+          "line": 75,
+          "kind": "Attribute",
+          "source": "self._present"
+        },
+        {
+          "path": "src/toad/shell.py",
+          "line": 197,
+          "kind": "Attribute",
+          "source": "self._present"
+        },
+        {
           "path": "src/toad/shell_read.py",
           "line": 25,
           "kind": "Attribute",
@@ -961,6 +985,12 @@
           "line": 34,
           "kind": "Attribute",
           "source": "reader.read"
+        },
+        {
+          "path": "src/toad/shell_source.py",
+          "line": 51,
+          "kind": "AsyncFunctionDef",
+          "source": "async def _present(self, output: ShellOutput) -> None:"
         },
         {
           "path": "src/toad/sidebar_navigation.py",
@@ -1119,12 +1149,6 @@
           "source": "selected"
         },
         {
-          "path": "src/toad/transcript_filter.py",
-          "line": 115,
-          "kind": "Attribute",
-          "source": "snapshot.selected"
-        },
-        {
           "path": "src/toad/transcript_preparation.py",
           "line": 63,
           "kind": "Name",
@@ -1230,7 +1254,7 @@
           "path": "src/toad/widgets/comms_sidebar.py",
           "line": 257,
           "kind": "FunctionDef",
-          "source": "@property"
+          "source": "def selected(self) -> bool:"
         },
         {
           "path": "src/toad/widgets/comms_sidebar.py",
@@ -1300,21 +1324,57 @@
         },
         {
           "path": "src/toad/widgets/context_explorer.py",
+          "line": 25,
+          "kind": "ClassDef",
+          "source": "class ContextTreeIntent:"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
           "line": 32,
           "kind": "ClassDef",
           "source": "class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):"
         },
         {
           "path": "src/toad/widgets/context_explorer.py",
-          "line": 17,
-          "kind": "alias",
-          "source": "ContextInspection"
+          "line": 207,
+          "kind": "FunctionDef",
+          "source": "def _present(self, inspection, native):"
         },
         {
           "path": "src/toad/widgets/context_explorer.py",
-          "line": 17,
-          "kind": "alias",
-          "source": "ContextNode"
+          "line": 238,
+          "kind": "FunctionDef",
+          "source": "def _restore_reader(self, placeholder):"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 303,
+          "kind": "FunctionDef",
+          "source": "def _searching(self, inspection, native, query, selected):"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 364,
+          "kind": "FunctionDef",
+          "source": "def _restore_cursor(self, model):"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 392,
+          "kind": "FunctionDef",
+          "source": "def node_expanded(self, event):"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 398,
+          "kind": "FunctionDef",
+          "source": "def node_collapsed(self, event):"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 403,
+          "kind": "FunctionDef",
+          "source": "def node_highlighted(self, event):"
         },
         {
           "path": "src/toad/widgets/context_explorer.py",
@@ -1336,15 +1396,21 @@
         },
         {
           "path": "src/toad/widgets/context_explorer.py",
-          "line": 241,
+          "line": 248,
           "kind": "Name",
           "source": "selected"
         },
         {
           "path": "src/toad/widgets/context_explorer.py",
-          "line": 241,
+          "line": 248,
           "kind": "Attribute",
           "source": "self.intent.selected"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 44,
+          "kind": "Name",
+          "source": "ContextTreeIntent"
         },
         {
           "path": "src/toad/widgets/context_explorer.py",
@@ -1354,15 +1420,33 @@
         },
         {
           "path": "src/toad/widgets/context_explorer.py",
-          "line": 244,
+          "line": 236,
+          "kind": "Attribute",
+          "source": "self._restore_reader"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 251,
           "kind": "Attribute",
           "source": "self.intent.selected"
         },
         {
           "path": "src/toad/widgets/context_explorer.py",
-          "line": 390,
+          "line": 301,
+          "kind": "Attribute",
+          "source": "self._restore_reader"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 408,
           "kind": "Attribute",
           "source": "self.intent.selected"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 200,
+          "kind": "Attribute",
+          "source": "self._present"
         },
         {
           "path": "src/toad/widgets/context_explorer.py",
@@ -1372,13 +1456,55 @@
         },
         {
           "path": "src/toad/widgets/context_explorer.py",
-          "line": 242,
+          "line": 249,
           "kind": "Name",
           "source": "selected"
         },
         {
           "path": "src/toad/widgets/context_explorer.py",
-          "line": 351,
+          "line": 260,
+          "kind": "Attribute",
+          "source": "self._restore_cursor"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 276,
+          "kind": "Attribute",
+          "source": "self._present"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 288,
+          "kind": "Attribute",
+          "source": "self._searching"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 288,
+          "kind": "Name",
+          "source": "selected"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 309,
+          "kind": "Attribute",
+          "source": "self.intent.selected"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 309,
+          "kind": "Name",
+          "source": "selected"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 367,
+          "kind": "Attribute",
+          "source": "self.intent.selected"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 406,
           "kind": "Attribute",
           "source": "self.intent.selected"
         },
@@ -1390,31 +1516,49 @@
         },
         {
           "path": "src/toad/widgets/context_explorer.py",
-          "line": 242,
+          "line": 168,
+          "kind": "Attribute",
+          "source": "self._present"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 249,
           "kind": "Name",
           "source": "selected"
         },
         {
           "path": "src/toad/widgets/context_explorer.py",
-          "line": 268,
+          "line": 283,
           "kind": "Attribute",
           "source": "inspection.find"
         },
         {
           "path": "src/toad/widgets/context_explorer.py",
-          "line": 268,
+          "line": 283,
           "kind": "Name",
           "source": "selected"
         },
         {
           "path": "src/toad/widgets/context_explorer.py",
-          "line": 280,
+          "line": 285,
+          "kind": "Attribute",
+          "source": "self._searching"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 285,
           "kind": "Name",
           "source": "selected"
         },
         {
           "path": "src/toad/widgets/context_explorer.py",
-          "line": 407,
+          "line": 295,
+          "kind": "Name",
+          "source": "selected"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 425,
           "kind": "Attribute",
           "source": "model.read"
         },
@@ -1426,19 +1570,25 @@
         },
         {
           "path": "src/toad/widgets/context_explorer.py",
-          "line": 243,
+          "line": 250,
           "kind": "Name",
           "source": "selected"
         },
         {
           "path": "src/toad/widgets/context_explorer.py",
-          "line": 280,
+          "line": 255,
           "kind": "Name",
           "source": "selected"
         },
         {
           "path": "src/toad/widgets/context_explorer.py",
-          "line": 319,
+          "line": 295,
+          "kind": "Name",
+          "source": "selected"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 335,
           "kind": "Attribute",
           "source": "model.read"
         },
@@ -1468,25 +1618,25 @@
         },
         {
           "path": "src/toad/widgets/conversation.py",
-          "line": 980,
+          "line": 975,
           "kind": "Attribute",
           "source": "self.navigation.selected"
         },
         {
           "path": "src/toad/widgets/conversation.py",
-          "line": 698,
+          "line": 699,
           "kind": "Name",
           "source": "selected"
         },
         {
           "path": "src/toad/widgets/conversation.py",
-          "line": 1266,
+          "line": 1261,
           "kind": "Attribute",
           "source": "self.agent.configuration.model.selected"
         },
         {
           "path": "src/toad/widgets/conversation.py",
-          "line": 1596,
+          "line": 1591,
           "kind": "Attribute",
           "source": "agent.configuration.model.selected"
         },
@@ -1504,7 +1654,7 @@
         },
         {
           "path": "src/toad/widgets/conversation.py",
-          "line": 1673,
+          "line": 1668,
           "kind": "Attribute",
           "source": "CommandCatalog.read"
         },
@@ -1522,7 +1672,7 @@
         },
         {
           "path": "src/toad/widgets/conversation.py",
-          "line": 1213,
+          "line": 1208,
           "kind": "Attribute",
           "source": "agent.configuration.model.selected"
         },
@@ -1762,12 +1912,6 @@
         },
         {
           "path": "src/toad/widgets/session_thread_panels.py",
-          "line": 118,
-          "kind": "alias",
-          "source": "ContextExplorer"
-        },
-        {
-          "path": "src/toad/widgets/session_thread_panels.py",
           "line": 56,
           "kind": "Name",
           "source": "selected"
@@ -1795,6 +1939,12 @@
           "line": 57,
           "kind": "Name",
           "source": "selected"
+        },
+        {
+          "path": "src/toad/widgets/session_thread_panels.py",
+          "line": 120,
+          "kind": "Name",
+          "source": "ContextTreeIntent"
         },
         {
           "path": "src/toad/widgets/thread_comms.py",
@@ -5396,12 +5546,33 @@
       ]
     }
   ],
-  "limits": "Lexical receiver-name references are not proof of dynamic dispatch; complete roots parsed, no omissions",
+  "limits": "Lexical receiver-name references are not proof of dynamic dispatch; complete ToAd root parsed at current source, no omissions. Core311 unchanged inherited published evidence; no repeated dependency scan.",
   "controls": [
     "original exact nested contributor derives from manifest",
     "empty value remains empty",
     "three changed driver/capture modules parse",
     "all319ToAdassets equal committed source",
     "69package names/versions preserved"
+  ],
+  "after_terms": [
+    "ContextExplorer",
+    "ContextInspection",
+    "ContextNode",
+    "ContextTreeIntent",
+    "RecordedSegmentNode",
+    "RecordedTurnNode",
+    "ReferenceNode",
+    "_present",
+    "_restore_cursor",
+    "_restore_reader",
+    "_searching",
+    "context_recorded_segment",
+    "find",
+    "node_collapsed",
+    "node_expanded",
+    "node_highlighted",
+    "read",
+    "selected",
+    "source_text"
   ]
 }

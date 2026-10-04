@@ -121,3 +121,23 @@ are retained on later failure, without turning partial phases into readiness.
 417 must not hold the accepted right-sidebar crash fix. The previous334 code
 loan was normally restored and closed; parent explicitly granted the next
 sequential loan with the retained Text49 wheel, unchangedCore039/d5/69.
+
+## Physical08 and final package handback
+
+135.662s whole journey FAILED. The actual terminal reached readable thread/tag
+menus, applied and renamed the channel tag, opened the channel, executed the
+slash command, deleted the tag, returned to saved history and mounted current
+context. Original tags were restored. The frame named recorded-system actually
+shows the selected request ROOT, not the exact system member. The following
+search reported a disconnected owner; its cancellation/connection cause is
+unknown. No recorded exact-child text, full-reader/copy/export or whole-gate
+pass. Parent reviewed the menu/system images after that UI exited. All inputs,
+manifest and public/private source stayed unchanged; children retired and
+recorder cleanup was empty. No repeat run is requested.
+
+334 is restored to the qualified normal4162420 wheel and accepted Text49,
+unchanged Core039/d5/69. Existing RuntimeSelection published its matching
+activation from restored41549-source-proof.json and preflight passed. Whole
+CODE handback recorded in code-handback41549.json; no future package claim.
+417 remains a source draft, preserving the search and rendering-resource
+closure and all negatives. Accepted415 sidebar crash delivery is independent.
