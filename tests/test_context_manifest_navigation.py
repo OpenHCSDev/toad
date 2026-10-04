@@ -124,8 +124,10 @@ def test_authored_import_registered_app_and_local_user_correction(tmp_path, monk
         XDG_CONFIG_HOME=str(tmp_path / "config"),
         XDG_STATE_HOME=str(tmp_path / "state"),
         XDG_DATA_HOME=str(tmp_path / "data"),
+        XDG_CACHE_HOME=str(tmp_path / "cache"),
         PI_CODING_AGENT_DIR=str(tmp_path / "pi"),
-        TOAD_TEST_ATTEMPT="authored-w6-" + tmp_path.name,
+        TOAD_TEST_ATTEMPT=str(tmp_path),
+        AGENT_COMMS_DEBUG_LOG=str(tmp_path / "owner-debug.log"),
     )
     for key, value in environment.items():
         monkeypatch.setenv(key, value)
@@ -152,6 +154,7 @@ def test_authored_import_registered_app_and_local_user_correction(tmp_path, monk
     assert service.registry.require(correction.author.name).role is ThreadRole.USER
     assert correction.working_memory_section == "Promised"
     assert label.working_memory_section == "Unclassified"
+    print("W6: original local USER correction committed", flush=True)
 
     async def mounted():
         controller = CommsAgent(service, agent_bin=str(runtime / "pi-comms-native"),
@@ -166,15 +169,20 @@ def test_authored_import_registered_app_and_local_user_correction(tmp_path, monk
             owner = service.owners.acquire_thread(receipt.thread, owner_pid=os.getpid())
             assert owner.incarnation == original_owner.incarnation
             await controller.sessions.bind_owned(owner, owner.name)
+            print("W6: canonical owner acquired and runtime bound", flush=True)
             definition = AgentDefinition.decode({"name": "Authored W6 source",
                 "identity": "agent-comms.openhcs.dev", "short_name": "comms", "protocol": "acp",
                 "run_command": {"*": shlex.join((sys.executable, "-m", "agent_comms.acp"))}})
             app = ToadApp(agent_data=definition, project_dir=str(project), agent_session_id=owner.name)
+            print("W6: entering original registered App", flush=True)
             async with app.run_test(size=(130, 44)) as pilot:
+                print("W6: App entered; awaiting original content readiness", flush=True)
                 await app.selected_session.wait_content_ready()
+                print("W6: selected session content ready", flush=True)
                 panel, = (bar for bar in app.selected_session.query(SideBar) if bar.right)
                 assert await pilot.click(panel.query_one(SideBarToggle))
                 await panel.wait_content_ready()
+                print("W6: original right sidebar hydrated", flush=True)
                 explorer = app.selected_session.query_one(ContextExplorer)
                 explorer.query_ancestor(SideBarCollapsible).collapsed = False
                 explorer.action_refresh()
@@ -194,6 +202,7 @@ def test_authored_import_registered_app_and_local_user_correction(tmp_path, monk
                 async with asyncio.timeout(10):
                     while instructions not in explorer.query_one(TextArea).text:
                         await pilot.pause(.025)
+                print("W6: authenticated historical text displayed", flush=True)
                 inspection = ContextInspection.read(service, owner.name)
                 assert inspection.recorded() == ()
                 matches = await inspection.find(inspection.imported(), "historical λ")
@@ -207,6 +216,7 @@ def test_authored_import_registered_app_and_local_user_correction(tmp_path, monk
                 async with asyncio.timeout(10):
                     while "1 matching sources" not in explorer.query_one(".context-status", Static).render().plain:
                         await pilot.pause(.025)
+                print("W6: historical search completed", flush=True)
                 selected = tree.context_nodes[reference.key]
                 tree.focus()
                 tree.move_cursor(selected)
@@ -224,10 +234,14 @@ def test_authored_import_registered_app_and_local_user_correction(tmp_path, monk
                 assert instructions in exported.read_text()
                 assert "not current instructions" in selected.data.label
                 assert app._exception is None
+                print("W6: original historical export completed", flush=True)
             assert app._exception is None
             assert not controller.annotations.tasks
+            print("W6: registered App retired", flush=True)
         finally:
+            print("W6: joining original controller resources", flush=True)
             await controller.shutdown()
+            print("W6: controller resources joined", flush=True)
         assert source.read_bytes() == original
         assert InputDispositions(service.root / InputDispositions.filename).read() == inputs
         assert service.registry.require(receipt.thread).incarnation == original_owner.incarnation

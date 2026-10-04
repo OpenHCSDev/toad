@@ -28,3 +28,12 @@ This additional App case is prepared, not executed. Source syntax and whitespace
 Original installed01 passed three controls and failed two before App/native launch while initializing private sidecar schema. TypedTable.select incorrectly reused the required SQL column-list renderer for an optional empty query filter. Core627 now owns declared subset resolution on original TypedRow, shared by select/update/SQL rendering; no caller special cases. Exact Core source 7a115077385ec6bbaa1055365d7e2009e8d67f23; seven affected source controls and fresh schema10 initialization pass.
 
 Original negative, all1470/69/390 restoration and privileged229-process zero-reference/gap whole handback are committed in Core evidence/working-memory-20261004/installed-w6-01*. Initial missing-pytest runner negative retained. ToAd production/driver unchanged; only normal Core source locators advance. No installed App/read/search/export claim or successor loan inferred. Actual Codex sessions, model inputs/providers/forks remain excluded.
+
+
+## Changed installed successor and remaining App lifetime
+
+The e29f successor initialized fresh private schema10 and persisted/decoded original ModelLabel Unclassified plus HumanLabel author=user Promised. Runtimeinput0/annotationrequests0/bus0bytes in the authored fixture. It timed out at90.0326s/exit-15 without a completed App result or retained phase/stack. No App/native-reader PASS or fault cause inferred. Source bind_owned already starts the runtime, so no extra start/symptom patch. Current raw/typed readback/whole handback are retained by Core evidence/working-memory-20261004/installed-w6-02*.
+
+All1470originalfiles/69origins/390proofs restored,244-process privileged0refs/0gaps, both leases closed; original negatives unchanged. Existing MainScreen content readiness, SideBar hydration, attached runtime proxy subscription and ContextInspection workers were read; no measured blocked phase was retained.
+
+The same App control now derives its cleanup attempt from its unique private root (instead of a reusable test basename), isolates XDG_CACHE_HOME, enables the original Core debug-log capability and emits ordinary acquisition/readiness/read/search/export/retirement boundary lines. A future runner uses -s to preserve those lines on interruption. No new timer/store/framework, copied runtime state, artificial timeout or production patch. Syntax/whitespace only; changed control remains unexecuted. No new holder/READ loan inferred; source/debug evidence must select any production fix, not another blind same-path run.
