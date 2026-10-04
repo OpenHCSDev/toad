@@ -1,0 +1,33 @@
+{
+  "source_head": "6f1843feebc5e085c030bef20dc2be9ca1f72367",
+  "normal_main": "bf3a79c2a930c3b23433636378bb9ac8b08e1a69",
+  "f3_and_original_controls_byte_identical_to": "5f689b48f0e37239dfec5402da7648d9388b4d03",
+  "unchanged_paths": {
+    "src/toad/core/context_inspection.py": true,
+    "src/toad/widgets/context_explorer.py": true,
+    "tests/cold_context_installed_physical.py": true,
+    "tools/performance/click_history.py": true
+  },
+  "qualified429_startup_family_byte_identical_to_main": true,
+  "determining_sources": {
+    "agent-comms": {
+      "git": "https://github.com/OpenHCSDev/agent-comms.git",
+      "rev": "7a5c5fc2e79f2e32e4f340eaba573bf1bfec69bf"
+    },
+    "textual": {
+      "git": "https://github.com/OpenHCSDev/textual.git",
+      "rev": "0bc23a0741dacfdaca5c6043d453c46bbfa4e1c2"
+    },
+    "textual-diff-view": {
+      "git": "https://github.com/OpenHCSDev/textual-diff-view.git",
+      "rev": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+    }
+  },
+  "lock_packages": 99,
+  "lock_name_version_sequence_same_as_main": true,
+  "lock_count_correction": "The earlier source-only assertion expected 69 lock packages and failed. Actual lock contains 99 optional/dev packages; installed selected cohort count is a different fact. No package or runtime operation occurred.",
+  "runtime_operations": 0,
+  "hosted_debt": "required before merge; pending does not block separately granted affected App",
+  "installed_scope": "Reader12 failed before recorder. Corrected remount and same c603 export/distinct-child remain unfinished.",
+  "current_holder_grant": false
+}

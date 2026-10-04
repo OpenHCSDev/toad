@@ -52,7 +52,9 @@ Mendel owns F4's decoded contributor/recorded-label acceptance independently of4
 
 ## Normal main union
 
-Current main34633149 is normally merged at33efa199. Both owner production files are byte-identical to the source-correction receipt; no source result was silently broadened. The sole conflict was the physical click helper: original main wheel/drag/within controls and417 native context reveal/selection/right-click controls are retained together. The helper compiles; no physical gesture was executed. F3-main-union.json names exact parents and source identity. Main determining metadata remains unchanged; a reviewed typedCore622 pair is still needed before App qualification. This source join does not grant a package loan. Imported original evidence whitespace is preserved.
+Current main bf3a79c2 (qualified426 and429 startup/session family) is normally merged. The corrected F3 owner files and original reader/click controls are byte-identical to5f689b48; all429 production methods are byte-identical to main. No source guard, retry or refresh workaround was added. Determining Core is merged typed6227a5c5fc2, source-byte equivalent to the retained421 build; Text58 stays frozen0bc23a07. Native086 and SDK0.12.1 are unchanged.
+
+intent-main-union.json records source identities and metadata resolution. Lock package names/versions equal current main:99 total optional/development packages. The selected installed69 cohort is a separate fact; an earlier source-only assertion conflated them and failed before any package/runtime operation. Required hosted Debt applies before merge, not as an additional affected-App grant gate. No current package/import/execution grant is inferred.
 
 ## Reader12 and remaining restoration correction
 
