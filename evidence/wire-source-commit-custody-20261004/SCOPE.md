@@ -1,6 +1,6 @@
 # Wire row commit and receipt resource custody
 
-Source checkpoint with original failed installed attempt. The base is merged #432, `fb0447639cdba02aee0342170600783d66dab6eb`.
+Scoped installed row-source publication READY; original failed attempts retained. The base is merged #432, `fb0447639cdba02aee0342170600783d66dab6eb`.
 Its accepted installed 15.539s result remains historical qualification of that source;
 it does not qualify these new bytes. The separate installed01 attempt below does not qualify unfinished cases.
 
@@ -48,7 +48,7 @@ production, 394 test and 249 frozen native modules, with zero parse omissions.
 The broad named-site census includes unrelated `current`/`accept`/`restart` sites;
 AST names do not prove dynamic dispatch, external aliases or callbacks.
 
-## Remaining acceptance
+## Original control and source checkpoints
 
 The existing `message_dividers_pilot.py --row-publication` control is migrated. Its old waiting-worker assertions were an old completion contract:
 it now awaits the same admitted native source worker before releasing the original
@@ -76,7 +76,7 @@ is not its qualification. Final production/control checkpoint
 acquisition, preserving detached/retired refusal before accessing native resources.
 The source census is bound to this final production; control bytes are unchanged
 from `e56cbe8825628ca916664529313657eb554a8d60`. An evidence-only successor does not
-change that source qualification. The original installed01 failure below is retained; the corrected control is unrun.
+change that source qualification. At that checkpoint the corrected control was unrun; installed03 below now qualifies it.
 
 ## Original installed01 failure and successor oracle
 
@@ -120,6 +120,28 @@ root's durable private marker. With the live bus launch environment still active
 This is the wrong fixture resource: attached archived history needs the existing
 `Comms` service plus original private-protocol initialization, retaining the live
 launch route. Only that authored fixture construction is corrected; product bytes
-remain exactly96c8. The corrected archive control is unrun and no third purpose is
-inferred. Original02 failure, pre-App copied grant-field failure and wholehandback
+remain exactly96c8. At that checkpoint the corrected archive control was unrun and no third purpose was
+inferred. The separately granted installed03 qualification follows below. Original02 failure, pre-App copied grant-field failure and wholehandback
 are immutable keepers under installed02. No UI/speed/fullApp PASS claim is made.
+
+## Installed03 scoped acceptance
+
+The one remaining original App at control e05, with unchanged product96c8/wheel06445,
+passed all11 assertions: canonical receipt/source/order and both replacement bounds;
+input/resize/current-source native display while old Unmount remains pending; no
+manufactured layout for unchanged rows; original park/resume; actual pending Mount
+cancellation preserving committed rows/style/bounds/maps; real archived/live equal
+sequence restyle; whole original App/runtime close. Parent process exited0 in
+19.621976s; inside-App receipt15.964876s. Owned cleanup has no remaining PIDs/errors.
+
+All942 package assets,69 versions and native086 source/trust were verified before
+that App. Wholeactual4361470 archive members/69 versions/390 protected keepers were
+restored with original byte/mode/link/origin/activation identities. Fresh owner
+borrower census has zero references/gaps; independent Bohr close remains his lifecycle.
+Original issued grant bytes are separately copied and immutable. Original01 and02
+FAILs remain unchanged;03 supplies its own real finalApp receipt. Exact producer
+proofs and10raw keepers are bound by READY.json and installed03/keepers.json.
+
+This accepts source acquisition/commit/receipt/retirement lifetime at actual App
+scope. It does not establish physical scrolling, CPU gain, smoothness or FPS. Full
+performance stays active; there is no future holder claim or inferred successor run.

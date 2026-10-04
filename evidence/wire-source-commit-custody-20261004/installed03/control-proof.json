@@ -1,0 +1,12 @@
+{
+  "head": "e05fdbd36e5db82fd62219fc4c0d309b830ce5f5",
+  "product_reference": "96c8b1f3e0bc27fe1a996e88d10b525dbb7b26cf",
+  "production_delta": "ZERO",
+  "wheel_build_head": "0840fc60a85b6442cc8c4f9fd141482af0f8fe22",
+  "previous_original_failures": [
+    "../wire439-main436-20261004/terminal.json",
+    "../wire439-main436-successor-20261004/terminal.json"
+  ],
+  "retained_wheel_sha256": "06445ffc00b67834a88d14e57ac5dd5526cc823ff543477996279d6d8ce7c7ce",
+  "authored_archive": "Comms service/protocol initialization; original live launch env unchanged"
+}

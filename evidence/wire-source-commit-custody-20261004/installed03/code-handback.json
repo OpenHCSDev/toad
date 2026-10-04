@@ -1,0 +1,27 @@
+{
+  "state": "WHOLE actual436 floor restored; sole439 code/import/execution claim closed",
+  "archive_sha256": "e6f27830a69a5e60902ecf8d25dccd46b43efefef75335e2679ef78c461aba5a",
+  "members_verified": 1470,
+  "packages": 69,
+  "protected_keepers_verified": 390,
+  "borrower_receipt": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/wire439-main436-archive-20261004/final-borrowers.json",
+  "borrower_receipt_sha256": "14a3b5485e0ba0f472aab5b5c064b489530dd9801943dc839888647adf144fc6",
+  "borrowers": 0,
+  "gaps": 0,
+  "process_cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 2317968,
+        "start_ticks": 60956106,
+        "returncode": 0
+      }
+    ]
+  },
+  "original_origins_and_activation": "Exact archived original normal filewheel origins and original PREFIXactivation bytes; no counterfeit VCS metadata",
+  "provider_inputs": 0,
+  "physical_movie": false,
+  "future_holder_claim": false
+}

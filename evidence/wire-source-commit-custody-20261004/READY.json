@@ -1,0 +1,88 @@
+{
+  "state": "scoped installed App READY",
+  "product_reference": "96c8b1f3e0bc27fe1a996e88d10b525dbb7b26cf",
+  "retained_wheel_source": "0840fc60a85b6442cc8c4f9fd141482af0f8fe22",
+  "control_source": "e05fdbd36e5db82fd62219fc4c0d309b830ce5f5",
+  "production_dependency_delta_after_install": "ZERO",
+  "wheel_sha256": "06445ffc00b67834a88d14e57ac5dd5526cc823ff543477996279d6d8ce7c7ce",
+  "assets": {
+    "Core": 344,
+    "Toad": 319,
+    "Textual": 266,
+    "diff": 3,
+    "NRA": 10
+  },
+  "packages": 69,
+  "process_seconds": 19.62197612808086,
+  "App_seconds": 15.964876375976019,
+  "assertions": [
+    "source completes and authenticated receipt survives style commit before old Unmount",
+    "actual replacement read commits authenticated source and both bounds before old Unmount",
+    "actual resize/current-source native display admission before old Unmount ends",
+    "editor input and same CommsScreen pump remain admitted during style worker",
+    "each repeated style request commits in original source order without losing draft",
+    "unchanged native rows do not manufacture reader layout",
+    "source park joins cancelled row worker while native retirement keeps committed rows",
+    "original source park/resume retains admitted native rows and draft",
+    "interrupted real native Mount preserves committed rows, style, bounds and receipt resources",
+    "real attached history and live rows sharing sequence numbers restyle without synthetic backend page",
+    "whole original App/runtime cleanup"
+  ],
+  "original_failures": [
+    "installed01/terminal.json",
+    "installed02/terminal.json"
+  ],
+  "whole_floor_restore": {
+    "state": "WHOLE actual436 floor restored; sole439 code/import/execution claim closed",
+    "archive_sha256": "e6f27830a69a5e60902ecf8d25dccd46b43efefef75335e2679ef78c461aba5a",
+    "members_verified": 1470,
+    "packages": 69,
+    "protected_keepers_verified": 390,
+    "borrower_receipt": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/wire439-main436-archive-20261004/final-borrowers.json",
+    "borrower_receipt_sha256": "14a3b5485e0ba0f472aab5b5c064b489530dd9801943dc839888647adf144fc6",
+    "borrowers": 0,
+    "gaps": 0,
+    "process_cleanup": {
+      "remaining_owned_pids": [],
+      "errors": [],
+      "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+      "processes": [
+        {
+          "pid": 2317968,
+          "start_ticks": 60956106,
+          "returncode": 0
+        }
+      ]
+    },
+    "original_origins_and_activation": "Exact archived original normal filewheel origins and original PREFIXactivation bytes; no counterfeit VCS metadata",
+    "provider_inputs": 0,
+    "physical_movie": false,
+    "future_holder_claim": false
+  },
+  "original_grant_sha256": "8d2e51268d8ffb30c1b271ce92177714e8353d3aebcb491aedaa8d1b27f81ec5",
+  "keeper_root": "installed03",
+  "keepers": {
+    "app03.json": "8f1b1a6a32bce8265191e4ba701c5ef91accd280171e6a95d1a463d8cf1aaf63",
+    "app03.log": "0d7124d1de4a3ba68e04db6782fd820a6a26ec1c05c2f8d3af2945731389e45e",
+    "candidate-activation.json": "bc03aa32d3b977e5f1a4b96c8c6cdc89637cc186c38967cecc4965b2d75694c1",
+    "code-handback.json": "e3cae03f5128bd10c08557c3ae6561059b6f68f689225267bac2b2df9d8c5f33",
+    "control-proof.json": "fc78dbf195d1912da353b0f54590eceba71aae6c54564e6886ccecadc7850826",
+    "final-borrowers.json": "14a3b5485e0ba0f472aab5b5c064b489530dd9801943dc839888647adf144fc6",
+    "issued-grant.json": "8d2e51268d8ffb30c1b271ce92177714e8353d3aebcb491aedaa8d1b27f81ec5",
+    "source-proof.json": "0374964210ee7208154568db36f608e9242cef6f63104baf1f3acd9e40c274a1",
+    "terminal.json": "8c23a77134c061235237a1bfdfec246864a7c07d97209ef44b6f404e160a8d25",
+    "wheel-proof.json": "f8effe6dad85eb979c0b484c03ca7f2ea83e8234fa7a5dca31175197b0e75879"
+  },
+  "source_check": "e05 exact Debt37217961646 SUCCESS; evidence-only successor requires own exact hosted result",
+  "limits": [
+    "No physical scrolling or CPU gain/smoothness/FPS acceptance",
+    "Full performance still active",
+    "Original01 differing tuple contents unexported",
+    "Diagnostic App admission scope, not a new public/native owner launch",
+    "All original436 protected operation/proof/activation bytes restored; own candidate proof only"
+  ],
+  "provider_inputs": 0,
+  "SDK_inputs": 0,
+  "movie": false,
+  "future_holder_claim": false
+}
