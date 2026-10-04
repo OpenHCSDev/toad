@@ -1,0 +1,16 @@
+{
+  "state": "Verified matching416 installed source; CODE/capture handoff available, physical terminal menu/current-context acceptance still pending",
+  "source_proof": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/declared-actions607-context603-receiving-20261004/source-proof.json",
+  "source_proof_sha256": "04154735ff030014ac5b0d944665984c876f1dff8f13343154adc007909962e8",
+  "activation": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/activation.json",
+  "activation_sha256": "b3b94cf64ddc60737308d5c43385bc5b9502862e94365aca2530cdfe99d2256d",
+  "core": "03954605c0f1c75e60e1f09618e619edcedcd8cc",
+  "toad": "716832a5883b56adb1f0bd1c5ca543bfe10f50b6",
+  "textual": "7ccfcf6af55ac6e743220aa0d2286b9763ccee27",
+  "native_manifest": "d5efa0d56e7ad3962bf3efc009adf1569167a260f1ceb46824c9271a0e7542a2",
+  "assets": 927,
+  "packages": 69,
+  "protected_current_and_fallback": 2829,
+  "public_write": false,
+  "no_environment_native_clone_provider_run": true
+}
