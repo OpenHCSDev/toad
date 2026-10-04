@@ -19,9 +19,9 @@ prefix activation remains immutable. PreserveRuntimeInstallation and
 PreserveOwnerRuntime remain the original installation members. No publication,
 readback, audience/client guard retry, input or provider launch occurred.
 
-Exact operands and123 frozen artifacts: own
+Exact operands and114 frozen artifacts: own
 `.artifacts/context637-tool430-native59-receiving-20261004/new-publication433/`.
-Ready hash: `442b0035caf1aefe84a6a63a19bea26df57737d25bf9dd11a9fc54a0a24c3d5c`.
+Ready hash: `9b29dd6e8f22e709b3fa3ccbdd1571147a5c33fed48675b0c67a3aed16e48e6d`.
 22 original qualification records retain their scope and negatives:637 cold
 current-preview16.280s;430/Text59 changed App11.641s;417 original reader13 and
 recorded14; earlier F1/F4/422/426/429/native53/native58. No smoothness, CPU, whole
