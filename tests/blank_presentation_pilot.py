@@ -326,17 +326,19 @@ async def frame_admission():
 
 
 async def startup_hydration():
-    """Actual startup and mount work remain pending while their own pumps run."""
+    """Actual startup and hydration work remain pending while their own pumps run."""
     from threading import Event
     from textual import events
     from textual.geometry import Size
+    from textual.worker import get_current_worker, NoActiveWorker
     from unittest.mock import patch
     from agent_comms.threads import Thread
     from runtime_fixture import private_native_wire
     from toad.acp.maintenance_ingress import preflight
     from toad.agent_schema import AgentDefinition
     from toad.screens.comms import CommsScreen
-    from toad.widgets.comms_chat import CommsChatView
+    from toad.widgets.comms_chat import CommsChatView, session_thread_name
+    from toad.screens.workspace import WorkspaceScreen
     from toad.conversation_kind import ChannelConversation
     from toad.session_admission import HistorySessionAdmission
     from toad.session_tracker import CommsViewKey
@@ -347,6 +349,7 @@ async def startup_hydration():
                           XDG_CONFIG_HOME=str(root / "config"),
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         comms = private_native_wire(root / "wire")
+        comms.registry.declare(Thread(session_thread_name(root), frozenset(), str(root)))
         comms.registry.declare(Thread("pump-owner", frozenset({"pump"}), str(root)))
         entered, release, finished = Event(), Event(), Event()
 
@@ -361,7 +364,7 @@ async def startup_hydration():
         async def input_and_resize(owner, editor, text, size):
             app.screen.set_focus(editor, scroll_visible=False)
             # Use the original driver input path, without Pilot's global
-            # all-pump barrier (the child mount is deliberately pending).
+            # all-pump barrier (the owner's acquisition is deliberately pending).
             await app._press_keys(text)
             pumped = asyncio.Event()
             owner.call_later(pumped.set)
@@ -406,43 +409,45 @@ async def startup_hydration():
                 if entered.is_set():
                     assert await asyncio.to_thread(finished.wait, 5)
 
-        mounted, continue_mount = asyncio.Event(), asyncio.Event()
+        navigation_pending, continue_navigation = asyncio.Event(), asyncio.Event()
+        prepare_navigation = WorkspaceScreen.prepare_navigation
 
-        class HeldChat(CommsChatView):
-            async def initialize_view(self):
-                mounted.set()
-                await continue_mount.wait()
-                await super().initialize_view()
-
-        def pending_chat(screen):
-            return HeldChat(screen.project_path, me=screen.me, target=screen.target,
-                            kind=screen.kind, wire_root=screen.wire_root)
+        async def pending_navigation(screen):
+            await prepare_navigation(screen)
+            try:
+                worker = get_current_worker()
+            except NoActiveWorker:
+                return
+            if worker.group == "comms-content":
+                assert worker.node.query_one(CommsChatView).is_mounted
+                navigation_pending.set()
+                await continue_navigation.wait()
 
         app = InstalledApp(project_dir=str(root))
-        with patch.object(CommsScreen, "create_chat", pending_chat):
+        with patch.object(WorkspaceScreen, "prepare_navigation", pending_navigation):
             async with app.run_test(size=(100, 35)) as pilot:
                 await app.selected_session.wait_content_ready()
                 first = app.selected_session
-                key = CommsViewKey(str(comms.root), first.id, "pump-owner", ChannelConversation, "#pump")
+                key = CommsViewKey(str(comms.root), first.id, first.channels_context()[0], ChannelConversation, "#pump")
                 admission = HistorySessionAdmission("pending-hydration", key, ChannelConversation, root, None, ())
                 opening = asyncio.create_task(app.session_navigation.admit(admission))
                 try:
                     async with asyncio.timeout(5):
-                        await mounted.wait()
+                        await navigation_pending.wait()
                     view = app.workspace_sessions.require(admission.mode)
                     editor = view.query_one(PromptTextArea)
                     await input_and_resize(view, editor, "hydration-pump", (106, 37))
                     assert not opening.done() and not view._content_ready.is_set()
                     await app.select_session(first.id)
                     focused = app.screen.focused
-                    continue_mount.set()
+                    continue_navigation.set()
                     assert await opening == admission.mode
                     assert app.selected_session is first and app.screen.focused is focused
                     await app.select_session(view.id)
                     assert view.query_one(PromptTextArea) is editor and editor.text == "hydration-pump"
                     assert app._exception is None
                 finally:
-                    continue_mount.set()
+                    continue_navigation.set()
                     await asyncio.gather(opening, return_exceptions=True)
         evidence = Path(os.environ["TOAD_STARTUP_EVIDENCE"])
         evidence.mkdir(parents=True, exist_ok=True)
@@ -451,7 +456,7 @@ async def startup_hydration():
             "startup_owner_pump_input_resize_while_preflight_pending": True,
             "startup_hidden_return_same_operational_owner": True,
             "close_revokes_pending_startup_without_runner": True,
-            "hydration_owner_pump_input_resize_while_mount_pending": True,
+            "hydration_owner_pump_input_resize_paint_while_navigation_pending": True,
             "hidden_hydration_preserves_selected_focus": True,
             "whole_app_close": True, "provider_calls": 0, "native_inputs": 0,
             "scope": "Original App, Agent/preflight, native mount/worker/input pumps and compositor; controlled pending work, no terminal movie or smoothness claim",

@@ -1,6 +1,6 @@
 # Startup and hydration execution ownership
 
-Working source checkpoint; not installed Ready or a performance gain. Full UI/performance scope remains active.
+Scoped installed Ready. Full UI/performance scope remains active; no performance gain or smoothness claim.
 
 - Conversation's written-source frame admits and binds the actual Agent synchronously. The original AgentProcess operation resource owns asynchronous Agent.start, across hidden/retained/evicted views, and its existing close/retire joins that operation. The input pump no longer awaits startup.
 - CommsScreen admits hydration into its original native worker manager. Removed `_hydrate_queued` and `_content_loading`; its existing content admission and readiness event retain their contracts. Close and unmount cancel/join the actual hydration cohort before native teardown.
@@ -15,12 +15,16 @@ Before evidence uses existing refactor-audit Package across all 288 Toad and 249
 
 Validation last: one affected real App batch must hold actual startup/preflight and hydration resource work pending while verifying their own input/resize/frame delivery; then hidden return, cancellation and whole App close. Existing four #426 App positives remain scoped historical acceptance, not proof of this new path. Original failures/UNKNOWN inputs remain unchanged; no old movie repeat.
 
-## Actual execution dependency
+## Installed scope and original negatives
 
-#426 caf415 merged actual main42f1cc9f after its four App scoped acceptance; it does not qualify startup/hydration responsiveness. The style22 holder is now exclusively Einstein417/nativeTree58. No new Heis code/import/execution purpose has been granted; no package access or App launch is part of this source checkpoint. Next installed qualification requires his real whole handback and a fresh named purpose, retaining existing floor/proofs. The source and acceptance preparation continue independently.
+The final changed existing `blank_presentation_pilot --startup-only` passed exit0 in **20.206785 seconds** against product4e2ad9218, normal Core7a5/Text55bb936/native086/SDK0.12.1, all69 packages. Its actual startup preflight stays pending while the Conversation pump processes original driver editor keys and Resize, with compositor paint. Hidden/return retains the same Agent and draft; close cancels and joins the original startup operation without launching a runner. Its mounted Comms chat still has hydration navigation pending while its own pump handles input/resize and paints; hidden completion retains selected focus, and return retains editor identity/draft. Both Apps complete whole shutdown. No provider or native child input, public mutation, physical film, terminal-writer/FPS/CPU gain or native-first-paint claim.
 
-## Final affected acceptance mode
+Original failures remain truthful:
 
-The existing `blank_presentation_pilot --startup-only` now exercises the actual Conversation pump while original AgentProcess preflight is held, then hidden/return and cancel/whole close. The same original App holds a native CommsChatView mount, verifies CommsScreen pump admission, actual driver editor keys and Resize events, then hidden completion without focus theft and warm return. Controlled barriers hold original operations and call their original implementation afterward; they do not supply replacement protocol/state answers. No provider prompt or native child input is sent. Test code is prepared but has NOT run. Pilot global all-pump/animation completion is not treated as source readiness; the check uses the original driver, actual owner callback delivery and actual Screen refresh boundary.
+- 01 passed an obsolete dictionary instead of actual AgentDefinition; failed before startup and ended supervisor124. Only the authored nominal input/bounded wait changed.
+- 02 reached startup/input/resize/hide/return/close, then demanded editor paint while its parent chat Mount handler was still held. Native MessagePump publishes `_is_mounted` only after Mount returns; Compositor rejects unmounted parent placement. Raw exit1/19.5566s stays unchanged, not a product paint pass.
+- 03 moved the hold after mount but intercepted both hydration and ordinary mode-switch navigation, retaining the global switch lock; supervisor124 stays unchanged. Its temporary-project actor was also absent from the declared private registry. The final check declares that actual original `session_thread_name` identity, takes Comms `me` from the admitted source, and holds only native `comms-content` worker navigation. Command boundary and product code remain unchanged. No manufactured actor substitution, deadline increase or assertion removal.
 
-Mendel retained Core421 wheel d96ab5 binds all342assets byte equal merged7a5 and immutable086; it is distinct from old486b. Bohr now explicitly issued startup-only purpose at `style22-Heis429-startup-package-execution-grant.json` after reader12 exact1459/69/0borrower handback. This is actual new custody, superseding the earlier pending-purpose note, not permission for a film/provider/other purpose.
+The original resource-tracker warning is retained, not called a clean log. Source proof binds all927 package assets and exact normal filewheel origins; final production remains byte equal installed4e2. Complete AST source evidence records288 Toad/249native/394tests/41tools, zero omissions; arbitrary dynamic aliases/overrides remain unproved.
+
+Bohr's explicit429 purpose was used, then fully returned. Exact normal original Core611/Toad9138/Texta52/NRA d392/native2ea floor restored: all1459 original archive bytes/readlinks,69versions/origins and activation equal; pipcheckPASS; privileged245allUID census0refs/0gaps. Failed03 private state remains preserved; empty01/02/04 scratch removed. No future package/import/read/execution claim. READY.json binds original logs, source proofs and handback hashes. No old426 App or film repeated.

@@ -1,0 +1,9 @@
+{
+  "head": "4e2ad921800b33ee86b65960f564434e91579c8f",
+  "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+  "sha256": "bb575bc69672d86edab569e8bf6cbfad24ad49fbcef0b30f114a818b2b4d5f50",
+  "bytes": 2242470,
+  "tracked_assets_exact": 319,
+  "builder": "original cached declared hatchling1.28.0, normal build --wheel --no-isolation; no env/clone",
+  "declared_backend": "hatchling.build"
+}
