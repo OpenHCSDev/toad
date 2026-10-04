@@ -1,0 +1,13 @@
+{
+  "state": "Normalmerged420source; metadata conflicts resolved to actualmerged616/Text51",
+  "incoming_main": "901771fc58b44996824c52711a1a352e3844dc3d",
+  "core": "966e761d7932b4b3a2a54852789dccbf372d6097",
+  "textual": "2fac5395d37454296e9fa9b0cd342b820bacc25a",
+  "source_test_tool_delta_vs_main420": 0,
+  "dependency_name_version_graph_equal_main420": true,
+  "old615_candidate_restore_and_physical10_originals_preserved": true,
+  "unqualified417_included": false,
+  "package_writes_yet": false,
+  "provider_or_film_repeated": false,
+  "private_preparation_negative": "First metadata record write refused unmaterialized sparse evidence directory after pin resolution; mkdir restored owned path only; no package or public effect"
+}

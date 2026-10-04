@@ -1,0 +1,46 @@
+{
+  "sources": [
+    {
+      "module": "agent_comms",
+      "head": "d41601c16d74e9e3e4195b6527fb218b8fe14af9",
+      "files": 342,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "file:///home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/input-drain611-wheels/agent_comms-0.1.0-py3-none-any.whl",
+        "archive_info": {}
+      },
+      "unchanged_from_preimage": true
+    },
+    {
+      "module": "toad",
+      "head": "07fbea5df0bb679266a6c255ebd6503da022feb1",
+      "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sidebar420-source-20261004/final-toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "wheel_sha256": "423b879d6576b7a781f1f84b6a505c800b237773fc461a1fd6859090b90e1562",
+      "files": 319,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "file:///home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sidebar420-source-20261004/final-toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+        "archive_info": {}
+      }
+    },
+    {
+      "module": "textual",
+      "head": "e23e6365de7e5a5c03854268ea2b8b8e7738988a",
+      "wheel": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text51-filewheel-e23e6365de-20261004/textual-8.2.8-py3-none-any.whl",
+      "wheel_sha256": "dcd0d3cc11a6332866326afa0c76fb18c5df0439bf354d40fbcf9c48bf72fe77",
+      "files": 266,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "file:///home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text51-filewheel-e23e6365de-20261004/textual-8.2.8-py3-none-any.whl",
+        "archive_info": {}
+      }
+    }
+  ],
+  "normal_packages": 69,
+  "source_overlay": false,
+  "core_native_dependencies_unchanged": true,
+  "main_join": "4c3459fcf",
+  "main_join_src_tests_tools_byte_equal_to_installed": "07fbea5df0bb679266a6c255ebd6503da022feb1",
+  "source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sidebar420-source-20261004/source-proof.json",
+  "source_proof_sha256": "089768ca03af0128afb1b16a767fbe147ba425f7a90608f854026b00c62ef636"
+}
