@@ -85,7 +85,7 @@ async def main():
                     await pilot.pause()
                     await asyncio.wait_for(app.select_session(channel), 2)
                     await pilot.pause()
-                    request_target(app, StopCliCommand, "victim", "actor")
+                    request_target(app, StopCliCommand, "victim")
                     await pilot.pause()
                     assert stopped == ["victim"]
                     assert not release.is_set()
@@ -95,7 +95,7 @@ async def main():
                     await until(lambda: not app.thread_actions.pending)
                     assert comms.registry.status("victim").stopped
                     assert any(StopCliCommand.help in message for message, _ in notices)
-                    request_target(app, StopCliCommand, "refuses-stop", "actor")
+                    request_target(app, StopCliCommand, "refuses-stop")
                     await until(lambda: not app.thread_actions.pending)
                     assert comms.registry.status("refuses-stop").active
                     assert any(message == "Refused test stop" and severity == "error"

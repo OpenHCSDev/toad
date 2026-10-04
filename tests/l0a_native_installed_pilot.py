@@ -516,7 +516,7 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 print("ACTUAL_ACP_PROCESS_CLEANUP_CONFIRMED", flush=True)
                 await asyncio.to_thread(comms.owners.stop, "beta")
                 assert not comms.registry.require("beta").process_alive
-                request_target(app, StartCliCommand, "beta", user)
+                request_target(app, StartCliCommand, "beta")
                 await until(pilot, lambda: "beta" not in app.thread_actions.pending)
                 assert comms.registry.require("beta").process_alive, (
                     "Explicit Start did not launch owner"

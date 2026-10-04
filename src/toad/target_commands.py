@@ -13,7 +13,7 @@ from agent_comms.comms import Comms
 from toad import messages
 from toad.comms_root import root_is_current
 from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
-from agent_comms.cli_commands import TargetActionsCliCommand
+from agent_comms.cli_commands import CliCommand, TargetAction
 from toad.thread_actions import ThreadAction
 
 if TYPE_CHECKING:
@@ -40,7 +40,7 @@ class TargetContext:
         from toad.comms_root import RouteSelection
         selected = RouteSelection.capture(self.comms.root)
         self.current()
-        actions = TargetActionsCliCommand(target=self.subject, channel=self.channel, project=str(self.project)).apply(self.comms)['actions']
+        actions = CliCommand.target_catalog(self.comms, self.subject, self.channel, project=str(self.project))
         if RouteSelection.capture(self.comms.root) != selected:
             raise ValueError('Comms route changed during command discovery')
         return actions
@@ -115,17 +115,17 @@ class ContextualCommand(CommandPresentation, ABC):
 
 @dataclass(frozen=True)
 class ThreadCommand(ContextualCommand):
-    definition: dict
+    definition: TargetAction
 
     @property
     def command(self):
-        return '/' + self.definition['command']
+        return '/' + self.definition.declaration.declared_name
 
     def available(self, ctx):
         return True  # Membership is the backend query; execution rechecks there.
 
     def label(self, ctx):
-        return self.definition['label']
+        return self.definition.label
 
     def execute(self, ctx):
         ThreadAction.collect(ctx, self.definition)
