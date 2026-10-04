@@ -1,0 +1,7 @@
+{
+  "state": "PRIVATE_RECEIPT_PREPARATION_FAILURE; not package/native/runtime failure",
+  "log": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/verify-first.log",
+  "site": "requirements_sha256 receipt field",
+  "cause": "Missing own433 requirements input file; helper reached receipt construction after source/origin/native/scripts/69/protected159 checks",
+  "correction": "Record four actual filewheel inputs, then complete installedproof; no package reinstall, rebuild or App/provider/SDK launch"
+}

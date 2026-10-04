@@ -1,0 +1,134 @@
+[
+  {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/qualified-source-gates/422-SCOPED-READY.json",
+    "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/422-SCOPED-READY.json",
+    "sha256": "feec53af541b617ceef802ff43eb1c9e58d7f58632da6873665e5ef763a4d9db",
+    "bytes": 44602
+  },
+  {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/qualified-source-gates/426-APP-QUALIFIED.json",
+    "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/426-APP-QUALIFIED.json",
+    "sha256": "06e36b9349e5e1f2fffde80f1b7e403f46995689643724d1256c413bd71eeb44",
+    "bytes": 5031
+  },
+  {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/qualified-source-gates/426-SCOPED-READY.json",
+    "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/426-SCOPED-READY.json",
+    "sha256": "e39eed98a1c6d61b0fc9e586ea367535cd351722da4269a2cb5af3f0cfe89472",
+    "bytes": 8568
+  },
+  {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/qualified-source-gates/427-historical-consumer-receipt.json",
+    "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/427-historical-consumer-receipt.json",
+    "sha256": "ed5b309d18b10d260bbb0fff4eaaa190026309f56781a027dc4bbac0d39bc06c",
+    "bytes": 832
+  },
+  {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/qualified-source-gates/429-INSTALLED-APP.json",
+    "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/429-INSTALLED-APP.json",
+    "sha256": "9f9e08622ec1d850be5882cef85496f6228c7383eb52f40d9a0d79e82ca41dc9",
+    "bytes": 730
+  },
+  {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/qualified-source-gates/429-READY.json",
+    "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/429-READY.json",
+    "sha256": "b96ef809564c49fcd47bbfd80c2c3a88fcec14c5b9627bf2ce8e12db7f5923e8",
+    "bytes": 8279
+  },
+  {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/qualified-source-gates/53-SCOPED-INSTALLED-READY.json",
+    "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/53-SCOPED-INSTALLED-READY.json",
+    "sha256": "56ad1141a4725708647420da832bc6ca07b3465246c7aae079e67f11d5bd7773",
+    "bytes": 3801
+  },
+  {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/qualified-source-gates/58-SCOPED-READY.json",
+    "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/58-SCOPED-READY.json",
+    "sha256": "4d66bede0e9ae5f33601fdc47dced38b0522fca29f6b0980b8c4736da8330677",
+    "bytes": 7597
+  },
+  {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/qualified-source-gates/616-READY.json",
+    "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/616-READY.json",
+    "sha256": "2fcc01694ac5eb9f4a1a9ae4ec52e393b2f6d5fb111a39174875a1bfe19892e1",
+    "bytes": 4195
+  },
+  {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/qualified-source-gates/F1-channel08-receipt.json",
+    "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/F1-channel08-receipt.json",
+    "sha256": "b6dcd1f7ec9cc3ce41b18e656834a775af93bd6db18c7c12c5b115301199e24f",
+    "bytes": 9962
+  },
+  {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/qualified-source-gates/F1-native-delete10-receipt.json",
+    "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/F1-native-delete10-receipt.json",
+    "sha256": "9a63d88b97da718dfa0cfaa15729a4719edef99739c1bfb9672aec7b5d01dbf8",
+    "bytes": 292
+  },
+  {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/qualified-source-gates/F1-start07-receipt.json",
+    "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/F1-start07-receipt.json",
+    "sha256": "cb04a18074b2e5aa0b8f28aba635f792c4202ddfb00e774c0d5e33c97ddb136f",
+    "bytes": 301
+  },
+  {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/qualified-source-gates/F4-app06-physical-receipt.json",
+    "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/F4-app06-physical-receipt.json",
+    "sha256": "c5aa90eec5d7d59b0733561b4be66ec0f0d3c196757f8e22cc9446b735648d96",
+    "bytes": 847
+  },
+  {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/qualified-source-gates/F4-app06-terminal-receipt.json",
+    "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/F4-app06-terminal-receipt.json",
+    "sha256": "e83fa26a7392e47637944482cd1b404fda2a1ea4851cc981cb0a6f195a4db0f0",
+    "bytes": 4419
+  },
+  {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/qualified-source-gates/F4-core-installed-receipt.json",
+    "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/F4-core-installed-receipt.json",
+    "sha256": "58442920b84b2c05ccd708d1352edf90d1d6adef0184826e201adcb5d99e7721",
+    "bytes": 2469
+  },
+  {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/qualified-source-gates/F4-paired-installed-final.json",
+    "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/qualified-source-gates/F4-paired-installed-final.json",
+    "sha256": "c3980f0606a8b61a0145b6a8ec8251062948582dc00a4d26be530705588e1fb7",
+    "bytes": 850
+  },
+  {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/qualified-source-gates/637-current-preview-terminal.json",
+    "original": "/home/ts/wt/comms-field-codec-closure-20260928/evidence/context-segment-loading-20261004/installed-current-preview/terminal-receipt.json",
+    "sha256": "d563c70131bb2c211d4629e389fe26b6c5ba416ec33c4a9d2dfdc23be66b497b",
+    "bytes": 448
+  },
+  {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/qualified-source-gates/637-current-preview-app.json",
+    "original": "/home/ts/wt/comms-field-codec-closure-20260928/evidence/context-segment-loading-20261004/installed-current-preview/app-receipt.json",
+    "sha256": "2c8b4c75860231dabb89d3459389aa436f576a25b01cc8f11da1a33c8b4d8916",
+    "bytes": 747
+  },
+  {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/qualified-source-gates/430-installed-app-terminal.json",
+    "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/tool-subtree-publication-lifetime-20261004/installed-app-terminal.json",
+    "sha256": "3191e810ee21effc21145de91108f905058d6d5ea8ef8de661e87a119e452b55",
+    "bytes": 327
+  },
+  {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/qualified-source-gates/430-SCOPED-READY.json",
+    "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/tool-subtree-publication-lifetime-20261004/430-SCOPED-READY.json",
+    "sha256": "19e0e99ddcc82a62b73b86b3787acdedf9f7d8510499fee86ab7b9a5888051cf",
+    "bytes": 5697
+  },
+  {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/qualified-source-gates/417-reader13-terminal.json",
+    "original": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/recorded-context-reader-20261004/installed13/terminal-receipt.json",
+    "sha256": "4fafc68653effcd2b7dc90ef41fad37812fbeef58b3f052b7a30b7dd95dcaf7c",
+    "bytes": 2108
+  },
+  {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/qualified-source-gates/417-recorded14-terminal.json",
+    "original": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/recorded-context-reader-20261004/installed14/terminal-receipt.json",
+    "sha256": "38e10b67db032655ad341d004554e5a76ebdd4a4e9d6d06840ae274fec882bc0",
+    "bytes": 41049
+  }
+]

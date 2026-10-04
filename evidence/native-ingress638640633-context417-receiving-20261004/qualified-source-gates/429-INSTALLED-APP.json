@@ -1,0 +1,13 @@
+{
+  "result": "pass",
+  "installed_toad": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/__init__.py",
+  "startup_owner_pump_input_resize_while_preflight_pending": true,
+  "startup_hidden_return_same_operational_owner": true,
+  "close_revokes_pending_startup_without_runner": true,
+  "hydration_owner_pump_input_resize_paint_while_navigation_pending": true,
+  "hidden_hydration_preserves_selected_focus": true,
+  "whole_app_close": true,
+  "provider_calls": 0,
+  "native_inputs": 0,
+  "scope": "Original App, Agent/preflight, native mount/worker/input pumps and compositor; controlled pending work, no terminal movie or smoothness claim"
+}

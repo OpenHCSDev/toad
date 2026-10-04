@@ -1,0 +1,84 @@
+{
+  "state": "GRANTED soleSch433 PACKAGE-ONLY receiving stage; issuedbytes immutable; lifecycle separately",
+  "issued_at": 1791117255.4884157,
+  "recipient": "01a0ef00-6563-7ec0-9c64-564ece67a6eb",
+  "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "purpose": "ONE normal qualified637+430+Text59 combined receiving stage in existing closed style22; no runtime/App/public effects",
+  "source_checkpoint": "f5e0cb77428dd695f4daafc74989f3ea19185822",
+  "determining_Toad_source": "19f882815",
+  "merged_source_heads": {
+    "Core": "5e3f68c5825e80ffe52ba431082a8c13a78428f9",
+    "Textual": "180cbd9471bd6674647590108ca2fe5a627eb24f",
+    "NRA": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10"
+  },
+  "source_plan": "/home/ts/wt/toad-prompt-action-owner-20261002/docs/refactor/receiving-context637-tool430-native59-20261004/SOURCE-PLAN.json",
+  "source_plan_sha256": "75dece0f74ba183e2b9dc39e207ea9a9c191764fbf383afdd02d055b049a97d1",
+  "package_scope": "soleSch normal4retainedfilewheel no-deps application/module/resources/bin/distmetadata staging and readonly source/cohort/native/schema/operator preparation. No dependency changes; 69cohort. No furtherbuild/resolve/VCSclone/env/nativecopy/artifact mutation. Truthful actualfile origins; no inventedGitpin. 344+3 Core/319Toad/266Text/10NRA assets exact installedsource proof required.",
+  "wheels": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "5002977faca18b0f807999dced9e05f76144c039fd0cab719848bf4d544a7742",
+      "bytes": 2245559
+    },
+    {
+      "path": "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/context-segment-loading-20261004/wheel/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "190ace615cf3c74c0b94b8060a935cd34357a2476217bfed2122626582399f3c",
+      "bytes": 880874
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native59-filewheel-20261004/textual-8.2.8-py3-none-any.whl",
+      "sha256": "73d4ca971dd2891c2a2266a0c5c8629e3e0ff55e802456ae60d0fedfe72fdbaa",
+      "bytes": 768474
+    },
+    {
+      "path": "/home/ts/wt/nra-skill-publish-20261002/.artifacts/family-flattened-collector-20261004/wheels/nominal_refactor_audit-0.1.0-py3-none-any.whl",
+      "sha256": "8d489731728ebf9f7e0f90ef2b14e7e3b5d2f90ed82bd8b1482d735f82869886",
+      "bytes": 23532
+    }
+  ],
+  "native_manifest": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
+  "native_scope": "existing immutable086 READ for source/cohort proof only; no native/runtime/provider/App launches",
+  "actual431_preimage": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-actual431-before-Heis430-Text59-preimage.json",
+  "archive": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/retired-env-metadata/style22-actual431-before-Heis430-Text59.tar.gz",
+  "archive_sha256": "b95d5336d9cdfa6a01d5c1557a7cb2a1922f1798ecd1ef59658cf65902521893",
+  "archive_bytes": 4043440,
+  "original1464_readback": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch433-before-grant-readback.json",
+  "new_archive_bytes": 0,
+  "actual431_floor": {
+    "agent_comms": "9195325146f70886d7d879edbfcae74b12bd63c8",
+    "toad": "8605373406a99af96510fd50bf5102b84c7cc291",
+    "textual": "456c27e18688e6c829c727f766561c9eb8640803",
+    "refactor_audit": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10"
+  },
+  "restore_wheels": [
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/f4-core421-receiver-wheels-20261004/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "d96ab5bb53e360591d8cff8e1e7eb85559eb7ac985c3047f6ffaef80f0dba935"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/startup429-native55-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "bb575bc69672d86edab569e8bf6cbfad24ad49fbcef0b30f114a818b2b4d5f50"
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text58-tree-cursor-filewheel-20261004/textual-8.2.8-py3-none-any.whl",
+      "sha256": "0ffc78c3a7d56212479e016e13683e5d921a0b3fc9fbecfd1f5151994ac2862f"
+    },
+    {
+      "path": "/home/ts/wt/nra-skill-publish-20261002/.artifacts/family-flattened-collector-20261004/wheels/nominal_refactor_audit-0.1.0-py3-none-any.whl",
+      "sha256": "8d489731728ebf9f7e0f90ef2b14e7e3b5d2f90ed82bd8b1482d735f82869886"
+    }
+  ],
+  "borrower_receipt": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch433-borrowers-at-grant.json",
+  "all_uid_processes": 238,
+  "actual_borrowers": 0,
+  "permission_gaps": 0,
+  "reference_receipt": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch433-reference-check.json",
+  "immutable159_manifest": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-actual431-before-Heis430-Text59-preimage.json",
+  "PREFIXactivation_protected": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/activation.json",
+  "original_sourceproof_protected": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/source-proof.json",
+  "candidate_proof_and_DTO": "OWN433output only; retain originalPREFIXactivation/oldproof/159/Ready8d BYTEEXACT. Do NOTcall prefix RuntimeSelection.publish_verified_stage. Old431operation not authority for newbytes. Newcandidate truthfully owns importedsource/proofs.",
+  "protected": "334corrected637 positive ParentHELD/old428165;485421155;LIVE534/user; alloriginal431159/Ready/ops/activation/oldproof; privateauth/wire/SDK/session/history/input/UNKNOWN/science/native/Git/wheels/evidence. No userpublic signals.",
+  "excluded": "unqualified638/640/627 product; no automatic unfinishedsource. AcceptedParentmerged417 normalmain inheritance allowed as concrete433 source.",
+  "handback": "after actual package stage commands terminal report installedsource/full69/cohort/native/schema/sourceproof plus exact original159 unchanged. Newcandidate freeze/retention awaits Parentsole disposition; no otherwriter/automatic430loan. On failedstage restore EXACT actual431floor through retained normalwheels+originalreadback, preserving old159 and honestnegative. No Parentpublication bySch.",
+  "resource": "reportedhomecritical2.4GiB/RAM15.7; boundedno-deps4filewheel reuse, nofleet/film/env/payloadcopy. No cleanup credits ornewarchives."
+}

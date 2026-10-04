@@ -1,0 +1,19 @@
+{
+  "source_head": "19f882815f9c83155b0587fe746c2ada435955f7",
+  "actual_merged_main": "57ebe1c91f587fb4337ab0548f0ada3c665582eb",
+  "wheel": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context637-tool430-native59-receiving-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+  "sha256": "5002977faca18b0f807999dced9e05f76144c039fd0cab719848bf4d544a7742",
+  "bytes": 2245559,
+  "assets": 319,
+  "all_assets_exact": true,
+  "inventory_sha256": "94f12a0219f1c981fcd75b836d343aa96c338be9377e5de355d1b79b4f3f9503",
+  "build_backend": "hatchling==1.28.0",
+  "backend": "/home/ts/.cache/uv/archive-v0/RgcgNn7xR1Zs9HSF",
+  "builds": 1,
+  "source_clones": 0,
+  "new_envs": 0,
+  "package_writes": 0,
+  "native_builds": 0,
+  "native_copies": 0,
+  "scope": "One complete normal ToAd637/430/417/Text59 receiving wheel from published own source; not installed or live Ready."
+}

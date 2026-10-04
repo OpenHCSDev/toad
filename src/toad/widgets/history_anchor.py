@@ -288,11 +288,17 @@ class HistoryWindow(VerticalScroll):
         self.history_anchor = HistoryAnchor.capture(widget, self) if widget is not None else None
         if self.history_anchor is not None and isinstance(screen, WorkspaceScreen):
             screen.viewport_presentation.anchors.add(self)
+        geometry = self._geometry_revision
         try:
             try:
                 yield
             finally:
-                self.refresh(layout=True)
+                # The native source owns invalidation. An unchanged page or
+                # already-live body must not manufacture another reflow.
+                if self._geometry_revision != geometry:
+                    self.refresh(layout=True)
+            if self._geometry_revision == geometry:
+                return
             if (widget is not None and widget.is_attached and self.is_attached
                     and screen.is_current and self.document_viewport.accepts_frame()):
                 # A generic after-refresh callback can run before the pending

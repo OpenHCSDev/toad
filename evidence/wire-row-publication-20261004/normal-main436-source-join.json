@@ -1,0 +1,19 @@
+{
+  "state": "normal main436 source join; affected App unrun",
+  "main": "82639679fa82a4c370f5e5b9821001b0ead19d52",
+  "joined_head": "e751981a2e793d1b2faaef346d89f0ca5de8b7fe",
+  "prior_source_control": "59a30beb55fc090b6b3902951cce5767c40757aa",
+  "unchanged_files": [
+    "src/toad/mounted_message_history.py",
+    "src/toad/screens/comms.py",
+    "src/toad/widgets/comms_chat.py",
+    "src/toad/widgets/history_anchor.py",
+    "tests/message_dividers_pilot.py",
+    "tests/retained_tool_text_pilot.py"
+  ],
+  "byte_equal": true,
+  "package_access": false,
+  "authority": "Parent authorizes one affected432 App after Bohr actual436 floor archive/readback and fresh specific exclusive grant",
+  "preserve": "actual436115/274/PREFIXactivation + whole package/origin floor",
+  "limits": "No installed App, physical paint, CPU gain, native input/provider or raw recording claim"
+}
