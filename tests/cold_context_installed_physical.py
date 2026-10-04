@@ -321,6 +321,10 @@ async def run(options):
                               if v["mode"] == phase("recorded-system")["metadata"]["current_mode"])
             assert saved_view["agent_configuration"]["context_measurement"]["used"] > 0
             assert saved_view["agent_configuration"]["context_measurement"]["size"] > 0
+            native_info = service.agents.agent_info_of(previous.name)
+            measurement = saved_view["agent_configuration"]["context_measurement"]
+            assert (measurement['used'], measurement['size']) == (native_info.context_used, native_info.context_size)
+            receipt['canonical_native_usage_publication'] = FieldCodec.encode(native_info)
             assert service.registry.require(previous.name).tags == tags_before
             assert '#review417' not in service.channels.channels()
             assert '#review417-renamed' not in service.channels.channels()
