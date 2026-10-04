@@ -235,20 +235,23 @@ async def journey(args):
     base.mkdir(parents=True, exist_ok=False)
     project = base / 'project'
     project.mkdir()
+    await started_target_connections(base)
     os.environ.update(XDG_CONFIG_HOME=str(base / 'config'), XDG_STATE_HOME=str(base / 'state'),
                       XDG_DATA_HOME=str(base / 'data'), AGENT_COMMS_ROOT=str(base / 'wire'))
     os.environ.pop('NO_COLOR', None)
     os.environ.pop('PYTHONPATH', None)
     comms = private_native_wire(base / 'wire')
-    for name in ('viewer', 'tagged'):
+    from toad.widgets.comms_chat import session_thread_name
+    names = ('viewer', 'tagged', session_thread_name(project))
+    for name in names:
         comms.registry.declare(Thread(name, frozenset({'first'}), str(project)), StoppedThreadStatus())
-    comms.threads.restore_stopped(comms.registry.snapshot(), ('viewer', 'tagged'))
+    comms.threads.restore_stopped(comms.registry.snapshot(), names)
     original = comms.registry.require('tagged').incarnation
     comms.channels.set_saved_view(SavedView('projection', ViewKind.PARTICIPANTS,
                                            ViewPredicate(AnyOfMatch, frozenset({'first'}))))
     before = {'root_id': os.environ['AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID'],
               'incarnation': FieldCodec.encode(original), 'inputs': 0}
-    checks = []
+    checks = ['actual-start-dm-peer-not-actor-bound-native-root-alias-connection']
     # Observe the original installed implementation without replacing queries,
     # application state or protocol. This catches a catalog consumer returning
     # to synchronous UI-loop I/O in the same affected workflow.
@@ -262,6 +265,7 @@ async def journey(args):
     threading.setprofile_all_threads(observe)
     app = ToadApp(project_dir=str(project))
     async with app.run_test(size=(125, 48), headless=not args.physical) as pilot:
+        owner = app.session_navigation.get(app.selected_mode)
         sidebar = await wait_channel_roster(app, pilot, '#first', '#all')
         await mounted_layers(app, pilot)
         checks.append('corrected-mounted-layer-owner-custom-duplicates-empty-restoration')
@@ -359,7 +363,6 @@ async def journey(args):
         checks.append('native-form-archive-tagged-threads-preserves-tag-channel-and-history')
 
         from toad.conversation_kind import DmConversation
-        owner = app.session_navigation.get(app.selected_session.owner_mode)
         removed_modes = []
         for peer in ('delete-a', 'delete-b'):
             removed_modes.append(await app.session_navigation.history(
@@ -396,8 +399,6 @@ async def journey(args):
     assert catalog_reads and all(read['thread'] != ui_thread for read in catalog_reads)
     checks.append('all-observed-catalog-reads-off-ui-loop')
     threading.setprofile_all_threads(None)
-    await started_target_connections(base)
-    checks.append('actual-start-dm-peer-not-actor-bound-native-root-alias-connection')
     await asyncio.get_running_loop().shutdown_default_executor()
     receipt = {'result':'PASS','scope':'installed App native widget + same-root CLI; no provider/native input/public writes',
                'physical_linux_driver':args.physical,'seconds':time.monotonic()-start,'checks':checks,
