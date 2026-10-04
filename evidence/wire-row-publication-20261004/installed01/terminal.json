@@ -1,0 +1,20 @@
+{
+  "source_head": "9ac8a48efb8c3bd44a28a056c5b0711918039dc5",
+  "provider_inputs": 0,
+  "physical_movie": false,
+  "scratch": "/home/ts/.cache/agent-scratch/wire432-row-publication-app-20261004-01",
+  "exit_code": 0,
+  "duration_seconds": 15.539372983039357,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 1303895,
+        "start_ticks": 60109115,
+        "returncode": 0
+      }
+    ]
+  }
+}

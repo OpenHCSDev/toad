@@ -1,0 +1,14 @@
+{
+  "state": "static control source only; no application imports or execution",
+  "revision": "6201ebb4696556b16d96e188ad66bcb7c792c159",
+  "root": "tests",
+  "modules": 394,
+  "parse_omissions": [],
+  "production_base": "158d0a3af403446eea53b0af53bc9812df251be7",
+  "production_delta": "",
+  "affected_controls": [
+    "tests/message_dividers_pilot.py::row_publication",
+    "tests/retained_tool_text_pilot.py::PublicationApp._display"
+  ],
+  "limits": "Named source and syntax only; native display is not terminal writer or physical motion; control has not run."
+}

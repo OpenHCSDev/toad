@@ -4,7 +4,7 @@ from __future__ import annotations
 from toad.core import input_events
 from functools import partial
 from toad.delivery_failure_view import DeliveryFailureView
-from toad.mounted_message_history import MountedMessageHistory
+from toad.mounted_message_history import MountedMessageHistory, WireMessageStyle
 from agent_comms.thread_identity import ThreadRole
 from toad.widgets.irc_message import MembershipNotice
 
@@ -210,13 +210,13 @@ class CommsChatView(DeliveryFailureView, Conversation):
 
 
 
-    def message_block(self, message: WireMessage) -> Widget:
+    def message_block(self, message: WireMessage, *, style: WireMessageStyle) -> Widget:
         """The view owns display direction and the membership-notice widget."""
         if message.membership is not None:
             return MembershipNotice(message)
         direction = ("User" if message.sender_role is ThreadRole.USER else
                      "Outbound" if message.sender == self._me else "Inbound")
-        return self.message_history.style.block(message, direction=direction)
+        return style.block(message, direction=direction)
 
     def _refresh_notifications(self) -> None:
         """One bounded batch for the painted window; independent of bus revision."""

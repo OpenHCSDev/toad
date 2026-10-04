@@ -240,9 +240,10 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
         if chat := self.query_one_optional(CommsChatView):
             self.call_after_refresh(chat.prepare_prompt)
 
-    async def action_message_style(self) -> None:
+    def action_message_style(self) -> None:
         if chat := self.query_one_optional(CommsChatView):
-            await chat.message_history.toggle_style()
+            history = chat.message_history
+            history.run_worker(history.toggle_style, group="message-style")
 
     def action_focus_prompt(self) -> None:
         if chat := self.query_one_optional(CommsChatView):
