@@ -1,0 +1,6 @@
+{
+  "result": "Metadata print harness KeyError slicing dictionary after successful activation preparation",
+  "cause": "ready-receipt artifacts is existing path-to-SHA dict, not list",
+  "effects": "No public action; original operands unchanged; only new granted target activation prepared successfully",
+  "correction": "Read original dictionary as items; no expected hash changed"
+}
