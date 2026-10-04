@@ -1,5 +1,9 @@
 # Frame work custody continuation
 
+Current status: scoped Ready from the ONE138.053s actual public418/50 journey.
+16warm/7input pass;22 warm ready body IDs retained; full performance ACTIVE.
+Stepped motion and CPU limits below are unresolved, with no overall gain claim.
+
 Continue full performance from scoped415/49 in the same checkout/holder.
 415 original140.726s preserves16warm/7input/37 bodies; motion is stepped,
 Up worst192.11ms, markerUI71.69%. No CPU/smoothness/144Hz gain. No repeat.
@@ -29,7 +33,7 @@ velocity/reversal/growingEnd/void, input/focus/draft/Undo/TC1T9T4, IRC/DM/busy,
 sidebar/tab/compaction, uninterrupted motion and configurable144Hz6.944ms target.
 Kepler owns native Compositor/Widget; Heisenberg owns this Toad frame family.
 
-## Published implementation checkpoint
+## Historical implementation checkpoint
 
 Production bc6decd00f867e90cf7b78690015ac8b4672c1d8: original FramePresentation
 now admits each owner/callback once. PresentedFrame joins its existing callback
@@ -42,7 +46,8 @@ production defer consumers inherit this change without local queues or guards.
 One production file11 deleted/22 added; no native/capture/provider edit.
 
 AST after288 Toad modules/zero omissions; owner-before also249 native/zero
-omissions. Source WIP, not Ready: the affected installed App passed; physical motion qualification remains.
+omissions. At that historical checkpoint the affected installed App had passed; physical
+motion qualification was still pending. Current scoped qualification is below.
 415/49 source/film remains frozen and can ship independently. Next batch prevents
 duplicate viewport admission scheduling and stale scene callback release through
 the real App's frame lifetime; the next changed saved-history journey measures
@@ -98,7 +103,7 @@ uses native50 for this changed418 physical run. Original installed App with
 
 ONE original public existing_thread input_warm run completed138.053s on actual
 Core611 d416/native2ea, Toad feef523, frozenText50 ff5. All16 warm and7input
-checks passed,37 retained ready bodies, runtime and original nra owner unchanged;
+checks passed,22 retained ready body IDs, runtime and original nra owner unchanged;
 cleanup remaining/errors empty. Required native exports complete after removing
 the obsolete index read. No provider or native input; unsubmitted draft/Undo and
 original source/window/reader A/B/A preserved. Raw originals are hash-bound in
