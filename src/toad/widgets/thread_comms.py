@@ -280,7 +280,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             self._sync_spinner()
             return
         self._spinner_phase = (self._spinner_phase + 1) % len(FRAMES)
-        for row in self.painted_busy_rows():
+        for row in self.painted_rows():
             row.advance_spinner(self._spinner_phase)
 
     def on_show(self):

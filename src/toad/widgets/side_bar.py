@@ -30,13 +30,16 @@ class SidebarVisibilityObserver:
     def sidebar_visibility_changed(self) -> None:
         raise NotImplementedError
 
-    def painted_busy_rows(self):
-        """Animate this panel's rows admitted by the original native scene."""
+    def painted_rows(self):
+        """Borrow this panel's rows from the original native scene.
+
+        Each row owns whether its prepared status has an animated frame.
+        """
         from toad.widgets.comms_sidebar import CommsRow
 
         for row in self.screen._compositor.visible_widgets:
-            if (isinstance(row, CommsRow) and row.has_class("-busy")
-                    and row.is_navigation_row() and row.sidebar_owner() is self):
+            if (isinstance(row, CommsRow) and row.is_navigation_row()
+                    and row.sidebar_owner() is self):
                 yield row
 
 

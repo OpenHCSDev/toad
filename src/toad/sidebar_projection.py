@@ -72,7 +72,7 @@ class SidebarProjection:
             self.sync_spinner()
             return
         self.phase = (self.phase + 1) % len(FRAMES)
-        for row in self.sidebar.painted_busy_rows():
+        for row in self.sidebar.painted_rows():
             row.advance_spinner(self.phase)
 
     async def publish(self, snapshot: SidebarSnapshot) -> None:

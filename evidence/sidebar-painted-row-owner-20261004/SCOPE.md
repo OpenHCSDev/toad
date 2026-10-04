@@ -4,9 +4,9 @@ Full performance remains active: rapid/reverse/End/growing history, preparation 
 
 ## What changed
 
-Four production files: 21 lines deleted, 14 added relative to frozen #422 `617e295f1`.
+Seven production files in the current source batch, normally joined with merged #422; the release family and sidebar/tab changes are all source-only, not Ready.
 
-- Existing `SidebarVisibilityObserver.painted_busy_rows` now owns busy-row selection from the original compositor's visible scene. Left channel projection and right relationship animation both consume it. Removed the separate projection selector and the right panel's walk/update of every busy retained row. Original native attachment, pruning/closing and nearest tree ownership remain; no new roster/cache/map/timer or rate policy.
+- Existing `SidebarVisibilityObserver.painted_rows` now owns busy-row selection from the original compositor's visible scene. Left channel projection and right relationship animation both consume it. Removed the separate projection selector and the right panel's walk/update of every busy retained row. Original native attachment, pruning/closing and nearest tree ownership remain; no new roster/cache/map/timer or rate policy.
 - `NativeSessionAdmission.tab` selects the original matching `ThreadView` before reading its declaration-owned presentation. Previously each native tab interpreted the entire snapshot roster, although only that one label was used. All `SessionAdmissions.tabs` / `app.open_tabs` consumers benefit. Unread indexing, fallback title, session admission and closure are unchanged. Sch granted exactly this seam; F1 action/deletion hooks are untouched.
 
 The original #422 profile and source paths motivate reading these consumers, but do not establish their CPU share. Current Core611 presentation is a pure projection of captured status/activity/execution, so this change does not claim to remove live process probes.
@@ -21,7 +21,7 @@ Existing native visible custody chooses animation rows; widget mutation stays on
 
 Source checkpoint only, not Ready. No App/test/recording/package operation has run for these new bytes. Proportionate final checks must cover actual offscreen/reentry busy rows, native/shared tab labels/unread/fallback and growth ratchet after this coherent batch; affected installed validation follows the existing slot's actual handback. No unchanged #422 film replay.
 
-#422 `617e295f1`, raw terminal1/false capture, clipped-peer failure, original film/profile and personal review witnesses remain unchanged. Native52/53's growth correction belongs to Kepler and is not qualified by the old movie. Sch has exclusive style22 package/execution purpose; this branch reads/edits only its owned checkout.
+#422 `617e295f1`, raw terminal1/false capture, clipped-peer failure, original film/profile and personal review witnesses remain unchanged. Native52/53's growth correction belongs to Kepler and is not qualified by the old movie. Mendel F4 has exclusive style22 package/execution purpose; this branch reads/edits only its owned checkout.
 
 
 ## F1 native-delete09 shutdown owner classification
@@ -76,3 +76,7 @@ floor restore; no current App/film/package access by Heisenberg. One affected fi
 App/installed workflow follows coherent source and actual handback. The wider
 thread-open/source/admission/preparation/measurement/frame/sidebar workflow stays
 active and is not replaced by these local progress checkpoints.
+
+## Original row animation owns busy eligibility
+
+The published four-term panel filter repeated ThreadStatusRow.advance_spinner's original busy decision. Removed that duplicate and migrated both left and right consumers to painted_rows. The observer selects native visible, attached/nonclosing rows belonging to its tree; the original row decides whether advancing its prepared status produces paint. This resolves the specific added long boolean-chain source rather than splitting a guard or relaxing the ratchet. No App/check/package run or performance claim for these bytes.
