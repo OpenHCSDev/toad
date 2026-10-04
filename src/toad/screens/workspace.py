@@ -4,7 +4,7 @@ import asyncio
 from contextlib import ExitStack
 from dataclasses import dataclass, replace
 from functools import cached_property
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 from textual.css.model import RuleSet
 from textual.css.stylesheet import CssSource
@@ -155,34 +155,15 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
             self._resume_style = self._style_revision()
 
     def _on_timer_update(self) -> None:
-        app = cast("ToadApp", self.app)
         if self.viewport_presentation.has_pending_mutations(self.viewport_presentation.frame_windows()):
             # The window releases its native mutation lock before requesting
             # the compensated layout. Keep damage/layout intent until then.
-            self._update_timer.pause()
-            return
-        if app._atomic_mode_switch or (self.is_current and app._pending_mode_switch is not None
-                and app._pending_mode_switch != self.id):
-            # Keep invalidation flags while the selected tree is reconciled,
-            # and on busy screens the reader is leaving. layout_navigation owns
-            # the transaction's geometry; ordinary timers resume afterward.
             self._update_timer.pause()
             return
         super()._on_timer_update()
 
     def _prepare_compositor_refresh(self) -> bool:
         return self.viewport_presentation.prepare()
-
-    def present_navigation(self) -> None:
-        """Commit prepared geometry once, without remeasuring or repainting twice."""
-        if self.app._batch_count:
-            self.refresh()
-            return
-        self._set_dirty()
-        self._dirty_widgets.add(self)
-        self._repaint_required = False
-        self._compositor.update_widgets(self._dirty_widgets)
-        self._compositor_refresh()
 
     def _use_viewport_layout(self) -> bool:
         return self.is_current
@@ -225,12 +206,6 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
                     window.finish_history_layout()
 
     def _screen_resized(self, size: Size) -> None:
-        if cast("ToadApp", self.app)._atomic_mode_switch and self.is_mounted:
-            # App.switch_mode asks for geometry before the destination's tabs
-            # and cached sidebar rows have caught up. The navigation transaction
-            # measures their completed tree; retain real resize invalidation.
-            self._layout_required |= self._size != size
-            return
         if self._navigation_layout.reusable(self, size, include_scroll=False):
             # A resumed mounted tab has already been measured at this width.
             # Textual's full reflow walks all descendants even when only the

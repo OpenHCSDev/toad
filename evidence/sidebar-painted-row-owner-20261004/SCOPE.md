@@ -80,3 +80,33 @@ active and is not replaced by these local progress checkpoints.
 ## Original row animation owns busy eligibility
 
 The published four-term panel filter repeated ThreadStatusRow.advance_spinner's original busy decision. Removed that duplicate and migrated both left and right consumers to painted_rows. The observer selects native visible, attached/nonclosing rows belonging to its tree; the original row decides whether advancing its prepared status produces paint. This resolves the specific added long boolean-chain source rather than splitting a guard or relaxing the ratchet. No App/check/package run or performance claim for these bytes.
+
+## Session opening publishes through its real frame owners
+
+Removed the App-wide batch across awaited session retirement/preparation and the
+independent atomic/pending navigation flags. WorkspaceSource still owns logical
+Loading/Shown selection; NativeSessionSurface still serializes native admission;
+HistoryWindow still fences child mutation and compensates its reader; the original
+ViewportPresentation readiness and FramePresentation writer receipt still admit
+paint. Workspace layout/resize, deferred frame callbacks and tab underlines no
+longer consult a second global navigation gate. The unused present_navigation
+alternative paint path was deleted after production/test/tool consumer search.
+
+Channel hydration likewise no longer holds all App repaints across child-pump
+removal/mount. Its existing route/content generation, source readiness and viewport
+publication remain unchanged. These are structural source changes, not proof that
+the recorded 422 gaps were caused by this wait or that stalls are fixed. Native
+store/workspace switching retains Textual's original short mode-transition mask;
+no replacement scheduler, timer, global guard or queue was added.
+
+Existing diagnostics now export the original WorkspaceSource nominal state rather
+than removed atomic/pending flags. Removed the obsolete test that asserted those
+flags suppress native layout; retained first-paint/held-goal-read checking now
+reads the actual native batch depth. Neither checks nor a film have been run for
+this checkpoint. F4's sole package/import lease remains protected.
+
+Other asynchronous batches found by full source parsing belong to tool subtree
+replacement, message-style replacement and relationship-row publication. They
+are separate mutation owners and are not blindly dropped by the session-opening
+change. Their original tree/reader/source publication semantics remain under
+active source review; this checkpoint does not claim the whole stall family closed.

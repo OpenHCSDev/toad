@@ -111,8 +111,7 @@ class PresentedFrame(FrameState):
 
     def defer(self, frame, owner, callback):
         super().defer(frame, owner, callback)
-        if not frame.screen.app._atomic_mode_switch:
-            owner.call_after_refresh(frame.release, owner, callback)
+        owner.call_after_refresh(frame.release, owner, callback)
 
 
 class ClosedFrame(FrameState):
