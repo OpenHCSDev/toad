@@ -12,6 +12,14 @@ from agent_comms.message_page import MessagePage
 
 class ConversationKind(DeclaredFamily, affix="Conversation"):
     @classmethod
+    def admitted_threads(cls, snapshot, me, target):
+        return ()
+
+    @classmethod
+    def admitted_channels(cls, root, target):
+        return ()
+
+    @classmethod
     def view_identity(cls, key):
         return key
 
@@ -124,6 +132,10 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
 
 class ChannelConversation(ConversationKind):
+    @classmethod
+    def admitted_channels(cls, root, target):
+        return ((root, target),)
+
     @classmethod
     def view_identity(cls, key):
         from toad.session_tracker import ChannelViewAddress
@@ -250,6 +262,10 @@ class DmConversation(ConversationKind):
     @classmethod
     async def toggle_dm(cls, screen) -> None:
         await screen.action_back_to_agent()
+
+    @classmethod
+    def admitted_threads(cls, snapshot, me, target):
+        return (snapshot.require(me).incarnation, snapshot.require(target).incarnation)
 
     @classmethod
     def unread(cls, snapshot, target):

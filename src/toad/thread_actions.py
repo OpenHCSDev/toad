@@ -94,6 +94,7 @@ class ThreadAction:
         return self.definition.label + '…'
 
     async def completed(self, app, session_modes, result):
+        await app.session_navigation.retire_missing()
         for thread in self.request.declaration.reconnect_targets(result):
             for mode in session_modes:
                 source = app.session_navigation.source(mode)

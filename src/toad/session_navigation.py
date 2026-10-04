@@ -29,6 +29,10 @@ class SessionAdmissions:
         self.identities = count(1)
         self.initial_session_id = initial_session_id
 
+    def bind_events(self) -> None:
+        self.app.subscribe_core(self.events)
+        self.app.observe_core_callback(self.app.coordination_access.events, self.observed)
+
     def default_source(self) -> MainScreen:
         from toad.screens.main import MainScreen
         app = self.app
@@ -81,9 +85,9 @@ class SessionAdmissions:
         await admission.ready(self)
         return admission.mode
 
-    async def new(self, factory: Callable[[], MainScreen], *, title: str = "New Session") -> SessionDetails:
+    async def new(self, factory: Callable[[], MainScreen], *, title: str = "New Session", original=None) -> SessionDetails:
         details = self.app.session_tracker.new_session(title=title)
-        await self.admit(NativeSessionAdmission(details, factory))
+        await self.admit(NativeSessionAdmission(details, factory, original))
         return details
 
     async def create_from(self, owner_mode: str) -> None:
@@ -147,7 +151,7 @@ class SessionAdmissions:
         admission = self.find(kind.view_identity(prepared.key))
         if admission is None:
             admission = HistorySessionAdmission(f"comms-{next(self.identities)}", prepared.key, kind,
-                                                project_path, prepared.recovery_root)
+                                                project_path, prepared.recovery_root, prepared.participants)
             await self.admit(admission)
         else:
             await app.select_session(admission.mode)
@@ -189,12 +193,15 @@ class SessionAdmissions:
             entry.sync_project(self, owner, project)
 
     async def close(self, mode: str) -> None:
-        entry = self.get(mode)
-        if entry is None:
+        await self.close_many((mode,))
+
+    async def close_many(self, modes: tuple[str, ...]) -> None:
+        entries = tuple(entry for mode in modes if (entry := self.get(mode)) is not None)
+        if not entries:
             return
-        closing = tuple(member for member in self.members if member.depends_on(mode))
-        if any(member.mode == self.app.selected_mode for member in closing):
-            await entry.return_to(self)
+        closing = tuple(member for member in self.members
+                        if any(member.depends_on(entry.mode) for entry in entries))
+        returning = next((member for member in closing if member.mode == self.app.selected_mode), None)
         for member in closing:
             member.forget(self)
         self.app.tab_order.close({member.mode for member in closing})
@@ -205,3 +212,46 @@ class SessionAdmissions:
         self.publish()
         for member in closing:
             await self.app.workspace_sessions.close(member.mode)
+        if returning is not None:
+            await returning.return_to(self)
+
+    async def observed(self, event: core_events.CoordinationObserved) -> None:
+        await self.retire_missing()
+
+    async def retire_missing(self) -> None:
+        from agent_comms.comms import wire
+        from toad.comms_root import RouteSelection
+
+        # Borrow each actual admission, including hidden views. No widget or
+        # deletion roster is created in the metadata worker.
+        originals = tuple((member, member.original_threads(self), member.original_channels())
+                          for member in self.members)
+        roots = {root for _, threads, channels in originals for root, _ in (*threads, *channels)}
+        if not roots:
+            return
+
+        def read():
+            result = {}
+            for root in roots:
+                try:
+                    selected = RouteSelection.capture(root)
+                    service = wire(root)
+                    snapshot = service.registry.snapshot()
+                    channels = service.channels.catalog.read().views(snapshot.threads)
+                    if RouteSelection.capture(root) != selected:
+                        raise ValueError('Comms route changed during view retirement')
+                    result[root] = snapshot, channels
+                except (OSError, ValueError, RuntimeError):
+                    continue  # An unavailable root retains its original views.
+            return result
+
+        try:
+            cuts = await self.app.preparation.run_thread(read)
+        except (OSError, ValueError, RuntimeError):
+            return  # Unavailable observation never proves a deleted member.
+        removed = tuple(member.mode for member, threads, channels in originals
+                        if self.get(member.mode) is member and (
+                            any(root in cuts and not identity.current(cuts[root][0]) for root, identity in threads)
+                            or any(root in cuts and (target not in cuts[root][1] or cuts[root][1][target].archived)
+                                   for root, target in channels)))
+        await self.close_many(removed)
