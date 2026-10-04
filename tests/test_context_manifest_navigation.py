@@ -172,7 +172,8 @@ def test_authored_import_registered_app_and_local_user_correction(tmp_path, monk
             # Borrow original native dispatch and worker publications. These
             # diagnostics carry names only and never decide readiness or
             # publish a second model, selection, or lifecycle state.
-            if isinstance(message, (events.Mount, events.Ready)):
+            if isinstance(message, (events.Mount, events.Ready, events.Focus,
+                                    events.Blur, events.Show, events.Hide)):
                 pump = active_message_pump.get()
                 record(f"W6: {type(pump).__name__}.{type(message).__name__} dispatch")
             elif isinstance(message, Worker.StateChanged):
@@ -200,6 +201,28 @@ def test_authored_import_registered_app_and_local_user_correction(tmp_path, monk
             app = ToadApp(agent_data=definition, project_dir=str(project), agent_session_id=owner.name)
             record("W6: entering original registered App startup and screen barrier")
             async with app.run_test(size=(130, 44), message_hook=dispatched) as pilot:
+                async def select_reference(tree, node):
+                    # Disclosure owns its queued ancestor scroll. A Tree line
+                    # alone does not put the Tree in the sidebar's viewport.
+                    await pilot.wait_for_scheduled_animations()
+                    tree.scroll_visible(animate=False, immediate=True)
+                    tree.scroll_to_node(node, animate=False)
+                    await pilot.wait_for_scheduled_animations()
+                    geometry = app.screen.find_widget(tree)
+                    label = tree._get_label_region(node.line)
+                    assert label is not None
+                    target = label.translate(
+                        tree.content_region.offset - tree.scroll_offset
+                    ).intersection(geometry.clip).intersection(tree.scrollable_content_region)
+                    assert target, "Original source label is outside the sidebar viewport"
+                    point = target.offset
+                    assert app.screen.get_widget_at(point.x, point.y)[0] is tree
+                    assert await pilot.click(tree, offset=tuple(point - tree.region.offset))
+                    # Screen MouseDown owns focus; Tree Click owns the source.
+                    # Keep both original oracles before keyboard dispatch.
+                    assert tree.cursor_node is node and app.focused is tree
+                    assert explorer.intent.selected is node.data
+
                 record("W6: App entered; awaiting original content readiness")
                 await app.selected_session.wait_content_ready()
                 record("W6: content ready; awaiting frame-admitted ACP agent construction")
@@ -231,11 +254,7 @@ def test_authored_import_registered_app_and_local_user_correction(tmp_path, monk
                         await pilot.pause(.025)
                 node = tree.context_nodes[reference.key]
                 node.parent.expand()
-                tree.scroll_to_node(node, animate=False)
-                tree.focus()
-                tree.move_cursor(node)
-                await pilot.pause()
-                assert tree.cursor_node is node and app.focused is tree
+                await select_reference(tree, node)
                 record("W6: original imported source selected; dispatching native Enter")
                 await pilot.press("enter")
                 async with asyncio.timeout(10):
@@ -248,8 +267,9 @@ def test_authored_import_registered_app_and_local_user_correction(tmp_path, monk
                 assert tuple(match.source for match in matches) == receipt.historical_instructions
                 query = explorer.query_one("#context-search", Input)
                 query.value = "historical λ"
-                query.focus()
-                await pilot.pause()
+                query.scroll_visible(animate=False, immediate=True)
+                await pilot.wait_for_scheduled_animations()
+                assert await pilot.click(query, offset=(1, 1))
                 assert app.focused is query
                 record("W6: dispatching original historical search")
                 await pilot.press("enter")
@@ -258,15 +278,12 @@ def test_authored_import_registered_app_and_local_user_correction(tmp_path, monk
                         await pilot.pause(.025)
                 record("W6: historical search completed")
                 selected = tree.context_nodes[reference.key]
-                tree.focus()
-                tree.move_cursor(selected)
-                await pilot.pause()
-                assert tree.cursor_node is selected and app.focused is tree
+                await select_reference(tree, selected)
                 exported = tmp_path / "historical-source.txt"
                 explorer.query_one("#context-export-path", Input).value = str(exported)
                 export_button = explorer.query_one("#context-export", Button)
                 export_button.scroll_visible(animate=False, immediate=True)
-                await pilot.pause()
+                await pilot.wait_for_scheduled_animations()
                 record("W6: dispatching original selected-source export")
                 assert await pilot.click(export_button)
                 async with asyncio.timeout(10):

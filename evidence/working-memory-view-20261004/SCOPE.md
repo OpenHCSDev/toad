@@ -76,3 +76,48 @@ Still required in a separately named authentic-source purpose:
 - Preserve source/request/input proofs and identity fences; default-OFF worker/disclosure and no paid classifier or confidence threshold remain. The next authored-only purpose excludes actual Codex, original saved/historical roots and raw user data. No additional source patch, installed loan or run follows from this scope correction.
 
 Original plan plans/working-memory-2026-10-04/W6-working-memory-view.md remains authoritative: visible Obeys/Promised, every item opens its span, and correction changes the label shown. Source implementation and the prepared historical App are useful independent steps, not full W6 acceptance.
+
+## Original attachment03 and native focus acquisition
+
+The one issued058885 attachment03 purpose reached registered App mount,
+ACP AgentSession settlement/Agent.ready, exact private root/incarnation and
+the original historical ReferenceNode cursor. It failed before Enter:
+app.focused was Button#context-correct instead of the Tree. Pytest failed in
+20.04s; the original joined runner ended in22.963988s. Historical
+read/search/export were not reached. The local USER Promised label, model
+Unclassified label, private schema10 and default-OFF worker are separate
+positives. Original90s cause remains UNKNOWN; no native fault is inferred.
+
+installed-w6-03.json binds the original stdout/terminal/private readback and
+whole handback. Bohr independently verified1470 original files (bytes,
+modes, links),69 versions/origins,390 protected proofs, no added W6 assets,
+no private sockets and254 all-UID processes with0 borrowers/0 gaps. The
+normal NRA restore wheel's measures.py differs from the actual archived
+floor; that one exact e6f archive member was restored atomically, with the
+failed verification and restoration receipt retained. No semantic source
+or metadata patch. Holder and7a execution claims are returned; no next
+purpose is granted.
+
+Existing Package acquired288 ToAd and249 Textual modules without parse
+omissions; focus-owner-source.json records33 original members and227
+lexical consumers. SideBar hydration certifies mounting, not disclosure
+scroll completion. Collapsible expansion schedules ancestor scrolling;
+Tree.scroll_to_node only scrolls its internal lines. Widget.focus queues
+Screen.set_focus and a separate center scroll. The original viewport
+reflow can emit Hide, Widget can blur on Hide and Screen can select the
+preceding focus-chain control. ContextTree cursor restoration and detail
+publication do not explicitly focus. This explains a source-supported
+counterexample to the control's admission, not the measured03 cause:
+original03 retained no Focus/Hide attribution.
+
+The changed original control now borrows Pilot's scheduled-animation
+completion, Widget.scroll_visible and the Tree's fresh label/line plus
+original clipped geometry before native pointer selection. Native
+MouseDown owns focus and Tree Click owns selection. Both Tree selection
+sites use that same acquisition; search Input and export Button likewise
+acquire their visible targets. Exact node, focus and intent assertions stay
+before Enter. Original message_hook diagnostics additionally retain
+Focus/Blur/Show/Hide names for any future failure. No product/native patch,
+force-focus, sleep/retry or new readiness state. This changed control is
+unexecuted and needs a fresh eligible holder purpose. Full visible
+AnnotationNode/GUI-correction acceptance remains unfinished.

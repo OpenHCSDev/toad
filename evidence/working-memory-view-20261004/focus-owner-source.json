@@ -1,0 +1,1716 @@
+{
+  "coverage": [
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "head": "58a01aa58f7c157d6c81c1d4e79c8ca6663281de",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "23f8655e222a4447f63f101151678e2f5d655c1e",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": []
+    }
+  ],
+  "members": [
+    {
+      "path": "src/toad/frame_presentation.py",
+      "owner": "FramePresentation",
+      "method": "defer",
+      "line": 149,
+      "calls": [
+        "self.state.defer"
+      ],
+      "awaits": []
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "owner": "FramePresentation",
+      "method": "release",
+      "line": 153,
+      "calls": [
+        "self.screen.release_frame_callback"
+      ],
+      "awaits": []
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "owner": "FramePresentation",
+      "method": "present",
+      "line": 176,
+      "calls": [
+        "PresentedFrame",
+        "self.presented.set",
+        "tuple",
+        "self.release"
+      ],
+      "awaits": []
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "owner": "FramePresentation",
+      "method": "wait",
+      "line": 195,
+      "calls": [
+        "self.presented.wait"
+      ],
+      "awaits": [
+        "self.presented.wait()"
+      ]
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "owner": "WorkspaceScreen",
+      "method": "_use_viewport_layout",
+      "line": 174,
+      "calls": [],
+      "awaits": []
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "owner": "WorkspaceScreen",
+      "method": "_layout_geometry_targets",
+      "line": 177,
+      "calls": [
+        "self.viewport_presentation.geometry_targets"
+      ],
+      "awaits": []
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "owner": "ContextTree",
+      "method": "present",
+      "line": 71,
+      "calls": [
+        "self.restore_reader",
+        "self.prevent",
+        "self.root.set_label",
+        "self.root.expand",
+        "tuple",
+        "enumerate",
+        "next",
+        "self._reconcile",
+        "self.owns_node",
+        "self._retire",
+        "self.root.add"
+      ],
+      "awaits": []
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "owner": "ContextTree",
+      "method": "_restore_cursor",
+      "line": 148,
+      "calls": [
+        "self.context_nodes.get",
+        "self.owns_node",
+        "self.show_detail",
+        "self.prevent",
+        "self.move_cursor"
+      ],
+      "awaits": []
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "owner": "ContextExplorer",
+      "method": "action_read_full",
+      "line": 418,
+      "calls": [
+        "on",
+        "work",
+        "self.query_one",
+        "self.screen.maximize",
+        "detail.focus",
+        "self.query_one",
+        "self.query_one(ContextTree).owns_node",
+        "self._selected",
+        "self._show_detail(model).wait",
+        "self.query_one",
+        "self._show_detail"
+      ],
+      "awaits": [
+        "self._show_detail(model).wait()"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "owner": "ContextExplorer",
+      "method": "node_highlighted",
+      "line": 470,
+      "calls": [
+        "on",
+        "event.stop",
+        "self.query_one(ContextTree).owns_node",
+        "self._show_detail",
+        "self.query_one",
+        "self.workers.cancel_group"
+      ],
+      "awaits": []
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "owner": "ContextExplorer",
+      "method": "_show_detail",
+      "line": 482,
+      "calls": [
+        "work",
+        "self.query_one(TextArea).load_text",
+        "self._selected",
+        "self._selected",
+        "self.query_one(TextArea).load_text",
+        "self.query_one",
+        "model.read",
+        "self.query_one"
+      ],
+      "awaits": [
+        "model.read()"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "owner": "SideBar",
+      "method": "_hydrate_panels",
+      "line": 725,
+      "calls": [
+        "self.query_one_optional",
+        "self._panels_ready.set",
+        "self.query_one('#sidebar-panels').mount_all",
+        "self.restore_navigation",
+        "self._compose_panels",
+        "controls.mount_all",
+        "self._on_hydrated",
+        "self.query_one",
+        "self._compose_controls"
+      ],
+      "awaits": [
+        "self.query_one('#sidebar-panels').mount_all(self._compose_panels())",
+        "controls.mount_all(self._compose_controls())"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "owner": "SideBar",
+      "method": "wait_content_ready",
+      "line": 742,
+      "calls": [
+        "self._panels_ready.wait"
+      ],
+      "awaits": [
+        "self._panels_ready.wait()"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "owner": "SideBar",
+      "method": "watch_collapsed",
+      "line": 881,
+      "calls": [
+        "self.query_one_optional",
+        "self.schedule_hydration",
+        "self.query_one_optional",
+        "self.query_one_optional",
+        "toggle.set_collapsed",
+        "isinstance",
+        "cast('ToadApp', self.app).workspace_chrome.layout_sidebars",
+        "cast('ToadApp', self.app).events.publish",
+        "toggle.remove_class",
+        "panel.widget.sidebar_visibility_changed",
+        "core_events.SidebarLayoutChanged",
+        "cast",
+        "cast",
+        "cast",
+        "cast"
+      ],
+      "awaits": []
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "owner": "SideBar",
+      "method": "toggle",
+      "line": 946,
+      "calls": [
+        "isinstance",
+        "cast",
+        "isinstance",
+        "screen.sidebar_focus_target",
+        "screen.set_focus",
+        "self.post_message",
+        "cast('ToadApp', self.app).workspace_chrome.layout_sidebars",
+        "parent._check_refresh",
+        "self.screen.call_later",
+        "self.Dismiss",
+        "self.query_one_optional",
+        "title.focus",
+        "self.schedule_hydration",
+        "isinstance",
+        "child.walk_children",
+        "child._check_refresh",
+        "cast",
+        "node._check_refresh"
+      ],
+      "awaits": []
+    },
+    {
+      "path": "src/textual/pilot.py",
+      "owner": "Pilot",
+      "method": "_post_mouse_events",
+      "line": 383,
+      "calls": [
+        "_get_mouse_message_arguments",
+        "Offset",
+        "range",
+        "isinstance",
+        "OutOfBounds",
+        "self.pause",
+        "screen.query_one",
+        "mouse_event_cls",
+        "screen._forward_event",
+        "self.pause",
+        "app.get_widget_at"
+      ],
+      "awaits": [
+        "self.pause()",
+        "self.pause()"
+      ]
+    },
+    {
+      "path": "src/textual/pilot.py",
+      "owner": "Pilot",
+      "method": "pause",
+      "line": 535,
+      "calls": [
+        "self.app.screen._on_timer_update",
+        "self._wait_for_screen",
+        "wait_for_idle",
+        "asyncio.sleep"
+      ],
+      "awaits": [
+        "self._wait_for_screen()",
+        "wait_for_idle(0)",
+        "asyncio.sleep(delay)"
+      ]
+    },
+    {
+      "path": "src/textual/pilot.py",
+      "owner": "Pilot",
+      "method": "wait_for_scheduled_animations",
+      "line": 554,
+      "calls": [
+        "self.app.screen._on_timer_update",
+        "self._wait_for_screen",
+        "self._app.animator.wait_until_complete",
+        "self._wait_for_screen",
+        "wait_for_idle"
+      ],
+      "awaits": [
+        "self._wait_for_screen()",
+        "self._app.animator.wait_until_complete()",
+        "self._wait_for_screen()",
+        "wait_for_idle()"
+      ]
+    },
+    {
+      "path": "src/textual/screen.py",
+      "owner": "Screen",
+      "method": "_reset_focus",
+      "line": 1034,
+      "calls": [
+        "reversed",
+        "self.set_focus",
+        "self.set_focus",
+        "focusable_widgets.index",
+        "self.set_focus",
+        "self.set_focus"
+      ],
+      "awaits": []
+    },
+    {
+      "path": "src/textual/screen.py",
+      "owner": "Screen",
+      "method": "set_focus",
+      "line": 1100,
+      "calls": [
+        "self._update_focus_styles",
+        "self.call_after_refresh",
+        "self.log.debug",
+        "self.focused.post_message",
+        "events.Blur",
+        "widget.post_message",
+        "self.log.debug",
+        "self.focused.post_message",
+        "events.Focus",
+        "self.call_later",
+        "events.Blur",
+        "self.scroll_to_center",
+        "self.can_view_entire"
+      ],
+      "awaits": []
+    },
+    {
+      "path": "src/textual/screen.py",
+      "owner": "Screen",
+      "method": "_refresh_layout",
+      "line": 1357,
+      "calls": [
+        "self._compositor.update_widgets",
+        "self._update_timer.pause",
+        "size.with_height",
+        "self._layout_geometry_targets",
+        "self._compositor_refresh",
+        "self.screen_layout_refresh_signal.publish",
+        "self.app.post_message",
+        "self.app._get_inline_height",
+        "self._compositor.reflow_visible",
+        "self._use_viewport_layout",
+        "self._layout_widgets.clear",
+        "self.app._handle_exception",
+        "events.Ready",
+        "self._compositor.reflow",
+        "self._compositor.reflow",
+        "widget.post_message",
+        "widget._size_updated",
+        "widget.post_message",
+        "Hide",
+        "widget.post_message",
+        "Show",
+        "widget._size_updated",
+        "ResizeEvent",
+        "widget.post_message",
+        "ResizeEvent"
+      ],
+      "awaits": []
+    },
+    {
+      "path": "src/textual/screen.py",
+      "owner": "Screen",
+      "method": "_forward_event",
+      "line": 1948,
+      "calls": [
+        "event._set_forwarded",
+        "isinstance",
+        "self.update_pointer_shape",
+        "self.post_message",
+        "isinstance",
+        "self.get_style_at",
+        "self._handle_mouse_move",
+        "isinstance",
+        "self.get_widget_and_offset_at",
+        "isinstance",
+        "self.post_message",
+        "self._select_state.update_end",
+        "self._check_auto_scroll",
+        "self._stop_auto_scroll",
+        "self._flush_pending_selection",
+        "self.post_message",
+        "isinstance",
+        "self.get_style_at",
+        "SelectEnd",
+        "self.get_widget_and_offset_at",
+        "events.TextSelected",
+        "isinstance",
+        "self.get_widget_and_offset_at",
+        "self.get_widget_at",
+        "self.set_focus",
+        "self.get_focusable_widget_at",
+        "event._set_forwarded",
+        "self.post_message",
+        "widget._forward_event",
+        "isinstance",
+        "self.clear_selection",
+        "SelectState",
+        "self.find_widget",
+        "focusable_widget.focus_on_click",
+        "self.set_focus",
+        "event._apply_offset",
+        "select_widget.has_class",
+        "isinstance",
+        "SelectStart"
+      ],
+      "awaits": []
+    },
+    {
+      "path": "src/textual/widget.py",
+      "owner": "Widget",
+      "method": "scroll_to_widget",
+      "line": 3743,
+      "calls": [
+        "isinstance",
+        "region.translate(-scroll_offset).translate(container.styles.margin.top_left).translate(container.styles.border.spacing.top_left).translate(container.virtual_region_with_margin.offset).grow(container.styles.margin).intersection",
+        "self.call_after_refresh",
+        "Offset",
+        "container.scroll_to_region",
+        "region.translate(-scroll_offset).translate(container.styles.margin.top_left).translate(container.styles.border.spacing.top_left).translate(container.virtual_region_with_margin.offset).grow",
+        "region.translate(-scroll_offset).translate(container.styles.margin.top_left).translate(container.styles.border.spacing.top_left).translate",
+        "region.translate(-scroll_offset).translate(container.styles.margin.top_left).translate",
+        "region.translate(-scroll_offset).translate",
+        "region.translate"
+      ],
+      "awaits": []
+    },
+    {
+      "path": "src/textual/widget.py",
+      "owner": "Widget",
+      "method": "scroll_visible",
+      "line": 3939,
+      "calls": [
+        "isinstance",
+        "self.screen.scroll_to_widget",
+        "parent.call_after_refresh"
+      ],
+      "awaits": []
+    },
+    {
+      "path": "src/textual/widget.py",
+      "owner": "Widget",
+      "method": "watch_disabled",
+      "line": 4328,
+      "calls": [
+        "self.update_node_styles",
+        "self._message_queue.put_nowait",
+        "events.Leave",
+        "screen.focused.blur",
+        "screen.focused.walk_ancestors"
+      ],
+      "awaits": []
+    },
+    {
+      "path": "src/textual/widget.py",
+      "owner": "Widget",
+      "method": "focus",
+      "line": 4849,
+      "calls": [
+        "self.refresh",
+        "self.app.call_later",
+        "widget.screen.set_focus"
+      ],
+      "awaits": []
+    },
+    {
+      "path": "src/textual/widget.py",
+      "owner": "Widget",
+      "method": "blur",
+      "line": 4870,
+      "calls": [
+        "self.screen._reset_focus"
+      ],
+      "awaits": []
+    },
+    {
+      "path": "src/textual/widget.py",
+      "owner": "Widget",
+      "method": "_on_hide",
+      "line": 5119,
+      "calls": [
+        "self.horizontal_scrollbar.post_message",
+        "self.vertical_scrollbar.post_message",
+        "self.blur"
+      ],
+      "awaits": []
+    },
+    {
+      "path": "src/textual/widgets/_collapsible.py",
+      "owner": "Collapsible",
+      "method": "_watch_collapsed",
+      "line": 214,
+      "calls": [
+        "self._update_collapsed",
+        "self.post_message",
+        "self.post_message",
+        "self.call_after_refresh",
+        "self.Collapsed",
+        "self.Expanded"
+      ],
+      "awaits": []
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "owner": "Tree",
+      "method": "move_cursor",
+      "line": 963,
+      "calls": [
+        "self.scroll_to_node",
+        "abs"
+      ],
+      "awaits": []
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "owner": "Tree",
+      "method": "_get_label_region",
+      "line": 1113,
+      "calls": [
+        "tree_line._get_guide_width",
+        "self.get_label_width",
+        "Region"
+      ],
+      "awaits": []
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "owner": "Tree",
+      "method": "scroll_to_node",
+      "line": 1200,
+      "calls": [
+        "self.scroll_to_line"
+      ],
+      "awaits": []
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "owner": "Tree",
+      "method": "_on_click",
+      "line": 1455,
+      "calls": [
+        "meta.get",
+        "self.get_node_at_line",
+        "self._toggle_node",
+        "self.run_action"
+      ],
+      "awaits": [
+        "self.run_action('select_cursor')"
+      ]
+    }
+  ],
+  "lexical_consumers": [
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 94,
+      "call": "self.agent.permissions.present"
+    },
+    {
+      "path": "src/toad/application_lifetime.py",
+      "line": 92,
+      "call": "app.screen.set_focus"
+    },
+    {
+      "path": "src/toad/catalog_actions.py",
+      "line": 45,
+      "call": "modal.action_select.focus"
+    },
+    {
+      "path": "src/toad/conversation_actions.py",
+      "line": 39,
+      "call": "conversation.prompt.mode_switcher.focus"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 110,
+      "call": "frame.present"
+    },
+    {
+      "path": "src/toad/frame_presentation.py",
+      "line": 174,
+      "call": "self.present"
+    },
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 54,
+      "call": "session.present"
+    },
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 113,
+      "call": "session.present"
+    },
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 190,
+      "call": "view.prompt.focus"
+    },
+    {
+      "path": "src/toad/input_history.py",
+      "line": 77,
+      "call": "super().present"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 68,
+      "call": "self.ok_button.focus"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 77,
+      "call": "self.command_pane.focus"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 261,
+      "call": "sidebar.query_one('SideBarCollapsible CollapsibleTitle').focus"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 441,
+      "call": "self.conversation.prompt.path_search.focus"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 508,
+      "call": "title.focus"
+    },
+    {
+      "path": "src/toad/screens/mcp_decision.py",
+      "line": 63,
+      "call": "terminal.focus"
+    },
+    {
+      "path": "src/toad/screens/permissions.py",
+      "line": 143,
+      "call": "self.question.focus"
+    },
+    {
+      "path": "src/toad/screens/permissions.py",
+      "line": 184,
+      "call": "diff.scroll_visible"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 140,
+      "call": "self.query('#search').focus"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 87,
+      "call": "self.directory_input.focus"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 93,
+      "call": "self.directory_input.focus"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 584,
+      "call": "self.launcher.focus"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 119,
+      "call": "self.directory_input.blur"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 240,
+      "call": "self.grid_select.focus"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 579,
+      "call": "self.launcher.focus"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 602,
+      "call": "directory_display.focus"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 481,
+      "call": "new_focus.focus"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 547,
+      "call": "first_grid.focus"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 556,
+      "call": "self.screen.query(GridSelect).focus"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 266,
+      "call": "self._refresh_layout"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 161,
+      "call": "self._update_timer.pause"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 220,
+      "call": "self._refresh_layout"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 268,
+      "call": "self._refresh_layout"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 198,
+      "call": "super()._refresh_layout"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 205,
+      "call": "super()._refresh_layout"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 264,
+      "call": "self._refresh_layout"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 210,
+      "call": "super()._refresh_layout"
+    },
+    {
+      "path": "src/toad/session_admission.py",
+      "line": 184,
+      "call": "sessions.app.workspace_sessions.require(self.mode).wait_content_ready"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 159,
+      "call": "self.sources.present"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 239,
+      "call": "conversation.prompt.focus"
+    },
+    {
+      "path": "src/toad/shell_output.py",
+      "line": 47,
+      "call": "self.terminal.focus"
+    },
+    {
+      "path": "src/toad/shell_source.py",
+      "line": 32,
+      "call": "self.output.focus"
+    },
+    {
+      "path": "src/toad/sidebar_navigation.py",
+      "line": 184,
+      "call": "target.focus"
+    },
+    {
+      "path": "src/toad/sidebar_navigation.py",
+      "line": 95,
+      "call": "self.sidebar.screen._refresh_layout"
+    },
+    {
+      "path": "src/toad/sidebar_navigation.py",
+      "line": 97,
+      "call": "self.sidebar.screen._refresh_layout"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 55,
+      "call": "self.timer.pause"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 68,
+      "call": "timer.pause"
+    },
+    {
+      "path": "src/toad/slash_command.py",
+      "line": 238,
+      "call": "conversation.prompt.model_switcher.focus"
+    },
+    {
+      "path": "src/toad/thread_navigation.py",
+      "line": 104,
+      "call": "view.wait_content_ready"
+    },
+    {
+      "path": "src/toad/widgets/acp_log.py",
+      "line": 64,
+      "call": "self.query_one(TextArea).focus"
+    },
+    {
+      "path": "src/toad/widgets/acp_log.py",
+      "line": 110,
+      "call": "self.query_one(TextArea).focus"
+    },
+    {
+      "path": "src/toad/widgets/acp_log.py",
+      "line": 118,
+      "call": "text.focus"
+    },
+    {
+      "path": "src/toad/widgets/channel_prompt.py",
+      "line": 106,
+      "call": "area.focus"
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 195,
+      "call": "prompt.focus"
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 437,
+      "call": "delivery_failure(error).present"
+    },
+    {
+      "path": "src/toad/widgets/comms_command_dialog.py",
+      "line": 49,
+      "call": "(fields[0] if fields else self.query_one('#command-cancel', Button)).focus"
+    },
+    {
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 147,
+      "call": "items[(index - 1) % len(items)].focus"
+    },
+    {
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 155,
+      "call": "items[(index + 1) % len(items)].focus"
+    },
+    {
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 136,
+      "call": "items[0].focus"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 217,
+      "call": "self.focus"
+    },
+    {
+      "path": "src/toad/widgets/comms_transfer.py",
+      "line": 177,
+      "call": "self.query_one('#export-path', Input).focus"
+    },
+    {
+      "path": "src/toad/widgets/comms_transfer.py",
+      "line": 237,
+      "call": "self.query_one('#import-source', Input).focus"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 383,
+      "call": "self.query_one(ContextTree).present"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 394,
+      "call": "self.state.present"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 431,
+      "call": "detail.focus"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 297,
+      "call": "self.state.present"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 320,
+      "call": "updated.present"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 338,
+      "call": "updated.present"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 476,
+      "call": "self._show_detail"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 152,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 424,
+      "call": "self._show_detail"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1591,
+      "call": "history.present"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1682,
+      "call": "self.prompt.focus"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 2052,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 2055,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 2086,
+      "call": "self.prompt.focus"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 2110,
+      "call": "menu.focus"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 810,
+      "call": "self.prompt.focus"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 915,
+      "call": "event.terminal.focus"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 954,
+      "call": "terminal.focus"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1134,
+      "call": "self.prompt.focus"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1295,
+      "call": "self.window.focus"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1551,
+      "call": "self.query_one(f'#{block_id}').focus"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1595,
+      "call": "request.present"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 2128,
+      "call": "block.focus"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 2171,
+      "call": "self.screen.set_focus"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 2177,
+      "call": "self.prompt.focus"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1181,
+      "call": "prompt.focus"
+    },
+    {
+      "path": "src/toad/widgets/grid_select.py",
+      "line": 190,
+      "call": "self.focus"
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 140,
+      "call": "self.search_input.focus"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 230,
+      "call": "self.input.focus"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 296,
+      "call": "tree.focus"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 298,
+      "call": "self.input.focus"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 227,
+      "call": "self.tree_view.focus"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 58,
+      "call": "self.blur"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 61,
+      "call": "self.blur"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 562,
+      "call": "self.mode_switcher.focus"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 644,
+      "call": "self.screen.set_focus"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 115,
+      "call": "prompt_text_area.focus"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 262,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 355,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 567,
+      "call": "self.model_switcher.focus"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 696,
+      "call": "self.prompt_text_area.focus"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 700,
+      "call": "self.question.focus"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 731,
+      "call": "self.question.focus"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 733,
+      "call": "self.query(HighlightedTextArea).focus"
+    },
+    {
+      "path": "src/toad/widgets/prompt_popup.py",
+      "line": 64,
+      "call": "self.prompt.focus"
+    },
+    {
+      "path": "src/toad/widgets/selection.py",
+      "line": 20,
+      "call": "self.focus"
+    },
+    {
+      "path": "src/toad/widgets/selection.py",
+      "line": 24,
+      "call": "self.blur"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 166,
+      "call": "timer.pause"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 723,
+      "call": "self._hydrate_panels"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 955,
+      "call": "screen.set_focus"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 972,
+      "call": "title.focus"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 236,
+      "call": "rows[self._cursor].scroll_visible"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 226,
+      "call": "rows[self._cursor].focus"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 233,
+      "call": "rows[self._cursor].focus"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 127,
+      "call": "group.present"
+    },
+    {
+      "path": "src/toad/widgets/slash_complete.py",
+      "line": 119,
+      "call": "self.input.focus"
+    },
+    {
+      "path": "src/toad/widgets/slash_complete.py",
+      "line": 101,
+      "call": "self.focus"
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 267,
+      "call": "self.focus"
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 176,
+      "call": "self.blur"
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 378,
+      "call": "self.blur"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 273,
+      "call": "self._spinner_timer.pause"
+    },
+    {
+      "path": "src/toad/workspace_sessions.py",
+      "line": 149,
+      "call": "target.focus"
+    },
+    {
+      "path": "src/textual/_animator.py",
+      "line": 584,
+      "call": "self._timer.pause"
+    },
+    {
+      "path": "src/textual/_doc.py",
+      "line": 128,
+      "call": "pilot.pause"
+    },
+    {
+      "path": "src/textual/_doc.py",
+      "line": 136,
+      "call": "pilot.pause"
+    },
+    {
+      "path": "src/textual/_doc.py",
+      "line": 137,
+      "call": "pilot.wait_for_scheduled_animations"
+    },
+    {
+      "path": "src/textual/_doc.py",
+      "line": 132,
+      "call": "pilot.pause"
+    },
+    {
+      "path": "src/textual/_doc.py",
+      "line": 134,
+      "call": "pilot.wait_for_scheduled_animations"
+    },
+    {
+      "path": "src/textual/_doc.py",
+      "line": 135,
+      "call": "pilot.pause"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 3167,
+      "call": "self.screen.set_focus"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 3728,
+      "call": "widget.blur"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 4444,
+      "call": "self.screen.set_focus"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 3851,
+      "call": "self.screen._refresh_layout"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 4482,
+      "call": "self.set_focus"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 4126,
+      "call": "self.screen._forward_event"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 4429,
+      "call": "self.screen.set_focus"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 4184,
+      "call": "self.screen._forward_event"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 4188,
+      "call": "self.focused._forward_event"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 4190,
+      "call": "self.screen._forward_event"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 4182,
+      "call": "forward_target._forward_event"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 4161,
+      "call": "self.screen._forward_event"
+    },
+    {
+      "path": "src/textual/await_remove.py",
+      "line": 61,
+      "call": "screen._reset_focus"
+    },
+    {
+      "path": "src/textual/css/query.py",
+      "line": 462,
+      "call": "node.focus"
+    },
+    {
+      "path": "src/textual/css/query.py",
+      "line": 476,
+      "call": "self._node.screen._reset_focus"
+    },
+    {
+      "path": "src/textual/demo/game.py",
+      "line": 573,
+      "call": "game.focus"
+    },
+    {
+      "path": "src/textual/pilot.py",
+      "line": 98,
+      "call": "self.pause"
+    },
+    {
+      "path": "src/textual/pilot.py",
+      "line": 377,
+      "call": "self.pause"
+    },
+    {
+      "path": "src/textual/pilot.py",
+      "line": 470,
+      "call": "self.pause"
+    },
+    {
+      "path": "src/textual/pilot.py",
+      "line": 468,
+      "call": "screen._forward_event"
+    },
+    {
+      "path": "src/textual/pilot.py",
+      "line": 449,
+      "call": "self.pause"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1018,
+      "call": "self.set_focus"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1085,
+      "call": "self.set_focus"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1261,
+      "call": "self._update_timer.pause"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1365,
+      "call": "self._update_timer.pause"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 881,
+      "call": "self.set_focus"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1055,
+      "call": "self.set_focus"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1544,
+      "call": "self._refresh_layout"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 893,
+      "call": "self.set_focus"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 906,
+      "call": "self.set_focus"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1032,
+      "call": "self.set_focus"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1272,
+      "call": "self._refresh_layout"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1563,
+      "call": "self._refresh_layout"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1781,
+      "call": "widget._forward_event"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1071,
+      "call": "self.set_focus"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1275,
+      "call": "self._refresh_layout"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1068,
+      "call": "self.set_focus"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1580,
+      "call": "self.set_focus"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 2060,
+      "call": "self.set_focus"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 2076,
+      "call": "widget._forward_event"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 2068,
+      "call": "self.set_focus"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 4030,
+      "call": "self.scroll_to_widget"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 4879,
+      "call": "self.screen._reset_focus"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 5125,
+      "call": "self.blur"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 1809,
+      "call": "old_screen.set_focus"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 1832,
+      "call": "new_screen.set_focus"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 3969,
+      "call": "self.screen.scroll_to_widget"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 4342,
+      "call": "screen.focused.blur"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 4862,
+      "call": "widget.screen.set_focus"
+    },
+    {
+      "path": "src/textual/widgets/_data_table.py",
+      "line": 2724,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_data_table.py",
+      "line": 2748,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_data_table.py",
+      "line": 2787,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_data_table.py",
+      "line": 2796,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_directory_tree.py",
+      "line": 558,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_input.py",
+      "line": 831,
+      "call": "self._blink_timer.pause"
+    },
+    {
+      "path": "src/textual/widgets/_list_view.py",
+      "line": 390,
+      "call": "self.focus"
+    },
+    {
+      "path": "src/textual/widgets/_list_view.py",
+      "line": 212,
+      "call": "self.scroll_to_widget"
+    },
+    {
+      "path": "src/textual/widgets/_markdown.py",
+      "line": 1770,
+      "call": "self.scroll_to_widget"
+    },
+    {
+      "path": "src/textual/widgets/_markdown.py",
+      "line": 1266,
+      "call": "self.query_one(f'#{header_id}').scroll_visible"
+    },
+    {
+      "path": "src/textual/widgets/_masked_input.py",
+      "line": 622,
+      "call": "self._template.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_masked_input.py",
+      "line": 626,
+      "call": "self._template.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_masked_input.py",
+      "line": 630,
+      "call": "self._template.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_masked_input.py",
+      "line": 674,
+      "call": "self._template.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_masked_input.py",
+      "line": 601,
+      "call": "self._template.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_radio_set.py",
+      "line": 266,
+      "call": "self.focus"
+    },
+    {
+      "path": "src/textual/widgets/_select.py",
+      "line": 675,
+      "call": "self.focus"
+    },
+    {
+      "path": "src/textual/widgets/_select.py",
+      "line": 640,
+      "call": "overlay.focus"
+    },
+    {
+      "path": "src/textual/widgets/_select.py",
+      "line": 665,
+      "call": "self.focus"
+    },
+    {
+      "path": "src/textual/widgets/_tabs.py",
+      "line": 691,
+      "call": "self.focus"
+    },
+    {
+      "path": "src/textual/widgets/_tabs.py",
+      "line": 715,
+      "call": "self.focus"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 1205,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2157,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2205,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2272,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2303,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2323,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2343,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2359,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2375,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2403,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2431,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2471,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2485,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 1995,
+      "call": "self.blink_timer.pause"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2036,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2037,
+      "call": "self.focus"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2716,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1004,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 976,
+      "call": "self.scroll_to_node"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 996,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1547,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1553,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1561,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1563,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1575,
+      "call": "self.move_cursor"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1573,
+      "call": "self.move_cursor"
+    }
+  ],
+  "interpretation": "Collapsible disclosure queues an after-refresh scroll; sidebar mount readiness and Tree internal line acquisition do not acquire ancestor viewport visibility. Widget.focus queues a separate native focus/center scroll. Screen visible-only reflow can emit Hide; Widget._on_hide can blur and Screen._reset_focus can select the preceding focusable control. ContextTree and Explorer detail publication do not author focus.",
+  "limit": "Lexical member/call evidence, not dynamic binding or a measured03 Focus/Hide trace. Original actual focused Correct/cursor-matched negative retained. No production/native defect proved."
+}

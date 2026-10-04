@@ -1,0 +1,10 @@
+{
+  "time": 1791147571.6972654,
+  "processes": 254,
+  "gaps": [],
+  "refs": {
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002": [],
+    "/home/ts/wt/w6e03": [],
+    "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent": []
+  }
+}
