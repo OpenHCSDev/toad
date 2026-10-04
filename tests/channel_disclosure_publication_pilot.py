@@ -15,6 +15,7 @@ from agent_comms.comms import Comms
 from agent_comms.threads import Thread
 from toad.app import ToadApp
 from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork
+from toad.session_tracker import ExactUnread
 from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
 from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 from toad.widgets.thread_comms import ThreadCommsSidebar
@@ -32,7 +33,7 @@ async def main():
                           XDG_DATA_HOME=str(root / 'data'))
         comms = Comms(root / 'wire')
         comms.messaging.initialize_private_initial_protocol()
-        comms.registry.declare(Thread('beta', frozenset({'team'}), str(root)))
+        comms.registry.declare(Thread('beta', frozenset({'team', 'other'}), str(root)))
         comms.registry.declare(Thread('child', frozenset(), str(root), parent='beta'))
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
@@ -137,6 +138,42 @@ async def main():
                 await sidebar.projection.publish(metadata_only)
             assert requests == [], requests
             assert group.member_container.children[0]._thread_presentation is reused
+            # Two real groups publishing the same changed display input must
+            # share one preparation, while keeping separate native row custody.
+            other = next(item for item in sidebar.query(ChannelGroup)
+                         if item.row.target_name == '#other')
+            other.expanded = True
+            sidebar.navigation.state.expanded[other.row.target_name] = True
+            other.disclosure.update('▾', layout=False)
+            cohort = replace(sidebar.projection.snapshot, wire=replace(
+                sidebar.projection.snapshot.wire,
+                unread={**sidebar.projection.snapshot.wire.unread, 'beta': 7},
+                thread_unread={**sidebar.projection.snapshot.wire.thread_unread, 'beta': 7},
+            ))
+            batches = []
+
+            async def count_cohort(work):
+                if isinstance(work, ThreadRowsWork):
+                    batches.append(len(work.rows))
+                return await submit(work)
+
+            retained_row = group.member_container.children[0]
+            with patch.object(app.preparation, 'submit', count_cohort):
+                await sidebar.projection.publish(cohort)
+                assert batches == [1], batches
+                assert group.member_container.children[0] is retained_row
+                other_row = other.member_container.children[0]
+                assert other_row is not retained_row
+                assert other_row._thread_presentation is retained_row._thread_presentation
+                assert retained_row._thread_presentation.source.unread == ExactUnread(7)
+                batches.clear()
+                await sidebar.projection.publish(cohort)
+                assert batches == [], batches
+            receipt['shared_group_preparation'] = {
+                'groups': 2, 'changed_batches': 1, 'unique_changed_rows': 1,
+                'unchanged_batches': 0, 'native_rows_distinct': True,
+            }
+            reused = retained_row._thread_presentation
             # A changed tooltip is published, but it does not damage identical
             # native row text. Both sidebars inherit this same row consumer.
             retained_row = group.member_container.children[0]
@@ -227,7 +264,7 @@ async def main():
             with patch.object(app.preparation, 'submit', count_relationship_rows):
                 captured = await ThreadRowsWork.capture(
                     app.preparation, tuple(ThreadRowInput(person) for person in children.thread_people()))
-                await children.update_group(model, captured)
+                await children.reconcile_groups((children,), captured, sources={children: model})
             assert relationship_requests == [], relationship_requests
             assert tuple(children.member_container.children) == retained
             children.toggle_members()

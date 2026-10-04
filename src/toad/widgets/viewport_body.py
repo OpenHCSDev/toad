@@ -469,7 +469,7 @@ class MeasuredViewportBody(ViewportBody):
         # The resource owns descendant participation and cover selection as
         # well as extent. Publish that change before any native prune awaits;
         # NodeList removal happens later and cannot invalidate it for us.
-        self._invalidate_subtree_geometry()
+        self._invalidate_layout()
         if self._body_viewport is not None:
             self._body_viewport.request()
 

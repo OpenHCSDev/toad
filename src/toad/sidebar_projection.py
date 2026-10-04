@@ -148,6 +148,7 @@ class SidebarProjection:
                 return
         if retired_channels or new_groups:
             self.sidebar.navigation.rows_changed()
+        groups = {}
         for view in snapshot.wire.channels:
             channel_row = channels[view.channel.name]
             unread = snapshot.wire.channel_unread.get(view.channel.name, 0)
@@ -156,9 +157,10 @@ class SidebarProjection:
             group.update_unread(unread)
             group.update_activity(view, row_inputs)
             channel_row.set_class(bool(unread), "-unread")
-            await group.present(view, row_inputs)
-            if not self.sidebar.accepts_publication():
-                return
+            groups[group] = view
+        await ChannelGroup.reconcile_groups(groups, row_inputs, sources=groups)
+        if not self.sidebar.accepts_publication():
+            return
         ordered = [self.sidebar.query_one(NewSessionButton), *(
             channels[key].query_ancestor(ChannelGroup) for key in desired_keys
         )]
