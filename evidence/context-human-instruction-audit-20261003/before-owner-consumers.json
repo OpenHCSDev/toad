@@ -1,0 +1,1046 @@
+{
+  "frontend_head": "5c152c3da5acc9d4df70517dc3dc9b3f6ab5d124",
+  "dependency_head": "43195a2607d3128017b19687a0732072b8265e6f",
+  "roots": [
+    {
+      "root": "src/toad",
+      "parsed": 289,
+      "unparsed": []
+    },
+    {
+      "root": "tests",
+      "parsed": 392,
+      "unparsed": []
+    },
+    {
+      "root": "src/agent_comms",
+      "parsed": 311,
+      "unparsed": []
+    }
+  ],
+  "references": [
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 12,
+      "kind": "ImportFrom",
+      "source": "from agent_comms.native_turn_context import NativeContextData"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 17,
+      "kind": "ImportFrom",
+      "source": "from agent_comms.turn_context import ("
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 24,
+      "kind": "ClassDef",
+      "source": "class ContextNode(ABC):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 40,
+      "kind": "ClassDef",
+      "source": "class ReferenceNode(ContextNode):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 53,
+      "kind": "ClassDef",
+      "source": "class ManifestNode(ContextNode):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 96,
+      "kind": "ClassDef",
+      "source": "class NativeSegmentNode(ContextNode):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 115,
+      "kind": "ClassDef",
+      "source": "class NativeDetail(MroProjection):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 131,
+      "kind": "ClassDef",
+      "source": "class NativeMessageNode(ContextNode):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 152,
+      "kind": "ClassDef",
+      "source": "class SegmentNodes(MroProjection):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 196,
+      "kind": "ClassDef",
+      "source": "class ContextInspection:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 40,
+      "kind": "Name",
+      "source": "class ReferenceNode(ContextNode):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 53,
+      "kind": "Name",
+      "source": "class ManifestNode(ContextNode):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 76,
+      "kind": "Name",
+      "source": "class RecordedTurnNode(ContextNode):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 96,
+      "kind": "Name",
+      "source": "class NativeSegmentNode(ContextNode):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 131,
+      "kind": "Name",
+      "source": "class NativeMessageNode(ContextNode):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 166,
+      "kind": "Name",
+      "source": "class NativeMessagesNode(NativeSegmentNode):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 177,
+      "kind": "Name",
+      "source": "class NativeMessageRange(ContextNode):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 41,
+      "kind": "Name",
+      "source": "source: Provenance"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 77,
+      "kind": "Name",
+      "source": "manifest: ContextManifest"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 32,
+      "kind": "Name",
+      "source": "def children(self) -> tuple[ContextNode, ...]:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 158,
+      "kind": "Name",
+      "source": "return NativeSegmentNode(self.key, segment)"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 199,
+      "kind": "Name",
+      "source": "manifests: tuple[ContextManifest, ...]"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 208,
+      "kind": "Name",
+      "source": "def same_native_source(self, other: ContextInspection):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 236,
+      "kind": "Name",
+      "source": "def active(context: NativeContextData):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 85,
+      "kind": "Name",
+      "source": "return tuple(ManifestNode(f\"{self.key}/{i}\", segment)"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 112,
+      "kind": "Name",
+      "source": "return NativeDetail().dispatch_sync(self.segment)"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 187,
+      "kind": "Name",
+      "source": "return tuple(NativeMessageNode(f\"{self.key}/message/{i}\","
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 230,
+      "kind": "Name",
+      "source": "context = await asyncio.to_thread(FieldCodec.decode, NativeContextData, payload)"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 62,
+      "kind": "Name",
+      "source": "*(ManifestNode(f\"{self.key}/contributor/{i}\", child)"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 64,
+      "kind": "Name",
+      "source": "*(ReferenceNode(f\"{self.key}/source/{i}\", source)"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 105,
+      "kind": "Name",
+      "source": "*(ManifestNode(f\"{self.key}/contributor/{i}\", child)"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 107,
+      "kind": "Name",
+      "source": "*(ReferenceNode(f\"{self.key}/source/{i}\", source)"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 237,
+      "kind": "Name",
+      "source": "return tuple(SegmentNodes(f\"native/{context.identity.session_id}/{i}/{segment.declared_name}/{segment.sha256}\").dispatch_sync(segment)"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/screens/main.py",
+      "line": 318,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.context_explorer import ContextExplorer"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/screens/main.py",
+      "line": 319,
+      "kind": "Name",
+      "source": "if context := self.query_one_optional(ContextExplorer):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 14,
+      "kind": "ImportFrom",
+      "source": "from toad.core.context_inspection import ContextInspection, ContextNode"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 28,
+      "kind": "ClassDef",
+      "source": "class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 46,
+      "kind": "Name",
+      "source": "self._inspection: ContextInspection | None = None"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 55,
+      "kind": "Name",
+      "source": "yield Tree[ContextNode](\"Context\", id=\"context-tree\")"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 133,
+      "kind": "Name",
+      "source": "inspection = await asyncio.to_thread(ContextInspection.read, service, owner)"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 118,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.context_explorer import ContextExplorer, ContextTreeIntent"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 121,
+      "kind": "Name",
+      "source": "return ContextExplorer(screen._comms_thread, screen.coordination_root, intent=intent)"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/awareness_context.py",
+      "line": 7,
+      "kind": "ImportFrom",
+      "source": "from .turn_context import InstructionFile, InstructionSegment, WireProvenance"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/awareness_context.py",
+      "line": 18,
+      "kind": "Name",
+      "source": "instruction = InstructionFile.read(\"awareness.md\")"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/awareness_context.py",
+      "line": 36,
+      "kind": "Name",
+      "source": "instruction = InstructionFile.read(\"awareness-unavailable.md\")"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/cli_commands.py",
+      "line": 760,
+      "kind": "ImportFrom",
+      "source": "from .native_turn_context import NativeContextData"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/cli_commands.py",
+      "line": 793,
+      "kind": "Name",
+      "source": "return FieldCodec.decode(NativeContextData, payload).require_session_file("
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/compaction_source.py",
+      "line": 9,
+      "kind": "ImportFrom",
+      "source": "from .input_origin import InputProvenance"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/compaction_source.py",
+      "line": 31,
+      "kind": "Name",
+      "source": "pending_inputs: tuple[InputProvenance, ...]"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/goal_states.py",
+      "line": 36,
+      "kind": "ImportFrom",
+      "source": "from .turn_context import InstructionFile"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/goal_states.py",
+      "line": 38,
+      "kind": "Name",
+      "source": "return InstructionFile.read(\"owner-pause.md\").content"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/input_attempt.py",
+      "line": 15,
+      "kind": "ImportFrom",
+      "source": "from .input_origin import InputOrigin, InputProvenance, UnattributedInputOrigin"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/input_attempt.py",
+      "line": 132,
+      "kind": "Name",
+      "source": "def context_provenance(self) -> InputProvenance:"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/input_attempt.py",
+      "line": 66,
+      "kind": "Name",
+      "source": "def matches_original_provenance(self, source: InputProvenance) -> bool:"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/input_attempt.py",
+      "line": 72,
+      "kind": "Name",
+      "source": "def require_original_provenance(self, source: InputProvenance):"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/input_attempt.py",
+      "line": 133,
+      "kind": "Name",
+      "source": "return InputProvenance(self.key, self.origin)"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/input_attempt.py",
+      "line": 135,
+      "kind": "Name",
+      "source": "def matches_original_provenance(self, source: InputProvenance) -> bool:"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/input_attempt.py",
+      "line": 141,
+      "kind": "Name",
+      "source": "def require_original_provenance(self, source: InputProvenance):"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/input_disposition.py",
+      "line": 26,
+      "kind": "ImportFrom",
+      "source": "from .input_origin import InputProvenance"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/input_disposition.py",
+      "line": 81,
+      "kind": "Name",
+      "source": "def original_provenances(self, keys: tuple[str, ...]) -> tuple[InputProvenance, ...]:"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/input_origin.py",
+      "line": 15,
+      "kind": "ImportFrom",
+      "source": "from .turn_context import Provenance"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/input_origin.py",
+      "line": 44,
+      "kind": "ClassDef",
+      "source": "class InputProvenance(Provenance):"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/input_origin.py",
+      "line": 44,
+      "kind": "Name",
+      "source": "class InputProvenance(Provenance):"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/native_turn_context.py",
+      "line": 8,
+      "kind": "ImportFrom",
+      "source": "from .turn_context import ContextManifest, MeasuredNativeSegment, SegmentManifest, TurnContext"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/native_turn_context.py",
+      "line": 34,
+      "kind": "ClassDef",
+      "source": "class NativeContextData(PiResponseData):"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/native_turn_context.py",
+      "line": 19,
+      "kind": "Name",
+      "source": "return ContextManifest(thread, turn, self.segments, self.counter, request_id=self.request_id)"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/optional_awareness_projection.py",
+      "line": 58,
+      "kind": "ImportFrom",
+      "source": "from .turn_context import ("
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/optional_awareness_projection.py",
+      "line": 240,
+      "kind": "Name",
+      "source": "class CompleteAwareness(ContextSegment, OptionalAwarenessResult):"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/optional_awareness_projection.py",
+      "line": 246,
+      "kind": "Name",
+      "source": "instruction: InstructionFile"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/optional_awareness_projection.py",
+      "line": 247,
+      "kind": "Name",
+      "source": "content_instruction: InstructionFile"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/optional_awareness_projection.py",
+      "line": 220,
+      "kind": "Name",
+      "source": "def segments(self, max_text_bytes: int) -> tuple[ContextSegment, ...]:"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/optional_awareness_projection.py",
+      "line": 349,
+      "kind": "Name",
+      "source": ") -> tuple[ContextSegment, ...]:"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/optional_awareness_projection.py",
+      "line": 477,
+      "kind": "Name",
+      "source": "instruction = InstructionFile.read(\"selected-awareness.md\")"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/optional_awareness_projection.py",
+      "line": 478,
+      "kind": "Name",
+      "source": "content_instruction = InstructionFile.read(\"selected-awareness-content.md\")"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/owned_turn.py",
+      "line": 199,
+      "kind": "ImportFrom",
+      "source": "from .turn_context import ("
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/owned_turn.py",
+      "line": 221,
+      "kind": "Name",
+      "source": "instruction = InstructionFile.read(\"automatic-title.md\")"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/owned_turn.py",
+      "line": 232,
+      "kind": "Name",
+      "source": "instruction = InstructionFile.read(\"reply-route.md\")"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/pi_commands.py",
+      "line": 16,
+      "kind": "ImportFrom",
+      "source": "from .native_turn_context import NativeContextData"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/pi_commands.py",
+      "line": 476,
+      "kind": "Name",
+      "source": "response_payload = NativeContextData"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/private_bus_checkpoint.py",
+      "line": 41,
+      "kind": "ImportFrom",
+      "source": "from .turn_context import ContextManifest"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/private_bus_checkpoint.py",
+      "line": 407,
+      "kind": "Name",
+      "source": "def decode_bytes(self, raw: bytes, root_id: str) -> ContextManifest:"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/private_bus_checkpoint.py",
+      "line": 256,
+      "kind": "Name",
+      "source": "def context_manifests(self, incarnation: ThreadIncarnation, snapshot) -> Iterator[ContextManifest]:"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/private_bus_checkpoint.py",
+      "line": 280,
+      "kind": "Name",
+      "source": "def indexed_context_manifests(self, incarnation: ThreadIncarnation, snapshot) -> Iterator[ContextManifest]:"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/retained_context.py",
+      "line": 13,
+      "kind": "ImportFrom",
+      "source": "from .turn_context import ContextSegment, OwnerProvenance, WireProvenance"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/retained_context.py",
+      "line": 17,
+      "kind": "Name",
+      "source": "class RetainedSegment(ContextSegment):"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/retained_task_facts.py",
+      "line": 28,
+      "kind": "ImportFrom",
+      "source": "from .input_origin import InputProvenance"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/retained_task_facts.py",
+      "line": 272,
+      "kind": "Name",
+      "source": "def original_inputs(self, references: tuple[InputProvenance, ...]) -> tuple[StoredInput, ...]:"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/selected_actions.py",
+      "line": 11,
+      "kind": "ImportFrom",
+      "source": "from .turn_context import InstructionFile"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/selected_actions.py",
+      "line": 25,
+      "kind": "Name",
+      "source": "def instruction_files(self) -> tuple[InstructionFile, ...]: ..."
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/selected_actions.py",
+      "line": 51,
+      "kind": "Name",
+      "source": "return (InstructionFile.read(\"selected-no-tools.md\"),)"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/selected_actions.py",
+      "line": 82,
+      "kind": "Name",
+      "source": "return (InstructionFile.read(\"selected-coding.md\"),)"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/selected_source.py",
+      "line": 14,
+      "kind": "ImportFrom",
+      "source": "from .input_origin import InputProvenance"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/selected_source.py",
+      "line": 166,
+      "kind": "Name",
+      "source": "originals: tuple[InputProvenance, ...]"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/selected_source_batch.py",
+      "line": 15,
+      "kind": "ImportFrom",
+      "source": "from .turn_context import InstructionFile, ReplyRouteSegment, WireProvenance"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/selected_source_batch.py",
+      "line": 134,
+      "kind": "Name",
+      "source": "example: InstructionFile"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/selected_source_batch.py",
+      "line": 92,
+      "kind": "Name",
+      "source": "instruction = InstructionFile.read(\"selected-response.md\")"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/selected_source_batch.py",
+      "line": 93,
+      "kind": "Name",
+      "source": "example = InstructionFile.read(\"selected-response-example.md\")"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/selected_turn.py",
+      "line": 31,
+      "kind": "ImportFrom",
+      "source": "from .turn_context import ("
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/selected_turn.py",
+      "line": 98,
+      "kind": "Name",
+      "source": "output: InstructionFile"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/selected_turn.py",
+      "line": 121,
+      "kind": "Name",
+      "source": "action_instructions: tuple[InstructionFile, ...]"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/selected_turn.py",
+      "line": 102,
+      "kind": "Name",
+      "source": "instruction = InstructionFile.read(\"selected-triage.md\")"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/selected_turn.py",
+      "line": 103,
+      "kind": "Name",
+      "source": "output = InstructionFile.read(\"selected-triage-output.md\")"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/selected_turn.py",
+      "line": 125,
+      "kind": "Name",
+      "source": "instruction = InstructionFile.read(\"selected-work.md\")"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/task_sources.py",
+      "line": 15,
+      "kind": "ImportFrom",
+      "source": "from .turn_context import Provenance, WireProvenance"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/task_sources.py",
+      "line": 205,
+      "kind": "Name",
+      "source": "def original_wording_context_source(self, original: Message) -> Provenance:"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/task_sources.py",
+      "line": 526,
+      "kind": "Name",
+      "source": "subject: Provenance"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/task_sources.py",
+      "line": 535,
+      "kind": "Name",
+      "source": "def original_wording_context_source(self, original: StoredInput) -> Provenance:"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 26,
+      "kind": "ClassDef",
+      "source": "class Provenance(DeclaredFamily, affix=\"Provenance\"):"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 79,
+      "kind": "ClassDef",
+      "source": "class InstructionFile:"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 112,
+      "kind": "ClassDef",
+      "source": "class ContextSegment(DeclaredFamily, affix=\"Segment\"):"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 422,
+      "kind": "ClassDef",
+      "source": "class ContextManifest:"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 36,
+      "kind": "Name",
+      "source": "class FileProvenance(Provenance):"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 42,
+      "kind": "Name",
+      "source": "class OwnerProvenance(Provenance):"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 48,
+      "kind": "Name",
+      "source": "class WireProvenance(Provenance):"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 53,
+      "kind": "Name",
+      "source": "class JournalProvenance(Provenance):"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 59,
+      "kind": "Name",
+      "source": "class NativeProvenance(Provenance):"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 66,
+      "kind": "Name",
+      "source": "class PreviewProvenance(Provenance):"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 72,
+      "kind": "Name",
+      "source": "class ResourceProvenance(Provenance):"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 160,
+      "kind": "Name",
+      "source": "class UserInputSegment(SuppliedSegment, ContextSegment):"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 166,
+      "kind": "Name",
+      "source": "class MeasuredNativeSegment(ContextSegment):"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 247,
+      "kind": "Name",
+      "source": "class InstructionSegment(ContextSegment):"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 86,
+      "kind": "Name",
+      "source": "def read(cls, name: str) -> InstructionFile:"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 248,
+      "kind": "Name",
+      "source": "instruction: InstructionFile"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 289,
+      "kind": "Name",
+      "source": "response_instruction: InstructionFile"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 511,
+      "kind": "Name",
+      "source": "def manifest(self, tokens: tuple[int, ...], *, counter: str) -> ContextManifest:"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 98,
+      "kind": "Name",
+      "source": "provenance: tuple[Provenance, ...]"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 113,
+      "kind": "Name",
+      "source": "provenance: tuple[Provenance, ...]"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 142,
+      "kind": "Name",
+      "source": "provenance: tuple[Provenance, ...]"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 450,
+      "kind": "Name",
+      "source": "def changed_since(self, previous: ContextManifest) -> dict:"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 464,
+      "kind": "Name",
+      "source": "segments: tuple[ContextSegment, ...]"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 489,
+      "kind": "Name",
+      "source": "def prepend(self, segment: ContextSegment) -> TurnContext:"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 492,
+      "kind": "Name",
+      "source": "def append(self, segment: ContextSegment) -> TurnContext:"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 512,
+      "kind": "Name",
+      "source": "return ContextManifest("
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 261,
+      "kind": "Name",
+      "source": "instruction = InstructionFile.read(\"user-followup.md\")"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 299,
+      "kind": "Name",
+      "source": "instruction = InstructionFile.read(\"coordination.md\")"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 344,
+      "kind": "Name",
+      "source": "instruction = InstructionFile.read(\"goal.md\")"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 431,
+      "kind": "Name",
+      "source": "def changed_from_history(self, history: tuple[ContextManifest, ...]) -> dict:"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_context.py",
+      "line": 499,
+      "kind": "Name",
+      "source": "def render_segments(segments: tuple[ContextSegment, ...], *, images=()) -> RenderedInput:"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/wake_injection.py",
+      "line": 18,
+      "kind": "ImportFrom",
+      "source": "from .turn_context import ("
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/wake_injection.py",
+      "line": 35,
+      "kind": "Name",
+      "source": "relevance: InstructionFile"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/wake_injection.py",
+      "line": 39,
+      "kind": "Name",
+      "source": "instruction = InstructionFile.read(\"selected-wake.md\")"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/wake_policy.py",
+      "line": 68,
+      "kind": "ImportFrom",
+      "source": "from .turn_context import InstructionFile"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/wake_policy.py",
+      "line": 70,
+      "kind": "Name",
+      "source": "return InstructionFile.read(\"reply-relevance.md\")"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/wire_metadata.py",
+      "line": 26,
+      "kind": "ImportFrom",
+      "source": "from .turn_context import ContextManifest"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/wire_metadata.py",
+      "line": 63,
+      "kind": "Name",
+      "source": "snapshot: RegistrySnapshot) -> Iterator[ContextManifest]: ..."
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/wire_record.py",
+      "line": 180,
+      "kind": "ImportFrom",
+      "source": "from .turn_context import ContextManifest"
+    }
+  ],
+  "limits": "AST names/imports/classes do not prove dynamic receiver resolution. Semantics inspected at original nominal owners and inherited projections; SDK external/provider messages remain original native records, decoded public content once through PiMessage. Parent checkout working branch differs from dependency origin/main; immutable committed dependency root used for census."
+}

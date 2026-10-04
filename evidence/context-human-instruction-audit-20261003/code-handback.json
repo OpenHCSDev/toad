@@ -1,0 +1,23 @@
+{
+  "state": "FULL_CODE_RETURN_TO_HEIS; actual05 terminal PASS; all owned borrowers retired",
+  "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "installed_toad": "0de3ab02c154b375f3cad7be10b02eb274ea5c4b",
+  "installed_core": "dbcf3ae4a47b629c85027c0def993a9614fadc6c",
+  "textual": "c26499bf66768027ce0128532fb2d43db3e214e0",
+  "native": "89b56aea0bb128c4bf3e2c979de8a5afa79ac88b1f51a74c49cc1cab46da60d2",
+  "package_count": 69,
+  "source_proof": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/context406-staging/source-proof.json",
+  "original407_archive": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-workspace407-rule47-20261003/qualified407-code-handback",
+  "active_borrowers": [],
+  "unreadable_cmdlines": [],
+  "controller_alive": false,
+  "native_alive": false,
+  "remaining_owned_pids": [],
+  "errors": [],
+  "public_source_unchanged": true,
+  "selected_source_unchanged": true,
+  "input_rows": 0,
+  "final_painted_source_key": "core/01a1027f-a366-77f8-8b39-0d4999995f4d/0/coordination/source/1",
+  "original_file_sha256": "9374160606b751a57cdddc5d3108161378b44240013c683730cadfc6d811da48",
+  "authenticated_file_original_equal": true
+}
