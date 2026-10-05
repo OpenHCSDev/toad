@@ -28,6 +28,36 @@ def record(event, **values):
 
 
 def install_observer():
+    if os.environ.get("TOAD_VALIDATION_USEFUL_PAINT") == "1":
+        from toad.app import ToadApp
+
+        construct = ToadApp.__init__
+        select = ToadApp.select_session
+        display = ToadApp._display
+
+        def observed_construct(self, *args, **kwargs):
+            record("app_construct_begin", app=id(self))
+            return construct(self, *args, **kwargs)
+
+        def observed_select(self, mode, **kwargs):
+            record("source_selection_requested", app=id(self), mode=mode)
+            return select(self, mode, **kwargs)
+
+        def observed_display(self, screen, renderable):
+            begin, cpu = time.monotonic_ns(), time.thread_time_ns()
+            result = display(self, screen, renderable)
+            displayed = time.monotonic_ns()
+            if (renderable is not None and not self._batch_count
+                    and screen is self.screen and self._running and not self._closed):
+                ValidationDriver.observe_useful_output(
+                    self, screen, renderable, begin, displayed,
+                    time.thread_time_ns() - cpu)
+            return result
+
+        ToadApp.__init__ = observed_construct
+        ToadApp.select_session = observed_select
+        ToadApp._display = observed_display
+
     if os.environ.get("TOAD_VALIDATION_ARRANGEMENTS") == "1":
         from textual.widget import Widget
 
@@ -327,6 +357,83 @@ def install_observer():
 
 
 class ValidationDriver(LinuxDriver):
+    @staticmethod
+    def painted_spans(update):
+        """Borrow this update's strips; never ask widgets to render again."""
+        from textual._compositor import ChopsUpdate, LayoutUpdate
+
+        if isinstance(update, LayoutUpdate):
+            for y, line in enumerate(update.strips, update.region.y):
+                x = update.region.x
+                for strip in line:
+                    yield y, x, strip
+                    x += strip.cell_length
+        elif isinstance(update, ChopsUpdate):
+            for y, left, right in update.spans:
+                for x, strip in update._get_line_chops(y, left, right):
+                    yield y, x, strip
+
+    @classmethod
+    def observe_useful_output(cls, app, screen, update, begin, displayed, cpu):
+        """Bind useful body output to its original scene and writer receipt.
+
+        These are output spans, not a reconstructed screen or emulator pixels.
+        Scalars alone survive the callback; no widget/render-cache graph is
+        retained by the observer. Headless output remains source evidence.
+        """
+        from toad.frame_presentation import FrameFlush
+        from toad.widgets.conversation import Conversation, Window
+        from toad.widgets.transcript_history import TranscriptHistory
+        from toad.widgets.viewport_body import MeasuredViewportBody
+
+        selected = app.selected_session
+        conversation = selected.query_one_optional(Conversation) if selected is not None else None
+        if conversation is None:
+            record("display_without_conversation", begin_ns=begin, displayed_ns=displayed,
+                   mode=app.current_mode, update=type(update).__name__)
+            return
+        window = conversation.query_one_optional(Window)
+        if window is None:
+            record("display_without_window", begin_ns=begin, displayed_ns=displayed,
+                   mode=app.current_mode, update=type(update).__name__)
+            return
+        visible = screen._compositor.visible_widgets
+        spans = tuple(cls.painted_spans(update))
+        bodies = []
+        for body, (region, clip) in visible.items():
+            if not isinstance(body, MeasuredViewportBody) or window not in body.ancestors:
+                continue
+            crop = region.intersection(clip).intersection(window.scrollable_content_region)
+            text = []
+            for y, x, strip in spans:
+                left, right = max(x, crop.x), min(x + strip.cell_length, crop.right)
+                if crop.y <= y < crop.bottom and left < right:
+                    text.append(strip.crop(left - x, right - x).text)
+            output = "\n".join(text)
+            bodies.append(dict(owner=id(body), kind=type(body).__name__, ready=body.body_ready,
+                               region=list(crop), output_characters=len(output),
+                               nonwhite_characters=sum(not ch.isspace() for ch in output),
+                               output_sha256=sha256(output.encode()).hexdigest()))
+        sources = [dict(owner=id(history), kind=type(history).__name__,
+                        before=page.page.before.offset, after=page.page.after.offset,
+                        source=page.page.after.session_file,
+                        committed_fragments=len(page.fragment_views))
+                   for history in window.histories if isinstance(history, TranscriptHistory)
+                   for page in history.pages]
+        values = dict(begin_ns=begin, displayed_ns=displayed, display_cpu_ns=cpu,
+                      mode=app.current_mode, window=id(window), sources=sources,
+                      update=type(update).__name__, bodies=bodies,
+                      viewport_ready=window.document_viewport.visible_bodies_ready,
+                      scroll_y=window.scroll_y, maximum=window.max_scroll_y,
+                      width=window.size.width, height=window.size.height,
+                      driver=type(app._driver).__name__, headless=app.is_headless)
+        record("body_output", **values)
+        if not app.is_headless:
+            mode = app.current_mode
+            FrameFlush.for_driver(app._driver).submit(
+                lambda: record("body_output_written", display_begin_ns=begin,
+                               mode=mode, current_mode=app.current_mode))
+
     @classmethod
     def observe_application_frames(cls, app):
         """Attach through the app's original mounted lifetime.
