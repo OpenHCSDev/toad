@@ -1,0 +1,124 @@
+{
+  "status": "SCOPED READY: preparation completion source owner and affected installed functional consumers",
+  "product": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+  "control_correction": "e8a34cd0c75a53a5acfa8e173031c9d455e22d73",
+  "control_sha256": "42dc83bc83b6c0887f7ad62ea9dfadb993b58880c8bc1f01e9df7a35fecd485f",
+  "installed_proof_git_head": "2832435d2cfecf410cfa2bddf017a9f0e57967e7",
+  "owner_files": [
+    {
+      "path": "src/toad/work_preparation.py",
+      "sha256": "fd570454ad1059a89baafbf9eef5a90563f7b32e1081d84c56f74c5a8507c5b1",
+      "product_and_installed_proof_git_equal": true
+    },
+    {
+      "path": "src/toad/transcript_preparation.py",
+      "sha256": "287ebdb1d3ba06ae5634d6471c63cf3d1631cc64f456a660da19a173a41104dd",
+      "product_and_installed_proof_git_equal": true
+    }
+  ],
+  "source_policies": "Original3 corrected filesystem source controls PASS once, source-sanity02. Original3 ZIP import failures retained.",
+  "original_partial": {
+    "issued_sha256": "7bba978063cfe1e517576cdc520b1e653d1c40d70823049a62ef30ab81ed7f1e",
+    "terminal_sha256": "73bc3b5b0e6cb85a1b77b4dfb43da1220685e15a9a27ff8e3397849ee934a887",
+    "exit": 1,
+    "seconds": 9.248196679051034,
+    "qualified_before_failure": "Native mounted Markdown ABABA/cache identity/fresh file links, async8..16 page/filter/isolated delivery/cache. Original worker/session 27 scope is Heis-owned.",
+    "failure": "Native get_widget_at received float Region.center in original control before first wheel. Control corrected; original raw unchanged."
+  },
+  "remaining_wheel": {
+    "issued_sha256": "3b47246f551332752dc4befa226c2e06d51ddae8f47b2db519a35f823cd79e56",
+    "terminal_sha256": "4f9f906053fff54032871ce7bea63e41d95092d09e2d5daad91ee4018801cab1",
+    "exit": 0,
+    "seconds": 10.177384375943802,
+    "qualified": "Actual installed native wheel Up/Down/reversal, changed painted strips, non-tail reader/admissions, draft/Document/undo preserved, focused End paints tail, source scope retirement, App/preparation-worker teardown. Async-page/filter setup is regression only, not another independent qualification."
+  },
+  "custody": {
+    "execution_owner": "Heis original admitted457/remaining purposes, not an Einstein extra App or rerun.",
+    "owner_terminal_cleanup": {
+      "remaining_owned_pids": [],
+      "errors": []
+    },
+    "owner_App_shutdown": true,
+    "owner_preparation_workers_joined": true,
+    "whole_package_purpose": "Heis/Bohr original wholefloor return/independent closure remains their custody; pending at this source freeze. No separate Einstein package/restore claim."
+  },
+  "limits": [
+    "Authored typed-page NoAgent App only, not SDK/saved native I/O or configured busy Agent.",
+    "No provider input or native SDK input/movie in either cited App terminal. No native producer/build change.",
+    "No physical UI, speed/CPU/frame-gain or complete workflow acceptance. Connected third acceptance remains Heis independent.",
+    "Installed source proof is its prelaunch snapshot and preserves the original UNRUN descriptive state; actual terminal and receipt supply the later scoped outcomes.",
+    "Source/proposal/old failures stay byte-exact. No new check/build/prefix/native execution for this evidence publication."
+  ],
+  "original_receipts": [
+    {
+      "phase": "original-partial",
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/job1-terminal.json",
+      "published_copy": "evidence/preparation-worker-completion-20261005/installed-scope/original-partial/job1-terminal.json",
+      "sha256": "73bc3b5b0e6cb85a1b77b4dfb43da1220685e15a9a27ff8e3397849ee934a887",
+      "bytes": 1008
+    },
+    {
+      "phase": "original-partial",
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/job1-stdout.log",
+      "published_copy": "evidence/preparation-worker-completion-20261005/installed-scope/original-partial/job1-stdout.txt",
+      "sha256": "705de8f2b7549ab39e6f0d57eec78a133e35a17632accd0748974a8801545ee8",
+      "bytes": 1276
+    },
+    {
+      "phase": "original-partial",
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/job1-stderr.log",
+      "published_copy": "evidence/preparation-worker-completion-20261005/installed-scope/original-partial/job1-stderr.txt",
+      "sha256": "d3e92956caad099e706be6b1c7c60fb73c2941bb3542fe92114f5839f28c87a1",
+      "bytes": 2925
+    },
+    {
+      "phase": "original-partial",
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/no-agent/app/receipt.json",
+      "published_copy": "evidence/preparation-worker-completion-20261005/installed-scope/original-partial/no-agent-app-receipt.json",
+      "sha256": "28f38831fa8d9cbbdb82abc7c273b034a5831606e6412e1e5c9bc0b484f8a52c",
+      "bytes": 1070
+    },
+    {
+      "phase": "original-partial",
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/package-proof/source-proof.json",
+      "published_copy": "evidence/preparation-worker-completion-20261005/installed-scope/original-partial/package-proof-source-proof.json",
+      "sha256": "9de1e2cb0947fb5b6730080c9c99e2e4b42d725c87fc29cbf8d169455a9dc2f1",
+      "bytes": 8251
+    },
+    {
+      "phase": "remaining-wheel",
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-remaining-integer-cell-App-20261005/job1-terminal.json",
+      "published_copy": "evidence/preparation-worker-completion-20261005/installed-scope/remaining-wheel/job1-terminal.json",
+      "sha256": "4f9f906053fff54032871ce7bea63e41d95092d09e2d5daad91ee4018801cab1",
+      "bytes": 966
+    },
+    {
+      "phase": "remaining-wheel",
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-remaining-integer-cell-App-20261005/job1-stdout.log",
+      "published_copy": "evidence/preparation-worker-completion-20261005/installed-scope/remaining-wheel/job1-stdout.txt",
+      "sha256": "5906f491744117c9f3094de5f78bf72791ecde380cdcfbbab563209190994567",
+      "bytes": 9387
+    },
+    {
+      "phase": "remaining-wheel",
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-remaining-integer-cell-App-20261005/job1-stderr.log",
+      "published_copy": "evidence/preparation-worker-completion-20261005/installed-scope/remaining-wheel/job1-stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "phase": "remaining-wheel",
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-remaining-integer-cell-App-20261005/no-agent/app/receipt.json",
+      "published_copy": "evidence/preparation-worker-completion-20261005/installed-scope/remaining-wheel/no-agent-app-receipt.json",
+      "sha256": "56abed88f1d02c13edf05bbc55fa64b1c0e4b52d53bdbea30a77928b7f6e3198",
+      "bytes": 10853
+    },
+    {
+      "phase": "remaining-wheel",
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-remaining-integer-cell-App-20261005/package-proof/source-proof.json",
+      "published_copy": "evidence/preparation-worker-completion-20261005/installed-scope/remaining-wheel/package-proof-source-proof.json",
+      "sha256": "6ee6b02e6abc52ba7699536a107148e8cfc0c30c228beac89fd0eee71568b604",
+      "bytes": 8326
+    }
+  ]
+}
