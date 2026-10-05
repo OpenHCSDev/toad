@@ -1,0 +1,99 @@
+{
+  "state": "SOURCE-ONLY future TC1 acceptance proposal; holder, package, execution, build and operator grant UNBOUND",
+  "source_head": "4be6c968eefe4fa33ecad965719b0cb77c847616",
+  "determining_product": "e73d034c",
+  "control": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/test_project_panel_intent.py",
+    "sha256": "510a851e208b698540db931eb4fc35f72cac0d631ea8f9e2ef3fdb32f11e08d6",
+    "test_node": "test_retirement_during_restore_keeps_the_project_reader"
+  },
+  "helper": {
+    "new_helper": null,
+    "reason": "Use the existing packaged BoundedRun.session / AttachedChild and FieldCodec record owner; no copied launcher framework or retired679abc hardcoded launcher",
+    "repository": "/home/ts/wt/comms-field-codec-closure-20260928",
+    "source": "3aacd708fb9c699cc80c6b864e0ae8cf9ccff7f8",
+    "owners": [
+      {
+        "path": "src/agent_comms/child_process.py",
+        "sha256": "6b7ca96a3f23eb74de9534d5c6c747486feae174333f227ae76e5515e2983ef4",
+        "declaration": "BoundedRun.session"
+      },
+      {
+        "path": "src/agent_comms/field_codec.py",
+        "sha256": "766db776e16b92c934cadd3079201bb2e812f5f23e8dd8e18a91402febe63699",
+        "declaration": "FieldCodec.encode"
+      }
+    ],
+    "timeout_seconds": 90,
+    "stdout_stderr": "Join both original streams; original child/group stop then terminal/control return; no retry"
+  },
+  "argv": [
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+    "-B",
+    "-c",
+    "import sys; sys.path.append('/usr/lib/python3.14/site-packages'); import agent_comms,toad,textual,pytest; print('INSTALLED IMPORTS',*[m.__file__ for m in (agent_comms,toad,textual)],flush=True); assert all(sys.prefix in m.__file__ for m in (agent_comms,toad,textual)); sys.exit(pytest.main(sys.argv[1:]))",
+    "-o",
+    "addopts=",
+    "--noconftest",
+    "--basetemp",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/project-tree-intent-lifetime-20261005/installed-authored-project",
+    "-q",
+    "--tb=short",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/tests/test_project_panel_intent.py::test_retirement_during_restore_keeps_the_project_reader"
+  ],
+  "cwd": "/home/ts/wt/toad-regression-widget-cost-20261001",
+  "environment": {
+    "PYTHONPATH": "ABSENT",
+    "PYTHONHOME": "ABSENT",
+    "source_application_overlay": false,
+    "system_pytest": "Appended after installed application paths; no dependency install"
+  },
+  "planned_output": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/project-tree-intent-lifetime-20261005/installed-owner-check",
+  "planned_authored_fixture": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/project-tree-intent-lifetime-20261005/installed-authored-project",
+  "target": {
+    "proposed_prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+    "authority": "Proposed literal aligned with Heis published485 TC1 controls, NOT current eligibility/access/reservation; bind actual eligible floor and exact operators in fresh purpose or publish explicit operand reconciliation",
+    "Heis_453_prior_proposal": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/session-wheel-workflow-integration-20261005/ACTUAL485-NOAGENT-APP-OPERANDS.json"
+  },
+  "build_input_relation": {
+    "retained_base_wheel": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/annotation-address-successor/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "retained_base_wheel_sha256": "1a8ad3507b6a567a203d16eac55e3ef53d5f04526b106b6aa41599f93cfd1b16",
+    "base_build_source": "486fb2134a69ebb4cb78831e35fb89a2a45ffac6",
+    "base_source_proof": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/annotation-navigation-address-20261004/source-proof.json",
+    "base_source_proof_sha256": "5570f891343fd6f6f026f72f026a41960cb9bc2e1e88c81191244e4afe67391a",
+    "base_assets": 319,
+    "source_asset_delta": [
+      "src/toad/widgets/project_panel.py",
+      "src/toad/widgets/project_tree_intent.py",
+      "src/toad/widgets/session_thread_panels.py"
+    ],
+    "current_wheel_source_equal": false,
+    "reason": "Three real production owner changes; old1a8/retained453b13 cannot qualify this successor before normal source integration and one authorized new normal wheel",
+    "pyproject_sha256": "a426d540629f379e737aaeb6272142df782553c38a6ba2358f5ce0c0a7b17c70",
+    "uv_lock_sha256": "506039fbce3132fe3d9dd010856c538f3b41175394f2b2728168cd4eb66d9b8e",
+    "build_metadata_delta": [],
+    "new_wheel": "UNBUILT/unbound; no build authorized or executed",
+    "planned_own_wheel": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/project-tree-intent-lifetime-20261005/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "future_joint_source": "Heis normally integrates disjoint453/TC1 source before final wheel proof; existing453 installed control/source immutable until its disposition",
+    "normal_backend": "Existing retained Hatchling1.28.0, no environment/dependency resolution; original build only when explicitly allowed"
+  },
+  "scope": [
+    "Native initial-root highlight retirement through original ProjectSessionPanel.capture",
+    "Original project-tree worker cancellation/removal",
+    "Same original filesystem intent remounted to actual selected file and saved viewport",
+    "Original App._exception None and run_test/asyncio.run joined cleanup"
+  ],
+  "not_claimed": [
+    "Whole TC1 resource/performance/continuous journey",
+    "Registered Toad ACP/agent/runtime behavior",
+    "Explorer repeat",
+    "NativeSDK/provider/input/recording/public access"
+  ],
+  "remaining": [
+    "Heis selects suitable future joint source/controller/holder disposition",
+    "One normal final-source-equal Toad wheel if source/build grant issued",
+    "Fresh specific package/operator purpose and actual source proof before App",
+    "ONE bounded affected App outcome with cleanup and honest negative custody"
+  ],
+  "existing_control_execution": "UNRUN"
+}
