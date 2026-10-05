@@ -195,3 +195,14 @@ installed01. `PROOF-OUTPUT-CORRECTION.json` preserves that original proposal and
 binds the append-only effective output-corrected proposal: this one field now
 matches planned proof argv/output installed02. Helper/product/control/artifacts
 are unchanged; no proof, prefix access or App ran for this correction.
+
+The corrected installed proof passed in 8.510596 seconds: all 953 packaged
+assets, 69 distributions/origins, protected records and matching native
+FullTrust. The App remains held. Before its release, Parent identified a
+source API error in the control: native DOMNode.id may be assigned once.
+`CONSTRUCTOR-CONTROL-CORRECTION.json` preserves the unrun 85fc control and binds
+a separate fresh successful-constructor MainScreen. The failed candidate and
+pending input assertions remain intact, as do both later local UI events and
+all editor/eviction/close assertions. Product, wheels, accepted proof and DTO
+are unchanged; only the control parses/compiles here. Its corrected SHA must
+be reconciled in the same cf2 lifecycle before the sole App runs.

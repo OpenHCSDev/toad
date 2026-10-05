@@ -65,9 +65,11 @@ async def main(output: Path):
                 assert candidate._initial_prompt == "CONSTRUCTOR_PENDING"
             else:
                 raise AssertionError("Unregistered source unexpectedly constructed a conversation")
-            candidate.id = app.selected_mode
-            constructed = candidate._make_conversation()
-            assert candidate._initial_prompt is None
+            successful = MainScreen(root, initial_prompt="CONSTRUCTOR_PENDING")
+            successful.id = app.selected_mode
+            constructed = successful._make_conversation()
+            assert successful._initial_prompt is None
+            assert candidate._initial_prompt == "CONSTRUCTOR_PENDING"
             assert constructed.take_initial_prompt() == "CONSTRUCTOR_PENDING"
             assert constructed.take_initial_prompt() is None
             receipt["failed_constructor_retains_successful_constructor_transfers"] = True
