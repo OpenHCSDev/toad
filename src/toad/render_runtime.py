@@ -2,7 +2,7 @@
 
 import asyncio
 from pathlib import Path
-from typing import TypeVar
+from typing import TypeVar, TYPE_CHECKING
 
 from toad.render_backend import Renderer
 from toad.render_service import RenderServiceConfig
@@ -10,6 +10,9 @@ from toad.render_backend import RenderTask
 from toad.render_zmq import PersistentRendererPool, RendererEndpoint, RendererSessionFailed
 
 ResultT = TypeVar("ResultT")
+
+if TYPE_CHECKING:
+    from toad.work_preparation import PreparedValue
 
 
 def _observe(task: asyncio.Task[ResultT]) -> None:
@@ -26,6 +29,7 @@ class PersistentRenderClient(Renderer):
     """
 
     def __init__(self, directory: Path, config: RenderServiceConfig = RenderServiceConfig()) -> None:
+        super().__init__()
         self.directory, self.config = directory, config
         self._loop: asyncio.AbstractEventLoop | None = None
         self._initialization: asyncio.Task[PersistentRendererPool] | None = None
@@ -82,10 +86,10 @@ class PersistentRenderClient(Renderer):
             self._retirement = asyncio.create_task(pool.aclose(), name="renderer-retire-failed-client")
             self._retirement.add_done_callback(_observe)
 
-    async def submit(self, task: RenderTask[ResultT]) -> ResultT:
+    async def capture(self, task: RenderTask[ResultT]) -> "PreparedValue[ResultT]":
         pool = await self._get_pool()
         try:
-            return await pool.submit(task)
+            return await pool.capture(task)
         except RendererSessionFailed:
             self._retire(pool)
             raise
@@ -99,10 +103,10 @@ class PersistentRenderClient(Renderer):
         from toad.render_tasks import MarkdownRenderTask, PatchRenderTask
 
         await asyncio.gather(
-            self.submit(MarkdownRenderTask(
+            self.prepare(MarkdownRenderTask(
                 "```python\npass\n```\n\n```json\n{}\n```\n", ansi, dark,
             )),
-            self.submit(PatchRenderTask(
+            self.prepare(PatchRenderTask(
                 "--- warmup.py\n+++ warmup.py\n@@ -1 +1 @@\n-pass\n+value = 1\n", ansi, dark,
             )),
         )
@@ -118,6 +122,7 @@ class PersistentRenderClient(Renderer):
 
     async def _close(self) -> None:
         try:
+            await self._close_submissions()
             initialization = self._initialization
             if initialization is not None:
                 await asyncio.wait((initialization,))

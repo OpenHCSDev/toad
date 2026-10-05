@@ -15,7 +15,7 @@ from pathlib import Path
 import subprocess
 import stat
 import sys
-from typing import Generic, Mapping, TypeVar, cast
+from typing import Generic, Mapping, TypeVar, cast, TYPE_CHECKING
 from uuid import UUID, uuid4
 
 from agent_comms.field_codec import FieldCodec
@@ -46,6 +46,9 @@ from toad.render_service import RenderService, RenderServiceConfig
 from toad.render_backend import RenderTask
 
 ResultT = TypeVar("ResultT")
+
+if TYPE_CHECKING:
+    from toad.work_preparation import PreparedValue
 
 
 @dataclass(frozen=True)
@@ -216,6 +219,7 @@ class PersistentRendererPool(Renderer):
         self, endpoint: RendererEndpoint, config: RenderServiceConfig = RenderServiceConfig(),
         *, poll_interval: float = 0.01,
     ) -> None:
+        super().__init__()
         if isinstance(poll_interval, bool) or not math.isfinite(poll_interval) or poll_interval <= 0:
             raise ValueError("Renderer polling interval must be positive")
         self.endpoint, self.config = endpoint, config
@@ -257,7 +261,7 @@ class PersistentRendererPool(Renderer):
             task.exception()
         self._changed.set()
 
-    async def submit(self, task: RenderTask[ResultT]) -> ResultT:
+    async def capture(self, task: RenderTask[ResultT]) -> PreparedValue[ResultT]:
         self._bind_loop()
         TaskCapture.capture(task)
         while not self._closed and self._failure is None and len(self._pending) >= self.config.max_pending:
@@ -277,7 +281,7 @@ class PersistentRendererPool(Renderer):
         except asyncio.CancelledError:
             submission.cancel_requested = True
             raise
-        return await task.complete(running)
+        return await task.complete_capture(running)
 
     async def _run(self, submission: RenderSubmission[ResultT]) -> object:
         command: RenderCommand | None = SubmitRender(self._client_id, submission.request_id, submission.task)
@@ -302,6 +306,7 @@ class PersistentRendererPool(Renderer):
 
     async def _close(self) -> None:
         try:
+            await self._close_submissions()
             if self._pending:
                 await asyncio.gather(*tuple(self._pending), return_exceptions=True)
             await self._bind_loop().run_in_executor(self._io, self._connection.release, self._client_id)

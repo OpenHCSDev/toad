@@ -14,7 +14,6 @@ from agent_comms.field_codec import FieldCodec
 from toad.render_protocol import (
     RenderCommand,
     RenderReply,
-    CapturedResult,
     SubmitRender,
     PollRender,
     AcknowledgeRender,
@@ -32,6 +31,7 @@ from toad.render_service import RenderService, RenderServiceConfig
 from toad.render_tasks import PatchRenderTask
 from toad.render_backend import RenderTask
 from toad.render_zmq import RenderSubmission
+from toad.work_preparation import serialize_result
 from toad.widgets.agent_activity import AgentActivityBoundary
 from toad.widgets.message_filter import (
     all_categories,
@@ -91,7 +91,7 @@ print('declaring module loaded from captured task; generic transport had no fron
             client_id=uuid4(),
             request_id=uuid4(),
             task=PatchRenderTask("patch", False, True),
-            result=CapturedResult(9),
+            result=serialize_result(9),
             error="worker error",
         )
         for family in (RenderCommand, RenderReply):
@@ -121,7 +121,7 @@ print('declaring module loaded from captured task; generic transport had no fron
             pass
 
         samples = dict(
-            request_id=uuid4(), result=CapturedResult(9), error="worker error"
+            request_id=uuid4(), result=serialize_result(9), error="worker error"
         )
         for member in RenderReply.members_with(RenderReply):
             with self.subTest(member=member):
@@ -156,7 +156,7 @@ print('declaring module loaded from captured task; generic transport had no fron
                     next_command = await reply.advance(submission, client)
                     if issubclass(member, CompleteReply):
                         self.assertIsNone(next_command)
-                        self.assertEqual(submission.result.result(), 9)
+                        self.assertEqual(submission.result.result().materialize(), 9)
                         self.assertEqual(client.acks, 1)
                     elif issubclass(member, BusyReply):
                         self.assertIsInstance(next_command, SubmitRender)
@@ -208,7 +208,7 @@ print('declaring module loaded from captured task; generic transport had no fron
                     await asyncio.sleep(0.01)
                     reply = PollRender(client, request).execute(service)
             self.assertIsInstance(reply, CompleteReply)
-            self.assertEqual(reply.result.value, 17)
+            self.assertEqual(reply.result.materialize(), 17)
             self.assertEqual(PollRender(client, request).execute(service), reply)
             self.assertEqual(service.pending_count, 1)
             AcknowledgeRender(client, request).execute(service)

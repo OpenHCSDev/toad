@@ -23,11 +23,11 @@ class ControlledPool(PersistentRendererPool):
         self.calls = 0
         self.drained = asyncio.Event()
 
-    async def submit(self, task: RenderTask[ResultT]) -> ResultT:
+    async def capture(self, task: RenderTask[ResultT]):
         self.calls += 1
         if self.fail:
             raise RendererSessionFailed("fixture failure")
-        return task.execute()
+        return task.capture_result()
 
     async def aclose(self) -> None:
         await super().aclose()
