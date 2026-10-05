@@ -525,13 +525,18 @@ class ConversationSessionBinding(containers.Vertical):
             await self._directory_watcher.aclose()
             self._directory_watcher = None
 
+    def take_initial_prompt(self) -> str | None:
+        """Transfer pending input to its consumer before releasing this view."""
+        prompt, self._initial_prompt = self._initial_prompt, None
+        return prompt
+
     async def release_native_session(self) -> None:
         """Acquire native custody before joining this surface's publications."""
         viewport = self.window.document_viewport
         await self._release_source_resources()
         await viewport.close()
         self.agent = None
-        self._initial_prompt = None
+        self.take_initial_prompt()
 
     async def prepare_retained_session(self) -> None:
         """The actual source chooses restoration; a history widget is not an actor."""
@@ -613,13 +618,13 @@ class ConversationSessionBinding(containers.Vertical):
             prompt = self._initial_prompt
             if prompt.startswith("!"):
                 self.publish_core(
-                    input_events.UserInputSubmitted(self._initial_prompt[1:], shell=True)
+                    input_events.UserInputSubmitted(prompt[1:], shell=True)
                 )
             else:
                 self.publish_core(
-                    input_events.UserInputSubmitted(self._initial_prompt, shell=False)
+                    input_events.UserInputSubmitted(prompt, shell=False)
                 )
-            self._initial_prompt = None
+            self.take_initial_prompt()
         if ready:
             self._native_agent_started_here = False
 

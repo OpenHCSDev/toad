@@ -44,7 +44,7 @@ class SessionViewState:
         return cls(
             editor.capture_editor_state(), conversation.visible_categories,
             ReaderPosition.capture(conversation.window),
-            editor.shell_mode, conversation.input_histories, conversation._initial_prompt,
+            editor.shell_mode, conversation.input_histories, conversation.take_initial_prompt(),
         )
 
     def restore(self, conversation: Conversation) -> None:
