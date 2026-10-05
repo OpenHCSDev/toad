@@ -1,0 +1,6 @@
+{"application_imports": ["/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/agent_comms/__init__.py", "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/__init__.py", "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/__init__.py"], "test_runner": "/usr/lib/python3.14/site-packages/pytest/__init__.py"}
+W6: original local USER correction committed
+{"context_pointer": {"key": "imported/9d3c9b982a0c78b93dfe0b0c9a30d9ef1e20702e54b48bf5e91f3cd9f82f92b4/127/0", "node": 2, "line": 2, "screen": [100, 30], "native_style": {"line": 2, "node": 2}}}
+{"context_pointer": {"key": "imported/9d3c9b982a0c78b93dfe0b0c9a30d9ef1e20702e54b48bf5e91f3cd9f82f92b4/127/0", "node": 1, "line": 1, "screen": [94, 30], "native_style": {"line": 1, "node": 1}}}
+.
+1 passed in 26.35s
