@@ -1,0 +1,2538 @@
+{
+  "collector": "Original audit.findings.Package and FunctionFacts",
+  "coverage": [
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "revision": "75d5f0a06aa076e4784dfbfdc6d2a37850b6c4aa",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "revision": "75d5f0a06aa076e4784dfbfdc6d2a37850b6c4aa",
+      "root": "tests",
+      "modules": 395,
+      "omissions": []
+    },
+    {
+      "path": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "revision": "e5f3811b5fd94d69cffe48ec76311afc687d8b08",
+      "root": "src/agent_comms",
+      "modules": 324,
+      "omissions": []
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "revision": "180cbd9471bd6674647590108ca2fe5a627eb24f",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::label",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::children",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::reader_path",
+      "lines": 10,
+      "calls": [
+        "children",
+        "reader_path",
+        "startswith"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::detail",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::public_text",
+      "lines": 3,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::_find_public",
+      "lines": 5,
+      "calls": [
+        "_find_public",
+        "casefold",
+        "children",
+        "public_text"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::find",
+      "lines": 9,
+      "calls": [
+        "_find_public",
+        "islice",
+        "run_worker",
+        "tuple"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::search_roots",
+      "lines": 2,
+      "calls": [
+        "current_roots"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::search_description",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::correction_answers",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::correct",
+      "lines": 2,
+      "calls": [
+        "ValueError"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::read",
+      "lines": 2,
+      "calls": [
+        "run_worker"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::export",
+      "lines": 4,
+      "calls": [
+        "partial",
+        "read",
+        "run_worker"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::_write_export",
+      "lines": 3,
+      "calls": [
+        "open",
+        "write"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::label",
+      "lines": 2,
+      "calls": [
+        "public_description"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::detail",
+      "lines": 2,
+      "calls": [
+        "public_description"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::public_text",
+      "lines": 2,
+      "calls": [
+        "public_description"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::read",
+      "lines": 3,
+      "calls": [
+        "read_source"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::search_roots",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::search_description",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::find",
+      "lines": 4,
+      "calls": [
+        "casefold",
+        "read_source"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::label",
+      "lines": 2,
+      "calls": [
+        "public_description"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::children",
+      "lines": 7,
+      "calls": [
+        "ManifestNode",
+        "ReferenceNode",
+        "enumerate"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::detail",
+      "lines": 6,
+      "calls": [
+        "public_title"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::label",
+      "lines": 3,
+      "calls": [
+        "require_recorded"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::children",
+      "lines": 4,
+      "calls": [
+        "RecordedSegmentNode",
+        "len",
+        "range",
+        "tuple"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::search_roots",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::search_description",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::detail",
+      "lines": 5,
+      "calls": [
+        "require_recorded"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::find",
+      "lines": 8,
+      "calls": [
+        "children",
+        "find"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::segment",
+      "lines": 2,
+      "calls": [
+        "selected_segment"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::label",
+      "lines": 2,
+      "calls": [
+        "public_description"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::children",
+      "lines": 11,
+      "calls": [
+        "RecordedSegmentNode",
+        "ReferenceNode",
+        "enumerate",
+        "len",
+        "partial",
+        "range"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::source_text",
+      "lines": 3,
+      "calls": [
+        "recorded_segment"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::read",
+      "lines": 3,
+      "calls": [
+        "source_text"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::find",
+      "lines": 6,
+      "calls": [
+        "casefold",
+        "source_text"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::search_description",
+      "lines": 2,
+      "calls": [
+        "require_recorded",
+        "search_description",
+        "super"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::original_segments",
+      "lines": 6,
+      "calls": [
+        "RecordedSegmentNode",
+        "len",
+        "original_segments",
+        "range"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::label",
+      "lines": 4,
+      "calls": [
+        "public_description",
+        "public_title"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::children",
+      "lines": 5,
+      "calls": [
+        "replace"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::read",
+      "lines": 3,
+      "calls": [
+        "describe_original",
+        "source_text"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::describe_original",
+      "lines": 9,
+      "calls": [
+        "join",
+        "public_description",
+        "public_text"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::search_roots",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::search_description",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::find",
+      "lines": 3,
+      "calls": [
+        "casefold",
+        "read"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::correction_answers",
+      "lines": 3,
+      "calls": [
+        "members_with"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::correct",
+      "lines": 3,
+      "calls": [
+        "correct_annotation"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::label",
+      "lines": 3,
+      "calls": [
+        "join",
+        "public_description",
+        "public_title"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::children",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::reader_path",
+      "lines": 8,
+      "calls": [
+        "reader_path",
+        "super"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::detail",
+      "lines": 3,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::search_roots",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::search_description",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::find",
+      "lines": 14,
+      "calls": [
+        "casefold",
+        "describe_original",
+        "source_text"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::label",
+      "lines": 2,
+      "calls": [
+        "public_description"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::children",
+      "lines": 7,
+      "calls": [
+        "ManifestNode",
+        "ReferenceNode",
+        "contributor_manifests",
+        "enumerate"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::detail",
+      "lines": 6,
+      "calls": [
+        "join",
+        "public_description",
+        "public_text"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::public_text",
+      "lines": 2,
+      "calls": [
+        "public_text"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::label",
+      "lines": 4,
+      "calls": [
+        "join",
+        "replace",
+        "split"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::public_text",
+      "lines": 6,
+      "calls": [
+        "dumps",
+        "encode",
+        "filter",
+        "join",
+        "tool_calls",
+        "tuple"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::detail",
+      "lines": 6,
+      "calls": [
+        "detail",
+        "dumps",
+        "encode",
+        "super"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::__init__",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::segment",
+      "lines": 2,
+      "calls": [
+        "NativeSegmentNode",
+        "handles"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::messages",
+      "lines": 2,
+      "calls": [
+        "NativeMessagesNode",
+        "handles"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::public_text",
+      "lines": 4,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::detail",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::children",
+      "lines": 5,
+      "calls": [
+        "NativeMessageRange",
+        "children",
+        "len",
+        "min",
+        "range",
+        "super"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::label",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::children",
+      "lines": 5,
+      "calls": [
+        "NativeMessageNode",
+        "from_wire",
+        "range",
+        "tuple"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::detail",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::read",
+      "lines": 7,
+      "calls": [
+        "cls",
+        "context_manifests",
+        "for_context",
+        "observe",
+        "require",
+        "sources_for_owner",
+        "version"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::same_native_source",
+      "lines": 6,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::recorded",
+      "lines": 6,
+      "calls": [
+        "RecordedTurnNode",
+        "items",
+        "require_recorded",
+        "reversed",
+        "tuple"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::changed_since",
+      "lines": 4,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::imported",
+      "lines": 4,
+      "calls": [
+        "ReferenceNode",
+        "tuple"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::imported_source",
+      "lines": 4,
+      "calls": [
+        "partial",
+        "run_worker"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::working_memory",
+      "lines": 25,
+      "calls": [
+        "AnnotationNode",
+        "AnnotationSourceNode",
+        "append",
+        "children",
+        "contains_span",
+        "items",
+        "original_segments",
+        "recorded",
+        "setdefault",
+        "tuple",
+        "values"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::find",
+      "lines": 10,
+      "calls": [
+        "append",
+        "casefold",
+        "find",
+        "len",
+        "tuple"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::_request",
+      "lines": 12,
+      "calls": [
+        "RuntimeConnection",
+        "ValueError",
+        "close",
+        "partial",
+        "request",
+        "require_process",
+        "run_worker",
+        "socket_path"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::native",
+      "lines": 4,
+      "calls": [
+        "_request",
+        "partial",
+        "require_saved_session",
+        "require_session_file",
+        "run_worker"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::current_source",
+      "lines": 5,
+      "calls": [
+        "_request",
+        "decode",
+        "encode",
+        "observation"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::recorded_source",
+      "lines": 5,
+      "calls": [
+        "_request",
+        "decode",
+        "encode",
+        "require_request_id"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::recorded_segment",
+      "lines": 5,
+      "calls": [
+        "_request",
+        "decode",
+        "encode",
+        "require_request_id"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::correct_annotation",
+      "lines": 7,
+      "calls": [
+        "_request",
+        "decode",
+        "encode",
+        "require_request_id",
+        "str"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::active",
+      "lines": 4,
+      "calls": [
+        "SegmentNodes",
+        "dispatch_sync",
+        "enumerate",
+        "partial",
+        "tuple"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::contributors",
+      "lines": 4,
+      "calls": [
+        "SegmentNodes",
+        "dispatch_sync",
+        "enumerate",
+        "len",
+        "partial",
+        "tuple"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::for_owner",
+      "lines": 3,
+      "calls": [
+        "DetachedInspection",
+        "ReadingOwnerInspection"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::bound_to",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::observed_at",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::observe",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::acquire",
+      "lines": 5,
+      "calls": [
+        "HoldingInspection",
+        "ValueError",
+        "partial",
+        "resolve",
+        "run_worker",
+        "str"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::receive_inspection",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::inspection_differs",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::needs_native",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::same_source",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::present",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::refresh_contributors",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::with_contributors",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::with_native",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::native_failed",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::prepare_native",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::search_current",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::contains_native",
+      "lines": 3,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::status",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::acquire",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::observed_at",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::observe",
+      "lines": 2,
+      "calls": [
+        "ObservedOwnerInspection"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::observed_at",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::name",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::root",
+      "lines": 2,
+      "calls": [
+        "str"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::observed_at",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::observe",
+      "lines": 2,
+      "calls": [
+        "replace"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::same_source",
+      "lines": 2,
+      "calls": [
+        "same_native_source"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::inspection_differs",
+      "lines": 2,
+      "calls": [
+        "changed_since",
+        "same_source"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::needs_native",
+      "lines": 2,
+      "calls": [
+        "inspection_differs"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::present",
+      "lines": 2,
+      "calls": [
+        "consumer"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::groups",
+      "lines": 4,
+      "calls": [
+        "imported",
+        "recorded",
+        "working_memory"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::prepare_native",
+      "lines": 2,
+      "calls": [
+        "consumer"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::with_native",
+      "lines": 2,
+      "calls": [
+        "NativeInspection",
+        "same_source"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::native_failed",
+      "lines": 2,
+      "calls": [
+        "UnavailableNativeInspection",
+        "same_source",
+        "str"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::current_roots",
+      "lines": 2,
+      "calls": [
+        "ValueError"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::find",
+      "lines": 4,
+      "calls": [
+        "find",
+        "partial",
+        "run_worker"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::native_matches",
+      "lines": 2,
+      "calls": [
+        "contains_native"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::search_current",
+      "lines": 2,
+      "calls": [
+        "native_matches",
+        "same_source"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::status",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::receive_inspection",
+      "lines": 4,
+      "calls": [
+        "NativeInspection",
+        "same_source"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::needs_native",
+      "lines": 2,
+      "calls": [
+        "same_source"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::with_native",
+      "lines": 4,
+      "calls": [
+        "NativeInspection",
+        "same_source"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::refresh_contributors",
+      "lines": 4,
+      "calls": [
+        "consumer",
+        "partial",
+        "run_worker"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::with_contributors",
+      "lines": 5,
+      "calls": [
+        "NativeInspection",
+        "same_source"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::groups",
+      "lines": 6,
+      "calls": [
+        "active",
+        "contributors",
+        "groups",
+        "super"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::current_roots",
+      "lines": 2,
+      "calls": [
+        "active",
+        "contributors"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::contains_native",
+      "lines": 2,
+      "calls": [
+        "matches"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::native_matches",
+      "lines": 2,
+      "calls": [
+        "contains_native"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::status",
+      "lines": 3,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::receive_inspection",
+      "lines": 4,
+      "calls": [
+        "UnavailableNativeInspection",
+        "same_source"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::status",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::read",
+      "lines": 2,
+      "calls": [
+        "_find_public",
+        "islice",
+        "tuple"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::search_current",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::rebind",
+      "lines": 4,
+      "calls": [
+        "show_detail"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::restore",
+      "lines": 9,
+      "calls": [
+        "resolve",
+        "restore_node"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::with_selected",
+      "lines": 3,
+      "calls": [
+        "consume"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::__init__",
+      "lines": 6,
+      "calls": [
+        "__init__",
+        "super"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::clear",
+      "lines": 3,
+      "calls": [
+        "clear",
+        "super"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::on_unmount",
+      "lines": 2,
+      "calls": [
+        "clear"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::present",
+      "lines": 17,
+      "calls": [
+        "_reconcile",
+        "_retire",
+        "add",
+        "enumerate",
+        "expand",
+        "next",
+        "owns_node",
+        "prevent",
+        "restore_reader",
+        "set_label",
+        "tuple"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::search_results",
+      "lines": 8,
+      "calls": [
+        "_add",
+        "clear",
+        "expand",
+        "prevent",
+        "restore_reader",
+        "set_label"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_reconcile",
+      "lines": 20,
+      "calls": [
+        "_add",
+        "_reconcile",
+        "_retire",
+        "bool",
+        "children",
+        "enumerate",
+        "pop",
+        "rebind",
+        "set_label",
+        "values"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_retire",
+      "lines": 6,
+      "calls": [
+        "_retire",
+        "owns_node",
+        "pop",
+        "remove",
+        "tuple"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::restore_reader",
+      "lines": 11,
+      "calls": [
+        "_expand",
+        "expand",
+        "extend",
+        "list",
+        "pop",
+        "prevent",
+        "restore",
+        "show_placeholder",
+        "values"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::reveal",
+      "lines": 22,
+      "calls": [
+        "_expand",
+        "expand",
+        "get",
+        "prevent",
+        "reader_path",
+        "tuple",
+        "values"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_reveal_restored",
+      "lines": 4,
+      "calls": [
+        "call_after_refresh"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_restore_cursor",
+      "lines": 6,
+      "calls": [
+        "get",
+        "move_cursor",
+        "owns_node",
+        "prevent",
+        "show_detail"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_add",
+      "lines": 4,
+      "calls": [
+        "add"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::owns_node",
+      "lines": 6,
+      "calls": [
+        "get"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_expand",
+      "lines": 8,
+      "calls": [
+        "_add",
+        "bool",
+        "children",
+        "owns_node"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::node_expanded",
+      "lines": 4,
+      "calls": [
+        "_expand",
+        "add",
+        "on",
+        "owns_node"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::node_collapsed",
+      "lines": 3,
+      "calls": [
+        "discard",
+        "on",
+        "owns_node"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::selected",
+      "lines": 2,
+      "calls": [
+        "owns_node"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::__init__",
+      "lines": 4,
+      "calls": [
+        "__init__",
+        "for_owner",
+        "super"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::compose",
+      "lines": 15,
+      "calls": [
+        "Button",
+        "ContextTree",
+        "Horizontal",
+        "Input",
+        "Static",
+        "TextArea"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::on_mount",
+      "lines": 4,
+      "calls": [
+        "call_after_refresh",
+        "observe_core"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::context_changed",
+      "lines": 2,
+      "calls": [
+        "_observed",
+        "handles"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::presentation_visible",
+      "lines": 4,
+      "calls": [
+        "query_ancestor"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::on_show",
+      "lines": 2,
+      "calls": [
+        "call_after_refresh"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::sidebar_visibility_changed",
+      "lines": 2,
+      "calls": [
+        "_observed"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_observed",
+      "lines": 9,
+      "calls": [
+        "_read",
+        "_working",
+        "observed_at",
+        "presentation_visible"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::context_read_finished",
+      "lines": 4,
+      "calls": [
+        "_observed",
+        "on"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::on_unmount",
+      "lines": 2,
+      "calls": [
+        "DetachedInspection"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::set_identity",
+      "lines": 9,
+      "calls": [
+        "action_refresh",
+        "bound_to",
+        "cancel_node",
+        "clear",
+        "for_owner",
+        "load_text",
+        "query_one"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::action_refresh",
+      "lines": 3,
+      "calls": [
+        "_read",
+        "presentation_visible"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_reading",
+      "lines": 3,
+      "calls": [
+        "bound_to",
+        "get_current_worker"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_working",
+      "lines": 3,
+      "calls": [
+        "any"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_read",
+      "lines": 18,
+      "calls": [
+        "_inspection_acquired",
+        "_reading",
+        "acquire",
+        "observe",
+        "present",
+        "query_one",
+        "receive_inspection",
+        "refresh_contributors",
+        "update",
+        "work"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_inspection_acquired",
+      "lines": 10,
+      "calls": [
+        "_present",
+        "_working",
+        "cancel_group",
+        "inspection_differs",
+        "needs_native",
+        "prepare_native",
+        "query_one",
+        "same_source",
+        "update"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_contributors_acquired",
+      "lines": 5,
+      "calls": [
+        "present",
+        "with_contributors"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_read_native",
+      "lines": 11,
+      "calls": [
+        "_native_acquired",
+        "_reading",
+        "native",
+        "native_failed",
+        "with_native",
+        "work"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_native_acquired",
+      "lines": 5,
+      "calls": [
+        "present",
+        "query_one",
+        "update"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_show_placeholder",
+      "lines": 2,
+      "calls": [
+        "load_text",
+        "query_one"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::action_correct",
+      "lines": 17,
+      "calls": [
+        "correction_answers",
+        "notify",
+        "on",
+        "owns_node",
+        "partial",
+        "public_title",
+        "query_one",
+        "show_target_menu",
+        "stop"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_correct_annotation",
+      "lines": 13,
+      "calls": [
+        "_read",
+        "_selected",
+        "correct",
+        "notify",
+        "query_ancestor",
+        "work"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_present",
+      "lines": 6,
+      "calls": [
+        "_search",
+        "cancel_group",
+        "groups",
+        "present",
+        "query_one"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::query_changed",
+      "lines": 3,
+      "calls": [
+        "on",
+        "stop"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::action_search",
+      "lines": 3,
+      "calls": [
+        "on",
+        "present",
+        "stop"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_search",
+      "lines": 14,
+      "calls": [
+        "_searching",
+        "find",
+        "len",
+        "query_one",
+        "search_description",
+        "search_results",
+        "update",
+        "work"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_searching",
+      "lines": 3,
+      "calls": [
+        "_reading",
+        "search_current"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::action_read_full",
+      "lines": 14,
+      "calls": [
+        "_selected",
+        "_show_detail",
+        "focus",
+        "maximize",
+        "on",
+        "owns_node",
+        "query_one",
+        "wait",
+        "work"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::action_copy",
+      "lines": 13,
+      "calls": [
+        "_selected",
+        "copy_to_clipboard",
+        "notify",
+        "on",
+        "owns_node",
+        "query_one",
+        "read",
+        "work"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::action_export",
+      "lines": 17,
+      "calls": [
+        "Path",
+        "expanduser",
+        "export",
+        "notify",
+        "on",
+        "owns_node",
+        "query_one",
+        "strip",
+        "work"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::node_highlighted",
+      "lines": 7,
+      "calls": [
+        "_show_detail",
+        "cancel_group",
+        "on",
+        "owns_node",
+        "query_one",
+        "stop"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_selected",
+      "lines": 2,
+      "calls": [
+        "query_one",
+        "selected"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_show_detail",
+      "lines": 12,
+      "calls": [
+        "_selected",
+        "load_text",
+        "query_one",
+        "read",
+        "work"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/session_thread_panels.py::make_widget",
+      "lines": 5,
+      "calls": [
+        "ContextExplorer",
+        "ContextTreeIntent",
+        "setdefault"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "tests/test_context_manifest_navigation.py::select_context_source",
+      "lines": 40,
+      "calls": [
+        "Offset",
+        "_get_label_region",
+        "click",
+        "dumps",
+        "find_widget",
+        "get",
+        "get_style_at",
+        "get_widget_at",
+        "intersection",
+        "next",
+        "owns_node",
+        "print",
+        "range",
+        "reveal",
+        "scroll_to_node",
+        "scroll_visible",
+        "translate",
+        "tuple",
+        "wait_for_scheduled_animations"
+      ],
+      "literal_keys": {
+        "(style := pilot.app.screen.get": [
+          "node"
+        ],
+        "style.meta": [
+          "line",
+          "toggle"
+        ]
+      }
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "tests/test_context_manifest_navigation.py::inspect_authentic_annotation_gui",
+      "lines": 175,
+      "calls": [
+        "ContextSpan",
+        "FileProvenance",
+        "Path",
+        "ToadApp",
+        "_debug_log",
+        "action_refresh",
+        "all",
+        "any",
+        "append",
+        "children",
+        "click",
+        "contains_span",
+        "context_manifests",
+        "current",
+        "decode",
+        "dumps",
+        "effective",
+        "encode",
+        "files",
+        "for_request",
+        "get",
+        "hexdigest",
+        "isinstance",
+        "join",
+        "joinpath",
+        "len",
+        "original_segments",
+        "partial",
+        "pause",
+        "press",
+        "print",
+        "public_description",
+        "public_text",
+        "query",
+        "query_ancestor",
+        "query_one",
+        "read",
+        "read_bytes",
+        "read_proof_rows",
+        "reader_path",
+        "reading",
+        "recorded",
+        "require",
+        "require_request_id",
+        "resolve",
+        "run_test",
+        "run_worker",
+        "scroll_visible",
+        "select",
+        "select_context_source",
+        "sentences",
+        "setattr",
+        "sha256",
+        "source_text",
+        "str",
+        "tuple",
+        "type",
+        "until",
+        "values",
+        "version",
+        "wait",
+        "wait_content_ready",
+        "wait_for_scheduled_animations",
+        "working_memory",
+        "zip"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "tests/test_context_manifest_navigation.py::test_authentic_recorded_annotation_gui_correction",
+      "lines": 85,
+      "calls": [
+        "AnswerProbability",
+        "ContextSpan",
+        "Coordination",
+        "FileProvenance",
+        "ModelLabel",
+        "Path",
+        "SpanAnnotationsRow",
+        "all",
+        "build_agent_router",
+        "children",
+        "contains_span",
+        "current",
+        "delenv",
+        "enumerate",
+        "hexdigest",
+        "insert",
+        "inspect_authentic_annotation_gui",
+        "isinstance",
+        "len",
+        "mounted",
+        "native_backend_fixture",
+        "now",
+        "open_owner",
+        "original_segments",
+        "print",
+        "read",
+        "read_bytes",
+        "recorded",
+        "resolve",
+        "router",
+        "run",
+        "saved_inputs",
+        "select",
+        "sentences",
+        "setenv",
+        "sha256",
+        "source_text",
+        "str",
+        "transaction",
+        "tuple",
+        "verify_native_package",
+        "version",
+        "write_text"
+      ],
+      "literal_keys": {
+        "os.environ": [
+          "AC_NATIVE_COPIED_PACKAGE",
+          "PI_COMPACTION_TEST_PACKAGE"
+        ]
+      }
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "tests/test_context_manifest_navigation.py::mounted",
+      "lines": 54,
+      "calls": [
+        "AnswerProbability",
+        "ContextSpan",
+        "Coordination",
+        "FileProvenance",
+        "ModelLabel",
+        "SpanAnnotationsRow",
+        "all",
+        "build_agent_router",
+        "children",
+        "contains_span",
+        "current",
+        "enumerate",
+        "hexdigest",
+        "insert",
+        "inspect_authentic_annotation_gui",
+        "isinstance",
+        "len",
+        "native_backend_fixture",
+        "now",
+        "open_owner",
+        "original_segments",
+        "print",
+        "read",
+        "recorded",
+        "router",
+        "saved_inputs",
+        "select",
+        "sentences",
+        "sha256",
+        "source_text",
+        "str",
+        "transaction",
+        "tuple",
+        "version"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/native_custody.py::start",
+      "lines": 19,
+      "calls": [
+        "ExitStack",
+        "Path",
+        "PiRpcChannel",
+        "address",
+        "cls",
+        "create_task",
+        "dict",
+        "enter_context",
+        "pop_all",
+        "start",
+        "stderr_tail",
+        "str"
+      ],
+      "literal_keys": {
+        "environment": [
+          "AGENT_COMMS_PROJECT_SOCKET"
+        ]
+      }
+    },
+    {
+      "repository": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/recovery_gateway.py::_remove_stale_socket",
+      "lines": 21,
+      "calls": [
+        "GatewayUnavailableError",
+        "S_IMODE",
+        "S_ISSOCK",
+        "address",
+        "closing",
+        "connect_ex",
+        "geteuid",
+        "lstat",
+        "settimeout",
+        "socket",
+        "str",
+        "unlink"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/recovery_gateway.py::start",
+      "lines": 47,
+      "calls": [
+        "GatewayUnavailableError",
+        "S_IMODE",
+        "S_ISSOCK",
+        "_lock_instance",
+        "_prepare_directory",
+        "_remove_stale_socket",
+        "address",
+        "bind",
+        "close",
+        "geteuid",
+        "hasattr",
+        "listen",
+        "lstat",
+        "setblocking",
+        "socket",
+        "start_unix_server",
+        "startswith",
+        "str",
+        "umask"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/recovery_gateway_client.py::read_gateway_projection",
+      "lines": 50,
+      "calls": [
+        "Path",
+        "_private_socket",
+        "_same_uid",
+        "_valid_projection",
+        "address",
+        "cast",
+        "close",
+        "decode",
+        "dict",
+        "drain",
+        "dumps",
+        "encode",
+        "endswith",
+        "get_running_loop",
+        "len",
+        "loads",
+        "max",
+        "open_unix_connection",
+        "read",
+        "readline",
+        "remaining",
+        "str",
+        "suppress",
+        "time",
+        "wait_closed",
+        "wait_for",
+        "write",
+        "write_eof"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/runtime.py::start",
+      "lines": 12,
+      "calls": [
+        "address",
+        "close",
+        "enter_context",
+        "mkdir",
+        "start_unix_server"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/runtime.py::_connect_current",
+      "lines": 26,
+      "calls": [
+        "ConnectionError",
+        "address",
+        "close",
+        "open_unix_connection",
+        "owner_identity",
+        "partial",
+        "require_active",
+        "require_process",
+        "run_worker",
+        "sleep",
+        "socket_path"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/runtime_requests.py::result",
+      "lines": 10,
+      "calls": [
+        "CorrectAnnotationCliCommand",
+        "ValueError",
+        "contains_span",
+        "encode",
+        "partial",
+        "run_worker",
+        "selected_segment"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/selected_tool_broker.py::start",
+      "lines": 18,
+      "calls": [
+        "SelectedToolDenied",
+        "address",
+        "chmod",
+        "close",
+        "enter_context",
+        "exists",
+        "hasattr",
+        "is_symlink",
+        "lstat",
+        "resolve",
+        "start_unix_server",
+        "str",
+        "violation"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/working_memory_annotations.py::__init__",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/working_memory_annotations.py::address",
+      "lines": 4,
+      "calls": [
+        "dict",
+        "zip"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/working_memory_annotations.py::reading",
+      "lines": 6,
+      "calls": [
+        "Path",
+        "execute",
+        "observing",
+        "read",
+        "require_current"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/working_memory_annotations.py::labels",
+      "lines": 5,
+      "calls": [
+        "address",
+        "reading",
+        "select",
+        "tuple"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/working_memory_annotations.py::calibration",
+      "lines": 13,
+      "calls": [
+        "CalibrationReport",
+        "address",
+        "effective",
+        "evaluate_original",
+        "extend",
+        "reading",
+        "select",
+        "tuple"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/working_memory_annotations.py::for_segment",
+      "lines": 8,
+      "calls": [
+        "for_segments"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/working_memory_annotations.py::for_context",
+      "lines": 8,
+      "calls": [
+        "for_segments",
+        "original_values",
+        "tuple"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/working_memory_annotations.py::for_segments",
+      "lines": 15,
+      "calls": [
+        "address",
+        "any",
+        "append",
+        "contains_span",
+        "effective",
+        "for_digests",
+        "reading",
+        "setdefault",
+        "tuple",
+        "values"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/working_memory_annotations.py::reserve",
+      "lines": 11,
+      "calls": [
+        "AnnotationRequestsRow",
+        "PreviouslyRequestedAnnotation",
+        "SubmittedAnnotationOutcome",
+        "address",
+        "insert",
+        "now",
+        "one",
+        "requests_since",
+        "require_budget",
+        "transaction",
+        "window_start"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/working_memory_annotations.py::complete",
+      "lines": 11,
+      "calls": [
+        "CompletedAnnotationOutcome",
+        "SpanAnnotationsRow",
+        "ValueError",
+        "insert",
+        "now",
+        "one",
+        "transaction",
+        "update"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/working_memory_annotations.py::fail",
+      "lines": 6,
+      "calls": [
+        "ValueError",
+        "one",
+        "transaction",
+        "update"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "repository": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/working_memory_annotations.py::correct",
+      "lines": 11,
+      "calls": [
+        "SpanAnnotationsRow",
+        "ValueError",
+        "address",
+        "correct",
+        "insert",
+        "now",
+        "require",
+        "require_user",
+        "resolved",
+        "select",
+        "transaction",
+        "tuple"
+      ],
+      "literal_keys": {}
+    }
+  ],
+  "limits": "Lexical references; dynamic event and receiver resolution read semantically, not claimed as runtime proof."
+}
