@@ -31,7 +31,7 @@ def reply(request, number):
     return ({"role": "assistant", "content": f"SAVED_NAVIGATION_NATIVE_REPLY_{number}"}, "stop")
 
 
-async def prepare(comms, project, requests, entered, release, hold_next):
+async def prepare(comms, project, requests, entered, release, hold_next, *, long_history=False):
     release.set()
     comms.registry.declare(Thread("alpha", frozenset({"team"}), str(project),
                                  model="selected-offline/fixture", thinking_level="off"))
@@ -49,8 +49,14 @@ async def prepare(comms, project, requests, entered, release, hold_next):
     try:
         for name in ("alpha", "beta"):
             await client.load_session(cwd=str(project), session_id=name)
+            text = f"SAVED_NAVIGATION_INPUT_{name}"
+            if long_history:
+                text += "\n\n" + "\n\n".join(
+                    f"Saved {name} reader paragraph {row}: actual native journal source. " * 3
+                    for row in range(16)
+                )
             async with asyncio.timeout(20):
-                await client.prompt(name, [TextContentBlock(type="text", text=f"SAVED_NAVIGATION_INPUT_{name}")])
+                await client.prompt(name, [TextContentBlock(type="text", text=text)])
             observer.require_success()
         assert len(requests) == 2
     finally:

@@ -11,10 +11,12 @@ import cProfile
 import pstats
 import gc
 from importlib.resources import files
+from functools import partial
 import json
 import os
 from pathlib import Path
 import statistics
+import sys
 import time
 
 import psutil
@@ -108,6 +110,131 @@ def resource_snapshot(owner, acp_process):
     return {"scope_rss_bytes": sum(rss.values()), "scope_processes": len(rss),
             "native_owner_rss_bytes": native.memory_info().rss,
             "acp_rss_bytes": psutil.Process(acp_process.identity.pid).memory_info().rss}
+
+
+async def warm_admission_acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
+    """Actual loaded journals exercise shared native/source/paint admission.
+
+    The existing fixture authors one localhost turn for each of two owners.
+    This mode adds no input, queue or mixed/blank-tab scaling journey.
+    """
+    import hashlib
+    from viewport_recent_tabs_pilot import ReaderCheckpoint, settled
+
+    beta = app.selected_session
+    original_files = {name: Path(comms.registry.require(name).session_file)
+                      for name in ("alpha", "beta")}
+    original_hashes = {name: hashlib.sha256(path.read_bytes()).hexdigest()
+                       for name, path in original_files.items()}
+    await until(pilot, lambda: "NATIVE_RESPONSE_2" in conversation_paint(app.screen))
+    alpha_mode = await ThreadTarget("alpha").open(beta.navigation_context)
+    await until(pilot, lambda: "NATIVE_RESPONSE_1" in conversation_paint(app.screen))
+    sources = (beta, app.workspace_sessions.require(alpha_mode))
+    checkpoints = {}
+    witness = None
+    ordered = admitted = roots = ()
+    costs = {}
+    widget = owner = painted_owner = None
+    rows = []
+    native = app.workspace_chrome.native
+    try:
+        for source in sources:
+            await app.select_session(source.id)
+            view = source.conversation
+            await settled(pilot, view)
+            assert view.window.histories and view.transcript.displayed_cursor is not None
+            assert view.agent.session_id in original_files
+            editor = view.prompt.prompt_text_area
+            editor.insert(f"{view.agent.session_id} draft")
+            editor.history.checkpoint()
+            editor.insert(" with undo")
+            assert view.window.max_scroll_y > 0
+            view.window.release_anchor()
+            view.window.scroll_to(y=min(5, view.window.max_scroll_y / 2),
+                                  animate=False, immediate=True)
+            await settled(pilot, view)
+            assert not view.window.follows_tail
+            checkpoints[source.id] = await ReaderCheckpoint.capture(source, app, pilot)
+
+        # Each return consumes the witness from before departure. A genuine
+        # native eviction restores editor/reader custody; a retained tree must
+        # also retain the exact page/fragment/render identities and raw reads.
+        for source in (*reversed(sources), *sources):
+            retained = source.presentation.widget is not None
+            witness = checkpoints[source.id]
+            reads = await witness.page_reads()
+            await app.select_session(source.id)
+            view = source.conversation
+            await settled(pilot, view)
+            editor = view.prompt.prompt_text_area
+            assert editor.document is witness.document and editor.history is witness.history
+            assert editor.text == witness.text
+            assert view.window.scroll_y == witness.reader_y
+            assert view.window.follows_tail is witness.follows_tail
+            if retained:
+                await witness.verify(app, pilot)
+                assert await witness.page_reads() == reads
+            # Freeze this original resource before comparing admission with
+            # native lifetime effects; no renderer/worker method is replaced.
+            viewport = view.window.document_viewport
+            await viewport.suspend_source()
+            try:
+                required = source.presentation
+                presentations = {session.id: owner for session, owner in native._presentations()}
+                ordered = dict.fromkeys((required, *(presentations[identity]
+                    for identity in app.tab_order.recent if identity in presentations)))
+                costs = {}
+                for owner in ordered:
+                    widget = owner.widget
+                    manager = widget.window.document_viewport
+                    roots = tuple(manager.body_roots())
+                    assert set(roots) == set(manager.owners)
+                    assert owner.retained_widget_count == 1 + widget.descendant_count
+                    assert owner.retained_source_bytes == sum(body.retained_source_bytes for body in roots)
+                    assert owner.retained_paint_bytes == sum(body.retained_paint_bytes for body in roots)
+                    costs[owner] = (owner.retained_widget_count, owner.retained_source_bytes,
+                                    owner.retained_paint_bytes)
+                assert any(paint > 0 for widgets, source_bytes, paint in costs.values()), (
+                    "Loaded fixture must exercise actual retained paint", costs,
+                )
+                painted_owner = next((owner for owner, (widgets, size, paint) in costs.items()
+                                      if paint > 0 and widgets <= viewport.budget.widget_limit(app.size.height)), None)
+                assert painted_owner is not None, "Paint accounting needs a native tree that fits the widget budget"
+                # Exercise the existing policy on actual mounted resources at
+                # their source-only byte boundary. No application budget is
+                # modified: paint must exclude a tree whose widgets fit.
+                assert not viewport.budget.admit(
+                    (painted_owner,), (), app.size.height, painted_owner.retained_source_bytes,
+                )
+                admitted = viewport.budget.admit(ordered, (required,), app.size.height,
+                                                  app.preparation.max_bytes)
+                await native._trim_retained(view)
+                assert required.widget is view
+                assert {owner for _, owner in native._presentations()} == admitted
+                rows.append({"selected": source.id, "warm_return": retained,
+                             "resources": [{"widgets": widgets, "source_bytes": size,
+                                            "paint_bytes": paint, "admitted": owner in admitted}
+                                           for owner, (widgets, size, paint) in costs.items()]})
+            finally:
+                viewport.resume_source()
+            await pilot.press("ctrl+z")
+            assert editor.text == witness.text.removesuffix(" with undo")
+            editor.redo()
+            assert editor.text == witness.text
+    finally:
+        checkpoints.clear()
+        witness = None
+        ordered = admitted = roots = ()
+        costs.clear()
+        widget = owner = painted_owner = None
+    del checkpoints, witness, ordered, admitted, costs, roots, widget, owner, painted_owner
+    assert len(requests) == 2, "Read-only mounted admission replayed native input"
+    assert {name: hashlib.sha256(path.read_bytes()).hexdigest()
+            for name, path in original_files.items()} == original_hashes
+    Path(os.environ["NATIVE_RETENTION_RECEIPT"]).write_text(json.dumps({
+        "scope": "two genuinely loaded native journals; authored localhost input only",
+        "rows": rows, "native_inputs": len(requests), "history_scaling_4_16_32_64": "UNRUN",
+    }, indent=2) + "\n")
 
 
 async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
@@ -289,4 +416,11 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
 
 if __name__ == "__main__":
     from thread_navigation_installed_journey import prepare as prepare_loaded_histories
-    asyncio.run(native_fixture(app_type=PaintedSwitchApp, prepare_state=prepare_loaded_histories, acceptance=acceptance))
+    if sys.argv[1:] == ["--warm-admission-only"]:
+        asyncio.run(native_fixture(app_type=PaintedSwitchApp,
+                                   prepare_state=partial(prepare_loaded_histories, long_history=True),
+                                   acceptance=warm_admission_acceptance))
+    elif not sys.argv[1:]:
+        asyncio.run(native_fixture(app_type=PaintedSwitchApp, prepare_state=prepare_loaded_histories, acceptance=acceptance))
+    else:
+        raise SystemExit("usage: native_session_retention_pilot.py [--warm-admission-only]")
