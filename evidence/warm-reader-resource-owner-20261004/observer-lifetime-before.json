@@ -1,0 +1,366 @@
+{
+  "tool": "original refactor-audit Package",
+  "head": "e0a31ce04f3f136e8d94acac1b316e408c3eb6a9",
+  "packages": [
+    {
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": [],
+      "sites": []
+    },
+    {
+      "root": "tests",
+      "modules": 395,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "tests/independent_native_writer_pilot.py",
+          "line": 93,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/independent_native_writer_pilot.py",
+          "line": 112,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/independent_native_writer_pilot.py",
+          "line": 123,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 142,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 146,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 233,
+          "reference": "resource_snapshot"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 170,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 175,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 227,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 146,
+          "reference": "ReaderCheckpoint"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 228,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 228,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 171,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 176,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 177,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 133,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 146,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 152,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 157,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 160,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 169,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 179,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 188,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 207,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 212,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 233,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 241,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 246,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 260,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 108,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 231,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 326,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 347,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 354,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 354,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 347,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 347,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 345,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 192,
+          "reference": "ReaderCheckpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 348,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 350,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 334,
+          "reference": "ReaderCheckpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 345,
+          "reference": "ReaderCheckpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 349,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 355,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 356,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 358,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 351,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 126,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 140,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 147,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 135,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 175,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/viewport_recent_tabs_pilot.py",
+          "line": 56,
+          "declaration": "ReaderCheckpoint"
+        },
+        {
+          "path": "tests/viewport_recent_tabs_pilot.py",
+          "line": 124,
+          "witness": "self.pages"
+        },
+        {
+          "path": "tests/viewport_recent_tabs_pilot.py",
+          "line": 133,
+          "witness": "self.rendered_bodies"
+        },
+        {
+          "path": "tests/viewport_recent_tabs_pilot.py",
+          "line": 133,
+          "witness": "self.rendered_content"
+        },
+        {
+          "path": "tests/viewport_recent_tabs_pilot.py",
+          "line": 191,
+          "witness": "next(iter(window.histories)).pages"
+        },
+        {
+          "path": "tests/viewport_recent_tabs_pilot.py",
+          "line": 200,
+          "witness": "pager.pages"
+        },
+        {
+          "path": "tests/viewport_recent_tabs_pilot.py",
+          "line": 125,
+          "witness": "page.fragments"
+        },
+        {
+          "path": "tests/viewport_recent_tabs_pilot.py",
+          "line": 126,
+          "witness": "self.fragments"
+        },
+        {
+          "path": "tests/viewport_recent_tabs_pilot.py",
+          "line": 143,
+          "witness": "self.rendered_bodies"
+        },
+        {
+          "path": "tests/viewport_recent_tabs_pilot.py",
+          "line": 105,
+          "witness": "page.fragments"
+        },
+        {
+          "path": "tests/viewport_recent_tabs_pilot.py",
+          "line": 102,
+          "witness": "history.pages"
+        },
+        {
+          "path": "tests/viewport_recent_tabs_pilot.py",
+          "line": 123,
+          "witness": "history.pages"
+        },
+        {
+          "path": "tests/viewport_recent_tabs_pilot.py",
+          "line": 127,
+          "witness": "self.fragments"
+        },
+        {
+          "path": "tests/viewport_recent_tabs_pilot.py",
+          "line": 242,
+          "witness": "pager.pages"
+        }
+      ]
+    },
+    {
+      "root": "tools",
+      "modules": 41,
+      "omissions": [],
+      "sites": []
+    }
+  ],
+  "native_dependency": {
+    "frozen59": "1bdc18c363cbc0f938537a71aa8ba0225d03e25e",
+    "modules": 249,
+    "omissions": []
+  },
+  "scope": "Strong witness lifetime in TWO control consumers. No product/native/run changes."
+}

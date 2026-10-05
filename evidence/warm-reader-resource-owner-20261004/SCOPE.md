@@ -47,3 +47,25 @@ dynamic aliases and runtime equivalence are not proved by AST.
 No private holder is requested or reserved by this source checkpoint. Public444
 style22 is protected; any future qualification needs an eligible actual floor,
 its archive/origins/keepers and a specific granted purpose. No old1470 restore.
+
+## Observer lifetime correction
+
+The e0a source preview retained strong page, fragment and native render-cache
+identity witnesses through later input/resource sampling. Weak Markdown body
+references did not eliminate those graph edges. No runtime resource claim was
+qualified by that preview.
+
+The two existing consumers now bound their genuine witnesses to unchanged
+return assertions. The cohort control records scalar reader positions, clears
+the checkpoint dictionary in finally and deletes it before new input, queue
+handling, object counts or RSS observation. The saved A/B/A control keeps the
+witnesses through all final warm/Undo assertions, clears the list in finally,
+and exits that function before the next journey phase. Its loop locals end
+with the same scope. Identity assertions and original raw-read assertions are
+unchanged; no value-equality substitution or identity-number oracle was added.
+
+Original Package covers288 production,395 tests,41 tools with zero omissions;
+original native59 dependency249/0 remains unchanged. Every original assertion
+AST in both consumers is equal before/after, and diff/parse checks pass.
+Production/pins are unchanged. No App, provider, input, build or holder purpose
+was used; configured continuous/cohort/resource acceptance remains unqualified.
