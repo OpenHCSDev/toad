@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 import sys
 from tempfile import TemporaryDirectory
+from threading import Event
 
 if "--installed-only" not in sys.argv:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -25,9 +26,80 @@ from toad.widgets.transcript_history import TranscriptHistory
 from toad.widgets.presentation_window import MovingPreparation
 from toad.widgets.comms_chat import session_thread_name
 from textual.worker import WorkerCancelled, get_current_worker
+from native_session_retention_pilot import PaintedSwitchApp, physical_painted_switch
+from toad.widgets.conversation import Conversation
 
 
-async def main(output, *, worker_custody=False):
+async def session_custody(app, pilot, root):
+    """The original filesystem source crosses queued delivery and native remount."""
+    source = app.selected_session
+    conversation = source.conversation
+    watcher = conversation._directory_watcher
+    assert watcher is not None
+    editor = conversation.prompt.prompt_text_area
+    editor.insert("ORIGINAL_SESSION_CUSTODY_DRAFT")
+    document, undo = editor.document, editor.history
+    held = Event()
+    notify, rebind = watcher.notify_if_visible, watcher.rebind
+    bindings = []
+
+    def release_on_rebind(widget):
+        # Queue the genuine held filesystem change to its old subscription;
+        # the original source rebind then retires that subscription before
+        # returning control to the native message pump.
+        watcher.notify_if_visible = notify
+        notify()
+        rebind(widget)
+        bindings.append((widget, widget.is_mounted))
+
+    watcher.notify_if_visible = held.set
+    watcher.rebind = release_on_rebind
+    try:
+        before = watcher.observed_revision
+        (root / "original-session-custody-change.txt").write_text("private original fixture change\n")
+        async with asyncio.timeout(10):
+            while not held.is_set() or watcher.observed_revision == before:
+                await pilot.pause(.02)
+        details = await app.session_navigation.new(app.session_navigation.default_source)
+        peer = app.selected_session
+        peer.conversation.prompt.prompt_text_area.insert("ORIGINAL_PEER_CUSTODY_DRAFT")
+        await pilot.pause()
+        assert peer.id == details.mode_name and peer is not source
+        assert source.presentation.sources.directory_watcher is watcher
+        assert watcher._dirty, "Retiring a queued subscription consumed source custody"
+        watcher.notify_if_visible()
+        await pilot.pause()
+        assert watcher._dirty, "A handlerless MainScreen consumed the filesystem change"
+        await source.presentation.evict()
+        assert source.presentation.widget is None
+        assert source.presentation.sources.directory_watcher is watcher
+        timing = await physical_painted_switch(
+            app, pilot, source.id, ("ORIGINAL_SESSION_CUSTODY_DRAFT",))
+        async with asyncio.timeout(10):
+            while watcher._dirty:
+                await pilot.pause(.02)
+        restored = source.conversation
+        assert restored is not conversation
+        assert restored._directory_watcher is watcher and watcher._widget is restored
+        assert restored.prompt.prompt_text_area.document is document
+        assert restored.prompt.prompt_text_area.history is undo
+        assert any(widget is restored and not mounted for widget, mounted in bindings)
+        assert restored.agent is None
+        return {"original_filesystem_change_observed": True,
+                "retired_and_handlerless_delivery_remained_pending": True,
+                "same_watcher_bound_before_native_mount": True,
+                "restored_recipient_consumed_original_change": True,
+                "actual_editor_document_and_undo_retained": True,
+                "restored_source_first_paint": timing,
+                "agent_or_provider_input": False,
+                "limits": "No configured Agent startup or busy-turn/native permission coverage"}
+    finally:
+        watcher.notify_if_visible = notify
+        watcher.rebind = rebind
+        bindings.clear()
+
+
+async def main(output, *, worker_custody=False, session_resources=False):
     output.mkdir(parents=True, exist_ok=False)
     if "--installed-only" in sys.argv:
         import importlib.metadata as metadata
@@ -73,7 +145,8 @@ async def main(output, *, worker_custody=False):
             reads.append(kwargs)
             raise AssertionError("A complete source must not request a transport page")
 
-        app = ToadApp(project_dir=str(root))
+        app_type = PaintedSwitchApp if session_resources else ToadApp
+        app = app_type(project_dir=str(root))
         async with app.run_test(size=(110, 35)) as pilot:
             await app.selected_session.wait_content_ready()
             view = app.selected_session.conversation
@@ -169,6 +242,8 @@ async def main(output, *, worker_custody=False):
                 TranscriptBodyPreparation.prepare_fragments = prepare_fragments
                 history.finish_source_work(operation)
                 workers_seen.clear()
+            if session_resources:
+                receipt["session_resource_custody"] = await session_custody(app, pilot, root)
         await asyncio.get_running_loop().shutdown_default_executor()
         receipt["whole_original_App_shutdown"] = True
         receipt["app_exception"] = str(app._exception)
@@ -177,4 +252,5 @@ async def main(output, *, worker_custody=False):
 
 
 if __name__ == "__main__":
-    asyncio.run(main(Path(sys.argv[-1]), worker_custody="--worker-custody" in sys.argv))
+    asyncio.run(main(Path(sys.argv[-1]), worker_custody="--worker-custody" in sys.argv,
+                     session_resources="--session-custody" in sys.argv))
