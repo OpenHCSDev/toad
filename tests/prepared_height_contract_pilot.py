@@ -1,9 +1,11 @@
 """Trace actual prepared code/body native height cache admission, no provider."""
 import asyncio
 from fractions import Fraction
+from functools import wraps
 import json
 import os
 from pathlib import Path
+import sys
 from tempfile import TemporaryDirectory
 from time import perf_counter
 
@@ -13,11 +15,16 @@ from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from toad.app import ToadApp
 from toad.widgets.prepared_markdown import PreparedCodeLabel, PreparedConversationMarkdown
 from toad.widgets.transcript_history import TranscriptHistory, TranscriptFragmentView
+from toad.widgets.viewport_body import MeasuredViewportBody, LiveBody, MaterializingBody
 from textual.geometry import Size
+from textual.widget import Widget
 from textual._measurement import box_depends_on_available_height
 
 
 async def main():
+    if '--installed-only' in sys.argv:
+        import agent_comms, toad, textual
+        assert all(sys.prefix in module.__file__ for module in (agent_comms, toad, textual))
     evidence = Path(os.environ['HEIGHT_CONTRACT_EVIDENCE']).resolve()
     evidence.mkdir(parents=True, exist_ok=False)
     with TemporaryDirectory(dir=evidence) as directory:
@@ -37,11 +44,35 @@ async def main():
                 f'value_{index} = {index}\n' for index in range(12)) + '```\n'
             history = TranscriptHistory(TranscriptPage(
                 (AssistantTranscript(text),), cursor, cursor, False, False))
-            await view.post(history)
-            async with asyncio.timeout(10):
-                while not view.window.document_viewport.visible_bodies_ready or not history.query(PreparedCodeLabel):
-                    await pilot.pause(.02)
-            await pilot.pause()
+            cold_measurements = []
+            original_measure = MeasuredViewportBody.get_content_height
+
+            @wraps(original_measure)
+            def measure_body(body, container, viewport, width):
+                resource = body._body_measurement
+                native = (body, *(node for node in body.walk_ancestors()
+                                  if isinstance(node, Widget)))
+                before = tuple(node._layout_updates for node in native)
+                height = original_measure(body, container, viewport, width)
+                if (isinstance(resource, LiveBody) or
+                        isinstance(resource, MaterializingBody) and isinstance(resource.previous, LiveBody)):
+                    cold_measurements.append(dict(
+                        body=type(body).__name__, width=width, height=height,
+                        original_extent=(resource.width, resource.rows),
+                        recorded_extent=(body._body_measurement.width, body._body_measurement.rows),
+                        source_before=before,
+                        source_after=tuple(node._layout_updates for node in native)))
+                return height
+
+            try:
+                MeasuredViewportBody.get_content_height = measure_body
+                await view.post(history)
+                async with asyncio.timeout(10):
+                    while not view.window.document_viewport.visible_bodies_ready or not history.query(PreparedCodeLabel):
+                        await pilot.pause(.02)
+                await pilot.pause()
+            finally:
+                MeasuredViewportBody.get_content_height = original_measure
             label = history.query_one(PreparedCodeLabel)
             fragment = label.query_ancestor(TranscriptFragmentView)
             markdown = label.query_ancestor(PreparedConversationMarkdown)
@@ -106,6 +137,11 @@ async def main():
             relative_placements = [tuple((item.widget, item.region) for item in layout.placements)
                                    for layout in relative]
             receipt = dict(dependencies=dependencies, box_calls=len(calls),
+                           cold_native_measurements=cold_measurements,
+                           cold_source_epochs_retained=all(
+                               item['source_before'] == item['source_after'] for item in cold_measurements),
+                           cold_extent_recorded=any(
+                               item['original_extent'] != item['recorded_extent'] for item in cold_measurements),
                            available_heights=calls, elapsed_seconds=elapsed,
                            all_boxes_equal=all(box == boxes[0] for box in boxes),
                            arrangement_calls=len(arrangements), arrangement_heights=arrangements,
@@ -121,6 +157,9 @@ async def main():
                            boundary='actual Toad/Markdown/native mounted body/box resolver; source diagnostic, not physical CPU acceptance')
             (evidence/'receipt.json').write_text(json.dumps(receipt, indent=2)+'\n')
             print(json.dumps(receipt), flush=True)
+            assert receipt['cold_native_measurements'], receipt
+            assert receipt['cold_source_epochs_retained'], receipt
+            assert receipt['cold_extent_recorded'], receipt
             assert receipt['all_boxes_equal'], receipt
             assert receipt['all_arrangements_equal'], receipt
             assert receipt['style_invalidated'], receipt
@@ -129,6 +168,8 @@ async def main():
             assert not receipt['agent_bound'], receipt
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
+        assert app._exception is None
+        assert app.preparation._closed and not app.preparation._pending and not app.preparation._thread_tasks
 
 
 if __name__ == '__main__':
