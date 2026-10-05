@@ -69,3 +69,11 @@ original native59 dependency249/0 remains unchanged. Every original assertion
 AST in both consumers is equal before/after, and diff/parse checks pass.
 Production/pins are unchanged. No App, provider, input, build or holder purpose
 was used; configured continuous/cohort/resource acceptance remains unqualified.
+
+## Actual merged443 normal integration
+
+Normally joined actual main443 dd7b5a389106e69ad4dbc02340834d3b36448bd4
+at4a10010d90fa0015c514bc038d80f264d4a349cb. All #446 production, controls,
+tools and pins remain byte-equal the d1d16de1 observer-lifetime checkpoint.
+Original443 ONE installed App and whole handback stay at their frozen scope.
+No App, build, package or native purpose is inferred by this source join.
