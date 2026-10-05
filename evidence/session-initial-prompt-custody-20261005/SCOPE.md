@@ -83,3 +83,18 @@ and issued purpose; this proposal reserves no slot. It leaves the active joint
 No mounted App/SDK/provider/input purpose exists for this draft. The affected
 App remains unrun, accepted project/GUI journeys are not repeated, and Heis
 retains whole TC1 integration.
+
+## Normal main join
+
+After Parent merged #458, the source normally joined actual main `6d0de99cd`
+at `ffd698e5`. The three initial-prompt owner modules and the `85fcfcf8` control
+remain byte equal. The seven renderer modules are exactly the accepted main
+source. No owner code, control, installed package or active joint artifact was
+changed by this reconciliation.
+
+`CURRENT-MAIN-SOURCE-RELATION.json` compares every packaged asset. The retained
+`d47bbc52` wheel still matches its original frozen source: 312 assets match this
+normal union and seven accepted #458 renderer assets differ. It is not a full
+source-equal wheel for the new union. The old wheel and proposal are preserved;
+a future #461 purpose must reconcile a normal union artifact before staging.
+No additional build, App, package or runtime purpose is inferred here.
