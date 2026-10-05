@@ -103,6 +103,29 @@ async def notification_feedback(
     print("CHANNEL_NOTIFICATION", str(notification.title), flush=True)
 
 
+def selected_triage_reply(request, decision=None):
+    """Recognize only the current native input's original bounded contract."""
+    from agent_comms.field_codec import FieldCodec
+    from agent_comms.selected_triage import IgnoreSelectedTriage, SelectedTriage
+    from agent_comms.turn_context import InstructionFile
+
+    message = request["messages"][-1]
+    if message["role"] != "user":
+        return None
+    content = message["content"]
+    texts = (content,) if isinstance(content, str) else tuple(
+        block["text"] for block in content if block["type"] == "text"
+    )
+    output = InstructionFile.read("selected-triage-output.md").render(
+        SelectedTriage.output_values()
+    ).strip()
+    if not any(text.rstrip().endswith(output) for text in texts):
+        return None
+    return {"role": "assistant", "content": json.dumps(FieldCodec.encode(
+        IgnoreSelectedTriage() if decision is None else decision
+    ))}
+
+
 async def main(*, notification_only=False, retire_surface=False, app_type=ToadApp,
                acceptance=None, provider_reply=None, provider_usage=None,
                native_settings=None, prepare_state=None, expected_response_disconnects=frozenset(), headless=True, provider_request_budget=12,
@@ -112,11 +135,21 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
     evidence.mkdir(parents=True, exist_ok=True)
     package = Path(os.environ["AC_NATIVE_COPIED_PACKAGE"])
     verify_native_package(package)
-    if fixture_stage is not None:
+    # The original fixture owns the source journals through terminal evidence.
+    # Its automatic temporary directories must not erase failed/UNKNOWN inputs.
+    if fixture_stage is None:
+        fixture_stage = Path(tempfile.mkdtemp(prefix="native-fixture-", dir=evidence))
+    else:
         fixture_stage = Path(fixture_stage)
         fixture_stage.mkdir(mode=0o700, parents=True, exist_ok=False)
-        (fixture_stage / "private-root").mkdir(mode=0o700)
-        (fixture_stage / "application").mkdir(mode=0o700)
+    (fixture_stage / "private-root").mkdir(mode=0o700)
+    (fixture_stage / "application").mkdir(mode=0o700)
+    (evidence / "fixture-stage.json").write_text(json.dumps({
+        "path": str(fixture_stage),
+        "wire": str(fixture_stage / "private-root" / "wire"),
+        "application": str(fixture_stage / "application"),
+        "custody": "Original fixture stage retained after joined teardown; no automatic journal deletion or replay. Producer disposition follows consumed evidence and input custody.",
+    }, indent=2))
     requests, failures = [], []
     entered, release, hold_next = (
         threading.Event(),
@@ -141,13 +174,12 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                     hold_next.clear()
                     entered.set()
                     assert release.wait(20), "UI did not release first response"
-                content = "NATIVE_RESPONSE_" + str(len(requests))
-                if any(
-                    "IGNORE" in str(m.get("content"))
-                    and "FULL" in str(m.get("content"))
-                    for m in request["messages"]
-                ):
-                    content = '{"decision":"IGNORE"}'
+                reply, finish_reason = (provider_reply(request, len(requests))
+                                        if provider_reply else (
+                    selected_triage_reply(request) or {
+                        "role": "assistant", "content": "NATIVE_RESPONSE_" + str(len(requests))
+                    }, "stop",
+                ))
                 chunk = {
                     "id": "offline",
                     "object": "chat.completion.chunk",
@@ -156,15 +188,14 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                     "choices": [
                         {
                             "index": 0,
-                            "delta": (provider_reply(request, len(requests))[0] if provider_reply
-                                      else {"role": "assistant", "content": content}),
+                            "delta": reply,
                             "finish_reason": None,
                         }
                     ],
                 }
                 final = {
                     **chunk,
-                    "choices": [{"index": 0, "delta": {}, "finish_reason": provider_reply(request, len(requests))[1] if provider_reply else "stop"}],
+                    "choices": [{"index": 0, "delta": {}, "finish_reason": finish_reason}],
                     "usage": (provider_usage(request, len(requests)) if provider_usage else {
                         "prompt_tokens": 100,
                         "completion_tokens": 10,
@@ -213,10 +244,8 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
     server_thread.start()
     # A retained fixture keeps native paths and original proof records intact.
     with (
-        (nullcontext(str(fixture_stage / "private-root")) if fixture_stage is not None
-         else tempfile.TemporaryDirectory(prefix="comms-l0a-native-", dir="/var/tmp")) as wire_dir,
-        (nullcontext(str(fixture_stage / "application")) if fixture_stage is not None
-         else tempfile.TemporaryDirectory(prefix="l0a-native-", dir=os.environ["TMPDIR"])) as stage_dir,
+        nullcontext(str(fixture_stage / "private-root")) as wire_dir,
+        nullcontext(str(fixture_stage / "application")) as stage_dir,
     ):
         stage = Path(stage_dir)
         project = stage / "project"
