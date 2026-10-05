@@ -1,0 +1,18 @@
+{
+  "state": "Append-only effective proposal output correction; no installed or runtime operation",
+  "preserved_original": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/session-initial-prompt-custody-20261005/PROPOSED-CORRECTED-PROOF-NOAGENT-OPERANDS.json",
+    "sha256": "51317ad07dd4c00259eceeba0bf356ad457864984885c2cf13164b6717ec7d87"
+  },
+  "effective_proposal": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/session-initial-prompt-custody-20261005/PROPOSED-CORRECTED-PROOF-NOAGENT-OPERANDS-OUTPUT-CORRECTED.json",
+    "sha256": "739e39e2cfc5b9c7c0e7f57b85035b67954a423a83da86a9e0ab9f2aea057e86"
+  },
+  "only_changed_field": "candidate_sourceproof_binding.own_output",
+  "previous": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed01",
+  "corrected": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02",
+  "planned_proof_argv_and_output_unchanged": true,
+  "helper_product_control_wheels_unchanged": true,
+  "actual_new_grant_owned_output_and_bound_literal_argv_authoritative": true,
+  "no_grant_or_nextloan": true
+}

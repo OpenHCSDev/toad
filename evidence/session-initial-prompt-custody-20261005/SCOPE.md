@@ -189,3 +189,9 @@ binds the original closure/readback. Matching native READ is returned.
 `PROPOSED-CORRECTED-PROOF-NOAGENT-OPERANDS.json` names fresh own proof/App outputs
 and the corrected helper plus reviewed Diff cache artifact. A future issued
 purpose remains unbound; the unchanged NoAgent App is still unrun.
+
+The inherited descriptive `candidate_sourceproof_binding.own_output` still named
+installed01. `PROOF-OUTPUT-CORRECTION.json` preserves that original proposal and
+binds the append-only effective output-corrected proposal: this one field now
+matches planned proof argv/output installed02. Helper/product/control/artifacts
+are unchanged; no proof, prefix access or App ran for this correction.
