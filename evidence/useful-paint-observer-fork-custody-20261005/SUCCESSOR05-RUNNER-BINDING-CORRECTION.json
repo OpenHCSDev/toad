@@ -1,0 +1,46 @@
+{
+  "status": "APPEND-ONLY effective source operand correction; no grant/stage/proof/App authority",
+  "original_manifest": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/useful-paint-observer-fork-custody-20261005/SUCCESSOR05-SPAWN-ENTRY-OPERANDS.json",
+    "sha256": "99e1b3258e764bcfbbc4fc567db75f29c4fe680f3d9328d598d4ccfd77e0fe92"
+  },
+  "source_head": "042866ad98a1c799f68fe7b333056c5c79ce7737",
+  "replacements": {
+    "runner.new_literal": {
+      "before": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor04-installed-purpose/run_useful.py",
+      "after": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor05-installed-purpose/run_useful.py"
+    },
+    "runner.binding": {
+      "before": "Only future actualsuccessor04 issued grant/lifecycle/SHA/output literal replacements of fb7 original controller; unchanged original150s BoundedRun/joins. Do not execute5171/oldtemplate.",
+      "after": "Only the fresh actual successor05 issued grant, lifecycle, issued SHA and successor05 output literals may bind the new successor05-owned wrapper. Materialize from the historical successor04 template SHA999343d02e9bf80dd22ea60cdfedb6b84b097d2e86be541d89e0ff53fe99f641 after actual issued scope; record the new wrapper SHA and argv/output in the existing successor05 lifecycle before execution. Original150s BoundedRun/joins unchanged. Do not edit, overwrite, reuse or execute the consumed successor04 wrapper; no prior grant or execution authority carries forward."
+    }
+  },
+  "effective_runner": {
+    "owner": "Original BoundedRun.session/AttachedChild installed owner",
+    "maximum_seconds": 150,
+    "template": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor04-installed-purpose/run_useful.py",
+      "sha256": "999343d02e9bf80dd22ea60cdfedb6b84b097d2e86be541d89e0ff53fe99f641",
+      "bytes": 5227
+    },
+    "new_literal": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor05-installed-purpose/run_useful.py",
+    "binding": "Only the fresh actual successor05 issued grant, lifecycle, issued SHA and successor05 output literals may bind the new successor05-owned wrapper. Materialize from the historical successor04 template SHA999343d02e9bf80dd22ea60cdfedb6b84b097d2e86be541d89e0ff53fe99f641 after actual issued scope; record the new wrapper SHA and argv/output in the existing successor05 lifecycle before execution. Original150s BoundedRun/joins unchanged. Do not edit, overwrite, reuse or execute the consumed successor04 wrapper; no prior grant or execution authority carries forward."
+  },
+  "historical_source_attribution_correction": {
+    "path": "changes_from_consumedABE04.control_helper_changes[0].before",
+    "before": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/run_observed_app.py",
+      "sha256": "58eb91775be167e338cc882e7eaec177a397f0099fc2fae3c72e472f3914f355",
+      "bytes": 249
+    },
+    "after": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/run_observed_app.py",
+      "sha256": "16456793f7c2cc4132982bdfaae4df109b7476dd08eb98594f1b9f22c0d3492c",
+      "bytes": 206
+    },
+    "basis": "Original consumed04 Git0eff entrypoint bytes; before58eb in99e was a shallow-reference reporting error. Effective current helper remains58eb, unchanged."
+  },
+  "unchanged_binding": "All20 effective helper hashes, wheels/product/pins, outer argv/env/cwd, fresh05 physical/fixture/package outputs, complete150s usefulcold/wheel/width/reversal/End scope remain99e exactly. Historical04 template is read-only provenance, not an executable05 target.",
+  "original04_wrapper_sha256_preserved": "999343d02e9bf80dd22ea60cdfedb6b84b097d2e86be541d89e0ff53fe99f641",
+  "execution": "UNRUN; requires fresh actual05 issued scope and final independent proof/native custody release"
+}
