@@ -27,3 +27,7 @@ Bohr must freshly bind actual former485 floor/archive/origins/refs and a named p
 ## Preservation
 
 All111 original frozen465 members retain exact hashes, bytes and modes. Historical own receiving evidence removed by the normal MAIN join was restored byte-for-byte from its published Git snapshot; the preservation record lists every member. Source history, auth, UNKNOWN and prior failures stay unchanged. This is source delivery, not a package grant or live publication.
+
+## Later merged sources
+
+Parent subsequently merged681 compaction-record product methods and470 dead replay deletion. This authorized worker delivery keeps selected3931/3fe and289f/b2e truthful. It does not claim retained3fe is full-source-equal to latest MAIN, silently fold later product bytes, rebuild, restage or hold accepted worker delivery. Canonical51 stays selected merged3931. See SELECTED-SOURCE-DISPOSITION.json.

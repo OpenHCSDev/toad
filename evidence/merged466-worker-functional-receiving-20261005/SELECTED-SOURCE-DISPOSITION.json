@@ -1,0 +1,13 @@
+{
+  "state": "Parent explicitly retains selected accepted worker delivery after later681/470 merges; source-only disposition",
+  "selected_Core": "3931f16feb8bcb2dbcc3041446ca342dea665024",
+  "retained_Core_wheel_sha256": "3fe14077293b691000394831ed7458ecae92afd9b667af4501be2945ab86051d",
+  "selected_Toad": "289f1c6cd7667abf985ddba265d6469a95e3ea48",
+  "accepted466_merge": "0bc37f7ad810d3d0c71213f0e798a1474dd78c0a",
+  "retained_Toad_wheel_sha256": "b2e420e5b2eed1aaa96d815b2abf38f990272a047417c2ca5082c01d9149a151",
+  "later_Core681": "Parent reports merged3dc11331 with compaction_records product methods; selected3931/3fe is not latest MAIN full source equality",
+  "later_Toad470": "Parent reports merged012618 dead replay deletion; outside this selected receiving relation, no silent fold or assertion of full retainedwheel equality to laterMAIN",
+  "canonical_source": "Selected actual merged3931 only; no relabel/rebuild or acceptedApp replay",
+  "Heis06": "Separate8bda union25dae2ece issued/released; NEWEXEC7724 delivered; actualsamehandle soleHeis launch does not grant Sch prefix access",
+  "no_current_package_grant_or_reservation": true
+}
