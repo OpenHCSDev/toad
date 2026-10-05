@@ -1,0 +1,309 @@
+{
+  "status": "FINAL JOINT SOURCE/CONTROLS/EXTRA PROPOSAL, NOT AN ISSUED PURPOSE",
+  "source_head": "d25f00aed44fe210f96fa7d125cabd8be34fc7eb",
+  "body_product": "7edca2943b7cc68ff99d091d088fd3e65c53ff24",
+  "transport_source": "db368ff54c21c13a4a98465f10eebce2421be38e",
+  "source_assets": 319,
+  "pins_and_build_metadata": "ZERO delta vs actual merged457e322",
+  "controls": [
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/render_execution_preparation_installed_pilot.py",
+      "sha256": "0fb5533145dfde22a569312e9356962bb5cbbe0f8ee266694290eff61678f526",
+      "argv": [
+        "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+        "-B",
+        "/home/ts/wt/toad-regression-widget-cost-20261001/tests/render_execution_preparation_installed_pilot.py",
+        "/home/ts/.cache/agent-scratch/h460458/transport"
+      ],
+      "cwd": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "output": "/home/ts/.cache/agent-scratch/h460458/transport",
+      "raw_receipts": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/installed01",
+      "runner": "Existing installed agent_comms.child_process.BoundedRun.session / AttachedChild, timeout90. One exact child command; actualbirth/outcome/stdio/joined descendants/groups retained, no new runner framework.",
+      "environment": {
+        "inherit": "ordinary system environment; no application source paths, no credential contents in receipts",
+        "unset": [
+          "PYTHONPATH",
+          "PYTHONHOME",
+          "VIRTUAL_ENV",
+          "AGENT_COMMS_THREAD",
+          "AGENT_COMMS_RUNTIME",
+          "PI_AGENT_ID",
+          "PI_PROMPT"
+        ],
+        "set": {
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "AGENT_COMMS_ROOT": "/home/ts/.cache/agent-scratch/h460458/wire",
+          "TMPDIR": "/home/ts/.cache/agent-scratch/h460458/tmp"
+        }
+      },
+      "scope": "Actual installed local spawn and private persistent renderer transport; official SDK model validation only; captured Unicode Markdown and Rich strips independently delivered/retained. No mounted GUI/native SDK/ACP/session/provider/input/firstpaint/frame speed or physical claim.",
+      "concurrency": "Original control local1worker/pending2 and persistent1worker/pending2, one serial invocation. No invented host memory cap.",
+      "short_output_reason": "Original RendererEndpoint directory includes renderer/24hex/render_port.sock; short owned output respects Unix IPC name contract without product change.",
+      "after": "Original control runtime/cache/pool closures + explicit persistent shutdown_service, pending[] and active_children preimage. Original BoundedRun owns controller/process-group retirement, fresh census before return. No automatic retry; preserve failure/unknown.",
+      "operator_handoff": "Heis integrates/stages one final sourceequal460 union and owns full holder/floor return. Einstein has only one exact0fb renderer command READ/operator custody after actual issued handoff/release. Send joined result/return before Heis changescoldheight control; no simultaneous prefix imports or second stage.",
+      "operator": "Original Einstein only if exact fresh joint purpose explicitly binds renderer READ/operator handoff after Heis sole stage and proof. No current operator custody."
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/prepared_height_contract_pilot.py",
+      "sha256": "93d063780d05a94ac3098c2965079a2d107bf693e20b541e7a98e80f02e232bd",
+      "argv": [
+        "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+        "-B",
+        "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/prepared_height_contract_pilot.py",
+        "--installed-only"
+      ],
+      "environment": {
+        "inherit": "ordinary system environment, no app source paths",
+        "unset": [
+          "PYTHONPATH",
+          "PYTHONHOME",
+          "VIRTUAL_ENV",
+          "AGENT_COMMS_THREAD",
+          "AGENT_COMMS_RUNTIME",
+          "PI_AGENT_ID",
+          "PI_PROMPT"
+        ],
+        "set": {
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONNOUSERSITE": "1",
+          "HEIGHT_CONTRACT_EVIDENCE": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-render-transport458-20261005/cold-height"
+        }
+      },
+      "scope": "ONE original NoAgentApp/cold native measurement/source epochs/derived extent/box-arrangement-style-relative-height/whole preparation close",
+      "runtime": "UNRUN",
+      "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "operator": "Original Heis, only after renderer terminal/cleanup/explicit operator return, within same fresh specific joint purpose.",
+      "output_environment": "HEIGHT_CONTRACT_EVIDENCE owns original private TemporaryDirectory/wire/config; no public source/runtime inputs."
+    }
+  ],
+  "order": "Original transport control then ONE original mounted cold measurement App; stop and retain any failure, no automatic retry",
+  "output": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-render-transport458-20261005",
+  "build": {
+    "authorized_now": false,
+    "required": "ONE normal joint ToAd wheel via original cached Hatchling1.28 no isolation; all319 Git/local/ZIP equality before install",
+    "standalone458_wheel": "6f68d3d2bc6434612beae6275ce660c1c2a792e6215132e0485ec5498422d8ad is historical standalone source, NOT combined source equal"
+  },
+  "dependencies": {
+    "core": "Actual6757b68/retained a685578e439aa2f7010219aa6032ae7e7307a68393e6d6adbb084563f39f43c5",
+    "textual": "Actual67d733/retained16c9f5e7a1aca9f7a339fdb859c1743bbc0ba8f17327ba3debd4b13959ca927d",
+    "diff": "8fa7d4d0",
+    "persistent_extra": "Five exact original raw wheels and active dependency relation bound below; authorization remains conditional on fresh specific original package purpose and actual floor compatibility.",
+    "retained_literal_source_wheels": [
+      {
+        "module": "agent_comms",
+        "head": "7b68d630caa654d3e9884f45cbd6493718752a0c",
+        "wheel": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/c3-goal-selection675-wheel-20261005/agent_comms-0.1.0-py3-none-any.whl",
+        "sha256": "a685578e439aa2f7010219aa6032ae7e7307a68393e6d6adbb084563f39f43c5",
+        "bytes": 901686,
+        "source": "Original Heis457 source proof; Diff original cached source wheel requires original Git/ZIP closure before staging, no VCS metadata fabrication."
+      },
+      {
+        "module": "textual",
+        "head": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78",
+        "wheel": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native67-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+        "sha256": "16c9f5e7a1aca9f7a339fdb859c1743bbc0ba8f17327ba3debd4b13959ca927d",
+        "bytes": 768752,
+        "source": "Original Heis457 source proof; Diff original cached source wheel requires original Git/ZIP closure before staging, no VCS metadata fabrication."
+      },
+      {
+        "module": "textual_diff_view",
+        "head": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+        "wheel": "/home/ts/.cache/uv/sdists-v9/git/6a8a377ce2150d3f/8fa7d4d0db993ea3/textual_diff_view-0.1.5-py3-none-any.whl",
+        "sha256": "be7089c8f282e07e893b0254a0859e0f1b243a7ba591749f2053fa1fb775ad36",
+        "bytes": 25753,
+        "source": "Original Heis457 source proof; Diff original cached source wheel requires original Git/ZIP closure before staging, no VCS metadata fabrication."
+      }
+    ]
+  },
+  "floor": "Actual genuinely eligible prefix/floor/origins/keepers/archive and restore tuple must be supplied by original Bohr fresh purpose; no old485/floor or current public eligibility inferred",
+  "native": "No Pi/nativeSDK/ACP/provider execution by either control. Fresh Sch matching immutable7a READ only for original NativeFullTrust/candidate sourceproof within actual issued purpose if required; no oldlease inheritance or artifact EXEC implied.",
+  "cleanup": "Original runtime/controller/service/worker/socket groups joined; own disposable payload retirement and whole actual issued floor restoration with fresh privileged handback",
+  "claims_excluded": [
+    "physical or first-paint latency",
+    "CPU gain or dominance",
+    "moving-frame cadence",
+    "full configured continuous workflow",
+    "new provider/model/nativeSDK input",
+    "accepted456/457 repetition"
+  ],
+  "historical_proposal": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/body-measurement-publication-20261005/JOINT-AFFECTED-CONTROL-PREPARATION.json",
+    "sha256": "9887d8043591351e7ef812381f587c9607b5c488b515cfa5775cecd4cfd38b88",
+    "note": "Preserved original prepared proposal; transport output is superseded by this shorter source-derived IPC operand. Neither proposal is an issued grant."
+  },
+  "persistent_extra_artifacts": {
+    "manifest_path": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/prepared-render-transport-20261005/OPTIONAL-CACHED-ARTIFACTS.json",
+    "manifest_sha256": "1b3964aed64262036fb3a7c1f855002dac5e188a67a37c39a2eb5a9fddfc0368",
+    "fetch_receipt": "/home/ts/.cache/agent-scratch/einstein-render458-pinned-extra-wheels-20261005/locked-fetch-receipt.json",
+    "fetch_receipt_sha256": "6247aec232880b7ef8b34cec6a421b116a471ce486af43ca1435973bb2bf2d0c",
+    "original_files": [
+      {
+        "name": "zmqruntime",
+        "filename": "zmqruntime-0.2.24-py3-none-any.whl",
+        "wheel": "/home/ts/.cache/agent-scratch/einstein-render458-pinned-extra-wheels-20261005/zmqruntime-0.2.24-py3-none-any.whl",
+        "sha256": "0e8b2ef68b52d8ede0777cce34c2da8330f897a16d337963ac51289ae496a977",
+        "bytes": 83575,
+        "metadata_member": "zmqruntime-0.2.24.dist-info/METADATA",
+        "metadata_sha256": "66253dfc58f44f449c5219906fda37d9f5f0a7b6b210dd082eec65dcbaca9ba0"
+      },
+      {
+        "name": "python-introspect",
+        "filename": "python_introspect-0.1.14-py3-none-any.whl",
+        "wheel": "/home/ts/.cache/agent-scratch/einstein-render458-pinned-extra-wheels-20261005/python_introspect-0.1.14-py3-none-any.whl",
+        "sha256": "54c548c67befffbd72e26d7b0ec420db661ba1a5a6096b6873dc37cfa1c21635",
+        "bytes": 35291,
+        "metadata_member": "python_introspect-0.1.14.dist-info/METADATA",
+        "metadata_sha256": "61b29867e49e89d07428e12957fb3af7233f017b6dc419e0e8c78abd434c985e"
+      },
+      {
+        "name": "portalocker",
+        "filename": "portalocker-4.4.0-py3-none-any.whl",
+        "wheel": "/home/ts/.cache/agent-scratch/einstein-render458-pinned-extra-wheels-20261005/portalocker-4.4.0-py3-none-any.whl",
+        "sha256": "a8e99ea29bfb61766ee0b4008cbaf0651e8e050f7a2485ebf54316480e99226e",
+        "bytes": 129647,
+        "metadata_member": "portalocker-4.4.0.dist-info/METADATA",
+        "metadata_sha256": "37ab2d2bca472f5e9a66adfb44b081f149f4d4d84c9c1bf75c79b519be48352c"
+      },
+      {
+        "name": "numpy",
+        "filename": "numpy-2.5.3-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "wheel": "/home/ts/.cache/agent-scratch/einstein-render458-pinned-extra-wheels-20261005/numpy-2.5.3-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "sha256": "b0521d0f4aebb6e06189451025fa17a913287b13c03d5fe05c017333b654ea5b",
+        "bytes": 16711928,
+        "metadata_member": "numpy-2.5.3.dist-info/METADATA",
+        "metadata_sha256": "451a9b8028000588e66b0b415587b6aef0bbc51a96d8e8a0cba0dc23acf64f99"
+      },
+      {
+        "name": "pyzmq",
+        "filename": "pyzmq-27.2.0-cp312-abi3-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl",
+        "wheel": "/home/ts/.cache/agent-scratch/einstein-render458-pinned-extra-wheels-20261005/pyzmq-27.2.0-cp312-abi3-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl",
+        "sha256": "dea74fd65f1fc5f7fe167916a473ebe6ed6174e5e5d9de11ea6583661be6cf43",
+        "bytes": 872258,
+        "metadata_member": "pyzmq-27.2.0.dist-info/METADATA",
+        "metadata_sha256": "efca840a7cf3173e6ffce4c77e50b5b449a6c44388abc272bc3e82bb27e97043"
+      }
+    ],
+    "actual_read_verification": "All five raw wheel lengths/SHA256 and raw METADATA SHA256 match; original manifest and fetch receipt hashes match. No imports, resolve, build, cache or prefix operations.",
+    "stage": "Within fresh issued purpose, original normal no-deps/no-cache five filewheel stage; no optional dev/docs/tests/redis/win32 extras or resolver.",
+    "active_declared_dependencies": [
+      {
+        "owner": "zmqruntime",
+        "requirement": "annotated-types>=0.7.0",
+        "selected_version": "0.8.0"
+      },
+      {
+        "owner": "zmqruntime",
+        "requirement": "metaclass-registry>=0.1.6",
+        "selected_version": "0.2.1"
+      },
+      {
+        "owner": "zmqruntime",
+        "requirement": "numpy>=1.24",
+        "selected_version": "2.5.3"
+      },
+      {
+        "owner": "zmqruntime",
+        "requirement": "portalocker>=2.8.2",
+        "selected_version": "4.4.0"
+      },
+      {
+        "owner": "zmqruntime",
+        "requirement": "psutil>=5.9",
+        "selected_version": "7.2.2"
+      },
+      {
+        "owner": "zmqruntime",
+        "requirement": "python-introspect>=0.1.6",
+        "selected_version": "0.1.14"
+      },
+      {
+        "owner": "zmqruntime",
+        "requirement": "pyzmq>=22.0",
+        "selected_version": "27.2.0"
+      },
+      {
+        "owner": "python-introspect",
+        "requirement": "annotated-types>=0.7.0",
+        "selected_version": "0.8.0"
+      },
+      {
+        "owner": "python-introspect",
+        "requirement": "metaclass-registry>=0.1.0",
+        "selected_version": "0.2.1"
+      }
+    ],
+    "expected_package_relation": "69 original floor + five additions =74 only if fresh actual floor attests three existing dependencies and these five are additions",
+    "floor_prerequisites": "Actual floor must attest annotated-types0.8.0/metaclass-registry0.2.1/psutil7.2.2 and CPython3.14 Linux x86_64 compatibility before stage.",
+    "restore": "Join original renderer service/runtime/controllers; normal uninstall of actual five additions, restore exact original floor filewheels/versions/origins and all original protected files; fresh privileged handback. No shared cache mutation.",
+    "raw_record_proof": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/prepared-render-transport-20261005/OPTIONAL-WHEEL-RECORD-PROOF.json",
+      "sha256": "e70bdac3b597c4a467138c32aa1af64124386ac72fdc005092e0f3969e21ae61",
+      "claim": "Original contributor standard ZIP/RECORD proof, SHA-read by integrator; integrator five raw SHA/length/METADATA reads recorded separately, not a repeated RECORD check."
+    }
+  },
+  "ipc_operand": {
+    "owner": "Original RendererEndpoint.for_runtime and zmqruntime TransportMode.IPC.socket_path",
+    "output": "/home/ts/.cache/agent-scratch/h460458/transport",
+    "renderer_suffix": "renderer/<original RendererBuild.version first24>/render-19001.sock or render-19002.sock",
+    "socket_path_bytes": 99,
+    "historical_suggested_path_bytes": 110,
+    "qualification": "Static source-derived path length only; no socket/probe/runtime operation. Short output is a command operand, no new production path rule or length guard."
+  },
+  "potential_holder_only": "Bohr names former334 CURRENT447 as a potential candidate, not a disposition/grant/reservation. Literal prefix/floor/archive/keepers/refs and exact restoration tuple remain unbound until original owner supplies them.",
+  "source_and_control_delta_vs_6864": "ZERO src/tests/pyproject/uv through normal documentary contributor join; original two control hashes remain exact.",
+  "normal_documentary_join": "7999797414dc98041e672d0405a307ce6195ad96",
+  "proposed_holder": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "holder_relation": "Bohr identified formerPUBLIC334 current447 as candidate; fresh actual disposition/floor/archive/reference and alias checks REQUIRED before any access. held459/540 and publicstyle22 excluded. This location is not reserved.",
+  "contributor_proposal": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/prepared-render-transport-20261005/PROPOSED-INSTALLED-OPERANDS.json",
+    "sha256": "9150ed9a87908f60116b945a6b175e455a27b605496e35c7e926e58e47f4b5d9"
+  },
+  "optional_stage_argv": [
+    "/usr/bin/uv",
+    "pip",
+    "install",
+    "--python",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+    "--no-deps",
+    "--no-cache",
+    "--no-build",
+    "--no-index",
+    "--no-python-downloads",
+    "--no-config",
+    "--link-mode",
+    "copy",
+    "/home/ts/.cache/agent-scratch/einstein-render458-pinned-extra-wheels-20261005/zmqruntime-0.2.24-py3-none-any.whl",
+    "/home/ts/.cache/agent-scratch/einstein-render458-pinned-extra-wheels-20261005/python_introspect-0.1.14-py3-none-any.whl",
+    "/home/ts/.cache/agent-scratch/einstein-render458-pinned-extra-wheels-20261005/portalocker-4.4.0-py3-none-any.whl",
+    "/home/ts/.cache/agent-scratch/einstein-render458-pinned-extra-wheels-20261005/numpy-2.5.3-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+    "/home/ts/.cache/agent-scratch/einstein-render458-pinned-extra-wheels-20261005/pyzmq-27.2.0-cp312-abi3-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl"
+  ],
+  "serial_custody": "Heis sole joint wheel/package/proof/floor operator. Einstein only exact transport command, then whole renderer/session/service/worker/controller group cleanup + explicit renderer operator return. Heis thereafter one coldmeasurement NoAgentApp. No simultaneous prefix imports or second stage; stop after failure/uncertain effect, no retry. All rights must be literal fresh issued purpose.",
+  "actual_floor_before_issue": "Bohr fresh explicit former334CURRENT447 NONLIVE disposition/floor/69 versions+origins/protected files/archive/references+aliases; proposal prefix path is not evidence of eligibility or a reservation.",
+  "restoration": {
+    "owner": "Bohr binds actualCURRENT447 floor/preimage/archive/restorewheels and eachdistribution prior absence/origin BEFOREissue. Original stage operator restores exact issued floor, not old334440/style22 floor.",
+    "optional_remove_argv": [
+      "/usr/bin/uv",
+      "pip",
+      "uninstall",
+      "--python",
+      "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+      "--no-config",
+      "zmqruntime",
+      "python-introspect",
+      "portalocker",
+      "numpy",
+      "pyzmq"
+    ],
+    "conditional": "Uninstall only packages proved absent in issued preimage; if any existed restore exact originalfilewheel/version/origin instead. No unrelated removal or cache/shared donor/public writes.",
+    "floor_restore": "Normal exact reviewed issued restorefilewheels --no-cache followed originalhash/mode/readlink/RECORD/distributionorigin/protectedkeeper readback; actual original activation/proofs/operators preserved.",
+    "complete": "Joined renderer/controller/socket/worker groups and cleanup + fresh privileged holder/output/dependency custody census and explicit operator return. Optional originals retained until scoped acceptance/negative disposition, owned17.8MB files tracked here.",
+    "joint_owner": "Heis owns complete actual issued floor restoration after both serial controls or first failure; Einstein returns renderer command custody, not a separate package floor."
+  },
+  "remaining_to_bind": [
+    "Fresh originalBohr actual floor disposition/refs/origins/keepers/archive/restore and specific immutable joint purpose",
+    "ONE authorized normal jointToadwheel/all319 Git-local-ZIP/backend proof before stage; no standalone458 wheel substitution",
+    "Final installed953 original assets+5optional RECORD/source relation/full74 if floor69plus5/true origins/nativeFullTrust within issued proof",
+    "Original serial renderer READ/operator handoff and Heis App execution release after final proof, with no concurrent imports"
+  ]
+}
