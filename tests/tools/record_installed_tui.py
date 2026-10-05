@@ -213,6 +213,26 @@ class TransferredGroup(OwnedProcess):
             result["parent_error"] = original.get("error")
         return result
 
+    def acquired_command(self):
+        """Observe final exec after this parent's actual acquisition gate."""
+        original = json.loads(self.exit_receipt.read_text())
+        if "parent_launch_argv" not in original:
+            return None
+        self.child.platform.require(self.child.identity)
+        command = Path(f"/proc/{self.child.identity.pid}/cmdline").read_bytes().rstrip(b"\0").split(b"\0")
+        command = [os.fsdecode(argument) for argument in command]
+        if command in (original["parent_launch_argv"], original["terminal_acquisition_argv"]):
+            return None
+        return command
+
+    def running_interpreter(self):
+        self.child.platform.require(self.child.identity)
+        return Path(f"/proc/{self.child.identity.pid}/exe").resolve(strict=True)
+
+    def require_runtime_interpreter(self):
+        if self.running_interpreter() != Path(sys.executable).resolve():
+            raise ValueError("Acquired terminal program does not use the selected runtime interpreter")
+
     @staticmethod
     def require_successful_exit(result):
         from agent_comms.child_process import ChildOutcome
@@ -303,6 +323,39 @@ class ProcessOwner:
         program = launch["process"]
         return self.transfer(program["pid"], program["start_ticks"], exit_receipt=source, parent=parent_group)
 
+    def transfer_program_parent(self, terminal_identity):
+        """Acquire only st's one original session child, before publication."""
+        if not terminal_identity.alive():
+            return None
+        children = Path(f"/proc/{terminal_identity.pid}/task/{terminal_identity.pid}/children").read_text().split()
+        if not children:
+            return None
+        if len(children) != 1:
+            raise RuntimeError("Terminal launch has ambiguous program-parent custody")
+        from agent_comms.child_process import ProcessIdentity
+        identity = ProcessIdentity.capture(int(children[0]))
+        if os.getsid(identity.pid) != identity.pid:
+            return None
+        return self.transfer(identity.pid, identity.start_time)
+
+    def acquire_program(self, terminal_identity, source, deadline):
+        """Join original child acquisition before a consumer validates exec."""
+        while time.monotonic() < deadline and terminal_identity.alive():
+            try:
+                self.transfer_program_parent(terminal_identity)
+                if source.exists():
+                    launch = json.loads(source.read_text())
+                    if "error" in launch:
+                        raise RuntimeError(f"Original program acquisition failed: {launch}")
+                    if "process" in launch:
+                        program = self.transfer_program(terminal_identity, source)
+                        if program.acquired_command() is not None:
+                            return program
+            except (ProcessLookupError, FileNotFoundError):
+                pass
+            time.sleep(.05)
+        raise TimeoutError("Original terminal program acquisition did not complete")
+
     def transfer_terminal(self, launcher_identity, source):
         launch = json.loads(source.read_text())
         launcher = {"pid": launcher_identity.pid, "start_ticks": launcher_identity.start_time}
@@ -366,6 +419,11 @@ class ProcessOwner:
                         owner.transfer_program(terminal.child.identity, program_source)
                     except (OSError, ValueError, KeyError, RuntimeError) as error:
                         publication["error"] = f"Program transfer failed: {error}"
+                elif terminal is not None:
+                    try:
+                        owner.transfer_program_parent(terminal.child.identity)
+                    except (OSError, ValueError, RuntimeError) as error:
+                        publication["error"] = f"Program-parent transfer failed: {error}"
                 publication["cleanup"] = owner.cleanup()
                 if terminal is not None:
                     publication["exit"] = terminal.receipt()
@@ -1493,39 +1551,23 @@ def cpu_snapshot(root_pid):
 
 def terminal_program(owner, identity, deadline, source):
     """Verify the UI publication and its original st/parent/child relation."""
-    from agent_comms.child_process import ProcessIdentity
+    program = owner.acquire_program(identity, source, deadline)
     while time.monotonic() < deadline and identity.alive():
-        if source.exists():
-            launch = json.loads(source.read_text())
-            if "process" not in launch:
-                if "error" in launch or "cleanup" in launch:
-                    raise RuntimeError(f"Terminal program parent failed before acquisition: {launch}")
-                time.sleep(.05)
-                continue
-            parent = ProcessIdentity(launch["launcher"]["pid"], launch["launcher"]["start_ticks"])
-            program = owner.transfer_program(identity, source)
-            try:
-                child = program.child.identity
-                # The exec gate and ControllingTerminalCommand also run in
-                # the selected Python. Their original launch argv are not
-                # evidence that the final installed UI has exec'd yet.
-                command = Path(f"/proc/{child.pid}/cmdline").read_bytes().rstrip(b"\0").split(b"\0")
-                command = [os.fsdecode(argument) for argument in command]
-                parent_ids = Path(f"/proc/{identity.pid}/task/{identity.pid}/children").read_text().split()
-                child_ids = Path(f"/proc/{parent.pid}/task/{parent.pid}/children").read_text().split()
-                if (parent.alive() and child.alive()
-                        and parent_ids == [str(parent.pid)]
-                        and child_ids == [str(child.pid)]
-                        and os.getsid(child.pid) == child.pid
-                        and "parent_launch_argv" in launch
-                        and command != launch["parent_launch_argv"]
-                        and command != launch["terminal_acquisition_argv"]
-                        and Path(f"/proc/{child.pid}/exe").resolve() == Path(sys.executable).resolve()):
-                    return program
-            except (ProcessLookupError, FileNotFoundError):
-                pass
+        try:
+            child = program.child.identity
+            parent = program.parent.child.identity
+            parent_ids = Path(f"/proc/{identity.pid}/task/{identity.pid}/children").read_text().split()
+            child_ids = Path(f"/proc/{parent.pid}/task/{parent.pid}/children").read_text().split()
+            if (parent.alive() and child.alive()
+                    and parent_ids == [str(parent.pid)]
+                    and child_ids == [str(child.pid)]
+                    and os.getsid(child.pid) == child.pid
+                    and program.running_interpreter() == Path(sys.executable).resolve()):
+                return program
+        except (ProcessLookupError, FileNotFoundError):
+            pass
         time.sleep(.05)
-    raise RuntimeError("Installed terminal program did not acquire a verified runtime identity")
+    raise TimeoutError("Installed terminal program did not exec the selected runtime identity")
 
 
 def publish_terminal_lease(output, identity, *, name):

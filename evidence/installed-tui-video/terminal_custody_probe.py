@@ -55,10 +55,12 @@ def main():
         launcher, terminal, program = owner.start_terminal(
             [sys.executable, '-c', 'import time; time.sleep(30)'], env=env)
         assert os.getsid(program.child.identity.pid) == program.child.identity.pid
-        terminal.stop(signal.SIGKILL)
+        terminal.send_signal(signal.SIGKILL)
         program.stop()
+        terminal.stop()
         assert not program.child.identity.alive()
-        result['cases']['abrupt_terminal_exit'] = program.receipt()
+        result['cases']['abrupt_terminal_exit'] = {'program': program.receipt(), 'terminal': terminal.receipt()}
+        assert result['cases']['abrupt_terminal_exit']['terminal']['parent_exit']['returncode'] == -signal.SIGKILL
 
         wrong = output / 'wrong-interpreter'
         wrong.mkdir()
@@ -70,13 +72,13 @@ def main():
         while not terminal_source.exists() and failed_launcher.child.identity.alive() and time.monotonic() < deadline:
             time.sleep(.05)
         failed = owner.transfer_terminal(failed_launcher.child.identity, terminal_source)
+        wrong_program = owner.acquire_program(failed.child.identity, wrong / 'program-launch.json', deadline)
+        assert wrong_program.running_interpreter() == Path('/usr/bin/sleep').resolve()
         try:
-            recorder.terminal_program(owner, failed.child.identity, time.monotonic() + .5,
-                                      wrong / 'program-launch.json')
+            wrong_program.require_runtime_interpreter()
             raise AssertionError('Wrong interpreter unexpectedly accepted')
-        except RuntimeError:
+        except ValueError:
             pass
-        wrong_program = owner.transfer_program(failed.child.identity, wrong / 'program-launch.json')
         assert wrong_program.child.identity.alive()
         wrong_program.stop()
         failed.stop()
