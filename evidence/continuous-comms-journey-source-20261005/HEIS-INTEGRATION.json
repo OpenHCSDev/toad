@@ -1,0 +1,28 @@
+{
+  "frozen_460": "558d4cffde0c1748b9bad5676adee91878c95edd",
+  "contributor_468": "b8a17c7bc6e731ba6d89720463cb3b4711f0b5ed",
+  "normal_merge_commit": "5ce5a1863ae61bfa38b7defbbf64a2e81e7955fb",
+  "source_only": true,
+  "App": "UNRUN; no input/provider/package/native authority",
+  "preserved": [
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "declaration": "selected_triage_reply",
+      "AST_equal_original_a69": true
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "declaration": "streamed_reply",
+      "AST_equal_original_a69": true
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "declaration": "prepare_saved_state",
+      "AST_equal_original_a69": true
+    }
+  ],
+  "correction": "Three assertions use CommsChatView.conversation_kind; kind belongs to CommsScreen. No product alias/property/guard introduced.",
+  "product_build_inputs_delta_vs_frozen460": "ZERO",
+  "frozen_worktree_and20operand_hashes": "Unchanged; integration branch is published without checking it out",
+  "remaining": "Actual localhost continuous controls vs configured retained workflow/physical performance remain separate and unqualified; warm identity witnesses finish before resource counts; full loaded-cohort/cold width/velocity/reversal/growingEnd obligations remain"
+}

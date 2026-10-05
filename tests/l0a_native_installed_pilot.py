@@ -74,7 +74,7 @@ async def direct_reply_feedback(
     screen = app.selected_session
     await screen.wait_content_ready()
     dm = screen.query_one(CommsChatView)
-    assert dm.target == "beta" and dm.kind is DmConversation
+    assert dm.target == "beta" and dm.conversation_kind is DmConversation
     body = "DIRECT_NATIVE_MESSAGE"
     assert not any(message.body == body for message, _ in dm.message_history.rows)
     entered.clear()
@@ -128,7 +128,7 @@ async def direct_reply_feedback(
     assert reopened is not screen and reopened.id != screen.id
     await reopened.wait_content_ready()
     fresh = reopened.query_one(CommsChatView)
-    assert fresh.kind is DmConversation
+    assert fresh.conversation_kind is DmConversation
     await until(pilot, lambda: all(
         sum(message.reference == reference for message, _ in fresh.message_history.rows) == 1
         for reference in (original.reference, response.reference)))
@@ -145,7 +145,7 @@ async def notification_feedback(
     await channel_target("#team").open(NavigationContext(app, owner_mode, project, user))
     await app.selected_session.wait_content_ready()
     channel = app.selected_session.query_one(CommsChatView)
-    assert channel.target == '#team' and channel.kind is ChannelConversation
+    assert channel.target == '#team' and channel.conversation_kind is ChannelConversation
     entered.clear()
     release.clear()
     hold_next.set()
