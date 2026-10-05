@@ -1,0 +1,25 @@
+{
+  "elapsed": 12.189038248034194,
+  "returncode": 0,
+  "timed_out": false,
+  "error": null,
+  "drain_errors": [],
+  "outcome": {
+    "kind": "exited",
+    "code": 0
+  },
+  "child_retired": true,
+  "owned_group_members": [],
+  "controller": {
+    "pid": 742063,
+    "start_time": 69296982
+  },
+  "child": {
+    "pid": 742075,
+    "start_time": 69297081
+  },
+  "scope": "ONE actual NoAgent mounted App; two plain pre-admission UserInputSubmitted UI events refused before backend submission by agent=None; constructor failure retains pending prompt; successful construction transfers; newest pending evict/remount once; original draft Document/Undo and Ctrl-Z; consumed value absent on second remount; original session close releases state.",
+  "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Einstein461-corrected-proof02-NoAgent-package-App-issued-grant.json",
+  "native_inputs": 0,
+  "provider_calls": 0
+}

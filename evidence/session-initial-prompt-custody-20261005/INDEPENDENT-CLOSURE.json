@@ -1,0 +1,27 @@
+{
+  "state": "Original Bohr consumedf191 independently WHOLECLOSED",
+  "receipts": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Einstein461-current448-union-NoAgent-package-App-lifecycle.json",
+      "sha256": "74c07c5738c4c45f5e1c4f69361a1c589e512f8d24cb439e362f0eb108783164"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Einstein461-independent-final-current448-floor-readback.json",
+      "sha256": "a1f933766fe2e80b7b87faaf8f91a26d922b327b7b75e941efc4119850125a88"
+    }
+  ],
+  "actual_current448_records": 1477,
+  "source_assets": 953,
+  "distributions": 69,
+  "protected_originals": 626,
+  "separate_wrappers": 5,
+  "other66_records": 1883,
+  "fresh_privileged_UID_count": 233,
+  "private_actual_refs": 0,
+  "observation_gaps": 0,
+  "public_native19_refs_preserved": true,
+  "original_bootstrap_classification_preserved": "7ed0109ca7c6570faaa6ad89ea30b5992afc1d9d82a06568d3f1810343f45e3c",
+  "App_native_FullTrust_unrun": true,
+  "proof_failure_preserved": true,
+  "no_nextloan": true
+}

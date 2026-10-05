@@ -244,11 +244,13 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
 
     def _make_conversation(self) -> Conversation:
         with self._context():
-            return Conversation(
+            conversation = Conversation(
                 self.project_path, self._agent, self._agent_session_id,
                 self._session_pk, self.app.session_tracker.sessions[self.id].initial_title,
                 initial_prompt=self._initial_prompt,
             )
+        self._initial_prompt = None
+        return conversation
 
     async def wait_content_ready(self) -> None:
         await self._content_ready.wait()

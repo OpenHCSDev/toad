@@ -1,0 +1,62 @@
+{
+  "state": "SOURCE UNION FILEWHEEL PREPARED ONLY; mountedNoAgentApp UNRUN",
+  "source_head": "34bd2caa3acae6e97963ec19590e219377496a26",
+  "source_product": "759abc2ada95fcb1f642a552b115a979ed7e33c7",
+  "source_union": "ffd698e5b60e5a37641107be2512d5bb27cc3e62",
+  "actual_merged_main": "6d0de99cd2d2929107a731b00b63605ed43f7bbb",
+  "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/union34bd-source-wheel/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+  "sha256": "47f8ee49a13762cad3e1224323c3c557bf07df218136e44f087a5f29fce682e2",
+  "bytes": 2251185,
+  "source_assets": 319,
+  "python_assets": 288,
+  "git_local_zip_equal": true,
+  "missing_extra_assets": [],
+  "record_entries_verified": 324,
+  "dist_info_sha256": {
+    "batrachian_toad-0.6.20.dist-info/METADATA": "3fde2bfef1346f91a2bad2c6dfbca28a40710dc38ca987f66266a6064c3c43ee",
+    "batrachian_toad-0.6.20.dist-info/RECORD": "eb9d2917b427745418adc77646800a18c18cc743b2c43dc478f23c83ded079d3",
+    "batrachian_toad-0.6.20.dist-info/WHEEL": "58b82a17209f9bf2804afe161f2632d0fde933f9bb2792fd936b2474a2e2ac2f",
+    "batrachian_toad-0.6.20.dist-info/entry_points.txt": "12cacbee8134076f2a99542ab81f8682c88f39cbea62228e9c3b950d319d4528",
+    "batrachian_toad-0.6.20.dist-info/licenses/LICENSE": "4df3c306dddaaf4baffdff5ca820cc679ac8cd6dc263c6a74517783e42fa7a3b"
+  },
+  "metadata_byte_equal_to_original_d47_except_RECORD": {
+    "batrachian_toad-0.6.20.dist-info/METADATA": true,
+    "batrachian_toad-0.6.20.dist-info/WHEEL": true,
+    "batrachian_toad-0.6.20.dist-info/entry_points.txt": true,
+    "batrachian_toad-0.6.20.dist-info/licenses/LICENSE": true
+  },
+  "changed_assets_from_original_d47": [
+    "src/toad/render_backend.py",
+    "src/toad/render_processes.py",
+    "src/toad/render_protocol.py",
+    "src/toad/render_runtime.py",
+    "src/toad/render_service.py",
+    "src/toad/render_zmq.py",
+    "src/toad/work_preparation.py"
+  ],
+  "unchanged_assets_from_original_d47": 312,
+  "declared_sources": {
+    "agent-comms": {
+      "git": "https://github.com/OpenHCSDev/agent-comms.git",
+      "rev": "7b68d630caa654d3e9884f45cbd6493718752a0c"
+    },
+    "textual": {
+      "git": "https://github.com/OpenHCSDev/textual.git",
+      "rev": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78"
+    },
+    "textual-diff-view": {
+      "git": "https://github.com/OpenHCSDev/textual-diff-view.git",
+      "rev": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+    }
+  },
+  "inventory": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/union34bd-source-wheel/source-inventory.json",
+  "inventory_sha256": "7fbb8a0e337a9f54b06367b227aee8ae052cc64397d432a7ee1e70e0ecd6e982",
+  "build_receipt": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/union34bd-source-wheel/build-receipt.json",
+  "build_receipt_sha256": "b0cf37d48920f7f0c980b69baa98138b78ad36ef30c43bb9bf55dfa96b6cc0da",
+  "old_filewheel_preserved": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/source-wheel/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "d47bbc52700903cf0929c2b593b4b6f1eeab38980fd21fa8f1e473c376aa7089"
+  },
+  "App_native_provider_run": false,
+  "prefix_changes": false
+}

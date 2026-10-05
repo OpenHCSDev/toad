@@ -1,0 +1,15 @@
+{
+  "scope": "Mounted NoAgent constructor/eviction/remount/close and draft/Undo custody.",
+  "native_inputs": 0,
+  "provider_calls": 0,
+  "public_inputs": 0,
+  "failed_constructor_retains_successful_constructor_transfers": true,
+  "pending_eviction_remount_once_and_original_draft_undo": true,
+  "consumed_input_not_restored_and_close_releases_state": true,
+  "local_ui_publications": {
+    "INITIAL_LOCAL_UI_EVENT": 1,
+    "NEWEST_PENDING_LOCAL_UI_EVENT": 1
+  },
+  "state": "PASS",
+  "cleanup": []
+}

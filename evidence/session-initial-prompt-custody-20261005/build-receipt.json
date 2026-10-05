@@ -1,0 +1,34 @@
+{
+  "source_head": "2c1da8ed9872af5f030549aa11b956e8335995e0",
+  "source_product": "759abc2ada95fcb1f642a552b115a979ed7e33c7",
+  "argv": [
+    "/usr/bin/python",
+    "-B",
+    "-m",
+    "build",
+    "--wheel",
+    "--no-isolation",
+    "--outdir",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/source-wheel/toad-wheel"
+  ],
+  "cwd": "/home/ts/wt/toad-regression-widget-cost-20261001",
+  "backend_readonly": "/home/ts/.cache/uv/archive-v0/RgcgNn7xR1Zs9HSF",
+  "backend_metadata_sha256": "acd3b755437aa07859ebe3ed9b71d94536fa183cc851bbd95b437ba3fe7e09b6",
+  "authority": "Parent direct #461 source preparation only: ONE cached normal Hatch1.28 source-filewheel",
+  "attempt": 1,
+  "new_environment": false,
+  "dependency_resolution": false,
+  "prefix_changes": false,
+  "App_run": false,
+  "build_inputs": {
+    "pyproject.toml": "9217f909f62f5d9fe6959f6b81237d2c3dfcdd31f134b63d4581315696703bde",
+    "uv.lock": "8989e7ccf5ac0da22d369d4adde7f4a5092ce27d47321a2e24fc3cf4c743060d",
+    "README.md": "11b3f5195acb00a19a73229749e2e71ba924314a8b1c650f05a2bf43f537d35d",
+    "LICENSE": "4df3c306dddaaf4baffdff5ca820cc679ac8cd6dc263c6a74517783e42fa7a3b"
+  },
+  "exit_code": 0,
+  "seconds": 0.7134154490195215,
+  "build_controller_pid": 163510,
+  "build_child_pid": null,
+  "child_synchronously_joined": true
+}

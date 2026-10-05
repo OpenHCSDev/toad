@@ -1,0 +1,20 @@
+{
+  "state": "Source-only constructor control correction before any App; same consumed sourceproof remains valid",
+  "original_control": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/installed02/session_initial_prompt_custody_pilot-85fc-unrun.py",
+    "sha256": "85fcfcf894a188355b9a16fac48707cc74c51f28178c5bd75481f43acb3ccd0a",
+    "App_runs": 0
+  },
+  "corrected_control": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/session_initial_prompt_custody_pilot.py",
+    "sha256": "2a619c9ac361f88fdd52f07a621b6523b7385f1fea145ad6c032d74ce9f2cdc0"
+  },
+  "source_delta": "Keep the failed unregistered candidate and pending assertion. Use a separate fresh MainScreen carrying the same CONSTRUCTOR_PENDING for successful construction; assign its id once. Keep both take assertions and assert failed candidate still retains its input. No change to the two UI publications or later eviction/remount/editor/close assertions.",
+  "native_contract": "Retained Text67 DOMNode.id setter permits assignment once; no native or product edit.",
+  "accepted_proof_unchanged": {
+    "sourceproof": "6559068f324bfbd843869a79c8433fa3c221d9c1b6cbae0cfc4ca730c4ebcb38",
+    "DTO": "c26ee093fbd157dc286103d2d1de4f0702970ba48a7bf39e816ddafc5a905c4b"
+  },
+  "reconcile_before_App": "Same cf2 lifecycle must bind this corrected control and unchanged argv/environment before the sole App release. No restage, proof rerun, build or native EXEC.",
+  "source_compile_only": true
+}

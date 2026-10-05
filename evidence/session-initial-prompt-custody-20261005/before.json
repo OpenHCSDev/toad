@@ -1,0 +1,4729 @@
+{
+  "base": "bf9373d73daa58cce6e493f927660c5da1c4432e",
+  "tool": "original refactor-audit Package/FunctionFacts + original Python AST references; no copied scanner",
+  "coverage": [
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "head": "bf9373d73daa58cce6e493f927660c5da1c4432e",
+      "root": "src/toad",
+      "modules": 288,
+      "unparsed": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "head": "bf9373d73daa58cce6e493f927660c5da1c4432e",
+      "root": "tests",
+      "modules": 397,
+      "unparsed": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78",
+      "root": "src/textual",
+      "modules": 249,
+      "unparsed": []
+    }
+  ],
+  "owner_consumer_sites": [
+    {
+      "root": "src/toad",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/core/session_requests.py",
+      "classes": [
+        {
+          "name": "WorkspaceSessionRequest",
+          "line": 15,
+          "bases": [
+            "Command",
+            "CoreEvent"
+          ],
+          "members": [
+            "apply"
+          ]
+        },
+        {
+          "name": "SessionNavigate",
+          "line": 23,
+          "bases": [
+            "WorkspaceSessionRequest"
+          ],
+          "members": [
+            "apply"
+          ]
+        },
+        {
+          "name": "SessionSwitch",
+          "line": 36,
+          "bases": [
+            "WorkspaceSessionRequest"
+          ],
+          "members": [
+            "apply"
+          ]
+        },
+        {
+          "name": "SessionNew",
+          "line": 44,
+          "bases": [
+            "WorkspaceSessionRequest"
+          ],
+          "members": [
+            "apply"
+          ]
+        },
+        {
+          "name": "SessionCreate",
+          "line": 55,
+          "bases": [
+            "WorkspaceSessionRequest"
+          ],
+          "members": [
+            "apply"
+          ]
+        },
+        {
+          "name": "SessionRename",
+          "line": 63,
+          "bases": [
+            "WorkspaceSessionRequest"
+          ],
+          "members": [
+            "apply"
+          ]
+        },
+        {
+          "name": "SessionArchive",
+          "line": 75,
+          "bases": [
+            "WorkspaceSessionRequest"
+          ],
+          "members": [
+            "apply"
+          ]
+        },
+        {
+          "name": "SessionClose",
+          "line": 83,
+          "bases": [
+            "WorkspaceSessionRequest"
+          ],
+          "members": [
+            "apply"
+          ]
+        },
+        {
+          "name": "LaunchAgent",
+          "line": 91,
+          "bases": [
+            "WorkspaceSessionRequest"
+          ],
+          "members": [
+            "apply"
+          ]
+        }
+      ],
+      "references": [
+        {
+          "line": 51,
+          "reference": "initial_prompt",
+          "syntax": "initial_prompt=self.prompt",
+          "node": "keyword"
+        },
+        {
+          "line": 99,
+          "reference": "initial_prompt",
+          "syntax": "initial_prompt=self.prompt",
+          "node": "keyword"
+        }
+      ],
+      "functions": [
+        {
+          "function": "src/toad/core/session_requests.py::apply",
+          "lines": 1,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/core/session_requests.py::apply",
+          "lines": 6,
+          "calls": [
+            "index",
+            "len",
+            "select_session"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/core/session_requests.py::apply",
+          "lines": 2,
+          "calls": [
+            "select_session"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/core/session_requests.py::apply",
+          "lines": 3,
+          "calls": [
+            "Path",
+            "partial",
+            "run_worker"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/core/session_requests.py::apply",
+          "lines": 2,
+          "calls": [
+            "create_from"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/core/session_requests.py::apply",
+          "lines": 5,
+          "calls": [
+            "rename_session",
+            "source",
+            "strip"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/core/session_requests.py::apply",
+          "lines": 2,
+          "calls": [
+            "close"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/core/session_requests.py::apply",
+          "lines": 2,
+          "calls": [
+            "close"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/core/session_requests.py::apply",
+          "lines": 3,
+          "calls": [
+            "partial",
+            "run_worker"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        }
+      ]
+    },
+    {
+      "root": "src/toad",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/screens/main.py",
+      "classes": [
+        {
+          "name": "ModeProvider",
+          "line": 53,
+          "bases": [
+            "Provider"
+          ],
+          "members": [
+            "search",
+            "discover"
+          ]
+        },
+        {
+          "name": "MCPInventoryProvider",
+          "line": 90,
+          "bases": [
+            "Provider"
+          ],
+          "members": [
+            "search",
+            "discover"
+          ]
+        },
+        {
+          "name": "MainScreen",
+          "line": 109,
+          "bases": [
+            "CoreEventReceiver",
+            "SessionView",
+            "NavigationOwner"
+          ],
+          "members": [
+            "side_bar",
+            "__init__",
+            "prepare_presentation",
+            "retire_presentation",
+            "retained_native_presentations",
+            "watch_title",
+            "get_loading_widget",
+            "activate_session",
+            "compose",
+            "_make_conversation",
+            "wait_content_ready",
+            "close_presentation",
+            "run_prompt",
+            "on_comms_session_named",
+            "_sync_thread_sidebar",
+            "coordination_root",
+            "has_agent",
+            "spawn",
+            "on_comms_updated",
+            "on_coordination_update",
+            "_session_thread",
+            "_resolve_comms_thread",
+            "navigation_context",
+            "remember_direct_target",
+            "action_mcp_inventory",
+            "action_toggle_irc",
+            "action_toggle_dm",
+            "on_comms_select_target",
+            "action_session_previous",
+            "action_session_next",
+            "on_project_directory_update",
+            "on_project_directory_tree_selected",
+            "on_project_path_insert",
+            "on_project_search_requested",
+            "open_file_preview",
+            "on_acp_plan",
+            "on_session_title_changed",
+            "on_session_subtitle_changed",
+            "on_session_path_changed",
+            "on_mount",
+            "layout_observed",
+            "channels_context",
+            "on_option_list_option_highlighted",
+            "check_action",
+            "action_show_sidebar",
+            "action_focus_prompt",
+            "sidebar_focus_target",
+            "action_go_home",
+            "on_side_bar_dismiss"
+          ]
+        },
+        {
+          "name": "ScreenCommsConsumer",
+          "line": 532,
+          "bases": [
+            "MroDispatch"
+          ],
+          "members": [
+            "__init__",
+            "coordination_changed"
+          ]
+        }
+      ],
+      "references": [
+        {
+          "line": 158,
+          "reference": "initial_prompt",
+          "syntax": "initial_prompt: str | None",
+          "node": "arg"
+        },
+        {
+          "line": 172,
+          "reference": "self._initial_prompt",
+          "syntax": "self._initial_prompt",
+          "node": "Attribute"
+        },
+        {
+          "line": 172,
+          "reference": "initial_prompt",
+          "syntax": "initial_prompt",
+          "node": "Name"
+        },
+        {
+          "line": 179,
+          "reference": "OperationalSessionPresentation",
+          "syntax": "OperationalSessionPresentation",
+          "node": "Name"
+        },
+        {
+          "line": 250,
+          "reference": "initial_prompt",
+          "syntax": "initial_prompt=self._initial_prompt",
+          "node": "keyword"
+        },
+        {
+          "line": 250,
+          "reference": "self._initial_prompt",
+          "syntax": "self._initial_prompt",
+          "node": "Attribute"
+        }
+      ],
+      "functions": [
+        {
+          "function": "src/toad/screens/main.py::search",
+          "lines": 20,
+          "calls": [
+            "Hit",
+            "highlight",
+            "isinstance",
+            "match",
+            "matcher",
+            "partial",
+            "sorted"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {
+            "screen": 1
+          }
+        },
+        {
+          "function": "src/toad/screens/main.py::discover",
+          "lines": 13,
+          "calls": [
+            "DiscoveryHit",
+            "isinstance",
+            "partial",
+            "sorted"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {
+            "screen": 1
+          }
+        },
+        {
+          "function": "src/toad/screens/main.py::search",
+          "lines": 8,
+          "calls": [
+            "Hit",
+            "highlight",
+            "isinstance",
+            "match",
+            "matcher"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {
+            "screen": 1
+          }
+        },
+        {
+          "function": "src/toad/screens/main.py::discover",
+          "lines": 5,
+          "calls": [
+            "DiscoveryHit",
+            "isinstance"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {
+            "screen": 1
+          }
+        },
+        {
+          "function": "src/toad/screens/main.py::side_bar",
+          "lines": 2,
+          "calls": [
+            "query_one"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::__init__",
+          "lines": 28,
+          "calls": [
+            "Event",
+            "OperationalSessionPresentation",
+            "SidebarState",
+            "__init__",
+            "session_thread_name",
+            "set_reactive",
+            "super"
+          ],
+          "dispatch": {
+            "agent.identity": [
+              "agent-comms.openhcs.dev"
+            ]
+          },
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::prepare_presentation",
+          "lines": 14,
+          "calls": [
+            "prepare",
+            "prepare_presentation",
+            "query",
+            "query_one_optional",
+            "remove",
+            "set",
+            "super"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::retire_presentation",
+          "lines": 7,
+          "calls": [
+            "query_one_optional",
+            "retire",
+            "retire_presentation",
+            "super"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::retained_native_presentations",
+          "lines": 2,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::watch_title",
+          "lines": 2,
+          "calls": [
+            "update"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::get_loading_widget",
+          "lines": 2,
+          "calls": [
+            "widget"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::activate_session",
+          "lines": 19,
+          "calls": [
+            "align_tabs_to_sidebars",
+            "call_after_refresh",
+            "query_one",
+            "query_one_optional"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::compose",
+          "lines": 11,
+          "calls": [
+            "Center",
+            "SessionThreadSidebar",
+            "ThreadLoading",
+            "Vertical",
+            "compose_content"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::_make_conversation",
+          "lines": 7,
+          "calls": [
+            "Conversation",
+            "_context"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::wait_content_ready",
+          "lines": 4,
+          "calls": [
+            "wait"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::close_presentation",
+          "lines": 3,
+          "calls": [
+            "close",
+            "set"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::run_prompt",
+          "lines": 2,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::on_comms_session_named",
+          "lines": 16,
+          "calls": [
+            "_sync_thread_sidebar",
+            "bind_identity",
+            "query_one",
+            "refresh",
+            "sync_identity",
+            "sync_recovery"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::_sync_thread_sidebar",
+          "lines": 11,
+          "calls": [
+            "query_one_optional",
+            "set_identity",
+            "set_thread"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::coordination_root",
+          "lines": 3,
+          "calls": [
+            "get"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::has_agent",
+          "lines": 2,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::spawn",
+          "lines": 8,
+          "calls": [
+            "MainScreen",
+            "_context"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::on_comms_updated",
+          "lines": 2,
+          "calls": [
+            "ScreenCommsConsumer",
+            "dispatch",
+            "handles"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::on_coordination_update",
+          "lines": 13,
+          "calls": [
+            "Path",
+            "bind_scope",
+            "handles",
+            "on_comms_session_named",
+            "sync_project",
+            "sync_project_path"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::_session_thread",
+          "lines": 2,
+          "calls": [
+            "_resolve_comms_thread"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::_resolve_comms_thread",
+          "lines": 30,
+          "calls": [
+            "Path",
+            "ValueError",
+            "current_root",
+            "expanduser",
+            "require",
+            "resolve_session_thread",
+            "root_is_current",
+            "wire"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::navigation_context",
+          "lines": 3,
+          "calls": [
+            "NavigationContext"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::remember_direct_target",
+          "lines": 2,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::action_mcp_inventory",
+          "lines": 9,
+          "calls": [
+            "MCPInventoryScreen",
+            "push_screen"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::action_toggle_irc",
+          "lines": 4,
+          "calls": [
+            "FeedTarget",
+            "open_sidebar_target"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::action_toggle_dm",
+          "lines": 16,
+          "calls": [
+            "DirectTarget",
+            "open_sidebar_target",
+            "query_one",
+            "registry_names",
+            "sorted"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::on_comms_select_target",
+          "lines": 3,
+          "calls": [
+            "handles",
+            "open_sidebar_target"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::action_session_previous",
+          "lines": 3,
+          "calls": [
+            "SessionNavigate",
+            "publish"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::action_session_next",
+          "lines": 3,
+          "calls": [
+            "SessionNavigate",
+            "publish"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::on_project_directory_update",
+          "lines": 3,
+          "calls": [
+            "handles",
+            "invalidate"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::on_project_directory_tree_selected",
+          "lines": 4,
+          "calls": [
+            "on",
+            "open_file_preview",
+            "stop"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::on_project_path_insert",
+          "lines": 5,
+          "calls": [
+            "insert_path_into_prompt",
+            "on",
+            "stop"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::on_project_search_requested",
+          "lines": 3,
+          "calls": [
+            "focus",
+            "on",
+            "stop"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::open_file_preview",
+          "lines": 2,
+          "calls": [
+            "preview"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::on_acp_plan",
+          "lines": 4,
+          "calls": [
+            "handles",
+            "query_one",
+            "update_plan"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::on_session_title_changed",
+          "lines": 3,
+          "calls": [
+            "handles",
+            "update_session"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::on_session_subtitle_changed",
+          "lines": 3,
+          "calls": [
+            "handles",
+            "update_session"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::on_session_path_changed",
+          "lines": 3,
+          "calls": [
+            "handles",
+            "update_session"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::on_mount",
+          "lines": 15,
+          "calls": [
+            "_resolve_comms_thread",
+            "data_bind",
+            "observe_core",
+            "query",
+            "query_one_optional",
+            "results"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::layout_observed",
+          "lines": 2,
+          "calls": [
+            "align_tabs_to_sidebars",
+            "handles"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::channels_context",
+          "lines": 2,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::on_option_list_option_highlighted",
+          "lines": 5,
+          "calls": [
+            "on",
+            "suggest"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::check_action",
+          "lines": 6,
+          "calls": [
+            "query_one_optional"
+          ],
+          "dispatch": {
+            "action": [
+              "show_sidebar"
+            ]
+          },
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::action_show_sidebar",
+          "lines": 4,
+          "calls": [
+            "focus",
+            "query_one_optional",
+            "reveal"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::action_focus_prompt",
+          "lines": 3,
+          "calls": [
+            "focus_prompt",
+            "query_one_optional"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::sidebar_focus_target",
+          "lines": 6,
+          "calls": [
+            "query_one_optional"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::action_go_home",
+          "lines": 2,
+          "calls": [
+            "select_session"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::on_side_bar_dismiss",
+          "lines": 4,
+          "calls": [
+            "focus_prompt",
+            "on",
+            "query_one_optional",
+            "stop"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::__init__",
+          "lines": 2,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/screens/main.py::coordination_changed",
+          "lines": 2,
+          "calls": [
+            "handles",
+            "on_coordination_update"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        }
+      ]
+    },
+    {
+      "root": "src/toad",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/session_navigation.py",
+      "classes": [
+        {
+          "name": "SessionAdmissions",
+          "line": 25,
+          "bases": [],
+          "members": [
+            "__init__",
+            "bind_events",
+            "default_source",
+            "reveal",
+            "members",
+            "get",
+            "find",
+            "source",
+            "reconnect",
+            "publish",
+            "admit",
+            "new",
+            "create_from",
+            "launch",
+            "history",
+            "preview",
+            "entered",
+            "return_from",
+            "tabs",
+            "sync_identity",
+            "sync_recovery",
+            "sync_project",
+            "close",
+            "close_many",
+            "observed",
+            "retire_missing"
+          ]
+        }
+      ],
+      "references": [
+        {
+          "line": 108,
+          "reference": "initial_prompt",
+          "syntax": "initial_prompt: str | None",
+          "node": "arg"
+        },
+        {
+          "line": 134,
+          "reference": "initial_prompt",
+          "syntax": "initial_prompt=initial_prompt",
+          "node": "keyword"
+        },
+        {
+          "line": 134,
+          "reference": "initial_prompt",
+          "syntax": "initial_prompt",
+          "node": "Name"
+        }
+      ],
+      "functions": [
+        {
+          "function": "src/toad/session_navigation.py::__init__",
+          "lines": 5,
+          "calls": [
+            "CoreEventStream",
+            "count"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_navigation.py::bind_events",
+          "lines": 3,
+          "calls": [
+            "observe_core_callback",
+            "subscribe_core"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_navigation.py::default_source",
+          "lines": 6,
+          "calls": [
+            "MainScreen"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_navigation.py::reveal",
+          "lines": 16,
+          "calls": [
+            "focus_current",
+            "notify",
+            "query_ancestor",
+            "query_one_optional",
+            "reveal",
+            "select_session"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_navigation.py::members",
+          "lines": 2,
+          "calls": [
+            "cast",
+            "tuple",
+            "values"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_navigation.py::get",
+          "lines": 2,
+          "calls": [
+            "cast",
+            "get"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_navigation.py::find",
+          "lines": 2,
+          "calls": [
+            "next"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_navigation.py::source",
+          "lines": 3,
+          "calls": [
+            "get",
+            "source"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_navigation.py::reconnect",
+          "lines": 8,
+          "calls": [
+            "reconnect",
+            "require",
+            "run_thread",
+            "snapshot"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_navigation.py::publish",
+          "lines": 3,
+          "calls": [
+            "OpenTabsChanged",
+            "publish",
+            "update_show_sessions"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_navigation.py::admit",
+          "lines": 8,
+          "calls": [
+            "open",
+            "publish",
+            "ready",
+            "register",
+            "select_session"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_navigation.py::new",
+          "lines": 4,
+          "calls": [
+            "NativeSessionAdmission",
+            "admit",
+            "new_session"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_navigation.py::create_from",
+          "lines": 3,
+          "calls": [
+            "has_agent",
+            "new",
+            "source"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_navigation.py::launch",
+          "lines": 30,
+          "calls": [
+            "DB",
+            "MainScreen",
+            "accepts_launch",
+            "new",
+            "next",
+            "notify",
+            "read_agents",
+            "select_session",
+            "session_get"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_navigation.py::history",
+          "lines": 32,
+          "calls": [
+            "CommsNavigationRequest",
+            "HistorySessionAdmission",
+            "admit",
+            "capture",
+            "current",
+            "current_root",
+            "find",
+            "next",
+            "notify",
+            "read",
+            "ready",
+            "root_is_current",
+            "select_session",
+            "source",
+            "str",
+            "view_identity"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_navigation.py::preview",
+          "lines": 8,
+          "calls": [
+            "PreviewSessionAdmission",
+            "admit",
+            "expanduser",
+            "find",
+            "next",
+            "resolve",
+            "select_session"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_navigation.py::entered",
+          "lines": 3,
+          "calls": [
+            "entered",
+            "get"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_navigation.py::return_from",
+          "lines": 3,
+          "calls": [
+            "get",
+            "return_to"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_navigation.py::tabs",
+          "lines": 3,
+          "calls": [
+            "project",
+            "tab"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_navigation.py::sync_identity",
+          "lines": 3,
+          "calls": [
+            "sync_identity"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_navigation.py::sync_recovery",
+          "lines": 3,
+          "calls": [
+            "sync_recovery"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_navigation.py::sync_project",
+          "lines": 3,
+          "calls": [
+            "sync_project"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_navigation.py::close",
+          "lines": 2,
+          "calls": [
+            "close_many"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_navigation.py::close_many",
+          "lines": 19,
+          "calls": [
+            "any",
+            "close",
+            "depends_on",
+            "forget",
+            "get",
+            "next",
+            "pop",
+            "publish",
+            "return_to",
+            "tuple"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_navigation.py::observed",
+          "lines": 2,
+          "calls": [
+            "retire_missing"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_navigation.py::retire_missing",
+          "lines": 37,
+          "calls": [
+            "ValueError",
+            "any",
+            "capture",
+            "close_many",
+            "current",
+            "get",
+            "original_channels",
+            "original_threads",
+            "read",
+            "run_thread",
+            "snapshot",
+            "tuple",
+            "views",
+            "wire"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_navigation.py::read",
+          "lines": 14,
+          "calls": [
+            "ValueError",
+            "capture",
+            "read",
+            "snapshot",
+            "views",
+            "wire"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        }
+      ]
+    },
+    {
+      "root": "src/toad",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/session_presentation.py",
+      "classes": [
+        {
+          "name": "SessionSurfaceSlot",
+          "line": 24,
+          "bases": [
+            "Widget"
+          ],
+          "members": []
+        },
+        {
+          "name": "SessionViewState",
+          "line": 31,
+          "bases": [],
+          "members": [
+            "capture",
+            "restore"
+          ]
+        },
+        {
+          "name": "SessionSurfaceLifetime",
+          "line": 60,
+          "bases": [
+            "ABC"
+          ],
+          "members": [
+            "compose_content",
+            "prepare",
+            "retire",
+            "close"
+          ]
+        },
+        {
+          "name": "EditorSessionSurfaceLifetime",
+          "line": 76,
+          "bases": [
+            "SessionSurfaceLifetime"
+          ],
+          "members": [
+            "__init__",
+            "release_binding",
+            "attach_binding"
+          ]
+        },
+        {
+          "name": "OperationalSessionSources",
+          "line": 90,
+          "bases": [],
+          "members": [
+            "__init__",
+            "wire",
+            "present",
+            "detach",
+            "close"
+          ]
+        },
+        {
+          "name": "OperationalSessionPresentation",
+          "line": 142,
+          "bases": [
+            "EditorSessionSurfaceLifetime"
+          ],
+          "members": [
+            "__init__",
+            "compose_content",
+            "prepare",
+            "retire",
+            "release_binding",
+            "attach_binding",
+            "acquire",
+            "close",
+            "evict",
+            "remove_native_tree"
+          ]
+        },
+        {
+          "name": "NativeSessionSurface",
+          "line": 215,
+          "bases": [],
+          "members": [
+            "__init__",
+            "widget",
+            "_presentations",
+            "retire",
+            "activate",
+            "_trim_retained",
+            "dispose",
+            "close"
+          ]
+        }
+      ],
+      "references": [
+        {
+          "line": 39,
+          "reference": "initial_prompt",
+          "syntax": "initial_prompt",
+          "node": "Name"
+        },
+        {
+          "line": 47,
+          "reference": "conversation._initial_prompt",
+          "syntax": "conversation._initial_prompt",
+          "node": "Attribute"
+        },
+        {
+          "line": 80,
+          "reference": "SessionViewState",
+          "syntax": "SessionViewState",
+          "node": "Name"
+        },
+        {
+          "line": 177,
+          "reference": "screen._make_conversation",
+          "syntax": "screen._make_conversation",
+          "node": "Attribute"
+        },
+        {
+          "line": 182,
+          "reference": "conversation._initial_prompt",
+          "syntax": "conversation._initial_prompt",
+          "node": "Attribute"
+        },
+        {
+          "line": 182,
+          "reference": "self.state.initial_prompt",
+          "syntax": "self.state.initial_prompt",
+          "node": "Attribute"
+        },
+        {
+          "line": 204,
+          "reference": "SessionViewState",
+          "syntax": "SessionViewState",
+          "node": "Name"
+        },
+        {
+          "line": 210,
+          "reference": "conversation.release_native_session",
+          "syntax": "conversation.release_native_session",
+          "node": "Attribute"
+        }
+      ],
+      "functions": [
+        {
+          "function": "src/toad/session_presentation.py::capture",
+          "lines": 7,
+          "calls": [
+            "capture",
+            "capture_editor_state",
+            "cls"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::restore",
+          "lines": 8,
+          "calls": [
+            "restore",
+            "restore_editor_state"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::compose_content",
+          "lines": 1,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::prepare",
+          "lines": 1,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::retire",
+          "lines": 1,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::close",
+          "lines": 1,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::__init__",
+          "lines": 2,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::release_binding",
+          "lines": 1,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::attach_binding",
+          "lines": 1,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::__init__",
+          "lines": 4,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::wire",
+          "lines": 8,
+          "calls": [
+            "rebind",
+            "set_reactive"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::present",
+          "lines": 9,
+          "calls": [
+            "AttachedSurfaceBinding",
+            "attach",
+            "bind_agent",
+            "call_after_refresh"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::detach",
+          "lines": 12,
+          "calls": [
+            "detach",
+            "detach_surface",
+            "rebind"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::close",
+          "lines": 10,
+          "calls": [
+            "aclose",
+            "close",
+            "stop"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::__init__",
+          "lines": 4,
+          "calls": [
+            "OperationalSessionSources",
+            "__init__",
+            "super"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::compose_content",
+          "lines": 2,
+          "calls": [
+            "SessionSurfaceSlot"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::prepare",
+          "lines": 2,
+          "calls": [
+            "activate"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::retire",
+          "lines": 2,
+          "calls": [
+            "retire"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::release_binding",
+          "lines": 2,
+          "calls": [
+            "detach"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::attach_binding",
+          "lines": 2,
+          "calls": [
+            "present"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::acquire",
+          "lines": 28,
+          "calls": [
+            "_make_conversation",
+            "attach_binding",
+            "focus",
+            "isinstance",
+            "mount",
+            "prepare_retained_session",
+            "query_one",
+            "restore",
+            "start_native_session",
+            "wire"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {
+            "content": 1
+          }
+        },
+        {
+          "function": "src/toad/session_presentation.py::close",
+          "lines": 4,
+          "calls": [
+            "close",
+            "dispose"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::evict",
+          "lines": 6,
+          "calls": [
+            "capture",
+            "remove_native_tree"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::remove_native_tree",
+          "lines": 6,
+          "calls": [
+            "release_native_session",
+            "remove"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::__init__",
+          "lines": 4,
+          "calls": [
+            "Lock",
+            "ref"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::widget",
+          "lines": 2,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::_presentations",
+          "lines": 4,
+          "calls": [
+            "_app",
+            "retained_native_presentations",
+            "tuple",
+            "values"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::retire",
+          "lines": 11,
+          "calls": [
+            "release_binding",
+            "retire_source",
+            "suspend",
+            "tuple"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::activate",
+          "lines": 8,
+          "calls": [
+            "_trim_retained",
+            "acquire"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::_trim_retained",
+          "lines": 27,
+          "calls": [
+            "_app",
+            "_presentations",
+            "evict",
+            "key",
+            "sum",
+            "values",
+            "widget_limit"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::dispose",
+          "lines": 8,
+          "calls": [
+            "release_binding",
+            "remove_native_tree"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/session_presentation.py::close",
+          "lines": 5,
+          "calls": [
+            "release_binding"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        }
+      ]
+    },
+    {
+      "root": "src/toad",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "classes": [
+        {
+          "name": "Loading",
+          "line": 154,
+          "bases": [
+            "ConversationBlock",
+            "Static"
+          ],
+          "members": []
+        },
+        {
+          "name": "PaintOnlyRefresh",
+          "line": 165,
+          "bases": [],
+          "members": [
+            "on_mount",
+            "automatic_refresh"
+          ]
+        },
+        {
+          "name": "ThreadLoading",
+          "line": 177,
+          "bases": [
+            "ConversationBlock",
+            "PaintOnlyRefresh",
+            "Static"
+          ],
+          "members": [
+            "initial_contents",
+            "render"
+          ]
+        },
+        {
+          "name": "TurnActivity",
+          "line": 225,
+          "bases": [
+            "Static"
+          ],
+          "members": [
+            "__init__",
+            "owner",
+            "on_mount",
+            "sync",
+            "render"
+          ]
+        },
+        {
+          "name": "CategorizedMount",
+          "line": 253,
+          "bases": [],
+          "members": [
+            "mount"
+          ]
+        },
+        {
+          "name": "Contents",
+          "line": 271,
+          "bases": [
+            "CategorizedMount",
+            "containers.VerticalGroup"
+          ],
+          "members": [
+            "process_layout"
+          ]
+        },
+        {
+          "name": "ContentsGrid",
+          "line": 281,
+          "bases": [
+            "containers.Grid"
+          ],
+          "members": [
+            "pre_layout"
+          ]
+        },
+        {
+          "name": "CursorContainer",
+          "line": 290,
+          "bases": [
+            "containers.Vertical"
+          ],
+          "members": [
+            "on_mount",
+            "_update_blink",
+            "render_lines"
+          ]
+        },
+        {
+          "name": "ConversationWindowSettings",
+          "line": 328,
+          "bases": [
+            "CoreEventReceiver"
+          ],
+          "members": [
+            "on_mount",
+            "on_screen_layout_refresh",
+            "rebind_screen",
+            "_settings_changed",
+            "_apply_sidebar_padding"
+          ]
+        },
+        {
+          "name": "Window",
+          "line": 357,
+          "bases": [
+            "ConversationWindowSettings",
+            "HistoryWindow"
+          ],
+          "members": [
+            "action_focus_prompt"
+          ]
+        },
+        {
+          "name": "ConversationSessionBinding",
+          "line": 376,
+          "bases": [
+            "containers.Vertical"
+          ],
+          "members": [
+            "bind_agent",
+            "_turn_changed",
+            "queue_supported",
+            "model_selection_available",
+            "mode_selection_available",
+            "__init__",
+            "_initialize_session",
+            "_release_source_resources",
+            "release_native_session",
+            "prepare_retained_session",
+            "resume_retained_history",
+            "refresh_native_projection",
+            "start_native_session",
+            "_start_agent",
+            "watch_agent_ready"
+          ]
+        },
+        {
+          "name": "Conversation",
+          "line": 631,
+          "bases": [
+            "CoreEventReceiver",
+            "DeclaredWidgetActions",
+            "ConversationSessionBinding"
+          ],
+          "members": [
+            "watch_visible_categories",
+            "remember_tool_expansion",
+            "update_title",
+            "agent_title",
+            "insert_path_into_prompt",
+            "watch_project_path",
+            "sync_project_path",
+            "_turn_changed",
+            "make_throbber",
+            "on_key",
+            "compose",
+            "_terminal",
+            "add_focusable_terminal",
+            "on_shell_terminal_terminate",
+            "on_directory_changed",
+            "check_directory",
+            "on_terminal_finalized",
+            "on_terminal_long_running",
+            "on_terminal_alternate_screen_",
+            "on_terminal_focus",
+            "on_terminal_blur",
+            "on_flash",
+            "flash",
+            "terminal_action_state",
+            "focus_terminal",
+            "navigation",
+            "cursor_block",
+            "cursor_block_child",
+            "_read_thread_activity",
+            "on_observed_thread_activity",
+            "on_agent_ready",
+            "_apply_session_name",
+            "rename_session",
+            "_auto_name_from_prompt",
+            "on_session_info_update",
+            "on_unmount",
+            "on_agent_fail",
+            "on_work_started",
+            "on_work_finished",
+            "on_change_mode",
+            "on_provider_login",
+            "action_provider_login",
+            "on_change_model",
+            "on_user_input_submitted",
+            "submit_input",
+            "agent_turn_over",
+            "on_menu_option_selected",
+            "on_menu_dismissed",
+            "on_current_working_directory_changed",
+            "_sync_throbber",
+            "watch_busy_count",
+            "on_terminal_projection",
+            "on_update_status_line",
+            "on_rejected_session_update",
+            "_clear_mcp_live",
+            "on_private_native_cursor_update",
+            "on_mcp_client_stopped",
+            "on_mcp_client_status",
+            "on_acp_agent_message",
+            "on_turn_changed",
+            "on_queue_view_update",
+            "on_input_started",
+            "present_started_input",
+            "on_input_failed",
+            "on_transcript_coverage",
+            "request_message_handling",
+            "on_transcript_source_work_finished",
+            "on_worker_state_changed",
+            "on_acp_agent_thinking",
+            "on_acp_request_permission",
+            "on_acp_plan",
+            "on_acp_tool_call_update",
+            "on_acp_available_commands_update",
+            "action_interrupt",
+            "action_focus_block",
+            "set_mode",
+            "on_acp_configuration_changed",
+            "_update_model_info",
+            "on_history_move",
+            "request_permissions",
+            "ask",
+            "command_target_context",
+            "update_slash_commands",
+            "read_command_catalog",
+            "_command_source_changed",
+            "on_mount",
+            "apply_layout_preferences",
+            "initialize_view",
+            "_history_scroll_changed",
+            "unresolved_inputs",
+            "on_input_dispositions_changed",
+            "inspect_input_delivery",
+            "on_comms_updated",
+            "_open_tabs_changed",
+            "on_goal_control",
+            "compact_context",
+            "open_queue_menu",
+            "_queue_edit_unavailable",
+            "_on_queue_choice",
+            "replace_queued",
+            "_settings_changed",
+            "post_welcome",
+            "watch_agent",
+            "on_resize",
+            "on_mouse_down",
+            "on_click",
+            "post",
+            "check_prune",
+            "prune_window",
+            "new_terminal",
+            "get_terminal_dimensions",
+            "shell",
+            "post_shell",
+            "move_cursor",
+            "action_cursor_up",
+            "action_cursor_down",
+            "cancel_turn",
+            "focus_prompt",
+            "jump_to_latest",
+            "action_select_block",
+            "action_copy_to_clipboard",
+            "action_copy_to_prompt",
+            "action_maximize_block",
+            "action_export_to_svg",
+            "refresh_block_cursor"
+          ]
+        },
+        {
+          "name": "ConversationCommsConsumer",
+          "line": 2168,
+          "bases": [
+            "MroDispatch"
+          ],
+          "members": [
+            "__init__",
+            "context_annotated",
+            "coordination_changed",
+            "cursor_presentation",
+            "queue_presentation",
+            "input_started",
+            "input_failed",
+            "prompt_cancelled",
+            "transcript_changed",
+            "turn_changed",
+            "goal_changed",
+            "compaction_changed",
+            "transcript_snapshot",
+            "mcp_receipt",
+            "compaction_published"
+          ]
+        },
+        {
+          "name": "CompactionRenderer",
+          "line": 2239,
+          "bases": [
+            "MroDispatch"
+          ],
+          "members": [
+            "__init__",
+            "selected_summary_progress",
+            "end"
+          ]
+        }
+      ],
+      "references": [
+        {
+          "line": 453,
+          "reference": "initial_prompt",
+          "syntax": "initial_prompt: str | None",
+          "node": "arg"
+        },
+        {
+          "line": 458,
+          "reference": "initial_prompt",
+          "syntax": "initial_prompt",
+          "node": "Name"
+        },
+        {
+          "line": 462,
+          "reference": "initial_prompt",
+          "syntax": "initial_prompt",
+          "node": "arg"
+        },
+        {
+          "line": 508,
+          "reference": "self._initial_prompt",
+          "syntax": "self._initial_prompt",
+          "node": "Attribute"
+        },
+        {
+          "line": 508,
+          "reference": "initial_prompt",
+          "syntax": "initial_prompt",
+          "node": "Name"
+        },
+        {
+          "line": 534,
+          "reference": "self._initial_prompt",
+          "syntax": "self._initial_prompt",
+          "node": "Attribute"
+        },
+        {
+          "line": 612,
+          "reference": "self._initial_prompt",
+          "syntax": "self._initial_prompt",
+          "node": "Attribute"
+        },
+        {
+          "line": 613,
+          "reference": "self._initial_prompt",
+          "syntax": "self._initial_prompt",
+          "node": "Attribute"
+        },
+        {
+          "line": 616,
+          "reference": "self._initial_prompt",
+          "syntax": "self._initial_prompt",
+          "node": "Attribute"
+        },
+        {
+          "line": 620,
+          "reference": "self._initial_prompt",
+          "syntax": "self._initial_prompt",
+          "node": "Attribute"
+        },
+        {
+          "line": 622,
+          "reference": "self._initial_prompt",
+          "syntax": "self._initial_prompt",
+          "node": "Attribute"
+        }
+      ],
+      "functions": [
+        {
+          "function": "src/toad/widgets/conversation.py::make_session_title",
+          "lines": 6,
+          "calls": [
+            "join",
+            "len",
+            "rstrip",
+            "split"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_mount",
+          "lines": 2,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::automatic_refresh",
+          "lines": 4,
+          "calls": [
+            "refresh"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::initial_contents",
+          "lines": 3,
+          "calls": [
+            "cls"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::render",
+          "lines": 25,
+          "calls": [
+            "Content",
+            "append",
+            "atan2",
+            "center",
+            "int",
+            "join",
+            "len",
+            "max",
+            "min",
+            "monotonic",
+            "range",
+            "round",
+            "strip"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::__init__",
+          "lines": 3,
+          "calls": [
+            "__init__",
+            "super"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::owner",
+          "lines": 2,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_mount",
+          "lines": 2,
+          "calls": [
+            "sync"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::sync",
+          "lines": 5,
+          "calls": [
+            "bool",
+            "refresh"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::render",
+          "lines": 6,
+          "calls": [
+            "Content",
+            "int",
+            "join",
+            "max",
+            "splitlines",
+            "time"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::mount",
+          "lines": 13,
+          "calls": [
+            "admitted_blocks",
+            "all_categories",
+            "apply_block_filter",
+            "block_category",
+            "keep_live_block",
+            "mount",
+            "query_ancestor",
+            "super",
+            "update_classes"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::process_layout",
+          "lines": 4,
+          "calls": [
+            "height_dependency",
+            "trim_trailing_margin"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::pre_layout",
+          "lines": 3,
+          "calls": [
+            "height_dependency",
+            "isinstance"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {
+            "layout": 1
+          }
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_mount",
+          "lines": 2,
+          "calls": [
+            "set_interval"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::_update_blink",
+          "lines": 7,
+          "calls": [
+            "query_ancestor",
+            "refresh"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::render_lines",
+          "lines": 19,
+          "calls": [
+            "Segment",
+            "Strip",
+            "get",
+            "get_component_rich_style",
+            "max",
+            "min",
+            "query_ancestor",
+            "range"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_mount",
+          "lines": 5,
+          "calls": [
+            "_apply_sidebar_padding",
+            "observe_core",
+            "subscribe",
+            "watch"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_screen_layout_refresh",
+          "lines": 2,
+          "calls": [
+            "hydrate_visible_tools"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::rebind_screen",
+          "lines": 6,
+          "calls": [
+            "bind",
+            "get",
+            "subscribe",
+            "unsubscribe"
+          ],
+          "dispatch": {},
+          "keys": {
+            "self.__dict__": [
+              "document_viewport"
+            ]
+          },
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::_settings_changed",
+          "lines": 3,
+          "calls": [
+            "_apply_sidebar_padding",
+            "handles"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::_apply_sidebar_padding",
+          "lines": 3,
+          "calls": [
+            "int"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::action_focus_prompt",
+          "lines": 2,
+          "calls": [
+            "focus_prompt",
+            "query_ancestor"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::bind_agent",
+          "lines": 4,
+          "calls": [
+            "AttachedSurfaceBinding",
+            "attach_surface"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::_turn_changed",
+          "lines": 3,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::queue_supported",
+          "lines": 2,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::model_selection_available",
+          "lines": 2,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::mode_selection_available",
+          "lines": 2,
+          "calls": [
+            "bool"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::__init__",
+          "lines": 13,
+          "calls": [
+            "ConversationTurn",
+            "__init__",
+            "_initialize_session",
+            "super"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::_initialize_session",
+          "lines": 55,
+          "calls": [
+            "AgentActivityBoundary",
+            "ConversationSubmissions",
+            "GoalObservation",
+            "GoalSession",
+            "InputDeliveryObservation",
+            "InputHistories",
+            "LiveOutput",
+            "TranscriptPresentation",
+            "absolute",
+            "get_project_data",
+            "resolve",
+            "set_class",
+            "set_reactive",
+            "str"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::_release_source_resources",
+          "lines": 9,
+          "calls": [
+            "aclose",
+            "close",
+            "gather",
+            "retire"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::release_native_session",
+          "lines": 7,
+          "calls": [
+            "_release_source_resources",
+            "close"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::prepare_retained_session",
+          "lines": 7,
+          "calls": [
+            "restore_saved_history",
+            "resume_retained_history"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::resume_retained_history",
+          "lines": 6,
+          "calls": [
+            "query",
+            "resume_if_parked"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::refresh_native_projection",
+          "lines": 10,
+          "calls": [
+            "bound",
+            "invalidate",
+            "publish_pending",
+            "status"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::start_native_session",
+          "lines": 15,
+          "calls": [
+            "DirectoryWatcher",
+            "call_after_refresh",
+            "defer",
+            "isinstance",
+            "start"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {
+            "screen": 1
+          }
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::_start_agent",
+          "lines": 13,
+          "calls": [
+            "Agent",
+            "SessionSubtitleChanged",
+            "bind_agent",
+            "publish_core",
+            "start",
+            "start_operation"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::watch_agent_ready",
+          "lines": 30,
+          "calls": [
+            "MarkdownNote",
+            "UserInputSubmitted",
+            "post",
+            "publish_core",
+            "query",
+            "remove",
+            "remove_class",
+            "startswith"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::watch_visible_categories",
+          "lines": 28,
+          "calls": [
+            "apply_block_filter",
+            "call_after_refresh",
+            "capture",
+            "clear_selection",
+            "get",
+            "projection_changed",
+            "restore",
+            "tuple"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::remember_tool_expansion",
+          "lines": 6,
+          "calls": [
+            "iter",
+            "len",
+            "next",
+            "pop"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::update_title",
+          "lines": 8,
+          "calls": [
+            "format_path"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::agent_title",
+          "lines": 4,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::insert_path_into_prompt",
+          "lines": 14,
+          "calls": [
+            "bell",
+            "insert",
+            "relative_to",
+            "str"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::watch_project_path",
+          "lines": 2,
+          "calls": [
+            "SessionPathChanged",
+            "publish_core",
+            "str"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::sync_project_path",
+          "lines": 23,
+          "calls": [
+            "DB",
+            "DirectoryWatcher",
+            "aclose",
+            "bind_project",
+            "change_directory",
+            "get_project_data",
+            "session_update_project",
+            "start",
+            "str",
+            "suppress",
+            "timeout",
+            "update_title"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::_turn_changed",
+          "lines": 9,
+          "calls": [
+            "_sync_throbber",
+            "query_one_optional",
+            "refresh_bindings",
+            "sync",
+            "sync_turn"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::make_throbber",
+          "lines": 4,
+          "calls": [
+            "ObservedThrobber"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_key",
+          "lines": 9,
+          "calls": [
+            "focus",
+            "isalnum",
+            "on",
+            "post_message"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::compose",
+          "lines": 31,
+          "calls": [
+            "Contents",
+            "ContentsGrid",
+            "CursorContainer",
+            "Flash",
+            "GoalBar",
+            "InputDeliveryBar",
+            "NativeHistory",
+            "Prompt",
+            "SessionDetails",
+            "TurnActivity",
+            "Vertical",
+            "Window",
+            "data_bind",
+            "initial_contents",
+            "make_throbber"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::_terminal",
+          "lines": 16,
+          "calls": [
+            "attrgetter",
+            "filterfalse",
+            "list",
+            "reversed"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::add_focusable_terminal",
+          "lines": 8,
+          "calls": [
+            "append"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_shell_terminal_terminate",
+          "lines": 5,
+          "calls": [
+            "flash",
+            "interrupt",
+            "on"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_directory_changed",
+          "lines": 4,
+          "calls": [
+            "check_directory",
+            "handles",
+            "stop"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::check_directory",
+          "lines": 7,
+          "calls": [
+            "ProjectDirectoryUpdated",
+            "consume_change",
+            "project_directory_updated",
+            "publish_core"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_terminal_finalized",
+          "lines": 8,
+          "calls": [
+            "check_directory",
+            "on",
+            "remove"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_terminal_long_running",
+          "lines": 7,
+          "calls": [
+            "flash",
+            "on"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_terminal_alternate_screen_",
+          "lines": 8,
+          "calls": [
+            "focus",
+            "focus_prompt",
+            "on"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_terminal_focus",
+          "lines": 2,
+          "calls": [
+            "flash",
+            "on"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_terminal_blur",
+          "lines": 2,
+          "calls": [
+            "focus_prompt",
+            "on"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_flash",
+          "lines": 3,
+          "calls": [
+            "flash",
+            "on",
+            "stop"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::flash",
+          "lines": 15,
+          "calls": [
+            "flash",
+            "query_one"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::terminal_action_state",
+          "lines": 2,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::focus_terminal",
+          "lines": 3,
+          "calls": [
+            "focus"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::navigation",
+          "lines": 2,
+          "calls": [
+            "ContentNavigation"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::cursor_block",
+          "lines": 2,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::cursor_block_child",
+          "lines": 2,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::_read_thread_activity",
+          "lines": 8,
+          "calls": [
+            "ValueError",
+            "get_thread_presentation"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_observed_thread_activity",
+          "lines": 10,
+          "calls": [
+            "handles",
+            "request",
+            "stop"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_agent_ready",
+          "lines": 18,
+          "calls": [
+            "assemble",
+            "call_later",
+            "flash",
+            "get_info",
+            "handles",
+            "monotonic",
+            "publish",
+            "query_one",
+            "refresh_observation",
+            "request",
+            "sync_session"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::_apply_session_name",
+          "lines": 4,
+          "calls": [
+            "SessionTitleChanged",
+            "publish_core",
+            "set_session_name"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::rename_session",
+          "lines": 4,
+          "calls": [
+            "_apply_session_name"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::_auto_name_from_prompt",
+          "lines": 7,
+          "calls": [
+            "_apply_session_name",
+            "make_session_title"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_session_info_update",
+          "lines": 17,
+          "calls": [
+            "DB",
+            "SessionTitleChanged",
+            "handles",
+            "publish_core",
+            "rename_session",
+            "session_update_title"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_unmount",
+          "lines": 15,
+          "calls": [
+            "_release_source_resources",
+            "monotonic",
+            "publish",
+            "retire_surface",
+            "wait"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_agent_fail",
+          "lines": 28,
+          "calls": [
+            "Content",
+            "Note",
+            "assemble",
+            "finish_client",
+            "from_markup",
+            "handles",
+            "notify",
+            "post",
+            "present_failure",
+            "publish",
+            "query",
+            "remove",
+            "remove_class",
+            "strip",
+            "stylize",
+            "sync_session"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_work_started",
+          "lines": 2,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_work_finished",
+          "lines": 2,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_change_mode",
+          "lines": 2,
+          "calls": [
+            "handles",
+            "set_mode"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_provider_login",
+          "lines": 3,
+          "calls": [
+            "action_provider_login",
+            "handles",
+            "stop"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::action_provider_login",
+          "lines": 73,
+          "calls": [
+            "ActionModal",
+            "Command",
+            "ContextMenu",
+            "Offset",
+            "ValueError",
+            "authenticate",
+            "bind",
+            "boundary",
+            "flash",
+            "focus",
+            "isinstance",
+            "join",
+            "len",
+            "max",
+            "next",
+            "notify",
+            "prune_window",
+            "push_screen_wait",
+            "query_one_optional",
+            "reconnect",
+            "sleep",
+            "str",
+            "work"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {
+            "method": 1
+          }
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_change_model",
+          "lines": 43,
+          "calls": [
+            "ContextMenu",
+            "DB",
+            "Offset",
+            "flash",
+            "from_markup",
+            "handles",
+            "len",
+            "max",
+            "notify",
+            "push_screen_wait",
+            "record_model_usage",
+            "set_model",
+            "set_thinking_level",
+            "title"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_user_input_submitted",
+          "lines": 3,
+          "calls": [
+            "handles",
+            "stop",
+            "submit_input"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::submit_input",
+          "lines": 3,
+          "calls": [
+            "submit"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::agent_turn_over",
+          "lines": 39,
+          "calls": [
+            "DB",
+            "MarkdownNote",
+            "boundary",
+            "check_directory",
+            "finish_client",
+            "notify",
+            "post",
+            "record_model_usage",
+            "remove",
+            "replace",
+            "reset",
+            "settle",
+            "title"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_menu_option_selected",
+          "lines": 8,
+          "calls": [
+            "call_after_refresh",
+            "on",
+            "run_action",
+            "stop"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_menu_dismissed",
+          "lines": 5,
+          "calls": [
+            "focus",
+            "on",
+            "remove",
+            "stop"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_current_working_directory_changed",
+          "lines": 5,
+          "calls": [
+            "Path",
+            "absolute",
+            "handles",
+            "resolve",
+            "str"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::_sync_throbber",
+          "lines": 3,
+          "calls": [
+            "query_one_optional",
+            "sync"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::watch_busy_count",
+          "lines": 2,
+          "calls": [
+            "_sync_throbber"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_terminal_projection",
+          "lines": 3,
+          "calls": [
+            "on",
+            "present_terminal",
+            "stop"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_update_status_line",
+          "lines": 5,
+          "calls": [
+            "handles",
+            "status"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_rejected_session_update",
+          "lines": 10,
+          "calls": [
+            "Note",
+            "boundary",
+            "handles",
+            "post",
+            "styled"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::_clear_mcp_live",
+          "lines": 4,
+          "calls": [
+            "remove"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_private_native_cursor_update",
+          "lines": 13,
+          "calls": [
+            "stop"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_mcp_client_stopped",
+          "lines": 4,
+          "calls": [
+            "_clear_mcp_live",
+            "handles"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_mcp_client_status",
+          "lines": 34,
+          "calls": [
+            "Note",
+            "boundary",
+            "join",
+            "post",
+            "styled"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_acp_agent_message",
+          "lines": 7,
+          "calls": [
+            "append",
+            "describe",
+            "handles",
+            "stop"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_turn_changed",
+          "lines": 11,
+          "calls": [
+            "OpenTabsChanged",
+            "_clear_mcp_live",
+            "changed",
+            "invalidate",
+            "publish",
+            "reset",
+            "retry",
+            "settle"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_queue_view_update",
+          "lines": 16,
+          "calls": [
+            "present_started_input",
+            "preserve_history",
+            "publish_pending"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_input_started",
+          "lines": 11,
+          "calls": [
+            "present_started_input",
+            "preserve_history",
+            "publish_pending"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::present_started_input",
+          "lines": 6,
+          "calls": [
+            "StartedInputClaim",
+            "UserInput",
+            "boundary",
+            "native_input_presented",
+            "post"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_input_failed",
+          "lines": 18,
+          "calls": [
+            "accepts_failure",
+            "flash",
+            "restore_draft"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_transcript_coverage",
+          "lines": 3,
+          "calls": [
+            "covered",
+            "handles",
+            "stop"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::request_message_handling",
+          "lines": 3,
+          "calls": [
+            "handles",
+            "request_handling",
+            "stop"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_transcript_source_work_finished",
+          "lines": 3,
+          "calls": [
+            "handles",
+            "source_work_finished",
+            "stop"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_worker_state_changed",
+          "lines": 3,
+          "calls": [
+            "retry"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_acp_agent_thinking",
+          "lines": 4,
+          "calls": [
+            "ThoughtStream",
+            "append",
+            "describe",
+            "handles",
+            "join",
+            "splitlines",
+            "strip"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_acp_request_permission",
+          "lines": 4,
+          "calls": [
+            "boundary",
+            "handles",
+            "request_permissions"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_acp_plan",
+          "lines": 9,
+          "calls": [
+            "Plan",
+            "handles",
+            "isinstance",
+            "post"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {
+            "(current_plan := self.contents": 1
+          }
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_acp_tool_call_update",
+          "lines": 18,
+          "calls": [
+            "ToolCall",
+            "activity",
+            "get_child_by_id",
+            "handles",
+            "post",
+            "update_tool_call"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_acp_available_commands_update",
+          "lines": 4,
+          "calls": [
+            "handles",
+            "update_slash_commands"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::action_interrupt",
+          "lines": 8,
+          "calls": [
+            "SkipAction",
+            "flash",
+            "interrupt"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::action_focus_block",
+          "lines": 3,
+          "calls": [
+            "focus",
+            "query_one",
+            "suppress"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::set_mode",
+          "lines": 13,
+          "calls": [
+            "flash",
+            "from_markup",
+            "notify",
+            "set_mode"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_acp_configuration_changed",
+          "lines": 5,
+          "calls": [
+            "_update_model_info",
+            "handles",
+            "query_one_optional",
+            "refresh_bindings",
+            "sync_configuration"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::_update_model_info",
+          "lines": 11,
+          "calls": [
+            "Content",
+            "get_info"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_history_move",
+          "lines": 5,
+          "calls": [
+            "handles",
+            "history",
+            "navigate",
+            "present",
+            "stop"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::request_permissions",
+          "lines": 2,
+          "calls": [
+            "present"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::ask",
+          "lines": 28,
+          "calls": [
+            "Ask",
+            "ask",
+            "join",
+            "notify"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::command_target_context",
+          "lines": 9,
+          "calls": [
+            "TargetContext",
+            "ValueError",
+            "query_ancestor",
+            "run_thread"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::update_slash_commands",
+          "lines": 9,
+          "calls": [
+            "flash",
+            "read_command_catalog",
+            "str",
+            "work"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::read_command_catalog",
+          "lines": 12,
+          "calls": [
+            "ValueError",
+            "command_target_context",
+            "query_ancestor",
+            "read"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::_command_source_changed",
+          "lines": 2,
+          "calls": [
+            "handles",
+            "update_slash_commands"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_mount",
+          "lines": 3,
+          "calls": [
+            "initialize_view",
+            "poll",
+            "set_interval"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::apply_layout_preferences",
+          "lines": 8,
+          "calls": [
+            "max",
+            "members_with",
+            "set_class"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::initialize_view",
+          "lines": 18,
+          "calls": [
+            "add_words",
+            "anchor",
+            "apply_layout_preferences",
+            "call_after_refresh",
+            "focus",
+            "observe_core",
+            "split",
+            "start_native_session",
+            "trap_focus",
+            "update_slash_commands",
+            "update_title",
+            "watch"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::_history_scroll_changed",
+          "lines": 2,
+          "calls": [
+            "call_after_refresh"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::unresolved_inputs",
+          "lines": 2,
+          "calls": [],
+          "dispatch": {},
+          "keys": {
+            "self.input_delivery": [
+              "inputs"
+            ]
+          },
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_input_dispositions_changed",
+          "lines": 4,
+          "calls": [
+            "handles",
+            "invalidate"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::inspect_input_delivery",
+          "lines": 27,
+          "calls": [
+            "InputDeliveryDetails",
+            "on",
+            "push_screen",
+            "query_one_optional",
+            "refresh",
+            "setattr",
+            "stop",
+            "watch"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_comms_updated",
+          "lines": 6,
+          "calls": [
+            "ConversationCommsConsumer",
+            "dispatch",
+            "handles",
+            "stop"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::_open_tabs_changed",
+          "lines": 2,
+          "calls": [
+            "handles",
+            "update_slash_commands"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_goal_control",
+          "lines": 3,
+          "calls": [
+            "activate",
+            "handles",
+            "stop"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::compact_context",
+          "lines": 10,
+          "calls": [
+            "anchor",
+            "compact_context",
+            "flash",
+            "notify",
+            "require_checkpoint",
+            "str",
+            "work"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::open_queue_menu",
+          "lines": 4,
+          "calls": [
+            "_queue_edit_unavailable"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::_queue_edit_unavailable",
+          "lines": 5,
+          "calls": [
+            "flash"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::_on_queue_choice",
+          "lines": 5,
+          "calls": [
+            "_queue_edit_unavailable"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::replace_queued",
+          "lines": 8,
+          "calls": [
+            "_queue_edit_unavailable"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::_settings_changed",
+          "lines": 5,
+          "calls": [
+            "add_words",
+            "handles",
+            "split"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::post_welcome",
+          "lines": 2,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::watch_agent",
+          "lines": 29,
+          "calls": [
+            "AgentAttachmentView",
+            "_update_model_info",
+            "bind",
+            "bind_agent",
+            "bound",
+            "call_later",
+            "query_one_optional",
+            "reset",
+            "source_changed",
+            "status",
+            "styled",
+            "update_slash_commands",
+            "update_title"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_resize",
+          "lines": 5,
+          "calls": [
+            "query_one_optional",
+            "update_document_height"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_mouse_down",
+          "lines": 4,
+          "calls": [
+            "begin_separator_resize",
+            "query_one_optional"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::on_click",
+          "lines": 26,
+          "calls": [
+            "get_selected_text",
+            "query_ancestor",
+            "refresh_block_cursor",
+            "select"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::post",
+          "lines": 38,
+          "calls": [
+            "AgentActivityDivider",
+            "block_category",
+            "boundary",
+            "call_after_refresh",
+            "mount",
+            "observe",
+            "remove"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::check_prune",
+          "lines": 14,
+          "calls": [
+            "prune_window",
+            "require_checkpoint"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::prune_window",
+          "lines": 46,
+          "calls": [
+            "append",
+            "call_later",
+            "list",
+            "max",
+            "refresh",
+            "remove_children"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::new_terminal",
+          "lines": 31,
+          "calls": [
+            "ShellTerminal",
+            "add_focusable_terminal",
+            "finalize",
+            "get_terminal_dimensions",
+            "post",
+            "refresh_bindings",
+            "remove"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::get_terminal_dimensions",
+          "lines": 12,
+          "calls": [
+            "max"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::shell",
+          "lines": 15,
+          "calls": [
+            "AttachedSurfaceBinding",
+            "Shell",
+            "get_terminal_dimensions",
+            "start"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::post_shell",
+          "lines": 10,
+          "calls": [
+            "get_terminal_dimensions",
+            "send",
+            "strip"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::move_cursor",
+          "lines": 3,
+          "calls": [
+            "move",
+            "refresh_block_cursor"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::action_cursor_up",
+          "lines": 2,
+          "calls": [
+            "UpCursor",
+            "move_cursor"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::action_cursor_down",
+          "lines": 2,
+          "calls": [
+            "DownCursor",
+            "move_cursor"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::cancel_turn",
+          "lines": 15,
+          "calls": [
+            "cancel",
+            "describe",
+            "flash",
+            "monotonic",
+            "update"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::focus_prompt",
+          "lines": 13,
+          "calls": [
+            "focus",
+            "jump_to_latest",
+            "refresh"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::jump_to_latest",
+          "lines": 3,
+          "calls": [
+            "jump_to_latest",
+            "request"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::action_select_block",
+          "lines": 19,
+          "calls": [
+            "Menu",
+            "MenuItem",
+            "Offset",
+            "append",
+            "extend",
+            "focus",
+            "get_block_menu",
+            "mount"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::action_copy_to_clipboard",
+          "lines": 5,
+          "calls": [
+            "copy_to_clipboard",
+            "flash",
+            "get_clipboard_text"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::action_copy_to_prompt",
+          "lines": 6,
+          "calls": [
+            "append",
+            "flash",
+            "focus_prompt",
+            "get_prompt_text"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::action_maximize_block",
+          "lines": 4,
+          "calls": [
+            "focus",
+            "maximize"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::action_export_to_svg",
+          "lines": 36,
+          "calls": [
+            "Compositor",
+            "Console",
+            "StringIO",
+            "expanduser",
+            "generate_datetime_filename",
+            "join",
+            "open",
+            "print",
+            "reflow",
+            "render_full_update",
+            "save_svg",
+            "user_pictures_dir"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::refresh_block_cursor",
+          "lines": 12,
+          "calls": [
+            "anchor",
+            "call_after_refresh",
+            "focus",
+            "refresh",
+            "refresh_bindings",
+            "set_focus"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::__init__",
+          "lines": 3,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::context_annotated",
+          "lines": 4,
+          "calls": [
+            "handles",
+            "refresh"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::coordination_changed",
+          "lines": 6,
+          "calls": [
+            "handles",
+            "query_one",
+            "refresh_observation",
+            "sync_queue",
+            "sync_session"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::cursor_presentation",
+          "lines": 2,
+          "calls": [
+            "handles",
+            "on_private_native_cursor_update"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::queue_presentation",
+          "lines": 2,
+          "calls": [
+            "handles",
+            "on_queue_view_update"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::input_started",
+          "lines": 2,
+          "calls": [
+            "handles",
+            "on_input_started"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::input_failed",
+          "lines": 2,
+          "calls": [
+            "handles",
+            "on_input_failed"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::prompt_cancelled",
+          "lines": 4,
+          "calls": [
+            "MarkdownNote",
+            "handles",
+            "post"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::transcript_changed",
+          "lines": 2,
+          "calls": [
+            "changed",
+            "handles"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::turn_changed",
+          "lines": 2,
+          "calls": [
+            "handles",
+            "on_turn_changed"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::goal_changed",
+          "lines": 2,
+          "calls": [
+            "handles",
+            "receive"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::compaction_changed",
+          "lines": 2,
+          "calls": [
+            "CompactionRenderer",
+            "dispatch",
+            "handles"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::transcript_snapshot",
+          "lines": 2,
+          "calls": [
+            "handles",
+            "snapshot"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::mcp_receipt",
+          "lines": 2,
+          "calls": [
+            "handles",
+            "on_mcp_client_status"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::compaction_published",
+          "lines": 2,
+          "calls": [
+            "handles",
+            "require_checkpoint"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::__init__",
+          "lines": 2,
+          "calls": [],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::selected_summary_progress",
+          "lines": 5,
+          "calls": [
+            "CompactionStream",
+            "append",
+            "handles"
+          ],
+          "dispatch": {
+            "event.source.summary_phase": [
+              "map"
+            ]
+          },
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::end",
+          "lines": 8,
+          "calls": [
+            "finish",
+            "handles",
+            "require_checkpoint"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "function": "src/toad/widgets/conversation.py::restore_position",
+          "lines": 8,
+          "calls": [
+            "restore"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        }
+      ]
+    },
+    {
+      "root": "tests",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/input_history_native_installed_pilot.py",
+      "classes": [],
+      "references": [
+        {
+          "line": 28,
+          "reference": "SessionViewState",
+          "syntax": "SessionViewState",
+          "node": "Name"
+        }
+      ],
+      "functions": [
+        {
+          "function": "tests/input_history_native_installed_pilot.py::acceptance",
+          "lines": 30,
+          "calls": [
+            "Path",
+            "UserInputSubmitted",
+            "capture",
+            "clear",
+            "export_screenshot",
+            "focus",
+            "join",
+            "len",
+            "press",
+            "print",
+            "render_strips",
+            "response_painted",
+            "restore",
+            "set",
+            "submit_input",
+            "until",
+            "write_text"
+          ],
+          "dispatch": {
+            "editor.text": [
+              "HISTORY_NATIVE_INPUT",
+              "UNSENT_DRAFT"
+            ]
+          },
+          "keys": {},
+          "type_checks": {}
+        }
+      ]
+    },
+    {
+      "root": "tests",
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/welcome_source_return_pilot.py",
+      "classes": [],
+      "references": [
+        {
+          "line": 37,
+          "reference": "view.watch_agent_ready",
+          "syntax": "view.watch_agent_ready",
+          "node": "Attribute"
+        },
+        {
+          "line": 49,
+          "reference": "view._initial_prompt",
+          "syntax": "view._initial_prompt",
+          "node": "Attribute"
+        },
+        {
+          "line": 53,
+          "reference": "view._initial_prompt",
+          "syntax": "view._initial_prompt",
+          "node": "Attribute"
+        },
+        {
+          "line": 59,
+          "reference": "view._initial_prompt",
+          "syntax": "view._initial_prompt",
+          "node": "Attribute"
+        }
+      ],
+      "functions": [
+        {
+          "function": "tests/welcome_source_return_pilot.py::main",
+          "lines": 50,
+          "calls": [
+            "Event",
+            "MainScreen",
+            "Path",
+            "TemporaryDirectory",
+            "ToadApp",
+            "new",
+            "original_post",
+            "pause",
+            "print",
+            "query",
+            "run_test",
+            "set",
+            "str",
+            "timeout",
+            "update",
+            "wait",
+            "wait_content_ready",
+            "watch_agent_ready"
+          ],
+          "dispatch": {
+            "view._initial_prompt": [
+              "NEXT_SOURCE_OWNED_INPUT"
+            ]
+          },
+          "keys": {
+            "os.environ": [
+              "TMPDIR"
+            ]
+          },
+          "type_checks": {}
+        },
+        {
+          "function": "tests/welcome_source_return_pilot.py::delayed_post",
+          "lines": 7,
+          "calls": [
+            "original_post",
+            "set",
+            "wait"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {}
+        }
+      ]
+    }
+  ],
+  "dynamic_limits": "AST names do not resolve arbitrary runtime monkeypatches; all discovered references read semantically, no execution or replay cause inferred."
+}

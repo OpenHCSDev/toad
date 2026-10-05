@@ -1,0 +1,34 @@
+{
+  "argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "-B",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/tests/session_initial_prompt_custody_pilot.py",
+    "/home/ts/.cache/agent-scratch/einstein-tc1-461-mounted02-20261005/result"
+  ],
+  "cwd": "/home/ts/wt/toad-regression-widget-cost-20261001",
+  "environment": {
+    "inherit": "ordinary system environment; no application source paths or credentials in receipts",
+    "unset": [
+      "PYTHONPATH",
+      "PYTHONHOME",
+      "VIRTUAL_ENV",
+      "AGENT_COMMS_THREAD",
+      "AGENT_COMMS_RUNTIME",
+      "PI_AGENT_ID",
+      "PI_PROMPT"
+    ],
+    "set": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "AGENT_COMMS_ROOT": "/home/ts/.cache/agent-scratch/einstein-tc1-461-mounted02-20261005/wire",
+      "TMPDIR": "/home/ts/.cache/agent-scratch/einstein-tc1-461-mounted02-20261005/tmp",
+      "TOAD_TEST_ATTEMPT": "einstein-tc1-461-mounted02-20261005"
+    }
+  },
+  "control_sha256": "2a619c9ac361f88fdd52f07a621b6523b7385f1fea145ad6c032d74ce9f2cdc0",
+  "timeout": 90,
+  "python": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+  "controller": {
+    "pid": 742063,
+    "start_time": 69296982
+  }
+}
