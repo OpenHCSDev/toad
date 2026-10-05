@@ -1,0 +1,21 @@
+{
+  "argv": [
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+    "-B",
+    "-c",
+    "import sys,json; sys.path.append('/usr/lib/python3.14/site-packages'); sys.path.append('/home/ts/wt/comms-field-codec-closure-20260928/tests'); import agent_comms,toad,textual,pytest; print(json.dumps({'application_imports':[agent_comms.__file__,toad.__file__,textual.__file__],'test_runner':pytest.__file__}),flush=True); assert all('/runtime-native-read532-534-retirement325-20261002/' in x.__file__ for x in (agent_comms,toad,textual)); sys.exit(pytest.main(sys.argv[1:]))",
+    "-o",
+    "addopts=",
+    "--noconftest",
+    "--basetemp",
+    "/home/ts/wt/w6gui03",
+    "-s",
+    "-q",
+    "--tb=short",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/tests/test_context_manifest_navigation.py::test_authentic_recorded_annotation_gui_continuation"
+  ],
+  "fixture": "/home/ts/wt/w6gui03",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+  "scope": "Zero-input authentic GUI continuation of original request",
+  "deadline_seconds": 90
+}

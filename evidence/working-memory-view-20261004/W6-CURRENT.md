@@ -1,36 +1,21 @@
 # W6 current checkpoint
 
-## What works at the actual observed scope
+## Installed authentic GUI works
 
-Authentic01 sent exactly one authored localhost ACP input. The SDK sealed request `527f6dcf-963f-4a91-95a3-f0d6ca38aff8` for original `project` incarnation `1791153029.938912`; the original WireLog manifest attests two file-attributed sentence spans and contains_span membership. The whole 65-byte file range includes its newlines. Sentence coordinates omit whitespace-only separators.
+One registered App/ACP continuation passed20.18s (whole23.123124s, terminal0). It reacquired authentic01 request527f and its two original file-attributed contained sentence spans without another input/provider call. The original two controlled, uncalibrated ModelLabels remained in place.
 
-The control failed before labels or App at an incorrect assertion that concatenated sentence text equals the complete file. That assertion is corrected at its consumer; no producer, file, input, request or native artifact was changed. Raw failure and the independently verified whole holder/artifact handback are retained in `authentic01/` and `authentic01-assessment.json`.
+The reader opened each mounted AnnotationNode through the actual native painted non-toggle label cell. GUI declared correction answers crossed original ACP/runtime/USER ownership; persisted effective HumanLabels refreshed into Obeys and Promised. The reader displayed the same original span and effective correction. Source, saved native session, inputproof and sealed history were unchanged. External annotation requests remained zero, worker/disclosure defaultOFF.
 
-This is not an AnnotationNode GUI pass. Historical03/04 selection failures and the earlier90s unknown wait remain unchanged; historical ReferenceNode App read/search/export remain separately unfinished.
+Evidence: [continuation03 acceptance](continuation03/README.md), [raw stdout](continuation03/stdout.log), [whole handback](continuation03/whole-handback.json). This is installed App/ACP acceptance, not physical pixels or full working-memory completion. Earlier03/04/90s/authentic01/continuation02 failures remain original negatives, not overwritten explanations.
 
-## What changed in the continuation
+## Source and artifact
 
-`inspect_authentic_annotation_gui` now owns the shared authentic source, controlled label, mounted GUI correction and effective USER refresh assertions for both the original producer control and the zero-input continuation. The continuation borrows the existing source through ThreadManagement.restore_stopped, OwnerLifecycle.acquire_thread and SessionLifecycle.bind_owned with runtime enabled. It does not invoke a fresh native fixture, claim another thread, attach another session, initialize another bus, load a session or send a prompt.
+The run consumed Core determininga59 (all355 exact retainedab640) and Toad determiningf071 (all319 exact retained178b, current442/444 union), sourcecontrolf3d/a678 and original unchangedhelpera4cb. Frozenfcbd producers/matching7a immutable artifact stayed unchanged. Accepted native six-case preview and original one-input sealedrequest remain separate strengths. No SDK repeat/build/native copy.
 
-Exact incarnation/session/source/input-proof hashes and original request/turn membership are checked before acquisition. ContextInspection reads the original recorded source and validates the original spans. Two controlled, uncalibrated local ModelLabels address those spans; GUI corrections must traverse the original ACP operation and effective HumanLabel into visible Obeys and Promised groups. Cursor, focus, membership and intent assertions remain required. No sealed manifest or context wording is constructed.
+Own candidate activation selected7a. Original candidate sourceproof inherited an086 descriptive CLI path; append-only clarification identifies actual7a activation/environment without rewriting original proof bytes.
 
-Mendel granted the one shared helper signature change: NativeBackendFixture.native_arguments is static because it uses no instance facts. Its two existing instance call sites still use the original declaration; the continuation borrows the same isolation flags and explicit authored system file without constructing another provider/session.
+## Closed execution and remaining work
 
-## Next acceptance and authority
+Actual334CURRENT440 was normally restored with retained four wheels --no-cache: all1468 bytes/modes/links,69 versions/origins and287 protected artifacts matched; no added package assets/private runtime sockets/owned groups remained. Sch7a execution was explicitly returned/closed. Independent Bohr lifecycle23599c/readbackd507 WHOLECLOSED with223allUID/0borrowers/gaps, all floor/protected/rawkeeper hashes exact. No current package/import/execution or nextpurpose authority. Publicstyle22 unchanged.
 
-`authentic-gui-continuation-operands.json` binds the original source/request/span addresses, current control, helper checkpoint and planned scratch/output. This is source preparation only; it has not been collected or run. Future acceptance is one bounded registered App with ZERO additional input, provider call or native prompt.
-
-No package/import/execution purpose is active. Ordinary444 immediate preparation is now independently closed, but its actual candidate is HELD/FROZEN Parent. Parent disposition must establish an eligible holder; Bohr then issues a fresh specific actual-floor purpose and Sch renews exact7a execution against those literal bytes. Public334 and frozen candidates remain untouched.
-
-The approved89342db6 test-source checkpoint changed no product bytes: Coreab640355 and Toad57bf319 were exact then. The later current-main union below retains442/444 and requires the new Toad178b319 wheel. Coreab640 remains exact. No SDK or native artifact change.
-
-DefaultOFF/external disclosure and actual Codex exclusion remain intact. W7 empirical thresholds, W8, historical App acceptance and the full authentic GUI correction remain unfinished.
-
-
-## Normal current-main union
-
-Core determininga59ea390 now contains merged maina38; all355 current Git/local/ZIP package assets remain identical to retainedab640. Native producers and7a manifest are unchanged; the auto-merged native driver passed syntax only, with no SDK repeat.
-
-Toad determiningf0711d42 now contains merged442/444 main8224383e. The four imported production files retain the original TranscriptState checkpoint/read owner correction across saved and wire history. W6 context owners and approved control867b remain byte-identical. Source conflicts were only Core pins, resolved to the feature Core union containing actualmain. ONE normal retained-backend1.28 filewheel178b (319 exact assets) replaces obsolete57bf for this cohort. No package or runtime was touched.
-
-`authentic-gui-current-main-operands.json` describes the updated future source tuple; the approved396f61 proposal remains immutable. Actual444 immediate purpose is independently closed but its positive candidate remains HELD/FROZEN Parent. This does not make style22 eligible or restore/free a former436 floor. A future purpose needs Parent disposition, Bohr fresh actual eligible-floor/archive/reference grant and Sch exact new7a renewal. No current access, reservation or run.
+Historical ReferenceNode registered App read/search/export remains a separate unfinished path. Its original source/registry owner and shared native selection consumer are implemented; historical03/04 did not reach reader/search/export. Mendel663 owns retained stopped9-to10 carry, whose genuine9 authored donor and target scope are separate and never borrow authenticW6 corpus. W7 empirical calibration/thresholds and W8 remain unfinished; no confidence thresholds, paid classifier, actualCodex/saved corpus or defaultON authority.
