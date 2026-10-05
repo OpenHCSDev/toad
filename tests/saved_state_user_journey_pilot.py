@@ -11,7 +11,7 @@ from agent_comms.acp import CommsClient
 from agent_comms.acp_extension import RequestFailedUpdate, decode_updates
 from agent_comms.threads import Thread
 from l0a_native_installed_pilot import main as native_fixture
-from l0a_native_installed_pilot import until
+from l0a_native_installed_pilot import selected_triage_reply, until
 from native_session_retention_pilot import InstalledApp, conversation_paint
 from runtime_fixture import wait_channel_roster, wait_fork_dialog
 from textual.widgets import Input
@@ -45,10 +45,7 @@ assert len(STREAM_REPLY) == 2800
 
 def streamed_reply(request, number):
     content = STREAM_REPLY if number == 3 else f"NATIVE_RESPONSE_{number}"
-    if any("IGNORE" in str(message.get("content")) and "FULL" in str(message.get("content"))
-           for message in request["messages"]):
-        content = '{"decision":"IGNORE"}'
-    return {"role": "assistant", "content": content}, "stop"
+    return selected_triage_reply(request) or {"role": "assistant", "content": content}, "stop"
 
 
 class StreamJourneyApp(InstalledApp):
