@@ -219,12 +219,12 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         after that pass this worker takes the latest intent, without restarting
         its waiter on every scroll or layout publication.
         """
-        if intent == self._prefetch_intent:
-            return
         previous = self._prefetch_intent
+        current = previous is not None and self.lookahead_current(previous)
+        if current and intent == previous:
+            return
         self._prefetch_intent = intent
-        if (previous is not None and self.lookahead_current(previous)
-                and any(self.lookahead_workers())):
+        if current and any(self.lookahead_workers()):
             return
 
         async def prepare() -> None:
