@@ -30,6 +30,7 @@ from toad.widgets.prepared_markdown import PreparedConversationMarkdown
 from toad.widgets.session_tabs import SessionLabel
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.transcript_history import TranscriptFragmentView
+from toad.widgets.presentation_window import StationaryPreparation
 from toad.widgets.message_divider import MessageDivider
 
 
@@ -466,7 +467,7 @@ async def adaptive_reader_journey(app, pilot, requests):
     assert any(sample[1] < 0 for sample in reverse), (
         "Reverse scrolling did not reverse the existing preparation owner", reverse,
     )
-    assert all(sample[2] <= window.size.height for sample in samples)
+    assert lookahead.preparation_count(window.size.height) <= app.preparation.max_entries
     await pilot.press("end")
     await until(pilot, lambda: window.follows_tail)
     await until(pilot, lambda: "NATIVE_RESPONSE_2" in conversation_paint(app.screen))
@@ -479,7 +480,7 @@ async def adaptive_reader_journey(app, pilot, requests):
             "Scrolling past the saved tail exposed empty history", window.scroll_y,
             window.max_scroll_y, conversation_paint(app.screen),
         )
-    await until(pilot, lambda: lookahead.ahead_rows(window.size.height) == 0)
+    await until(pilot, lambda: isinstance(lookahead.demand, StationaryPreparation))
     await until(pilot, lambda: len(app.preparation._pending) == 0)
     before = app.preparation.misses, len(requests)
     import sys
@@ -502,7 +503,7 @@ async def adaptive_reader_journey(app, pilot, requests):
     assert len(app.preparation._pending) == 0
     assert app.preparation.retained_bytes <= app.preparation.max_bytes
     assert len(app.preparation._ready) <= app.preparation.max_entries
-    assert lookahead.ahead_rows(window.size.height) == 0
+    assert lookahead.ahead_rows(window.size.height) == lookahead.budget.runway_rows(window.size.height)
     print("REAL_SLOW_FAST_REVERSE_END_IDLE_PREPARATION_BOUNDED", {
         "slow": slow, "fast": fast, "reverse": reverse,
         "retained_bytes": app.preparation.retained_bytes,

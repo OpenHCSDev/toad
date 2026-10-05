@@ -1,0 +1,521 @@
+{
+  "tool": "existing refactor-audit Package",
+  "packages": [
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "2a844fa34c2370fce4341e788fb4448f83467d1e",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 63,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 69,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "src/toad/channel_preparation.py",
+          "line": 47,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "src/toad/danger.py",
+          "line": 237,
+          "kind": "Store",
+          "reference": "self.project"
+        },
+        {
+          "path": "src/toad/danger.py",
+          "line": 272,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "src/toad/danger.py",
+          "line": 264,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "src/toad/mcp_declarations.py",
+          "line": 33,
+          "kind": "Load",
+          "reference": "inventory.declarations.project"
+        },
+        {
+          "path": "src/toad/mcp_declarations.py",
+          "line": 195,
+          "kind": "Load",
+          "reference": "self.declarations.project"
+        },
+        {
+          "path": "src/toad/navigation_preparation.py",
+          "line": 133,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "src/toad/navigation_preparation.py",
+          "line": 147,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "src/toad/navigation_preparation.py",
+          "line": 157,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "src/toad/navigation_preparation.py",
+          "line": 154,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "src/toad/navigation_preparation.py",
+          "line": 156,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "src/toad/navigation_preparation.py",
+          "line": 87,
+          "kind": "Load",
+          "reference": "opening.request.project"
+        },
+        {
+          "path": "src/toad/screens/historical_sessions.py",
+          "line": 166,
+          "kind": "Load",
+          "reference": "HistoricalMessage.project"
+        },
+        {
+          "path": "src/toad/session_admission.py",
+          "line": 218,
+          "kind": "Store",
+          "reference": "self.project"
+        },
+        {
+          "path": "src/toad/session_admission.py",
+          "line": 163,
+          "kind": "Store",
+          "reference": "self.project"
+        },
+        {
+          "path": "src/toad/session_admission.py",
+          "line": 175,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 189,
+          "kind": "Load",
+          "reference": "self.app.tab_order.project"
+        },
+        {
+          "path": "src/toad/shell.py",
+          "line": 198,
+          "kind": "Load",
+          "reference": "output.project"
+        },
+        {
+          "path": "src/toad/shell_output.py",
+          "line": 52,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "src/toad/sidebar_observation.py",
+          "line": 271,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "src/toad/sidebar_observation.py",
+          "line": 107,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "src/toad/sidebar_observation.py",
+          "line": 137,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "src/toad/sidebar_observation.py",
+          "line": 116,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "src/toad/sidebar_observation.py",
+          "line": 245,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "src/toad/target_commands.py",
+          "line": 43,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "src/toad/terminal_execution.py",
+          "line": 398,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "src/toad/terminal_execution.py",
+          "line": 462,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "src/toad/terminal_execution.py",
+          "line": 451,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "src/toad/thread_navigation.py",
+          "line": 95,
+          "kind": "Load",
+          "reference": "prepared.project"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 117,
+          "kind": "Load",
+          "reference": "owner.projected_source"
+        },
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 124,
+          "kind": "Load",
+          "reference": "projection.prepare_fragments"
+        },
+        {
+          "path": "src/toad/transcript_preparation.py",
+          "line": 84,
+          "kind": "class",
+          "name": "PreparedPageSource",
+          "source": "class PreparedPageSource(ABC):\n    \"\"\"One lifetime-owned source of prepared pages, independent of widget paging.\"\"\"\n\n    runtime: PreparationRuntime\n    scope: PreparationScope\n    through: TranscriptCursor\n    loader: Callable[..., Awaitable[TranscriptPage]] | None\n\n    @property\n    def closed(self) -> bool:\n        return self.scope.closed\n\n    @abstractmethod\n    async def get(self, request: PageRequest) -> PreparedTranscriptPage:\n        pass\n\n    @abstractmethod\n    def prefetch(\n        self, before: TranscriptCursor | None, after: TranscriptCursor | None,\n        keep_going: Callable[[], bool], *, rounds: int = 1,\n    ) -> AsyncIterator[PreparedTranscriptPage]:\n        pass\n\n    @abstractmethod\n    def close(self) -> None:\n        pass"
+        },
+        {
+          "path": "src/toad/transcript_preparation.py",
+          "line": 112,
+          "kind": "class",
+          "name": "TranscriptPageProjection",
+          "source": "class TranscriptPageProjection(ABC):\n    @abstractmethod\n    async def project(self, page: PreparedTranscriptPage, runtime: PreparationRuntime) -> PreparedTranscriptPage:\n        pass"
+        },
+        {
+          "path": "src/toad/transcript_preparation.py",
+          "line": 119,
+          "kind": "class",
+          "name": "CategoryProjection",
+          "source": "class CategoryProjection(TranscriptPageProjection):\n    selected: frozenset[type[MessageCategory]]\n\n    async def project(self, page: PreparedTranscriptPage, runtime: PreparationRuntime) -> PreparedTranscriptPage:\n        # Project one source page on the model lane. Widget admission is owned\n        # separately by the same bounded pager used for unfiltered history.\n        matches = await runtime.submit(TranscriptFilterWork(\n            page.fragments, self.selected, len(page.fragments), len(page.fragments),\n        ))\n        return replace(page, fragments=matches.fragments)"
+        },
+        {
+          "path": "src/toad/transcript_preparation.py",
+          "line": 164,
+          "kind": "class",
+          "name": "TranscriptPageBuffer",
+          "source": "class TranscriptPageBuffer(PreparedPageSource):\n    \"\"\"Lookahead intent for a snapshot; storage/admission belong to the runtime.\n\n    The loader retains ownership of transcript/routing semantics and off-loop\n    I/O. CPU preparation uses the application's existing renderer. Foreground\n    consumers share in-flight requests; cancelling one waiter cannot release a\n    still-running read's admission or publish it into a closed view.\n    \"\"\"\n\n    def __init__(\n        self, loader: Callable[..., Awaitable[TranscriptPage]], through: TranscriptCursor,\n        runtime: PreparationRuntime,\n    ) -> None:\n        self.loader, self.through, self.runtime = loader, through, runtime\n        self.scope = PreparationScope()\n        self._blocked: OrderedDict[PageRequest, None] = OrderedDict()\n\n    @property\n    def closed(self) -> bool:\n        return self.scope.closed\n\n    def close(self) -> None:\n        self.runtime.discard_scope(self.scope)\n        self._blocked.clear()\n\n    async def get(self, request: PageRequest) -> PreparedTranscriptPage:\n        result = await self.runtime.submit(TranscriptPageWork(self.scope, self.loader, self.through, request))\n        self._blocked.pop(request, None)\n        return result\n\n    async def prefetch(\n        self, before: TranscriptCursor | None, after: TranscriptCursor | None,\n        keep_going: Callable[[], bool], *, rounds: int = 1,\n    ) -> AsyncIterator[PreparedTranscriptPage]:\n        \"\"\"Yield read-ahead source for body preparation in the existing renderer.\n\n        The runtime owns each retained page. Consumers prepare its actual\n        leaves without copying the paging cursor into another resource owner.\n        \"\"\"\n        from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision\n\n        for _ in range(min(rounds, self.runtime.max_entries)):\n            for older in (True, False):\n                cursor = before if older else after\n                if cursor is None:\n                    continue\n                if self.closed or not keep_going():\n                    return\n                request = PageRequest(before=cursor) if older else PageRequest(after=cursor)\n                if request in self._blocked:\n                    if older:\n                        before = None\n                    else:\n                        after = None\n                    continue\n                try:\n                    prepared = await self.get(request)\n                except (CoordinationReadUnavailable, StaleRevision):\n                    # Busy or revoked source reads cannot poison page identity.\n                    # Keep mounted coverage and terminate speculative work.\n                    return\n                except (OSError, ValueError):\n                    # A foreground request can retry/report the error. Repeated\n                    # layout signals must not keep retrying speculative failures.\n                    self._blocked[request] = None\n                    if len(self._blocked) > self.runtime.max_entries:\n                        self._blocked.popitem(last=False)\n                    prepared = None\n                if prepared is not None:\n                    if self.closed or not keep_going():\n                        return\n                    yield prepared\n                if older:\n                    before = (prepared.page.before if prepared is not None\n                              and prepared.page.has_older and prepared.retained_bytes <= self.runtime.max_bytes\n                              else None)\n                else:\n                    after = (prepared.page.after if prepared is not None\n                             and prepared.page.has_newer and prepared.retained_bytes <= self.runtime.max_bytes\n                             else None)\n            if before is None and after is None:\n                break"
+        },
+        {
+          "path": "src/toad/transcript_preparation.py",
+          "line": 248,
+          "kind": "class",
+          "name": "ProjectedTranscriptSource",
+          "source": "class ProjectedTranscriptSource(PreparedPageSource):\n    \"\"\"A projected prefix with a fixed boundary and ordinary bidirectional reads.\n\n    The boundary is the unadmitted prefix of one canonical page. Earlier reads\n    stop at its native before cursor; reaching that cursor forwards returns the\n    retained boundary rather than overlapping the canonical mounted tail.\n    Only the boundary and the caller's bounded pages remain strongly retained.\n    \"\"\"\n\n    def __init__(\n        self, boundary: PreparedTranscriptPage,\n        loader: Callable[..., Awaitable[TranscriptPage]] | None,\n        runtime: PreparationRuntime, projection: TranscriptPageProjection,\n        upstream: PreparedPageSource | None = None,\n    ) -> None:\n        self.loader, self.runtime, self.projection = loader, runtime, projection\n        self._upstream = upstream\n        self.through = boundary.page.after\n        self._raw = TranscriptPageBuffer(loader, boundary.page.before, runtime) if loader is not None else None\n        self.scope = self._raw.scope if self._raw is not None else PreparationScope()\n        self._boundary = replace(boundary, page=replace(\n            boundary.page, has_newer=False,\n            has_older=boundary.page.has_older and loader is not None,\n        ))\n        self._projected_boundary: PreparedTranscriptPage | None = None\n\n    async def boundary(self) -> PreparedTranscriptPage:\n        if self.closed:\n            raise asyncio.CancelledError\n        if self._projected_boundary is None:\n            projected = await self.projection.project(self._boundary, self.runtime)\n            if self.closed:\n                raise asyncio.CancelledError\n            self._projected_boundary = projected\n        return self._projected_boundary\n\n    async def get(self, request: PageRequest) -> PreparedTranscriptPage:\n        if self.closed:\n            raise asyncio.CancelledError\n        if (request.before == self.through\n                or request.after == self._boundary.page.before or self._raw is None):\n            return await self.boundary()\n        older = request.before is not None\n        reader = (self._upstream if older and self._upstream is not None and not self._upstream.closed\n                  else self._raw)\n        initial = await reader.get(request)\n        prepared = initial\n        while True:\n            if self.closed:\n                raise asyncio.CancelledError\n            prepared = await self.projection.project(prepared, self.runtime)\n            if self.closed:\n                raise asyncio.CancelledError\n            if prepared.fragments:\n                break\n            more = prepared.page.has_older if older else prepared.page.has_newer\n            if not more:\n                if not older:\n                    boundary = await self.boundary()\n                    return replace(boundary, page=replace(\n                        boundary.page, before=initial.page.before,\n                        has_older=initial.page.has_older,\n                    ))\n                break\n            prepared = await reader.get(PageRequest(\n                before=prepared.page.before if older else None,\n                after=prepared.page.after if not older else None,\n            ))\n        # Unmatched intervals advance source cursors, not empty widget pages.\n        # Retain the whole scanned span so reversing direction cannot skip a\n        # matching record or repeatedly rediscover an empty interval.\n        page = replace(\n            prepared.page,\n            before=prepared.page.before if older else initial.page.before,\n            after=initial.page.after if older else prepared.page.after,\n            has_older=prepared.page.has_older if older else initial.page.has_older,\n            has_newer=True,\n        )\n        return replace(prepared, page=page)\n\n    async def prefetch(\n        self, before: TranscriptCursor | None, after: TranscriptCursor | None,\n        keep_going: Callable[[], bool], *, rounds: int = 1,\n    ) -> AsyncIterator[PreparedTranscriptPage]:\n        if self.closed or not keep_going():\n            return\n        if self._raw is None:\n            return\n        limit = self._boundary.page.before\n        if self._upstream is not None and not self._upstream.closed:\n            async for prepared in self._upstream.prefetch(\n                before if before is not None and limit.contains(before) else None,\n                None, keep_going, rounds=rounds,\n            ):\n                yield prepared\n            before = None\n        if self.closed:\n            return\n        assert self._raw is not None\n        async for prepared in self._raw.prefetch(\n            before if before is not None and limit.contains(before) else None,\n            after if after is not None and limit.contains(after) and after != limit else None,\n            keep_going, rounds=rounds,\n        ):\n            yield prepared\n\n    def close(self) -> None:\n        if self._raw is not None:\n            self._raw.close()\n        else:\n            self.runtime.discard_scope(self.scope)\n        self._projected_boundary = None\n        self._upstream = None\n        self._raw = None\n        self.loader = None"
+        },
+        {
+          "path": "src/toad/transcript_preparation.py",
+          "line": 347,
+          "kind": "Load",
+          "reference": "self._raw.prefetch"
+        },
+        {
+          "path": "src/toad/transcript_preparation.py",
+          "line": 338,
+          "kind": "Load",
+          "reference": "self._upstream.prefetch"
+        },
+        {
+          "path": "src/toad/transcript_preparation.py",
+          "line": 278,
+          "kind": "Load",
+          "reference": "self.projection.project"
+        },
+        {
+          "path": "src/toad/transcript_preparation.py",
+          "line": 298,
+          "kind": "Load",
+          "reference": "self.projection.project"
+        },
+        {
+          "path": "src/toad/widgets/comms_sidebar.py",
+          "line": 159,
+          "kind": "Load",
+          "reference": "sidebar.observation.project"
+        },
+        {
+          "path": "src/toad/widgets/transcript_fragments.py",
+          "line": 206,
+          "kind": "class",
+          "name": "TranscriptBodyPreparation",
+          "source": "class TranscriptBodyPreparation(MroDispatch):\n    \"\"\"Pure body work for declared transcript cases, without native widgets.\"\"\"\n\n    def __init__(self, renderer, ansi: bool, dark: bool):\n        self.renderer, self.ansi, self.dark = renderer, ansi, dark\n\n    async def prepare_fragments(self, fragments, keep_going, *, batch_size: int) -> None:\n        \"\"\"Warm a bounded source range in shared workers, without native mounts.\n\n        Reversal/retirement stops the next batch. Already admitted render work\n        keeps its existing runtime custody and resource limits.\n        \"\"\"\n        for first in range(0, len(fragments), batch_size):\n            if not keep_going():\n                return\n            await asyncio.gather(*(self.dispatch(event)\n                                   for fragment in fragments[first:first + batch_size]\n                                   for event in fragment.events))\n\n    @handles(TranscriptEvent)\n    async def undisclosed(self, event: TranscriptEvent) -> None:\n        # Metadata and tool disclosure contents retain their existing lazy\n        # owners. A viewport prediction does not open those disclosures.\n        pass\n\n    @handles(MarkdownTranscript)\n    async def markdown(self, event: MarkdownTranscript) -> None:\n        from toad.render_tasks import MarkdownRenderTask\n\n        await self.renderer.prepare(MarkdownRenderTask(event.text, self.ansi, self.dark))"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 354,
+          "kind": "Load",
+          "reference": "preparation.prepare_fragments"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 465,
+          "kind": "Load",
+          "reference": "preparation.prepare_fragments"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 776,
+          "kind": "Load",
+          "reference": "reader.prefetch"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 842,
+          "kind": "Load",
+          "reference": "self.prepare_fragments"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 470,
+          "kind": "Load",
+          "reference": "self.prepare_fragments"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 701,
+          "kind": "Load",
+          "reference": "self.prepare_fragments"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 896,
+          "kind": "Load",
+          "reference": "self.prepare_fragments"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 780,
+          "kind": "Load",
+          "reference": "preparation.prepare_fragments"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "2a844fa34c2370fce4341e788fb4448f83467d1e",
+      "root": "tests",
+      "modules": 394,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "tests/acp_completion_server.py",
+          "line": 29,
+          "kind": "Store",
+          "reference": "self.project"
+        },
+        {
+          "path": "tests/acp_completion_server.py",
+          "line": 31,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "tests/acp_completion_server.py",
+          "line": 57,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "tests/acp_first_frame_server.py",
+          "line": 13,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "tests/acp_plan_server.py",
+          "line": 27,
+          "kind": "Store",
+          "reference": "self.project"
+        },
+        {
+          "path": "tests/acp_plan_server.py",
+          "line": 38,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "tests/acp_specification_server.py",
+          "line": 29,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "tests/acp_specification_server.py",
+          "line": 66,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "tests/acp_specification_server.py",
+          "line": 47,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "tests/acp_specification_server.py",
+          "line": 55,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "tests/acp_specification_server.py",
+          "line": 71,
+          "kind": "Load",
+          "reference": "self.project"
+        },
+        {
+          "path": "tests/historical_views_pilot.py",
+          "line": 264,
+          "kind": "Load",
+          "reference": "HistoricalMessage.project"
+        },
+        {
+          "path": "tests/history_page_batch_mount_pilot.py",
+          "line": 231,
+          "kind": "Load",
+          "reference": "history.projected_source"
+        },
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 28,
+          "kind": "Load",
+          "reference": "TranscriptBodyPreparation.prepare_fragments"
+        },
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 66,
+          "kind": "Store",
+          "reference": "TranscriptBodyPreparation.prepare_fragments"
+        },
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 105,
+          "kind": "Store",
+          "reference": "TranscriptBodyPreparation.prepare_fragments"
+        },
+        {
+          "path": "tests/mcp_decision_pty_pilot.py",
+          "line": 127,
+          "kind": "Load",
+          "reference": "untrusted.declarations.project"
+        },
+        {
+          "path": "tests/sidebar_custody_installed_journey.py",
+          "line": 30,
+          "kind": "Load",
+          "reference": "ctx.project"
+        },
+        {
+          "path": "tests/sidebar_metadata_reflow_pilot.py",
+          "line": 55,
+          "kind": "Load",
+          "reference": "sidebar.observation.project"
+        },
+        {
+          "path": "tests/test_tab_clipboard_owners.py",
+          "line": 31,
+          "kind": "Load",
+          "reference": "order.project"
+        },
+        {
+          "path": "tests/tools/physical_warm_capture.py",
+          "line": 46,
+          "kind": "Load",
+          "reference": "args.project"
+        },
+        {
+          "path": "tests/transcript_prefetch_pilot.py",
+          "line": 47,
+          "kind": "Load",
+          "reference": "buffer.prefetch"
+        },
+        {
+          "path": "tests/transcript_prefetch_pilot.py",
+          "line": 53,
+          "kind": "Load",
+          "reference": "buffer.prefetch"
+        },
+        {
+          "path": "tests/transcript_prefetch_pilot.py",
+          "line": 119,
+          "kind": "Load",
+          "reference": "broken.prefetch"
+        },
+        {
+          "path": "tests/unread_paint_only_pilot.py",
+          "line": 55,
+          "kind": "Load",
+          "reference": "sidebar.observation.project"
+        },
+        {
+          "path": "tests/unread_paint_only_pilot.py",
+          "line": 76,
+          "kind": "Load",
+          "reference": "sidebar.observation.project"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "2a844fa34c2370fce4341e788fb4448f83467d1e",
+      "root": "tools",
+      "modules": 41,
+      "omissions": [],
+      "sites": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "1bdc18c363cbc0f938537a71aa8ba0225d03e25e",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "src/textual/_compositor.py",
+          "line": 272,
+          "kind": "Load",
+          "reference": "entry.project"
+        }
+      ]
+    }
+  ],
+  "limits": "Complete lexical declarations/calls, not dynamic alias/override or behavioral/duration proof; registered native/Core source APIs unchanged."
+}

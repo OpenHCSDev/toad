@@ -1,0 +1,26 @@
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import asyncio; from transcript_prefetch_pilot import projected_checks; asyncio.run(projected_checks()); print("projected prefetch: raw/upstream, selected/empty interval, bounded rounds, projection source/demand revocation PASS")
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/transcript_prefetch_pilot.py", line 6, in <module>
+    from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+  File "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/c4-queued-reservation656-wheel-20261004/agent_comms-0.1.0-py3-none-any.whl/agent_comms/__init__.py", line 5, in <module>
+    from .exporting import (
+    ...<6 lines>...
+    )
+  File "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/c4-queued-reservation656-wheel-20261004/agent_comms-0.1.0-py3-none-any.whl/agent_comms/exporting.py", line 18, in <module>
+    from .bus_publication import reject_private_wire_fields
+  File "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/c4-queued-reservation656-wheel-20261004/agent_comms-0.1.0-py3-none-any.whl/agent_comms/bus_publication.py", line 13, in <module>
+    from .wire_record import MessageWireRecord
+  File "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/c4-queued-reservation656-wheel-20261004/agent_comms-0.1.0-py3-none-any.whl/agent_comms/wire_record.py", line 180, in <module>
+    from .turn_context import ContextManifest
+  File "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/c4-queued-reservation656-wheel-20261004/agent_comms-0.1.0-py3-none-any.whl/agent_comms/turn_context.py", line 16, in <module>
+    from .native_session_reopen import NativeSessionIdentity
+  File "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/c4-queued-reservation656-wheel-20261004/agent_comms-0.1.0-py3-none-any.whl/agent_comms/native_session_reopen.py", line 12, in <module>
+    from .native_package import verify_native_package
+  File "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/c4-queued-reservation656-wheel-20261004/agent_comms-0.1.0-py3-none-any.whl/agent_comms/native_package.py", line 41, in <module>
+    MANIFEST = _resource_root() / "pi-native.sha256"
+               ~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/c4-queued-reservation656-wheel-20261004/agent_comms-0.1.0-py3-none-any.whl/agent_comms/native_package.py", line 38, in _resource_root
+    raise NativePackageError("Installed native package resources are unavailable")
+agent_comms.native_package.NativePackageError: Installed native package resources are unavailable

@@ -1,0 +1,22 @@
+{
+  "source_before": "e43c7d30738505c571109e6805baa8fc6677362d",
+  "controls": [
+    {
+      "path": "tests/transcript_prefetch_pilot.py",
+      "sha256": "9dcb917784f51e75a6adea946c7f4e2363b2538b1723b283a90706ec3e1b4b4f"
+    },
+    {
+      "path": "tests/transcript_history_pilot.py",
+      "sha256": "ec378824738c8f09655859399484245c05c4066ce025b5541ea1bebf826f8061"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "sha256": "ea392441dd97d9646e7467634e67ebc345fd4f08d83760d2585f99d93713e255"
+    }
+  ],
+  "existing_history_navigation_AST_unchanged": true,
+  "navigation_AST_sha256": "cf31429b9f055e0d8c9ae676defbe8960b0ed5fb6afefed6d8800e950df7f98e",
+  "original_App_dispatch_witness": "Existing lookahead prepare_fragments instance wraps its original dispatch; completion recorded only after the original awaited call returns. Revoked early-return earns no dispatch credit.",
+  "installed_import_fence": "Distribution locates exact toad package under sys.prefix before component cases and actual App, no src insertion.",
+  "runtime": "Not executed; no package/import/native authority for443."
+}

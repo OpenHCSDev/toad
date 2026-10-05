@@ -271,14 +271,20 @@ class ProjectedTranscriptSource(PreparedPageSource):
         ))
         self._projected_boundary: PreparedTranscriptPage | None = None
 
+    async def _project(self, prepared: PreparedTranscriptPage) -> PreparedTranscriptPage:
+        """Publish this source's projection only inside its original lifetime."""
+        if self.closed:
+            raise asyncio.CancelledError
+        projected = await self.projection.project(prepared, self.runtime)
+        if self.closed:
+            raise asyncio.CancelledError
+        return projected
+
     async def boundary(self) -> PreparedTranscriptPage:
         if self.closed:
             raise asyncio.CancelledError
         if self._projected_boundary is None:
-            projected = await self.projection.project(self._boundary, self.runtime)
-            if self.closed:
-                raise asyncio.CancelledError
-            self._projected_boundary = projected
+            self._projected_boundary = await self._project(self._boundary)
         return self._projected_boundary
 
     async def get(self, request: PageRequest) -> PreparedTranscriptPage:
@@ -293,11 +299,7 @@ class ProjectedTranscriptSource(PreparedPageSource):
         initial = await reader.get(request)
         prepared = initial
         while True:
-            if self.closed:
-                raise asyncio.CancelledError
-            prepared = await self.projection.project(prepared, self.runtime)
-            if self.closed:
-                raise asyncio.CancelledError
+            prepared = await self._project(prepared)
             if prepared.fragments:
                 break
             more = prepared.page.has_older if older else prepared.page.has_newer
@@ -339,6 +341,9 @@ class ProjectedTranscriptSource(PreparedPageSource):
                 before if before is not None and limit.contains(before) else None,
                 None, keep_going, rounds=rounds,
             ):
+                prepared = await self._project(prepared)
+                if not keep_going():
+                    return
                 yield prepared
             before = None
         if self.closed:
@@ -349,6 +354,9 @@ class ProjectedTranscriptSource(PreparedPageSource):
             after if after is not None and limit.contains(after) and after != limit else None,
             keep_going, rounds=rounds,
         ):
+            prepared = await self._project(prepared)
+            if not keep_going():
+                return
             yield prepared
 
     def close(self) -> None:

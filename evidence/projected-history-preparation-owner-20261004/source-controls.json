@@ -1,0 +1,17 @@
+{
+  "command": [
+    "/usr/bin/python",
+    "-c",
+    "import asyncio; from transcript_prefetch_pilot import projected_checks; asyncio.run(projected_checks()); print(\"projected prefetch: raw/upstream, selected/empty interval, bounded rounds, projection source/demand revocation PASS\")"
+  ],
+  "source_paths": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests",
+    "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/c4-queued-reservation656-wheel-20261004/agent_comms-0.1.0-py3-none-any.whl",
+    "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native59-filewheel-20261004/textual-8.2.8-py3-none-any.whl"
+  ],
+  "seconds": 0.314465457922779,
+  "exit_code": 1,
+  "scope": "Source-only projected checks in existing prefetch pilot. Actual source owners plus retained Core/Textual filewheel imports; no installed holder, App, native compiled process, provider or movie.",
+  "new_environment_or_package_install": false
+}

@@ -1,0 +1,94 @@
+{
+  "tool": "existing refactor-audit Package",
+  "head": "a8b1510e42e0c808c8eccb7e107dc36bb67dc465",
+  "modules": 394,
+  "omissions": [],
+  "demand_consumers": [
+    {
+      "path": "tests/history_frame_publication_pilot.py",
+      "line": 112,
+      "read": "lookahead.travel_rows"
+    },
+    {
+      "path": "tests/history_frame_publication_pilot.py",
+      "line": 159,
+      "read": "lookahead.travel_rows"
+    },
+    {
+      "path": "tests/history_stationary_feedback_pilot.py",
+      "line": 65,
+      "read": "w.document_viewport.lookahead.travel_rows"
+    },
+    {
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 82,
+      "read": "viewport.lookahead.travel_rows"
+    },
+    {
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 98,
+      "read": "viewport.lookahead.travel_rows"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 505,
+      "read": "lookahead.ahead_rows"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 443,
+      "read": "lookahead.travel_rows"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 443,
+      "read": "lookahead.ahead_rows"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 482,
+      "read": "lookahead.ahead_rows"
+    },
+    {
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 122,
+      "read": "lookahead.travel_rows"
+    },
+    {
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 124,
+      "read": "lookahead.travel_rows"
+    },
+    {
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 126,
+      "read": "lookahead.travel_rows"
+    },
+    {
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 129,
+      "read": "lookahead.travel_rows"
+    },
+    {
+      "path": "tests/viewport_rapid_scroll_pilot.py",
+      "line": 111,
+      "read": "viewport.lookahead.travel_rows"
+    },
+    {
+      "path": "tests/viewport_runway_pilot.py",
+      "line": 70,
+      "read": "viewport.lookahead.travel_rows"
+    },
+    {
+      "path": "tests/viewport_runway_pilot.py",
+      "line": 81,
+      "read": "viewport.lookahead.travel_rows"
+    },
+    {
+      "path": "tests/viewport_runway_pilot.py",
+      "line": 85,
+      "read": "viewport.lookahead.ahead_rows"
+    }
+  ],
+  "source_relation": "DirectionalPreparation predicts demanded rows; original StationaryPreparation owns settled demand, PresentationBudget owns idle baseline; PreparationRuntime entries/bytes own retained resource bounds. Old saved_state_user_journey imposed an obsolete single-viewport cap and zero idle runway. Configuration=1 in viewport_runway_pilot remains a legitimate user-declared baseline check."
+}
