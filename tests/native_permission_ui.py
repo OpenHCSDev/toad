@@ -14,7 +14,8 @@ from typing import Any, AsyncIterator
 
 from mcp_observation_fixture import AGENT_DATA, exercise_boundaries, notes
 from toad.acp.agent import Agent
-from agent_comms.acp_extension import McpClientReceiptUpdate, TurnSettledUpdate, decode_updates
+from toad.agent_schema import AgentDefinition
+from agent_comms.acp_extension import McpClientReceiptUpdate, TurnChangedUpdate, decode_updates
 from toad.screens.main import MainScreen
 from toad.widgets.question import Question
 
@@ -34,24 +35,23 @@ class Observer:
     async def session_update(self, session_id: str, update: dict[str, Any]) -> None:
         with (self.root / "toad-updates.jsonl").open("a") as log:
             log.write(json.dumps({"session": session_id, "update": update}) + "\n")
-        self.agent.updates.accept(session_id, update)
+        await self.agent.updates.receive(sessionId=session_id, update=update)
         await self.pilot.pause()
         with (self.root / "toad-states.jsonl").open("a") as log:
-            log.write(json.dumps({"agent": self.agent._active_turn_id,
+            log.write(json.dumps({"agent": self.agent.current_turn.managed_id,
                                  "view": self.view.turns.managed_id,
-                                 "live": self.view._mcp_live_turn,
                                  "notes": notes(self.view)}) + "\n")
         assert self.agent.session_id == SESSION_ID
         for fact in decode_updates(update.get("_meta")):
             if isinstance(fact, McpClientReceiptUpdate):
                 rendered = notes(self.view)
                 assert len(rendered) == 1 and "fixture[project] ready calls=confirm tools=1" in rendered[0]
-                assert self.agent._active_turn_id == self.view.turns.managed_id == fact.turn_id
+                assert self.agent.current_turn.managed_id == self.view.turns.managed_id == fact.turn_id
                 self.receipts.append(rendered)
                 self.app.save_screenshot(str(self.root / "toad-live.svg"))
-            if isinstance(fact, TurnSettledUpdate):
-                assert self.agent._active_turn_id is self.view.turns.managed_id is None
-                assert self.view._mcp_live_turn is None and not notes(self.view)
+            if isinstance(fact, TurnChangedUpdate) and not self.agent.current_turn.busy:
+                assert self.agent.current_turn.managed_id is self.view.turns.managed_id is None
+                assert not notes(self.view)
 
     async def request_permission(self, *, session_id, tool_call, options, **kwargs):
         self.permissions += 1
@@ -115,8 +115,8 @@ class Observer:
         self.disconnected_seen = True
         await self.agent.stop()
         await self.pilot.pause()
-        assert self.agent._active_turn_id is None
-        assert self.view._mcp_live_turn is None and not notes(self.view)
+        assert self.agent.current_turn.managed_id is None
+        assert not notes(self.view)
         assert self.view.prompt._ask is None
         self.app.save_screenshot(str(self.root / "toad-disconnected.svg"))
 
@@ -133,11 +133,12 @@ async def open_observer(case: str, artifact_dir: Path) -> AsyncIterator[Observer
     try:
         app = ToadApp(project_dir=str(root / "project"))
         async with app.run_test(size=(120, 40)) as pilot:
-            await app.screen.wait_content_ready()
+            session = app.selected_session
+            assert isinstance(session, MainScreen)
+            await session.wait_content_ready()
             await pilot.pause()
-            assert isinstance(app.screen, MainScreen)
-            view = app.selected_session.conversation
-            agent = Agent(root / "project", AGENT_DATA, SESSION_ID)
+            view = session.conversation
+            agent = Agent(root / "project", AgentDefinition.decode(AGENT_DATA), SESSION_ID)
             view.bind_agent(agent)
             view.agent = agent
             await exercise_boundaries(agent, view, pilot)
@@ -147,7 +148,7 @@ async def open_observer(case: str, artifact_dir: Path) -> AsyncIterator[Observer
                 assert len(observer.receipts) == 1
                 assert observer.permissions == (0 if case == "no_controller" else 1)
                 assert observer.disconnected_seen == (case == "disconnect")
-                assert not notes(observer.view) and observer.view._mcp_live_turn is None
+                assert not notes(observer.view)
                 assert app._exception is None
                 (root / "toad-evidence.json").write_text(json.dumps({
                     "case": case, "session": observer.agent.session_id,
