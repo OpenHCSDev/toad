@@ -169,7 +169,8 @@ async def click_tab(app, pilot, session_id):
     await until(pilot, lambda: app.selected_session.id == session_id)
 
 
-async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
+async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests,
+                     *, warm_only=False):
     first = app.selected_session
     await until(pilot, lambda: "NATIVE_RESPONSE_2" in conversation_paint(app.screen))
     assert "SAVED_READER_1" in conversation_paint(app.screen)
@@ -205,6 +206,8 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     print("SAME_CHANNEL_FROM_SECOND_AGENT_REUSES_ONE_EXISTING_TAB", flush=True)
     await click_tab(app, pilot, gamma.id)
     await clicked_reader_editor_return(app, pilot, first)
+    if warm_only:
+        return
     await adaptive_reader_journey(app, pilot, requests)
     await fork_and_first_input(app, pilot, comms, first, entered, release, hold_next, requests)
     await channel_reply_feedback(app, pilot, comms, channel, first, entered, release,
@@ -569,7 +572,15 @@ async def channel_reply_feedback(app, pilot, comms, channel, first, entered, rel
 
 
 if __name__ == "__main__":
+    import argparse
+    from functools import partial
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--warm-only", action="store_true",
+                        help="Stop after the original saved warm A/B/A and Undo checks")
+    args = parser.parse_args()
     asyncio.run(native_fixture(
-        app_type=StreamJourneyApp, prepare_state=prepare_saved_state, acceptance=acceptance,
+        app_type=StreamJourneyApp, prepare_state=prepare_saved_state,
+        acceptance=partial(acceptance, warm_only=args.warm_only),
         provider_reply=streamed_reply, provider_chunk_characters=40,
     ))
