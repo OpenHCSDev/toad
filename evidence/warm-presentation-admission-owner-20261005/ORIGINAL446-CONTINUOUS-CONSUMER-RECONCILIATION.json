@@ -1,0 +1,159 @@
+{
+  "original446": "747138b5ac153603d38cf5d0c21ea3edfff3d9db",
+  "determining_current": "2ae78aac63db588e1a33d1da1c903139746d55aa",
+  "scope": "Original continuous/native/readonly producer+consumer family; accepted later runtime/worker/fork edits retained. Not whole446 closure or runtime acceptance.",
+  "package_coverage": {
+    "747138b5ac153603d38cf5d0c21ea3edfff3d9db": {
+      "src/toad": {
+        "modules": 288,
+        "omissions": 0
+      },
+      "tests": {
+        "modules": 395,
+        "omissions": 0
+      },
+      "tools": {
+        "modules": 41,
+        "omissions": 0
+      }
+    },
+    "2ae78aac63db588e1a33d1da1c903139746d55aa": {
+      "src/toad": {
+        "modules": 288,
+        "omissions": 0
+      },
+      "tests": {
+        "modules": 399,
+        "omissions": 0
+      },
+      "tools": {
+        "modules": 40,
+        "omissions": 0
+      }
+    }
+  },
+  "files": [
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "original446_sha256": "b8b4c67ea8bbdb2062d64b275de3cc5cce31d62471350eeca4441de105d10843",
+      "current_sha256": "b8b4c67ea8bbdb2062d64b275de3cc5cce31d62471350eeca4441de105d10843",
+      "byte_equal": true,
+      "changed_declarations": [],
+      "disposition": "Lost original reply producer restored BYTEequal747138. Same HOT_ORIGINAL_WIRE_BODY selects typed FullSelectedTriage; original selected_triage_reply validates ONLY current last native user contract through InstructionFile/FieldCodec. Every other declaration/assertion/native response unchanged."
+    },
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "original446_sha256": "35d30e6e014ac3747f5d93b35b908d207d2b9d1407710914394a88e8102993eb",
+      "current_sha256": "ac942dd20defe4d8074ffa3a38c1b7428a3b1475ff60ba9a094b41a2c6521a93",
+      "byte_equal": false,
+      "changed_declarations": [
+        "notification_feedback",
+        "main",
+        "message_feedback",
+        "direct_reply_feedback"
+      ],
+      "disposition": "Original selected_triage_reply owner remains ASTequal446; accepted current source adds same Message.reference DM feedback shared by saved/sidebar/default, ChannelConversation/DmConversation declarations, current_turn.managed_id. No old nullable managed fields restored."
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "original446_sha256": "44505adf77e25bfe7b3b40343942e68e8e505ff89d88495143943049c3a0a437",
+      "current_sha256": "4f0948b8fb5fcab6cab12802cf8b5b3cb6498188ce3b67af8a88b787b3865dca",
+      "byte_equal": false,
+      "changed_declarations": [
+        "acceptance",
+        "channel_reply_feedback"
+      ],
+      "disposition": "Original streamed_reply/prepare_saved_state and warm/fork/source/reader assertions remain ASTequal446. Only direct_reply_feedback call and channel_reply_feedback exact original row/hidden settlement/current canonical outcomes added by468/474. Configured producer adaptation remains unfinished; localhost is not configured credit."
+    },
+    {
+      "path": "tests/sidebar_custody_installed_journey.py",
+      "original446_sha256": "205a02d118605d60f1c2566a828439207fba6f084b270ae75036543440a30aa6",
+      "current_sha256": "4129374d5a94a5c0ba743a05bce36f75b09eaa09677d33d7c0311a9280c7af92",
+      "byte_equal": false,
+      "changed_declarations": [
+        "acceptance"
+      ],
+      "disposition": "468 retains returned unopened gamma and supplies required channel feedback argument; calls original shared direct DM stage. Rest of hierarchy/custody semantics unchanged."
+    },
+    {
+      "path": "tests/native_session_retention_pilot.py",
+      "original446_sha256": "324ec8636de3a546d3f0e56e1ce3b898c5852522de86eaa1e47354c7f73c36d9",
+      "current_sha256": "74a882ef2809760f06bed8af87625d6f1e9277a3746d716366ed2f699c833816",
+      "byte_equal": false,
+      "changed_declarations": [
+        "acceptance",
+        "warm_admission_acceptance"
+      ],
+      "disposition": "476 added separate authored warm mode with mandatory both branches; original mixed cohort now derives native trees/editor from actual retained/evicted presentation. Still exactly TWO genuinely loaded sources plus blank tabs. Full loaded4/16/32/64 unfinished; not superseded or credited by476."
+    },
+    {
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "original446_sha256": "16c040f9d91bc7d06bcd9e64fed04b0ef5d063c8d7179f4b91f777e2946df072",
+      "current_sha256": "41f3ebb0c2638ccd2fff76c619fcd305c2617f6ceb460308d960935f1c6baec5",
+      "byte_equal": false,
+      "changed_declarations": [
+        "settled"
+      ],
+      "disposition": "Only settled reads original workerNone after merged466 worker mirror removal. Original ReaderCheckpoint capture/verify actual page/fragment/view/rendercache/editor/reader unchanged; strong witnesses retire before resource/input phases as446."
+    },
+    {
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "original446_sha256": "63c36b3cde89cf899995508cf73c4b193e385826e56a2f79e640349f6cc06c0e",
+      "current_sha256": "63c36b3cde89cf899995508cf73c4b193e385826e56a2f79e640349f6cc06c0e",
+      "byte_equal": true,
+      "changed_declarations": [],
+      "disposition": "Entire module BYTEequal446, preserved configured readonly original>=40MB scope; no acceptance inferred."
+    },
+    {
+      "path": "tests/thread_navigation_installed_journey.py",
+      "original446_sha256": "a17e26de602e8765f48ea22db169f42a9e48a1b46af68560807c03a807cbcc07",
+      "current_sha256": "a23fbcb8578986949712cacc8d7b1af01b97808de225c9dbdf970177c4a6f4d2",
+      "byte_equal": false,
+      "changed_declarations": [
+        "prepare"
+      ],
+      "disposition": "Original prepare same two real localhost seed inputs; optional long_history typed prompt text used only new warm mode. Default original source/producer semantics unchanged."
+    },
+    {
+      "path": "tests/original_turn_resource_real_installed_pilot.py",
+      "original446_sha256": "809ec9a16cfc8fcff3374a3f4033f548a683e34bd15cb252dcbc69b698bb4031",
+      "current_sha256": "6ddc46989485b6f794fd647dbf242a84f36fd6bf5ef8841f1863e1625efb5c39",
+      "byte_equal": false,
+      "changed_declarations": [
+        "main"
+      ],
+      "disposition": "Keep qualified current676 ForkSessionRequest.directory/actual NativeForkCreation.path/retained output directory and explicit private stage0700. Do not overwrite with446 guessed nested folders. No configured acceptance replay."
+    },
+    {
+      "path": "tests/runtime_fixture.py",
+      "original446_sha256": "987399f81781f57e5cca89dc0e5214c59663d97a01bcb5bad18f35d7f8eb686f",
+      "current_sha256": "c34f37f450a02f09d344352466431744892a0c788953212da5ac434d912e3315",
+      "byte_equal": false,
+      "changed_declarations": [
+        "retain_fixture_journals"
+      ],
+      "disposition": "Retain qualified exact original SDK directory/path contract, retention refusal preserves journals and retained_reason; no fallback/chmod/deletion. All other declaration ASTs unchanged."
+    }
+  ],
+  "selected_triage_consumers": [
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "line": 268,
+      "call": "selected_triage_reply(request)"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 49,
+      "call": "selected_triage_reply(request)"
+    },
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 127,
+      "call": "selected_triage_reply(request, decision)"
+    }
+  ],
+  "canonical_compile": "PASS without imports",
+  "production_root_vs_built2ae": "ZERO",
+  "runtime": "UNRUN",
+  "remaining": "Configured full journey/genuinely loaded4/16/32/64/velocity growingEnd coldwidth/startup CPU and original configured inputs remain active; no accepted saved/motion replay."
+}
