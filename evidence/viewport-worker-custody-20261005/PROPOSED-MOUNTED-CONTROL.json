@@ -1,0 +1,41 @@
+{
+  "state": "SOURCE_PREPARED_APP_UNRUN",
+  "production_head": "4f0ea5ef3c7b3ed183bbb92e13fef3cedf73543e",
+  "integration_owner": "Heisenberg; whole TC1/460 and eligible joint installed source/wheel relation",
+  "contributor": "Einstein; released DocumentViewport worker lifetime/control seam",
+  "application_python": null,
+  "application_python_binding": "UNBOUND until actual eligible joint purpose; no public/private prefix authority inferred",
+  "argv_after_python": [
+    "-B",
+    "-c",
+    "import runpy, sys\nsys.path.append('/home/ts/wt/toad-regression-widget-cost-20261001/tests')\nsys.argv = ['/home/ts/wt/toad-regression-widget-cost-20261001/tests/viewport_body_lifetime_pilot.py', '--worker-custody-only', '/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01']\nrunpy.run_path('/home/ts/wt/toad-regression-widget-cost-20261001/tests/viewport_body_lifetime_pilot.py', run_name=\"__main__\")\n"
+  ],
+  "cwd": "/home/ts/wt/toad-regression-widget-cost-20261001",
+  "env": {
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "unset_env": [
+    "PYTHONPATH"
+  ],
+  "control_path": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/viewport_body_lifetime_pilot.py",
+  "control_sha256": "085bce4deba13863bf1bbf22ce53d33352ca72400d743d48d213d4604da1626a",
+  "planned_output": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01",
+  "authored_scratch": "TemporaryDirectory beneath planned_output, joined original runtime_fixture cleanup before removal",
+  "original_outer_runner": "existing BoundedRun.session; duration and actual interpreter/output bound by eligible issued joint purpose",
+  "scope": [
+    "One installed mounted NoAgent original App/Worker case",
+    "Cancel acquired worker before original _reconcile entry and join native cancellation",
+    "Same source/window/membership resume; three demand requests borrow exact same Worker",
+    "Original entered worker finishes; later independent frame demand remains legitimate",
+    "Close joins actual admitted worker and releases viewport resources; original App/preparation cleanup joins"
+  ],
+  "original_control_main_and_settled_AST": "UNCHANGED; old body churn mode not executed",
+  "entry_observation": "temporary Python profile of exact original method code/owner + native get_current_worker; no work replacement; previous hook chained/restored in finally",
+  "production_pin_metadata_delta": "ZERO versus 4f0ea5ef",
+  "App_execution_authorized": false,
+  "package_build_stage_authorized": false,
+  "native_artifact_execution": false,
+  "ACP_provider_input_fork_movie": false,
+  "old_accepted_journeys_repeat": false,
+  "result": null
+}

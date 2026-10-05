@@ -54,3 +54,28 @@ before reconciliation entry, followed by resume/coalesced demand and joined
 close through the existing App/Worker owners. It needs an explicitly eligible
 purpose; no old project/prompt/renderer or whole workflow journey repeats.
 This draft is not installed Ready and does not close whole TC1 or460.
+
+## Prepared single affected mounted mode
+
+The existing `viewport_body_lifetime_pilot.py` now accepts
+`--worker-custody-only OUTPUT`. Its old main and settling helper are AST-equal
+to the source checkpoint and are not invoked by this mode. The installed App
+borrows the original runtime fixture and installed CSS, a fresh private root
+beneath the owned output, and the original mounted window/frame admission.
+
+A temporary profile observes only entry into that exact owner's original
+reconciliation method and its native worker identity; it chains and restores
+the preceding hook. No method, worker scheduling, renderer or input is replaced.
+The control cancels and joins a pre-entry worker, resumes the same source and
+checks three requests retain one worker, then closes and joins the currently
+admitted worker. Completion may release further legitimate frame demand; it
+does not require a global idle interval or discard another worker's custody.
+The original App/preparation/runtime teardown completes before scratch removal.
+
+`PROPOSED-MOUNTED-CONTROL.json` supplies the literal installed command tail,
+working directory, environment, control SHA and planned output. It appends only
+test helpers after installed application paths. The actual interpreter, source
+wheel cohort and execution purpose remain explicitly unbound. Heisenberg owns
+that joint binding and his unrelated observer-navigation correction. No separate
+environment, build, old journey or currently authorized App run is implied.
+Control and command compilation pass without application imports; App UNRUN.
