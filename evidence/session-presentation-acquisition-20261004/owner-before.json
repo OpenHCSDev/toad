@@ -1,0 +1,2689 @@
+{
+  "source": "fcea342b2eea0103d95acd863b864879d055961d",
+  "scope": "SOURCE READ ONLY; lexical owner/caller sites from original refactor-audit Package, not runtime/dynamic resolution proof",
+  "roots": [
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "rev": "fcea342b2eea0103d95acd863b864879d055961d",
+      "root": "src/toad",
+      "modules": 288,
+      "parse_omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "rev": "fcea342b2eea0103d95acd863b864879d055961d",
+      "root": "tests",
+      "modules": 395,
+      "parse_omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "rev": "fcea342b2eea0103d95acd863b864879d055961d",
+      "root": "tools",
+      "modules": 41,
+      "parse_omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "rev": "1bdc18c363cbc0f938537a71aa8ba0225d03e25e",
+      "root": "src/textual",
+      "modules": 249,
+      "parse_omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "rev": "a38c06de24315fa868de45786e01fefadb0aaef1",
+      "root": "src/agent_comms",
+      "modules": 316,
+      "parse_omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/agent.py",
+      "line": 91,
+      "kind": "Store",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/agent.py",
+      "line": 109,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/agent.py",
+      "line": 113,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/agent.py",
+      "line": 214,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/agent.py",
+      "line": 157,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/agent.py",
+      "line": 276,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/agent.py",
+      "line": 326,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/agent.py",
+      "line": 388,
+      "kind": "Call",
+      "expression": "wire(self.coordination.wire_root if self.coordination else None)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/agent.py",
+      "line": 111,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 94,
+      "kind": "Call",
+      "expression": "self.agent.permissions.present()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 156,
+      "kind": "Load",
+      "expression": "agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 82,
+      "kind": "Load",
+      "expression": "self.agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 235,
+      "kind": "Load",
+      "expression": "self.agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 302,
+      "kind": "Load",
+      "expression": "agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/agent_process.py",
+      "line": 187,
+      "kind": "Load",
+      "expression": "self.agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/agent_process.py",
+      "line": 192,
+      "kind": "Load",
+      "expression": "self.agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/agent_process.py",
+      "line": 202,
+      "kind": "Load",
+      "expression": "agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/agent_process.py",
+      "line": 257,
+      "kind": "Load",
+      "expression": "agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/agent_process.py",
+      "line": 53,
+      "kind": "Load",
+      "expression": "self.agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/agent_process.py",
+      "line": 218,
+      "kind": "Load",
+      "expression": "self.agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/agent_process.py",
+      "line": 78,
+      "kind": "Load",
+      "expression": "self.agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/agent_session.py",
+      "line": 182,
+      "kind": "Load",
+      "expression": "self.agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/agent_session.py",
+      "line": 301,
+      "kind": "Call",
+      "expression": "wire(wire_root)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 80,
+      "kind": "Load",
+      "expression": "agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 188,
+      "kind": "Load",
+      "expression": "self.agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 52,
+      "kind": "AsyncFunctionDef",
+      "name": "present"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 128,
+      "kind": "FunctionDef",
+      "name": "present"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/session_updates.py",
+      "line": 108,
+      "kind": "Load",
+      "expression": "self.agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/acp/session_updates.py",
+      "line": 106,
+      "kind": "Load",
+      "expression": "self.agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/agent.py",
+      "line": 17,
+      "kind": "Store",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/agent_surface.py",
+      "line": 16,
+      "kind": "Call",
+      "expression": "target.subscribe_core(events)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/agent_surface.py",
+      "line": 83,
+      "kind": "Load",
+      "expression": "request.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/app.py",
+      "line": 336,
+      "kind": "Call",
+      "expression": "self.background_render_slots.acquire()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/comms_root.py",
+      "line": 94,
+      "kind": "Call",
+      "expression": "wire(selected.route)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/conversation_submission.py",
+      "line": 184,
+      "kind": "Load",
+      "expression": "self.agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/conversation_submission.py",
+      "line": 242,
+      "kind": "Load",
+      "expression": "agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/conversation_submission.py",
+      "line": 256,
+      "kind": "Load",
+      "expression": "item.agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 439,
+      "kind": "AsyncFunctionDef",
+      "name": "acquire"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 457,
+      "kind": "FunctionDef",
+      "name": "present"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 488,
+      "kind": "AsyncFunctionDef",
+      "name": "acquire"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/core/context_inspection.py",
+      "line": 540,
+      "kind": "FunctionDef",
+      "name": "present"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/core_event_carrier.py",
+      "line": 44,
+      "kind": "FunctionDef",
+      "name": "subscribe_core"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/core_event_carrier.py",
+      "line": 79,
+      "kind": "FunctionDef",
+      "name": "retire_core_observations"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/core_event_carrier.py",
+      "line": 53,
+      "kind": "Call",
+      "expression": "self.subscribe_core(stream)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/directory_watcher.py",
+      "line": 231,
+      "kind": "ClassDef",
+      "name": "DirectoryWatcher"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/directory_watcher.py",
+      "line": 310,
+      "kind": "FunctionDef",
+      "name": "rebind"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/directory_watcher.py",
+      "line": 248,
+      "kind": "Call",
+      "expression": "widget.subscribe_core(self.events)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/directory_watcher.py",
+      "line": 323,
+      "kind": "Call",
+      "expression": "self._widget.retire_core_observations(self.events)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/frame_presentation.py",
+      "line": 176,
+      "kind": "FunctionDef",
+      "name": "present"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/frame_presentation.py",
+      "line": 110,
+      "kind": "Call",
+      "expression": "frame.present()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/frame_presentation.py",
+      "line": 174,
+      "kind": "Call",
+      "expression": "self.present()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/goal_display.py",
+      "line": 74,
+      "kind": "Load",
+      "expression": "execution.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/goal_interaction.py",
+      "line": 154,
+      "kind": "FunctionDef",
+      "name": "present"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/goal_interaction.py",
+      "line": 54,
+      "kind": "Call",
+      "expression": "session.present(details)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/goal_interaction.py",
+      "line": 113,
+      "kind": "Call",
+      "expression": "session.present(GoalEdit(goal, goal_mention_candidates(view.app), on_save=save))"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/input_history.py",
+      "line": 52,
+      "kind": "FunctionDef",
+      "name": "present"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/input_history.py",
+      "line": 76,
+      "kind": "FunctionDef",
+      "name": "present"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/input_history.py",
+      "line": 77,
+      "kind": "Call",
+      "expression": "super().present(prompt, entry)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/mcp_decision.py",
+      "line": 82,
+      "kind": "Call",
+      "expression": "PtyProcess.acquire((str(node), str(cli), *command.apply(selection)), env=env, cwd=str(Path(cli).parent), width=state.width, height=state.height, custody=custody)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/navigation_preparation.py",
+      "line": 51,
+      "kind": "Call",
+      "expression": "wire(root)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/navigation_preparation.py",
+      "line": 129,
+      "kind": "Call",
+      "expression": "wire(root)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/navigation_preparation.py",
+      "line": 212,
+      "kind": "Call",
+      "expression": "self._slots.acquire()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/render_tasks.py",
+      "line": 64,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/main.py",
+      "line": 245,
+      "kind": "FunctionDef",
+      "name": "_make_conversation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/main.py",
+      "line": 172,
+      "kind": "Store",
+      "expression": "self._initial_prompt"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/main.py",
+      "line": 179,
+      "kind": "Store",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/main.py",
+      "line": 179,
+      "kind": "Call",
+      "expression": "OperationalSessionPresentation()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/main.py",
+      "line": 228,
+      "kind": "Load",
+      "expression": "conversation._directory_watcher"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/main.py",
+      "line": 202,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/main.py",
+      "line": 205,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/main.py",
+      "line": 205,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/main.py",
+      "line": 250,
+      "kind": "Load",
+      "expression": "self._initial_prompt"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/main.py",
+      "line": 260,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/main.py",
+      "line": 354,
+      "kind": "Call",
+      "expression": "wire(root_path)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/main.py",
+      "line": 185,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/main.py",
+      "line": 241,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_admission.py",
+      "line": 137,
+      "kind": "Load",
+      "expression": "thread.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_admission.py",
+      "line": 132,
+      "kind": "Call",
+      "expression": "wire(root)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_admission.py",
+      "line": 202,
+      "kind": "Call",
+      "expression": "wire(self.key.root)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_navigation.py",
+      "line": 33,
+      "kind": "Call",
+      "expression": "self.app.subscribe_core(self.events)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_navigation.py",
+      "line": 247,
+      "kind": "Call",
+      "expression": "wire(root)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 30,
+      "kind": "ClassDef",
+      "name": "SessionViewState"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 75,
+      "kind": "ClassDef",
+      "name": "EditorSessionSurfaceLifetime"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 89,
+      "kind": "ClassDef",
+      "name": "OperationalSessionSources"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 137,
+      "kind": "ClassDef",
+      "name": "OperationalSessionPresentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 181,
+      "kind": "ClassDef",
+      "name": "NativeSessionSurface"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 82,
+      "kind": "AsyncFunctionDef",
+      "name": "release_binding"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 85,
+      "kind": "AsyncFunctionDef",
+      "name": "attach_binding"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 97,
+      "kind": "FunctionDef",
+      "name": "wire"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 102,
+      "kind": "AsyncFunctionDef",
+      "name": "present"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 154,
+      "kind": "AsyncFunctionDef",
+      "name": "release_binding"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 157,
+      "kind": "AsyncFunctionDef",
+      "name": "attach_binding"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 118,
+      "kind": "Load",
+      "expression": "conversation._directory_watcher"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 119,
+      "kind": "Store",
+      "expression": "conversation._directory_watcher"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 142,
+      "kind": "Call",
+      "expression": "OperationalSessionSources()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 158,
+      "kind": "Call",
+      "expression": "self.sources.wire(conversation)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 46,
+      "kind": "Load",
+      "expression": "conversation._initial_prompt"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 99,
+      "kind": "Store",
+      "expression": "conversation._directory_watcher"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 100,
+      "kind": "Call",
+      "expression": "self.directory_watcher.rebind(conversation)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 121,
+      "kind": "Call",
+      "expression": "self.directory_watcher.rebind(screen)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 159,
+      "kind": "Call",
+      "expression": "self.sources.present(conversation)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 176,
+      "kind": "Call",
+      "expression": "conversation.release_native_session()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 215,
+      "kind": "Load",
+      "expression": "screen.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 273,
+      "kind": "Load",
+      "expression": "screen.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 191,
+      "kind": "Load",
+      "expression": "self.view.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 206,
+      "kind": "Call",
+      "expression": "screen.presentation.release_binding(conversation, screen)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 221,
+      "kind": "Call",
+      "expression": "screen._make_conversation()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 231,
+      "kind": "Call",
+      "expression": "owner.attach_binding(conversation)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 235,
+      "kind": "Call",
+      "expression": "conversation.prepare_retained_session()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 238,
+      "kind": "Call",
+      "expression": "conversation.start_native_session()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 227,
+      "kind": "Store",
+      "expression": "owner.widget._initial_prompt"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 275,
+      "kind": "Call",
+      "expression": "owner.release_binding(owner.widget, screen)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 282,
+      "kind": "Call",
+      "expression": "self.view.presentation.release_binding(self.widget, self.view)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 206,
+      "kind": "Load",
+      "expression": "screen.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 282,
+      "kind": "Load",
+      "expression": "self.view.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/shell.py",
+      "line": 154,
+      "kind": "Call",
+      "expression": "PtyProcess.acquire(launch.argv(), env=command.env, cwd=command.cwd, width=self._terminal_size[0], height=max(self._terminal_size[1], 1), custody=custody, buffer_size=BUFFER_SIZE)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/sidebar_observation.py",
+      "line": 56,
+      "kind": "Call",
+      "expression": "self.sidebar.subscribe_core(app.session_tracker.events)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/sidebar_observation.py",
+      "line": 55,
+      "kind": "Call",
+      "expression": "wire(root)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/sidebar_observation.py",
+      "line": 158,
+      "kind": "Call",
+      "expression": "wire(current_root())"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 30,
+      "kind": "Load",
+      "expression": "person.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 97,
+      "kind": "Load",
+      "expression": "row.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/terminal_execution.py",
+      "line": 191,
+      "kind": "AsyncFunctionDef",
+      "name": "acquire"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/terminal_execution.py",
+      "line": 440,
+      "kind": "Call",
+      "expression": "PtyProcess.acquire(command.shell_command, env=os.environ | command.env, cwd=command.cwd, width=self.state.width, height=self.state.height, custody=custody)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/transcript_publication.py",
+      "line": 300,
+      "kind": "Store",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/transcript_publication.py",
+      "line": 341,
+      "kind": "Call",
+      "expression": "view.retire_core_observations(view.app.coordination_access.events)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/transcript_publication.py",
+      "line": 303,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/transcript_publication.py",
+      "line": 350,
+      "kind": "Call",
+      "expression": "view.retire_core_observations(view.app.coordination_access.events)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/transcript_publication.py",
+      "line": 363,
+      "kind": "Call",
+      "expression": "view.retire_core_observations(view.app.coordination_access.events)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/transcript_publication.py",
+      "line": 309,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/transcript_publication.py",
+      "line": 741,
+      "kind": "Load",
+      "expression": "observed.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 167,
+      "kind": "Call",
+      "expression": "self.retire_core_observations(self.app.coordination_access.events)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 186,
+      "kind": "Call",
+      "expression": "self.retire_core_observations(self.app.coordination_access.events)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 161,
+      "kind": "Call",
+      "expression": "self.retire_core_observations(self.app.coordination_access.events)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/channel_participants.py",
+      "line": 40,
+      "kind": "Load",
+      "expression": "person.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/channel_participants.py",
+      "line": 49,
+      "kind": "Load",
+      "expression": "person.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 140,
+      "kind": "AsyncFunctionDef",
+      "name": "initialize_view"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 157,
+      "kind": "Call",
+      "expression": "wire(root)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 437,
+      "kind": "Call",
+      "expression": "delivery_failure(error).present(self, event.body)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 178,
+      "kind": "FunctionDef",
+      "name": "present"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 34,
+      "kind": "FunctionDef",
+      "name": "rebind"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 71,
+      "kind": "FunctionDef",
+      "name": "present"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 348,
+      "kind": "Call",
+      "expression": "self.query_one(ContextTree).present(captured.groups())"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 359,
+      "kind": "Call",
+      "expression": "self.state.present(self._present)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 296,
+      "kind": "Call",
+      "expression": "self.state.present(lambda current: self._inspection_acquired(previous, current, force))"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 319,
+      "kind": "Call",
+      "expression": "updated.present(self._present)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 337,
+      "kind": "Call",
+      "expression": "updated.present(self._present)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 108,
+      "kind": "Call",
+      "expression": "self.intent.rebind(original, model, self.show_detail)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 291,
+      "kind": "Call",
+      "expression": "self.state.acquire(access.service, access.revision)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 531,
+      "kind": "AsyncFunctionDef",
+      "name": "release_native_session"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 539,
+      "kind": "AsyncFunctionDef",
+      "name": "prepare_retained_session"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 567,
+      "kind": "FunctionDef",
+      "name": "start_native_session"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1676,
+      "kind": "AsyncFunctionDef",
+      "name": "initialize_view"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 509,
+      "kind": "Store",
+      "expression": "self._directory_watcher"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 511,
+      "kind": "Store",
+      "expression": "self._initial_prompt"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 537,
+      "kind": "Store",
+      "expression": "self._initial_prompt"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1590,
+      "kind": "Call",
+      "expression": "history.present(self.prompt, entry)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1691,
+      "kind": "Call",
+      "expression": "self.start_native_session()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 527,
+      "kind": "Load",
+      "expression": "self._directory_watcher"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 529,
+      "kind": "Store",
+      "expression": "self._directory_watcher"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 570,
+      "kind": "Load",
+      "expression": "self._directory_watcher"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 571,
+      "kind": "Store",
+      "expression": "self._directory_watcher"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 571,
+      "kind": "Call",
+      "expression": "DirectoryWatcher(self.project_path, self)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 616,
+      "kind": "Load",
+      "expression": "self._initial_prompt"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 625,
+      "kind": "Store",
+      "expression": "self._initial_prompt"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 739,
+      "kind": "Load",
+      "expression": "self._directory_watcher"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 741,
+      "kind": "Load",
+      "expression": "self._directory_watcher"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 768,
+      "kind": "Load",
+      "expression": "self._directory_watcher"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 770,
+      "kind": "Store",
+      "expression": "self._directory_watcher"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 772,
+      "kind": "Store",
+      "expression": "self._directory_watcher"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 772,
+      "kind": "Call",
+      "expression": "DirectoryWatcher(path, self)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 984,
+      "kind": "Load",
+      "expression": "observation.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1594,
+      "kind": "Call",
+      "expression": "request.present(self)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1665,
+      "kind": "Call",
+      "expression": "self.initialize_view()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 417,
+      "kind": "Load",
+      "expression": "self.agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 615,
+      "kind": "Load",
+      "expression": "self._initial_prompt"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 986,
+      "kind": "Load",
+      "expression": "observation.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1117,
+      "kind": "Load",
+      "expression": "agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1811,
+      "kind": "Load",
+      "expression": "agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 572,
+      "kind": "Load",
+      "expression": "self._directory_watcher"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 773,
+      "kind": "Load",
+      "expression": "self._directory_watcher"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 458,
+      "kind": "Load",
+      "expression": "self.agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 528,
+      "kind": "Load",
+      "expression": "self._directory_watcher"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 623,
+      "kind": "Load",
+      "expression": "self._initial_prompt"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 769,
+      "kind": "Load",
+      "expression": "self._directory_watcher"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1158,
+      "kind": "Load",
+      "expression": "agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1653,
+      "kind": "Load",
+      "expression": "agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1713,
+      "kind": "Load",
+      "expression": "self.agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 545,
+      "kind": "Load",
+      "expression": "agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 619,
+      "kind": "Load",
+      "expression": "self._initial_prompt"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/goal_bar.py",
+      "line": 199,
+      "kind": "Load",
+      "expression": "execution.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/goal_text.py",
+      "line": 18,
+      "kind": "Load",
+      "expression": "person.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 28,
+      "kind": "Store",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 96,
+      "kind": "Store",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 94,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 82,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/prompt.py",
+      "line": 498,
+      "kind": "Load",
+      "expression": "self.agent.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/question.py",
+      "line": 177,
+      "kind": "Store",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/question.py",
+      "line": 184,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/question.py",
+      "line": 185,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/question.py",
+      "line": 188,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/question.py",
+      "line": 201,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/question.py",
+      "line": 192,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/question.py",
+      "line": 237,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/question.py",
+      "line": 240,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/question.py",
+      "line": 243,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/session_details.py",
+      "line": 77,
+      "kind": "Load",
+      "expression": "activity.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 187,
+      "kind": "Call",
+      "expression": "self.subscribe_core(self.app.session_tracker.events)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 97,
+      "kind": "FunctionDef",
+      "name": "present"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 127,
+      "kind": "Call",
+      "expression": "group.present(sources[group])"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 125,
+      "kind": "FunctionDef",
+      "name": "present"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/thread_comms_source.py",
+      "line": 18,
+      "kind": "Call",
+      "expression": "wire(self.root)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 295,
+      "kind": "AsyncFunctionDef",
+      "name": "acquire"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 939,
+      "kind": "Call",
+      "expression": "TranscriptPageView.acquire(self, page, newest=older, fragments=fragments, batch_size=self.budget.admission_items, before=edge if older else self.newer, current=lambda: snapshot.current(self) and edge.capture_admission() == admission)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 866,
+      "kind": "Call",
+      "expression": "TranscriptPageView.acquire(self, page, fragments=fragments, batch_size=destination_admission, before=self.newer, current=lambda: snapshot.current(self) and request.current(window))"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 848,
+      "kind": "Store",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 853,
+      "kind": "Store",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 849,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 854,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 864,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 869,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 870,
+      "kind": "Load",
+      "expression": "self.presentation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/work_preparation.py",
+      "line": 250,
+      "kind": "Call",
+      "expression": "self._threads.acquire()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/workspace_chrome.py",
+      "line": 37,
+      "kind": "Call",
+      "expression": "NativeSessionSurface(app)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/acp_navigation_server.py",
+      "line": 32,
+      "kind": "Call",
+      "expression": "wire(os.environ['AGENT_COMMS_ROOT'])"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/activity_spinners_pilot.py",
+      "line": 60,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/agent_selection_configured_installed_pilot.py",
+      "line": 46,
+      "kind": "Call",
+      "expression": "wire()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/async_tab_activation_pilot.py",
+      "line": 43,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/async_tab_activation_pilot.py",
+      "line": 70,
+      "kind": "Call",
+      "expression": "present()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/async_thread_open_pilot.py",
+      "line": 43,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/bar_projection_reuse_pilot.py",
+      "line": 26,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 286,
+      "kind": "Call",
+      "expression": "wire(os.environ['AGENT_COMMS_ROOT'])"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 80,
+      "kind": "Call",
+      "expression": "wire(os.environ['AGENT_COMMS_ROOT'])"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/channel_any_mode_ui_pilot.py",
+      "line": 30,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/channel_any_mode_ui_pilot.py",
+      "line": 51,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/channel_any_mode_ui_pilot.py",
+      "line": 76,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/channel_display_basis_pilot.py",
+      "line": 28,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/channel_history_reader_pilot.py",
+      "line": 26,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/channel_history_reader_pilot.py",
+      "line": 39,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/channel_history_reader_pilot.py",
+      "line": 67,
+      "kind": "Call",
+      "expression": "wire(root / 'old')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/channel_history_reader_pilot.py",
+      "line": 68,
+      "kind": "Call",
+      "expression": "wire(root / 'live')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/channel_history_reader_pilot.py",
+      "line": 91,
+      "kind": "Call",
+      "expression": "wire(root)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/channel_mentions_pilot.py",
+      "line": 26,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/channel_partial_paint_pilot.py",
+      "line": 27,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/channel_retirement_pilot.py",
+      "line": 28,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/channel_roster_retention_pilot.py",
+      "line": 57,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/channel_scope_expansion_pilot.py",
+      "line": 28,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/channel_unread_follow_pilot.py",
+      "line": 33,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/channel_views_pilot.py",
+      "line": 37,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/channel_views_pilot.py",
+      "line": 72,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/channel_views_pilot.py",
+      "line": 237,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/channel_views_pilot.py",
+      "line": 224,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/channel_visibility_observation_pilot.py",
+      "line": 92,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/channel_visibility_pilot.py",
+      "line": 44,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/cold_thread_latency_pilot.py",
+      "line": 46,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/comms_boundary_fixture.py",
+      "line": 46,
+      "kind": "Call",
+      "expression": "wire(wire_root)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/comms_pilot.py",
+      "line": 99,
+      "kind": "Call",
+      "expression": "wire(wire_root)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/comms_scene_latency_pilot.py",
+      "line": 46,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/conversation_kind_pilot.py",
+      "line": 19,
+      "kind": "Call",
+      "expression": "wire(project / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/default_route_cancel_pilot.py",
+      "line": 122,
+      "kind": "Call",
+      "expression": "wire(root)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/default_route_cancel_pilot.py",
+      "line": 86,
+      "kind": "Call",
+      "expression": "wire(root)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/default_route_pilot.py",
+      "line": 273,
+      "kind": "Call",
+      "expression": "wire(second)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/divider_unread_paint_pilot.py",
+      "line": 28,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/dm_rebind_paint_pilot.py",
+      "line": 36,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/editor_key_workflow_pilot.py",
+      "line": 85,
+      "kind": "Call",
+      "expression": "wire(root)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/existing_thread_link_pilot.py",
+      "line": 33,
+      "kind": "Call",
+      "expression": "wire(wire_root)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/existing_thread_tab_title_pilot.py",
+      "line": 31,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/file_path_preview_pilot.py",
+      "line": 282,
+      "kind": "Call",
+      "expression": "wire(root / 'old')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/file_path_preview_pilot.py",
+      "line": 309,
+      "kind": "Call",
+      "expression": "wire(root / 'live')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/file_path_preview_pilot.py",
+      "line": 41,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/fresh_fork_pilot.py",
+      "line": 50,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/goal_standby_history_pilot.py",
+      "line": 97,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/historical_views_pilot.py",
+      "line": 202,
+      "kind": "Call",
+      "expression": "wire(root / 'old')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/historical_views_pilot.py",
+      "line": 221,
+      "kind": "Call",
+      "expression": "wire(root / 'live')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/historical_views_pilot.py",
+      "line": 41,
+      "kind": "Call",
+      "expression": "wire(root / 'old')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/historical_views_pilot.py",
+      "line": 72,
+      "kind": "Call",
+      "expression": "wire(root / 'live')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/history_page_batch_mount_pilot.py",
+      "line": 202,
+      "kind": "Call",
+      "expression": "PendingPage.acquire(history, page, fragments=resource.fragments, batch_size=resource.batch_size, before=history.newer, current=lambda: snapshot.current(history))"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/history_scroll_frames_pilot.py",
+      "line": 85,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/hot_path_invalidation_pilot.py",
+      "line": 25,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/human_mark_read_pilot.py",
+      "line": 37,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/initial_session_title_pilot.py",
+      "line": 41,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/l0a_archive_history_pilot.py",
+      "line": 50,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/layout_alignment_pilot.py",
+      "line": 55,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/manual_live_turn_status.py",
+      "line": 95,
+      "kind": "Call",
+      "expression": "wire()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/message_categories_pilot.py",
+      "line": 58,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/message_dividers_pilot.py",
+      "line": 227,
+      "kind": "AsyncFunctionDef",
+      "name": "acquire"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/message_dividers_pilot.py",
+      "line": 294,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/message_notifications_pilot.py",
+      "line": 38,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/native_message_parts_pilot.py",
+      "line": 33,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/native_terminal_retention_pilot.py",
+      "line": 274,
+      "kind": "Call",
+      "expression": "present(terminal, scrollback, alternate)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/navigation_preparation_pilot.py",
+      "line": 88,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/navigation_terminal_fixture.py",
+      "line": 64,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/nominal_tool_menu_pilot.py",
+      "line": 29,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/observed_thread_activity_pilot.py",
+      "line": 60,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/owner_navigation_pilot.py",
+      "line": 30,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/owner_poll_latency_pilot.py",
+      "line": 28,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/owner_poll_latency_pilot.py",
+      "line": 45,
+      "kind": "Call",
+      "expression": "wire(source)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/owner_reader_reuse_pilot.py",
+      "line": 50,
+      "kind": "Call",
+      "expression": "wire(source)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/owner_reader_reuse_pilot.py",
+      "line": 75,
+      "kind": "Call",
+      "expression": "wire(source)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/owner_reader_reuse_pilot.py",
+      "line": 31,
+      "kind": "Call",
+      "expression": "wire(source)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/pending_unread_pilot.py",
+      "line": 28,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/permission_pending_mount_pilot.py",
+      "line": 97,
+      "kind": "Call",
+      "expression": "agent.permissions.present()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/post_cancel_session_installed_journey.py",
+      "line": 36,
+      "kind": "Call",
+      "expression": "lease.acquire()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/prepared_bars_pilot.py",
+      "line": 25,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/profile_coordination.py",
+      "line": 14,
+      "kind": "Call",
+      "expression": "wire(root)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/profile_hot_paths_pilot.py",
+      "line": 42,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/provider_login_installed_physical.py",
+      "line": 84,
+      "kind": "Call",
+      "expression": "wire()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 216,
+      "kind": "Call",
+      "expression": "wire()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/recovery_view_boundaries_pilot.py",
+      "line": 71,
+      "kind": "Call",
+      "expression": "wire(target)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/recovery_view_pilot.py",
+      "line": 46,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/relationship_poll_reflow_pilot.py",
+      "line": 46,
+      "kind": "Call",
+      "expression": "tree.retire_core_observations(app.coordination_access.events)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/right_comms_integration_pilot.py",
+      "line": 48,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/runtime_fixture.py",
+      "line": 22,
+      "kind": "Call",
+      "expression": "wire(root)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/runtime_fixture.py",
+      "line": 183,
+      "kind": "Call",
+      "expression": "wire(root)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/runtime_fixture.py",
+      "line": 197,
+      "kind": "Call",
+      "expression": "wire(Path(root))"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/selection_disclosure_pilot.py",
+      "line": 23,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/shared_channels_pilot.py",
+      "line": 65,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/shared_channels_pilot.py",
+      "line": 220,
+      "kind": "Call",
+      "expression": "wire(new_root)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/sidebar_collapse_latency_pilot.py",
+      "line": 42,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/sidebar_latency_pilot.py",
+      "line": 51,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/sidebar_layout_controls_pilot.py",
+      "line": 30,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/sidebar_metadata_reflow_pilot.py",
+      "line": 24,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/sidebar_navigation_pilot.py",
+      "line": 98,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/sidebar_nonvirtual_scroll_pilot.py",
+      "line": 66,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/sidebar_nonvirtual_scroll_pilot.py",
+      "line": 30,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/sidebar_projection_pilot.py",
+      "line": 40,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 45,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 140,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/sidebar_sort_viewport_pilot.py",
+      "line": 31,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/stop_responsiveness_pilot.py",
+      "line": 33,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/tab_history_controls_pilot.py",
+      "line": 37,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/tab_order_pilot.py",
+      "line": 22,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/thread_render_wait_pilot.py",
+      "line": 59,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/tools/editor_focus_journey.py",
+      "line": 87,
+      "kind": "Call",
+      "expression": "wire()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/tools/merged_selector_fixture_recording.py",
+      "line": 31,
+      "kind": "Call",
+      "expression": "wire()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/transcript_history_pilot.py",
+      "line": 39,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/transcript_lifecycle_pilot.py",
+      "line": 29,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/ui_sidebar_geometry_pilot.py",
+      "line": 34,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/unread_navigation_pilot.py",
+      "line": 40,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/unread_paint_only_pilot.py",
+      "line": 24,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 69,
+      "kind": "Call",
+      "expression": "body.lock.acquire()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tools/performance/profile_thread_open.py",
+      "line": 91,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tools/performance/replay_state.py",
+      "line": 193,
+      "kind": "Call",
+      "expression": "wire(root / 'wire')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tools/performance/watcher_archived_ui_pilot.py",
+      "line": 36,
+      "kind": "Call",
+      "expression": "wire()"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/rlock.py",
+      "line": 14,
+      "kind": "AsyncFunctionDef",
+      "name": "acquire"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/rlock.py",
+      "line": 43,
+      "kind": "Call",
+      "expression": "self.acquire()"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/rlock.py",
+      "line": 19,
+      "kind": "Call",
+      "expression": "self._lock.acquire()"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/acp.py",
+      "line": 524,
+      "kind": "Call",
+      "expression": "wire(private_nk.validated_root)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/acp.py",
+      "line": 524,
+      "kind": "Call",
+      "expression": "wire()"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/acp_extension.py",
+      "line": 79,
+      "kind": "FunctionDef",
+      "name": "present"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/acp_extension.py",
+      "line": 84,
+      "kind": "FunctionDef",
+      "name": "present"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/activity.py",
+      "line": 83,
+      "kind": "FunctionDef",
+      "name": "acquire"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/activity.py",
+      "line": 176,
+      "kind": "FunctionDef",
+      "name": "acquire"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/activity.py",
+      "line": 178,
+      "kind": "Call",
+      "expression": "DrainReadiness.acquire(event.diagnostic, owner)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/agent_activity.py",
+      "line": 121,
+      "kind": "Call",
+      "expression": "ObservedActivity.acquire(event, owner)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/backend.py",
+      "line": 107,
+      "kind": "Call",
+      "expression": "startup.acquire(finish_event)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/child_process.py",
+      "line": 174,
+      "kind": "Call",
+      "expression": "StoreLockContention(math.inf if blocking else 0).acquire(descriptor, self, shared=shared)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/cli.py",
+      "line": 58,
+      "kind": "Call",
+      "expression": "wire(route)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/comms.py",
+      "line": 63,
+      "kind": "FunctionDef",
+      "name": "wire"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/coordinated_runtime.py",
+      "line": 99,
+      "kind": "Call",
+      "expression": "self._run_permit.acquire(blocking=False)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/delivery_presentation.py",
+      "line": 5,
+      "kind": "FunctionDef",
+      "name": "present"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/native_input_record.py",
+      "line": 279,
+      "kind": "FunctionDef",
+      "name": "acquire"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/native_input_record.py",
+      "line": 373,
+      "kind": "Call",
+      "expression": "NativeInputReference.acquire(self)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/native_startup.py",
+      "line": 88,
+      "kind": "AsyncFunctionDef",
+      "name": "acquire"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/optional_awareness_projection.py",
+      "line": 140,
+      "kind": "Call",
+      "expression": "self._build_slot.acquire(blocking=False)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/owned_turn.py",
+      "line": 462,
+      "kind": "AsyncFunctionDef",
+      "name": "acquire"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/owned_turn.py",
+      "line": 483,
+      "kind": "Call",
+      "expression": "self.acquire(resources, permit_custody)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/private_send_admission.py",
+      "line": 245,
+      "kind": "Call",
+      "expression": "self._once.acquire(blocking=False)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/recovery_gateway.py",
+      "line": 358,
+      "kind": "Call",
+      "expression": "self._worker_slots.acquire()"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/restart_queue.py",
+      "line": 335,
+      "kind": "Call",
+      "expression": "wire(sys.argv[1])"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/selected_session.py",
+      "line": 127,
+      "kind": "FunctionDef",
+      "name": "acquire"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/selected_triage.py",
+      "line": 113,
+      "kind": "FunctionDef",
+      "name": "acquire"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/selected_turn.py",
+      "line": 263,
+      "kind": "Call",
+      "expression": "SelectedTriageOutcome.acquire(result.text)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/store_files.py",
+      "line": 54,
+      "kind": "FunctionDef",
+      "name": "acquire"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/store_files.py",
+      "line": 121,
+      "kind": "Call",
+      "expression": "contention.acquire(lock_file.fileno(), platform, shared=shared)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/view_unread.py",
+      "line": 211,
+      "kind": "Call",
+      "expression": "self._lock.acquire(timeout=0.15)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/worker.py",
+      "line": 96,
+      "kind": "Call",
+      "expression": "wire(launch.validated_root)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/worker.py",
+      "line": 18,
+      "kind": "Call",
+      "expression": "wire(private_nk.validated_root)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "path": "src/agent_comms/worker.py",
+      "line": 18,
+      "kind": "Call",
+      "expression": "wire()"
+    }
+  ]
+}

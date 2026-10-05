@@ -310,7 +310,9 @@ class DirectoryWatcher(threading.Thread):
     def rebind(self, widget: Widget) -> None:
         """Move notification custody without restarting the path observation."""
         with self._delivery_lock:
+            self._widget.retire_core_observations(self.events)
             self._widget = widget
+            widget.subscribe_core(self.events)
 
     async def aclose(self) -> None:
         """End path observation and join its delivery thread before releasing custody."""
