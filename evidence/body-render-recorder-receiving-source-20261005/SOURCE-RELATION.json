@@ -5,7 +5,10 @@
   "body464_merge": "de18e88dafd287ce95ea81e5686f25de2b23f1df",
   "renderer458_merge": "6d0de99cd2d2929107a731b00b63605ed43f7bbb",
   "recorder462_final_head": "cf93067fd4c873f6aef69607f5ec5ce716e69954",
-  "recorder462_changed_tool_paths": [],
+  "recorder462_changed_tool_paths": [
+    "tests/tools/VIDEO_REVIEW.md",
+    "tests/tools/record_installed_tui.py"
+  ],
   "Toad_relation": {
     "actualmain": "769e78a6c7087849d51b778b418b1467a3de1644",
     "original_build_head": "1ae124fcbc730479a8472c8fbe70f74a32afc5ef",
