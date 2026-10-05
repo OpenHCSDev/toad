@@ -1,0 +1,466 @@
+{
+  "collector": "Original audit.findings.Package/FunctionFacts",
+  "coverage": [
+    {
+      "root": "src/toad",
+      "revision": "650c09d2850582e2d5ae3b3cd06bd9ca2079a533",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "revision": "650c09d2850582e2d5ae3b3cd06bd9ca2079a533",
+      "parsed": 397,
+      "omissions": []
+    }
+  ],
+  "related_functions": {
+    "src/toad/widgets/project_panel.py": [
+      {
+        "function": "src/toad/widgets/project_panel.py::__init__",
+        "constructed": [
+          "__init__",
+          "super"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/project_panel.py::action_search",
+        "constructed": [
+          "Requested",
+          "post_message"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/project_panel.py::on_click",
+        "constructed": [
+          "action_search",
+          "stop"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/project_panel.py::__init__",
+        "constructed": [
+          "__init__",
+          "super"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/project_panel.py::compose",
+        "constructed": [
+          "ProjectSearchButton"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/project_panel.py::on_show",
+        "constructed": [
+          "call_after_refresh"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/project_panel.py::_ensure_tree",
+        "constructed": [
+          "_mount_tree",
+          "isinstance",
+          "next"
+        ],
+        "type_checks": {
+          "node": 2
+        }
+      },
+      {
+        "function": "src/toad/widgets/project_panel.py::_mount_tree",
+        "constructed": [
+          "ProjectDirectoryTree",
+          "mount",
+          "work"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/project_panel.py::watch_path",
+        "constructed": [],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/project_panel.py::invalidate",
+        "constructed": [
+          "invalidate"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/project_panel.py::refresh_if_visible",
+        "constructed": [
+          "refresh_if_visible"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/project_panel.py::capture_intent",
+        "constructed": [
+          "capture"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/project_panel.py::__init__",
+        "constructed": [
+          "__init__",
+          "super"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/project_panel.py::capture_intent",
+        "constructed": [
+          "capture_intent",
+          "matches",
+          "super"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/project_panel.py::watch_path",
+        "constructed": [
+          "cancel_group",
+          "super",
+          "watch_path"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/project_panel.py::_mount_tree",
+        "constructed": [
+          "_mount_tree",
+          "restore",
+          "super",
+          "wait",
+          "work"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/project_panel.py::_read_prefix",
+        "constructed": [
+          "open",
+          "read"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/project_panel.py::__init__",
+        "constructed": [
+          "Event",
+          "__init__",
+          "super"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/project_panel.py::compose",
+        "constructed": [
+          "Static",
+          "str"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/project_panel.py::on_mount",
+        "constructed": [
+          "_load_preview"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/project_panel.py::wait_ready",
+        "constructed": [
+          "wait"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/project_panel.py::on_unmount",
+        "constructed": [
+          "set"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/project_panel.py::_load_preview",
+        "constructed": [
+          "Static",
+          "decode",
+          "for_path",
+          "len",
+          "mount",
+          "preview",
+          "query_one",
+          "remove",
+          "set",
+          "to_thread",
+          "update",
+          "work"
+        ],
+        "type_checks": {}
+      }
+    ],
+    "src/toad/widgets/project_tree_intent.py": [
+      {
+        "function": "src/toad/widgets/project_tree_intent.py::capture",
+        "constructed": [
+          "Path",
+          "add",
+          "cls",
+          "extend",
+          "frozenset",
+          "pop",
+          "set"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/project_tree_intent.py::matches",
+        "constructed": [
+          "Path"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/project_tree_intent.py::restore",
+        "constructed": [
+          "Event",
+          "_add_to_load_queue",
+          "call_after_refresh",
+          "cancelled",
+          "create_future",
+          "expand",
+          "extend",
+          "get_running_loop",
+          "is_relative_to",
+          "matches",
+          "pop",
+          "scroll_to",
+          "set_result",
+          "wait"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/project_tree_intent.py::restore_viewport",
+        "constructed": [
+          "cancelled",
+          "scroll_to",
+          "set_result"
+        ],
+        "type_checks": {}
+      }
+    ],
+    "src/toad/widgets/session_thread_panels.py": [
+      {
+        "function": "src/toad/widgets/session_thread_panels.py::make_widget",
+        "constructed": [],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/session_thread_panels.py::make_header",
+        "constructed": [],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/session_thread_panels.py::compose_panel",
+        "constructed": [
+          "Panel",
+          "make_header",
+          "make_widget",
+          "title"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/session_thread_panels.py::capture",
+        "constructed": [],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/session_thread_panels.py::make_widget",
+        "constructed": [
+          "CoordinationStatus"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/session_thread_panels.py::__init__",
+        "constructed": [],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/session_thread_panels.py::make_widget",
+        "constructed": [
+          "ThreadCommsSidebar"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/session_thread_panels.py::make_header",
+        "constructed": [
+          "RelationshipSort"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/session_thread_panels.py::capture",
+        "constructed": [
+          "values"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/session_thread_panels.py::__init__",
+        "constructed": [],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/session_thread_panels.py::make_widget",
+        "constructed": [
+          "Plan"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/session_thread_panels.py::update",
+        "constructed": [
+          "query_one",
+          "query_one_optional",
+          "title"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/session_thread_panels.py::__init__",
+        "constructed": [],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/session_thread_panels.py::make_widget",
+        "constructed": [
+          "RestorableProjectPanel"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/session_thread_panels.py::capture",
+        "constructed": [
+          "capture_intent"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/session_thread_panels.py::make_widget",
+        "constructed": [
+          "RecoveryView"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/session_thread_panels.py::__init__",
+        "constructed": [],
+        "type_checks": {}
+      },
+      {
+        "function": "src/toad/widgets/session_thread_panels.py::make_widget",
+        "constructed": [
+          "ContextExplorer",
+          "ContextTreeIntent",
+          "setdefault"
+        ],
+        "type_checks": {}
+      }
+    ],
+    "tests/test_project_panel_intent.py": [
+      {
+        "function": "tests/test_project_panel_intent.py::test_retirement_during_restore_keeps_the_project_reader",
+        "constructed": [
+          "Event",
+          "Offset",
+          "ProjectApp",
+          "ProjectSessionPanel",
+          "ProjectTreeIntent",
+          "RestorableProjectPanel",
+          "_mount_tree",
+          "append",
+          "capture",
+          "capture_intent",
+          "frozenset",
+          "is_set",
+          "journey",
+          "mkdir",
+          "mount",
+          "on",
+          "pause",
+          "range",
+          "remove",
+          "run",
+          "run_test",
+          "set",
+          "wait",
+          "write_text"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "tests/test_project_panel_intent.py::journey",
+        "constructed": [
+          "Event",
+          "ProjectApp",
+          "RestorableProjectPanel",
+          "_mount_tree",
+          "append",
+          "capture",
+          "capture_intent",
+          "is_set",
+          "mount",
+          "on",
+          "pause",
+          "remove",
+          "run_test",
+          "set",
+          "wait"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "tests/test_project_panel_intent.py::compose",
+        "constructed": [],
+        "type_checks": {}
+      },
+      {
+        "function": "tests/test_project_panel_intent.py::on_mount",
+        "constructed": [
+          "_mount_tree"
+        ],
+        "type_checks": {}
+      },
+      {
+        "function": "tests/test_project_panel_intent.py::initial_root",
+        "constructed": [
+          "append",
+          "capture",
+          "is_set",
+          "on",
+          "remove",
+          "set"
+        ],
+        "type_checks": {}
+      }
+    ]
+  },
+  "original_native_contract_revision": "180cbd9471bd6674647590108ca2fe5a627eb24f",
+  "native_owner_read": "Pinned Widget._message_loop_exit cancels original node workers; Worker.cancel cancels its own asyncio task; MessagePump.call_after_refresh posts its original InvokeLater callback. No dependency edits.",
+  "acceptance": "AST and syntax only, affected mounted App prepared UNRUN"
+}
