@@ -2,6 +2,7 @@ from __future__ import annotations
 
 
 import asyncio
+from dataclasses import replace
 
 import os
 from pathlib import Path
@@ -66,22 +67,21 @@ class PathContent(Content):
                 line = line[line.plain.find("/") + 1 :]
             line = Content.assemble(("⋯ ", "$text-error"), line)
 
-        lines = line._wrap_and_format(
+        return Content.render_strips(
+            line,
             width,
-            tab_size=8,
-            overflow="clip",
-            no_wrap=True,
-            selection=options.selection,
-            selection_style=options.selection_style,
-            post_style=options.post_style,
-            get_style=options.get_style,
+            height,
+            style,
+            replace(
+                options,
+                rules={
+                    "text_wrap": "nowrap",
+                    "text_overflow": "clip",
+                    "text_align": "left",
+                    "line_pad": 0,
+                },
+            ),
         )
-
-        if height is not None:
-            lines = lines[:height]
-
-        strip_lines = [Strip(*line.to_strip(style)) for line in lines]
-        return strip_lines
 
 
 class FuzzyPathOptionList(SelectionOptionList):

@@ -27,8 +27,8 @@ from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.transcript_history import TranscriptHistory
 from toad.transcript_preparation import PageRequest
 sys.path.insert(0, str(Path(__file__).resolve().parent / 'tools'))
-from record_installed_tui import (ObserveJourney, InputWarmJourney, ProcessOwner,
-                                 marker_command, phase_events, main as record_main)
+from record_installed_tui import (ObserveJourney, InputWarmJourney, ProcessOwner, RuntimeSelection,
+                                 WheelWarmJourney, marker_command, phase_events, main as record_main)
 from runtime_fixture import private_native_wire
 
 
@@ -364,17 +364,19 @@ async def retained_app(project):
 
 async def record_retained(service, project, evidence, environment, *, recording_args,
                           recording_timeout, recording_output, retained_channel_source,
-                          journey=RetainedHistorySourceJourney):
+                          journey=RetainedHistorySourceJourney, application_command=None,
+                          candidate=None):
     """Existing original-turn fixture callback; owns no second App or root."""
     # The existing archive owner retains original identities/provenance without
     # republishing them, reserving sequences or waking their former recipients.
-    source = await asyncio.to_thread(prepare_channel, service, project,
-                                     retained_channel_source)
-    (evidence / 'retained-channel-source.json').write_text(json.dumps({
-        'original_root': source.original_root, 'snapshot_root': source.root,
-        'wire_root_id': source.wire_root_id, 'bytes': source.size,
-        'boundary': 'HistoryViews.attach_history; immutable display, no delivery authority',
-    }, indent=2) + '\n')
+    if retained_channel_source is not None:
+        source = await asyncio.to_thread(prepare_channel, service, project,
+                                         retained_channel_source)
+        (evidence / 'retained-channel-source.json').write_text(json.dumps({
+            'original_root': source.original_root, 'snapshot_root': source.root,
+            'wire_root_id': source.wire_root_id, 'bytes': source.size,
+            'boundary': 'HistoryViews.attach_history; immutable display, no delivery authority',
+        }, indent=2) + '\n')
     env = dict(environment, L0A_HEADLESS='0', TOAD_HISTORY_LIFETIME_DIRECTORY=str(project),
                XDG_STATE_HOME=str(evidence / 'ui-state'))
     env.pop('NO_COLOR', None)
@@ -384,10 +386,16 @@ async def record_retained(service, project, evidence, environment, *, recording_
         '--capture-target', 'source', '--private-root', str(service.root),
         '--journey', journey.declared_name, '--peer-thread', 'resource236b',
         '--capture-state', '--scroll-travel', '--output', str(recording_output),
-        '--', sys.executable, str(Path(__file__).resolve()), '--retained-app', str(project)]
+        '--', *(application_command if application_command is not None else
+                 [sys.executable, str(Path(__file__).resolve()), '--retained-app', str(project)])]
     (evidence / 'joint-command.json').write_text(json.dumps(command, indent=2) + '\n')
     owner = ProcessOwner(service.registry)
     try:
+        if candidate is not None:
+            selection = RuntimeSelection.from_environment(application_command, env)
+            proof = await asyncio.to_thread(
+                selection.verify_stage, candidate, owner, env, application_command)
+            (evidence / 'candidate-runtime.json').write_text(json.dumps(proof, indent=2) + '\n')
         with (evidence / 'joint-recorder.log').open('w') as log:
             # Both the recording budget and bounded child custody are chosen
             # by its sole installed operator; this callback changes neither.
@@ -412,8 +420,33 @@ def await_completion(root):
         raise RuntimeError('Original source fixture failed: ' + outcome['error'])
 
 
+async def record_useful_paint(service, project, evidence, environment, *, candidate):
+    """One original retained-fork fixture and one installed CLI/physical App."""
+    entry = Path(__file__).resolve().parents[1] / 'tools/performance/run_observed_app.py'
+    command = [sys.executable, str(entry), 'acp',
+               shlex.join([sys.executable, '-m', 'agent_comms.acp']),
+               str(project), '--session', 'resource436']
+    await record_retained(
+        service, project, evidence,
+        dict(environment, TOAD_VALIDATION_USEFUL_PAINT='1'),
+        recording_args=['--review-timing', 'deferred', '--max-duration', '150',
+                        '--startup-wait', '8', '--history-wait-seconds', '20'],
+        recording_timeout=150, recording_output=evidence / 'capture',
+        retained_channel_source=None, journey=WheelWarmJourney,
+        application_command=command, candidate=candidate)
+
+
 if __name__ == '__main__':
-    if sys.argv[1:2] == ['--await-completion']:
+    if sys.argv[1:2] == ['--record-useful-paint']:
+        # Only original capture helpers are added here, never product source.
+        # Their exact source/read/decoder relationship belongs in the issued
+        # purpose. CurrentTypedCapture revalidates the actual owner at use.
+        sys.path.insert(0, os.environ['ORIGINAL_CAPTURE_HELPER_ROOT'])
+        from original_turn_resource_real_installed_pilot import main as original_fixture
+
+        asyncio.run(original_fixture(readonly_capture=partial(
+            record_useful_paint, candidate=Path(os.environ['USEFUL_PAINT_CANDIDATE']))))
+    elif sys.argv[1:2] == ['--await-completion']:
         await_completion(Path(sys.argv[2]))
     elif sys.argv[1:2] == ['--retained-app']:
         asyncio.run(retained_app(Path(sys.argv[2])))

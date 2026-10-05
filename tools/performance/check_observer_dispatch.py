@@ -1,17 +1,21 @@
-"""Verify instrumentation preserves Textual's decorated-handler dispatch count."""
+"""Source check: wrappers preserve declaration-owned MRO handler selection."""
 
-from toad.acp.messages import TranscriptSnapshot
-from toad.agent import AgentReady
-from toad.widgets.conversation import Conversation
+from agent_comms.acp_extension import TranscriptSnapshotUpdate
+from toad.core.events import AgentReady
+from toad.widgets.conversation import Conversation, ConversationCommsConsumer
 from sidebar_validation_driver import install_observer
 
+# Resolution borrows the real nominal types; no event is delivered or App built.
 conversation = object.__new__(Conversation)
-messages = (TranscriptSnapshot((), None), AgentReady())
-before = {type(message).__name__: len(list(conversation._get_dispatch_methods(message.handler_name, message)))
-          for message in messages}
+consumer = ConversationCommsConsumer(conversation, None)
+publications = ((conversation, AgentReady()),
+                (consumer, object.__new__(TranscriptSnapshotUpdate)))
+before = {type(event).__name__: tuple(handler.__name__ for handler in owner.handlers_for(event))
+          for owner, event in publications}
 install_observer()
-after = {type(message).__name__: len(list(conversation._get_dispatch_methods(message.handler_name, message)))
-         for message in messages}
+after = {type(event).__name__: tuple(handler.__name__ for handler in owner.handlers_for(event))
+         for owner, event in publications}
 assert before == after, (before, after)
-assert all(count == 1 for count in after.values()), after
-print("Observer retains exactly one dispatch per decorated transcript/ready message:", after)
+assert after == {"AgentReady": ("on_agent_ready",),
+                 "TranscriptSnapshotUpdate": ("transcript_snapshot",)}, after
+print("Observer preserves original MRO handler declarations (not delivery proof):", after)
