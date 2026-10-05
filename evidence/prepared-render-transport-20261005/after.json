@@ -1,5 +1,5 @@
 {
-  "head": "66be6fcf1831d89f4cbf280e5d73bcb159146abb",
+  "head": "4d1700234d478ee993111e59773c5a3412b02efe",
   "coverage": [
     {
       "root": "src/toad",
@@ -12,7 +12,7 @@
       "unparsed": []
     }
   ],
-  "changed_modules_compiled": 16,
+  "changed_modules_compiled": 17,
   "changed_sites": [
     {
       "path": "src/toad/render_backend.py",
@@ -2962,6 +2962,66 @@
       ]
     },
     {
+      "path": "tests/render_execution_preparation_installed_pilot.py",
+      "declarations": [],
+      "facts": [
+        {
+          "name": "tests/render_execution_preparation_installed_pilot.py::main",
+          "calls": [
+            "ApplicationValidationOwner",
+            "AssertionError",
+            "AssistantTranscript",
+            "Console",
+            "HeadlessValidationOwner",
+            "MarkdownRenderTask",
+            "PersistentRendererPool",
+            "PreparationRuntime",
+            "PreparedRenderer",
+            "RenderPreparation",
+            "RenderProcessPool",
+            "RenderServiceConfig",
+            "RichPresentation",
+            "RichRenderTask",
+            "StringIO",
+            "Style",
+            "SyntaxSource",
+            "TranscriptRenderTask",
+            "ValidateSessionUpdateTask",
+            "aclose",
+            "active_children",
+            "complete",
+            "dumps",
+            "gather",
+            "identity",
+            "isinstance",
+            "join",
+            "len",
+            "mkdir",
+            "perf_counter",
+            "print",
+            "shutdown_service",
+            "sleep",
+            "submit",
+            "to_thread",
+            "update",
+            "validate",
+            "write_text"
+          ],
+          "keys": {
+            "receipt": [
+              "non_reusable_capture_not_shared_or_retained",
+              "reusable_capture_shared_retained_and_independently_delivered",
+              "wrong_completed_result_refused"
+            ]
+          },
+          "type_checks": {
+            "accepted": 1,
+            "await owner.validate(invalid)": 1
+          }
+        }
+      ]
+    },
+    {
       "path": "tests/render_families_pilot.py",
       "declarations": [
         {
@@ -4586,7 +4646,7 @@
       ]
     }
   ],
-  "deleted_authority": "CapturedResult removed; RendererWork no longer calls renderer.submit or serializes a delivered graph; local/persistent workers call task.capture_result through original admission.",
-  "preserved_authority": "RenderTask.preparation_storage selects storage; task.accept_result validates producer result; PreparedValue validates representation at transport; runtime handles keys/cache/accounting/independent materialization/final scope fences. Direct Renderer.submit worker validates delivered data and joins decoder. RenderExecution.complete remains original headless SDK contract.",
-  "dynamic_resolution": "No full dynamic resolution claim; codec/family discovery and observing/gating overrides read semantically."
+  "deleted_authority": "CapturedResult removed; RendererWork no longer submits/materializes a raw graph before retention. Task.capture_result owns declared storage across local/persistent transport.",
+  "preserved_authority": "RenderTask.preparation_storage and result validation; PreparedValue boundary; Runtime keys/cache/accounting/final scope fences/independent delivery. Shared Renderer raw submit validates on actual joined worker. Headless RenderExecution.complete unchanged.",
+  "dynamic_resolution": "No full dynamic resolution claim. Codec, declaration discovery, custom observers and gating overrides read semantically."
 }
