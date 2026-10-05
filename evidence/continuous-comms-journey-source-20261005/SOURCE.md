@@ -66,3 +66,10 @@ control roots: Toad 288 production / 398 tests / 41 tools; Core 324 production /
 sites from the original AST, with attribute-name resolution limits explicit.
 Current changed declarations compile and parse without importing the application.
 This proves source construction only; no test, UI, SDK, provider or timing claim.
+
+The final source receipt is `AFTER-SOURCE.json`. It records the twelve existing
+control call sites, zero production/tool/dependency/runtime_fixture delta, and
+three byte-preserved Heis producer declarations. The adjacent external CLI
+control still has two retired kind predicates; it is outside the granted shared
+methods and is not claimed qualified by this checkpoint. Its historical CLI
+acceptance is distinct from the native DM stage changed here.

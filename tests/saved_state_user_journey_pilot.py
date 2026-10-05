@@ -25,7 +25,6 @@ from toad.widgets.channel_participants import ChannelParticipants
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_menu import ContextMenuItem
 from toad.widgets.comms_sidebar import ChannelGroup, CommsRow
-from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.session_tabs import SessionLabel
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.transcript_history import TranscriptFragmentView
