@@ -414,7 +414,7 @@ def await_completion(root):
         raise RuntimeError('Original source fixture failed: ' + outcome['error'])
 
 
-async def record_useful_paint(service, project, evidence, environment):
+async def record_useful_paint(service, project, evidence, environment, *, candidate):
     """One original retained-fork fixture and one installed CLI/physical App."""
     entry = Path(__file__).resolve().parents[1] / 'tools/performance/run_observed_app.py'
     command = [sys.executable, str(entry), 'acp',
@@ -423,9 +423,10 @@ async def record_useful_paint(service, project, evidence, environment):
     await record_retained(
         service, project, evidence,
         dict(environment, TOAD_VALIDATION_USEFUL_PAINT='1'),
-        recording_args=['--review-timing', 'deferred', '--max-duration', '150',
+        recording_args=['--staging-receipt', str(candidate),
+                        '--review-timing', 'deferred', '--max-duration', '150',
                         '--startup-wait', '8', '--history-wait-seconds', '20'],
-        recording_timeout=150, recording_output=Path(os.environ['USEFUL_PAINT_CAPTURE']),
+        recording_timeout=150, recording_output=evidence / 'capture',
         retained_channel_source=None, journey=WheelWarmJourney,
         application_command=command)
 
@@ -438,7 +439,8 @@ if __name__ == '__main__':
         sys.path.insert(0, os.environ['ORIGINAL_CAPTURE_HELPER_ROOT'])
         from original_turn_resource_real_installed_pilot import main as original_fixture
 
-        asyncio.run(original_fixture(readonly_capture=record_useful_paint))
+        asyncio.run(original_fixture(readonly_capture=partial(
+            record_useful_paint, candidate=Path(os.environ['USEFUL_PAINT_CANDIDATE']))))
     elif sys.argv[1:2] == ['--await-completion']:
         await_completion(Path(sys.argv[2]))
     elif sys.argv[1:2] == ['--retained-app']:
