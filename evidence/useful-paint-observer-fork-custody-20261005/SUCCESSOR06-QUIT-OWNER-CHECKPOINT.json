@@ -1,0 +1,507 @@
+{
+  "state": "SOURCE owner checkpoint after consumed06 wholeTIMEOUTFAIL, originalfloor/native/publicsource returned; no product patch/runtime credit/replay",
+  "source_head": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+  "coverage": [
+    {
+      "root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "rev": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "source": "src/toad",
+      "modules": 288,
+      "unparsed": []
+    },
+    {
+      "root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "rev": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "source": "tests",
+      "modules": 399,
+      "unparsed": []
+    },
+    {
+      "root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "rev": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "source": "tools",
+      "modules": 41,
+      "unparsed": []
+    },
+    {
+      "root": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "rev": "7b68d630caa654d3e9884f45cbd6493718752a0c",
+      "source": "src/agent_comms",
+      "modules": 324,
+      "unparsed": []
+    },
+    {
+      "root": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "rev": "a2dd8a9a37825a828df0d8f651ca57d92db69e5f",
+      "source": "src/textual",
+      "modules": 249,
+      "unparsed": []
+    }
+  ],
+  "owner_method_index": [
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "src/toad/acp/agent.py",
+      "declaration": "Agent.stop",
+      "line": 186,
+      "sha256": "176d4e519b42f4483c10b8b1c2c957ff7ba30a483f8d27bb074eb049fbce5ac9",
+      "calls": [
+        "self.controller.terminals.close",
+        "self.process.close",
+        "self.process.stop",
+        "self.session.touch"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "src/toad/acp/agent.py",
+      "declaration": "Agent.retire_surface",
+      "line": 216,
+      "sha256": "97c0686d4055c15d397d2c6450c03300cdc8f85adc9a92587752c65da63ce992",
+      "calls": [
+        "self.controller.surface.owns",
+        "self.detach_surface",
+        "self.stop"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "src/toad/acp/agent_process.py",
+      "declaration": "AgentProcess._retire",
+      "line": 148,
+      "sha256": "ba8e029f8a97831411757021a92f484d51b13742e48cd6a85fc3bd8c7590ce05",
+      "calls": [
+        "asyncio.gather",
+        "self.custody.close",
+        "self.process.stop",
+        "self.responses.clear",
+        "task.cancel",
+        "tuple"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "src/toad/acp/agent_process.py",
+      "declaration": "AgentProcess.stop",
+      "line": 161,
+      "sha256": "52e66270008b9c7836ac949c951c9f0f337ab71ba3a6809cad0e636377db1372",
+      "calls": [
+        "asyncio.current_task",
+        "asyncio.gather",
+        "self.close",
+        "self.retire",
+        "self.runner.cancel"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "src/toad/app.py",
+      "declaration": "ToadApp._close_all",
+      "line": 318,
+      "sha256": "8aa5a920ed97a0d4101d4810573c6b4b4ec0e3a686f6cd4f3b5466868d66e759",
+      "calls": [
+        "self.coordination_access.close",
+        "self.thread_actions.close",
+        "self.thread_navigation.close",
+        "super",
+        "super()._close_all"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "src/toad/app.py",
+      "declaration": "ToadApp.on_unmount",
+      "line": 326,
+      "sha256": "23b4993a7a4dc05f775bd86c61afcd8b505c4ef4b2c3d7cc8740cfe8dcc3c5d4",
+      "calls": [
+        "asyncio.gather",
+        "self.navigation_reader.aclose",
+        "self.render_processes.aclose",
+        "self.terminal_attention.close",
+        "self.thread_navigation.close",
+        "tuple"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "src/toad/app.py",
+      "declaration": "ToadApp._dispatch_action",
+      "line": 585,
+      "sha256": "6c612153ec67044d69cc0763e474bb90fd4b298b1c7c5d8da8e674395371e539",
+      "calls": [
+        "ApplicationAction.decode",
+        "declaration.parse",
+        "declaration.parse(params).apply",
+        "super",
+        "super()._dispatch_action"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "src/toad/application_lifetime.py",
+      "declaration": "ApplicationLifetime.quit",
+      "line": 87,
+      "sha256": "67436890c31960fa2e0a5b361ca675f3482793c5fb58bd9dfd1bd8ef847b8643",
+      "calls": [
+        "InputEditor.finish_focused",
+        "app.call_later",
+        "app.screen.set_focus"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "src/toad/application_lifetime.py",
+      "declaration": "ApplicationLifetime.save_and_exit",
+      "line": 97,
+      "sha256": "08f6bcc8cb2135468353864c2652c07ad827316a6cb11d4a9e0c4ad60933dfb5",
+      "calls": [
+        "self.app.settings.save_before_exit"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "src/toad/navigation_preparation.py",
+      "declaration": "NavigationReader.aclose",
+      "line": 235,
+      "sha256": "3a9ff038a871d332551e16097bace0c5f0cc72e9d7fadc4bff2e2bcd00b41f75",
+      "calls": [
+        "asyncio.gather",
+        "self.invalidate",
+        "tuple"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "src/toad/preferences.py",
+      "declaration": "ToadSettings.save_before_exit",
+      "line": 359,
+      "sha256": "765943269c1a322ac2b26cb385481d51f0d674b7d1055466a4c730f3b69ac3e0",
+      "calls": [
+        "exit",
+        "self.save"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "src/toad/render_backend.py",
+      "declaration": "Renderer.aclose",
+      "line": 153,
+      "sha256": "db4387de964978eaca86c47badbc8a6714da6932f623dd2308fbdde7015b44af",
+      "calls": []
+    },
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "src/toad/render_processes.py",
+      "declaration": "RenderProcessPool.aclose",
+      "line": 107,
+      "sha256": "a7b77f3ebf54528330c104e0016b1f5194d5455ac694f0f44159c9b49d912494",
+      "calls": [
+        "asyncio.create_task",
+        "asyncio.wait",
+        "self._bind_loop",
+        "self._changed.set",
+        "self._close_submissions",
+        "self._join",
+        "self._shutdown.result"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "src/toad/render_processes.py",
+      "declaration": "RenderProcessPool._join",
+      "line": 120,
+      "sha256": "8c2c0d3cd270d9f1490e57620839f90ce1a6f7c37472e240ba6c98290cc57d9b",
+      "calls": [
+        "asyncio.gather",
+        "asyncio.to_thread",
+        "self._close_submissions",
+        "tuple"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "src/toad/session_presentation.py",
+      "declaration": "OperationalSessionSources.detach",
+      "line": 117,
+      "sha256": "976f8bb21b7e57fb3f873fa8933d52998d7904a7e2c3c1592ceb780d1ddf5a27",
+      "calls": [
+        "self.agent.detach_surface",
+        "self.directory_watcher.rebind",
+        "self.shell.detach"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "src/toad/widgets/conversation.py",
+      "declaration": "ConversationSessionBinding._release_source_resources",
+      "line": 518,
+      "sha256": "5eff6b27bdb7a436db062f329324b3877d9949a07d66e8500a1c2d5dcdd79b06",
+      "calls": [
+        "asyncio.gather",
+        "self._directory_watcher.aclose",
+        "self.delivery_observation.close",
+        "self.goal_controls.close",
+        "self.goal_observation.close",
+        "self.output.retire",
+        "self.transcript.close"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "src/toad/widgets/conversation.py",
+      "declaration": "ConversationSessionBinding.release_native_session",
+      "line": 533,
+      "sha256": "1b7f7c900ecfa9fb679044a22e1aaf5a0ba785aa9e7b01ed38fd9976f5d44a9e",
+      "calls": [
+        "self._release_source_resources",
+        "self.take_initial_prompt",
+        "viewport.close"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "src/toad/widgets/conversation.py",
+      "declaration": "Conversation.on_unmount",
+      "line": 1042,
+      "sha256": "c071c9d9609283f440e2b49a2ab19de5b718c897015958f64dc2b06f702488d3",
+      "calls": [
+        "monotonic",
+        "self._release_source_resources",
+        "self.agent.retire_surface",
+        "self.app.application.usage.publish",
+        "self.app.application.usage.publish('agent-session-end', agent=self._agent_data.identity, duration=session_time, agent_session_fail=self._agent_fail, shell_count=self._shell_count, turn_count=self._turn_count).wait"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "src/toad/work_preparation.py",
+      "declaration": "PreparationRuntime.aclose",
+      "line": 372,
+      "sha256": "618846df32f3520bd601e2a56fe597a716c349ac6411a4947c218330b3372ef2",
+      "calls": [
+        "asyncio.create_task",
+        "asyncio.shield",
+        "self._changed.set",
+        "self._close"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "src/toad/work_preparation.py",
+      "declaration": "PreparationRuntime._close",
+      "line": 379,
+      "sha256": "0d9077eb2e0f828f1fe0979a5255c9919decf8d40e143b44fd6b6e05e08b4557",
+      "calls": [
+        "asyncio.gather",
+        "self._pending.values",
+        "self._ready.clear",
+        "self.renderer.aclose",
+        "tuple"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "src/toad/work_preparation.py",
+      "declaration": "PreparedRenderer.aclose",
+      "line": 409,
+      "sha256": "5aeb2f06dfbf0d0721d1e8c5d4e55a00bc44fa3fd4d8c9bde731d3fd0b83359d",
+      "calls": [
+        "self._close_submissions",
+        "self.runtime.aclose"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "src/toad/workspace_sessions.py",
+      "declaration": "WorkspaceSessions.aclose",
+      "line": 184,
+      "sha256": "ab3f36281647ef6eb9e4e51528864ea2dd2d941ac9c5fa7c7ea9679c2e45ad8a",
+      "calls": [
+        "DetachedWorkspaceSource",
+        "self.app.workspace_chrome.native.close",
+        "self.views.values",
+        "tuple",
+        "view.close_presentation"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "src/toad/workspace_sessions.py",
+      "declaration": "WorkspaceSessionShutdown._close_all",
+      "line": 195,
+      "sha256": "177387ef23570a96f243eb6486756ccdab36ff0790151be0571ca86b279ad2ea",
+      "calls": [
+        "self.workspace_sessions.aclose",
+        "super",
+        "super()._close_all"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "tests/tools/record_installed_tui.py",
+      "declaration": "OwnedProcess.stop",
+      "line": 154,
+      "sha256": "33b5d3da6467e0bfca8412931058b6a389bbf8e2875a2a671eb9929b16410fdd",
+      "calls": [
+        "self.child.reap",
+        "self.members",
+        "self.send_signal",
+        "time.monotonic",
+        "time.sleep"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "tests/tools/record_installed_tui.py",
+      "declaration": "OwnedProcess.wait_for_exit",
+      "line": 169,
+      "sha256": "419d1ad78064a92dda0e092b58e3a2edb266768a6ad57b934750636eb28955b3",
+      "calls": [
+        "self.child.identity.alive",
+        "time.monotonic",
+        "time.sleep"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "tests/tools/record_installed_tui.py",
+      "declaration": "TransferredGroup.stop",
+      "line": 191,
+      "sha256": "b508aa96ff9f57f58560a7fa32b4f8f7f48282f8f0938290f2de0c4bfe2bda76",
+      "calls": [
+        "self.child.identity.alive",
+        "self.parent.stop",
+        "self.parent.wait_for_exit",
+        "super",
+        "super().stop"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+      "path": "tests/tools/record_installed_tui.py",
+      "declaration": "ProfileProcess.stop",
+      "line": 261,
+      "sha256": "d67b96f5e9bf1e3bdd9ab42c2fdde0ebb2476053eda67f4c2b30bd6cb0707ee6",
+      "calls": [
+        "super",
+        "super().stop"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "revision": "a2dd8a9a37825a828df0d8f651ca57d92db69e5f",
+      "path": "src/textual/app.py",
+      "declaration": "App._close_all",
+      "line": 3761,
+      "sha256": "453060ecc4ca57b5b6aeb66da6011aae7c0bd2a8e8385d7c2358cd665b47f4a0",
+      "calls": [
+        "AwaitRemove.prune",
+        "child._close_messages",
+        "list",
+        "reversed",
+        "self._installed_screens.clear",
+        "self._modes.clear",
+        "self._screen_stacks.values",
+        "stack.clear",
+        "tuple"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "revision": "a2dd8a9a37825a828df0d8f651ca57d92db69e5f",
+      "path": "src/textual/app.py",
+      "declaration": "App._shutdown",
+      "line": 3779,
+      "sha256": "fc3051834fbc743fb14679a9e290b4887ef154c7af7a0180e27302a09e6d27d8",
+      "calls": [
+        "Console",
+        "Pretty",
+        "console.print",
+        "driver.disable_input",
+        "events.Unmount",
+        "self._begin_batch",
+        "self._close_all",
+        "self._close_messages",
+        "self._disconnect_devtools",
+        "self._dispatch_message",
+        "self._driver.close",
+        "self._nodes._clear",
+        "self._print_error_renderables"
+      ]
+    },
+    {
+      "source_root": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "revision": "a2dd8a9a37825a828df0d8f651ca57d92db69e5f",
+      "path": "src/textual/app.py",
+      "declaration": "App._dispatch_action",
+      "line": 4294,
+      "sha256": "cf037f90bb48735f54eb00022ae1beb60eef606fdb9df2df6a8a073ba59962cc",
+      "calls": [
+        "callable",
+        "getattr",
+        "invoke",
+        "log.system"
+      ]
+    }
+  ],
+  "recorder_source_owner": "OriginalMendel; fix/recorder-original-program-wait-20261005 in finished reply-handling WT, currently working/unpublished; no Heis edits/shared writer",
+  "source_counterexample": "Recorder adds independent3s graceful quit wait, forces original UI parent at711155.29432 despite existing interaction deadline711170.78854 and finish711186.78854. Source correction consumes caller-owned absolute interactiondeadline, preserving16s reserve/strict realparent outcome/refusal; no deadlineincrease. This proves early authored retirement, not why actualApp had not exited.",
+  "application_source_disposition": "Existing priority QuitAction->ApplicationLifetime editorcommit/settingssave_before_exit->App.exit->WorkspaceSessionShutdown operational/presentation close->native prune->on_unmount renderer/preparation joins traced. Actual CtrlQ/save/close entry after lastcapture is unobserved. No additional demonstrated application/native/agent/renderer counterexample; no speculative product patch.",
+  "original_before_after_runtime_relation": "No runtime requalification of correction. Original06 motion reached, wholequit/outerdeadlineFAIL remains. Final application/helper tuple awaits actualpublished recordercheckpoint/normaljoin; product319/rootpins stay current union unless actualsourcechanges.",
+  "evidence": {
+    "whole-handback.json": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor06-installed-purpose/whole-handback.json",
+      "sha256": "336a1e57fee99fdca429c0d797073989fdc25aa0cd7c7e961f25c603e651e2d4"
+    },
+    "final-borrowers.json": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor06-installed-purpose/final-borrowers.json",
+      "sha256": "1688dd73edc688d245b411b3702b4343ed2589b664186dc1b0ef8431a364d9f4"
+    },
+    "reached-motion-and-quit-source.json": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor06-installed-purpose/reached-motion-and-quit-source.json",
+      "sha256": "2b92b7e0fb8fae39e15df7f09ae5d2a4a95f0486da51c1e80ccccb6db53cd67e"
+    },
+    "offline-cadence-scope-correction.json": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor06-installed-purpose/offline-cadence-scope-correction.json",
+      "sha256": "20ead29e99f755f1cf9c2258a81e0becb2340d4e66909ffe430da5b4d4aa3dfb"
+    },
+    "offline-useful-body-analysis.json": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor06-installed-purpose/offline-useful-body-analysis.json",
+      "sha256": "201364ec82d24f33731d1615549bf87db4d501a272ca1c673064859a41fcf86d"
+    },
+    "offline-writer-cadence.json": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor06-installed-purpose/offline-writer-cadence.json",
+      "sha256": "7ea68ce81041054b3526012cbaaded26916138a2b7a8bb045f0eae0fc2dc26c3"
+    }
+  },
+  "unchanged_source_tests_tools_pins": true,
+  "physical_cpu_gain_full_workflow_qualified": false,
+  "remaining": "Normally integrate originalpublished Mendel complete recorder correction; preserve same full150s readonly cold/width/wheel/reversal/End/B-A/draftUndo scope with fresh actualfloor/grant/native authority before future changed acceptance. No acceptedworker/ordinary18 repeat."
+}
