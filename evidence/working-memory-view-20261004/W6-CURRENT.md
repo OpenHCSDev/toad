@@ -19,3 +19,8 @@ Own candidate activation selected7a. Original candidate sourceproof inherited an
 Actual334CURRENT440 was normally restored with retained four wheels --no-cache: all1468 bytes/modes/links,69 versions/origins and287 protected artifacts matched; no added package assets/private runtime sockets/owned groups remained. Sch7a execution was explicitly returned/closed. Independent Bohr lifecycle23599c/readbackd507 WHOLECLOSED with223allUID/0borrowers/gaps, all floor/protected/rawkeeper hashes exact. No current package/import/execution or nextpurpose authority. Publicstyle22 unchanged.
 
 Historical ReferenceNode registered App read/search/export remains a separate unfinished path. Its original source/registry owner and shared native selection consumer are implemented; historical03/04 did not reach reader/search/export. Mendel663 owns retained stopped9-to10 carry, whose genuine9 authored donor and target scope are separate and never borrow authenticW6 corpus. W7 empirical calibration/thresholds and W8 remain unfinished; no confidence thresholds, paid classifier, actualCodex/saved corpus or defaultON authority.
+
+
+## Historical05 current-main installed acceptance
+
+Historical ReferenceNode read/search/export now PASS in the original registered App (26.35s, whole30.217576s). Original record-byte provenance/not-current marker and separate local USER/defaultOFF path accepted. [Exact scope and original receipts](historical05/README.md). ActualCURRENT4441469/69/519 restored; package/native claims returned, independent Bohr close pending. Accepted authentic GUI was not repeated. Carry663 and W7/W8 remain unfinished.

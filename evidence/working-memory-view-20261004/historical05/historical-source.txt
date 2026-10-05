@@ -1,0 +1,3 @@
+Historical Codex instruction · /home/ts/wt/w6h05/test_authored_import_registere0/authored-history.jsonl · record bytes 127:274 · item 0 · not current instructions
+
+Authored historical λ rule: keep the original source.
