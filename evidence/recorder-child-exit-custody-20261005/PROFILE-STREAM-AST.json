@@ -1,0 +1,86 @@
+{
+  "source_head": "8ccfe0c34393d8a0a455215befbcd7409a06e389",
+  "original_parser": "audit.findings.Package.load / audit.repository.Repository",
+  "scopes": [
+    {
+      "root": "tests/tools",
+      "parsed": 8,
+      "omissions": []
+    },
+    {
+      "root": "tools",
+      "parsed": 41,
+      "omissions": []
+    },
+    {
+      "root": "evidence/installed-tui-video",
+      "parsed": 3,
+      "omissions": []
+    }
+  ],
+  "owner": {
+    "signature": "self, command, *, env, stdin=None, stdout=None, stderr=None, **kwargs",
+    "keyword_defaults": {
+      "env": null,
+      "stdin": "None",
+      "stdout": "None",
+      "stderr": "None"
+    }
+  },
+  "related_calls": [
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1592,
+      "call": "owner.start_terminal",
+      "keywords": [
+        "env"
+      ]
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2465,
+      "call": "ProcessOwner.launch_program",
+      "keywords": []
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2467,
+      "call": "ProcessOwner.launch_terminal",
+      "keywords": []
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2044,
+      "call": "owner.start_terminal",
+      "keywords": [
+        "env",
+        "stderr"
+      ]
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2181,
+      "call": "terminal.export",
+      "keywords": []
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2258,
+      "call": "terminal.export",
+      "keywords": []
+    },
+    {
+      "path": "evidence/installed-tui-video/terminal_custody_probe.py",
+      "line": 55,
+      "call": "owner.start_terminal",
+      "keywords": [
+        "env"
+      ]
+    }
+  ],
+  "changed_module_sha256": "1e241e606d4021f9500c10f960bb4ee41c2addd6e97afc96f649bcb29098bcc0",
+  "compiled_without_import_execution": 2,
+  "Core_declaration_read": "ChildLaunch.spawn stdin/stdout/stderr default DEVNULL; no Core edit",
+  "broader_context": "original complete288production397tests41tools1310evidence/Core324 withzeroomissions reused; current narrower stream lifetime callers parsed above",
+  "runtime": "qualified02OS3+ordinaryPASS/profileFAIL preserved; changed stream source only/notexecuted"
+}

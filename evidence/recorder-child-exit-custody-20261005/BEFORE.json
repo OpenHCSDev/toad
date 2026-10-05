@@ -1,0 +1,270 @@
+[
+  {
+    "repository": "/home/ts/wt/toad-original-reply-handling-20261002",
+    "revision": "bf9373d73daa58cce6e493f927660c5da1c4432e",
+    "root": "src/toad",
+    "parsed": 288,
+    "unparsed": [],
+    "sites": []
+  },
+  {
+    "repository": "/home/ts/wt/toad-original-reply-handling-20261002",
+    "revision": "bf9373d73daa58cce6e493f927660c5da1c4432e",
+    "root": "tests",
+    "parsed": 397,
+    "unparsed": [],
+    "sites": [
+      [
+        "tests/history_edge_scheduling_pilot.py",
+        30,
+        "from record_installed_tui import ObserveJourney, InputWarmJourney, ProcessOwner, marker_command, phase_events, main as record_main"
+      ],
+      [
+        "tests/native_scroll_recording_pilot.py",
+        16,
+        "from tools.record_installed_tui import ProcessOwner"
+      ],
+      [
+        "tests/tools/merged_selector_fixture_recording.py",
+        14,
+        "from record_installed_tui import ProcessOwner"
+      ],
+      [
+        "tests/tools/physical_warm_capture.py",
+        10,
+        "from record_installed_tui import ProcessOwner"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        152,
+        "self.send_signal"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        159,
+        "self.process.wait"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        166,
+        "self.process.poll"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        175,
+        "self.send_signal"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        197,
+        "super().stop"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        201,
+        "self.stop"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        270,
+        "self.start"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        1355,
+        "publish_terminal_lease"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        1359,
+        "publish_terminal_lease"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        1361,
+        "owner.start"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        1364,
+        "terminal_program"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        1390,
+        "owner.cleanup"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        2208,
+        "profile_launch"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        155,
+        "self.process.poll"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        158,
+        "self.send_signal"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        180,
+        "self.send_signal"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        1649,
+        "owner.cleanup"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        1970,
+        "transferred_program.stop"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        1973,
+        "terminal.stop"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        1980,
+        "xvfb.stop"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        2048,
+        "owner.cleanup"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        2128,
+        "owner.cleanup"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        294,
+        "owned.stop"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        1765,
+        "owner.start"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        1790,
+        "owner.start"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        1801,
+        "owner.transfer"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        1802,
+        "owner.transfer"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        1812,
+        "owner.start"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        1815,
+        "terminal_program"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        1829,
+        "owner.start"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        1951,
+        "capture.stop"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        1967,
+        "terminal.process.wait"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        1972,
+        "transferred_terminal.stop"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        231,
+        "child.reap"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        1322,
+        "owner.transfer"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        2045,
+        "capture.stop"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        301,
+        "owned.stop"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        1795,
+        "terminal.process.poll"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        1804,
+        "terminal.process.poll"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        2036,
+        "owner.transfer"
+      ],
+      [
+        "tests/tools/record_installed_tui.py",
+        2039,
+        "owner.transfer"
+      ],
+      [
+        "tests/tools/selector_warm_recording.py",
+        8,
+        "from record_installed_tui import InputWarmJourney, marker_command, native_click_command, main"
+      ],
+      [
+        "tests/tools/sqlite_busy_recording.py",
+        18,
+        "from record_installed_tui import PhysicalJourney, ProcessOwner, RetainedLifetimeJourney, marker_command, native_click_command, main as record"
+      ]
+    ]
+  },
+  {
+    "repository": "/home/ts/wt/toad-original-reply-handling-20261002",
+    "revision": "bf9373d73daa58cce6e493f927660c5da1c4432e",
+    "root": "tools",
+    "parsed": 41,
+    "unparsed": [],
+    "sites": []
+  },
+  {
+    "repository": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+    "revision": "97d4a687e7307145cce48bc852d1ff2d6ad42fb7",
+    "root": "src/agent_comms",
+    "parsed": 324,
+    "unparsed": [],
+    "sites": []
+  }
+]

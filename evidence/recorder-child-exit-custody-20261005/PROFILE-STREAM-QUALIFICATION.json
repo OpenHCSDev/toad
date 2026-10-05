@@ -1,0 +1,62 @@
+{
+  "state": "SOURCE ONLY; no new execution authority; qualified02 serial purpose consumed and returned",
+  "predecessor": "qualified02 OS3 PASS, ordinary UI/st0 PASS, profile UI0/st1 FAIL preserved; no accepted control repeated",
+  "source_fix": "ProcessOwner.start_terminal owns inherited stdin/stdout/stderr; both callers use original owner; profile terminal guardian no longer silently spawns with ChildLaunch DEVNULL stream defaults",
+  "source_hashes": {
+    "/home/ts/wt/toad-original-reply-handling-20261002/tests/tools/record_installed_tui.py": "1e241e606d4021f9500c10f960bb4ee41c2addd6e97afc96f649bcb29098bcc0"
+  },
+  "phase": {
+    "name": "profile_ui",
+    "argv": [
+      "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+      "-B",
+      "/home/ts/wt/toad-original-reply-handling-20261002/tests/tools/record_installed_tui.py",
+      "--capture-target",
+      "existing_thread",
+      "--journey",
+      "observe",
+      "--still-images",
+      "--review-timing",
+      "deferred",
+      "--fit-window",
+      "--max-duration",
+      "45",
+      "--owner",
+      "Mendel-recorder462",
+      "--profile",
+      "--profile-rate",
+      "10",
+      "--profile-threads",
+      "gil",
+      "--output",
+      "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified03-profile-20261005/profile",
+      "--",
+      "toad-comms",
+      "nra-architecture"
+    ],
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "output": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified03-profile-20261005/profile",
+    "scope": "Same changed UI/st custody with actual py-spy ancestor, export and quit/cleanup. Separate fresh client, no message input or performance claim."
+  },
+  "cwd": "/home/ts/wt/toad-original-reply-handling-20261002",
+  "environment_absent": [
+    "PYTHONPATH",
+    "AGENT_COMMS_RUNTIME_ROOT",
+    "AGENT_COMMS_ACP_LAUNCHER",
+    "AGENT_COMMS_ROOT",
+    "AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID",
+    "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
+    "AGENT_COMMS_THREAD",
+    "AGENT_COMMS_MANAGED"
+  ],
+  "required_admission": "new Parent exact source/profile-only authorization and fresh original public client publication lease/default route/installed source/original owner settings at use; no package/native grant inferred",
+  "required_evidence": [
+    "original st and UI wait outcomes and guardian publications",
+    "original st stderr now actually reaches retained terminal.log",
+    "actual pyspy export/results",
+    "original own children/identities joined and original owner/settings unchanged"
+  ],
+  "limits": "One stationary profile-only still-image changed stream path; no OS3/ordinary/body/provider/native/input/performance repetition. Retained source still rejects every missing/forced/nonzero outcome. This correction does not claim st1 cause or readiness."
+}

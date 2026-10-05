@@ -1,0 +1,9 @@
+{
+  "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified01-20261005/os-custody.stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified01-20261005/os-custody.stderr.log": "4fda3d9146c3492fcfc1ee4c28348d259e4a8d0d5d57097d369437d6d3b8bbc3",
+  "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified01-20261005/terminal-and-handback.json": "fe081e7acf354faf773388b93cce1e0282a758d958e46888dc162437d1d3e9c0",
+  "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified01-20261005/os-custody/acceptance.json": "372842fcc6ef4d9215754d25340dee63c8e2d92243e148c46e4e90a7499e0e7e",
+  "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified01-20261005/os-custody/abrupt-terminal/terminal-launch.json": "dbf288b190f41b269dad40c7266e6fe51328d181cac2125bfc427bae3fdd0373",
+  "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified01-20261005/os-custody/abrupt-terminal/program-launch.json": "f4d64179fe8e67f5b123b62ce6386e755f0600a1f97f6f6c647e091229a2fb60",
+  "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified01-20261005/os-custody/wrong-interpreter/terminal-launch.json": "89bba8e2bf0768c4767250c47dda8b904d2d840277eb8d7313ae417edc66695c"
+}

@@ -1,0 +1,311 @@
+{
+  "state": "WHOLE SERIAL PURPOSE RETURNED; OS3 and ordinary PASS; profile FAIL; no retry/native/provider/input; PR not Ready",
+  "source_head": "ff11a76d8a0926f86dfd3fae3407c9a5790a4252",
+  "recorder_sha256": "c36b7c1ce17bb0f580b7a5662a3aa6836a49e2a488ca7fe225f5f59bb28c3b81",
+  "probe_sha256": "065e77b3f8072f655e3994f0d183517dc400ec37da691bab135c25d07c3732a3",
+  "authority": "Original Parent direct qualified02 serial3 accepted changed ff11; existing fresh toad-comms publication admission per client",
+  "os": {
+    "exit_code": 0,
+    "cases_passed": 3,
+    "owned_child_identities_absent": 14,
+    "controller_birth": "not captured before short terminal; original observed [] retained"
+  },
+  "ordinary": {
+    "exit_code": 0,
+    "controller_elapsed_seconds": 30.426169886020944,
+    "ui": {
+      "pid": 674973,
+      "start_ticks": 69166950,
+      "returncode": 0,
+      "signals": [],
+      "outcome": {
+        "kind": "exited",
+        "code": 0
+      }
+    },
+    "st": {
+      "pid": 674971,
+      "start_ticks": 69166876,
+      "returncode": 0,
+      "signals": [],
+      "outcome": {
+        "kind": "exited",
+        "code": 0
+      }
+    },
+    "completed": true,
+    "capture_completed": true,
+    "quit": {
+      "requested_monotonic": 691684.307170791,
+      "key": "ctrl+q",
+      "delivered_monotonic": 691684.468696034,
+      "program_exited_before_retirement": true
+    },
+    "runtime_unchanged": true
+  },
+  "profile": {
+    "exit_code": 1,
+    "controller_elapsed_seconds": 33.389830696978606,
+    "ui": {
+      "pid": 679102,
+      "start_ticks": 69176688,
+      "returncode": 0,
+      "signals": [],
+      "outcome": {
+        "kind": "exited",
+        "code": 0
+      }
+    },
+    "st": {
+      "pid": 679077,
+      "start_ticks": 69176607,
+      "returncode": 1,
+      "signals": [],
+      "outcome": {
+        "kind": "exited",
+        "code": 1
+      }
+    },
+    "completed": false,
+    "capture_completed": true,
+    "quit": {
+      "requested_monotonic": 691785.619479072,
+      "key": "ctrl+q",
+      "delivered_monotonic": 691785.785397704,
+      "program_exited_before_retirement": true
+    },
+    "runtime_unchanged": true,
+    "export": {
+      "started_monotonic": 691779.421355604,
+      "finished_monotonic": 691779.747035758,
+      "returncode": 0,
+      "remaining_owned_pids": [],
+      "bytes": 1229331
+    },
+    "sampling": {
+      "samples": 117,
+      "errors": 0,
+      "actual_UI_trace_events": 2502
+    },
+    "terminal_stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cause": "st nonzero parent wait established; st exit cause not retained/proven; no historical459 cause inference"
+  },
+  "cleanup": {
+    "os_remaining": [],
+    "ordinary_remaining": [],
+    "ordinary_errors": [],
+    "profile_remaining": [],
+    "profile_errors": [],
+    "UI_OS_child_identity_postread": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/ui-postterminal-owned-identities.json",
+    "UI_27_owned_identities_absent": true,
+    "controller674652_absent": true,
+    "controller678758_absent": true,
+    "no_active_owned_run": true
+  },
+  "original_owner": {
+    "route": {
+      "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+      "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+      "version": 1
+    },
+    "owner_fields_equal": {
+      "process_identity": true,
+      "model": true,
+      "thinking_level": true,
+      "session_file": true,
+      "worktree": true,
+      "created_at": true
+    },
+    "owner_identity": {
+      "pid": 3963076,
+      "start_time": 68459655
+    },
+    "original_owner_alive": true
+  },
+  "claims_returned": [
+    "qualified02 isolated X display/OS/program/terminal/profiler/controller ownership",
+    "PUBLIC459485 readonly client/execution borrow"
+  ],
+  "packages_changed": false,
+  "native_sdk_provider_message_inputs": 0,
+  "public_owners_signaled": false,
+  "public_route_changed": false,
+  "original459_and_qualified01_failures": "preserved unchanged; not relabeled/resolved",
+  "remaining": "profile st failure source attribution; no blanket readiness, historic latency or body journey claim",
+  "keepers": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/os-custody/acceptance.json",
+      "sha256": "ec83bd273dfe001be82d9d3d131b7c6a48deab86df30c53c3793e05ba46a871f",
+      "bytes": 22801
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/os-custody.stdout.log",
+      "sha256": "98f3930d2c8b1b2d8116c07bf259fd299e6f26e759e3e11f5d5b6a0f42a46c3d",
+      "bytes": 4125
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/os-custody.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/os-controller-observed.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytes": 3
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/os-postterminal-child-identities.json",
+      "sha256": "b1e51cd12ec129b803efb73dc6c5b94f8ea24a5d0f6f90421997dae6331fc79f",
+      "bytes": 2047
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/ordinary-fresh-admission-source-owner.json",
+      "sha256": "aa2c17d89c364ab4a2d6c402ec0cf4526f69cbae5fd306fe661ba667b45e5b18",
+      "bytes": 2665
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/ordinary-live-handle.json",
+      "sha256": "2635d3b9d231c5d5c3d17a371309ab956e6b51e6e794a67576eed78c52b34135",
+      "bytes": 860
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/ordinary-controller-terminal.json",
+      "sha256": "8794dd707b39359ddb6231d639e3dc92f4da8be2e251926f78e7e82ea1a3f6b5",
+      "bytes": 197
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/ordinary/receipt.json",
+      "sha256": "5048faa6a2352371fb444c3cf174816b07cf36c486457f54ebc8764409cee263",
+      "bytes": 29721
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/ordinary/terminal-launch.json",
+      "sha256": "fbb08ce7872858a6cb8d604c1dc9c62d197564f89832f23074b5c9ae194e944f",
+      "bytes": 1274
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/ordinary/program-launch.json",
+      "sha256": "c3146cf7fd554ee29a897e83aa66cd53efebfefa31d73f0f3e46202b117b3d86",
+      "bytes": 1649
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/ordinary/before.png",
+      "sha256": "b12f1027357368d66cf9a88fe5cab28bbad36c05ba496e602d687eab43f7570d",
+      "bytes": 112620
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/ordinary/after.png",
+      "sha256": "33b4608697e438718493304b8747919f60c88d801d5844efc934808a6d62b890",
+      "bytes": 113106
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/ordinary/terminal.log",
+      "sha256": "578cd7249ee237923e96875cb8a79b16214a805ea596c88ad3af3f65a59aa461",
+      "bytes": 174
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/ordinary.stdout.log",
+      "sha256": "9671684d2d66c2fd9d57401731bcf48b06b8d64048939894e28c7eaec67b432e",
+      "bytes": 192
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/ordinary.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/profile-fresh-admission-source-owner.json",
+      "sha256": "aa2c17d89c364ab4a2d6c402ec0cf4526f69cbae5fd306fe661ba667b45e5b18",
+      "bytes": 2665
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/profile-resources.json",
+      "sha256": "ae2948be4ead971ac4617a7221f03d927cfaac96e3be211d27d63af524941ddb",
+      "bytes": 241
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/profile-live-handle.json",
+      "sha256": "febd0cf5b768fdf3709b56d7d85d66e7bef34c4b9540ed390d46170a9981f7fe",
+      "bytes": 942
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/profile-controller-terminal.json",
+      "sha256": "0d577fdac95837d8e01bf91b06da23264e1064e14a8c84df1832d731e58f1ee4",
+      "bytes": 197
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/profile/receipt.json",
+      "sha256": "dc3dcf6fdc92ea81a0ccb82e280ea01e14748766d714e58db3b5ca2e72c93eb1",
+      "bytes": 33354
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/profile/terminal-launch.json",
+      "sha256": "f871c2c9a906fd6b6de66c894e4cf49ab0a20378c0ef2622b0d73c7c9ed674a7",
+      "bytes": 1274
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/profile/program-launch.json",
+      "sha256": "51bb79e0c8f95b0057203c0548ecbd51ed56d5e584e7bfb02facabab9ede82ad",
+      "bytes": 1649
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/profile/profile-launch.json",
+      "sha256": "cc4b16dc440a0fff74f90431d28493684e500711149030fa929f72d035b65ee8",
+      "bytes": 571
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/profile/profiler.log",
+      "sha256": "c4d5c6dac132befbbc2bbd230628e719f678ca08527e3ee081ccde8c6674b37b",
+      "bytes": 355
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/profile/cpu-profile.json",
+      "sha256": "5237375ec59fc319e120294d3574c6be917cea39e25753b8c8b07c3dd4fa27e6",
+      "bytes": 1229331
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/profile/terminal.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/profile/before.png",
+      "sha256": "e99d9c31527cdc006300f462b73e6bc05445725415a2bd9f9f82c0fbf9d55450",
+      "bytes": 70164
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/profile/after.png",
+      "sha256": "ecb147a0d80dc8e80dcc5bcdcff884a690528772a69050c6c88fcad3e49629b2",
+      "bytes": 113363
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/profile.stdout.log",
+      "sha256": "58ee76d6bcf0dc681686a0afaf7ce98210afeffe28e0a6769b2fbfaac8c7435d",
+      "bytes": 112
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/profile.stderr.log",
+      "sha256": "f3fb2479146974c6b57324f41c8a4b713aa7f6a2b340ee012ad4be60a3bdb051",
+      "bytes": 2350
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/ui-postterminal-owned-identities.json",
+      "sha256": "f84748c2993560295bf994e8a9fc7be3492355ac1ba147eef087fd5a8c5f74ad",
+      "bytes": 3873
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/final-original-owner.stdout.log",
+      "sha256": "c6f1c73bae2bb0efcd0d921e7bf8b3a0cca8a8166876bafccdd7e986c9611c6a",
+      "bytes": 524
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/final-original-owner.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ]
+}

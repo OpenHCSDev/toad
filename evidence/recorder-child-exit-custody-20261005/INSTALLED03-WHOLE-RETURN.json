@@ -1,0 +1,200 @@
+{
+  "state": "qualified03 scoped recorder/profile PASS; complete read/client/execution purpose returned; no active owned process or next loan",
+  "authority": "Parent explicit NEW qualified03 profile-only exact argv/env/cwd/output at tool1e241; no earlier purpose inherited",
+  "source_sha256": "1e241e606d4021f9500c10f960bb4ee41c2addd6e97afc96f649bcb29098bcc0",
+  "determining_source": "8ccfe0c3",
+  "controller": {
+    "controller": {
+      "pid": 723993,
+      "start_time": 69259425
+    },
+    "exit_code": 0,
+    "elapsed_seconds": 34.3310684239259,
+    "finished_at": 1791216989.4137907,
+    "controller_absent": true
+  },
+  "actual_UI_wait": {
+    "pid": 725161,
+    "start_ticks": 69260651,
+    "returncode": 0,
+    "signals": [],
+    "outcome": {
+      "kind": "exited",
+      "code": 0
+    }
+  },
+  "actual_st_wait": {
+    "pid": 725085,
+    "start_ticks": 69260561,
+    "returncode": 0,
+    "signals": [],
+    "outcome": {
+      "kind": "exited",
+      "code": 0
+    }
+  },
+  "parent_errors": [
+    null,
+    null
+  ],
+  "quit": {
+    "requested_monotonic": 692622.446187213,
+    "key": "ctrl+q",
+    "delivered_monotonic": 692622.608046157,
+    "program_exited_before_retirement": true
+  },
+  "profile_export": {
+    "started_monotonic": 692619.273503309,
+    "finished_monotonic": 692619.716882141,
+    "returncode": 0,
+    "remaining_owned_pids": [],
+    "bytes": 1000567
+  },
+  "profile_sampling": {
+    "samples": 96,
+    "errors": 0,
+    "actual_UI_pid": 725161
+  },
+  "st_diagnostic_stream": {
+    "bytes": 174,
+    "sha256": "578cd7249ee237923e96875cb8a79b16214a805ea596c88ad3af3f65a59aa461"
+  },
+  "runtime_unchanged": true,
+  "original_owner": {
+    "route": {
+      "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+      "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+      "version": 1
+    },
+    "owner_fields_equal": {
+      "process_identity": true,
+      "model": true,
+      "thinking_level": true,
+      "session_file": true,
+      "worktree": true,
+      "created_at": true
+    },
+    "owner_identity": {
+      "pid": 3963076,
+      "start_time": 68459655
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "owned_identities": 14,
+    "all_absent": true,
+    "remaining": [],
+    "errors": [],
+    "display_resources": {
+      "display": ":6726",
+      "lock_exists": false,
+      "socket_exists": false
+    }
+  },
+  "claims_returned": [
+    "Parent qualified03PUBLIC459485 readonly client/execution use",
+    "isolateddisplay/terminal/UI/profiler/controller resources"
+  ],
+  "not_borrowed": [
+    "THIN540",
+    "334",
+    "style22",
+    "direct native artifact execution"
+  ],
+  "no_package_SDK_native_provider_input_movie_publicsignal_operations": true,
+  "pixels_reviewed_after_terminal": "profile03 after.png shows Loading new thread/history and Context unavailable; no complete history/currentUIReady claim; ordinary02 visible originalhistory scope remains separate",
+  "prior_failures": "original459 and qualified01/profile02 remain immutable FAIL/UNKNOWN; no cause or speed promotion",
+  "keepers": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified03-profile-20261005/live-handle.json",
+      "bytes": 984,
+      "sha256": "fcd7a5de08c22ac98b8ca12bc484b7be5db5811380c8b21c9a9a8bb08c04c7ce"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified03-profile-20261005/controller-terminal.json",
+      "bytes": 195,
+      "sha256": "be2cab65a15b6ef3b05c83f656a871aedc505b01a57a8165b18d34bac2660e64"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified03-profile-20261005/fresh-admission-source-owner.json",
+      "bytes": 2665,
+      "sha256": "aa2c17d89c364ab4a2d6c402ec0cf4526f69cbae5fd306fe661ba667b45e5b18"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified03-profile-20261005/joined-child-identities.json",
+      "bytes": 2278,
+      "sha256": "f476891b53067ab41b72d1f567c40d6c834e66c77f2fc82599aeda35be5b0f7b"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified03-profile-20261005/final-original-owner.stdout.log",
+      "bytes": 524,
+      "sha256": "c6f1c73bae2bb0efcd0d921e7bf8b3a0cca8a8166876bafccdd7e986c9611c6a"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified03-profile-20261005/final-original-owner.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified03-profile-20261005/stdout.log",
+      "bytes": 206,
+      "sha256": "c8a656473a35d30c2c2f12a1dba4ab24407598f089a4de5675681d38d5ee0e0b"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified03-profile-20261005/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified03-profile-20261005/profile/receipt.json",
+      "bytes": 33544,
+      "sha256": "0e93eb4804d41dfab85b472adf88804487860fc6fa7a9d4c6e7601c509ede9b3"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified03-profile-20261005/profile/program-launch.json",
+      "bytes": 1649,
+      "sha256": "471ec797939bf69553d49268d11087f250f1b3cbd7540430c3a573817a90db2a"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified03-profile-20261005/profile/terminal-launch.json",
+      "bytes": 1274,
+      "sha256": "3e0e9630555c84709d3e0a5cea644d295c53ae9d0f456da737f18bdccee375c9"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified03-profile-20261005/profile/profile-launch.json",
+      "bytes": 579,
+      "sha256": "aad1c23145a4b67130bf7756ba4af56641bf6011ee0555e9d88caf22bd8156da"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified03-profile-20261005/profile/profile-review.json",
+      "bytes": 1532,
+      "sha256": "436521144b8391a0eef7feb00cc1141dd1eedf233988202d442e0dec933c9863"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified03-profile-20261005/profile/terminal.log",
+      "bytes": 174,
+      "sha256": "578cd7249ee237923e96875cb8a79b16214a805ea596c88ad3af3f65a59aa461"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified03-profile-20261005/profile/profiler.log",
+      "bytes": 362,
+      "sha256": "4aa2e75863f67932d62eea463648f7b54ff31eddbbf31524a09a82158bd75ac8"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified03-profile-20261005/profile/cpu-profile.json",
+      "bytes": 1000567,
+      "sha256": "d88113412c15461ec6566a27fb2fc2c4458988662a93826d85f85fbeae4d56e9"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified03-profile-20261005/profile/before.png",
+      "bytes": 67115,
+      "sha256": "24635772200ad2e2caec43b017f49923436a4ab763d495296660b6c085ba2691"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified03-profile-20261005/profile/after.png",
+      "bytes": 62549,
+      "sha256": "ee680aab8e465e44b8af491ca2b2a6467869779055f4ea14741c90e4d87feda3"
+    }
+  ]
+}
