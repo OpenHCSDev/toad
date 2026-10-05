@@ -1,0 +1,65 @@
+{
+  "path": "tests/test_context_manifest_navigation.py",
+  "syntax": "parsed",
+  "calls": [
+    {
+      "line": 270,
+      "call": "query.scroll_visible"
+    },
+    {
+      "line": 285,
+      "call": "export_button.scroll_visible"
+    },
+    {
+      "line": 208,
+      "call": "tree.scroll_visible"
+    },
+    {
+      "line": 209,
+      "call": "tree.scroll_to_node"
+    },
+    {
+      "line": 212,
+      "call": "tree._get_label_region"
+    },
+    {
+      "line": 243,
+      "call": "pilot.click"
+    },
+    {
+      "line": 271,
+      "call": "pilot.wait_for_scheduled_animations"
+    },
+    {
+      "line": 272,
+      "call": "pilot.click"
+    },
+    {
+      "line": 286,
+      "call": "pilot.wait_for_scheduled_animations"
+    },
+    {
+      "line": 288,
+      "call": "pilot.click"
+    },
+    {
+      "line": 207,
+      "call": "pilot.wait_for_scheduled_animations"
+    },
+    {
+      "line": 210,
+      "call": "pilot.wait_for_scheduled_animations"
+    },
+    {
+      "line": 220,
+      "call": "pilot.click"
+    },
+    {
+      "line": 219,
+      "call": "app.screen.get_widget_at"
+    }
+  ],
+  "production_changed": false,
+  "validation": "Static native contract and source-call review only; no package/App/native execution",
+  "dynamic_binding_limit": "Native target/source/focus assertions require a future issued installed purpose"
+}

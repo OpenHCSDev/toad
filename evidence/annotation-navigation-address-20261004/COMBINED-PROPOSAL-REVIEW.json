@@ -1,0 +1,28 @@
+{
+  "proposal": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/context-explorer-functional-receiving-20261004/PROPOSED-COMBINED449-448-OPERANDS.json",
+  "proposal_sha256": "a2258dcb6019a13fc7b571dd8ac1f0f92fa492dfc7e548e53ec525124e8c866e",
+  "peer_published_head": "64f553ad3cc1162b296c2650dc23cb6d53ff98a2",
+  "matched": [
+    "control argv/cwd/output/path/hash",
+    "original7f481/a51 handoff",
+    "Core0ed355 wheel record",
+    "Toad1a8a319/proof5570 wheel record",
+    "canonical manifest3245b0",
+    "merged source relation44e618"
+  ],
+  "commands": "Both original command strings parsed and compiled only, never executed",
+  "discrepancy": {
+    "owner": "Original Sch receiving command",
+    "member": "receiving_after_control_PASS.cohort_prepare_argv[4] / final f.write",
+    "actual_character_codes": [
+      10
+    ],
+    "required_character_codes": [
+      10
+    ],
+    "effect": "Literal backslash+n follows the JSON document; ordinary JSON readers reject trailing data.",
+    "correction": "Emit the original newline in the generated Python writer; source command escaping only."
+  },
+  "state": "Correction routed directly to original Sch; future purpose remains unissued; no package/App/native/source decoder execution.",
+  "keepers": "Originala225/64f proposal preserved by Git, all original control/wheel hashes unchanged."
+}

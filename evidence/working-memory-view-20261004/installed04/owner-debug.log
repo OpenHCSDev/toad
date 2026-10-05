@@ -1,0 +1,864 @@
+[1791149401.366] W6: original local USER correction committed; controller constructed
+[1791149401.366] W6: acquiring original private launch and stopped-source restoration
+[1791149401.388] W6: original owner acquired; awaiting bind_owned
+[1791149401.389] W6: canonical owner acquired and runtime bound
+[1791149401.423] W6: entering original registered App startup and screen barrier
+[1791149401.730] W6: ToadApp.Mount dispatch
+[1791149401.800] W6: Screen.Mount dispatch
+[1791149401.801] W6: Screen.Show dispatch
+[1791149402.360] W6: Footer.Mount dispatch
+[1791149402.373] W6: Container.Mount dispatch
+[1791149402.373] W6: MainMenuButton.Mount dispatch
+[1791149402.373] W6: TabHistoryButton.Mount dispatch
+[1791149402.373] W6: TabHistoryButton.Mount dispatch
+[1791149402.382] W6: Underline.Mount dispatch
+[1791149402.383] W6: SideBarToggle.Mount dispatch
+[1791149402.383] W6: SidebarResizeHandle.Mount dispatch
+[1791149402.384] W6: SessionLabel.Mount dispatch
+[1791149402.385] W6: SessionTabClose.Mount dispatch
+[1791149402.386] W6: SidebarSlider.Mount dispatch
+[1791149402.387] W6: TabHistoryControls.Mount dispatch
+[1791149402.392] W6: SidebarAction.Mount dispatch
+[1791149402.392] W6: SidebarAction.Mount dispatch
+[1791149402.392] W6: SidebarAction.Mount dispatch
+[1791149402.392] W6: HorizontalGroup.Mount dispatch
+[1791149402.392] W6: CollapsibleTitle.Mount dispatch
+[1791149402.392] W6: ChannelListSort.Mount dispatch
+[1791149402.393] W6: CommsSidebar.Mount dispatch
+[1791149402.397] W6: Horizontal.Mount dispatch
+[1791149402.397] W6: SessionsTabs.Mount dispatch
+[1791149402.398] W6: SidebarHeader.Mount dispatch
+[1791149402.398] W6: Contents.Mount dispatch
+[1791149402.398] W6: Vertical.Mount dispatch
+[1791149402.398] W6: WorkspaceHeader.Mount dispatch
+[1791149402.399] W6: SideBarCollapsible.Mount dispatch
+[1791149402.399] W6: SidebarViewport.Mount dispatch
+[1791149402.399] W6: ChannelsSidebar.Mount dispatch
+[1791149402.400] W6: Horizontal.Mount dispatch
+[1791149402.403] W6: WorkspaceScreen.Mount dispatch
+[1791149402.419] W6: WorkspaceScreen.Show dispatch
+[1791149402.420] W6: MainMenuButton.Focus dispatch
+[1791149402.420] W6: MainMenuButton.Show dispatch
+[1791149402.426] W6: Footer.Show dispatch
+[1791149402.427] W6: SideBarToggle.Show dispatch
+[1791149402.427] W6: SidebarResizeHandle.Show dispatch
+[1791149402.427] W6: SidebarAction.Show dispatch
+[1791149402.427] W6: SidebarAction.Show dispatch
+[1791149402.427] W6: SidebarAction.Show dispatch
+[1791149402.427] W6: SidebarAction.Hide dispatch
+[1791149402.427] W6: Horizontal.Show dispatch
+[1791149402.427] W6: SidebarSlider.Show dispatch
+[1791149402.427] W6: Vertical.Show dispatch
+[1791149402.427] W6: CommsSidebar.Show dispatch
+[1791149402.427] W6: Contents.Show dispatch
+[1791149402.427] W6: ChannelListSort.Show dispatch
+[1791149402.428] W6: CollapsibleTitle.Show dispatch
+[1791149402.428] W6: SidebarHeader.Show dispatch
+[1791149402.428] W6: SideBarCollapsible.Show dispatch
+[1791149402.428] W6: SidebarViewport.Show dispatch
+[1791149402.428] W6: ChannelsSidebar.Show dispatch
+[1791149402.429] W6: Container.Show dispatch
+[1791149402.429] W6: Horizontal.Show dispatch
+[1791149402.429] W6: Underline.Show dispatch
+[1791149402.429] W6: SessionTabClose.Show dispatch
+[1791149402.429] W6: SessionLabel.Show dispatch
+[1791149402.429] W6: HorizontalGroup.Show dispatch
+[1791149402.429] W6: SessionsTabs.Show dispatch
+[1791149402.429] W6: TabHistoryButton.Show dispatch
+[1791149402.429] W6: TabHistoryButton.Show dispatch
+[1791149402.429] W6: TabHistoryControls.Show dispatch
+[1791149402.429] W6: WorkspaceHeader.Show dispatch
+[1791149402.449] W6: SideBarToggle.Mount dispatch
+[1791149402.449] W6: SidebarResizeHandle.Mount dispatch
+[1791149402.449] W6: SidebarViewport.Mount dispatch
+[1791149402.449] W6: Vertical.Mount dispatch
+[1791149402.449] W6: SessionSurfaceSlot.Mount dispatch
+[1791149402.449] W6: ThreadLoading.Mount dispatch
+[1791149402.449] W6: SessionThreadSidebar.Mount dispatch
+[1791149402.450] W6: Vertical.Mount dispatch
+[1791149402.450] W6: Center.Mount dispatch
+[1791149402.450] W6: MainScreen.Mount dispatch
+[1791149402.456] W6: Flash.Mount dispatch
+[1791149402.459] W6: TurnActivity.Mount dispatch
+[1791149402.462] W6: ObservedThrobber.Mount dispatch
+[1791149402.468] W6: CursorContainer.Mount dispatch
+[1791149402.469] W6: CollapsibleTitle.Mount dispatch
+[1791149402.470] W6: Static.Mount dispatch
+[1791149402.483] W6: QueueSummary.Mount dispatch
+[1791149402.494] W6: ThreadLoading.Mount dispatch
+[1791149402.494] W6: ObservedThreadActivity.Mount dispatch
+[1791149402.495] W6: NativeHistory.Mount dispatch
+[1791149402.497] W6: StandbyPulse.Mount dispatch
+[1791149402.497] W6: GoalText.Mount dispatch
+[1791149402.497] W6: GoalText.Mount dispatch
+[1791149402.497] W6: GoalText.Mount dispatch
+[1791149402.497] W6: GoalControl.Mount dispatch
+[1791149402.497] W6: GoalControl.Mount dispatch
+[1791149402.497] W6: GoalControl.Mount dispatch
+[1791149402.498] W6: GoalControl.Mount dispatch
+[1791149402.498] W6: GoalControl.Mount dispatch
+[1791149402.498] W6: SlashCompleteInput.Mount dispatch
+[1791149402.511] W6: SelectionOptionList.Mount dispatch
+[1791149402.511] W6: Label.Mount dispatch
+[1791149402.511] W6: SendNow.Mount dispatch
+[1791149402.515] W6: Input.Mount dispatch
+[1791149402.516] W6: Static.Mount dispatch
+[1791149402.516] W6: SelectionOptionList.Mount dispatch
+[1791149402.516] W6: ConnectProvider.Mount dispatch
+[1791149402.516] W6: AgentInfo.Mount dispatch
+[1791149402.516] W6: CondensedPath.Mount dispatch
+[1791149402.516] W6: StatusLine.Mount dispatch
+[1791149402.517] W6: ModeSwitcher.Mount dispatch
+[1791149402.517] W6: ModeInfo.Mount dispatch
+[1791149402.518] W6: Static.Mount dispatch
+[1791149402.518] W6: Static.Mount dispatch
+[1791149402.518] W6: Static.Mount dispatch
+[1791149402.518] W6: DeliveryInspect.Mount dispatch
+[1791149402.524] W6: VerticalGroup.Mount dispatch
+[1791149402.524] W6: Label.Mount dispatch
+[1791149402.524] W6: PromptTextArea.Mount dispatch
+[1791149402.525] W6: Contents.Mount dispatch
+[1791149402.525] W6: HorizontalGroup.Mount dispatch
+[1791149402.525] W6: VerticalScroll.Mount dispatch
+[1791149402.526] W6: HorizontalGroup.Mount dispatch
+[1791149402.526] W6: SlashComplete.Mount dispatch
+[1791149402.527] W6: HorizontalGroup.Mount dispatch
+[1791149402.527] W6: ModelSwitcher.Mount dispatch
+[1791149402.527] W6: HorizontalGroup.Mount dispatch
+[1791149402.528] W6: FuzzyInput.Mount dispatch
+[1791149402.528] W6: FuzzyPathOptionList.Mount dispatch
+[1791149402.528] W6: Static.Mount dispatch
+[1791149402.528] W6: Label.Mount dispatch
+[1791149402.528] W6: InputDeliveryBar.Mount dispatch
+[1791149402.529] W6: HorizontalGroup.Mount dispatch
+[1791149402.529] W6: ContentsGrid.Mount dispatch
+[1791149402.530] W6: GoalBar.Mount dispatch
+[1791149402.534] W6: VerticalGroup.Mount dispatch
+[1791149402.534] W6: VerticalGroup.Mount dispatch
+[1791149402.534] W6: VerticalGroup.Mount dispatch
+[1791149402.534] W6: Contents.Mount dispatch
+[1791149402.535] W6: Window.Mount dispatch
+[1791149402.535] W6: ContentSwitcher.Mount dispatch
+[1791149402.536] W6: Question.Mount dispatch
+[1791149402.536] W6: SessionDetails.Mount dispatch
+[1791149402.539] W6: PathSearch.Mount dispatch
+[1791149402.539] W6: PathSearch worker default/watch_paths PENDING
+[1791149402.539] W6: PathSearch worker default/watch_paths RUNNING
+[1791149402.539] W6: PromptContainer.Mount dispatch
+[1791149402.540] W6: Prompt.Mount dispatch
+[1791149402.546] W6: PathSearch worker default/_update_paths PENDING
+[1791149402.546] W6: PathSearch worker default/_update_paths RUNNING
+[1791149402.547] W6: PathSearch worker default/watch_paths SUCCESS
+[1791149402.547] W6: Vertical.Mount dispatch
+[1791149402.547] W6: PathSearch worker default/_update_paths SUCCESS
+[1791149402.547] W6: Conversation.Mount dispatch
+[1791149402.555] W6: Conversation worker command-catalog/update_slash_commands PENDING
+[1791149402.556] W6: Conversation worker command-catalog/update_slash_commands RUNNING
+[1791149402.556] W6: Conversation worker default/watch_agent_ready PENDING
+[1791149402.556] W6: Conversation worker default/watch_agent_ready RUNNING
+[1791149402.557] W6: Conversation worker default/watch_agent_ready SUCCESS
+[1791149402.623] W6: Conversation worker command-catalog/update_slash_commands SUCCESS
+[1791149402.623] W6: ScrollBar.Mount dispatch
+[1791149403.034] W6: original CoordinationObserved dispatch
+[1791149403.035] W6: original CoordinationObserved dispatch
+[1791149403.035] W6: Conversation worker command-catalog/update_slash_commands PENDING
+[1791149403.035] W6: Conversation worker command-catalog/update_slash_commands RUNNING
+[1791149403.035] W6: original CoordinationObserved dispatch
+[1791149403.038] W6: Conversation worker command-catalog/update_slash_commands SUCCESS
+[1791149404.033] W6: original CoordinationObserved dispatch
+[1791149404.034] W6: original CoordinationObserved dispatch
+[1791149404.034] W6: Conversation worker command-catalog/update_slash_commands PENDING
+[1791149404.034] W6: Conversation worker command-catalog/update_slash_commands RUNNING
+[1791149404.034] W6: original CoordinationObserved dispatch
+[1791149404.037] W6: Conversation worker command-catalog/update_slash_commands SUCCESS
+[1791149404.854] W6: original SessionSelected dispatch
+[1791149404.857] W6: Window worker viewport-bodies/ PENDING
+[1791149404.857] W6: Window worker viewport-bodies/ RUNNING
+[1791149404.857] W6: original SessionSelected dispatch
+[1791149404.858] W6: original SessionSelected dispatch
+[1791149404.859] W6: original TabHistoryChanged dispatch
+[1791149404.859] W6: original SessionSelected dispatch
+[1791149404.860] W6: original SessionSelected dispatch
+[1791149404.860] W6: original SessionSelected dispatch
+[1791149404.861] W6: original SessionSelected dispatch
+[1791149404.933] W6: Window worker viewport-bodies/ SUCCESS
+[1791149404.934] W6: ToadApp worker default/ PENDING
+[1791149404.935] W6: ToadApp worker default/ RUNNING
+[1791149404.935] W6: ToadApp.Ready dispatch
+[1791149404.935] W6: original CoordinationObserved dispatch
+[1791149404.949] W6: ToadApp worker default/ SUCCESS
+[1791149404.949] W6: original CoordinationObserved dispatch
+[1791149404.949] W6: original CoordinationObserved dispatch
+[1791149404.949] W6: ToadApp worker default/ PENDING
+[1791149404.949] W6: ToadApp worker default/ RUNNING
+[1791149404.949] W6: ToadApp worker default/ PENDING
+[1791149404.949] W6: ToadApp worker default/ RUNNING
+[1791149404.950] W6: MainMenuButton.Blur dispatch
+[1791149404.957] W6: FuzzyInput.Focus dispatch
+[1791149404.967] W6: FuzzyInput.Blur dispatch
+[1791149404.971] W6: PromptTextArea.Focus dispatch
+[1791149405.223] W6: ToadApp worker renderer-warmup/_warm_renderer PENDING
+[1791149405.223] W6: ToadApp worker renderer-warmup/_warm_renderer RUNNING
+[1791149405.224] W6: CommsSidebar worker sidebar-navigation/hydrate PENDING
+[1791149405.224] W6: CommsSidebar worker sidebar-navigation/hydrate RUNNING
+[1791149405.229] W6: Conversation worker command-catalog/update_slash_commands PENDING
+[1791149405.230] W6: Conversation worker command-catalog/update_slash_commands RUNNING
+[1791149405.230] W6: original SessionSubtitleChanged dispatch
+[1791149405.231] W6: Window worker viewport-bodies/ PENDING
+[1791149405.231] W6: Window worker viewport-bodies/ RUNNING
+[1791149405.231] W6: App entered; awaiting original content readiness
+[1791149405.231] W6: content ready; awaiting frame-admitted ACP agent construction
+[1791149405.231] W6: ACP agent constructed; awaiting original session attachment settlement
+[1791149405.238] W6: original SessionSubtitleChanged dispatch
+[1791149405.252] W6: ToadApp worker default/ SUCCESS
+[1791149405.252] W6: ToadApp worker renderer-warmup/_warm_renderer SUCCESS
+[1791149405.253] W6: original SessionSubtitleChanged dispatch
+[1791149405.253] W6: StatusLine.Show dispatch
+[1791149405.253] W6: Window worker viewport-bodies/ SUCCESS
+[1791149405.255] W6: CommsSidebar worker sidebar-navigation/hydrate SUCCESS
+[1791149405.267] W6: original SessionSubtitleChanged dispatch
+[1791149405.268] W6: original ConfigurationChanged dispatch
+[1791149405.270] W6: original SessionChangedEvent dispatch
+[1791149405.272] W6: original SessionChangedEvent dispatch
+[1791149405.272] W6: original SessionSubtitleChanged dispatch
+[1791149405.283] W6: original ConfigurationChanged dispatch
+[1791149405.285] W6: original SessionChangedEvent dispatch
+[1791149405.285] W6: original SessionChangedEvent dispatch
+[1791149405.286] W6: original SessionSubtitleChanged dispatch
+[1791149405.286] W6: original ConfigurationChanged dispatch
+[1791149405.287] W6: original SessionChangedEvent dispatch
+[1791149405.289] W6: FooterKey.Mount dispatch
+[1791149405.290] W6: FooterKey.Mount dispatch
+[1791149405.290] W6: FooterKey.Mount dispatch
+[1791149405.291] W6: FooterKey.Mount dispatch
+[1791149405.291] W6: FooterKey.Mount dispatch
+[1791149405.292] W6: original ConfigurationChanged dispatch
+[1791149405.293] W6: original SessionChangedEvent dispatch
+[1791149405.294] W6: original ConfigurationChanged dispatch
+[1791149405.294] W6: original SessionChangedEvent dispatch
+[1791149405.301] W6: original ConfigurationChanged dispatch
+[1791149405.305] W6: original SessionChangedEvent dispatch
+[1791149405.315] W6: original SessionChangedEvent dispatch
+[1791149405.316] W6: original SessionSubtitleChanged dispatch
+[1791149405.316] W6: original ConfigurationChanged dispatch
+[1791149405.317] W6: original SessionChangedEvent dispatch
+[1791149405.320] W6: original SessionChangedEvent dispatch
+[1791149405.321] W6: original SessionSubtitleChanged dispatch
+[1791149405.321] W6: original ConfigurationChanged dispatch
+[1791149405.322] W6: original SessionChangedEvent dispatch
+[1791149405.323] W6: Conversation worker default/post_welcome PENDING
+[1791149405.323] W6: Conversation worker default/post_welcome RUNNING
+[1791149405.334] W6: FooterKey.Show dispatch
+[1791149405.335] W6: FooterKey.Show dispatch
+[1791149405.335] W6: FooterKey.Show dispatch
+[1791149405.335] W6: FooterKey.Show dispatch
+[1791149405.335] W6: FooterKey.Show dispatch
+[1791149405.335] W6: original CoordinationObserved dispatch
+[1791149405.335] W6: original CoordinationObserved dispatch
+[1791149405.336] W6: original CoordinationObserved dispatch
+[1791149405.337] W6: Conversation worker default/post_welcome SUCCESS
+[1791149405.340] W6: Conversation worker command-catalog/update_slash_commands SUCCESS
+[1791149405.421] W6: ToadApp worker default/ SUCCESS
+[1791149405.428] W6: NewSessionButton.Mount dispatch
+[1791149405.437] W6: SidebarMembers.Mount dispatch
+[1791149405.441] W6: SidebarMembers.Mount dispatch
+[1791149405.442] W6: SidebarMembers.Mount dispatch
+[1791149405.443] W6: ChannelDisclosure.Mount dispatch
+[1791149405.443] W6: CommsRow.Mount dispatch
+[1791149405.443] W6: ChannelUnread.Mount dispatch
+[1791149405.443] W6: SessionSort.Mount dispatch
+[1791149405.443] W6: ChannelDisclosure.Mount dispatch
+[1791149405.444] W6: CommsRow.Mount dispatch
+[1791149405.444] W6: ChannelUnread.Mount dispatch
+[1791149405.444] W6: SessionSort.Mount dispatch
+[1791149405.444] W6: ChannelDisclosure.Mount dispatch
+[1791149405.444] W6: CommsRow.Mount dispatch
+[1791149405.444] W6: ChannelUnread.Mount dispatch
+[1791149405.444] W6: SessionSort.Mount dispatch
+[1791149405.452] W6: NewSessionButton.Show dispatch
+[1791149405.453] W6: SidebarHeader.Mount dispatch
+[1791149405.454] W6: SidebarHeader.Mount dispatch
+[1791149405.454] W6: SidebarHeader.Mount dispatch
+[1791149405.454] W6: ChannelGroup.Mount dispatch
+[1791149405.455] W6: ChannelGroup.Mount dispatch
+[1791149405.455] W6: ChannelGroup.Mount dispatch
+[1791149405.466] W6: SidebarMembers.Show dispatch
+[1791149405.466] W6: SessionSort.Show dispatch
+[1791149405.466] W6: CommsRow.Show dispatch
+[1791149405.466] W6: ChannelDisclosure.Show dispatch
+[1791149405.466] W6: SidebarHeader.Show dispatch
+[1791149405.467] W6: ChannelGroup.Show dispatch
+[1791149405.467] W6: SidebarMembers.Show dispatch
+[1791149405.467] W6: SessionSort.Show dispatch
+[1791149405.467] W6: CommsRow.Show dispatch
+[1791149405.467] W6: ChannelDisclosure.Show dispatch
+[1791149405.467] W6: SidebarHeader.Show dispatch
+[1791149405.467] W6: ChannelGroup.Show dispatch
+[1791149405.467] W6: SidebarMembers.Show dispatch
+[1791149405.467] W6: SessionSort.Show dispatch
+[1791149405.467] W6: CommsRow.Show dispatch
+[1791149405.468] W6: ChannelDisclosure.Show dispatch
+[1791149405.468] W6: SidebarHeader.Show dispatch
+[1791149405.468] W6: ChannelGroup.Show dispatch
+[1791149405.471] W6: ThreadRow.Mount dispatch
+[1791149405.489] W6: ThreadRow.Show dispatch
+[1791149405.934] W6: ToadApp worker default/check PENDING
+[1791149405.934] W6: ToadApp worker default/check RUNNING
+[1791149406.034] W6: original CoordinationObserved dispatch
+[1791149406.034] W6: original CoordinationObserved dispatch
+[1791149406.035] W6: original CoordinationObserved dispatch
+[1791149406.057] W6: ToadApp worker default/check SUCCESS
+[1791149407.034] W6: original CoordinationObserved dispatch
+[1791149407.034] W6: original CoordinationObserved dispatch
+[1791149407.035] W6: original CoordinationObserved dispatch
+[1791149408.034] W6: original CoordinationObserved dispatch
+[1791149408.034] W6: original CoordinationObserved dispatch
+[1791149408.035] W6: original CoordinationObserved dispatch
+[1791149408.798] incoming: {"jsonrpc": "2.0", "method": "initialize", "params": {"protocolVersion": 1, "clientCapabilities": {"fs": {"readTextFile": true, "writeTextFile": true}, "terminal": true, "auth": {"terminal": true}}, "
+[1791149408.798] outgoing: {"jsonrpc": "2.0", "id": 1, "result": {"protocolVersion": 1, "agentCapabilities": {"loadSession": true, "promptCapabilities": {"image": true}}, "authMethods": [{"id": "pi-login-openai-codex", "name": 
+[1791149408.800] incoming: {"jsonrpc": "2.0", "method": "session/load", "params": {"cwd": "/home/ts/wt/w6e04/test_authored_import_registere0/project", "mcpServers": [], "sessionId": "authored-import", "_meta": {"agentCommsLoad"
+[1791149408.800] W6: original CommsUpdated dispatch
+[1791149408.801] W6: original CommsUpdated dispatch
+[1791149408.806] W6: original CommsUpdated dispatch
+[1791149408.807] W6: original CommsUpdated dispatch
+[1791149408.816] W6: original CommsUpdated dispatch
+[1791149408.817] W6: original CommsUpdated dispatch
+[1791149408.817] W6: original CommsUpdated dispatch
+[1791149408.817] W6: original CommsUpdated dispatch
+[1791149408.818] W6: original CommsUpdated dispatch
+[1791149408.882] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "authored-import", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"updates": [{"kind": "coordinatio
+[1791149408.893] W6: original UpdateStatusLine dispatch
+[1791149408.894] W6: original CommsUpdated dispatch
+[1791149408.904] W6: original SessionInfoUpdate dispatch
+[1791149408.905] W6: original CommsUpdated dispatch
+[1791149408.905] W6: original CommsUpdated dispatch
+[1791149408.906] W6: original CommsUpdated dispatch
+[1791149408.911] W6: original SessionTitleChanged dispatch
+[1791149408.912] W6: original UpdateStatusLine dispatch
+[1791149408.912] W6: original CommsUpdated dispatch
+[1791149408.912] W6: original SessionInfoUpdate dispatch
+[1791149408.912] W6: original CommsUpdated dispatch
+[1791149408.912] W6: original CommsUpdated dispatch
+[1791149408.912] W6: original SessionTitleChanged dispatch
+[1791149408.917] W6: original UpdateStatusLine dispatch
+[1791149408.917] W6: original CommsUpdated dispatch
+[1791149408.917] W6: original SessionInfoUpdate dispatch
+[1791149408.917] W6: original CommsUpdated dispatch
+[1791149408.918] W6: original CommsUpdated dispatch
+[1791149408.918] W6: original SessionTitleChanged dispatch
+[1791149408.919] W6: original UpdateStatusLine dispatch
+[1791149408.920] W6: original CommsUpdated dispatch
+[1791149408.922] W6: original SessionInfoUpdate dispatch
+[1791149408.923] W6: original CommsUpdated dispatch
+[1791149408.924] W6: original CommsUpdated dispatch
+[1791149408.924] W6: original SessionTitleChanged dispatch
+[1791149408.935] W6: original UpdateStatusLine dispatch
+[1791149408.935] W6: original CommsUpdated dispatch
+[1791149408.937] W6: original SessionInfoUpdate dispatch
+[1791149408.937] W6: original CommsUpdated dispatch
+[1791149408.937] W6: original CommsUpdated dispatch
+[1791149408.938] W6: original SessionTitleChanged dispatch
+[1791149408.938] W6: original SessionChangedEvent dispatch
+[1791149408.938] W6: original SessionChangedEvent dispatch
+[1791149408.939] W6: QueueSummary.Show dispatch
+[1791149408.939] W6: CollapsibleTitle.Show dispatch
+[1791149408.939] W6: SessionDetails.Show dispatch
+[1791149408.940] W6: Window worker viewport-bodies/ PENDING
+[1791149408.940] W6: Window worker viewport-bodies/ RUNNING
+[1791149408.940] W6: original UpdateStatusLine dispatch
+[1791149408.940] W6: original CommsUpdated dispatch
+[1791149408.940] W6: original SessionInfoUpdate dispatch
+[1791149408.940] W6: original CommsUpdated dispatch
+[1791149408.940] W6: original CommsUpdated dispatch
+[1791149408.940] W6: original SessionTitleChanged dispatch
+[1791149408.941] W6: original UpdateStatusLine dispatch
+[1791149408.941] W6: original CommsUpdated dispatch
+[1791149408.941] W6: original SessionInfoUpdate dispatch
+[1791149408.941] W6: original CommsUpdated dispatch
+[1791149408.941] W6: original CommsUpdated dispatch
+[1791149408.941] W6: original SessionTitleChanged dispatch
+[1791149408.942] W6: original UpdateStatusLine dispatch
+[1791149408.942] W6: original CommsUpdated dispatch
+[1791149408.943] W6: original SessionInfoUpdate dispatch
+[1791149408.943] W6: original CommsUpdated dispatch
+[1791149408.943] W6: original CommsUpdated dispatch
+[1791149408.944] W6: original SessionTitleChanged dispatch
+[1791149408.944] W6: Window worker viewport-bodies/ SUCCESS
+[1791149408.951] W6: original SessionChangedEvent dispatch
+[1791149408.952] W6: original SessionChangedEvent dispatch
+[1791149408.952] W6: original SessionChangedEvent dispatch
+[1791149408.953] W6: original SessionChangedEvent dispatch
+[1791149408.954] W6: original SessionChangedEvent dispatch
+[1791149408.954] W6: original SessionChangedEvent dispatch
+[1791149408.955] W6: original SessionChangedEvent dispatch
+[1791149408.956] W6: original SessionChangedEvent dispatch
+[1791149408.957] W6: original SessionChangedEvent dispatch
+[1791149408.957] W6: original SessionChangedEvent dispatch
+[1791149408.963] W6: original ThreadActivityChanged dispatch
+[1791149408.964] W6: original ThreadActivityChanged dispatch
+[1791149408.964] W6: original ThreadActivityChanged dispatch
+[1791149408.968] W6: original ThreadActivityChanged dispatch
+[1791149408.969] W6: original ThreadActivityChanged dispatch
+[1791149408.970] W6: Conversation worker transcript-source/publish PENDING
+[1791149408.970] W6: Conversation worker transcript-source/publish RUNNING
+[1791149409.038] W6: original CoordinationObserved dispatch
+[1791149409.038] W6: original CoordinationObserved dispatch
+[1791149409.039] W6: original CoordinationObserved dispatch
+[1791149409.050] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "authored-import", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"updates": [{"kind": "transcript_
+[1791149409.084] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "authored-import", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"updates": [{"kind": "turn_change
+[1791149409.085] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "authored-import", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"updates": [{"kind": "input_deliv
+[1791149409.088] outgoing: {"jsonrpc": "2.0", "id": 2, "result": {"configOptions": [{"currentValue": "", "options": [{"value": "", "name": "Not configured"}], "id": "model", "name": "Model", "description": "Model used by this p
+[1791149409.088] W6: original InputDispositionsChanged dispatch
+[1791149409.089] W6: original InputDispositionsChanged dispatch
+[1791149409.089] W6: original InputDispositionsChanged dispatch
+[1791149409.090] W6: original InputDispositionsChanged dispatch
+[1791149409.095] W6: original InputDispositionsChanged dispatch
+[1791149409.095] W6: original UpdateStatusLine dispatch
+[1791149409.096] W6: original CommsUpdated dispatch
+[1791149409.105] W6: original SessionInfoUpdate dispatch
+[1791149409.105] W6: original CommsUpdated dispatch
+[1791149409.106] W6: original CommsUpdated dispatch
+[1791149409.108] W6: original CommsUpdated dispatch
+[1791149409.108] W6: original ConfigurationChanged dispatch
+[1791149409.114] W6: original AgentReady dispatch
+[1791149409.116] W6: original SessionTitleChanged dispatch
+[1791149409.116] W6: Conversation worker default/watch_agent_ready PENDING
+[1791149409.116] W6: Conversation worker default/watch_agent_ready RUNNING
+[1791149409.118] W6: original InputDispositionsChanged dispatch
+[1791149409.118] W6: original UpdateStatusLine dispatch
+[1791149409.119] W6: original CommsUpdated dispatch
+[1791149409.119] W6: original SessionInfoUpdate dispatch
+[1791149409.119] W6: original CommsUpdated dispatch
+[1791149409.119] W6: original CommsUpdated dispatch
+[1791149409.119] W6: original ConfigurationChanged dispatch
+[1791149409.119] W6: original AgentReady dispatch
+[1791149409.120] W6: original SessionTitleChanged dispatch
+[1791149409.124] W6: ToadApp worker default/ PENDING
+[1791149409.124] W6: ToadApp worker default/ RUNNING
+[1791149409.125] W6: original InputDispositionsChanged dispatch
+[1791149409.128] W6: original UpdateStatusLine dispatch
+[1791149409.128] W6: original CommsUpdated dispatch
+[1791149409.128] W6: original SessionInfoUpdate dispatch
+[1791149409.129] W6: original CommsUpdated dispatch
+[1791149409.129] W6: original CommsUpdated dispatch
+[1791149409.129] W6: original ConfigurationChanged dispatch
+[1791149409.129] W6: original AgentReady dispatch
+[1791149409.129] W6: original SessionTitleChanged dispatch
+[1791149409.156] W6: original InputDispositionsChanged dispatch
+[1791149409.165] W6: original UpdateStatusLine dispatch
+[1791149409.166] W6: original CommsUpdated dispatch
+[1791149409.168] W6: original SessionInfoUpdate dispatch
+[1791149409.168] W6: original CommsUpdated dispatch
+[1791149409.169] W6: original CommsUpdated dispatch
+[1791149409.169] W6: original ConfigurationChanged dispatch
+[1791149409.169] W6: original AgentReady dispatch
+[1791149409.170] W6: original SessionTitleChanged dispatch
+[1791149409.171] W6: Window worker viewport-bodies/ PENDING
+[1791149409.171] W6: Window worker viewport-bodies/ RUNNING
+[1791149409.172] W6: QueueSummary.Hide dispatch
+[1791149409.173] W6: Flash.Show dispatch
+[1791149409.173] W6: original UpdateStatusLine dispatch
+[1791149409.173] W6: original CommsUpdated dispatch
+[1791149409.173] W6: original SessionInfoUpdate dispatch
+[1791149409.173] W6: original CommsUpdated dispatch
+[1791149409.174] W6: original CommsUpdated dispatch
+[1791149409.174] W6: original ConfigurationChanged dispatch
+[1791149409.174] W6: original AgentReady dispatch
+[1791149409.174] W6: original SessionTitleChanged dispatch
+[1791149409.176] W6: original UpdateStatusLine dispatch
+[1791149409.176] W6: original CommsUpdated dispatch
+[1791149409.177] W6: original SessionInfoUpdate dispatch
+[1791149409.178] W6: original CommsUpdated dispatch
+[1791149409.179] W6: original CommsUpdated dispatch
+[1791149409.179] W6: original ConfigurationChanged dispatch
+[1791149409.179] W6: original AgentReady dispatch
+[1791149409.180] W6: original SessionTitleChanged dispatch
+[1791149409.184] W6: Window worker viewport-bodies/ SUCCESS
+[1791149409.185] W6: original UpdateStatusLine dispatch
+[1791149409.186] W6: original CommsUpdated dispatch
+[1791149409.186] W6: original SessionInfoUpdate dispatch
+[1791149409.188] W6: original CommsUpdated dispatch
+[1791149409.188] W6: original CommsUpdated dispatch
+[1791149409.188] W6: original ConfigurationChanged dispatch
+[1791149409.188] W6: original AgentReady dispatch
+[1791149409.188] W6: original SessionTitleChanged dispatch
+[1791149409.189] W6: original UpdateStatusLine dispatch
+[1791149409.190] W6: original CommsUpdated dispatch
+[1791149409.190] W6: original SessionInfoUpdate dispatch
+[1791149409.191] W6: original CommsUpdated dispatch
+[1791149409.192] W6: original CommsUpdated dispatch
+[1791149409.192] W6: original ConfigurationChanged dispatch
+[1791149409.193] W6: original AgentReady dispatch
+[1791149409.194] W6: original SessionTitleChanged dispatch
+[1791149409.233] W6: Conversation worker transcript-window/ PENDING
+[1791149409.234] W6: Conversation worker transcript-window/ RUNNING
+[1791149409.234] W6: original CommsUpdated dispatch
+[1791149409.234] W6: Conversation worker default/watch_agent_ready SUCCESS
+[1791149409.235] W6: original CommsUpdated dispatch
+[1791149409.238] W6: original CommsUpdated dispatch
+[1791149409.239] W6: Conversation worker transcript-window/ SUCCESS
+[1791149409.239] W6: original CommsUpdated dispatch
+[1791149409.240] W6: original CommsUpdated dispatch
+[1791149409.241] W6: original CommsUpdated dispatch
+[1791149409.241] W6: original CommsUpdated dispatch
+[1791149409.241] W6: original CommsUpdated dispatch
+[1791149409.281] W6: HistoryEdge.Mount dispatch
+[1791149409.283] W6: JumpToLatest.Mount dispatch
+[1791149409.335] W6: MessageDivider.Mount dispatch
+[1791149409.337] W6: MessageDivider.Mount dispatch
+[1791149409.338] W6: MessageDivider.Mount dispatch
+[1791149409.339] W6: ToadApp worker default/ SUCCESS
+[1791149409.339] W6: NonSelectableLabel.Mount dispatch
+[1791149409.339] W6: PreparedConversationMarkdown.Mount dispatch
+[1791149409.339] W6: NonSelectableLabel.Mount dispatch
+[1791149409.339] W6: PreparedConversationMarkdown.Mount dispatch
+[1791149409.340] W6: AgentResponse.Mount dispatch
+[1791149409.349] W6: MarkdownParagraph.Mount dispatch
+[1791149409.350] W6: AgentResponse worker body-materialization/materialize PENDING
+[1791149409.350] W6: AgentResponse worker body-materialization/materialize RUNNING
+[1791149409.350] W6: AgentResponse worker markdown-preparation/submit PENDING
+[1791149409.350] W6: AgentResponse worker markdown-preparation/submit RUNNING
+[1791149409.350] W6: AgentResponse worker markdown-preparation/submit SUCCESS
+[1791149409.350] W6: AgentResponse worker body-materialization/materialize SUCCESS
+[1791149409.351] W6: TranscriptFragmentView.Mount dispatch
+[1791149409.354] W6: MarkdownParagraph.Mount dispatch
+[1791149409.355] W6: PreparedConversationMarkdown worker body-materialization/materialize PENDING
+[1791149409.355] W6: PreparedConversationMarkdown worker body-materialization/materialize RUNNING
+[1791149409.355] W6: PreparedConversationMarkdown worker markdown-preparation/submit PENDING
+[1791149409.355] W6: PreparedConversationMarkdown worker markdown-preparation/submit RUNNING
+[1791149409.355] W6: PreparedConversationMarkdown worker markdown-preparation/submit SUCCESS
+[1791149409.356] W6: PreparedConversationMarkdown worker body-materialization/materialize SUCCESS
+[1791149409.356] W6: HorizontalGroup.Mount dispatch
+[1791149409.359] W6: UserInput.Mount dispatch
+[1791149409.360] W6: MarkdownParagraph.Mount dispatch
+[1791149409.360] W6: MarkdownParagraph.Mount dispatch
+[1791149409.360] W6: TranscriptFragmentView.Mount dispatch
+[1791149409.361] W6: PreparedConversationMarkdown worker body-materialization/materialize PENDING
+[1791149409.361] W6: PreparedConversationMarkdown worker body-materialization/materialize RUNNING
+[1791149409.361] W6: PreparedConversationMarkdown worker markdown-preparation/submit PENDING
+[1791149409.361] W6: PreparedConversationMarkdown worker markdown-preparation/submit RUNNING
+[1791149409.361] W6: PreparedConversationMarkdown worker markdown-preparation/submit SUCCESS
+[1791149409.361] W6: PreparedConversationMarkdown worker body-materialization/materialize SUCCESS
+[1791149409.362] W6: HorizontalGroup.Mount dispatch
+[1791149409.362] W6: UserInput.Mount dispatch
+[1791149409.362] W6: TranscriptFragmentView.Mount dispatch
+[1791149409.363] W6: TranscriptPageView.Mount dispatch
+[1791149409.363] W6: TranscriptHistory.Mount dispatch
+[1791149409.365] W6: original TranscriptCoverage dispatch
+[1791149409.366] W6: TranscriptHistory worker history-lookahead/prepare PENDING
+[1791149409.366] W6: TranscriptHistory worker history-lookahead/prepare RUNNING
+[1791149409.366] W6: original TranscriptCoverage dispatch
+[1791149409.366] W6: original TranscriptCoverage dispatch
+[1791149409.366] W6: TranscriptHistory worker history-lookahead/prepare SUCCESS
+[1791149409.367] W6: original TranscriptCoverage dispatch
+[1791149409.367] W6: original TranscriptCoverage dispatch
+[1791149409.388] W6: Window worker viewport-bodies/ PENDING
+[1791149409.388] W6: Window worker viewport-bodies/ RUNNING
+[1791149409.389] W6: MarkdownParagraph.Show dispatch
+[1791149409.389] W6: MessageDivider.Show dispatch
+[1791149409.389] W6: AgentResponse.Show dispatch
+[1791149409.389] W6: TranscriptFragmentView.Show dispatch
+[1791149409.389] W6: MarkdownParagraph.Show dispatch
+[1791149409.389] W6: PreparedConversationMarkdown.Show dispatch
+[1791149409.389] W6: NonSelectableLabel.Show dispatch
+[1791149409.389] W6: HorizontalGroup.Show dispatch
+[1791149409.390] W6: MessageDivider.Show dispatch
+[1791149409.390] W6: UserInput.Show dispatch
+[1791149409.390] W6: TranscriptFragmentView.Show dispatch
+[1791149409.390] W6: MarkdownParagraph.Show dispatch
+[1791149409.390] W6: MarkdownParagraph.Show dispatch
+[1791149409.390] W6: PreparedConversationMarkdown.Show dispatch
+[1791149409.390] W6: NonSelectableLabel.Show dispatch
+[1791149409.390] W6: HorizontalGroup.Show dispatch
+[1791149409.390] W6: MessageDivider.Show dispatch
+[1791149409.390] W6: UserInput.Show dispatch
+[1791149409.390] W6: TranscriptFragmentView.Show dispatch
+[1791149409.390] W6: TranscriptPageView.Show dispatch
+[1791149409.391] W6: TranscriptHistory.Show dispatch
+[1791149409.391] W6: TranscriptHistory worker history-lookahead/prepare PENDING
+[1791149409.391] W6: TranscriptHistory worker history-lookahead/prepare RUNNING
+[1791149409.392] W6: Window worker viewport-bodies/ SUCCESS
+[1791149409.392] W6: Window worker viewport-bodies/ PENDING
+[1791149409.392] W6: Window worker viewport-bodies/ RUNNING
+[1791149409.393] W6: Conversation worker transcript-source/publish SUCCESS
+[1791149409.393] W6: Conversation worker transcript-handling/ PENDING
+[1791149409.393] W6: Conversation worker transcript-handling/ RUNNING
+[1791149409.402] W6: TranscriptHistory worker history-lookahead/prepare SUCCESS
+[1791149409.403] W6: Window worker viewport-bodies/ SUCCESS
+[1791149409.403] W6: Conversation worker transcript-handling/ SUCCESS
+[1791149409.434] W6: original ACP session and published source binding admitted; opening sidebar
+[1791149409.558] W6: original SidebarLayoutChanged dispatch
+[1791149409.559] W6: original SidebarLayoutChanged dispatch
+[1791149409.559] W6: original SidebarLayoutChanged dispatch
+[1791149409.560] W6: original SidebarLayoutChanged dispatch
+[1791149409.562] W6: original SidebarLayoutChanged dispatch
+[1791149409.563] W6: SidebarResizeHandle.Show dispatch
+[1791149409.563] W6: SidebarViewport.Show dispatch
+[1791149409.563] W6: Vertical.Show dispatch
+[1791149409.564] W6: original SidebarLayoutChanged dispatch
+[1791149409.564] W6: Window worker viewport-bodies/ PENDING
+[1791149409.564] W6: Window worker viewport-bodies/ RUNNING
+[1791149409.565] W6: TranscriptHistory worker history-lookahead/prepare PENDING
+[1791149409.565] W6: TranscriptHistory worker history-lookahead/prepare RUNNING
+[1791149409.567] W6: original SidebarLayoutChanged dispatch
+[1791149409.576] W6: Window worker viewport-bodies/ SUCCESS
+[1791149409.576] W6: TranscriptHistory worker history-lookahead/prepare SUCCESS
+[1791149409.576] W6: SessionThreadSidebar worker sidebar-panels/_hydrate_panels PENDING
+[1791149409.577] W6: SessionThreadSidebar worker sidebar-panels/_hydrate_panels RUNNING
+[1791149409.587] W6: CollapsibleTitle.Mount dispatch
+[1791149409.591] W6: CollapsibleTitle.Mount dispatch
+[1791149409.594] W6: CollapsibleTitle.Mount dispatch
+[1791149409.596] W6: CollapsibleTitle.Mount dispatch
+[1791149409.597] W6: CollapsibleTitle.Mount dispatch
+[1791149409.599] W6: CoordinationStatus.Mount dispatch
+[1791149409.599] W6: CollapsibleTitle.Mount dispatch
+[1791149409.599] W6: RelationshipSort.Mount dispatch
+[1791149409.611] W6: RecoveryView.Mount dispatch
+[1791149409.682] W6: Static.Mount dispatch
+[1791149409.683] W6: Checkbox.Mount dispatch
+[1791149409.683] W6: Checkbox.Mount dispatch
+[1791149409.683] W6: Checkbox.Mount dispatch
+[1791149409.683] W6: Checkbox.Mount dispatch
+[1791149409.683] W6: Checkbox.Mount dispatch
+[1791149409.683] W6: Checkbox.Mount dispatch
+[1791149409.683] W6: Checkbox.Mount dispatch
+[1791149409.683] W6: Static.Mount dispatch
+[1791149409.683] W6: ProjectSearchButton.Mount dispatch
+[1791149409.684] W6: Static.Mount dispatch
+[1791149409.684] W6: Input.Mount dispatch
+[1791149409.692] W6: ContextTree.Mount dispatch
+[1791149409.692] W6: TextArea.Mount dispatch
+[1791149409.693] W6: Input.Mount dispatch
+[1791149409.693] W6: Button.Mount dispatch
+[1791149409.693] W6: Contents.Mount dispatch
+[1791149409.694] W6: SidebarHeader.Mount dispatch
+[1791149409.695] W6: Contents.Mount dispatch
+[1791149409.695] W6: ScrollBar.Mount dispatch
+[1791149409.695] W6: Button.Mount dispatch
+[1791149409.695] W6: Button.Mount dispatch
+[1791149409.696] W6: Button.Mount dispatch
+[1791149409.696] W6: Button.Mount dispatch
+[1791149409.704] W6: ThreadCommsSidebar.Mount dispatch
+[1791149409.713] W6: Plan.Mount dispatch
+[1791149409.713] W6: RestorableProjectPanel.Mount dispatch
+[1791149409.714] W6: SideBarCollapsible.Mount dispatch
+[1791149409.715] W6: SideBarCollapsible.Mount dispatch
+[1791149409.716] W6: Horizontal.Mount dispatch
+[1791149409.728] W6: Contents.Mount dispatch
+[1791149409.729] W6: Contents.Mount dispatch
+[1791149409.729] W6: Contents.Mount dispatch
+[1791149409.729] W6: CoordinationStatus.Show dispatch
+[1791149409.729] W6: Contents.Show dispatch
+[1791149409.730] W6: CollapsibleTitle.Show dispatch
+[1791149409.730] W6: SideBarCollapsible.Show dispatch
+[1791149409.735] W6: ContextExplorer.Mount dispatch
+[1791149409.737] W6: SideBarCollapsible.Mount dispatch
+[1791149409.738] W6: SideBarCollapsible.Mount dispatch
+[1791149409.740] W6: SideBarCollapsible.Mount dispatch
+[1791149409.765] W6: CollapsibleTitle.Show dispatch
+[1791149409.765] W6: SideBarCollapsible.Show dispatch
+[1791149409.765] W6: CollapsibleTitle.Show dispatch
+[1791149409.765] W6: SideBarCollapsible.Show dispatch
+[1791149409.765] W6: Checkbox.Show dispatch
+[1791149409.765] W6: Checkbox.Show dispatch
+[1791149409.765] W6: Checkbox.Show dispatch
+[1791149409.765] W6: Checkbox.Show dispatch
+[1791149409.765] W6: Checkbox.Show dispatch
+[1791149409.766] W6: Checkbox.Show dispatch
+[1791149409.766] W6: Checkbox.Show dispatch
+[1791149409.766] W6: Static.Show dispatch
+[1791149409.766] W6: ThreadCommsSidebar.Show dispatch
+[1791149409.766] W6: Contents.Show dispatch
+[1791149409.766] W6: RelationshipSort.Show dispatch
+[1791149409.766] W6: CollapsibleTitle.Show dispatch
+[1791149409.767] W6: SidebarHeader.Show dispatch
+[1791149409.767] W6: SideBarCollapsible.Show dispatch
+[1791149409.767] W6: Contents.Mount dispatch
+[1791149409.768] W6: SideBarCollapsible.Mount dispatch
+[1791149409.773] W6: SidebarSlider.Mount dispatch
+[1791149409.793] W6: SidebarSlider.Show dispatch
+[1791149409.794] W6: TextArea.Show dispatch
+[1791149409.794] W6: ContextTree.Show dispatch
+[1791149409.794] W6: Button.Show dispatch
+[1791149409.795] W6: Button.Show dispatch
+[1791149409.795] W6: Button.Show dispatch
+[1791149409.795] W6: Button.Show dispatch
+[1791149409.795] W6: Horizontal.Show dispatch
+[1791149409.795] W6: Input.Show dispatch
+[1791149409.795] W6: Static.Show dispatch
+[1791149409.795] W6: ContextExplorer.Show dispatch
+[1791149409.795] W6: ContextExplorer worker context-read/_read PENDING
+[1791149409.795] W6: ContextExplorer worker context-read/_read RUNNING
+[1791149409.795] W6: Contents.Show dispatch
+[1791149409.795] W6: CollapsibleTitle.Show dispatch
+[1791149409.796] W6: SideBarCollapsible.Show dispatch
+[1791149409.796] W6: SidebarAction.Mount dispatch
+[1791149409.796] W6: SidebarAction.Mount dispatch
+[1791149409.796] W6: SidebarAction.Mount dispatch
+[1791149409.798] W6: Horizontal.Mount dispatch
+[1791149409.808] W6: SidebarAction.Show dispatch
+[1791149409.808] W6: SidebarAction.Show dispatch
+[1791149409.808] W6: SidebarAction.Show dispatch
+[1791149409.809] W6: Horizontal.Show dispatch
+[1791149409.812] W6: SessionThreadSidebar worker sidebar-panels/_hydrate_panels SUCCESS
+[1791149409.824] W6: SidebarAction.Hide dispatch
+[1791149409.857] W6: SidebarMembers.Mount dispatch
+[1791149409.858] W6: SidebarDisclosure.Mount dispatch
+[1791149409.858] W6: Static.Mount dispatch
+[1791149409.858] W6: SidebarHeader.Mount dispatch
+[1791149409.859] W6: RelationshipRows.Mount dispatch
+[1791149409.879] W6: TextArea.Hide dispatch
+[1791149409.879] W6: SidebarMembers.Show dispatch
+[1791149409.879] W6: Static.Show dispatch
+[1791149409.879] W6: SidebarDisclosure.Show dispatch
+[1791149409.879] W6: SidebarHeader.Show dispatch
+[1791149409.879] W6: RelationshipRows.Show dispatch
+[1791149409.882] W6: SidebarMembers.Mount dispatch
+[1791149409.907] W6: SidebarDisclosure.Mount dispatch
+[1791149409.907] W6: Static.Mount dispatch
+[1791149409.908] W6: ContextExplorer worker context-native/_read_native PENDING
+[1791149409.908] W6: ContextExplorer worker context-native/_read_native RUNNING
+[1791149409.908] W6: ContextExplorer worker context-read/_read SUCCESS
+[1791149409.921] W6: SidebarHeader.Mount dispatch
+[1791149409.923] W6: Button.Hide dispatch
+[1791149409.923] W6: Input.Hide dispatch
+[1791149409.924] W6: TextArea.Hide dispatch
+[1791149409.925] W6: ScrollBar.Mount dispatch
+[1791149409.942] W6: RelationshipRows.Mount dispatch
+[1791149409.943] W6: ScrollBar.Show dispatch
+[1791149409.957] W6: SidebarMembers.Show dispatch
+[1791149409.958] W6: Static.Show dispatch
+[1791149409.958] W6: SidebarDisclosure.Show dispatch
+[1791149409.958] W6: SidebarHeader.Show dispatch
+[1791149409.958] W6: RelationshipRows.Show dispatch
+[1791149409.983] W6: SidebarMembers.Mount dispatch
+[1791149409.983] W6: SidebarDisclosure.Mount dispatch
+[1791149409.984] W6: Static.Mount dispatch
+[1791149409.984] W6: SidebarHeader.Mount dispatch
+[1791149410.000] W6: RelationshipRows.Mount dispatch
+[1791149410.006] W6: SidebarMembers.Mount dispatch
+[1791149410.007] W6: SidebarDisclosure.Mount dispatch
+[1791149410.007] W6: Static.Mount dispatch
+[1791149410.028] W6: SidebarMembers.Show dispatch
+[1791149410.028] W6: Static.Show dispatch
+[1791149410.028] W6: SidebarDisclosure.Show dispatch
+[1791149410.029] W6: SidebarHeader.Show dispatch
+[1791149410.029] W6: RelationshipRows.Show dispatch
+[1791149410.031] W6: SidebarHeader.Mount dispatch
+[1791149410.032] W6: RelationshipRows.Mount dispatch
+[1791149410.053] W6: RelationshipRows.Show dispatch
+[1791149410.053] W6: SidebarMembers.Show dispatch
+[1791149410.053] W6: Static.Show dispatch
+[1791149410.053] W6: SidebarDisclosure.Show dispatch
+[1791149410.053] W6: SidebarHeader.Show dispatch
+[1791149410.056] W6: SidebarMembers.Mount dispatch
+[1791149410.070] W6: SidebarDisclosure.Mount dispatch
+[1791149410.070] W6: Static.Mount dispatch
+[1791149410.073] W6: SidebarHeader.Mount dispatch
+[1791149410.074] W6: original CoordinationObserved dispatch
+[1791149410.074] W6: original CoordinationObserved dispatch
+[1791149410.074] W6: original CoordinationObserved dispatch
+[1791149410.075] W6: ContextExplorer worker context-read/_read PENDING
+[1791149410.075] W6: ContextExplorer worker context-read/_read RUNNING
+[1791149410.075] W6: original CoordinationObserved dispatch
+[1791149410.076] W6: RelationshipRows.Mount dispatch
+[1791149410.089] W6: SidebarMembers.Show dispatch
+[1791149410.090] W6: Static.Show dispatch
+[1791149410.091] W6: SidebarDisclosure.Show dispatch
+[1791149410.092] W6: SidebarHeader.Show dispatch
+[1791149410.093] W6: RelationshipRows.Show dispatch
+[1791149410.097] W6: original CoordinationObserved dispatch
+[1791149410.099] W6: Static.Mount dispatch
+[1791149410.101] W6: Static.Mount dispatch
+[1791149410.102] W6: Static.Mount dispatch
+[1791149410.123] W6: Static.Mount dispatch
+[1791149410.124] W6: Static.Show dispatch
+[1791149410.124] W6: Static.Show dispatch
+[1791149410.125] W6: Static.Show dispatch
+[1791149410.134] W6: Static.Mount dispatch
+[1791149410.155] W6: Static.Show dispatch
+[1791149410.156] W6: Static.Show dispatch
+[1791149410.158] W6: ScrollBar.Mount dispatch
+[1791149410.172] W6: ScrollBar.Hide dispatch
+[1791149410.173] W6: ContextTree.Hide dispatch
+[1791149410.176] W6: ScrollBar.Show dispatch
+[1791149410.177] W6: ScrollBarCorner.Mount dispatch
+[1791149410.177] W6: ScrollBarCorner.Show dispatch
+[1791149410.178] W6: ScrollBar.Hide dispatch
+[1791149410.180] W6: ContextExplorer worker context-read/_read SUCCESS
+[1791149410.194] W6: original CoordinationObserved dispatch
+[1791149410.195] W6: original CoordinationObserved dispatch
+[1791149410.196] W6: ContextExplorer worker context-read/_read PENDING
+[1791149410.197] W6: ContextExplorer worker context-read/_read RUNNING
+[1791149410.197] W6: original CoordinationObserved dispatch
+[1791149410.197] W6: original CoordinationObserved dispatch
+[1791149410.201] W6: original CoordinationObserved dispatch
+[1791149410.215] W6: original ThreadActivityChanged dispatch
+[1791149410.217] W6: original ThreadActivityChanged dispatch
+[1791149410.218] W6: original ThreadActivityChanged dispatch
+[1791149410.227] W6: original ThreadActivityChanged dispatch
+[1791149410.228] W6: original ThreadActivityChanged dispatch
+[1791149410.229] W6: Conversation worker transcript-source/publish PENDING
+[1791149410.230] W6: Conversation worker transcript-source/publish RUNNING
+[1791149410.273] W6: original right sidebar hydrated
+[1791149410.273] W6: acquiring original imported reference and waiting for its tree node
+[1791149410.303] W6: ContextExplorer worker context-read/_read PENDING
+[1791149410.303] W6: ContextExplorer worker context-read/_read RUNNING
+[1791149410.333] W6: ContextExplorer worker context-read/_read CANCELLED
+[1791149410.358] W6: Conversation worker transcript-source/publish SUCCESS
+[1791149410.366] W6: original OpenTabsChanged dispatch
+[1791149410.367] W6: original OpenTabsChanged dispatch
+[1791149410.368] W6: original OpenTabsChanged dispatch
+[1791149410.369] W6: original OpenTabsChanged dispatch
+[1791149410.370] W6: original OpenTabsChanged dispatch
+[1791149410.370] W6: Conversation worker command-catalog/update_slash_commands PENDING
+[1791149410.371] W6: Conversation worker command-catalog/update_slash_commands RUNNING
+[1791149410.371] W6: original OpenTabsChanged dispatch
+[1791149410.372] W6: original OpenTabsChanged dispatch
+[1791149410.373] W6: original OpenTabsChanged dispatch
+[1791149410.373] W6: original OpenTabsChanged dispatch
+[1791149410.374] W6: original OpenTabsChanged dispatch
+[1791149410.384] W6: Conversation worker command-catalog/update_slash_commands SUCCESS
+[1791149410.391] W6: ContextExplorer worker context-native/_read_native PENDING
+[1791149410.391] W6: ContextExplorer worker context-native/_read_native RUNNING
+[1791149410.391] W6: ContextExplorer worker context-read/_read SUCCESS
+[1791149410.391] W6: ContextExplorer worker context-native/_read_native CANCELLED
+[1791149410.398] W6: ContextTree.Hide dispatch
+[1791149410.399] W6: Button.Hide dispatch
+[1791149410.399] W6: Input.Hide dispatch
+[1791149410.399] W6: TextArea.Hide dispatch
+[1791149410.400] W6: ScrollBar.Hide dispatch
+[1791149410.400] W6: ScrollBar.Hide dispatch
+[1791149411.034] W6: original CoordinationObserved dispatch
+[1791149411.035] W6: original CoordinationObserved dispatch
+[1791149411.035] W6: original CoordinationObserved dispatch
+[1791149411.036] W6: ContextExplorer worker context-read/_read PENDING
+[1791149411.036] W6: ContextExplorer worker context-read/_read RUNNING
+[1791149411.037] W6: original CoordinationObserved dispatch
+[1791149411.037] W6: original CoordinationObserved dispatch
+[1791149411.092] W6: ContextExplorer worker context-read/_read SUCCESS
+[1791149411.610] W6: PromptTextArea.Blur dispatch
+[1791149411.616] W6: ContextTree.Focus dispatch
+[1791149411.672] W6: FooterKey.Mount dispatch
+[1791149411.673] W6: FooterKey.Mount dispatch
+[1791149411.683] W6: FooterKey.Show dispatch
+[1791149411.684] W6: FooterKey.Show dispatch
+[1791149411.867] W6: original ThreadActivityChanged dispatch
+[1791149411.868] W6: Conversation worker command-catalog/update_slash_commands PENDING
+[1791149411.868] W6: Conversation worker command-catalog/update_slash_commands RUNNING
+[1791149411.868] W6: original ThreadActivityChanged dispatch
+[1791149411.868] W6: original ThreadActivityChanged dispatch
+[1791149411.869] W6: original ThreadActivityChanged dispatch
+[1791149411.886] W6: ToadApp worker default/ PENDING
+[1791149411.886] W6: ToadApp worker default/ RUNNING
+[1791149412.026] W6: ToadApp worker default/ SUCCESS
+[1791149412.034] W6: original CoordinationObserved dispatch
+[1791149412.035] W6: ContextExplorer worker context-read/_read PENDING
+[1791149412.035] W6: ContextExplorer worker context-read/_read RUNNING
+[1791149412.035] W6: original CoordinationObserved dispatch
+[1791149412.035] W6: original CoordinationObserved dispatch
+[1791149412.037] W6: original CoordinationObserved dispatch
+[1791149412.072] W6: ContextExplorer worker context-read/_read SUCCESS
+[1791149412.243] W6: ContextTree.Blur dispatch
+[1791149414.873] W6: joining original controller resources
+[1791149416.387] W6: controller resources joined

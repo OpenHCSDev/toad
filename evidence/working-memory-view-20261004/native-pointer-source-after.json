@@ -1,0 +1,271 @@
+{
+  "collector": "Existing FunctionFacts on changed control; production Package coverage retained unchanged",
+  "coverage": [
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "head": "401fabcf424912440a6c1f6f0b466d5a047fc6dd",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "path": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "head": "b7e688292074a854870d7ca78397111c1dae1c7b",
+      "modules": 324,
+      "omissions": []
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "23f8655e222a4447f63f101151678e2f5d655c1e",
+      "modules": 249,
+      "omissions": []
+    }
+  ],
+  "changed_test_members": [
+    {
+      "name": "select_context_source",
+      "lines": 40,
+      "calls": [
+        "Offset",
+        "_get_label_region",
+        "click",
+        "dumps",
+        "find_widget",
+        "get",
+        "get_style_at",
+        "get_widget_at",
+        "intersection",
+        "next",
+        "owns_node",
+        "print",
+        "range",
+        "reveal",
+        "scroll_to_node",
+        "scroll_visible",
+        "translate",
+        "tuple",
+        "wait_for_scheduled_animations"
+      ],
+      "keys": {
+        "(style := pilot.app.screen.get": [
+          "node"
+        ],
+        "style.meta": [
+          "line",
+          "toggle"
+        ]
+      }
+    },
+    {
+      "name": "inspect_authentic_annotation_gui",
+      "lines": 174,
+      "calls": [
+        "ContextSpan",
+        "FileProvenance",
+        "Path",
+        "ToadApp",
+        "_debug_log",
+        "action_refresh",
+        "all",
+        "any",
+        "append",
+        "children",
+        "click",
+        "contains_span",
+        "context_manifests",
+        "current",
+        "decode",
+        "dumps",
+        "effective",
+        "encode",
+        "files",
+        "for_request",
+        "get",
+        "hexdigest",
+        "isinstance",
+        "join",
+        "joinpath",
+        "len",
+        "original_segments",
+        "partial",
+        "pause",
+        "press",
+        "print",
+        "public_description",
+        "public_text",
+        "query",
+        "query_ancestor",
+        "query_one",
+        "read",
+        "read_bytes",
+        "read_proof_rows",
+        "reader_path",
+        "reading",
+        "recorded",
+        "require",
+        "require_request_id",
+        "resolve",
+        "run_test",
+        "run_worker",
+        "scroll_visible",
+        "select",
+        "select_context_source",
+        "sentences",
+        "setattr",
+        "sha256",
+        "source_text",
+        "str",
+        "tuple",
+        "type",
+        "until",
+        "values",
+        "version",
+        "wait",
+        "wait_content_ready",
+        "wait_for_scheduled_animations",
+        "working_memory",
+        "zip"
+      ],
+      "keys": {}
+    },
+    {
+      "name": "test_authentic_recorded_annotation_gui_correction",
+      "lines": 85,
+      "calls": [
+        "AnswerProbability",
+        "ContextSpan",
+        "Coordination",
+        "FileProvenance",
+        "ModelLabel",
+        "Path",
+        "SpanAnnotationsRow",
+        "all",
+        "build_agent_router",
+        "children",
+        "contains_span",
+        "current",
+        "delenv",
+        "enumerate",
+        "hexdigest",
+        "insert",
+        "inspect_authentic_annotation_gui",
+        "isinstance",
+        "len",
+        "mounted",
+        "native_backend_fixture",
+        "now",
+        "open_owner",
+        "original_segments",
+        "print",
+        "read",
+        "read_bytes",
+        "recorded",
+        "resolve",
+        "router",
+        "run",
+        "saved_inputs",
+        "select",
+        "sentences",
+        "setenv",
+        "sha256",
+        "source_text",
+        "str",
+        "transaction",
+        "tuple",
+        "verify_native_package",
+        "version",
+        "write_text"
+      ],
+      "keys": {
+        "os.environ": [
+          "AC_NATIVE_COPIED_PACKAGE",
+          "PI_COMPACTION_TEST_PACKAGE"
+        ]
+      }
+    },
+    {
+      "name": "test_authentic_recorded_annotation_gui_continuation",
+      "lines": 86,
+      "calls": [
+        "Comms",
+        "Path",
+        "acquire_thread",
+        "bind_owned",
+        "canonical_agent",
+        "context_manifests",
+        "decode",
+        "delenv",
+        "dict",
+        "encode",
+        "for_request",
+        "getpid",
+        "glob",
+        "hexdigest",
+        "inspect_authentic_annotation_gui",
+        "loads",
+        "locked",
+        "mounted",
+        "native_arguments",
+        "on_connect",
+        "print",
+        "read_bytes",
+        "read_metadata_unlocked",
+        "read_text",
+        "require",
+        "resolve",
+        "restore_stopped",
+        "run",
+        "run_worker",
+        "setenv",
+        "sha256",
+        "shutdown",
+        "snapshot",
+        "str",
+        "tuple",
+        "verify_native_package"
+      ],
+      "keys": {
+        "receipt": [
+          "fixture",
+          "incarnation",
+          "input_proof_sha256",
+          "native_session",
+          "native_session_sha256",
+          "request",
+          "source",
+          "source_sha256",
+          "thread",
+          "turn"
+        ],
+        "os.environ": [
+          "AC_NATIVE_COPIED_PACKAGE",
+          "PI_COMPACTION_TEST_PACKAGE"
+        ]
+      }
+    },
+    {
+      "name": "dispatched",
+      "lines": 11,
+      "calls": [
+        "_debug_log",
+        "get",
+        "isinstance",
+        "type"
+      ],
+      "keys": {}
+    },
+    {
+      "name": "dispatched",
+      "lines": 20,
+      "calls": [
+        "get",
+        "isinstance",
+        "record",
+        "type"
+      ],
+      "keys": {}
+    }
+  ],
+  "control_sha256": "a6787bbb10a7cedc8856ec6516ed92bcdd20f60698c9b8b5ec61e493310609b4",
+  "omissions": [],
+  "limits": "Syntax/lexical source evidence only; no installed execution or old event attribution"
+}

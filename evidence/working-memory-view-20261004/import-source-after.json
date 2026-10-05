@@ -1,0 +1,242 @@
+{
+  "source": "786b3a10e5a7cbf11487b5308e21385cecce94e7",
+  "modules": 288,
+  "omissions": [],
+  "sites": [
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 34,
+      "node": "ClassDef",
+      "source": "@dataclass(frozen=True)"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 96,
+      "node": "ClassDef",
+      "source": "@dataclass(frozen=True)"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 152,
+      "node": "ClassDef",
+      "source": "@dataclass(frozen=True)"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 241,
+      "node": "ClassDef",
+      "source": "@dataclass(frozen=True)"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 437,
+      "node": "ClassDef",
+      "source": "@dataclass(frozen=True)"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 670,
+      "node": "ClassDef",
+      "source": "@dataclass(frozen=True)"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 96,
+      "node": "Name",
+      "source": "ContextNode"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 127,
+      "node": "Name",
+      "source": "ContextNode"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 152,
+      "node": "Name",
+      "source": "ContextNode"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 189,
+      "node": "Name",
+      "source": "RecordedTurnNode"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 241,
+      "node": "Name",
+      "source": "ContextNode"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 289,
+      "node": "Name",
+      "source": "ContextNode"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 330,
+      "node": "Name",
+      "source": "ContextNode"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 416,
+      "node": "Name",
+      "source": "ContextNode"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 734,
+      "node": "Name",
+      "source": "HoldingInspection"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 784,
+      "node": "Name",
+      "source": "HoldingInspection"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 154,
+      "node": "Name",
+      "source": "ContextInspection"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 671,
+      "node": "Name",
+      "source": "ContextInspection"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 42,
+      "node": "Name",
+      "source": "ContextNode"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 293,
+      "node": "Name",
+      "source": "AnnotationNode"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 455,
+      "node": "Name",
+      "source": "ContextInspection"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 469,
+      "node": "Name",
+      "source": "ContextInspection"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 600,
+      "node": "Name",
+      "source": "HoldingInspection"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 452,
+      "node": "Name",
+      "source": "ImportedSessionMetadata"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 718,
+      "node": "Name",
+      "source": "ContextNode"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 466,
+      "node": "Name",
+      "source": "RecordedTurnNode"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 475,
+      "node": "Name",
+      "source": "ReferenceNode"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 510,
+      "node": "Name",
+      "source": "ContextNode"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 139,
+      "node": "Name",
+      "source": "ReferenceNode"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 208,
+      "node": "Name",
+      "source": "ReferenceNode"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 342,
+      "node": "Name",
+      "source": "ReferenceNode"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 481,
+      "node": "Name",
+      "source": "ImportedSessionMetadata"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 599,
+      "node": "Name",
+      "source": "ContextInspection"
+    },
+    {
+      "file": "src/toad/core/context_inspection.py",
+      "line": 493,
+      "node": "Name",
+      "source": "AnnotationNode"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 54,
+      "node": "Name",
+      "source": "ContextNode"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 28,
+      "node": "Name",
+      "source": "ContextNode"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 323,
+      "node": "Name",
+      "source": "HoldingInspection"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 378,
+      "node": "Name",
+      "source": "HoldingInspection"
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "line": 397,
+      "node": "Name",
+      "source": "HoldingInspection"
+    }
+  ],
+  "limits": "Lexical AST, not dynamic proof"
+}

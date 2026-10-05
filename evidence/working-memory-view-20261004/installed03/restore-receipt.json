@@ -1,0 +1,21 @@
+{
+  "state": "Whole originalfloor normalrestore verified; independent fresh borrower closure pending",
+  "members": 1470,
+  "protected": 390,
+  "packages": 69,
+  "byte_mode_readlink_failures": [],
+  "extra_package_assets": [],
+  "remaining_private_runtime_sockets": [],
+  "native_keeper_unchanged": "Read/execution only, no artifact writes",
+  "terminal": {
+    "elapsed": 22.963988172006793,
+    "returncode": 1,
+    "timed_out": false,
+    "error": null,
+    "child_retired": true,
+    "owned_group_members": [],
+    "scope": "One changed authored historical App, not full W6",
+    "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-EinsteinW6-attachment-Core627-Toad434-issued-grant.json"
+  },
+  "original_negative_preserved": true
+}

@@ -1,0 +1,656 @@
+{
+  "coverage": [
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "head": "ce3ae14766a6e434107114785ee9bf89e80ff65a",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "23f8655e222a4447f63f101151678e2f5d655c1e",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "head": "9fb7f6db368e90f62e13fd598836223231554800",
+      "root": "src/agent_comms",
+      "modules": 324,
+      "omissions": []
+    }
+  ],
+  "members": [
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::rebind",
+      "lines": 4,
+      "constructed": [
+        "show_detail"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::restore",
+      "lines": 9,
+      "constructed": [
+        "get",
+        "restore_node"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::present",
+      "lines": 17,
+      "constructed": [
+        "_reconcile",
+        "_retire",
+        "add",
+        "enumerate",
+        "expand",
+        "next",
+        "owns_node",
+        "prevent",
+        "restore_reader",
+        "set_label",
+        "tuple"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_reconcile",
+      "lines": 20,
+      "constructed": [
+        "_add",
+        "_reconcile",
+        "_retire",
+        "bool",
+        "children",
+        "enumerate",
+        "pop",
+        "rebind",
+        "set_label",
+        "values"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_retire",
+      "lines": 6,
+      "constructed": [
+        "_retire",
+        "owns_node",
+        "pop",
+        "remove",
+        "tuple"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::restore_reader",
+      "lines": 11,
+      "constructed": [
+        "_expand",
+        "expand",
+        "extend",
+        "list",
+        "pop",
+        "prevent",
+        "restore",
+        "show_placeholder",
+        "values"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_reveal_restored",
+      "lines": 9,
+      "constructed": [
+        "call_after_refresh",
+        "expand",
+        "prevent"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_restore_cursor",
+      "lines": 6,
+      "constructed": [
+        "get",
+        "move_cursor",
+        "owns_node",
+        "prevent",
+        "show_detail"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::owns_node",
+      "lines": 6,
+      "constructed": [
+        "get"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_inspection_acquired",
+      "lines": 10,
+      "constructed": [
+        "_present",
+        "_working",
+        "cancel_group",
+        "inspection_differs",
+        "needs_native",
+        "prepare_native",
+        "query_one",
+        "same_source",
+        "update"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_contributors_acquired",
+      "lines": 5,
+      "constructed": [
+        "present",
+        "with_contributors"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::action_correct",
+      "lines": 17,
+      "constructed": [
+        "correction_answers",
+        "notify",
+        "on",
+        "owns_node",
+        "partial",
+        "public_title",
+        "query_one",
+        "show_target_menu",
+        "stop"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_correct_annotation",
+      "lines": 13,
+      "constructed": [
+        "_read",
+        "_selected",
+        "correct",
+        "notify",
+        "query_ancestor",
+        "work"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::node_highlighted",
+      "lines": 7,
+      "constructed": [
+        "_show_detail",
+        "cancel_group",
+        "on",
+        "owns_node",
+        "query_one",
+        "stop"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::correct",
+      "lines": 2,
+      "constructed": [
+        "ValueError"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::source_text",
+      "lines": 3,
+      "constructed": [
+        "recorded_segment"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::describe_original",
+      "lines": 9,
+      "constructed": [
+        "join",
+        "public_description",
+        "public_text"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::correct",
+      "lines": 3,
+      "constructed": [
+        "correct_annotation"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::changed_since",
+      "lines": 4,
+      "constructed": [],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::imported",
+      "lines": 4,
+      "constructed": [
+        "ReferenceNode",
+        "tuple"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::working_memory",
+      "lines": 25,
+      "constructed": [
+        "AnnotationNode",
+        "AnnotationSourceNode",
+        "append",
+        "children",
+        "contains_span",
+        "items",
+        "original_segments",
+        "recorded",
+        "setdefault",
+        "tuple",
+        "values"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::correct_annotation",
+      "lines": 7,
+      "constructed": [
+        "_request",
+        "decode",
+        "encode",
+        "require_request_id",
+        "str"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::present",
+      "lines": 2,
+      "constructed": [],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::present",
+      "lines": 2,
+      "constructed": [
+        "consumer"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/_compositor.py::get_style_at",
+      "lines": 33,
+      "constructed": [
+        "Region",
+        "get_widget_at",
+        "null",
+        "render_lines",
+        "set"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/_compositor.py::find_widget",
+      "lines": 18,
+      "constructed": [
+        "NoWidget",
+        "_get_geometry",
+        "get"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_tree.py::move_cursor",
+      "lines": 17,
+      "constructed": [
+        "abs",
+        "scroll_to_node"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_tree.py::_invalidate",
+      "lines": 6,
+      "constructed": [
+        "_clear_line_cache",
+        "_reset",
+        "refresh"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_tree.py::_get_label_region",
+      "lines": 20,
+      "constructed": [
+        "Region",
+        "_get_guide_width",
+        "get_label_width"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_tree.py::_build",
+      "lines": 46,
+      "constructed": [
+        "Size",
+        "TreeLine",
+        "_get_guide_width",
+        "add_line",
+        "add_node",
+        "get_label_width",
+        "get_line_width",
+        "len",
+        "loop_last",
+        "max"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_tree.py::_on_click",
+      "lines": 13,
+      "constructed": [
+        "_toggle_node",
+        "get",
+        "get_node_at_line",
+        "run_action"
+      ],
+      "keys": {
+        "meta": [
+          "line",
+          "toggle"
+        ]
+      }
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/screen.py::get_style_at",
+      "lines": 11,
+      "constructed": [
+        "get_style_at"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/screen.py::find_widget",
+      "lines": 13,
+      "constructed": [
+        "find_widget"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/screen.py::_forward_event",
+      "lines": 133,
+      "constructed": [
+        "SelectEnd",
+        "SelectStart",
+        "SelectState",
+        "TextSelected",
+        "_apply_offset",
+        "_check_auto_scroll",
+        "_flush_pending_selection",
+        "_forward_event",
+        "_handle_mouse_move",
+        "_set_forwarded",
+        "_stop_auto_scroll",
+        "clear_selection",
+        "find_widget",
+        "focus_on_click",
+        "get_focusable_widget_at",
+        "get_style_at",
+        "get_widget_and_offset_at",
+        "get_widget_at",
+        "has_class",
+        "isinstance",
+        "post_message",
+        "set_focus",
+        "update_end",
+        "update_pointer_shape"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/pilot.py::_post_mouse_events",
+      "lines": 89,
+      "constructed": [
+        "Offset",
+        "OutOfBounds",
+        "_forward_event",
+        "_get_mouse_message_arguments",
+        "get_widget_at",
+        "isinstance",
+        "mouse_event_cls",
+        "pause",
+        "query_one",
+        "range"
+      ],
+      "keys": {
+        "message_arguments": [
+          "x",
+          "y"
+        ]
+      }
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/pilot.py::pause",
+      "lines": 13,
+      "constructed": [
+        "_on_timer_update",
+        "_wait_for_screen",
+        "sleep",
+        "wait_for_idle"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/pilot.py::wait_for_scheduled_animations",
+      "lines": 7,
+      "constructed": [
+        "_on_timer_update",
+        "_wait_for_screen",
+        "wait_for_idle",
+        "wait_until_complete"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/turn_progress.py::observe_context",
+      "lines": 3,
+      "constructed": [
+        "handles",
+        "observe",
+        "record"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/turn_context.py::contains_span",
+      "lines": 5,
+      "constructed": [
+        "contains_contribution"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/turn_context.py::public_spans",
+      "lines": 7,
+      "constructed": [
+        "ContextSpan",
+        "manifest",
+        "public_text",
+        "sentences",
+        "source_ranges",
+        "tuple"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/turn_context.py::sentences",
+      "lines": 9,
+      "constructed": [
+        "capture",
+        "encode",
+        "len",
+        "public_text",
+        "split",
+        "strip"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/turn_context.py::public_spans",
+      "lines": 9,
+      "constructed": [
+        "ContextSpan",
+        "append",
+        "capture",
+        "dumps",
+        "tuple",
+        "type"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/turn_context.py::selected_segment",
+      "lines": 4,
+      "constructed": [
+        "ValueError",
+        "len",
+        "selected_contributor"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/turn_context.py::for_request",
+      "lines": 7,
+      "constructed": [
+        "ValueError",
+        "len",
+        "tuple"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/turn_context.py::changed_since",
+      "lines": 8,
+      "constructed": [
+        "encode"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/working_memory_annotations.py::for_context",
+      "lines": 8,
+      "constructed": [
+        "for_segments",
+        "original_values",
+        "tuple"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/working_memory_annotations.py::correct",
+      "lines": 11,
+      "constructed": [
+        "SpanAnnotationsRow",
+        "ValueError",
+        "address",
+        "correct",
+        "insert",
+        "now",
+        "require",
+        "require_user",
+        "resolved",
+        "select",
+        "transaction",
+        "tuple"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/runtime_requests.py::read_manifest",
+      "lines": 4,
+      "constructed": [
+        "context_manifests",
+        "for_request"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/runtime_requests.py::selected_segment",
+      "lines": 3,
+      "constructed": [
+        "manifest",
+        "selected_segment"
+      ],
+      "keys": {}
+    }
+  ],
+  "semantics": "Current ContextTree membership and native node/label/style publication own pointer acquisition. A node captured before layout awaits is not a retained resource lease. Pilot awaits each mouse event; subsequent publications remain legitimate.04 records no pointer/style/model timing, so no measured cause. Authentic control reuses existing SDK/OwnedTurn fixture and original sealed request/source spans, annotation/correction owners; no manifest construction or preview substitute.",
+  "ambiguity": "Existing Package parsed full declared production roots; lexical evidence only, not dynamic resolution. Original shared NativeBackendFixture methods separately read and unchanged seam granted by Mendel. Tests and installed acceptance are not run by this inventory.",
+  "inventory_scope": "Complete parsed production roots retained in coverage; this receipt displays only the related owner members. Existing focus-owner-source.json retains original broader frame/sidebar/native dispatch consumers. Shared NativeBackendFixture source read and unchanged contract supplied by Mendel; no dynamic completeness claim."
+}

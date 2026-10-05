@@ -1,0 +1,620 @@
+{
+  "roots": [
+    {
+      "root": "/home/ts/wt/comms-field-codec-closure-20260928/src/agent_comms",
+      "modules": 324,
+      "omissions": []
+    },
+    {
+      "root": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "root": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual",
+      "modules": 249,
+      "omissions": []
+    }
+  ],
+  "methods": [
+    {
+      "path": "/home/ts/wt/comms-field-codec-closure-20260928/src/agent_comms/acp.py",
+      "owner": "CommsAgent",
+      "method": "shutdown",
+      "line": 444,
+      "awaits": [],
+      "async_context": "AsyncExitStack",
+      "registered_retirement_callbacks": [
+        "self.sessions.release_owned",
+        "self.turns.close",
+        "self.sessions.close_proxies",
+        "self.inputs.close",
+        "self.annotations.close"
+      ],
+      "note": "Exit owns awaited callback execution in LIFO order; empty lexical awaits does not mean no asynchronous retirement."
+    },
+    {
+      "path": "/home/ts/wt/comms-field-codec-closure-20260928/src/agent_comms/runtime.py",
+      "owner": "RuntimeServer",
+      "method": "start",
+      "line": 167,
+      "awaits": [
+        "asyncio.start_unix_server(self.handle, path=address, limit=8 * 1024 * 1024)"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/comms-field-codec-closure-20260928/src/agent_comms/runtime.py",
+      "owner": "RuntimeServer",
+      "method": "handle",
+      "line": 245,
+      "awaits": [
+        "request.bind(self, reader, client)",
+        "request.apply(context)",
+        "reader.readline()",
+        "client.send(_owner_error(error))"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/comms-field-codec-closure-20260928/src/agent_comms/runtime.py",
+      "owner": "RuntimeServer",
+      "method": "close",
+      "line": 265,
+      "awaits": [
+        "self.server.wait_closed()"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/comms-field-codec-closure-20260928/src/agent_comms/runtime.py",
+      "owner": "RuntimeProxy",
+      "method": "subscribe",
+      "line": 394,
+      "awaits": [
+        "self._subscribe_once()"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/comms-field-codec-closure-20260928/src/agent_comms/runtime.py",
+      "owner": "RuntimeProxy",
+      "method": "_subscribe_once",
+      "line": 399,
+      "awaits": [
+        "self._connect_current()",
+        "writer.drain()",
+        "reader.readline()",
+        "self.update(data)"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/comms-field-codec-closure-20260928/src/agent_comms/runtime.py",
+      "owner": "RuntimeProxy",
+      "method": "close",
+      "line": 529,
+      "awaits": [
+        "asyncio.gather(self.task, return_exceptions=True)"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/comms-field-codec-closure-20260928/src/agent_comms/runtime_requests.py",
+      "owner": "SubscribeRuntimeRequest",
+      "method": "apply",
+      "line": 135,
+      "awaits": [
+        "agent.emit_session_identity(ctx.session_id, ctx.name, client=ctx.client)",
+        "agent.sessions.transcript.replay(ctx.session_id, ctx.name, client=ctx.client)",
+        "agent.turns.replay_turn_state(ctx.session_id, client=ctx.client)",
+        "agent.inputs.replay_unknown_inputs(ctx.session_id, client=ctx.client)",
+        "agent.sessions.config.options(ctx.name)",
+        "agent.sessions.metadata(ctx.name)",
+        "ctx.send({'controllerToken': ctx.client.token, 'ready': {**metadata, 'configOptions': [option.model_dump(by_alias=True, exclude_none=True) for option in config_options]}})",
+        "ctx.reader.readline()"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/comms-field-codec-closure-20260928/src/agent_comms/runtime_requests.py",
+      "owner": "ContextRuntimeRequest",
+      "method": "inspect",
+      "line": 346,
+      "awaits": [
+        "Coordination.run_worker(partial(agent._comms.registry.require, ctx.name))",
+        "agent.turns.inspect_context(ctx.session_id, owner)",
+        "Coordination.run_worker(partial(context.with_current_contributors, agent._comms, owner))"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/comms-field-codec-closure-20260928/src/agent_comms/runtime_requests.py",
+      "owner": "ContextRuntimeRequest",
+      "method": "result",
+      "line": 354,
+      "awaits": [
+        "self.inspect(ctx)"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/comms-field-codec-closure-20260928/src/agent_comms/session_lifecycle.py",
+      "owner": "SessionLifecycle",
+      "method": "bind_owned",
+      "line": 167,
+      "awaits": [
+        "self.retire_proxy(session_id)",
+        "self.runtime.start()"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/comms-field-codec-closure-20260928/src/agent_comms/session_lifecycle.py",
+      "owner": "SessionLifecycle",
+      "method": "attach_owner",
+      "line": 218,
+      "awaits": [
+        "self.retire_proxy(session_id)",
+        "Coordination.run_worker(self.comms.registry.snapshot)",
+        "Coordination.run_worker(partial(self.effects._create_runtime_proxy, thread, session_id))",
+        "proxy.subscribe()",
+        "proxy.close()"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/comms-field-codec-closure-20260928/src/agent_comms/session_lifecycle.py",
+      "owner": "SessionLifecycle",
+      "method": "metadata",
+      "line": 307,
+      "awaits": [
+        "Coordination.run_worker(partial(self.configuration_updates, thread_name))",
+        "self.effects.inputs.queue_state(session_id or thread_name)",
+        "self.effects.cursors.trusted_metadata(thread_name, session_id or thread_name)"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/comms-field-codec-closure-20260928/src/agent_comms/session_lifecycle.py",
+      "owner": "SessionLifecycle",
+      "method": "close_proxies",
+      "line": 324,
+      "awaits": [
+        "self.retire_proxy(session_id)"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/comms-field-codec-closure-20260928/src/agent_comms/session_lifecycle.py",
+      "owner": "SessionLifecycle",
+      "method": "release_owned",
+      "line": 335,
+      "awaits": [
+        "self.runtime.close()",
+        "Coordination.run_worker(partial(self.release_registered_owner, name))"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/acp/agent_process.py",
+      "owner": "AgentProcess",
+      "method": "start",
+      "line": 48,
+      "awaits": [
+        "asyncio.to_thread(self.agent.presentation.log_path.parent.mkdir, parents=True, exist_ok=True)",
+        "asyncio.to_thread(preflight, self.agent.coordination.wire_root if self.agent.coordination else None, ingress_root=self.route_selection.root, cwd=self.cwd)"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/acp/agent_process.py",
+      "owner": "AgentProcess",
+      "method": "retire",
+      "line": 134,
+      "awaits": [
+        "asyncio.shield(self.retirement)"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/acp/agent_process.py",
+      "owner": "AgentProcess",
+      "method": "_retire",
+      "line": 148,
+      "awaits": [
+        "asyncio.gather(*pending, return_exceptions=True)",
+        "self.process.stop()"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/acp/agent_process.py",
+      "owner": "AgentProcess",
+      "method": "stop",
+      "line": 161,
+      "awaits": [
+        "self.retire()",
+        "asyncio.gather(self.runner, return_exceptions=True)"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/acp/agent_process.py",
+      "owner": "AgentProcess",
+      "method": "communicate",
+      "line": 194,
+      "awaits": [
+        "admitted_spawn(command, root=agent.coordination.wire_root if agent.coordination else None, env=env, selection=self.route_selection, cwd=self.cwd or str(agent.project_root_path.resolve()), stdio=StreamingChildStdio(limit=10 * 1024 * 1024))",
+        "process.stdout.readline()",
+        "incoming.receive(agent, call_jsonrpc, self)",
+        "agent.server.call(request)",
+        "process.stderr.read()"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/core/context_inspection.py",
+      "owner": "ContextInspection",
+      "method": "read",
+      "line": 447,
+      "awaits": []
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/core/context_inspection.py",
+      "owner": "ContextInspection",
+      "method": "imported",
+      "line": 474,
+      "awaits": []
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/core/context_inspection.py",
+      "owner": "ContextInspection",
+      "method": "imported_source",
+      "line": 479,
+      "awaits": [
+        "Coordination.run_worker(partial(ImportedSessionMetadata.public_source_text, self.service.registry, self.owner, source, self.service))"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/core/context_inspection.py",
+      "owner": "ContextInspection",
+      "method": "_request",
+      "line": 521,
+      "awaits": [
+        "Coordination.run_worker(partial(self.service.registry.require, self.owner.name))",
+        "connection.request(action, **parameters)",
+        "connection.close()"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/core/context_inspection.py",
+      "owner": "ContextInspection",
+      "method": "native",
+      "line": 534,
+      "awaits": [
+        "self._request('context')",
+        "Coordination.run_worker(partial(FieldCodec.decode, NativeContextData, payload))"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/screens/main.py",
+      "owner": "MainScreen",
+      "method": "prepare_presentation",
+      "line": 181,
+      "awaits": [
+        "self.presentation.prepare(self)",
+        "super().prepare_presentation()",
+        "self.query('#session-opening').remove()",
+        "sidebar.prepare_presentation()"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/screens/main.py",
+      "owner": "MainScreen",
+      "method": "wait_content_ready",
+      "line": 253,
+      "awaits": [
+        "self._content_ready.wait()"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/screens/main.py",
+      "owner": "MainScreen",
+      "method": "close_presentation",
+      "line": 258,
+      "awaits": [
+        "self.presentation.close(self)"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/session_presentation.py",
+      "owner": "NativeSessionSurface",
+      "method": "activate",
+      "line": 210,
+      "awaits": [
+        "owner.attach_binding(conversation)",
+        "conversation.prepare_retained_session()",
+        "self._trim_retained(conversation)",
+        "content.mount(owner.widget, before=slot)"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/session_presentation.py",
+      "owner": "NativeSessionSurface",
+      "method": "dispose",
+      "line": 270,
+      "awaits": [
+        "owner.remove_native_tree()",
+        "owner.release_binding(owner.widget, screen)"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/session_presentation.py",
+      "owner": "NativeSessionSurface",
+      "method": "close",
+      "line": 279,
+      "awaits": [
+        "self.view.presentation.release_binding(self.widget, self.view)"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/widgets/context_explorer.py",
+      "owner": "ContextExplorer",
+      "method": "on_unmount",
+      "line": 260,
+      "awaits": []
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/widgets/context_explorer.py",
+      "owner": "ContextExplorer",
+      "method": "_read",
+      "line": 286,
+      "awaits": [
+        "self.state.acquire(access.service, access.revision)",
+        "self.state.refresh_contributors(self._contributors_acquired)"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/widgets/context_explorer.py",
+      "owner": "ContextExplorer",
+      "method": "_inspection_acquired",
+      "line": 305,
+      "awaits": []
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/widgets/context_explorer.py",
+      "owner": "ContextExplorer",
+      "method": "_read_native",
+      "line": 323,
+      "awaits": [
+        "captured.inspection.native()"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/widgets/context_explorer.py",
+      "owner": "ContextExplorer",
+      "method": "action_export",
+      "line": 451,
+      "awaits": [
+        "model.export(Path(destination).expanduser())"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/widgets/context_explorer.py",
+      "owner": "ContextExplorer",
+      "method": "_show_detail",
+      "line": 482,
+      "awaits": [
+        "model.read()"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/widgets/side_bar.py",
+      "owner": "SideBar",
+      "method": "_hydrate_panels",
+      "line": 725,
+      "awaits": [
+        "self.query_one('#sidebar-panels').mount_all(self._compose_panels())",
+        "controls.mount_all(self._compose_controls())"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/widgets/side_bar.py",
+      "owner": "SideBar",
+      "method": "wait_content_ready",
+      "line": 742,
+      "awaits": [
+        "self._panels_ready.wait()"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/widgets/side_bar.py",
+      "owner": "SideBar",
+      "method": "on_unmount",
+      "line": 745,
+      "awaits": []
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "owner": "App",
+      "method": "run_test",
+      "line": 2143,
+      "awaits": [
+        "app_ready_event.wait()",
+        "pilot._wait_for_screen()",
+        "asyncio.sleep(0)",
+        "app._shutdown()",
+        "app_task",
+        "app._process_messages(ready_callback=on_app_ready, headless=headless, terminal_size=size)"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "owner": "App",
+      "method": "_process_messages",
+      "line": 3384,
+      "awaits": [
+        "self._init_devtools()",
+        "asyncio.sleep(0)",
+        "self._process_messages_loop()",
+        "app_prelude()",
+        "self._dispatch_message(load_event)",
+        "self.animator.start()",
+        "self._ready()",
+        "invoke_ready_callback()",
+        "self.animator.stop()",
+        "Timer._stop_all(self._timers)",
+        "ready_result",
+        "self._dispatch_message(events.Compose())",
+        "self._dispatch_message(events.Resize.from_dimensions(self.size, None))",
+        "self._dispatch_message(events.Mount())",
+        "self.animator.stop()",
+        "run_process_messages()"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/message_pump.py",
+      "owner": "MessagePump",
+      "method": "_context",
+      "line": 668,
+      "awaits": []
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/message_pump.py",
+      "owner": "MessagePump",
+      "method": "_dispatch_message",
+      "line": 758,
+      "awaits": [
+        "self.on_event(message)",
+        "self._flush_next_callbacks()",
+        "self._on_message(message)",
+        "self._on_message(message)"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/pilot.py",
+      "owner": "Pilot",
+      "method": "_wait_for_screen",
+      "line": 473,
+      "awaits": [
+        "asyncio.wait(wait_for, timeout=timeout, return_when=asyncio.FIRST_COMPLETED)"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/application_lifetime.py",
+      "owner": "ApplicationLifetime",
+      "method": "start",
+      "line": 61,
+      "awaits": [
+        "app.select_session(self.initial_mode)",
+        "app.session_navigation.new(app.session_navigation.default_source)"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/workspace_sessions.py",
+      "owner": "WorkspaceSessions",
+      "method": "prepare",
+      "line": 123,
+      "awaits": [
+        "host.mount(view)"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/workspace_sessions.py",
+      "owner": "WorkspaceSessions",
+      "method": "aclose",
+      "line": 184,
+      "awaits": [
+        "self.app.workspace_chrome.native.close()",
+        "view.close_presentation()"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/workspace_sessions.py",
+      "owner": "WorkspaceSessions",
+      "method": "select",
+      "line": 134,
+      "awaits": [
+        "self.prepare(identity)",
+        "self.retire()",
+        "self.app.workspace_chrome.select(destination)",
+        "destination.prepare_presentation()"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/session_presentation.py",
+      "owner": "OperationalSessionPresentation",
+      "method": "prepare",
+      "line": 148,
+      "awaits": [
+        "screen.app.workspace_chrome.native.activate(screen)"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/session_presentation.py",
+      "owner": "OperationalSessionPresentation",
+      "method": "close",
+      "line": 161,
+      "awaits": [
+        "screen.app.workspace_chrome.native.dispose(screen)",
+        "self.sources.close()"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/acp/agent_session.py",
+      "owner": "AgentSession",
+      "method": "failed",
+      "line": 55,
+      "awaits": []
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/acp/agent_session.py",
+      "owner": "AgentSession",
+      "method": "ready",
+      "line": 39,
+      "awaits": []
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/acp/agent_session.py",
+      "owner": "AgentSession",
+      "method": "starting",
+      "line": 46,
+      "awaits": []
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/acp/agent_session.py",
+      "owner": "AgentSession",
+      "method": "run",
+      "line": 70,
+      "awaits": [
+        "self.initialize()",
+        "self.load()",
+        "self.touch()",
+        "self.new()"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/acp/agent_session.py",
+      "owner": "AgentSession",
+      "method": "load",
+      "line": 242,
+      "awaits": [
+        "db.session_get(self.pk)",
+        "session_load_response.wait()"
+      ]
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/acp/agent.py",
+      "owner": "Agent",
+      "method": "ready",
+      "line": 209,
+      "awaits": []
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/acp/comms_updates.py",
+      "owner": "CommsUpdateConsumer",
+      "method": "coordination_changed",
+      "line": 121,
+      "awaits": []
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/screens/main.py",
+      "owner": "MainScreen",
+      "method": "_sync_thread_sidebar",
+      "line": 282,
+      "awaits": []
+    }
+  ],
+  "control": "tests/test_context_manifest_navigation.py",
+  "limit": "Lexical declarations and await expressions from original Package acquisition, plus targeted original member reads; no dynamic resolution claim or measured original wait. Production unchanged; driver correction remains unexecuted.",
+  "driver_sha256": "cbf6f661a231d2b68bb5d9c89f80f596c8dd6fafacf0ea1e054b845f502d33f8",
+  "additional_member_search_omissions": [],
+  "fixture_admission": {
+    "previous": "MainScreen.wait_content_ready then SideBar hydration before ACP session attachment settlement",
+    "changed": "Original frame-admitted Agent construction; AgentSession.settled; Agent.ready; original CoordinationChangedUpdate published on the selected session; then sidebar and inspection",
+    "meaning": "Presentation readiness does not attest ACP subscription readiness. This is a source-supported control gap, not a measured cause of the original 90-second timeout.",
+    "diagnostics": "Existing CommsAgent._debug_log and App.run_test message_hook retain native startup/worker/CoreEvent names and read/search/export/retirement boundaries; no payload logging or readiness state added."
+  }
+}

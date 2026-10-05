@@ -1,0 +1,212 @@
+{
+  "root": "src/toad",
+  "revision": "HEAD",
+  "parsed_modules": 288,
+  "parse_omissions": [],
+  "limits": "Lexical AST sites and declarations; dynamic dispatch/resource freshness require semantic reading and final application validation",
+  "sites": [
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 37,
+      "import": "from toad.acp.comms_updates import CommsUpdateConsumer"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 278,
+      "consumer": "OwnerSnapshotConsumer(self, self.session_id, turn_token=turn_token).consume_metadata(result.get('_meta'))"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 335,
+      "consumer": "consumer.consume_metadata(response.field_meta)"
+    },
+    {
+      "path": "src/toad/acp/agent_session.py",
+      "line": 205,
+      "consumer": "self.agent.comms_consumer_class(self.agent, self.agent.session_id, cursor_token=cursor_token, queue_token=queue_token).consume_metadata(response.field_meta)"
+    },
+    {
+      "path": "src/toad/acp/agent_session.py",
+      "line": 283,
+      "consumer": "self.agent.comms_consumer_class(self.agent, self.agent.session_id, cursor_token=cursor_token, queue_token=queue_token).consume_metadata(response.field_meta)"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 35,
+      "declaration": "CommsUpdateConsumer",
+      "bases": [
+        "MroDispatch"
+      ],
+      "fields": [],
+      "methods": [
+        "__init__",
+        "consume_metadata",
+        "accepts_turn",
+        "require_compaction_receipt",
+        "text_route",
+        "input_failed",
+        "transcript_changed",
+        "turn_changed",
+        "cursor_advanced",
+        "queue_changed",
+        "input_started",
+        "coordination_changed",
+        "goal_changed",
+        "compaction_changed",
+        "compaction_committed",
+        "transcript_snapshot",
+        "input_delivery_changed",
+        "compaction_published",
+        "mcp_receipt",
+        "selected_write_accepted",
+        "request_failed",
+        "prompt_cancelled"
+      ]
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 31,
+      "declaration": "ContextNode",
+      "bases": [
+        "ABC"
+      ],
+      "fields": [
+        "key: str"
+      ],
+      "methods": [
+        "label",
+        "children",
+        "detail",
+        "public_text",
+        "_find_public",
+        "find",
+        "search_roots",
+        "search_description",
+        "read",
+        "export",
+        "_write_export"
+      ]
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 180,
+      "declaration": "RecordedSegmentNode",
+      "bases": [
+        "RecordedTurnNode"
+      ],
+      "fields": [
+        "position: int",
+        "contributors: tuple[int, ...] = ()"
+      ],
+      "methods": [
+        "segment",
+        "label",
+        "children",
+        "source_text",
+        "read",
+        "find",
+        "search_description"
+      ]
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 332,
+      "declaration": "ContextInspection",
+      "bases": [],
+      "fields": [
+        "owner: Thread",
+        "manifests: tuple[ContextManifest, ...]",
+        "source: SessionObservation",
+        "service: Comms"
+      ],
+      "methods": [
+        "read",
+        "same_native_source",
+        "recorded",
+        "changed_since",
+        "find",
+        "_request",
+        "native",
+        "current_source",
+        "recorded_source",
+        "recorded_segment",
+        "active",
+        "contributors"
+      ]
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 153,
+      "consumer": "RecordedSegmentNode(f'{self.key}/{i}', self.manifest, self.inspection, i)"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 196,
+      "consumer": "RecordedSegmentNode(f'{self.key}/contributor/{i}', self.manifest, self.inspection, self.position, (*self.contributors, i))"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 290,
+      "import": "from toad.widgets.context_explorer import ContextExplorer"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 15,
+      "import": "from toad.core.context_inspection import ContextNode, DetachedInspection, HoldingInspection, InspectionState"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 191,
+      "declaration": "ContextExplorer",
+      "bases": [
+        "CoreEventReceiver",
+        "SidebarVisibilityObserver",
+        "Vertical"
+      ],
+      "fields": [],
+      "methods": [
+        "__init__",
+        "compose",
+        "on_mount",
+        "context_changed",
+        "presentation_visible",
+        "on_show",
+        "sidebar_visibility_changed",
+        "_observed",
+        "context_read_finished",
+        "on_unmount",
+        "set_identity",
+        "action_refresh",
+        "_reading",
+        "_working",
+        "_read",
+        "_inspection_acquired",
+        "_contributors_acquired",
+        "_read_native",
+        "_native_acquired",
+        "_show_placeholder",
+        "_present",
+        "query_changed",
+        "action_search",
+        "_search",
+        "_searching",
+        "action_read_full",
+        "action_copy",
+        "action_export",
+        "node_highlighted",
+        "_selected",
+        "_show_detail"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 118,
+      "import": "from toad.widgets.context_explorer import ContextExplorer, ContextTreeIntent"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 121,
+      "consumer": "ContextExplorer(screen._comms_thread, screen.coordination_root, intent=intent)"
+    }
+  ]
+}
