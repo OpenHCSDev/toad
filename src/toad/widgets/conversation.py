@@ -505,7 +505,6 @@ class ConversationSessionBinding(containers.Vertical):
         self._turn_count = 0
         self._shell_count = 0
 
-        self._directory_changed = False
         self._directory_watcher: DirectoryWatcher | None = None
 
         self._initial_prompt = initial_prompt
@@ -733,14 +732,6 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             return self._agent_data.name
         return None
 
-    @property
-    def is_watching_directory(self) -> bool:
-        """Is the directory watcher enabled and watching?"""
-        if self._directory_watcher is None:
-            return False
-        return self._directory_watcher.enabled
-
-
     def insert_path_into_prompt(self, path: Path) -> None:
         try:
             insert_path_text = str(path.relative_to(self.project_path))
@@ -879,9 +870,15 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
     def on_directory_changed(self, event: CoreEventMessage) -> None:
         event.stop()
         if self.turns.owner.accepts_prompt:
-            self.publish_core(input_events.ProjectDirectoryUpdated())
-        else:
-            self._directory_changed = True
+            self.check_directory()
+
+    def check_directory(self) -> None:
+        """Invalidate native projections from the original watcher, once consumed."""
+        watcher = self._directory_watcher
+        if watcher is not None and not watcher.consume_change(self) and watcher.enabled:
+            return
+        self.prompt.project_directory_updated()
+        self.publish_core(input_events.ProjectDirectoryUpdated())
 
     @on(Terminal.Finalized)
     def on_terminal_finalized(self, event: Terminal.Finalized) -> None:
@@ -891,10 +888,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         except ValueError:
             pass
 
-        if self._directory_changed or not self.is_watching_directory:
-            self.prompt.project_directory_updated()
-            self._directory_changed = False
-            self.publish_core(input_events.ProjectDirectoryUpdated())
+        self.check_directory()
 
     @on(Terminal.LongRunning)
     def on_terminal_long_running(self, event: Terminal.LongRunning) -> None:
@@ -1255,10 +1249,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             await pending_loading.remove()
         self.output.boundary()
 
-        if self._directory_changed or not self.is_watching_directory:
-            self._directory_changed = False
-            self.publish_core(input_events.ProjectDirectoryUpdated())
-            self.prompt.project_directory_updated()
+        self.check_directory()
 
         self._turn_count += 1
 

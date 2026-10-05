@@ -279,20 +279,26 @@ class DirectoryWatcher(threading.Thread):
             return self._observed_revision
 
     def notify_if_visible(self) -> None:
-        """Deliver one deferred invalidation when a hidden tab becomes active."""
-        if self._stop_event.is_set() or not self._widget.is_attached:
-            return
-        try:
-            screen = self._widget.screen
-        except NoScreen:
-            return
-        if not screen.is_active or screen is not self._widget.app.screen:
-            return
+        """Offer the original invalidation; queued delivery does not consume it."""
         with self._delivery_lock:
-            if not self._dirty:
+            if (not self._dirty or self._stop_event.is_set()
+                    or not self._widget.is_attached):
                 return
+            try:
+                screen = self._widget.screen
+            except NoScreen:
+                return
+            if not screen.is_active or screen is not self._widget.app.screen:
+                return
+            self.events.publish(DirectoryChanged())
+
+    def consume_change(self, widget: Widget) -> bool:
+        """Only the still-bound recipient can consume a source invalidation."""
+        with self._delivery_lock:
+            if self._widget is not widget or not self._dirty:
+                return False
             self._dirty = False
-        self.events.publish(DirectoryChanged())
+            return True
 
     def __rich_repr__(self) -> rich.repr.Result:
         yield self._path
