@@ -124,3 +124,12 @@ output, helper hashes and scope. The control parses/compiles; App execution
 is **UNRUN**. Heis must bind the normal joint source/filewheel and an eligible
 issued holder purpose before execution. No frozen 455 control, existing
 installed prefix, native geometry owner or accepted Explorer journey changes.
+
+Heis requested the same acceptance in his corrected existing NoAgent App.
+`acceptance(app, pilot, *, page_and_wheel=True)` now exports this leaf while
+preserving the standalone entrypoint. The leaf borrows the original App/root,
+reader and existing editor draft; it returns before caller-owned whole
+teardown. `JOINT-APP-ACCEPTANCE-HANDOFF.json` gives the exact call, source hash,
+inputs, custody and phase order. Heis alone integrates his original stationary
+control; no fourth App or new harness is requested. The earlier standalone
+proposal is preserved as historical source preparation.
