@@ -1,0 +1,24 @@
+{
+  "status": "SOURCE PREPARATION, NO CURRENT HOLDER OR EXECUTION AUTHORITY",
+  "control": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/render_execution_preparation_installed_pilot.py",
+  "control_sha256": "0fb5533145dfde22a569312e9356962bb5cbbe0f8ee266694290eff61678f526",
+  "entrypoint": "Existing render_execution_preparation_installed_pilot.py main(output). Exactly one future invocation on an eligible installed cohort; prefix/output/argv require the actual fresh purpose, not named or reserved here.",
+  "source_wheel": {
+    "source_head": "66be6fcf1831d89f4cbf280e5d73bcb159146abb",
+    "determining_product": "4952f759a",
+    "builder": "hatchling1.28.0 existing cache, normal build_wheel",
+    "wheel": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/toad-filewheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "wheel_sha256": "6f68d3d2bc6434612beae6275ce660c1c2a792e6215132e0485ec5498422d8ad",
+    "wheel_bytes": 2251116,
+    "source_assets": 319,
+    "git_local_zip_equal": true,
+    "scope": "SOURCE FILEWHEEL ONLY, no prefix install/import/runtime/native/SDK/provider/input or installed/latency/frame claim.",
+    "inventory": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/toad-filewheel/source-inventory.json",
+    "inventory_sha256": "9858db08477878c94e1dcf05ab2249ef719f6a10f9ea5b4dfd9763dd0a1b8125"
+  },
+  "required_source_dependencies": "Pinned Core7b68d630/Textuald7337ee0/Diff8fa7d4d0; actual source/files/origins verified by original staging owner before the installed control. Current source controls used older e5 Core dependency and do not establish this relation.",
+  "persistent_dependency": "Original persistent-renderer optional extra zmqruntime0.2.24 and declared dependencies. Heis prior full69 sourceproof does not list it. Name an existing qualified operand or explicitly authorize this optional-extra stage before any installed persistent control; no inferred dependency install or newenv.",
+  "scope": "Actual local process/persistent ZMQ typed validation/error paths, fresh and reusable preparation, original captured Markdown/Rich graphs and independent delivery/retention limits. Pure renderer workers and official SDK models, no native SDK/artifact process, provider/input/carry or actualCodex/history.",
+  "gui_integration": "Heis retains whole first-paint/viewport/frame journey. Borrow this genuinely changed transport/data control into that purpose; actual mounted Markdown/Rich and physical first-paint/moving-frame scope remains separate. No unchanged456/457 acceptance repetition or gain claim.",
+  "cleanup": "Original runtime and both renderer/cache owners joined; persistent service explicitly shutdown by original existing control, active children equal preimage and pending resources empty. Holder/source/artifact authorities still require original explicit disposition."
+}

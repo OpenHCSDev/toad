@@ -1,0 +1,6 @@
+test_cancelled_delivery_is_joined_before_backend_close (__main__.RuntimeTests.test_cancelled_delivery_is_joined_before_backend_close) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.010s
+
+OK

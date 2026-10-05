@@ -1,0 +1,66 @@
+{
+  "head": "66be6fcf1831d89f4cbf280e5d73bcb159146abb",
+  "scope": "One changed delivery-thread observation case plus previously unrun serialized policy control. All other passed cases unrepeated. Two unchanged fingerprint guard failures retained as source-harness dependency/layout limits. No installed App/prefix/native/SDK/provider/input/physical or latency claim.",
+  "source_paths": [
+    "/home/ts/wt/toad-regression-widget-cost-20261001/src",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/tests",
+    "/home/ts/wt/comms-field-codec-closure-20260928/src",
+    "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native67-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+    "/home/ts/.cache/uv/archive-v0/-NU2kxipCBjt_Fj1",
+    "/home/ts/.cache/uv/archive-v0/jUH5yYHRflCjOYpG",
+    "/home/ts/.cache/uv/archive-v0/JppO5vdKQt7V2hsS",
+    "/home/ts/.cache/uv/archive-v0/mNatOBGB9uuf-bXB",
+    "/home/ts/.cache/uv/archive-v0/ilBf44Ijf0_EPtT1",
+    "/home/ts/.cache/uv/archive-v0/G_2I2CjMLjta_IXs",
+    "/home/ts/.cache/uv/archive-v0/67xXFbNM1dT27RcP"
+  ],
+  "controls": [
+    {
+      "control": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/render_runtime_pilot.py",
+      "sha256": "d69057fcec0a1f36570f8ce4bc29a27a033317588cc9f25f3a1ff8c022dd0dd9",
+      "argv": [
+        "/usr/bin/python",
+        "-B",
+        "/home/ts/wt/toad-regression-widget-cost-20261001/tests/render_runtime_pilot.py",
+        "RuntimeTests.test_cancelled_delivery_is_joined_before_backend_close"
+      ],
+      "cwd": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "identity": {
+        "pid": 3317884,
+        "start_time": 68153693
+      },
+      "outcome": {
+        "kind": "exited",
+        "code": 0
+      },
+      "elapsed": 2.875581811997108,
+      "controller_alive_after_join": false,
+      "groups": [],
+      "stdout": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/source-control04/render_runtime_pilot.py.stdout.log",
+      "stderr": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/source-control04/render_runtime_pilot.py.stderr.log"
+    },
+    {
+      "control": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/serialized_preparation_pilot.py",
+      "sha256": "8ab18cfdea2891dc44650b0cf696f290e109dbd97fa29d1ea64d6a0b4112667a",
+      "argv": [
+        "/usr/bin/python",
+        "-B",
+        "/home/ts/wt/toad-regression-widget-cost-20261001/tests/serialized_preparation_pilot.py"
+      ],
+      "cwd": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "identity": {
+        "pid": 3317895,
+        "start_time": 68153984
+      },
+      "outcome": {
+        "kind": "exited",
+        "code": 0
+      },
+      "elapsed": 2.585611310089007,
+      "controller_alive_after_join": false,
+      "groups": [],
+      "stdout": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/source-control04/serialized_preparation_pilot.py.stdout.log",
+      "stderr": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/source-control04/serialized_preparation_pilot.py.stderr.log"
+    }
+  ]
+}

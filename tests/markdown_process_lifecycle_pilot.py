@@ -16,6 +16,7 @@ from toad.render_tasks import MarkdownRenderTask
 
 class ControlledPool(Renderer):
     def __init__(self, renderer):
+        super().__init__()
         self.renderer = renderer
         self.requests = []
 
@@ -25,10 +26,10 @@ class ControlledPool(Renderer):
         await asyncio.wait((future,))
         return future.result()
 
-    async def submit(self, task):
+    async def capture(self, task):
         if not isinstance(task, MarkdownRenderTask):
-            return await self.renderer.submit(task)
-        return await self.run(task.execute)
+            return await self.renderer.capture(task)
+        return await task.complete_capture(self.run(task.capture_result))
 
     def complete(self, index):
         function, args, future = self.requests[index]
@@ -40,6 +41,7 @@ class ControlledPool(Renderer):
         for _, _, future in self.requests:
             if not future.done():
                 future.cancel()
+        await self._close_submissions()
 
 
 async def wait_requests(pool, count, pilot):
