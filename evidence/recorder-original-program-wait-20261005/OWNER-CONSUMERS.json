@@ -1,0 +1,197 @@
+{
+  "base": "b67020085c72a7aa6a048feaaf4d814fc6a926d7",
+  "collector": "original audit.findings.Package.load; no copied scanner",
+  "coverage": [
+    {
+      "root": "src/toad",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "parsed": 398,
+      "omissions": []
+    },
+    {
+      "root": "tools",
+      "parsed": 40,
+      "omissions": []
+    }
+  ],
+  "consumers": [
+    {
+      "path": "src/toad/acp/terminal_controller.py",
+      "line": 79,
+      "source": "self.require(terminal_id).wait_for_exit()",
+      "classification": "other terminal API; semantic read distinguishes recorder owner"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 42,
+      "source": "execution.wait_for_exit()",
+      "classification": "other terminal API; semantic read distinguishes recorder owner"
+    },
+    {
+      "path": "tests/cold_context_installed_physical.py",
+      "line": 22,
+      "source": "tools/record_installed_tui.py"
+    },
+    {
+      "path": "tests/history_edge_scheduling_pilot.py",
+      "line": 30,
+      "source": "from record_installed_tui import ObserveJourney, InputWarmJourney, ProcessOwner, marker_command, phase_events, main as record_main"
+    },
+    {
+      "path": "tests/native_scroll_recording_pilot.py",
+      "line": 16,
+      "source": "from tools.record_installed_tui import ProcessOwner"
+    },
+    {
+      "path": "tests/native_scroll_recording_pilot.py",
+      "line": 52,
+      "source": "tools/record_installed_tui.py"
+    },
+    {
+      "path": "tests/provider_login_installed_physical.py",
+      "line": 24,
+      "source": "tools/record_installed_tui.py"
+    },
+    {
+      "path": "tests/tools/editor_focus_journey.py",
+      "line": 35,
+      "source": "record_installed_tui.py"
+    },
+    {
+      "path": "tests/tools/merged_selector_fixture_recording.py",
+      "line": 14,
+      "source": "from record_installed_tui import ProcessOwner"
+    },
+    {
+      "path": "tests/tools/physical_warm_capture.py",
+      "line": 10,
+      "source": "from record_installed_tui import ProcessOwner"
+    },
+    {
+      "path": "tests/tools/physical_warm_capture.py",
+      "line": 30,
+      "source": "record_installed_tui.py"
+    },
+    {
+      "path": "tests/tools/selector_warm_recording.py",
+      "line": 8,
+      "source": "from record_installed_tui import InputWarmJourney, marker_command, native_click_command, main"
+    },
+    {
+      "path": "tests/tools/sqlite_busy_recording.py",
+      "line": 18,
+      "source": "from record_installed_tui import PhysicalJourney, ProcessOwner, RetainedLifetimeJourney, marker_command, native_click_command, main as record"
+    }
+  ],
+  "wait_before": [
+    {
+      "line": 169,
+      "declaration": "def wait_for_exit(self, timeout):\n    deadline = time.monotonic() + timeout\n    while self.child.identity.alive() and time.monotonic() < deadline:\n        time.sleep(0.05)\n    return not self.child.identity.alive()"
+    },
+    {
+      "line": 2200,
+      "call": "transferred_program.wait_for_exit(3)"
+    },
+    {
+      "line": 199,
+      "call": "self.parent.wait_for_exit(3)"
+    }
+  ],
+  "wait_after": [
+    {
+      "line": 169,
+      "declaration": "def wait_for_exit(self, *, deadline):\n    \"\"\"Observe this identity within the caller's original absolute budget.\"\"\"\n    while self.child.identity.alive() and time.monotonic() < deadline:\n        time.sleep(min(0.05, max(0, deadline - time.monotonic())))\n    return not self.child.identity.alive()"
+    },
+    {
+      "line": 191,
+      "declaration": "def wait_for_exit(self, *, deadline):\n    \"\"\"Child absence is followed by its actual parent's wait publication.\"\"\"\n    if not super().wait_for_exit(deadline=deadline):\n        return False\n    return self.parent is None or self.parent.wait_for_exit(deadline=deadline)"
+    },
+    {
+      "line": 193,
+      "call": "super().wait_for_exit(deadline=deadline)"
+    },
+    {
+      "line": 195,
+      "call": "self.parent.wait_for_exit(deadline=deadline)"
+    },
+    {
+      "line": 2209,
+      "call": "transferred_program.wait_for_exit(deadline=deadline)"
+    },
+    {
+      "line": 2210,
+      "call": "transferred_terminal.wait_for_exit(deadline=deadline)"
+    },
+    {
+      "line": 205,
+      "call": "self.parent.wait_for_exit(deadline=time.monotonic() + grace_seconds)"
+    }
+  ],
+  "unchanged_owner_methods_ast_sha256": {
+    "ProcessOwner.launch_program": "fd23d3ec76c716a532286abc52372b3f31532f5ba69638bcacb34e0bbfac8ba5",
+    "ProcessOwner.launch_terminal": "c6e2443d7b623a41332bf67403f135f78d63acaeba11b9841f6c41554abf5deb",
+    "ProcessOwner.run": "4a2f4b73e641ba1649eda474a190b41e5dff6046fc9f836343f2afc54cf1d5cb",
+    "ProcessOwner.cleanup": "e8797a345f19d75faac9987b236523088cfb233e2f5840c031d5213636765aae",
+    "TransferredGroup.receipt": "2c5b3f2d56542111b0552f544ac03042448ef70fb51774415dbe46002dd2fbab",
+    "TransferredGroup.require_successful_exit": "d7fc606858b66b3590b1b143b53be2c720ea84f749c377f1651596a64659016f"
+  },
+  "dynamic_limit": "external path loaders and constructed subprocess argv are not statically resolved; known recorder loaders read; no claim for arbitrary external callers",
+  "source_sanity": {
+    "compile": "PASS; no imports or execution of recorder/application",
+    "diff_check": "PASS",
+    "recorder_sha256": "18451853942c3709e02f4ef69a131a0b6fa43eace0b0c3457f020772be49003a"
+  },
+  "raw_hashes": {
+    "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-06/fixture/capture/receipt.json": "2eb3301881c511e94120e0c9b3ade5d6d03d5988e8e32999b4ce7024869823e4",
+    "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-06/fixture/capture/program-launch.json": "7431a5e48bbee4e73b7aba777d973471902e36173abcad90aba1b5aa1cdcd306",
+    "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-06/fixture/capture/terminal-launch.json": "20795614dbf3086a798b1ff8d00a8eb3c313138dadab845975f4f18b9763621f",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor06-installed-purpose/reached-motion-and-quit-source.json": "2b92b7e0fb8fae39e15df7f09ae5d2a4a95f0486da51c1e80ccccb6db53cd67e",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor06-installed-purpose/offline-useful-body-analysis.json": "201364ec82d24f33731d1615549bf87db4d501a272ca1c673064859a41fcf86d",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor06-installed-purpose/offline-writer-cadence.json": "7ea68ce81041054b3526012cbaaded26916138a2b7a8bb045f0eae0fc2dc26c3"
+  },
+  "original06": {
+    "ui": {
+      "pid": 1683613,
+      "start_ticks": 71103601
+    },
+    "parent": {
+      "pid": 1683608,
+      "start_ticks": 71103541
+    },
+    "quit": {
+      "requested_monotonic": 711152.08209658,
+      "key": "ctrl+q",
+      "delivered_monotonic": 711152.228939581,
+      "program_exited_before_retirement": false
+    },
+    "signal_monotonic": 711155.294319825,
+    "ui_returncode": -15,
+    "terminal_returncode": 1,
+    "budget_fields": {
+      "interaction_deadline_monotonic": 711170.788536485,
+      "finish_deadline_monotonic": 711186.788536485,
+      "finalize_seconds": 16
+    },
+    "whole_job": "TIMEOUT 150.143211631; original outcome preserved",
+    "limit": "No post-CtrlQ application trace; no evidence of quit admission/save/close. Guardian signal causality is recorded, application cause unknown."
+  },
+  "qualification": "SOURCE ONLY; no runtime, test, UI, native, SDK, provider, input, prefix or package operation",
+  "core_custody_source": {
+    "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+    "head": "3931f16feb8bcb2dbcc3041446ca342dea665024",
+    "parsed": 324,
+    "omissions": [],
+    "module": "src/agent_comms/child_process.py",
+    "sha256": "6b7ca96a3f23eb74de9534d5c6c747486feae174333f227ae76e5515e2983ef4",
+    "read_contracts": [
+      "ProcessIdentity.alive -> Platform.matches -> original platform identity; zombie/terminated incarnation is absent",
+      "ObservedProcess.reap returns DetachedExitOutcome and cannot attest actual parent status",
+      "ParentedProcess.wait/reap is original Popen outcome; recorder original launch_program retains Popen.wait",
+      "Original synchronous retirement supplies group signal/reap; observed resource remains separate from parent custody"
+    ]
+  }
+}

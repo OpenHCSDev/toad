@@ -166,10 +166,10 @@ class OwnedProcess:
             time.sleep(.05)
         return [identity.pid for identity in self.members()]
 
-    def wait_for_exit(self, timeout):
-        deadline = time.monotonic() + timeout
+    def wait_for_exit(self, *, deadline):
+        """Observe this identity within the caller's original absolute budget."""
         while self.child.identity.alive() and time.monotonic() < deadline:
-            time.sleep(.05)
+            time.sleep(min(.05, max(0, deadline - time.monotonic())))
         return not self.child.identity.alive()
 
     def receipt(self):
@@ -188,6 +188,12 @@ class TransferredGroup(OwnedProcess):
     exit_receipt: Path | None = None
     parent: OwnedProcess | None = None
 
+    def wait_for_exit(self, *, deadline):
+        """Child absence is followed by its actual parent's wait publication."""
+        if not super().wait_for_exit(deadline=deadline):
+            return False
+        return self.parent is None or self.parent.wait_for_exit(deadline=deadline)
+
     def stop(self, sig=signal.SIGTERM, *, grace_seconds=3):
         if self.parent is not None:
             # The original parent owns child wait, retirement and publication.
@@ -196,7 +202,7 @@ class TransferredGroup(OwnedProcess):
             if self.child.identity.alive():
                 self.parent.stop(sig, grace_seconds=grace_seconds)
             else:
-                self.parent.wait_for_exit(3)
+                self.parent.wait_for_exit(deadline=time.monotonic() + grace_seconds)
         return super().stop(sig, grace_seconds=grace_seconds)
 
     def receipt(self):
@@ -2220,7 +2226,11 @@ def record(args):
             receipt["quit"] = {"requested_monotonic": time.monotonic(), "key": "ctrl+q"}
             owner.run(["xdotool", "key", "--window", window, "ctrl+q"], env, timeout=2)
             receipt["quit"]["delivered_monotonic"] = time.monotonic()
-            receipt["quit"]["program_exited_before_retirement"] = transferred_program.wait_for_exit(3)
+            # Graceful quit consumes the existing interaction budget. The
+            # finalization reserve still belongs to forced cleanup and export;
+            # it is not a second application-exit timeout.
+            receipt["quit"]["program_exited_before_retirement"] = transferred_program.wait_for_exit(deadline=deadline)
+            transferred_terminal.wait_for_exit(deadline=deadline)
             transferred_program.stop()
             transferred_terminal.stop()
             terminal.stop()
