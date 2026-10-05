@@ -1,0 +1,44 @@
+{
+  "collector": "Original audit.findings.Package and FunctionFacts",
+  "changed_coverage": [
+    {
+      "revision": "486fb2134a69ebb4cb78831e35fb89a2a45ffac6",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "revision": "486fb2134a69ebb4cb78831e35fb89a2a45ffac6",
+      "root": "tests",
+      "modules": 396,
+      "omissions": []
+    }
+  ],
+  "unchanged_dependency_coverage": [
+    {
+      "path": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "revision": "e5f3811b5fd94d69cffe48ec76311afc687d8b08",
+      "root": "src/agent_comms",
+      "modules": 324,
+      "omissions": []
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "revision": "180cbd9471bd6674647590108ca2fe5a627eb24f",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": []
+    }
+  ],
+  "production_delta": "Only ContextInspection.working_memory: original full address through FieldCodec drives grouping and navigation key; partial member extraction deleted.",
+  "consumer_closure": [
+    "ContextTree._add / context_nodes / owns_node",
+    "ContextTree._reconcile / _retire",
+    "ContextNode.reader_path / AnnotationSourceNode.reader_path",
+    "ContextTree.reveal / _expand / restore_reader / _restore_cursor",
+    "ContextTreeIntent.restore / rebind / with_selected",
+    "ContextExplorer selection / worker publication / correction refresh",
+    "ContextSessionPanel retained intent"
+  ],
+  "limits": "Original lexical AST coverage plus semantic source reading; not a dynamic dispatch or SDK proof."
+}
