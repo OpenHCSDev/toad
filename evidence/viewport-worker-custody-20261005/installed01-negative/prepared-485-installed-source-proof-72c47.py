@@ -78,7 +78,7 @@ for module_name,distname,wheel_record in inputs:
         assert actual==set(members),(module_name,actual.symmetric_difference(members))
         record=next(n for n in archive.namelist() if n.endswith('.dist-info/RECORD'))
         entries=list(csv.reader(io.StringIO(archive.read(record).decode())))
-        assert {entry[0] for entry in entries}=={member.filename for member in archive.infolist() if not member.is_dir()}
+        assert {entry[0] for entry in entries}==set(archive.namelist())
         meta={}
         for name,encoded,size in entries:
             raw=archive.read(name)

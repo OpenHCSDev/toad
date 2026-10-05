@@ -1,0 +1,88 @@
+{
+  "state": "SOURCE_ONLY_CORRECTION;INSTALL_PROOF_APP_UNRUN_NO09BC_REPLAY",
+  "before_helper": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/viewport-worker-custody-20261005/installed01-negative/prepared-485-installed-source-proof-72c47.py",
+    "sha256": "72c47acc79d24ff8d6b216f8d760ff2da20941ad821dc73c2b983bf9b64a844e"
+  },
+  "after_helper": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/viewport-worker-custody-20261005/prepared-485-installed-source-proof.py",
+    "sha256": "bf7517492a3dc1984a232c3faa3c561ce212e1298191e7ec2a503525617f920b"
+  },
+  "AST_relation": "Only original line81 assertion ZIP member acquisition changes, all remaining module AST equal. Original digest/size/completeness loop and installed/source/metadata/native/receipt decisions unchanged.",
+  "mismatch": "Diff retained wheel two ZIP directory indexes are not files in RECORD; actual payload/RECORD sets equal.",
+  "original_mismatch_directory_entries": [
+    "textual_diff_view/",
+    "textual_diff_view-0.1.5.dist-info/"
+  ],
+  "original_wheels_and_candidate": [
+    {
+      "wheel": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/c3-goal-selection675-wheel-20261005/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "a685578e439aa2f7010219aa6032ae7e7307a68393e6d6adbb084563f39f43c5",
+      "directory_entries": [],
+      "payload_file_members": 360,
+      "RECORD_entries": 360,
+      "payload_only_missing": [],
+      "extra_RECORD_file_members": [],
+      "digest_and_size_loop": "UNCHANGED AST; every RECORD file remains read and verified by original encoded SHA and byte-size checks; RECORD itself only unhashed row"
+    },
+    {
+      "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-source-wheel-20261005/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "1c4318661b2eb0bfa84462d0389a7b824c8eb23d86ba9fae6d013a027aeab3bf",
+      "directory_entries": [],
+      "payload_file_members": 324,
+      "RECORD_entries": 324,
+      "payload_only_missing": [],
+      "extra_RECORD_file_members": [],
+      "digest_and_size_loop": "UNCHANGED AST; every RECORD file remains read and verified by original encoded SHA and byte-size checks; RECORD itself only unhashed row"
+    },
+    {
+      "wheel": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native67-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+      "sha256": "16c9f5e7a1aca9f7a339fdb859c1743bbc0ba8f17327ba3debd4b13959ca927d",
+      "directory_entries": [],
+      "payload_file_members": 270,
+      "RECORD_entries": 270,
+      "payload_only_missing": [],
+      "extra_RECORD_file_members": [],
+      "digest_and_size_loop": "UNCHANGED AST; every RECORD file remains read and verified by original encoded SHA and byte-size checks; RECORD itself only unhashed row"
+    },
+    {
+      "wheel": "/home/ts/wt/nra-skill-publish-20261002/.artifacts/family-flattened-collector-20261004/wheels/nominal_refactor_audit-0.1.0-py3-none-any.whl",
+      "sha256": "8d489731728ebf9f7e0f90ef2b14e7e3b5d2f90ed82bd8b1482d735f82869886",
+      "directory_entries": [],
+      "payload_file_members": 14,
+      "RECORD_entries": 14,
+      "payload_only_missing": [],
+      "extra_RECORD_file_members": [],
+      "digest_and_size_loop": "UNCHANGED AST; every RECORD file remains read and verified by original encoded SHA and byte-size checks; RECORD itself only unhashed row"
+    },
+    {
+      "wheel": "/home/ts/.cache/uv/sdists-v9/git/6a8a377ce2150d3f/8fa7d4d0db993ea3/textual_diff_view-0.1.5-py3-none-any.whl",
+      "sha256": "be7089c8f282e07e893b0254a0859e0f1b243a7ba591749f2053fa1fb775ad36",
+      "directory_entries": [
+        "textual_diff_view/",
+        "textual_diff_view-0.1.5.dist-info/"
+      ],
+      "payload_file_members": 6,
+      "RECORD_entries": 6,
+      "payload_only_missing": [],
+      "extra_RECORD_file_members": [],
+      "digest_and_size_loop": "UNCHANGED AST; every RECORD file remains read and verified by original encoded SHA and byte-size checks; RECORD itself only unhashed row"
+    },
+    {
+      "wheel": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "b2e420e5b2eed1aaa96d815b2abf38f990272a047417c2ca5082c01d9149a151",
+      "directory_entries": [],
+      "payload_file_members": 324,
+      "RECORD_entries": 324,
+      "payload_only_missing": [],
+      "extra_RECORD_file_members": [],
+      "digest_and_size_loop": "UNCHANGED AST; every RECORD file remains read and verified by original encoded SHA and byte-size checks; RECORD itself only unhashed row"
+    }
+  ],
+  "old_raw_terminal": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/proof-terminal.json",
+  "old_whole_handback_sha256": "960d9b1c3fde4a1692ce3e9fa4695f1d2a8ef270f691040967e58bef31a617cb",
+  "product_source_wheel_control_delta": "ZERO; b2e/085b unchanged",
+  "application_imports": false,
+  "package_stage_proof_App_native_provider_repeat": false,
+  "new_oracle_or_bypass": false
+}
