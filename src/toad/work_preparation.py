@@ -92,6 +92,18 @@ class PreparationWork(ABC, Generic[ResultT]):
     def store_result(self, result: ResultT) -> PreparedValue[ResultT]:
         return CopiedValue(result, self.result_size(result) if self.retain_result else 0)
 
+    def finish_result(self, key: WorkKey, result: ResultT) -> tuple[PreparedValue[ResultT], int]:
+        """Finish representation and retained cost within the executing worker.
+
+        Structured source keys retain their immutable metadata too. Measure
+        them with the result, before returning to the runtime's cache owner.
+        Unretained work still owns independent delivery, without retained cost.
+        """
+        prepared = self.store_result(result)
+        size = (prepared.size + getsizeof(key) + retained_bytes(key.revision)
+                if self.retain_result else 0)
+        return prepared, size
+
     @property
     @abstractmethod
     def lane(self) -> WorkLane:
@@ -102,8 +114,10 @@ class PreparationWork(ABC, Generic[ResultT]):
         """Describe all source revision and presentation inputs to this result."""
 
     @abstractmethod
-    async def execute(self, runtime: PreparationRuntime) -> ResultT:
-        """Run through the declared worker execution policy."""
+    async def execute(
+        self, runtime: PreparationRuntime, key: WorkKey,
+    ) -> tuple[PreparedValue[ResultT], int]:
+        """Complete result storage and accounting through the worker policy."""
 
 
 class ReusableWork(PreparationWork[ResultT]):
@@ -147,8 +161,10 @@ class ThreadWork(PreparationWork[ResultT]):
     def prepare(self) -> ResultT:
         """Prepare captured data on a worker thread."""
 
-    async def execute(self, runtime: PreparationRuntime) -> ResultT:
-        return await runtime.run_thread(self.prepare)
+    async def execute(
+        self, runtime: PreparationRuntime, key: WorkKey,
+    ) -> tuple[PreparedValue[ResultT], int]:
+        return await runtime.run_thread(lambda: self.finish_result(key, self.prepare()))
 
 
 class RendererWork(PreparationWork[ResultT]):
@@ -159,8 +175,11 @@ class RendererWork(PreparationWork[ResultT]):
     def render_task(self) -> RenderTask[ResultT]:
         """A task admitted by the existing local/persistent renderer."""
 
-    async def execute(self, runtime: PreparationRuntime) -> ResultT:
-        return await runtime.renderer.submit(self.render_task)
+    async def execute(
+        self, runtime: PreparationRuntime, key: WorkKey,
+    ) -> tuple[PreparedValue[ResultT], int]:
+        result = await runtime.renderer.submit(self.render_task)
+        return await runtime.run_thread(self.finish_result, key, result)
 
 
 @dataclass(frozen=True)
@@ -327,12 +346,8 @@ class PreparationRuntime:
         return copied
 
     async def _execute(self, key: WorkKey, work: PreparationWork[ResultT]) -> PreparedValue[ResultT]:
-        result = await work.execute(self)
-        prepared = await self.run_thread(work.store_result, result)
+        prepared, size = await work.execute(self, key)
         if work.retain_result:
-            # Structured source keys retain their immutable metadata too.
-            # Account it under the same global byte budget as prepared data.
-            size = prepared.size + getsizeof(key) + await self.run_thread(retained_bytes, key.revision)
             if not self._closed and (key.scope is None or not key.scope.closed) and size <= self.max_bytes:
                 while self._ready and (len(self._ready) >= self.max_entries
                                        or self.retained_bytes + size > self.max_bytes):
