@@ -62,3 +62,20 @@ returns the most recently admitted replacement first without copying that
 worker into a nullable source field.
 The original property supplies that fact. The intermediate negative probe
 against is_finished is preserved in WORKER-MEMBERSHIP-NEGATIVE.json.
+
+## Published control
+
+The existing history_stationary_local_runway_pilot gains --installed-only
+--worker-custody. It holds the original fragment preparation before invoking
+it, changes authored direction-owned speed to exercise requested extent,
+asserts the same actual Worker survives, reverses through DirectionalPreparation,
+joins the revoked original Worker, retires the source and joins the replacement.
+Original fragment/admission/byte/Agent-absence assertions and whole App shutdown
+remain. Installed mode proves the imported distribution origin and admits no
+src overlay. No actual run occurred; authored demand is not physical wheel input.
+
+Both intermediate local audit negatives remain original evidence. Final
+source consumer checks report zero nullable-worker mirror sites and one group
+declaration/admission owner. Complete Package roots: Toad288/tests396/tools41,
+Core316/native249, zero parse omissions. The automatic required Debt binds the
+exact current pushed head separately; it is not an installed acceptance.
