@@ -1,0 +1,40 @@
+{
+  "state": "SOURCE ONLY normalmerged accepted body/renderer/recorder; final usefulcold/frame union UNBOUND",
+  "source_branch": "receiving/body-render-recorder462-source-20261005",
+  "normal_join_actual_main": "769e78a6c7087849d51b778b418b1467a3de1644",
+  "body464_merge": "de18e88dafd287ce95ea81e5686f25de2b23f1df",
+  "renderer458_merge": "6d0de99cd2d2929107a731b00b63605ed43f7bbb",
+  "recorder462_final_head": "cf93067fd4c873f6aef69607f5ec5ce716e69954",
+  "recorder462_changed_tool_paths": [
+    "tests/tools/VIDEO_REVIEW.md",
+    "tests/tools/record_installed_tui.py"
+  ],
+  "Toad_relation": {
+    "actualmain": "769e78a6c7087849d51b778b418b1467a3de1644",
+    "original_build_head": "1ae124fcbc730479a8472c8fbe70f74a32afc5ef",
+    "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-render-transport458-20261005/source-wheel/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "wheel_sha256": "7546bd15d78f2c06a11a2bb4e5564050017360c222e8e064abea2b560a180432",
+    "Git_ZIP_equal_assets": 319,
+    "source_build_metadata_input_delta": [],
+    "normalfileorigin_required": true
+  },
+  "Core_relation_previously_verified": {
+    "actualmain": "7800f714d09d2e180597ca9ff59a14de41469dba",
+    "retainedwheel_sha256": "3fe14077293b691000394831ed7458ecae92afd9b667af4501be2945ab86051d",
+    "full_assets": 355,
+    "source_verification_path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/next-body-render-receiving-source-20261005/SOURCE-RELATION.json",
+    "source_verification_sha256": "e330e0f47f09606d5e715b8612fec98b45456e0d58ce28077c1650dca877fe4a"
+  },
+  "PUBLIC459_frozen_historical_relation_not_rebased": true,
+  "active_Heis460_wheel_prefix": "37b7",
+  "active_Native71_wheel_prefix": "bc47",
+  "Native71_merge_reported_by_Parent": "a2dd8a9",
+  "final_qualified_union_source_head": null,
+  "final_wheel_pin_source_metadata_relation": null,
+  "future_canonical51": null,
+  "eligible_holder_packagegrant_onceoperands": null,
+  "no_prefix_package_access_reservation_operatorcopy_build_App_native_provider_public_action": true,
+  "661_records_lookup_Bohr_not_receivinghold": true,
+  "PUBLIC485_frozen_operations_and_originals_protected": true,
+  "recorded_at": 1791217453.0388942
+}
