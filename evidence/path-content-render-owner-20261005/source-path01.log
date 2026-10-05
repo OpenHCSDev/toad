@@ -1,0 +1,25 @@
+test_path_content_render (unittest.loader._FailedTest.test_path_content_render) ... ERROR
+
+======================================================================
+ERROR: test_path_content_render (unittest.loader._FailedTest.test_path_content_render)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_path_content_render
+Traceback (most recent call last):
+  File "/usr/lib/python3.14/unittest/loader.py", line 433, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/usr/lib/python3.14/unittest/loader.py", line 374, in _get_module_from_name
+    __import__(name)
+    ~~~~~~~~~~^^^^^^
+  File "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/test_path_content_render.py", line 11, in <module>
+    from toad.widgets.path_search import PathContent
+  File "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/path_search.py", line 38, in <module>
+    from toad.widgets.prompt_popup import CompletionPopup
+  File "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/prompt_popup.py", line 7, in <module>
+    from agent_comms.declared_family import DeclaredFamily
+ModuleNotFoundError: No module named 'agent_comms'
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+FAILED (errors=1)
