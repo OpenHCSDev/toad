@@ -1,0 +1,92 @@
+{
+  "state": "Qualified receiving459 candidate preparation FROZEN HELDParent; public delivery unexecuted",
+  "source_preparation_head": "413781af83e547aadef70650cb16379e4f135f04",
+  "source_relation": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged457-goal675-native67-receiving-20261005/MERGED-SOURCE-WHEEL-RELATION.json",
+    "sha256": "c43c86fd59e48598e41aecebf842e4668420be9e10533e72d87bb0df561d0b4c"
+  },
+  "issued_holder_grant": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Sch459-ordinary-receiving-preparation-only-issued-grant.json",
+    "sha256": "055d2da861c4e0da18bbed25d45f4dd60715d5f0dd885382ce8637464d065eee"
+  },
+  "ready": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged457-goal675-native67-receiving-20261005/READY.json",
+    "sha256": "e193eb6e16cc6c78ca0f6ae80148451af2e13362f91cbdcb65010a16d89e92f5"
+  },
+  "frozen_manifest": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged457-goal675-native67-receiving-20261005/frozen-manifest.json",
+    "sha256": "44a4bbe19c3d92521af34e4e03b734bf62f1e431d759e2495c7cb96d665cff81",
+    "count": 106
+  },
+  "whole_immediate_handback": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged457-goal675-native67-receiving-20261005/whole-immediate-handback.json",
+    "sha256": "5a4f28d41a4796972b2261097506ece4b733328cc09625c7b216b24340309f3f"
+  },
+  "native_READ_return": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper459-READ-handback-20261005.json",
+    "sha256": "148f42845c4311b07f7575665d2653ffb94ddd8bf9653fd5ea436c8f5c861718"
+  },
+  "sourceproof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged457-goal675-native67-receiving-20261005/source-proof.json",
+    "sha256": "f07c68f783974b1a2312ebd5650131aab3dbb79e48ef9c58a1707426d47c8e29"
+  },
+  "candidate_DTO": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged457-goal675-native67-receiving-20261005/candidate-activation.json",
+    "sha256": "e4ab18eed2c67632b2e67c58f9d19d6e2da54033ae2c3f446ec1f6becd92fadb"
+  },
+  "once_operands": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged457-goal675-native67-receiving-20261005/once-operands.json",
+    "sha256": "7c4089d872e7a2410a75a884eeb8d93947fb5aad2f7fb1f100486ed56c5fb88f"
+  },
+  "originalQualificationInput": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged457-goal675-native67-receiving-20261005/qualification-input.json",
+    "sha256": "b4ae583d2dc13d1bcaf2d495091e1c69e7fca8a3ac71758c7200bb0fc4613489"
+  },
+  "canonical51_merged_Core": "7b68d630caa654d3e9884f45cbd6493718752a0c",
+  "installed_assets": 953,
+  "normal_distributions": 69,
+  "unchanged_other65_records": 1865,
+  "protected_originals": 155,
+  "original_Ready_separate_immutable": true,
+  "distinct_reviewed_original_gate_count": 104,
+  "stage": {
+    "attempts": 1,
+    "exit": 0,
+    "elapsed_seconds": 0.21553615806624293,
+    "new_builds": 0
+  },
+  "installed_source_verification": {
+    "exit": 0,
+    "elapsed_seconds": 8.272839354001917,
+    "native_FullTrust_READ": true
+  },
+  "canonical_copy": {
+    "attempts": 1,
+    "exit": 0,
+    "elapsed_seconds": 0.3474241679068655,
+    "members": 51
+  },
+  "cohort_preparation": {
+    "exit": 0,
+    "elapsed_seconds": 4.8313716360135,
+    "source_native_equals_target": true,
+    "source_target_coordination_schema": 10,
+    "checkpoint_digests_equal": true,
+    "runtime_installation": "PreserveRuntimeInstallation",
+    "owner_runtime": "PreserveOwnerRuntime"
+  },
+  "no_App_SDK_provider_native_input_native_EXEC_publicguard_publisher": true,
+  "receipt_preimages_absent": true,
+  "raw_bookkeeping_negatives_preserved": [
+    "pre-stage-bookkeeping-negative.json",
+    "final-manifest-stage-key-negative.json"
+  ],
+  "original675_qualification_keeper_impact": "All104 direct qualification hashes independently verified after676 wrong-output impact; original67502 all26 hashes recovered. No676 execution or success credit folded.",
+  "shared_lifecycle_close": "Bohr independent readback/fresh privileged census pending; private claims explicitly returned, positive candidate HELDParent",
+  "remaining_owner": "Parent original finalreview/normalmerge/freshpublicadmission/oncepublication and ordinary affected UI verification; no automatic operation/loan",
+  "limits": [
+    "Original675/457 acceptance retained at exact original scope; no reruns/rebased negatives",
+    "External worker remains off; full performance/physical UI claims not inferred",
+    "No native carry/reset/history/input/UNKNOWN mutation; same schema10/native7a preservation"
+  ]
+}
