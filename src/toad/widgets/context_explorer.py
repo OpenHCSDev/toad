@@ -36,14 +36,14 @@ class ContextTreeIntent:
             self.selected = model
             show_detail(model)
 
-    def restore(self, nodes, restore_node):
+    def restore(self, resolve, restore_node):
         if self.selected is None:
             return False
-        node = nodes.get(self.selected.key)
+        node = resolve(self.selected.key)
         if node is None:
             return False
         self.selected = node.data
-        restore_node(node, self.selected)
+        restore_node(self.selected)
         return True
 
     def with_selected(self, model, consume):
@@ -132,17 +132,35 @@ class ContextTree(Tree[ContextNode]):
                     self._expand(node)
                     node.expand()
                     pending.extend(node.children)
-        if not self.intent.restore(self.context_nodes, self._reveal_restored):
+        if not self.intent.restore(self.reveal, self._reveal_restored):
             self.show_placeholder(placeholder)
 
-    def _reveal_restored(self, node, model):
+    def reveal(self, key):
+        """Materialize the current path without authoring a reader choice."""
+        node = self.context_nodes.get(key)
+        if node is None:
+            for root in tuple(self.context_nodes.values()):
+                path = root.data.reader_path(key)
+                if not path:
+                    continue
+                node = root
+                with self.prevent(Tree.NodeExpanded):
+                    for model in path[1:]:
+                        self._expand(node)
+                        node.expand()
+                        node = self.context_nodes[model.key]
+                break
+        if node is not None:
+            with self.prevent(Tree.NodeExpanded):
+                ancestor = node.parent
+                while ancestor is not None:
+                    ancestor.expand()
+                    ancestor = ancestor.parent
+        return node
+
+    def _reveal_restored(self, model):
         # The retained intent owns the reader choice. Native initialization may
         # already highlight a data-less root or group before this callback.
-        ancestor = node.parent
-        with self.prevent(Tree.NodeExpanded):
-            while ancestor is not None:
-                ancestor.expand()
-                ancestor = ancestor.parent
         self.call_after_refresh(self.intent.with_selected, model, self._restore_cursor)
 
     def _restore_cursor(self, model):
@@ -214,6 +232,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             yield Button("Search", id="context-find")
             yield Button("Read full", id="context-read-full")
             yield Button("Copy", id="context-copy")
+            yield Button("Correct", id="context-correct")
         yield ContextTree(self.intent, self._show_detail, self._show_placeholder)
         yield TextArea("No context selected.", read_only=True, soft_wrap=True,
                        show_line_numbers=False, id="context-detail")
@@ -339,6 +358,40 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
 
     def _show_placeholder(self, placeholder):
         self.query_one(TextArea).load_text(placeholder)
+
+    @on(Button.Pressed, "#context-correct")
+    def action_correct(self, event):
+        from functools import partial
+        from toad.widgets.comms_menu import show_target_menu
+
+        event.stop()
+        node = self.query_one(ContextTree).cursor_node
+        if not self.query_one(ContextTree).owns_node(node):
+            return
+        model = node.data
+        answers = model.correction_answers()
+        if not answers:
+            self.notify("Select an original annotation to correct", severity="warning")
+            return
+        show_target_menu(self.screen, event.button.region.offset, "Correct original answer",
+            [(answer.declared_name, answer.public_title()) for answer in answers],
+            {answer.declared_name: partial(self._correct_annotation, model, answer)
+             for answer in answers})
+
+    @work(group="context-correction", exclusive=True, exit_on_error=False)
+    async def _correct_annotation(self, model, answer):
+        if not self._selected(model):
+            return
+        worktree = self.query_ancestor(SessionView).project_root
+        try:
+            await model.correct(answer, worktree)
+        except (OSError, ValueError, RuntimeError, RequestError) as error:
+            if self._selected(model):
+                self.notify(f"Annotation correction failed: {error}", severity="error")
+            return
+        if self._selected(model):
+            self.notify("Original human correction recorded")
+            self._read()
 
     def _present(self, captured: HoldingInspection):
         if self.intent.query:

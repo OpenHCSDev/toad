@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 
 from agent_comms.acp_extension import (
+    ContextAnnotatedUpdate,
     CompactionChangedUpdate,
     CompactionCommittedUpdate,
     CompactionPublishedUpdate,
@@ -70,6 +71,10 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(TranscriptChangedUpdate)
     def transcript_changed(self, update: TranscriptChangedUpdate) -> None:
+        self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
+
+    @handles(ContextAnnotatedUpdate)
+    def context_annotated(self, update: ContextAnnotatedUpdate) -> None:
         self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
 
     @handles(TurnChangedUpdate)
