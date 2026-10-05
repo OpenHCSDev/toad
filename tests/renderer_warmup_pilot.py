@@ -15,6 +15,7 @@ ResultT = TypeVar("ResultT")
 
 class GateRenderer(Renderer):
     def __init__(self, displayed: asyncio.Event) -> None:
+        super().__init__()
         self.displayed = displayed
         self.started = asyncio.Event()
         self.release = asyncio.Event()
@@ -31,10 +32,11 @@ class GateRenderer(Renderer):
         finally:
             self.finished.set()
 
-    async def submit(self, task: RenderTask[ResultT]) -> ResultT:
+    async def capture(self, task: RenderTask[ResultT]):
         raise AssertionError("Fixture must not submit user rendering work")
 
     async def aclose(self) -> None:
+        await self._close_submissions()
         self.closed = True
 
 

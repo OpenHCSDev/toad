@@ -25,11 +25,11 @@ from toad.widgets.conversation import ThreadLoading
 
 
 class ReplayGate(GateRenderer):
-    async def submit(self, task):
+    async def capture(self, task):
         if isinstance(task, TranscriptRenderTask):
             self.entered.set()
             await self.release.wait()
-        return await self.pool.submit(task)
+        return await self.pool.capture(task)
 
 
 @asynccontextmanager

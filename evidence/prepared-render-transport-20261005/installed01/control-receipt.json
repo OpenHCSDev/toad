@@ -1,0 +1,17 @@
+{
+  "python": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+  "provider_calls": 0,
+  "public_inputs": 0,
+  "headless_official_sdk_accepted_and_rejected": true,
+  "local_official_sdk_accepted_and_rejected": true,
+  "persistent_official_sdk_accepted_and_rejected": true,
+  "wrong_completed_result_refused": true,
+  "non_reusable_capture_not_shared_or_retained": true,
+  "reusable_capture_shared_retained_and_independently_delivered": true,
+  "local_captured_markdown_rich_independent_delivery": true,
+  "persistent_captured_markdown_rich_independent_delivery": true,
+  "elapsed": 7.769484477932565,
+  "cleanup": [],
+  "state": "PASS",
+  "scope": "Actual installed local spawn, persistent ZMQ worker, official SDK and headless/application validation. No terminal pixels or provider turn."
+}

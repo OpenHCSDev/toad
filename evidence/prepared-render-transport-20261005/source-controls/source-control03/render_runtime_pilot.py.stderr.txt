@@ -1,0 +1,9 @@
+test_cancelled_delivery_is_joined_before_backend_close (__main__.RuntimeTests.test_cancelled_delivery_is_joined_before_backend_close) ... ok
+test_construct_and_unused_close_do_not_fingerprint_or_start_backend (__main__.RuntimeTests.test_construct_and_unused_close_do_not_fingerprint_or_start_backend) ... ok
+test_failed_request_is_not_replayed_and_next_request_uses_new_client (__main__.RuntimeTests.test_failed_request_is_not_replayed_and_next_request_uses_new_client) ... ok
+test_off_loop_resolution_survives_cancelled_waiter_and_closes_owned_pool (__main__.RuntimeTests.test_off_loop_resolution_survives_cancelled_waiter_and_closes_owned_pool) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.024s
+
+OK

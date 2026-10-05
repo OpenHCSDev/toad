@@ -1,0 +1,3060 @@
+{
+  "base": "e32253a5601400234b7ef0b5a191185c7427647a",
+  "coverage": [
+    {
+      "repository": "Repository(path=PosixPath('/home/ts/wt/toad-regression-widget-cost-20261001'))",
+      "rev": "e32253a5601400234b7ef0b5a191185c7427647a",
+      "package": "src/toad",
+      "modules": 288,
+      "unparsed": []
+    },
+    {
+      "repository": "Repository(path=PosixPath('/home/ts/wt/toad-regression-widget-cost-20261001'))",
+      "rev": "e32253a5601400234b7ef0b5a191185c7427647a",
+      "package": "tests",
+      "modules": 397,
+      "unparsed": []
+    },
+    {
+      "repository": "Repository(path=PosixPath('/home/ts/wt/comms-field-codec-closure-20260928'))",
+      "rev": "e5f3811b5fd94d69cffe48ec76311afc687d8b08",
+      "package": "src/agent_comms",
+      "modules": 324,
+      "unparsed": []
+    },
+    {
+      "repository": "Repository(path=PosixPath('/home/ts/wt/textual-native-subtree-strips-20261002'))",
+      "rev": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78",
+      "package": "src/textual",
+      "modules": 249,
+      "unparsed": []
+    }
+  ],
+  "owner_consumer_sites": [
+    {
+      "package": "src/toad",
+      "path": "src/toad/acp/sdk_boundary.py",
+      "classes": [
+        {
+          "name": "ValidateSessionUpdateTask",
+          "line": 63,
+          "bases": [
+            "RenderTask[SessionUpdateValidation]"
+          ],
+          "members": [
+            "execute",
+            "accept_result"
+          ]
+        }
+      ],
+      "imports": [
+        "toad.render_backend",
+        "toad.render_backend.RenderTask"
+      ],
+      "functions": []
+    },
+    {
+      "package": "src/toad",
+      "path": "src/toad/acp/transcript_reader.py",
+      "classes": [],
+      "imports": [
+        "toad.work_preparation",
+        "toad.work_preparation.PreparationRuntime",
+        "toad.work_preparation.ScopedWork",
+        "toad.work_preparation.SerializedWork",
+        "toad.work_preparation.ThreadWork",
+        "toad.work_preparation.WorkKey"
+      ],
+      "functions": [
+        {
+          "qualname": "src/toad/acp/transcript_reader.py::deliver",
+          "size": 2,
+          "constructed": [
+            "submit"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "src/toad",
+      "path": "src/toad/app.py",
+      "classes": [],
+      "imports": [
+        "toad.render_backend",
+        "toad.render_backend.RenderTask",
+        "toad.render_backend.Renderer",
+        "toad.work_preparation",
+        "toad.work_preparation.PreparationRuntime",
+        "toad.work_preparation.PreparedRenderer"
+      ],
+      "functions": [
+        {
+          "qualname": "src/toad/app.py::prepare_background",
+          "size": 13,
+          "constructed": [
+            "acquire",
+            "add",
+            "add_done_callback",
+            "cast",
+            "create_task",
+            "release",
+            "result",
+            "submit",
+            "wait"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "src/toad",
+      "path": "src/toad/cli.py",
+      "classes": [],
+      "imports": [
+        "toad.render_backend",
+        "toad.render_backend.Renderer",
+        "toad.render_choices",
+        "toad.render_choices.RendererChoice"
+      ],
+      "functions": []
+    },
+    {
+      "package": "src/toad",
+      "path": "src/toad/preferences.py",
+      "classes": [
+        {
+          "name": "UiSettings",
+          "line": 62,
+          "bases": [
+            "RendererSettings"
+          ],
+          "members": []
+        }
+      ],
+      "imports": [
+        "toad.render_choices",
+        "toad.render_choices.LocalRenderer",
+        "toad.render_choices.RendererChoice"
+      ],
+      "functions": []
+    },
+    {
+      "package": "src/toad",
+      "path": "src/toad/render_backend.py",
+      "classes": [
+        {
+          "name": "RenderExecution",
+          "line": 18,
+          "bases": [
+            "ABC",
+            "Generic[ResultT]"
+          ],
+          "members": [
+            "complete",
+            "execute",
+            "accept_result"
+          ]
+        },
+        {
+          "name": "RenderTask",
+          "line": 32,
+          "bases": [
+            "RenderExecution[ResultT]",
+            "DeclaredFamily"
+          ],
+          "members": [
+            "preparation_identity",
+            "preparation_storage"
+          ]
+        },
+        {
+          "name": "ReusableRenderTask",
+          "line": 47,
+          "bases": [
+            "RenderTask[ResultT]"
+          ],
+          "members": [
+            "preparation_identity",
+            "preparation_storage"
+          ]
+        },
+        {
+          "name": "Renderer",
+          "line": 78,
+          "bases": [
+            "RendererSpawn"
+          ],
+          "members": [
+            "prepare",
+            "warm_up",
+            "submit",
+            "aclose"
+          ]
+        }
+      ],
+      "imports": [
+        "toad.work_preparation",
+        "toad.work_preparation.ContentAddressedWork",
+        "toad.work_preparation.PreparationRuntime",
+        "toad.work_preparation.PreparationWork",
+        "toad.work_preparation.RenderPreparation",
+        "toad.work_preparation.SerializedWork",
+        "toad.work_preparation.WorkKey"
+      ],
+      "functions": [
+        {
+          "qualname": "src/toad/render_backend.py::complete",
+          "size": 3,
+          "constructed": [
+            "accept_result"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "src/toad/render_backend.py::prepare",
+          "size": 8,
+          "constructed": [
+            "submit"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "src/toad",
+      "path": "src/toad/render_choices.py",
+      "classes": [
+        {
+          "name": "LocalRenderer",
+          "line": 21,
+          "bases": [
+            "RendererChoice"
+          ],
+          "members": [
+            "start"
+          ]
+        },
+        {
+          "name": "PersistentRenderer",
+          "line": 29,
+          "bases": [
+            "RendererChoice"
+          ],
+          "members": [
+            "start"
+          ]
+        }
+      ],
+      "imports": [
+        "toad.render_backend",
+        "toad.render_backend.Renderer",
+        "toad.render_processes",
+        "toad.render_processes.RenderProcessPool",
+        "toad.render_runtime",
+        "toad.render_runtime.PersistentRenderClient"
+      ],
+      "functions": []
+    },
+    {
+      "package": "src/toad",
+      "path": "src/toad/render_identity.py",
+      "classes": [],
+      "imports": [
+        "toad.render_service",
+        "toad.render_service.RenderServiceConfig"
+      ],
+      "functions": []
+    },
+    {
+      "package": "src/toad",
+      "path": "src/toad/render_processes.py",
+      "classes": [
+        {
+          "name": "RenderProcessPool",
+          "line": 31,
+          "bases": [
+            "Renderer"
+          ],
+          "members": [
+            "__init__",
+            "closed",
+            "_bind_loop",
+            "_finished",
+            "run",
+            "submit",
+            "aclose",
+            "_join"
+          ]
+        }
+      ],
+      "imports": [
+        "toad.render_backend",
+        "toad.render_backend.RenderTask",
+        "toad.render_backend.Renderer"
+      ],
+      "functions": [
+        {
+          "qualname": "src/toad/render_processes.py::run",
+          "size": 22,
+          "constructed": [
+            "ProcessPoolExecutor",
+            "RuntimeError",
+            "_bind_loop",
+            "add",
+            "add_done_callback",
+            "clear",
+            "get_context",
+            "len",
+            "result",
+            "submit",
+            "wait",
+            "wrap_future"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "src/toad/render_processes.py::submit",
+          "size": 3,
+          "constructed": [
+            "complete",
+            "run"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "src/toad",
+      "path": "src/toad/render_protocol.py",
+      "classes": [
+        {
+          "name": "CapturedResult",
+          "line": 22,
+          "bases": [],
+          "members": []
+        },
+        {
+          "name": "RendererCapture",
+          "line": 40,
+          "bases": [
+            "FieldRepresentation"
+          ],
+          "members": [
+            "encode",
+            "decode",
+            "capture",
+            "restore"
+          ]
+        },
+        {
+          "name": "TaskCapture",
+          "line": 62,
+          "bases": [
+            "RendererCapture"
+          ],
+          "members": [
+            "capture",
+            "restore"
+          ]
+        },
+        {
+          "name": "ResultCapture",
+          "line": 74,
+          "bases": [
+            "RendererCapture"
+          ],
+          "members": [
+            "capture",
+            "restore"
+          ]
+        }
+      ],
+      "imports": [
+        "toad.render_backend",
+        "toad.render_backend.RenderTask",
+        "toad.render_service",
+        "toad.render_service.RenderService",
+        "toad.render_zmq",
+        "toad.render_zmq.PersistentRendererPool",
+        "toad.render_zmq.RenderSubmission"
+      ],
+      "functions": [
+        {
+          "qualname": "src/toad/render_protocol.py::encode",
+          "size": 2,
+          "constructed": [
+            "capture",
+            "dumps"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "src/toad/render_protocol.py::execute",
+          "size": 2,
+          "constructed": [
+            "submit"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "src/toad",
+      "path": "src/toad/render_runtime.py",
+      "classes": [
+        {
+          "name": "PersistentRenderClient",
+          "line": 20,
+          "bases": [
+            "Renderer"
+          ],
+          "members": [
+            "__init__",
+            "resolved_pool",
+            "_bind_loop",
+            "_initialize",
+            "_get_pool",
+            "_retire",
+            "submit",
+            "warm_up",
+            "aclose",
+            "_close"
+          ]
+        }
+      ],
+      "imports": [
+        "toad.render_backend",
+        "toad.render_backend.RenderTask",
+        "toad.render_backend.Renderer",
+        "toad.render_service",
+        "toad.render_service.RenderServiceConfig",
+        "toad.render_tasks",
+        "toad.render_tasks.MarkdownRenderTask",
+        "toad.render_tasks.PatchRenderTask",
+        "toad.render_zmq",
+        "toad.render_zmq.PersistentRendererPool",
+        "toad.render_zmq.RendererEndpoint",
+        "toad.render_zmq.RendererSessionFailed"
+      ],
+      "functions": [
+        {
+          "qualname": "src/toad/render_runtime.py::submit",
+          "size": 7,
+          "constructed": [
+            "_get_pool",
+            "_retire",
+            "submit"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "src/toad/render_runtime.py::warm_up",
+          "size": 16,
+          "constructed": [
+            "MarkdownRenderTask",
+            "PatchRenderTask",
+            "gather",
+            "submit"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "src/toad",
+      "path": "src/toad/render_server.py",
+      "classes": [],
+      "imports": [
+        "toad.render_service",
+        "toad.render_service.RenderServiceConfig",
+        "toad.render_zmq",
+        "toad.render_zmq.RendererEndpoint",
+        "toad.render_zmq.RendererServer"
+      ],
+      "functions": []
+    },
+    {
+      "package": "src/toad",
+      "path": "src/toad/render_service.py",
+      "classes": [
+        {
+          "name": "RenderService",
+          "line": 65,
+          "bases": [],
+          "members": [
+            "__init__",
+            "pending_count",
+            "reap",
+            "_touch",
+            "_abandon",
+            "_owned",
+            "submit",
+            "poll",
+            "cancel",
+            "acknowledge",
+            "release",
+            "shutdown",
+            "close"
+          ]
+        }
+      ],
+      "imports": [
+        "toad.render_identity",
+        "toad.render_identity.RendererBuild",
+        "toad.render_processes",
+        "toad.render_processes._initialize_worker",
+        "toad.render_protocol",
+        "toad.render_protocol.AcceptedReply",
+        "toad.render_protocol.AcknowledgeRender",
+        "toad.render_protocol.AcknowledgedReply",
+        "toad.render_protocol.BusyReply",
+        "toad.render_protocol.CancelRender",
+        "toad.render_protocol.CancelledReply",
+        "toad.render_protocol.CapturedResult",
+        "toad.render_protocol.CompleteReply",
+        "toad.render_protocol.FailedReply",
+        "toad.render_protocol.PendingReply",
+        "toad.render_protocol.PollRender",
+        "toad.render_protocol.RejectedReply",
+        "toad.render_protocol.ReleaseRender",
+        "toad.render_protocol.RenderReply",
+        "toad.render_protocol.ShutdownRender",
+        "toad.render_protocol.SubmitRender",
+        "toad.render_protocol.UnknownReply"
+      ],
+      "functions": [
+        {
+          "qualname": "src/toad/render_service.py::submit",
+          "size": 17,
+          "constructed": [
+            "AcceptedReply",
+            "BusyReply",
+            "PendingRender",
+            "RejectedReply",
+            "UnknownReply",
+            "_touch",
+            "get",
+            "len",
+            "reap",
+            "submit"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "src/toad",
+      "path": "src/toad/render_tasks.py",
+      "classes": [
+        {
+          "name": "PatchRenderTask",
+          "line": 25,
+          "bases": [
+            "ReusableRenderTask[PreparedPatch]"
+          ],
+          "members": [
+            "execute",
+            "accept_result"
+          ]
+        },
+        {
+          "name": "MarkdownRenderTask",
+          "line": 40,
+          "bases": [
+            "ReusableRenderTask[PreparedMarkdown]"
+          ],
+          "members": [
+            "execute",
+            "accept_result"
+          ]
+        },
+        {
+          "name": "RichRenderTask",
+          "line": 59,
+          "bases": [
+            "ReusableRenderTask[PreparedRichContent]"
+          ],
+          "members": [
+            "execute",
+            "accept_result"
+          ]
+        },
+        {
+          "name": "ThreadRowsRenderTask",
+          "line": 73,
+          "bases": [
+            "ReusableRenderTask[tuple[PreparedThreadRow, ...]]"
+          ],
+          "members": [
+            "execute",
+            "accept_result"
+          ]
+        },
+        {
+          "name": "TabRosterRenderTask",
+          "line": 88,
+          "bases": [
+            "ReusableRenderTask[tuple[PreparedTab, ...]]"
+          ],
+          "members": [
+            "execute",
+            "accept_result"
+          ]
+        }
+      ],
+      "imports": [
+        "toad.render_backend",
+        "toad.render_backend.ReusableRenderTask"
+      ],
+      "functions": []
+    },
+    {
+      "package": "src/toad",
+      "path": "src/toad/render_zmq.py",
+      "classes": [
+        {
+          "name": "RendererClient",
+          "line": 129,
+          "bases": [
+            "RendererTransport"
+          ],
+          "members": [
+            "__init__",
+            "_spawn_server_process",
+            "require_identity"
+          ]
+        },
+        {
+          "name": "RenderSubmission",
+          "line": 203,
+          "bases": [
+            "RenderCancellation",
+            "Generic[ResultT]"
+          ],
+          "members": []
+        },
+        {
+          "name": "PersistentRendererPool",
+          "line": 212,
+          "bases": [
+            "Renderer"
+          ],
+          "members": [
+            "__init__",
+            "_bind_loop",
+            "_exchange",
+            "_finished",
+            "submit",
+            "_run",
+            "acknowledge",
+            "aclose",
+            "_close",
+            "shutdown_service"
+          ]
+        }
+      ],
+      "imports": [
+        "toad.render_backend",
+        "toad.render_backend.RenderTask",
+        "toad.render_backend.Renderer",
+        "toad.render_identity",
+        "toad.render_identity.RendererBuild",
+        "toad.render_protocol",
+        "toad.render_protocol.AcknowledgeRender",
+        "toad.render_protocol.ReleaseRender",
+        "toad.render_protocol.RenderCommand",
+        "toad.render_protocol.RenderReply",
+        "toad.render_protocol.RequestCommand",
+        "toad.render_protocol.ShutdownRender",
+        "toad.render_protocol.SubmitRender",
+        "toad.render_protocol.TaskCapture",
+        "toad.render_service",
+        "toad.render_service.RenderService",
+        "toad.render_service.RenderServiceConfig"
+      ],
+      "functions": [
+        {
+          "qualname": "src/toad/render_zmq.py::handle_control_message",
+          "size": 8,
+          "constructed": [
+            "decode",
+            "encode",
+            "execute",
+            "getpid",
+            "isinstance",
+            "replace",
+            "request_shutdown"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {
+            "command": 1
+          },
+          "literal_sets": []
+        },
+        {
+          "qualname": "src/toad/render_zmq.py::submit",
+          "size": 21,
+          "constructed": [
+            "RenderSubmission",
+            "RendererSessionFailed",
+            "RuntimeError",
+            "_bind_loop",
+            "_run",
+            "add",
+            "add_done_callback",
+            "capture",
+            "cast",
+            "clear",
+            "complete",
+            "create_future",
+            "create_task",
+            "len",
+            "uuid4",
+            "wait"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "src/toad",
+      "path": "src/toad/sidebar_preparation.py",
+      "classes": [
+        {
+          "name": "ThreadRowsWork",
+          "line": 82,
+          "bases": [
+            "SerializedWork[tuple[PreparedThreadRow, ...]]",
+            "ContentAddressedWork[tuple[PreparedThreadRow, ...]]",
+            "RendererWork[tuple[PreparedThreadRow, ...]]"
+          ],
+          "members": [
+            "capture",
+            "inputs",
+            "for_rows",
+            "content_width",
+            "render_task"
+          ]
+        },
+        {
+          "name": "TabRosterWork",
+          "line": 143,
+          "bases": [
+            "SerializedWork[tuple[PreparedTab, ...]]",
+            "ContentAddressedWork[tuple[PreparedTab, ...]]",
+            "RendererWork[tuple[PreparedTab, ...]]"
+          ],
+          "members": [
+            "inputs",
+            "render_task"
+          ]
+        }
+      ],
+      "imports": [
+        "toad.render_tasks",
+        "toad.render_tasks.TabRosterRenderTask",
+        "toad.render_tasks.ThreadRowsRenderTask",
+        "toad.work_preparation",
+        "toad.work_preparation.ContentAddressedWork",
+        "toad.work_preparation.PreparationRuntime",
+        "toad.work_preparation.RendererWork",
+        "toad.work_preparation.SerializedWork"
+      ],
+      "functions": []
+    },
+    {
+      "package": "src/toad",
+      "path": "src/toad/tool_output.py",
+      "classes": [],
+      "imports": [
+        "toad.render_tasks",
+        "toad.render_tasks.PatchRenderTask"
+      ],
+      "functions": [
+        {
+          "qualname": "src/toad/tool_output.py::from_text",
+          "size": 11,
+          "constructed": [
+            "ValueError",
+            "accepts",
+            "capture",
+            "len",
+            "members_with"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "src/toad",
+      "path": "src/toad/transcript_preparation.py",
+      "classes": [],
+      "imports": [
+        "toad.work_preparation",
+        "toad.work_preparation.PreparationRuntime",
+        "toad.work_preparation.PreparationScope",
+        "toad.work_preparation.PreparedValue",
+        "toad.work_preparation.RenderPreparation",
+        "toad.work_preparation.ScopedWork",
+        "toad.work_preparation.SerializedWork",
+        "toad.work_preparation.ThreadWork",
+        "toad.work_preparation.WorkKey",
+        "toad.work_preparation.WorkLane",
+        "toad.work_preparation.retained_bytes"
+      ],
+      "functions": [
+        {
+          "qualname": "src/toad/transcript_preparation.py::project",
+          "size": 7,
+          "constructed": [
+            "TranscriptFilterWork",
+            "len",
+            "replace",
+            "submit"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "src/toad/transcript_preparation.py::execute",
+          "size": 21,
+          "constructed": [
+            "PreparedTranscriptPage",
+            "RenderPreparation",
+            "TranscriptRenderTask",
+            "ValueError",
+            "contains",
+            "finish_result",
+            "loader",
+            "retained_bytes",
+            "run_thread",
+            "submit"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "src/toad/transcript_preparation.py::get",
+          "size": 4,
+          "constructed": [
+            "TranscriptPageWork",
+            "pop",
+            "submit"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "src/toad",
+      "path": "src/toad/transcript_publication.py",
+      "classes": [],
+      "imports": [
+        "toad.work_preparation",
+        "toad.work_preparation.RenderPreparation"
+      ],
+      "functions": [
+        {
+          "qualname": "src/toad/transcript_publication.py::publish",
+          "size": 38,
+          "constructed": [
+            "capture_application",
+            "current",
+            "current_task",
+            "defer",
+            "publish_applied",
+            "report_failure",
+            "submit"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "src/toad/transcript_publication.py::publish_page",
+          "size": 69,
+          "constructed": [
+            "AsyncExitStack",
+            "CommitEvidence",
+            "RenderPreparation",
+            "TranscriptHistory",
+            "TranscriptRenderTask",
+            "admitted",
+            "current",
+            "frozenset",
+            "mount",
+            "painted",
+            "partial",
+            "prepare_body",
+            "prepare_reader",
+            "preserve_history",
+            "publish_committed",
+            "push_async_callback",
+            "require_checkpoint",
+            "retire_presentations",
+            "retirement_candidates",
+            "source_current",
+            "submit",
+            "validate_snapshot"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "src/toad/transcript_publication.py::request",
+          "size": 5,
+          "constructed": [
+            "capture",
+            "submit"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "src/toad/transcript_publication.py::restore_native",
+          "size": 19,
+          "constructed": [
+            "call_after_refresh",
+            "capture",
+            "iter",
+            "next",
+            "owns",
+            "publish",
+            "query_ancestor",
+            "refresh_native_projection",
+            "reveal_retained",
+            "run_worker"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "src/toad/transcript_publication.py::publish",
+          "size": 5,
+          "constructed": [
+            "capture",
+            "current",
+            "publish"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "src/toad/transcript_publication.py::retry",
+          "size": 8,
+          "constructed": [
+            "admitted",
+            "capture",
+            "native_current",
+            "request",
+            "resume"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "src/toad/transcript_publication.py::covered",
+          "size": 49,
+          "constructed": [
+            "AwaitComplete",
+            "CommitEvidence",
+            "_refresh_summary",
+            "complete",
+            "covered_sequences",
+            "frozenset",
+            "isinstance",
+            "nothing",
+            "partial",
+            "protected_blocks",
+            "query_one",
+            "query_one_optional",
+            "retire_presentations",
+            "retirement_candidates",
+            "run_worker"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {
+            "child": 1
+          },
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "src/toad",
+      "path": "src/toad/widgets/committed_presentation.py",
+      "classes": [],
+      "imports": [
+        "toad.work_preparation",
+        "toad.work_preparation.RenderPreparation"
+      ],
+      "functions": [
+        {
+          "qualname": "src/toad/widgets/committed_presentation.py::prepare",
+          "size": 19,
+          "constructed": [
+            "CommitEvidence",
+            "PreparedCommit",
+            "RenderPreparation",
+            "TranscriptCoverage",
+            "TranscriptRenderTask",
+            "accepts_commit",
+            "advance_committed",
+            "covered_sequences",
+            "frozenset",
+            "required_sequences",
+            "retirement_candidates",
+            "submit"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "src/toad",
+      "path": "src/toad/widgets/prepared_markdown.py",
+      "classes": [],
+      "imports": [
+        "toad.render_tasks",
+        "toad.render_tasks.MarkdownRenderTask"
+      ],
+      "functions": [
+        {
+          "qualname": "src/toad/widgets/prepared_markdown.py::_parse_tokens",
+          "size": 37,
+          "constructed": [
+            "MarkdownRenderTask",
+            "_parse_tokens",
+            "isinstance",
+            "parse",
+            "run_worker",
+            "submit",
+            "super",
+            "to_thread",
+            "wait"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {
+            "parser": 1,
+            "self.app": 1
+          },
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "src/toad",
+      "path": "src/toad/widgets/tool_content.py",
+      "classes": [],
+      "imports": [
+        "toad.render_tasks",
+        "toad.render_tasks.PatchRenderTask"
+      ],
+      "functions": [
+        {
+          "qualname": "src/toad/widgets/tool_content.py::_prepare",
+          "size": 19,
+          "constructed": [
+            "PatchRenderTask",
+            "PreparedPatchPublication",
+            "_ensure_preparation",
+            "publish_if_ready",
+            "result",
+            "submit",
+            "wait"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "src/toad",
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "classes": [
+        {
+          "name": "TranscriptRenderTask",
+          "line": 239,
+          "bases": [
+            "ReusableRenderTask[tuple[TranscriptFragment, ...]]"
+          ],
+          "members": [
+            "execute",
+            "accept_result"
+          ]
+        }
+      ],
+      "imports": [
+        "toad.render_backend",
+        "toad.render_backend.Renderer",
+        "toad.render_backend.ReusableRenderTask",
+        "toad.render_processes",
+        "toad.render_processes.RenderProcessPool",
+        "toad.render_tasks",
+        "toad.render_tasks.MarkdownRenderTask",
+        "toad.work_preparation",
+        "toad.work_preparation.retained_bytes"
+      ],
+      "functions": [
+        {
+          "qualname": "src/toad/widgets/transcript_fragments.py::prepare_transcript_fragments",
+          "size": 18,
+          "constructed": [
+            "RenderProcessPool",
+            "TranscriptRenderTask",
+            "aclose",
+            "submit"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "classes": [],
+      "imports": [
+        "toad.work_preparation",
+        "toad.work_preparation.retained_bytes"
+      ],
+      "functions": [
+        {
+          "qualname": "src/toad/widgets/viewport_body.py::materialize",
+          "size": 2,
+          "constructed": [
+            "materialize",
+            "start_materialization"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "src/toad/widgets/viewport_body.py::start_materialization",
+          "size": 35,
+          "constructed": [
+            "AwaitComplete",
+            "MaterializingBody",
+            "_update_body_measurement",
+            "before_publication",
+            "invalidated",
+            "materialize",
+            "materialize_native_body",
+            "prepare_publication",
+            "publication_failed",
+            "publication_finished",
+            "publication_prepared",
+            "refresh",
+            "run_worker",
+            "work"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "src/toad/widgets/viewport_body.py::materialize_body",
+          "size": 4,
+          "constructed": [
+            "materialize"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "src/toad/widgets/viewport_body.py::publish_body",
+          "size": 4,
+          "constructed": [
+            "AwaitComplete",
+            "materialize",
+            "start_materialization"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "src/toad",
+      "path": "src/toad/widgets/worker_static.py",
+      "classes": [],
+      "imports": [
+        "toad.render_tasks",
+        "toad.render_tasks.RichRenderTask"
+      ],
+      "functions": [
+        {
+          "qualname": "src/toad/widgets/worker_static.py::_prepare",
+          "size": 27,
+          "constructed": [
+            "isinstance",
+            "refresh",
+            "set",
+            "submit",
+            "super",
+            "update"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {
+            "app": 1
+          },
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "src/toad",
+      "path": "src/toad/work_preparation.py",
+      "classes": [
+        {
+          "name": "PreparedValue",
+          "line": 45,
+          "bases": [
+            "ABC",
+            "Generic[ResultT]"
+          ],
+          "members": [
+            "materialize"
+          ]
+        },
+        {
+          "name": "CopiedValue",
+          "line": 58,
+          "bases": [
+            "PreparedValue[ResultT]"
+          ],
+          "members": [
+            "materialize"
+          ]
+        },
+        {
+          "name": "SerializedValue",
+          "line": 67,
+          "bases": [
+            "PreparedValue[ResultT]"
+          ],
+          "members": [
+            "size",
+            "materialize"
+          ]
+        },
+        {
+          "name": "PreparationWork",
+          "line": 84,
+          "bases": [
+            "ABC",
+            "Generic[ResultT]"
+          ],
+          "members": [
+            "result_size",
+            "store_result",
+            "finish_result",
+            "lane",
+            "identity",
+            "execute"
+          ]
+        },
+        {
+          "name": "ReusableWork",
+          "line": 123,
+          "bases": [
+            "PreparationWork[ResultT]"
+          ],
+          "members": []
+        },
+        {
+          "name": "ContentAddressedWork",
+          "line": 136,
+          "bases": [
+            "PreparationWork[ResultT]"
+          ],
+          "members": [
+            "inputs",
+            "identity"
+          ]
+        },
+        {
+          "name": "ScopedWork",
+          "line": 147,
+          "bases": [
+            "PreparationWork[ResultT]"
+          ],
+          "members": [
+            "work_key",
+            "identity"
+          ]
+        },
+        {
+          "name": "ThreadWork",
+          "line": 157,
+          "bases": [
+            "PreparationWork[ResultT]"
+          ],
+          "members": [
+            "prepare",
+            "execute"
+          ]
+        },
+        {
+          "name": "RendererWork",
+          "line": 170,
+          "bases": [
+            "PreparationWork[ResultT]"
+          ],
+          "members": [
+            "render_task",
+            "execute"
+          ]
+        },
+        {
+          "name": "RenderPreparation",
+          "line": 186,
+          "bases": [
+            "ContentAddressedWork[ResultT]",
+            "RendererWork[ResultT]"
+          ],
+          "members": [
+            "identity",
+            "inputs",
+            "render_task",
+            "retain_result",
+            "store_result"
+          ]
+        },
+        {
+          "name": "PreparedRenderer",
+          "line": 377,
+          "bases": [
+            "Renderer"
+          ],
+          "members": [
+            "__init__",
+            "submit",
+            "prepare",
+            "warm_up",
+            "aclose"
+          ]
+        }
+      ],
+      "imports": [
+        "toad.render_backend",
+        "toad.render_backend.RenderTask",
+        "toad.render_backend.Renderer"
+      ],
+      "functions": [
+        {
+          "qualname": "src/toad/work_preparation.py::finish_result",
+          "size": 11,
+          "constructed": [
+            "getsizeof",
+            "retained_bytes",
+            "store_result"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "src/toad/work_preparation.py::store_result",
+          "size": 2,
+          "constructed": [
+            "serialize_result"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "src/toad/work_preparation.py::execute",
+          "size": 4,
+          "constructed": [
+            "finish_result",
+            "prepare",
+            "run_thread"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "src/toad/work_preparation.py::execute",
+          "size": 5,
+          "constructed": [
+            "run_thread",
+            "submit"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "src/toad/work_preparation.py::store_result",
+          "size": 2,
+          "constructed": [
+            "store_result"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "src/toad/work_preparation.py::_execute",
+          "size": 11,
+          "constructed": [
+            "execute",
+            "len",
+            "popitem"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "src/toad/work_preparation.py::submit",
+          "size": 2,
+          "constructed": [
+            "RenderPreparation",
+            "submit"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "tests",
+      "path": "tests/bar_projection_reuse_pilot.py",
+      "classes": [],
+      "imports": [
+        "toad.work_preparation",
+        "toad.work_preparation.PreparationRuntime"
+      ],
+      "functions": [
+        {
+          "qualname": "tests/bar_projection_reuse_pilot.py::main",
+          "size": 48,
+          "constructed": [
+            "Backend",
+            "ExactUnread",
+            "GoalWaits",
+            "Path",
+            "PreparationRuntime",
+            "TemporaryDirectory",
+            "Thread",
+            "ThreadRowInput",
+            "ThreadRowsWork",
+            "aclose",
+            "append",
+            "capture",
+            "declare",
+            "dumps",
+            "for_rows",
+            "frozenset",
+            "len",
+            "max",
+            "median",
+            "perf_counter",
+            "prepare_thread_presentation",
+            "presentation",
+            "print",
+            "range",
+            "replace",
+            "roster",
+            "round",
+            "snapshot",
+            "startswith",
+            "str",
+            "submit",
+            "tuple",
+            "values",
+            "wire"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "tests",
+      "path": "tests/markdown_process_lifecycle_pilot.py",
+      "classes": [
+        {
+          "name": "ControlledPool",
+          "line": 17,
+          "bases": [
+            "Renderer"
+          ],
+          "members": [
+            "__init__",
+            "run",
+            "submit",
+            "complete",
+            "aclose"
+          ]
+        }
+      ],
+      "imports": [
+        "toad.render_backend",
+        "toad.render_backend.Renderer",
+        "toad.render_tasks",
+        "toad.render_tasks.MarkdownRenderTask"
+      ],
+      "functions": [
+        {
+          "qualname": "tests/markdown_process_lifecycle_pilot.py::main",
+          "size": 73,
+          "constructed": [
+            "AgentResponse",
+            "ControlledPool",
+            "Path",
+            "TemporaryDirectory",
+            "ToadApp",
+            "aclosing",
+            "append",
+            "complete",
+            "create_task",
+            "gather",
+            "isinstance",
+            "object",
+            "pause",
+            "post",
+            "print",
+            "query",
+            "query_one",
+            "remove",
+            "run_test",
+            "sleep",
+            "str",
+            "update",
+            "wait_for",
+            "wait_requests"
+          ],
+          "dispatch": {
+            "response.query_one(MarkdownFence).code": [
+              "complete = 3",
+              "latest = 2",
+              "obsolete = 1"
+            ]
+          },
+          "keys": {},
+          "type_checks": {
+            "outcome[0]": 1
+          },
+          "literal_sets": []
+        },
+        {
+          "qualname": "tests/markdown_process_lifecycle_pilot.py::submit",
+          "size": 4,
+          "constructed": [
+            "isinstance",
+            "run",
+            "submit"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {
+            "task": 1
+          },
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "tests",
+      "path": "tests/markdown_process_pilot.py",
+      "classes": [],
+      "imports": [
+        "toad.render_tasks",
+        "toad.render_tasks.MarkdownRenderTask"
+      ],
+      "functions": [
+        {
+          "qualname": "tests/markdown_process_pilot.py::main",
+          "size": 48,
+          "constructed": [
+            "AgentResponse",
+            "AssertionError",
+            "ConversationMarkdown",
+            "MarkdownRenderTask",
+            "Path",
+            "TemporaryDirectory",
+            "ToadApp",
+            "_ThreadLocalPathParser",
+            "append",
+            "as_dict",
+            "get_running_loop",
+            "mount",
+            "object",
+            "parse",
+            "pause",
+            "post",
+            "print",
+            "query_one",
+            "resolve",
+            "resolve_tokens",
+            "rstrip",
+            "run_test",
+            "shutdown_default_executor",
+            "str",
+            "submit",
+            "update",
+            "write_text"
+          ],
+          "dispatch": {
+            "response.query_one(MarkdownFence).code": [
+              "value = 456"
+            ]
+          },
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "tests",
+      "path": "tests/markdown_return_reuse_pilot.py",
+      "classes": [],
+      "imports": [
+        "toad.render_tasks",
+        "toad.render_tasks.MarkdownRenderTask",
+        "toad.work_preparation",
+        "toad.work_preparation.RenderPreparation"
+      ],
+      "functions": [
+        {
+          "qualname": "tests/markdown_return_reuse_pilot.py::page_wheel",
+          "size": 110,
+          "constructed": [
+            "AssistantTranscript",
+            "CategoryProjection",
+            "PageRequest",
+            "TranscriptCursor",
+            "TranscriptHistory",
+            "TranscriptPage",
+            "TranscriptPageWork",
+            "_post_mouse_events",
+            "_reader",
+            "all",
+            "all_categories",
+            "append",
+            "capture",
+            "capture_reader_admissions",
+            "click",
+            "gather",
+            "get",
+            "get_widget_at",
+            "join",
+            "jump_to_latest",
+            "len",
+            "max",
+            "min",
+            "page",
+            "pause",
+            "post",
+            "press",
+            "print",
+            "project",
+            "range",
+            "remove",
+            "repr",
+            "retire_source",
+            "str",
+            "suspend",
+            "tuple",
+            "until",
+            "viewport_text",
+            "wait_for_scheduled_animations"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "tests",
+      "path": "tests/navigation_terminal_fixture.py",
+      "classes": [],
+      "imports": [
+        "toad.render_choices",
+        "toad.render_choices.LocalRenderer",
+        "toad.render_choices.PersistentRenderer",
+        "toad.render_choices.RendererChoice"
+      ],
+      "functions": [
+        {
+          "qualname": "tests/navigation_terminal_fixture.py::main",
+          "size": 138,
+          "constructed": [
+            "Agent",
+            "AgentReady",
+            "AssistantTranscript",
+            "Counter",
+            "IncomingTranscript",
+            "Message",
+            "MessageReference",
+            "MessageRoute",
+            "NoticeTranscript",
+            "Path",
+            "SentTranscript",
+            "TemporaryDirectory",
+            "ThinkingTranscript",
+            "Thread",
+            "ToadApp",
+            "ToolEndTranscript",
+            "ToolStartTranscript",
+            "TranscriptCursor",
+            "TranscriptHistory",
+            "TranscriptPage",
+            "TurnRouting",
+            "UserTranscript",
+            "asdict",
+            "bind_agent",
+            "capture",
+            "coordination_update",
+            "create_task",
+            "declare",
+            "deliver",
+            "dict",
+            "dumps",
+            "encode",
+            "event_category",
+            "extend",
+            "frozenset",
+            "get",
+            "get_running_loop",
+            "getpid",
+            "hexdigest",
+            "install_observer",
+            "kind",
+            "len",
+            "max",
+            "min",
+            "mount",
+            "object",
+            "on_coordination_update",
+            "page",
+            "pause",
+            "publish",
+            "range",
+            "run_test",
+            "send",
+            "set_reactive",
+            "setproctitle",
+            "sha256",
+            "shutdown_default_executor",
+            "snapshot",
+            "start",
+            "str",
+            "tuple",
+            "type",
+            "update",
+            "wire",
+            "write_text"
+          ],
+          "dispatch": {
+            "os.environ.get('TOAD_FIXTURE_all_categor": [
+              "1"
+            ]
+          },
+          "keys": {
+            "os.environ": [
+              "TEXTUAL_DRIVER",
+              "TOAD_ARTIFACT_ROOT",
+              "TOAD_FIXTURE_READY",
+              "TOAD_FIXTURE_all_categories()"
+            ]
+          },
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "tests",
+      "path": "tests/persistent_render_pilot.py",
+      "classes": [
+        {
+          "name": "ObservedPool",
+          "line": 14,
+          "bases": [
+            "PersistentRendererPool"
+          ],
+          "members": [
+            "__init__",
+            "_exchange"
+          ]
+        }
+      ],
+      "imports": [
+        "toad.render_protocol",
+        "toad.render_protocol.AcceptedReply",
+        "toad.render_protocol.RenderCommand",
+        "toad.render_protocol.RenderReply",
+        "toad.render_protocol.SubmitRender",
+        "toad.render_service",
+        "toad.render_service.RenderServiceConfig",
+        "toad.render_tasks",
+        "toad.render_tasks.PatchRenderTask",
+        "toad.render_zmq",
+        "toad.render_zmq.PersistentRendererPool",
+        "toad.render_zmq.RendererEndpoint"
+      ],
+      "functions": [
+        {
+          "qualname": "tests/persistent_render_pilot.py::main",
+          "size": 42,
+          "constructed": [
+            "ObservedPool",
+            "PatchRenderTask",
+            "Path",
+            "PersistentRendererPool",
+            "RenderServiceConfig",
+            "TemporaryDirectory",
+            "aclose",
+            "cancel",
+            "clear",
+            "create_task",
+            "gather",
+            "perf_counter",
+            "print",
+            "round",
+            "shutdown_service",
+            "submit",
+            "to_thread",
+            "wait",
+            "wait_for"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "tests",
+      "path": "tests/persistent_renderer_lifecycle_pilot.py",
+      "classes": [
+        {
+          "name": "ControlledConnection",
+          "line": 22,
+          "bases": [
+            "RendererConnection"
+          ],
+          "members": [
+            "__init__",
+            "exchange",
+            "release",
+            "close"
+          ]
+        }
+      ],
+      "imports": [
+        "toad.render_protocol",
+        "toad.render_protocol.AcceptedReply",
+        "toad.render_protocol.AcknowledgeRender",
+        "toad.render_protocol.AcknowledgedReply",
+        "toad.render_protocol.CancelRender",
+        "toad.render_protocol.CancelledReply",
+        "toad.render_protocol.PendingReply",
+        "toad.render_protocol.PollRender",
+        "toad.render_protocol.RenderCommand",
+        "toad.render_protocol.RenderReply",
+        "toad.render_protocol.SubmitRender",
+        "toad.render_service",
+        "toad.render_service.RenderServiceConfig",
+        "toad.render_service._initialize_render_worker",
+        "toad.render_tasks",
+        "toad.render_tasks.PatchRenderTask",
+        "toad.render_zmq",
+        "toad.render_zmq.PersistentRendererPool",
+        "toad.render_zmq.RendererConnection",
+        "toad.render_zmq.RendererEndpoint",
+        "toad.render_zmq.RendererServer",
+        "toad.render_zmq.RendererSessionFailed"
+      ],
+      "functions": [
+        {
+          "qualname": "tests/persistent_renderer_lifecycle_pilot.py::test_failed_rpc_wakes_admission_waiters_and_stops_lease_renewal",
+          "size": 23,
+          "constructed": [
+            "ControlledConnection",
+            "PatchRenderTask",
+            "Path",
+            "PersistentRendererPool",
+            "RenderServiceConfig",
+            "RendererEndpoint",
+            "aclose",
+            "assertEqual",
+            "assertFalse",
+            "assertIsInstance",
+            "assertRaises",
+            "assertTrue",
+            "create_task",
+            "gather",
+            "patch",
+            "set",
+            "submit",
+            "to_thread"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "tests/persistent_renderer_lifecycle_pilot.py::test_cancelled_caller_and_close_waiter_do_not_abandon_owned_teardown",
+          "size": 27,
+          "constructed": [
+            "ControlledConnection",
+            "PatchRenderTask",
+            "Path",
+            "PersistentRendererPool",
+            "RenderServiceConfig",
+            "RendererEndpoint",
+            "aclose",
+            "assertEqual",
+            "assertFalse",
+            "assertRaises",
+            "assertTrue",
+            "cancel",
+            "create_task",
+            "len",
+            "patch",
+            "set",
+            "sleep",
+            "submit",
+            "to_thread"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "tests",
+      "path": "tests/persistent_renderer_ui_pilot.py",
+      "classes": [],
+      "imports": [
+        "toad.render_runtime",
+        "toad.render_runtime.PersistentRenderClient",
+        "toad.render_service",
+        "toad.render_service.RenderServiceConfig",
+        "toad.render_zmq",
+        "toad.render_zmq.PersistentRendererPool"
+      ],
+      "functions": []
+    },
+    {
+      "package": "tests",
+      "path": "tests/prepared_bars_pilot.py",
+      "classes": [],
+      "imports": [
+        "toad.render_choices",
+        "toad.render_choices.LocalRenderer",
+        "toad.render_tasks",
+        "toad.render_tasks.ThreadRowsRenderTask"
+      ],
+      "functions": [
+        {
+          "qualname": "tests/prepared_bars_pilot.py::main",
+          "size": 61,
+          "constructed": [
+            "Event",
+            "ExactUnread",
+            "Path",
+            "TemporaryDirectory",
+            "Thread",
+            "ThreadRowInput",
+            "ToadApp",
+            "_sync_tabs",
+            "all",
+            "append",
+            "capture",
+            "create_task",
+            "declare",
+            "frozenset",
+            "gather",
+            "get_running_loop",
+            "getpid",
+            "isinstance",
+            "len",
+            "next",
+            "object",
+            "original",
+            "original_submit",
+            "pause",
+            "print",
+            "query_one",
+            "range",
+            "render",
+            "run_test",
+            "set",
+            "shutdown_default_executor",
+            "start",
+            "startswith",
+            "str",
+            "submit",
+            "update",
+            "update_session",
+            "viewer_snapshot",
+            "wait",
+            "wait_for",
+            "wire"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {
+            "task": 1,
+            "work": 1
+          },
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "tests",
+      "path": "tests/prepared_diff_pilot.py",
+      "classes": [],
+      "imports": [
+        "toad.render_processes",
+        "toad.render_processes.RenderProcessPool"
+      ],
+      "functions": []
+    },
+    {
+      "package": "tests",
+      "path": "tests/render_execution_preparation_installed_pilot.py",
+      "classes": [],
+      "imports": [
+        "toad.render_processes",
+        "toad.render_processes.RenderProcessPool",
+        "toad.render_service",
+        "toad.render_service.RenderServiceConfig",
+        "toad.render_zmq",
+        "toad.render_zmq.PersistentRendererPool",
+        "toad.render_zmq.RendererEndpoint",
+        "toad.work_preparation",
+        "toad.work_preparation.PreparationRuntime",
+        "toad.work_preparation.PreparedRenderer",
+        "toad.work_preparation.RenderPreparation"
+      ],
+      "functions": [
+        {
+          "qualname": "tests/render_execution_preparation_installed_pilot.py::main",
+          "size": 59,
+          "constructed": [
+            "ApplicationValidationOwner",
+            "AssertionError",
+            "AssistantTranscript",
+            "HeadlessValidationOwner",
+            "PersistentRendererPool",
+            "PreparationRuntime",
+            "PreparedRenderer",
+            "RenderPreparation",
+            "RenderProcessPool",
+            "RenderServiceConfig",
+            "TranscriptRenderTask",
+            "ValidateSessionUpdateTask",
+            "aclose",
+            "active_children",
+            "complete",
+            "dumps",
+            "gather",
+            "identity",
+            "isinstance",
+            "len",
+            "mkdir",
+            "perf_counter",
+            "print",
+            "shutdown_service",
+            "sleep",
+            "submit",
+            "to_thread",
+            "update",
+            "validate",
+            "write_text"
+          ],
+          "dispatch": {
+            "accepted.notification.update.content.tex": [
+              "SDK_VALIDATION"
+            ]
+          },
+          "keys": {
+            "receipt": [
+              "non_reusable_capture_not_shared_or_retained",
+              "reusable_capture_shared_retained_and_independently_delivered",
+              "wrong_completed_result_refused"
+            ]
+          },
+          "type_checks": {
+            "accepted": 1,
+            "await owner.validate(invalid)": 1
+          },
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "tests",
+      "path": "tests/render_families_pilot.py",
+      "classes": [
+        {
+          "name": "CountRenderTask",
+          "line": 46,
+          "bases": [
+            "RenderTask[int]"
+          ],
+          "members": [
+            "execute",
+            "accept_result"
+          ]
+        }
+      ],
+      "imports": [
+        "toad.render_backend",
+        "toad.render_backend.RenderTask",
+        "toad.render_protocol",
+        "toad.render_protocol.AcceptedReply",
+        "toad.render_protocol.AcknowledgeRender",
+        "toad.render_protocol.AcknowledgedReply",
+        "toad.render_protocol.BusyReply",
+        "toad.render_protocol.CancelledReply",
+        "toad.render_protocol.CapturedResult",
+        "toad.render_protocol.CompleteReply",
+        "toad.render_protocol.FailedReply",
+        "toad.render_protocol.PendingReply",
+        "toad.render_protocol.PollRender",
+        "toad.render_protocol.RejectedReply",
+        "toad.render_protocol.RenderCommand",
+        "toad.render_protocol.RenderReply",
+        "toad.render_protocol.SubmitRender",
+        "toad.render_protocol.UnknownReply",
+        "toad.render_service",
+        "toad.render_service.RenderService",
+        "toad.render_service.RenderServiceConfig",
+        "toad.render_tasks",
+        "toad.render_tasks.PatchRenderTask",
+        "toad.render_zmq",
+        "toad.render_zmq.RenderSubmission"
+      ],
+      "functions": [
+        {
+          "qualname": "tests/render_families_pilot.py::test_commands_and_replies_round_trip",
+          "size": 29,
+          "constructed": [
+            "CapturedResult",
+            "CountRenderTask",
+            "PatchRenderTask",
+            "SubmitRender",
+            "assertEqual",
+            "assertRaises",
+            "decode",
+            "dict",
+            "encode",
+            "execute",
+            "fields",
+            "member",
+            "members_with",
+            "uuid4"
+          ],
+          "dispatch": {},
+          "keys": {
+            "samples": [
+              "client_id",
+              "request_id"
+            ]
+          },
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "tests/render_families_pilot.py::test_real_service_new_task_retention_isolation_and_release",
+          "size": 28,
+          "constructed": [
+            "AcknowledgeRender",
+            "CountRenderTask",
+            "PollRender",
+            "RenderService",
+            "RenderServiceConfig",
+            "SubmitRender",
+            "assertEqual",
+            "assertIsInstance",
+            "close",
+            "execute",
+            "isinstance",
+            "sleep",
+            "timeout",
+            "uuid4"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {
+            "reply": 1
+          },
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "tests",
+      "path": "tests/render_identity_pilot.py",
+      "classes": [],
+      "imports": [
+        "toad.render_identity",
+        "toad.render_identity.RenderCodePackage",
+        "toad.render_identity.RendererBuild",
+        "toad.render_service",
+        "toad.render_service.RenderServiceConfig"
+      ],
+      "functions": []
+    },
+    {
+      "package": "tests",
+      "path": "tests/render_processes_pilot.py",
+      "classes": [],
+      "imports": [
+        "toad.render_processes",
+        "toad.render_processes.RenderProcessPool"
+      ],
+      "functions": []
+    },
+    {
+      "package": "tests",
+      "path": "tests/render_runtime_pilot.py",
+      "classes": [
+        {
+          "name": "ControlledPool",
+          "line": 19,
+          "bases": [
+            "PersistentRendererPool"
+          ],
+          "members": [
+            "__init__",
+            "submit",
+            "aclose"
+          ]
+        }
+      ],
+      "imports": [
+        "toad.render_backend",
+        "toad.render_backend.RenderTask",
+        "toad.render_runtime",
+        "toad.render_runtime.PersistentRenderClient",
+        "toad.render_service",
+        "toad.render_service.RenderServiceConfig",
+        "toad.render_tasks",
+        "toad.render_tasks.PatchRenderTask",
+        "toad.render_zmq",
+        "toad.render_zmq.PersistentRendererPool",
+        "toad.render_zmq.RendererEndpoint",
+        "toad.render_zmq.RendererSessionFailed"
+      ],
+      "functions": [
+        {
+          "qualname": "tests/render_runtime_pilot.py::submit",
+          "size": 5,
+          "constructed": [
+            "RendererSessionFailed",
+            "execute"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "tests/render_runtime_pilot.py::test_construct_and_unused_close_do_not_fingerprint_or_start_backend",
+          "size": 8,
+          "constructed": [
+            "PatchRenderTask",
+            "Path",
+            "PersistentRenderClient",
+            "aclose",
+            "assertIsNone",
+            "assertRaisesRegex",
+            "assert_not_called",
+            "patch",
+            "submit"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "tests/render_runtime_pilot.py::test_off_loop_resolution_survives_cancelled_waiter_and_closes_owned_pool",
+          "size": 33,
+          "constructed": [
+            "AssertionError",
+            "ControlledPool",
+            "Event",
+            "PatchRenderTask",
+            "Path",
+            "PersistentRenderClient",
+            "RenderServiceConfig",
+            "RendererEndpoint",
+            "aclose",
+            "assertEqual",
+            "assertFalse",
+            "assertNotEqual",
+            "assertRaises",
+            "assertTrue",
+            "cancel",
+            "create_task",
+            "done",
+            "get_ident",
+            "is_set",
+            "patch",
+            "set",
+            "sleep",
+            "submit",
+            "to_thread",
+            "wait"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "tests/render_runtime_pilot.py::test_failed_request_is_not_replayed_and_next_request_uses_new_client",
+          "size": 20,
+          "constructed": [
+            "ControlledPool",
+            "PatchRenderTask",
+            "Path",
+            "PersistentRenderClient",
+            "RenderServiceConfig",
+            "RendererEndpoint",
+            "aclose",
+            "assertEqual",
+            "assertIs",
+            "assertRaises",
+            "assertTrue",
+            "execute",
+            "is_set",
+            "patch",
+            "submit"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "tests",
+      "path": "tests/renderer_cli_pty_pilot.py",
+      "classes": [],
+      "imports": [
+        "toad.render_service",
+        "toad.render_service.RenderServiceConfig",
+        "toad.render_zmq",
+        "toad.render_zmq.PersistentRendererPool",
+        "toad.render_zmq.RendererEndpoint"
+      ],
+      "functions": []
+    },
+    {
+      "package": "tests",
+      "path": "tests/renderer_selection_pilot.py",
+      "classes": [],
+      "imports": [
+        "toad.render_choices",
+        "toad.render_choices.LocalRenderer",
+        "toad.render_choices.PersistentRenderer",
+        "toad.render_processes",
+        "toad.render_processes.RenderProcessPool",
+        "toad.render_runtime",
+        "toad.render_runtime.PersistentRenderClient"
+      ],
+      "functions": []
+    },
+    {
+      "package": "tests",
+      "path": "tests/renderer_warmup_pilot.py",
+      "classes": [
+        {
+          "name": "GateRenderer",
+          "line": 16,
+          "bases": [
+            "Renderer"
+          ],
+          "members": [
+            "__init__",
+            "warm_up",
+            "submit",
+            "aclose"
+          ]
+        }
+      ],
+      "imports": [
+        "toad.render_backend",
+        "toad.render_backend.RenderTask",
+        "toad.render_backend.Renderer"
+      ],
+      "functions": []
+    },
+    {
+      "package": "tests",
+      "path": "tests/right_comms_pilot.py",
+      "classes": [],
+      "imports": [
+        "toad.render_choices",
+        "toad.render_choices.LocalRenderer",
+        "toad.work_preparation",
+        "toad.work_preparation.PreparationRuntime"
+      ],
+      "functions": []
+    },
+    {
+      "package": "tests",
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "classes": [],
+      "imports": [
+        "toad.work_preparation",
+        "toad.work_preparation.ContentAddressedWork"
+      ],
+      "functions": [
+        {
+          "qualname": "tests/saved_state_user_journey_pilot.py::clicked_reader_editor_return",
+          "size": 43,
+          "constructed": [
+            "append",
+            "capture",
+            "checkpoint",
+            "clear",
+            "click_tab",
+            "insert",
+            "min",
+            "page_reads",
+            "print",
+            "record_failed_reader",
+            "release_anchor",
+            "scroll_to",
+            "settled",
+            "undo",
+            "until",
+            "verify"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "tests",
+      "path": "tests/serialized_preparation_pilot.py",
+      "classes": [],
+      "imports": [
+        "toad.work_preparation",
+        "toad.work_preparation.ContentAddressedWork",
+        "toad.work_preparation.PreparationRuntime",
+        "toad.work_preparation.PreparationScope",
+        "toad.work_preparation.ScopedWork",
+        "toad.work_preparation.SerializedValue",
+        "toad.work_preparation.SerializedWork",
+        "toad.work_preparation.ThreadWork",
+        "toad.work_preparation.WorkKey"
+      ],
+      "functions": [
+        {
+          "qualname": "tests/serialized_preparation_pilot.py::main",
+          "size": 60,
+          "constructed": [
+            "AssertionError",
+            "Backend",
+            "EncodedWork",
+            "Event",
+            "Payload",
+            "PreparationRuntime",
+            "PreparationScope",
+            "ScopedEncodedWork",
+            "TimeoutError",
+            "aclose",
+            "append",
+            "collect",
+            "create_task",
+            "discard_scope",
+            "gather",
+            "materialize",
+            "object",
+            "print",
+            "ref",
+            "set",
+            "sleep",
+            "submit",
+            "to_thread",
+            "wait",
+            "weak_original"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "tests/serialized_preparation_pilot.py::held",
+          "size": 5,
+          "constructed": [
+            "TimeoutError",
+            "materialize",
+            "set",
+            "wait"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "tests",
+      "path": "tests/thread_render_wait_pilot.py",
+      "classes": [
+        {
+          "name": "ReplayGate",
+          "line": 27,
+          "bases": [
+            "GateRenderer"
+          ],
+          "members": [
+            "submit"
+          ]
+        }
+      ],
+      "imports": [],
+      "functions": [
+        {
+          "qualname": "tests/thread_render_wait_pilot.py::main",
+          "size": 109,
+          "constructed": [
+            "AgentReady",
+            "AssistantTranscript",
+            "Event",
+            "Path",
+            "ReplayGate",
+            "TemporaryDirectory",
+            "Thread",
+            "ToadApp",
+            "TranscriptCursor",
+            "TranscriptPage",
+            "_press_keys",
+            "any",
+            "bind_agent",
+            "capture",
+            "create_task",
+            "declare",
+            "deliver",
+            "focus",
+            "frozenset",
+            "get",
+            "get_running_loop",
+            "getpid",
+            "is_set",
+            "len",
+            "object",
+            "open",
+            "pause",
+            "print",
+            "publish",
+            "query",
+            "range",
+            "release_gates",
+            "run_test",
+            "set",
+            "shutdown_default_executor",
+            "sleep",
+            "snapshot",
+            "str",
+            "switch_mode",
+            "timeout",
+            "trace",
+            "tuple",
+            "update",
+            "wait",
+            "wait_for",
+            "wire"
+          ],
+          "dispatch": {
+            "conversation.prompt.text": [
+              "draft"
+            ]
+          },
+          "keys": {
+            "os.environ": [
+              "TOAD_TEST_TRACE"
+            ]
+          },
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "tests/thread_render_wait_pilot.py::submit",
+          "size": 5,
+          "constructed": [
+            "isinstance",
+            "set",
+            "submit",
+            "wait"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {
+            "task": 1
+          },
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "tests",
+      "path": "tests/transcript_prefetch_pilot.py",
+      "classes": [
+        {
+          "name": "Renderer",
+          "line": 30,
+          "bases": [],
+          "members": [
+            "__init__",
+            "submit",
+            "aclose"
+          ]
+        }
+      ],
+      "imports": [
+        "toad.work_preparation",
+        "toad.work_preparation.PreparationRuntime"
+      ],
+      "functions": [
+        {
+          "qualname": "tests/transcript_prefetch_pilot.py::submit",
+          "size": 5,
+          "constructed": [
+            "append",
+            "execute",
+            "get_ident",
+            "to_thread"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "tests/transcript_prefetch_pilot.py::execute",
+          "size": 3,
+          "constructed": [
+            "append",
+            "execute",
+            "get_ident"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "tests",
+      "path": "tests/transcript_process_pilot.py",
+      "classes": [
+        {
+          "name": "ObservedPool",
+          "line": 51,
+          "bases": [
+            "RenderProcessPool"
+          ],
+          "members": [
+            "__init__",
+            "hold",
+            "run"
+          ]
+        }
+      ],
+      "imports": [
+        "toad.render_processes",
+        "toad.render_processes.RenderProcessPool"
+      ],
+      "functions": []
+    },
+    {
+      "package": "tests",
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "classes": [],
+      "imports": [
+        "toad.work_preparation",
+        "toad.work_preparation.RenderPreparation"
+      ],
+      "functions": []
+    },
+    {
+      "package": "tests",
+      "path": "tests/work_preparation_delivery_pilot.py",
+      "classes": [],
+      "imports": [
+        "toad.work_preparation",
+        "toad.work_preparation.PreparationRuntime",
+        "toad.work_preparation.PreparationScope",
+        "toad.work_preparation.ReusableWork",
+        "toad.work_preparation.ScopedWork",
+        "toad.work_preparation.ThreadWork",
+        "toad.work_preparation.WorkKey"
+      ],
+      "functions": [
+        {
+          "qualname": "tests/work_preparation_delivery_pilot.py::held_delivery",
+          "size": 41,
+          "constructed": [
+            "AssertionError",
+            "Backend",
+            "Event",
+            "PreparationRuntime",
+            "PreparationScope",
+            "SnapshotWork",
+            "TimeoutError",
+            "aclose",
+            "create_task",
+            "discard_scope",
+            "done",
+            "int",
+            "object",
+            "original",
+            "set",
+            "sleep",
+            "submit",
+            "to_thread",
+            "wait"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "tests",
+      "path": "tests/work_preparation_pilot.py",
+      "classes": [
+        {
+          "name": "Backend",
+          "line": 34,
+          "bases": [
+            "Renderer"
+          ],
+          "members": [
+            "__init__",
+            "submit",
+            "aclose"
+          ]
+        }
+      ],
+      "imports": [
+        "toad.render_backend",
+        "toad.render_backend.Renderer",
+        "toad.render_tasks",
+        "toad.render_tasks.MarkdownRenderTask",
+        "toad.work_preparation",
+        "toad.work_preparation.ContentAddressedWork",
+        "toad.work_preparation.PreparationRuntime",
+        "toad.work_preparation.PreparedRenderer",
+        "toad.work_preparation.ReusableWork",
+        "toad.work_preparation.SerializedValue",
+        "toad.work_preparation.ThreadWork"
+      ],
+      "functions": [
+        {
+          "qualname": "tests/work_preparation_pilot.py::main",
+          "size": 79,
+          "constructed": [
+            "AssistantTranscript",
+            "Backend",
+            "BlockingWork",
+            "Event",
+            "MarkdownRenderTask",
+            "ModelWork",
+            "PreparationRuntime",
+            "PreparedRenderer",
+            "TimeoutError",
+            "TranscriptRenderTask",
+            "aclose",
+            "all",
+            "append",
+            "cancel",
+            "create_task",
+            "dataclass",
+            "gather",
+            "get_ident",
+            "is_set",
+            "len",
+            "materialize",
+            "object",
+            "prepare",
+            "print",
+            "set",
+            "sleep",
+            "submit",
+            "super",
+            "to_thread",
+            "wait"
+          ],
+          "dispatch": {
+            "self.revision": [
+              "blocked"
+            ],
+            "b.tokens[0].content": [
+              "consumer mutation"
+            ]
+          },
+          "keys": {
+            "first": [
+              "rows"
+            ]
+          },
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "tests/work_preparation_pilot.py::delivered",
+          "size": 4,
+          "constructed": [
+            "materialize"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {},
+          "literal_sets": []
+        }
+      ]
+    },
+    {
+      "package": "tests",
+      "path": "tests/worker_preview_pilot.py",
+      "classes": [
+        {
+          "name": "GateRenderer",
+          "line": 31,
+          "bases": [
+            "Renderer"
+          ],
+          "members": [
+            "__init__",
+            "submit",
+            "aclose"
+          ]
+        }
+      ],
+      "imports": [
+        "toad.render_backend",
+        "toad.render_backend.RenderTask",
+        "toad.render_backend.Renderer",
+        "toad.render_processes",
+        "toad.render_processes.RenderProcessPool",
+        "toad.render_tasks",
+        "toad.render_tasks.RichRenderTask"
+      ],
+      "functions": [
+        {
+          "qualname": "tests/worker_preview_pilot.py::main",
+          "size": 181,
+          "constructed": [
+            "AssertionError",
+            "Event",
+            "GateRenderer",
+            "Path",
+            "Strip",
+            "SyntaxSource",
+            "Table",
+            "TemporaryDirectory",
+            "TimeoutError",
+            "ToadApp",
+            "ToolCall",
+            "WorkerStatic",
+            "_Styled",
+            "add_row",
+            "any",
+            "clear",
+            "close",
+            "extract",
+            "focus",
+            "get",
+            "get_running_loop",
+            "get_selection",
+            "is_set",
+            "join",
+            "len",
+            "list",
+            "materialize",
+            "mount",
+            "new",
+            "object",
+            "original_read",
+            "pause",
+            "post",
+            "prepare_spawn",
+            "press",
+            "preview",
+            "print",
+            "query_one",
+            "refresh",
+            "remove",
+            "render",
+            "render_line",
+            "render_strips",
+            "resize_terminal",
+            "run_test",
+            "set",
+            "set_expanded",
+            "set_source",
+            "shutdown_default_executor",
+            "sleep",
+            "split_and_crop_lines",
+            "staticmethod",
+            "str",
+            "switch_mode",
+            "timeout",
+            "to_thread",
+            "tuple",
+            "update",
+            "wait",
+            "wait_for",
+            "wait_ready",
+            "write_bytes",
+            "write_text"
+          ],
+          "dispatch": {
+            "prompt.text": [
+              "io",
+              "iowork",
+              "ioworkread"
+            ]
+          },
+          "keys": {
+            "segment.style.meta": [
+              "offset"
+            ]
+          },
+          "type_checks": {},
+          "literal_sets": []
+        },
+        {
+          "qualname": "tests/worker_preview_pilot.py::submit",
+          "size": 6,
+          "constructed": [
+            "append",
+            "isinstance",
+            "set",
+            "submit",
+            "wait"
+          ],
+          "dispatch": {},
+          "keys": {},
+          "type_checks": {
+            "task": 1
+          },
+          "literal_sets": []
+        }
+      ]
+    }
+  ],
+  "initial_evidence_writer_failure": "dataclasses.asdict(Counter) changed keys to tuples; JSON writer refused. Source parse completed; this corrected report uses original FunctionFacts maps directly. No source or runtime changed.",
+  "dynamic_resolution": "Import and declaration/call evidence only. Custom renderer and monkey-patched submit consumers read semantically; no complete dynamic resolution claim."
+}

@@ -1,0 +1,25 @@
+{
+  "elapsed": 10.718514887033962,
+  "returncode": 0,
+  "timed_out": false,
+  "error": null,
+  "drain_errors": [],
+  "outcome": {
+    "kind": "exited",
+    "code": 0
+  },
+  "child_retired": true,
+  "owned_group_members": [],
+  "controller": {
+    "pid": 245478,
+    "start_time": 68678182
+  },
+  "child": {
+    "pid": 246010,
+    "start_time": 68678285
+  },
+  "scope": "Actual installed local spawn and private persistent renderer transport; official SDK model validation only; captured Unicode Markdown and Rich strips independently delivered/retained. No mounted GUI/native SDK/ACP/session/provider/input/firstpaint/frame speed or physical claim.",
+  "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Heis460-Einstein458-joint-render-extra-package-two-controls-issued-grant.json",
+  "native_inputs": 0,
+  "provider_calls": 0
+}

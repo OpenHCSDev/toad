@@ -1,0 +1,200 @@
+{
+  "scope": "Original five raw wheels fetched against retained exact uv cached header hashes; no resolver/build/shared cache or installed prefix operation. Three extant cached archives RECORD verified; missing NumPy/PyZMQ cache payloads preserved as preparation negative.",
+  "fetch_receipt": "/home/ts/.cache/agent-scratch/einstein-render458-pinned-extra-wheels-20261005/locked-fetch-receipt.json",
+  "fetch_receipt_sha256": "6247aec232880b7ef8b34cec6a421b116a471ce486af43ca1435973bb2bf2d0c",
+  "artifacts": [
+    {
+      "name": "zmqruntime",
+      "cache_http": "/home/ts/.cache/uv/wheels-v6/pypi/zmqruntime/0.2.24-py3-none-any.http",
+      "cache_http_sha256": "add537f739ed498adbd3dbedef96c5dcacff09c1437893145b13509ed4fb6edf",
+      "filename": "zmqruntime-0.2.24-py3-none-any.whl",
+      "wheel_sha256": "0e8b2ef68b52d8ede0777cce34c2da8330f897a16d337963ac51289ae496a977",
+      "bytes": 83575,
+      "original_url": "https://files.pythonhosted.org/packages/16/fb/2b1c1695fb5aea3e883a6ba25eb97f226cf1c0990b32fac2b70c9e16ca8d/zmqruntime-0.2.24-py3-none-any.whl",
+      "cache_archive": "/home/ts/.cache/uv/archive-v0/ilBf44Ijf0_EPtT1",
+      "cached_payload_present": true,
+      "wheel": "/home/ts/.cache/agent-scratch/einstein-render458-pinned-extra-wheels-20261005/zmqruntime-0.2.24-py3-none-any.whl",
+      "wheel_verified": true,
+      "metadata_member": "zmqruntime-0.2.24.dist-info/METADATA",
+      "metadata_sha256": "66253dfc58f44f449c5219906fda37d9f5f0a7b6b210dd082eec65dcbaca9ba0",
+      "record_member": "zmqruntime-0.2.24.dist-info/RECORD",
+      "requires_python": ">=3.10",
+      "requires_dist": [
+        "annotated-types>=0.7.0",
+        "metaclass-registry>=0.1.6",
+        "numpy>=1.24",
+        "portalocker>=2.8.2",
+        "psutil>=5.9",
+        "python-introspect>=0.1.6",
+        "pyzmq>=22.0",
+        "black>=23.0; extra == 'dev'",
+        "pytest-cov>=4.0; extra == 'dev'",
+        "pytest>=7.0; extra == 'dev'",
+        "ruff>=0.1.0; extra == 'dev'",
+        "sphinx-rtd-theme>=2.0; extra == 'docs'",
+        "sphinx>=7.0; extra == 'docs'",
+        "tomli>=2.0; (python_version < '3.11') and extra == 'docs'"
+      ],
+      "wheel_member": "zmqruntime-0.2.24.dist-info/WHEEL",
+      "members": 36
+    },
+    {
+      "name": "python-introspect",
+      "cache_http": "/home/ts/.cache/uv/wheels-v6/pypi/python-introspect/0.1.14-py3-none-any.http",
+      "cache_http_sha256": "1fb4bd0809f550b740777b575b475aa3a43147a538ba59e86e0da3c18d614994",
+      "filename": "python_introspect-0.1.14-py3-none-any.whl",
+      "wheel_sha256": "54c548c67befffbd72e26d7b0ec420db661ba1a5a6096b6873dc37cfa1c21635",
+      "bytes": 35291,
+      "original_url": "https://files.pythonhosted.org/packages/56/37/29a6358f29415fd8fa20c5cfa09693a3cb6b143a9636e2ed89dc6c1df1a5/python_introspect-0.1.14-py3-none-any.whl",
+      "cache_archive": "/home/ts/.cache/uv/archive-v0/G_2I2CjMLjta_IXs",
+      "cached_payload_present": true,
+      "wheel": "/home/ts/.cache/agent-scratch/einstein-render458-pinned-extra-wheels-20261005/python_introspect-0.1.14-py3-none-any.whl",
+      "wheel_verified": true,
+      "metadata_member": "python_introspect-0.1.14.dist-info/METADATA",
+      "metadata_sha256": "61b29867e49e89d07428e12957fb3af7233f017b6dc419e0e8c78abd434c985e",
+      "record_member": "python_introspect-0.1.14.dist-info/RECORD",
+      "requires_python": ">=3.10",
+      "requires_dist": [
+        "annotated-types>=0.7.0",
+        "metaclass-registry>=0.1.0",
+        "pytest>=7.0; extra == \"dev\"",
+        "pytest-cov>=4.0; extra == \"dev\"",
+        "ruff>=0.1.0; extra == \"dev\"",
+        "black>=23.0; extra == \"dev\"",
+        "mypy>=1.0; extra == \"dev\"",
+        "sphinx>=7.0.0; extra == \"docs\"",
+        "sphinx-rtd-theme>=2.0.0; extra == \"docs\"",
+        "sphinx-autodoc-typehints>=1.24.0; extra == \"docs\""
+      ],
+      "wheel_member": "python_introspect-0.1.14.dist-info/WHEEL",
+      "members": 17
+    },
+    {
+      "name": "portalocker",
+      "cache_http": "/home/ts/.cache/uv/wheels-v6/pypi/portalocker/4.4.0-py3-none-any.http",
+      "cache_http_sha256": "28fd986793d03a70bd9b65c5233a76d33c044fadc2b5b785ef3cf49da11cb2b6",
+      "filename": "portalocker-4.4.0-py3-none-any.whl",
+      "wheel_sha256": "a8e99ea29bfb61766ee0b4008cbaf0651e8e050f7a2485ebf54316480e99226e",
+      "bytes": 129647,
+      "original_url": "https://files.pythonhosted.org/packages/52/6c/07fa2775e87b6e241c2aca5cef79f65e450bc115de55f03cda6251f81690/portalocker-4.4.0-py3-none-any.whl",
+      "cache_archive": "/home/ts/.cache/uv/archive-v0/67xXFbNM1dT27RcP",
+      "cached_payload_present": true,
+      "wheel": "/home/ts/.cache/agent-scratch/einstein-render458-pinned-extra-wheels-20261005/portalocker-4.4.0-py3-none-any.whl",
+      "wheel_verified": true,
+      "metadata_member": "portalocker-4.4.0.dist-info/METADATA",
+      "metadata_sha256": "37ab2d2bca472f5e9a66adfb44b081f149f4d4d84c9c1bf75c79b519be48352c",
+      "record_member": "portalocker-4.4.0.dist-info/RECORD",
+      "requires_python": ">=3.10",
+      "requires_dist": [
+        "furo ; extra == 'docs'",
+        "sphinx>=7 ; extra == 'docs'",
+        "redis>=5.0 ; extra == 'redis'",
+        "coverage-conditional-plugin>=0.9 ; extra == 'tests'",
+        "fakeredis>=2.31.0 ; extra == 'tests'",
+        "portalocker[redis] ; extra == 'tests'",
+        "pytest-cov>=2.8.1 ; extra == 'tests'",
+        "pytest-rerunfailures>=15.1 ; extra == 'tests'",
+        "pytest-timeout>=2.1.0 ; extra == 'tests'",
+        "pytest>=5.4.1 ; extra == 'tests'",
+        "types-pywin32>=310.0.0.20250429 ; extra == 'tests'",
+        "typing-extensions>=4.4 ; extra == 'tests'",
+        "pywin32>=226 ; sys_platform == 'win32' and extra == 'win32'"
+      ],
+      "wheel_member": "portalocker-4.4.0.dist-info/WHEEL",
+      "members": 17
+    },
+    {
+      "name": "numpy",
+      "cache_http": "/home/ts/.cache/uv/wheels-v6/pypi/numpy/2.5.3-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.http",
+      "cache_http_sha256": "38331fa3bf912a43ca9ea199995ca693aadc258e8d75fad98e38f917ca942526",
+      "filename": "numpy-2.5.3-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "wheel_sha256": "b0521d0f4aebb6e06189451025fa17a913287b13c03d5fe05c017333b654ea5b",
+      "bytes": 16711928,
+      "original_url": "https://files.pythonhosted.org/packages/45/8f/9beacf79ca7c650688ad0baa80931adb988fe6e6e5d5903c23cc3dbd70eb/numpy-2.5.3-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "cache_archive": "/home/ts/.cache/uv/archive-v0/otaRr3OyLoKUDym4",
+      "cached_payload_present": false,
+      "wheel": "/home/ts/.cache/agent-scratch/einstein-render458-pinned-extra-wheels-20261005/numpy-2.5.3-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "wheel_verified": true,
+      "metadata_member": "numpy-2.5.3.dist-info/METADATA",
+      "metadata_sha256": "451a9b8028000588e66b0b415587b6aef0bbc51a96d8e8a0cba0dc23acf64f99",
+      "record_member": "numpy-2.5.3.dist-info/RECORD",
+      "requires_python": ">=3.12",
+      "requires_dist": [],
+      "wheel_member": "numpy-2.5.3.dist-info/WHEEL",
+      "members": 1044
+    },
+    {
+      "name": "pyzmq",
+      "cache_http": "/home/ts/.cache/uv/wheels-v6/pypi/pyzmq/27.2.0-cp312-abi3-manylinux_2_26_x86_64.manylinux_2_28_x86_64.http",
+      "cache_http_sha256": "8510732f24358904cf14563ea64ca825222802babf12a57e7dd118744b5f0780",
+      "filename": "pyzmq-27.2.0-cp312-abi3-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl",
+      "wheel_sha256": "dea74fd65f1fc5f7fe167916a473ebe6ed6174e5e5d9de11ea6583661be6cf43",
+      "bytes": 872258,
+      "original_url": "https://files.pythonhosted.org/packages/62/2c/d5828306f795e8d34676d266823b74e2101e0ad3760d12083de3e02abbb2/pyzmq-27.2.0-cp312-abi3-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl",
+      "cache_archive": "/home/ts/.cache/uv/archive-v0/p2a6I0E2x-r-c9w-",
+      "cached_payload_present": false,
+      "wheel": "/home/ts/.cache/agent-scratch/einstein-render458-pinned-extra-wheels-20261005/pyzmq-27.2.0-cp312-abi3-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl",
+      "wheel_verified": true,
+      "metadata_member": "pyzmq-27.2.0.dist-info/METADATA",
+      "metadata_sha256": "efca840a7cf3173e6ffce4c77e50b5b449a6c44388abc272bc3e82bb27e97043",
+      "record_member": "pyzmq-27.2.0.dist-info/RECORD",
+      "requires_python": ">=3.9",
+      "requires_dist": [
+        "cffi; implementation_name == \"pypy\""
+      ],
+      "wheel_member": "pyzmq-27.2.0.dist-info/WHEEL",
+      "members": 115
+    }
+  ],
+  "active_declared_dependencies": [
+    {
+      "owner": "zmqruntime",
+      "requirement": "annotated-types>=0.7.0",
+      "selected_version": "0.8.0"
+    },
+    {
+      "owner": "zmqruntime",
+      "requirement": "metaclass-registry>=0.1.6",
+      "selected_version": "0.2.1"
+    },
+    {
+      "owner": "zmqruntime",
+      "requirement": "numpy>=1.24",
+      "selected_version": "2.5.3"
+    },
+    {
+      "owner": "zmqruntime",
+      "requirement": "portalocker>=2.8.2",
+      "selected_version": "4.4.0"
+    },
+    {
+      "owner": "zmqruntime",
+      "requirement": "psutil>=5.9",
+      "selected_version": "7.2.2"
+    },
+    {
+      "owner": "zmqruntime",
+      "requirement": "python-introspect>=0.1.6",
+      "selected_version": "0.1.14"
+    },
+    {
+      "owner": "zmqruntime",
+      "requirement": "pyzmq>=22.0",
+      "selected_version": "27.2.0"
+    },
+    {
+      "owner": "python-introspect",
+      "requirement": "annotated-types>=0.7.0",
+      "selected_version": "0.8.0"
+    },
+    {
+      "owner": "python-introspect",
+      "requirement": "metaclass-registry>=0.1.0",
+      "selected_version": "0.2.1"
+    }
+  ],
+  "inactive_extras": "dev/docs/redis/tests/win32 not selected",
+  "platform": "CPython3.14/Linux x86_64",
+  "expected_69_plus_five": 74,
+  "actual_floor_binding_required": true
+}

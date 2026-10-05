@@ -1,0 +1,13 @@
+{
+  "source_head": "66be6fcf1831d89f4cbf280e5d73bcb159146abb",
+  "determining_product": "4952f759a",
+  "builder": "hatchling1.28.0 existing cache, normal build_wheel",
+  "wheel": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/toad-filewheel/batrachian_toad-0.6.20-py3-none-any.whl",
+  "wheel_sha256": "6f68d3d2bc6434612beae6275ce660c1c2a792e6215132e0485ec5498422d8ad",
+  "wheel_bytes": 2251116,
+  "source_assets": 319,
+  "git_local_zip_equal": true,
+  "scope": "SOURCE FILEWHEEL ONLY, no prefix install/import/runtime/native/SDK/provider/input or installed/latency/frame claim.",
+  "inventory": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/toad-filewheel/source-inventory.json",
+  "inventory_sha256": "9858db08477878c94e1dcf05ab2249ef719f6a10f9ea5b4dfd9763dd0a1b8125"
+}

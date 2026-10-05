@@ -1,0 +1,33 @@
+{
+  "argv": [
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+    "-B",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/frozen-799979/render_execution_preparation_installed_pilot.py",
+    "/home/ts/.cache/agent-scratch/h460458/transport"
+  ],
+  "cwd": "/home/ts/wt/toad-regression-widget-cost-20261001",
+  "environment": {
+    "inherit": "ordinary system environment; no application source paths, no credential contents in receipts",
+    "unset": [
+      "PYTHONPATH",
+      "PYTHONHOME",
+      "VIRTUAL_ENV",
+      "AGENT_COMMS_THREAD",
+      "AGENT_COMMS_RUNTIME",
+      "PI_AGENT_ID",
+      "PI_PROMPT"
+    ],
+    "set": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "AGENT_COMMS_ROOT": "/home/ts/.cache/agent-scratch/h460458/wire",
+      "TMPDIR": "/home/ts/.cache/agent-scratch/h460458/tmp"
+    }
+  },
+  "control_sha256": "0fb5533145dfde22a569312e9356962bb5cbbe0f8ee266694290eff61678f526",
+  "timeout": 90,
+  "python": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+  "controller": {
+    "pid": 245478,
+    "start_time": 68678182
+  }
+}
