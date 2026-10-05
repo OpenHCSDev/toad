@@ -13,6 +13,14 @@ Raw retained ZIP comparison against public447 was read directly: Core5f347 → 0
 
 External annotation/disclosure remains OFF. W7/W8 calibration/study and physical UI acceptance are not claimed or made prerequisites for this accepted functional delivery.
 
+## Separate annotation-address successor449
+
+Einstein449 published `8473d4beeca3c0f15f2e599beb0c2c9be2602829`, determining `494d21d3e5bafadc9626e02f9d7b8dd8d9a14420`, repairs the genuine length collision. Existing `WorkingMemoryAnnotations.address` owns the full span/question/classifier address; `ContextInspection.working_memory` now uses that original FieldCodec address for grouping and node identity, rather than a second partial key. HumanLabel/section changes remain outside identity. The authored native Tree check passed1.44s with distinct same-offset ranges, refinement and unmount/remount; it is explicitly unsealed source-model evidence, not installed registered GUI acceptance.
+
+Retained normal wheel1a8ad350 (319 assets), original proof5570f891, is a prospective successor. Only `core/context_inspection.py` changes versus accepted e414. Direct raw public7e6→1a8 comparison still has the same319 members/no additions/removals and the same four changed filenames listed above. **e414 is the original historical acceptance wheel and is not449-equal.** Original receipts remain unchanged. Narrow installed-owner qualification is Einstein's separate existing purpose after446's actual whole handback/fresh grant; it needs no new ACP/SDK/native/provider or accepted GUI repeat. No Sch holder claim, test, build or canonical copy is added here.
+
+Future receiving must normally include actual qualified449 after its owner/Parent disposition. Final merged source/wheel equality, installed proof and canonical Core binding remain unbound, alongside627/434/663.
+
 ## Existing delivery owners
 
 | Fact or operation | Existing owner and consequence |
@@ -40,8 +48,8 @@ Only after successful stopped installation does `ReviewedRetainedSummaryCohort.p
 
 ## Remaining delivery custody and bindings
 
-1. **Owners/Parent:** finish normal merge readiness of627/434/installed-qualified663 at their accepted scopes. Published627e5f/package3aac,43475d5/76ec and6631143 are provisional source relations, not merged delivery pins. New grants ab316/d7f12 belong to Einstein/Mendel carry only; they grant Sch no receiving access.
-2. **Sch source:** normally join those actual final merges and compare all retained wheel/package/build metadata assets. Reuse0ed/e414 only if the resulting relations are exact. The future canonical51 must come from that actual merged Core head, including663; existing a38 tools are historical, and no operators are copied now.
+1. **Owners/Parent:** finish normal merge readiness of627/434/installed-qualified663 and the separate449 successor at their exact accepted scopes. Published627e5f/package3aac,43475d5/76ec and6631143 are provisional source relations, not merged delivery pins. New grants ab316/d7f12 belong to Einstein/Mendel carry only; they grant Sch no receiving access.
+2. **Sch source:** normally join those actual final merges, including qualified449, and compare all retained wheel/package/build metadata assets. Reuse0ed and the qualified successor wheel1a8 only if the resulting relations are exact; e414 remains the original historical qualifier, never449 equality. The future canonical51 must come from that actual merged Core head, including663; existing a38 tools are historical, and no operators are copied now.
 3. **Bohr custody:** name a genuinely eligible closed NONLIVE existing full69 holder, its actual current floor/archive/protected originals and a fresh exact receiving grant. PUBLIC334447 is excluded. Neither formerstyle22 nor current carry access becomes a Sch loan automatically.
 4. **Future authorized preparation:** original installer/typed activation/proof/fullcohort/native trust bind the actual installed target, sources, wheel origins, authentic source/target declarations and native/checkpoint relation. No source-preserve assertion is substituted for the required9→10 carry; old input proofs/source bytes/UNKNOWN stay original. Candidate DTO/proof/output are owned separately, with no historical PREFIXactivation edits.
 5. **Parent disposition:** review the exact frozen candidate and new one-use operands, then fresh original admission/one publication/retained identity/settings/default readback. Future `-I -B -c` invocation explicitly admits the exact trusted canonical directory and runs the original entrypoint through `runpy`. Commands, receipt and preimages are not created or executed by this source task.

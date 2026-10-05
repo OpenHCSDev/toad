@@ -1,5 +1,5 @@
 {
-  "state": "SOURCE PLAN ONLY; published owners remain Draft; not an activation, review plan, grant or executable operand",
+  "state": "SOURCE PLAN ONLY; functional627/434 frozen Ready, address successor449 Draft; not an activation, review plan, grant or executable operand",
   "public_baseline": {
     "toad_main": "3dc801984c211d2739c4c96c5907e068cd25820c",
     "core": "a38c06de24315fa868de45786e01fefadb0aaef1",
@@ -15,7 +15,12 @@
     "toad_product": "76ec05358b0ef790d10746e49ee0f09c036e2baa",
     "carry_docs": "1143be3954226c5b7a049f5153ec93bbe73feb77",
     "status": "not merged; final merge readiness remains original owners and Parent",
-    "normal_carry_union": "Core627 e5f normally joined qualified663; all three tools equal final1143, package/native/pins/lock roots ZERO vs3aac/0ed; still not MAIN/canonical"
+    "normal_carry_union": "Core627 e5f normally joined qualified663; all three tools equal final1143, package/native/pins/lock roots ZERO vs3aac/0ed; still not MAIN/canonical",
+    "annotation_address_successor": {
+      "docs": "8473d4beeca3c0f15f2e599beb0c2c9be2602829",
+      "determining_product": "494d21d3e5bafadc9626e02f9d7b8dd8d9a14420",
+      "status": "separate Einstein successor; source nativeTree1.44s PASS; narrow installed-owner qualification and actual merge unbound"
+    }
   },
   "retained_feature_wheels": [
     {
@@ -102,7 +107,8 @@
     "publication_receipt": null,
     "publication_preimages": null,
     "execute_argv": null,
-    "readback_argv": null
+    "readback_argv": null,
+    "merged_annotation_address_head": null
   },
   "no_authority_from_source_plan": [
     "no package or prefix access",
@@ -111,5 +117,19 @@
     "no artifact build/copy or SDK/App/provider/input",
     "no holder reservation or lease",
     "no unmerged source folded into ordinary delivery"
-  ]
+  ],
+  "prospective_address_successor_wheel": {
+    "source": "486fb2134a69ebb4cb78831e35fb89a2a45ffac6",
+    "product": "494d21d3e5bafadc9626e02f9d7b8dd8d9a14420",
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/annotation-address-successor/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "1a8ad3507b6a567a203d16eac55e3ef53d5f04526b106b6aa41599f93cfd1b16",
+    "proof_sha256": "5570f891343fd6f6f026f72f026a41960cb9bc2e1e88c81191244e4afe67391a",
+    "package_members": 319,
+    "versus_accepted_e414": [
+      "core/context_inspection.py"
+    ],
+    "old_e414_role": "original historical acceptance, not successor equality",
+    "versus_public7e6": "same319/no additions or removals/same4 changed filenames; directly compared rawZIP",
+    "installed_acceptance": null
+  }
 }

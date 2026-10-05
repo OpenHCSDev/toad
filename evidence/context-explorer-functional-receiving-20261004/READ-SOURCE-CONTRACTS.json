@@ -45,5 +45,16 @@
     "diff_src_stack_forced_pyproject_uv": "ZERO",
     "carry_tools_vs_frozen1143": "ZERO",
     "canonical_merged_head": null
+  },
+  "annotation_address_successor_read": {
+    "head": "8473d4beeca3c0f15f2e599beb0c2c9be2602829",
+    "read": [
+      "PR449 current head/body",
+      "normalGit diff76ec->8473 src/metadata",
+      "original PROPOSED-INSTALLED-OPERANDS.json and source-proof.json",
+      "raw wheel1a8 and proof5570 SHA, raw public7e6->1a8 package comparison"
+    ],
+    "existing_owner": "WorkingMemoryAnnotations.address/FieldCodec -> ContextInspection.working_memory; no competing Sch source claim",
+    "installed_qualification": "pending separate owner purpose after actual446handback; no current reservation"
   }
 }
