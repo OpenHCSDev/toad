@@ -179,7 +179,9 @@ async def warm_pages(app, pilot, first, second, evidence, checkpoint, *, undo_te
             assert await pilot.click(editor), 'Configured warm-return editor is not clickable'
             await pilot.press('ctrl+z')
             assert editor.text == undo_text
-            await pilot.press('ctrl+y')
+            # PromptAction reserves Ctrl+Y for Send now. Borrow the original
+            # native editor redo owner without invoking a submission binding.
+            editor.redo()
             assert editor.text == checkpoint.text
             assert editor.document is checkpoint.document and editor.history is checkpoint.history
     finally:

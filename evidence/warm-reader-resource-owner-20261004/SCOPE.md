@@ -112,3 +112,14 @@ unexecuted source operand, not an eligible prefix or purpose grant. Any actual
 execution needs its current installed-source and original fixture/native
 custody bound to a fresh specific purpose. No accepted #443 App/build/movie
 is repeated and no holder is accessed by this checkpoint.
+
+### Prompt binding correction before execution
+
+The d007/a894 source preview selected native Ctrl+Y for Redo. The full Toad
+binding owner makes that unsafe: `SubmitNowAction` declares Ctrl+Y with
+priority for Send now. This control now invokes the inherited native editor
+`redo()` method after actual Ctrl+Z and retains the exact document/history/
+text assertions. It does not dispatch a submission key, change production
+bindings, simulate a provider response or weaken the readonly fixture guard.
+The prior source/evidence remains historical and unexecuted; its native-only
+Ctrl+Y description is explicitly superseded by this complete binding read.

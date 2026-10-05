@@ -1,0 +1,36 @@
+{
+  "source_parent": "a894c4e48d5a46359104e902d18ee9b3f42ff9e2",
+  "source_file": "tests/readonly_saved_reader_pilot.py",
+  "source_sha256": "63c36b3cde89cf899995508cf73c4b193e385826e56a2f79e640349f6cc06c0e",
+  "supersedes": "configured-warm-after.json closure.native_undo_redo native-only Ctrl+Y designation",
+  "binding_owner": {
+    "path": "src/toad/prompt_actions.py",
+    "declaration": "SubmitNowAction",
+    "key": "ctrl+enter,ctrl+y",
+    "priority": true,
+    "available": "agent_ready and agent_busy and queue_supported",
+    "projection": "DeclaredWidgetActions.__init_subclass__ projects declarations into original PromptTextArea bindings"
+  },
+  "native_owner": {
+    "path": "src/textual/widgets/_text_area.py",
+    "declaration": "TextArea.redo",
+    "effect": "original history._pop_redo -> _redo_batch",
+    "consumer": "warm_pages original editor instance"
+  },
+  "correction": "Actual Ctrl+Z followed by inherited editor.redo(), no Send-now key dispatch; exact text/document/history assertions retained",
+  "prior_source_preview": "d007/a894 and configured-warm-before/after preserved; never executed",
+  "checks": {
+    "changed_module_parse": true,
+    "ctrl_y_dispatch_removed": true,
+    "native_redo_callee_present": true,
+    "production_pins_unchanged": true
+  },
+  "executions": {
+    "app": false,
+    "holder": false,
+    "provider": false,
+    "sdk_input": false,
+    "build": false,
+    "movie": false
+  }
+}
