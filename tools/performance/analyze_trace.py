@@ -71,7 +71,7 @@ def frame_delivery(trace, actions, *, origin_ns, end_ns, window_seconds=1):
             "rolling": rolling, "gaps": gaps}
 
 
-def useful_body_delivery(trace, actions):
+def useful_body_delivery(trace, actions, *, program_launch=None):
     """Join original source-bound body strips to their actual flush callbacks."""
     written = {event["display_begin_ns"]: event for event in trace
                if event["event"] == "body_output_written"}
@@ -93,6 +93,11 @@ def useful_body_delivery(trace, actions):
     frames.sort(key=lambda frame: frame["written_ns"])
     starts = sorted((event for event in trace if event["event"] in {
         "app_construct_begin", "source_selection_requested"}), key=lambda event: event["ns"])
+    launch_clock = (program_launch.get("launch_monotonic")
+                    if program_launch is not None else None)
+    if launch_clock is not None:
+        starts.insert(0, dict(event="ui_child_release", ns=round(launch_clock * 1e9),
+                              process=program_launch["process"]))
     selections = []
     for index, start in enumerate(starts):
         # Construction survives initial selection; each selection ends only
@@ -101,7 +106,7 @@ def useful_body_delivery(trace, actions):
                     if event["event"] == start["event"]), float("inf"))
         candidates = [frame for frame in frames
                       if start["ns"] <= frame["begin_ns"] < end
-                      and (start["event"] == "app_construct_begin"
+                      and (start["event"] != "source_selection_requested"
                            or frame["mode"] == start["mode"])]
         result = dict(request=start, interval_end_ns=end if math.isfinite(end) else None)
         for label, first in (
@@ -129,6 +134,10 @@ def useful_body_delivery(trace, actions):
                                for frame in within]),
                            frames=within))
     return dict(selections=selections, phases=phases, frames=frames,
+                ui_launch_clock_available=launch_clock is not None,
+                startup_scope="Original child publication before release includes its subsequent CLI imports. "
+                              "App construction excludes earlier CLI imports. Recording origin is not UI launch. "
+                              "Absent original launch clocks remain unavailable.",
                 scope="First nonwhite source-bound body output and ready-viewport output are separate. "
                       "Readiness is the original visible-body predicate, not a stable complete viewport. "
                       "Terminal writer completion is an acknowledgement. "

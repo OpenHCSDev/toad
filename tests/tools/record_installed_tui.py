@@ -462,6 +462,7 @@ class ProcessOwner:
             signal.signal(sig, interrupted)
         def publish_program(identity):
             publication["process"] = {"pid": identity.pid, "start_ticks": identity.start_time}
+            publication["launch_monotonic"] = time.monotonic()
             publish_terminal_lease(output, publication, name="program-launch.json")
 
         program = None
@@ -1773,7 +1774,9 @@ def frame_review(output, receipt, *, args):
     delivery["trace_limit_reached"] = len(trace) == 100000
     delivery["first_observed_ns"] = trace[0]["ns"] if trace else None
     analysis.write_frame_timeline(output / "frame-delivery.json", delivery)
-    body_delivery = analysis.useful_body_delivery(trace, actions)
+    program_source = output / "program-launch.json"
+    program_launch = json.loads(program_source.read_text()) if program_source.exists() else None
+    body_delivery = analysis.useful_body_delivery(trace, actions, program_launch=program_launch)
     body_delivery["trace_source"] = source.name
     body_delivery["trace_limit_reached"] = len(trace) == 100000
     (output / "useful-body-delivery.json").write_text(json.dumps(body_delivery, indent=2) + "\n")
