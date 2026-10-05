@@ -1,0 +1,30 @@
+{
+  "state": "NEW once operation PREPARED ONLY; Parent-only fresh original admission and public execution",
+  "execute_argv": [
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+    "-I",
+    "-B",
+    "-c",
+    "import sys,runpy;sys.path.insert(0,'/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/projected-prefetch443-receiving-20261004/canonical-source-a38/tools/cutover');sys.argv=['/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/projected-prefetch443-receiving-20261004/canonical-source-a38/tools/cutover/execute_retained_summary_foundation.py', '--review-plan', '/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/projected-prefetch443-receiving-20261004/new-publication447/review-plan.json', '--receipt', '/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/projected-prefetch443-receiving-20261004/new-publication447/publication-receipt.json', '--runtime-installation', '/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/projected-prefetch443-receiving-20261004/new-publication447/runtime-installation.json', '--execute'];runpy.run_path(sys.argv[0],run_name=\"__main__\")"
+  ],
+  "readback_argv": [
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+    "-I",
+    "-B",
+    "-c",
+    "import sys,runpy;sys.path.insert(0,'/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/projected-prefetch443-receiving-20261004/canonical-source-a38/tools/cutover');sys.argv=['/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/projected-prefetch443-receiving-20261004/new-publication447/readback_publication.py'];runpy.run_path(sys.argv[0],run_name=\"__main__\")"
+  ],
+  "publication_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/projected-prefetch443-receiving-20261004/new-publication447/publication-receipt.json",
+  "preimages": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/projected-prefetch443-receiving-20261004/new-publication447/publication-receipt.originals",
+  "receipt_present": false,
+  "preimages_present": false,
+  "target_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "canonical_directory": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/projected-prefetch443-receiving-20261004/canonical-source-a38/tools/cutover",
+  "canonical_manifest_sha256": "96d4d8e9eadbd24cc315ab3d2c48210bd9a940574b605348c32593b373e848ae",
+  "original_core_source": "a38c06de24315fa868de45786e01fefadb0aaef1",
+  "trusted_directory_explicitly_admitted": true,
+  "isolated_interpreter": true,
+  "bytecode_disabled": true,
+  "old_consumed_operations_reused": false,
+  "public_effects": 0
+}
