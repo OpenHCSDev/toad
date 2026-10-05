@@ -1,0 +1,1017 @@
+{
+  "collector": "Original audit.findings.Package / FunctionFacts, AST nodes from those parsed modules",
+  "before": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+  "coverage": [
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "root": "src/toad",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "root": "tests",
+      "parsed": 396,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "revision": "3aacd708fb9c699cc80c6b864e0ae8cf9ccff7f8",
+      "root": "src/agent_comms",
+      "parsed": 324,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "revision": "180cbd9471bd6674647590108ca2fe5a627eb24f",
+      "root": "src/textual",
+      "parsed": 249,
+      "omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/app.py",
+      "line": 499,
+      "node": "Name",
+      "source": "WorkspaceChrome"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/screens/main.py",
+      "line": 174,
+      "node": "Name",
+      "source": "ProjectPanel"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/screens/main.py",
+      "line": 431,
+      "node": "Name",
+      "source": "ProjectDirectoryTree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/screens/main.py",
+      "line": 200,
+      "node": "Name",
+      "source": "SessionThreadSidebar"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/screens/main.py",
+      "line": 433,
+      "node": "Name",
+      "source": "ProjectDirectoryTree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/screens/main.py",
+      "line": 187,
+      "node": "Name",
+      "source": "SessionThreadSidebar"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/screens/main.py",
+      "line": 239,
+      "node": "Name",
+      "source": "SessionThreadSidebar"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/screens/main.py",
+      "line": 450,
+      "node": "Name",
+      "source": "SessionThreadSidebar"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/path_search.py",
+      "line": 159,
+      "node": "Name",
+      "source": "ProjectDirectoryTree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/path_search.py",
+      "line": 274,
+      "node": "Name",
+      "source": "ProjectDirectoryTree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/path_search.py",
+      "line": 281,
+      "node": "Name",
+      "source": "ProjectDirectoryTree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/path_search.py",
+      "line": 295,
+      "node": "Name",
+      "source": "ProjectDirectoryTree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/path_search.py",
+      "line": 378,
+      "node": "Name",
+      "source": "ProjectDirectoryTree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/path_search.py",
+      "line": 221,
+      "node": "Name",
+      "source": "ProjectDirectoryTree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/path_search.py",
+      "line": 222,
+      "node": "Name",
+      "source": "ProjectDirectoryTree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/project_directory_tree.py",
+      "line": 15,
+      "node": "ClassDef",
+      "source": "class ProjectDirectoryTree(DirectoryTree):\n    BINDING_GROUP_TITLE = 'Tree view'\n    HELP = '## Project files\\n\\nThis shows the files in your project directory.\\n\\n- **cursor keys** navigation\\n- **Enter** expand folder\\n- **Enter"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 51,
+      "node": "ClassDef",
+      "source": "class ProjectPanel(Vertical):\n    path: reactive[Path] = reactive(Path, init=False)\n    DEFAULT_CSS = '\\n    ProjectPanel {\\n        height: 1fr;\\n    }\\n    ProjectPanel ProjectDirectoryTree {\\n        height: 1fr;\\n    }\\n    '\n"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 105,
+      "node": "ClassDef",
+      "source": "class RestorableProjectPanel(ProjectPanel):\n    \"\"\"A disposable tree restores filesystem intent using the original loader.\"\"\"\n\n    def __init__(self, path: Path, *, intent: ProjectTreeIntent | None=None) -> None:\n        super()._"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 105,
+      "node": "Name",
+      "source": "ProjectPanel"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 64,
+      "node": "Attribute",
+      "source": "self.directory_tree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 66,
+      "node": "Attribute",
+      "source": "self._tree_requested"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 89,
+      "node": "Attribute",
+      "source": "self.directory_tree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 110,
+      "node": "Attribute",
+      "source": "self._intent"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 64,
+      "node": "Name",
+      "source": "ProjectDirectoryTree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 84,
+      "node": "Attribute",
+      "source": "self._tree_requested"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 89,
+      "node": "Name",
+      "source": "ProjectDirectoryTree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 93,
+      "node": "Attribute",
+      "source": "self.directory_tree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 97,
+      "node": "Attribute",
+      "source": "self.directory_tree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 101,
+      "node": "Attribute",
+      "source": "self.directory_tree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 115,
+      "node": "Attribute",
+      "source": "self._intent"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 117,
+      "node": "Attribute",
+      "source": "self._intent"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 83,
+      "node": "Attribute",
+      "source": "self._tree_requested"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 90,
+      "node": "Attribute",
+      "source": "self.directory_tree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 94,
+      "node": "Attribute",
+      "source": "self.directory_tree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 108,
+      "node": "Name",
+      "source": "ProjectTreeIntent"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 98,
+      "node": "Attribute",
+      "source": "self.directory_tree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 102,
+      "node": "Attribute",
+      "source": "self.directory_tree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 116,
+      "node": "Attribute",
+      "source": "self.directory_tree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 116,
+      "node": "Attribute",
+      "source": "self._intent"
+    },
+    {
+      "function": "src/toad/widgets/project_panel.py::__init__",
+      "constructed": [
+        "__init__",
+        "super"
+      ],
+      "type_checks": {},
+      "source_size": 2
+    },
+    {
+      "function": "src/toad/widgets/project_panel.py::action_search",
+      "constructed": [
+        "Requested",
+        "post_message"
+      ],
+      "type_checks": {},
+      "source_size": 2
+    },
+    {
+      "function": "src/toad/widgets/project_panel.py::on_click",
+      "constructed": [
+        "action_search",
+        "stop"
+      ],
+      "type_checks": {},
+      "source_size": 4
+    },
+    {
+      "function": "src/toad/widgets/project_panel.py::__init__",
+      "constructed": [
+        "__init__",
+        "super"
+      ],
+      "type_checks": {},
+      "source_size": 5
+    },
+    {
+      "function": "src/toad/widgets/project_panel.py::compose",
+      "constructed": [
+        "ProjectSearchButton"
+      ],
+      "type_checks": {},
+      "source_size": 2
+    },
+    {
+      "function": "src/toad/widgets/project_panel.py::on_show",
+      "constructed": [
+        "call_after_refresh"
+      ],
+      "type_checks": {},
+      "source_size": 2
+    },
+    {
+      "function": "src/toad/widgets/project_panel.py::_ensure_tree",
+      "constructed": [
+        "_mount_tree",
+        "isinstance",
+        "next"
+      ],
+      "type_checks": {
+        "node": 2
+      },
+      "source_size": 12
+    },
+    {
+      "function": "src/toad/widgets/project_panel.py::_mount_tree",
+      "constructed": [
+        "ProjectDirectoryTree",
+        "mount",
+        "work"
+      ],
+      "type_checks": {},
+      "source_size": 3
+    },
+    {
+      "function": "src/toad/widgets/project_panel.py::watch_path",
+      "constructed": [],
+      "type_checks": {},
+      "source_size": 3
+    },
+    {
+      "function": "src/toad/widgets/project_panel.py::invalidate",
+      "constructed": [
+        "invalidate"
+      ],
+      "type_checks": {},
+      "source_size": 3
+    },
+    {
+      "function": "src/toad/widgets/project_panel.py::refresh_if_visible",
+      "constructed": [
+        "refresh_if_visible"
+      ],
+      "type_checks": {},
+      "source_size": 3
+    },
+    {
+      "function": "src/toad/widgets/project_panel.py::__init__",
+      "constructed": [
+        "__init__",
+        "super"
+      ],
+      "type_checks": {},
+      "source_size": 3
+    },
+    {
+      "function": "src/toad/widgets/project_panel.py::_mount_tree",
+      "constructed": [
+        "_mount_tree",
+        "restore",
+        "super",
+        "wait",
+        "work"
+      ],
+      "type_checks": {},
+      "source_size": 5
+    },
+    {
+      "function": "src/toad/widgets/project_panel.py::_read_prefix",
+      "constructed": [
+        "open",
+        "read"
+      ],
+      "type_checks": {},
+      "source_size": 4
+    },
+    {
+      "function": "src/toad/widgets/project_panel.py::__init__",
+      "constructed": [
+        "Event",
+        "__init__",
+        "super"
+      ],
+      "type_checks": {},
+      "source_size": 4
+    },
+    {
+      "function": "src/toad/widgets/project_panel.py::compose",
+      "constructed": [
+        "Static",
+        "str"
+      ],
+      "type_checks": {},
+      "source_size": 3
+    },
+    {
+      "function": "src/toad/widgets/project_panel.py::on_mount",
+      "constructed": [
+        "_load_preview"
+      ],
+      "type_checks": {},
+      "source_size": 2
+    },
+    {
+      "function": "src/toad/widgets/project_panel.py::wait_ready",
+      "constructed": [
+        "wait"
+      ],
+      "type_checks": {},
+      "source_size": 2
+    },
+    {
+      "function": "src/toad/widgets/project_panel.py::on_unmount",
+      "constructed": [
+        "set"
+      ],
+      "type_checks": {},
+      "source_size": 2
+    },
+    {
+      "function": "src/toad/widgets/project_panel.py::_load_preview",
+      "constructed": [
+        "Static",
+        "decode",
+        "for_path",
+        "len",
+        "mount",
+        "preview",
+        "query_one",
+        "remove",
+        "set",
+        "to_thread",
+        "update",
+        "work"
+      ],
+      "type_checks": {},
+      "source_size": 27
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/project_tree_intent.py",
+      "line": 13,
+      "node": "ClassDef",
+      "source": "@dataclass(frozen=True)\nclass ProjectTreeIntent:\n    path: Path\n    expanded: frozenset[Path]\n    selected: Path | None\n    scroll: Offset\n\n    @classmethod\n    def capture(cls, tree: 'ProjectDirectoryTree') -> 'ProjectTreeIntent'"
+    },
+    {
+      "function": "src/toad/widgets/project_tree_intent.py::capture",
+      "constructed": [
+        "Path",
+        "add",
+        "cls",
+        "extend",
+        "frozenset",
+        "pop",
+        "set"
+      ],
+      "type_checks": {},
+      "source_size": 12
+    },
+    {
+      "function": "src/toad/widgets/project_tree_intent.py::restore",
+      "constructed": [
+        "Event",
+        "Path",
+        "_add_to_load_queue",
+        "call_after_refresh",
+        "expand",
+        "extend",
+        "is_relative_to",
+        "pop",
+        "wait"
+      ],
+      "type_checks": {},
+      "source_size": 28
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/retiring_sidebar.py",
+      "line": 47,
+      "node": "FunctionDef",
+      "source": "def capture_panels(self) -> None:\n    \"\"\"Each declaration captures only its original reader intent.\"\"\"\n    raise NotImplementedError"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/retiring_sidebar.py",
+      "line": 38,
+      "node": "Attribute",
+      "source": "self.capture_panels"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 89,
+      "node": "ClassDef",
+      "source": "class ProjectSessionPanel(SessionPanel[ProjectPanel]):\n    collapsed = True\n    flex = True\n\n    def __init__(self) -> None:\n        self.intent: ProjectTreeIntent | None = None\n\n    def make_widget(self, screen: 'MainScreen') -> "
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 89,
+      "node": "Name",
+      "source": "ProjectPanel"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 96,
+      "node": "Name",
+      "source": "ProjectPanel"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 94,
+      "node": "Name",
+      "source": "ProjectTreeIntent"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 97,
+      "node": "Name",
+      "source": "RestorableProjectPanel"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 100,
+      "node": "Name",
+      "source": "ProjectPanel"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 101,
+      "node": "Attribute",
+      "source": "widget.directory_tree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 102,
+      "node": "Attribute",
+      "source": "widget.directory_tree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 102,
+      "node": "Name",
+      "source": "ProjectTreeIntent"
+    },
+    {
+      "function": "src/toad/widgets/session_thread_panels.py::make_widget",
+      "constructed": [],
+      "type_checks": {},
+      "source_size": 1
+    },
+    {
+      "function": "src/toad/widgets/session_thread_panels.py::make_header",
+      "constructed": [],
+      "type_checks": {},
+      "source_size": 2
+    },
+    {
+      "function": "src/toad/widgets/session_thread_panels.py::compose_panel",
+      "constructed": [
+        "Panel",
+        "make_header",
+        "make_widget",
+        "title"
+      ],
+      "type_checks": {},
+      "source_size": 5
+    },
+    {
+      "function": "src/toad/widgets/session_thread_panels.py::capture",
+      "constructed": [],
+      "type_checks": {},
+      "source_size": 2
+    },
+    {
+      "function": "src/toad/widgets/session_thread_panels.py::make_widget",
+      "constructed": [
+        "CoordinationStatus"
+      ],
+      "type_checks": {},
+      "source_size": 2
+    },
+    {
+      "function": "src/toad/widgets/session_thread_panels.py::__init__",
+      "constructed": [],
+      "type_checks": {},
+      "source_size": 2
+    },
+    {
+      "function": "src/toad/widgets/session_thread_panels.py::make_widget",
+      "constructed": [
+        "ThreadCommsSidebar"
+      ],
+      "type_checks": {},
+      "source_size": 6
+    },
+    {
+      "function": "src/toad/widgets/session_thread_panels.py::make_header",
+      "constructed": [
+        "RelationshipSort"
+      ],
+      "type_checks": {},
+      "source_size": 2
+    },
+    {
+      "function": "src/toad/widgets/session_thread_panels.py::capture",
+      "constructed": [
+        "values"
+      ],
+      "type_checks": {},
+      "source_size": 4
+    },
+    {
+      "function": "src/toad/widgets/session_thread_panels.py::__init__",
+      "constructed": [],
+      "type_checks": {},
+      "source_size": 2
+    },
+    {
+      "function": "src/toad/widgets/session_thread_panels.py::make_widget",
+      "constructed": [
+        "Plan"
+      ],
+      "type_checks": {},
+      "source_size": 2
+    },
+    {
+      "function": "src/toad/widgets/session_thread_panels.py::update",
+      "constructed": [
+        "query_one",
+        "query_one_optional",
+        "title"
+      ],
+      "type_checks": {},
+      "source_size": 9
+    },
+    {
+      "function": "src/toad/widgets/session_thread_panels.py::__init__",
+      "constructed": [],
+      "type_checks": {},
+      "source_size": 2
+    },
+    {
+      "function": "src/toad/widgets/session_thread_panels.py::make_widget",
+      "constructed": [
+        "RestorableProjectPanel"
+      ],
+      "type_checks": {},
+      "source_size": 3
+    },
+    {
+      "function": "src/toad/widgets/session_thread_panels.py::capture",
+      "constructed": [
+        "capture"
+      ],
+      "type_checks": {},
+      "source_size": 3
+    },
+    {
+      "function": "src/toad/widgets/session_thread_panels.py::make_widget",
+      "constructed": [
+        "RecoveryView"
+      ],
+      "type_checks": {},
+      "source_size": 2
+    },
+    {
+      "function": "src/toad/widgets/session_thread_panels.py::__init__",
+      "constructed": [],
+      "type_checks": {},
+      "source_size": 2
+    },
+    {
+      "function": "src/toad/widgets/session_thread_panels.py::make_widget",
+      "constructed": [
+        "ContextExplorer",
+        "ContextTreeIntent",
+        "setdefault"
+      ],
+      "type_checks": {},
+      "source_size": 5
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/session_thread_sidebar.py",
+      "line": 15,
+      "node": "ClassDef",
+      "source": "class SessionThreadSidebar(RetiringSidebar):\n    \"\"\"Panel declarations survive retirement; widgets and subscriptions do not.\"\"\"\n\n    def __init__(self, screen: 'MainScreen') -> None:\n        self._owner = ref(screen)\n        self."
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/widgets/session_thread_sidebar.py",
+      "line": 39,
+      "node": "FunctionDef",
+      "source": "def capture_panels(self) -> None:\n    for owner, panel in zip(self._panel_owners, self.panels):\n        owner.capture(panel.widget)\n    screen = self._owner()\n    if screen is not None:\n        screen._project_panel = None"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/workspace_chrome.py",
+      "line": 17,
+      "node": "ClassDef",
+      "source": "class WorkspaceHeader(CoreEventReceiver, Horizontal):\n\n    def on_mount(self) -> None:\n        self.observe_core(self.app.events)\n\n    @handles(SidebarLayoutChanged)\n    async def sidebar_layout_changed(self, event: CoreEventMessa"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/workspace_chrome.py",
+      "line": 32,
+      "node": "ClassDef",
+      "source": "class WorkspaceChrome:\n\n    def __init__(self, app: 'ToadApp') -> None:\n        self.navigation = WorkspaceHeader(id='tab-navigation-header')\n        self.channels = ChannelsSidebar()\n        self.footer = Footer(id='workspace-foo"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "src/toad/workspace_chrome.py",
+      "line": 34,
+      "node": "Name",
+      "source": "WorkspaceHeader"
+    },
+    {
+      "function": "src/toad/workspace_chrome.py::on_mount",
+      "constructed": [
+        "observe_core"
+      ],
+      "type_checks": {},
+      "source_size": 2
+    },
+    {
+      "function": "src/toad/workspace_chrome.py::sidebar_layout_changed",
+      "constructed": [
+        "handles",
+        "layout_sidebars"
+      ],
+      "type_checks": {},
+      "source_size": 2
+    },
+    {
+      "function": "src/toad/workspace_chrome.py::compose",
+      "constructed": [
+        "SessionsTabs",
+        "TabHistoryControls"
+      ],
+      "type_checks": {},
+      "source_size": 5
+    },
+    {
+      "function": "src/toad/workspace_chrome.py::__init__",
+      "constructed": [
+        "ChannelsSidebar",
+        "Footer",
+        "NativeSessionSurface",
+        "WorkspaceHeader"
+      ],
+      "type_checks": {},
+      "source_size": 5
+    },
+    {
+      "function": "src/toad/workspace_chrome.py::prepare_navigation",
+      "constructed": [
+        "defer",
+        "prepare",
+        "restore_navigation",
+        "schedule_hydration"
+      ],
+      "type_checks": {},
+      "source_size": 8
+    },
+    {
+      "function": "src/toad/workspace_chrome.py::layout_sidebars",
+      "constructed": [
+        "_apply_layout",
+        "batch_update",
+        "enumerate",
+        "fromkeys",
+        "get",
+        "len",
+        "ordered",
+        "query",
+        "resolve",
+        "sort_children",
+        "sorted",
+        "tuple"
+      ],
+      "type_checks": {},
+      "source_size": 25
+    },
+    {
+      "function": "src/toad/workspace_chrome.py::select",
+      "constructed": [
+        "bind",
+        "call_later",
+        "capture",
+        "channels_context",
+        "set_enabled"
+      ],
+      "type_checks": {},
+      "source_size": 11
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/channel_disclosure_publication_pilot.py",
+      "line": 239,
+      "node": "Name",
+      "source": "SessionThreadSidebar"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/guards/test_sidebar_retirement.py",
+      "line": 58,
+      "node": "Name",
+      "source": "SessionThreadSidebar"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/hot_path_invalidation_pilot.py",
+      "line": 40,
+      "node": "Attribute",
+      "source": "screen._project_panel.directory_tree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/hot_path_invalidation_pilot.py",
+      "line": 48,
+      "node": "Attribute",
+      "source": "screen._project_panel.directory_tree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/path_filter_pilot.py",
+      "line": 47,
+      "node": "Name",
+      "source": "ProjectDirectoryTree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/project_resume_pilot.py",
+      "line": 44,
+      "node": "Name",
+      "source": "ProjectDirectoryTree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/project_resume_pilot.py",
+      "line": 61,
+      "node": "Name",
+      "source": "ProjectDirectoryTree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/project_resume_pilot.py",
+      "line": 45,
+      "node": "Name",
+      "source": "ProjectDirectoryTree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/runtime_fixture.py",
+      "line": 123,
+      "node": "Name",
+      "source": "ProjectDirectoryTree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/shared_channels_pilot.py",
+      "line": 186,
+      "node": "Name",
+      "source": "WorkspaceHeader"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/shared_channels_pilot.py",
+      "line": 53,
+      "node": "Name",
+      "source": "WorkspaceHeader"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 109,
+      "node": "Name",
+      "source": "SessionThreadSidebar"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 30,
+      "node": "Name",
+      "source": "SessionThreadSidebar"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 39,
+      "node": "Name",
+      "source": "SessionThreadSidebar"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 50,
+      "node": "Name",
+      "source": "ProjectDirectoryTree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 152,
+      "node": "Name",
+      "source": "SessionThreadSidebar"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 49,
+      "node": "Name",
+      "source": "ProjectDirectoryTree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/thread_layout_pilot.py",
+      "line": 60,
+      "node": "Name",
+      "source": "ProjectDirectoryTree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/thread_layout_pilot.py",
+      "line": 41,
+      "node": "Name",
+      "source": "ProjectDirectoryTree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/thread_layout_pilot.py",
+      "line": 54,
+      "node": "Name",
+      "source": "ProjectDirectoryTree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/thread_layout_pilot.py",
+      "line": 56,
+      "node": "Name",
+      "source": "ProjectDirectoryTree"
+    },
+    {
+      "repository": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "path": "tests/thread_layout_pilot.py",
+      "line": 41,
+      "node": "Name",
+      "source": "ProjectDirectoryTree"
+    }
+  ],
+  "limits": "Lexical name/attribute references, not dynamic event/MRO behavioral proof; all original native callbacks and mount/retirement consumers read semantically."
+}
