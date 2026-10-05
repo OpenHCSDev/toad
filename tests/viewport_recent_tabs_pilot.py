@@ -62,6 +62,7 @@ class ReaderCheckpoint:
     follows_tail: bool
     pages: tuple[tuple[object, tuple[object, ...]], ...]
     fragments: tuple[tuple[object, ...], ...]
+    fragment_views: tuple[tuple[Widget, ...], ...]
     painted: str
     rendered_bodies: tuple[ReferenceType[MarkdownBlock], ...]
     rendered_content: tuple[object, ...]
@@ -103,6 +104,7 @@ class ReaderCheckpoint:
         return cls(source, editor.document, editor.history, editor.text,
                    view.window.scroll_y, view.window.follows_tail, pages,
                    tuple(page.fragments for _, cohort in pages for page in cohort),
+                   tuple(page.fragment_views for _, cohort in pages for page in cohort),
                    conversation_paint(app.screen), tuple(ref(block) for block in bodies),
                    tuple(block._render_cache for block in bodies))
 
@@ -127,6 +129,13 @@ class ReaderCheckpoint:
         assert all(current is original for current, original in zip(current_fragments, self.fragments)), (
             "Warm return rebuilt unchanged source-owned prepared fragments", self.source.id
         )
+        current_views = tuple(page.fragment_views for _, pages in current_pages for page in pages)
+        assert len(current_views) == len(self.fragment_views)
+        for current, original in zip(current_views, self.fragment_views):
+            assert len(current) == len(original)
+            assert all(view is previous for view, previous in zip(current, original)), (
+                "Warm return replaced unchanged committed native fragment views", self.source.id
+            )
         assert conversation_paint(app.screen) == self.painted
         current_bodies = {block for block in view.query(MarkdownBlock)
                           if block in app.screen._compositor.visible_widgets}

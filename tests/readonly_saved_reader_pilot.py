@@ -22,6 +22,7 @@ from toad.widgets.conversation import Conversation
 from toad.widgets.session_tabs import SessionLabel
 from toad.transcript_preparation import PageRequest, TranscriptPageWork
 from saved_state_user_journey_pilot import click_thread
+from viewport_recent_tabs_pilot import ReaderCheckpoint
 
 
 class SavedReaderApp(ToadApp):
@@ -116,12 +117,15 @@ async def record_retained_validation(source, view, history, reader, page, eviden
                            for h in current_view.contents.query(TranscriptHistory)]), indent=2)+'\n')
 
 
-async def warm_pages(app, pilot, first, second, evidence):
+async def warm_pages(app, pilot, first, second, evidence, checkpoint, *, undo_text=None):
     """Original native source, real tab clicks and final parked disposal."""
     view = second.conversation
     source_name = second.id
     window = view.window
     await until(pilot, app, lambda: all(h.state.accepts_source_work for h in window.histories))
+    # Borrow the witness acquired before leaving the source, never recapture a
+    # baseline from a potentially rebuilt return.
+    await checkpoint.verify(app, pilot)
     history = next(iter(window.histories))
     reader = history._reader()
     request = PageRequest(before=history.pages[0].page.before)
@@ -129,46 +133,59 @@ async def warm_pages(app, pilot, first, second, evidence):
     key = TranscriptPageWork(reader.scope, reader.loader, reader.through, request).work_key
     prepared = app.preparation._ready[key][0]
     page = history.pages[0]
-    children = tuple(page.fragment_views)
     visible = app.screen._compositor.visible_widgets
     cached_strips = tuple((node, y, strip) for node in page.walk_children()
                           if node in visible for y, strip in node._styles_cache._cache.items())
-    editor = view.prompt.prompt_text_area
-    document, undo, draft = editor.document, editor.history, editor.text
-    position, follow = window.scroll_y, window.follows_tail
     records = []
-    for index in range(2):
-        app.phase = f'warm-away-{index}'
-        await select(app, pilot, first)
-        assert not reader.closed, 'Leaving an actual saved-source tab closed its prepared scope'
-        app.phase = f'warm-return-{index}'
-        started = await select(app, pilot, second)
-        try:
-            await until(pilot, app, lambda: history.state.accepts_source_work or not history.is_attached)
-        except TimeoutError:
-            await record_retained_validation(second, view, history, reader, page, evidence)
-            raise
-        if not history.is_attached:
-            await record_retained_validation(second, view, history, reader, page, evidence)
-            raise AssertionError('The native return retired the original retained history; see retained-validation.json')
-        current = history._reader()
-        await current.get(request)
-        displayed = [frame for frame in app.frames
-                     if frame['phase'] == app.phase and frame['source'] == source_name]
-        records.append(dict(reader_reused=current is reader,
-                            prepared_reused=app.preparation._ready.get(key, (None,))[0] is prepared,
-                            page_reused=history.pages[0] is page,
-                            children_reused=tuple(page.fragment_views) == children,
-                            observed_native_strip_lines=len(cached_strips),
-                            reused_native_strip_lines=sum(node._styles_cache._cache.get(y) is strip
-                                                          for node, y, strip in cached_strips),
-                            editor_reused=editor.document is document and editor.history is undo,
-                            draft_preserved=editor.text == draft,
-                            reader_preserved=(window.scroll_y, window.follows_tail) == (position, follow),
-                            completed_frames=len(displayed),
-                            all_frames_readable=bool(displayed) and all(f['body_nonwhite'] for f in displayed),
-                            first_completed_body_frame_ms=(displayed[0]['clock']-started)*1000 if displayed else None,
-                            within_budget=app.preparation.retained_bytes <= app.preparation.max_bytes))
+    try:
+        for index in range(2):
+            reads_before = await checkpoint.page_reads()
+            app.phase = f'warm-away-{index}'
+            await select(app, pilot, first)
+            assert not reader.closed, 'Leaving an actual saved-source tab closed its prepared scope'
+            app.phase = f'warm-return-{index}'
+            started = await select(app, pilot, second)
+            try:
+                await until(pilot, app, lambda: history.state.accepts_source_work or not history.is_attached)
+            except TimeoutError:
+                await record_retained_validation(second, view, history, reader, page, evidence)
+                raise
+            if not history.is_attached:
+                await record_retained_validation(second, view, history, reader, page, evidence)
+                raise AssertionError('The native return retired the original retained history; see retained-validation.json')
+            current = history._reader()
+            await current.get(request)
+            await checkpoint.verify(app, pilot)
+            read_delta = await checkpoint.page_reads() - reads_before
+            assert read_delta == 0, ('Configured warm return reacquired raw history', read_delta)
+            displayed = [frame for frame in app.frames
+                         if frame['phase'] == app.phase and frame['source'] == source_name]
+            records.append(dict(reader_reused=current is reader,
+                                prepared_reused=app.preparation._ready.get(key, (None,))[0] is prepared,
+                                unchanged_page_fragment_editor_reader_render_resources=True,
+                                raw_page_read_delta=read_delta,
+                                non_tail_preserved=not checkpoint.follows_tail,
+                                observed_native_strip_lines=len(cached_strips),
+                                reused_native_strip_lines=sum(node._styles_cache._cache.get(y) is strip
+                                                              for node, y, strip in cached_strips),
+                                completed_frames=len(displayed),
+                                all_frames_readable=bool(displayed) and all(f['body_nonwhite'] for f in displayed),
+                                first_completed_body_frame_ms=(displayed[0]['clock']-started)*1000 if displayed else None,
+                                within_budget=app.preparation.retained_bytes <= app.preparation.max_bytes))
+        if undo_text is not None:
+            editor = second.conversation.prompt.prompt_text_area
+            editor.scroll_visible(animate=False, immediate=True)
+            await pilot.pause()
+            assert await pilot.click(editor), 'Configured warm-return editor is not clickable'
+            await pilot.press('ctrl+z')
+            assert editor.text == undo_text
+            await pilot.press('ctrl+y')
+            assert editor.text == checkpoint.text
+            assert editor.document is checkpoint.document and editor.history is checkpoint.history
+    finally:
+        # Auxiliary cache witnesses end before parked disposal. The caller
+        # releases its borrowed checkpoint before any subsequent journey.
+        del cached_strips, prepared, page
     app.phase = 'dispose-parked-original'
     await select(app, pilot, first)
     closer = app.screen.query_one(f'#close-{second.id}')
@@ -183,8 +200,8 @@ async def warm_pages(app, pilot, first, second, evidence):
                    final_history_attached=history.is_attached,
                    boundary='Actual installed original native/ACP and Pilot tab clicks/completed compositor frames; no LinuxDriver video or source mutation.')
     (evidence/'warm-pages.json').write_text(json.dumps(receipt, indent=2)+'\n')
-    assert all(all(row[k] for k in ('reader_reused','prepared_reused','page_reused','children_reused',
-                                  'editor_reused','draft_preserved','reader_preserved','all_frames_readable',
+    assert all(all(row[k] for k in ('reader_reused','prepared_reused',
+                                  'unchanged_page_fragment_editor_reader_render_resources','all_frames_readable',
                                   'within_budget')) for row in records), records
     assert reader.closed and key not in app.preparation._ready and not history.is_attached
 
@@ -221,9 +238,11 @@ async def main():
                 view = await ready(pilot, app, second)
                 app.checkpoint("SECOND_ACTUAL_SAVED_READY")
                 if os.environ.get('READONLY_WARM_PAGES_ONLY') == '1':
+                    checkpoint = await ReaderCheckpoint.capture(second, app, pilot)
                     try:
-                        await warm_pages(app, pilot, first, second, evidence)
+                        await warm_pages(app, pilot, first, second, evidence, checkpoint)
                     finally:
+                        del checkpoint
                         app.checkpoint('ORIGINAL_WARM_PAGES_FINAL')
                     return
                 window = view.window
@@ -298,18 +317,33 @@ async def private_original_warm(app, pilot, service, project, evidence):
     original = app.selected_session
     view = original.conversation
     await until(pilot, app, lambda: all(h.state.accepts_source_work for h in view.window.histories))
+    window = view.window
     editor = view.prompt.prompt_text_area
-    await pilot.click(editor)
-    await pilot.press('d', 'r', 'a', 'f', 't', 'left', 'backspace', 'ctrl+z')
-    user = service.messaging.user_identity(str(project)).name
-    await channel_target('#retained').open(NavigationContext(
-        app, original.id, project, user))
-    channel = app.selected_session
-    await channel.wait_content_ready()
-    await select(app, pilot, original)
+    assert await pilot.click(editor), 'Private configured composer is not clickable'
+    editor.insert('configured native draft')
+    editor.history.checkpoint()
+    editor.insert(' with undo')
+    await until(pilot, app, lambda: window.max_scroll_y > 0)
+    window.release_anchor()
+    window.scroll_to(y=min(5, window.max_scroll_y - 1), animate=False, immediate=True)
+    await until(pilot, app, lambda: not window.follows_tail)
+    checkpoint = await ReaderCheckpoint.capture(original, app, pilot)
     try:
-        await warm_pages(app, pilot, channel, original, evidence)
+        assert not checkpoint.follows_tail, 'Configured checkpoint requires a genuine non-tail reader'
+        reads_before = await checkpoint.page_reads()
+        user = service.messaging.user_identity(str(project)).name
+        await channel_target('#retained').open(NavigationContext(
+            app, original.id, project, user))
+        channel = app.selected_session
+        await channel.wait_content_ready()
+        await select(app, pilot, original)
+        await checkpoint.verify(app, pilot)
+        assert await checkpoint.page_reads() == reads_before, 'First configured return reacquired raw history'
+        await warm_pages(app, pilot, channel, original, evidence,
+                         checkpoint,
+                         undo_text='configured native draft')
     finally:
+        del checkpoint
         app.checkpoint('PRIVATE_ORIGINAL_WARM_PAGES_FINAL')
 
 

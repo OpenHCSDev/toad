@@ -77,3 +77,38 @@ at4a10010d90fa0015c514bc038d80f264d4a349cb. All #446 production, controls,
 tools and pins remain byte-equal the d1d16de1 observer-lifetime checkpoint.
 Original443 ONE installed App and whole handback stay at their frozen scope.
 No App, build, package or native purpose is inferred by this source join.
+
+## Original configured readonly warm consumer
+
+The existing `readonly_saved_reader_pilot.warm_pages` separately maintained
+page/native-child/editor/reader return decisions (IMPL-12). It now borrows
+`ReaderCheckpoint` from its original caller. The shared owner also captures
+and verifies each page's actual committed `fragment_views` by identity, so
+removing the old child comparison does not weaken its contract. Raw page
+acquisition is observed through the original reader binding. The independent
+prepared-work key, bounded resource, compositor-frame observation and final
+parked source disposal checks remain in their original control.
+
+`private_original_warm` establishes a genuine non-tail reader and authored
+unsent draft/Undo state before acquiring the checkpoint and opening the
+original channel target. The first channel return and subsequent actual tab
+returns use that same predeparture checkpoint; none recaptures a baseline
+after returning. Native Undo/Redo must preserve the original editor document
+and history. Both direct callers release the borrowed checkpoint in finally;
+auxiliary native strip/cache witnesses end before parked disposal and the
+function exits before any subsequent resource observation.
+
+This remains the original configured SDK-fork fixture's readonly callback.
+Its owner capture, authenticated configuration, source journal, native input
+refusal and whole-child disposition contracts are unchanged. No configured
+model submission, input replay, artificial-history seed or new fixture was
+introduced. The localhost streamed-response controls remain distinct from
+this original configured-source control. Source integration alone proves
+neither control's runtime, provider, queue nor continuous workflow result.
+
+The existing configured fixture command is
+`tests/readonly_saved_reader_pilot.py --private-original-warm`; it is an
+unexecuted source operand, not an eligible prefix or purpose grant. Any actual
+execution needs its current installed-source and original fixture/native
+custody bound to a fresh specific purpose. No accepted #443 App/build/movie
+is repeated and no holder is accessed by this checkpoint.
