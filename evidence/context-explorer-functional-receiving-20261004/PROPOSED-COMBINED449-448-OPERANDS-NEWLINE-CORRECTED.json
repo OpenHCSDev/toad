@@ -1,0 +1,176 @@
+{
+  "state": "FUTURE combined449/448 source proposal ONLY; no issued purpose/access/reservation/operator copy",
+  "package_operator": {
+    "id": "01a0ef00-6563-7ec0-9c64-564ece67a6eb",
+    "name": "Original Sch",
+    "sole_writer": true
+  },
+  "control_operator": {
+    "id": "01a0ef42-347d-7242-98d1-d7573f1d91eb",
+    "name": "Original Einstein",
+    "package_writes": false
+  },
+  "prerequisite": "Actual446 whole handback/independent closure, then actual eligible floor/refs/fresh specific combined grant",
+  "proposed_holder": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "actual_floor_archive_protected_originals": null,
+  "source": {
+    "core_actual_merged": "0a600a2b0287c5fbfef907e6e623652c587f66df",
+    "core_627_merge": "9c0888db3094be85223063af66d1108c4c100216",
+    "carry_merge": "781b20e4189efb47cd44ac6f11a74f580884c9af",
+    "toad_434_merge": "262875cbd6b54bf0b6f93edfe237a8d7facfc67b",
+    "toad_449_candidate": "c160c05b193b13add79c881a2129e13747e40cd1",
+    "toad_449_actual_merge": null,
+    "candidate_449_Git_ZIP_assets_verified": 319,
+    "producer_to_candidate_src_tests_tools_buildmetadata_diff": []
+  },
+  "wheels": {
+    "Core": {
+      "wheel": "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-historical-main3aac-source/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "0ed358e9a1d845f3fdceca138d0f2fa02824ac61161b3d8ba9a5e32b1cc3b6e3",
+      "asset_count": 355,
+      "source": "3aacd708fb9c699cc80c6b864e0ae8cf9ccff7f8",
+      "proof": "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-historical-main3aac-source/source-proof.json"
+    },
+    "Toad": {
+      "wheel": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/annotation-address-successor/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "1a8ad3507b6a567a203d16eac55e3ef53d5f04526b106b6aa41599f93cfd1b16",
+      "asset_count": 319,
+      "source": "486fb2134a69ebb4cb78831e35fb89a2a45ffac6",
+      "determining_product": "494d21d3e5bafadc9626e02f9d7b8dd8d9a14420",
+      "proof": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/annotation-address-successor/source-proof.json",
+      "proof_sha256": "5570f891343fd6f6f026f72f026a41960cb9bc2e1e88c81191244e4afe67391a"
+    },
+    "Text": {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native59-filewheel-20261004/textual-8.2.8-py3-none-any.whl",
+      "sha256": "73d4ca971dd2891c2a2266a0c5c8629e3e0ff55e802456ae60d0fedfe72fdbaa",
+      "assets": 266
+    },
+    "NRA": {
+      "path": "/home/ts/wt/nra-skill-publish-20261002/.artifacts/family-flattened-collector-20261004/wheels/nominal_refactor_audit-0.1.0-py3-none-any.whl",
+      "sha256": "8d489731728ebf9f7e0f90ef2b14e7e3b5d2f90ed82bd8b1482d735f82869886",
+      "assets": 10,
+      "measures_sha256": "8f6127cb184801fbf2ca162adbece5c103c0fc6693f81197632668f710af7513"
+    }
+  },
+  "stage": {
+    "once_argv": [
+      "uv",
+      "pip",
+      "install",
+      "--python",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+      "--no-deps",
+      "--no-cache",
+      "--reinstall",
+      "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-historical-main3aac-source/agent_comms-0.1.0-py3-none-any.whl",
+      "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/annotation-address-successor/wheel/batrachian_toad-0.6.20-py3-none-any.whl"
+    ],
+    "changed_distributions": [
+      "agent-comms",
+      "batrachian-toad"
+    ],
+    "builds": 0,
+    "initial_total_source_assets": 945,
+    "candidate_total_source_assets": 953,
+    "counts": {
+      "Core": 355,
+      "Toad": 319,
+      "Text": 266,
+      "NRA": 10,
+      "Diff": 3
+    },
+    "normal_distributions": 69,
+    "own_output": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context-explorer-functional-receiving-20261004",
+    "source_proof": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context-explorer-functional-receiving-20261004/source-proof.json",
+    "candidate_activation": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context-explorer-functional-receiving-20261004/candidate-activation.json",
+    "old_PREFIXactivation_write": false
+  },
+  "control": {
+    "owner_handoff": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/annotation-navigation-address-20261004/SHARED-RECEIVING-HANDOFF.json",
+    "owner_handoff_sha256": "a51fd65f6afbd014aff450e4bd2b909d5a46f8574a22a4399aaae7d6983ec682",
+    "proposal": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/annotation-navigation-address-20261004/PROPOSED-INSTALLED-OPERANDS.json",
+    "proposal_sha256": "7f48115633a3fe2566af5c829f128a9048d774c4afb3dd7b94c4afca0ba81454",
+    "source_control": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/test_context_annotation_identity.py",
+    "control_sha256": "5f131482047d1ec75f56ad69ae46dbc4c30f93128de38d691670b37af2c430d8",
+    "argv": [
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+      "-B",
+      "-c",
+      "import sys; sys.path.append('/usr/lib/python3.14/site-packages'); import agent_comms,toad,textual,pytest; print('INSTALLED IMPORTS',*[m.__file__ for m in (agent_comms,toad,textual)],flush=True); assert all(sys.prefix in m.__file__ for m in (agent_comms,toad,textual)); sys.exit(pytest.main(sys.argv[1:]))",
+      "-o",
+      "addopts=",
+      "--noconftest",
+      "--basetemp",
+      "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/annotation-address-successor/installed-authored-model",
+      "-q",
+      "--tb=short",
+      "/home/ts/wt/toad-regression-widget-cost-20261001/tests/test_context_annotation_identity.py::test_overlapping_annotation_addresses_restore_their_own_range"
+    ],
+    "cwd": "/home/ts/wt/toad-regression-widget-cost-20261001",
+    "environment": {
+      "PYTHONPATH": "ABSENT",
+      "PYTHONHOME": "ABSENT"
+    },
+    "output": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/annotation-address-successor/installed-owner-check",
+    "runner": "Original BoundedRun.session, one bounded narrow mounted native Tree check; installed application paths first, no source overlay or dependency installation",
+    "one_attempt": true,
+    "native_artifact_execution": false,
+    "ACP_SDK_provider_input": false,
+    "handback": "Einstein joins original App/message-pump/worker/controller/group resources and returns actual terminal/raw result and operator custody to Sch/Bohr; no prefix writes or second check"
+  },
+  "receiving_after_control_PASS": {
+    "requirements": [
+      "Original scoped PASS and explicit Einstein handback",
+      "Parent actual normal449 merge",
+      "full319 merged-source proof including buildmetadata against unchanged1a8"
+    ],
+    "no_restage": true,
+    "canonical_identity_manifest": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/context-explorer-functional-receiving-20261004/MERGED-CANONICAL-SOURCE-MANIFEST.json",
+    "canonical_identity_sha256": "3245b0da7ecfcd7f9a451b3be9d489906738a4cf4d8926fdbe1004b13f65c382",
+    "canonical51_actual_Core": "0a600a2b0287c5fbfef907e6e623652c587f66df",
+    "future_canonical_directory": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context-explorer-functional-receiving-20261004/canonical-source-0a600a2b/tools/cutover",
+    "canonical_prepare_readback_argv": [
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+      "-I",
+      "-B",
+      "-c",
+      "import sys,json,hashlib,subprocess,os\nfrom pathlib import Path\nmanifest=json.loads(Path(sys.argv[1]).read_text());destination=Path(sys.argv[2]);repository=sys.argv[3]\nassert len(manifest['members'])==51 and manifest['original_core_git']=='0a600a2b0287c5fbfef907e6e623652c587f66df'\ndestination.mkdir(mode=0o700,parents=True,exist_ok=False)\nfor row in manifest['members']:\n data=subprocess.check_output(['git','-C',repository,'show',manifest['original_core_git']+':'+row['source']])\n assert hashlib.sha256(data).hexdigest()==row['sha256'] and len(data)==row['bytes']\n path=destination/Path(row['source']).name\n with path.open('xb') as opened:opened.write(data)\n os.chmod(path,int(row['git_mode'][-3:],8))\n assert hashlib.sha256(path.read_bytes()).hexdigest()==row['sha256'] and (path.stat().st_mode&0o777)==int(row['git_mode'][-3:],8)\nassert len(list(destination.iterdir()))==51\nprint('Original actual merged Core0a canonical51 copy/readback PASS; no public write')\n",
+      "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/context-explorer-functional-receiving-20261004/MERGED-CANONICAL-SOURCE-MANIFEST.json",
+      "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context-explorer-functional-receiving-20261004/canonical-source-0a600a2b/tools/cutover",
+      "/home/ts/wt/comms-task-aware-native-bundle-20261002"
+    ],
+    "cohort_prepare_argv": [
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+      "-I",
+      "-B",
+      "-c",
+      "import sys,json,subprocess,os,hashlib\nfrom pathlib import Path\nsys.path.insert(0,sys.argv[1])\nfrom agent_comms.field_codec import FieldCodec\nfrom agent_comms.comms import Comms\nfrom agent_comms.owner_launch import RetainedOwnerLaunch\nfrom agent_comms.owner_restart import OwnerRestartRequest\nfrom agent_comms.active_route import read_active_route\nfrom publish_retained_summary import ROOT,ReviewedArtifact,ReviewedRetainedSummaryCohort,InstalledSourceProof,CohortActivation\nfrom native_schema_carry import NativeSchemaDeclaration\nfrom checkpoint_schema import declared_schema_digest\nfrom runtime_installation import CarryNativeRuntimeInstallation\nbase=Path(sys.argv[2]);inputs=json.loads((base/'qualification-input.json').read_text())\nassert not (base/'publication-receipt.json').exists() and not (base/'publication-receipt.originals').exists()\nproof_path=base/'source-proof.json';activation_path=base/'candidate-activation.json'\nproof=FieldCodec.decode(InstalledSourceProof,json.loads(proof_path.read_text()))\nactivation=FieldCodec.decode(CohortActivation,json.loads(activation_path.read_text()));proof.require_activation(activation)\nassert sys.executable==str(proof.prefix/'bin/python')\nservice=Comms(ROOT,private_initial_writes=False,private_claim_writes=False);snapshot=service.registry.snapshot()\nlaunches=tuple(RetainedOwnerLaunch.capture(t,snapshot) for t in OwnerRestartRequest().threads(snapshot))\ninterpreters={x.interpreter for x in launches};assert len(interpreters)==1\nsource_python=Path(next(iter(interpreters)));assert source_python==Path(inputs['current_prefix'])/'bin/python'\nchild=\"import sys,json;sys.path.insert(0,sys.argv[1]);from agent_comms.field_codec import FieldCodec;from native_schema_carry import NativeSchemaDeclaration;from checkpoint_schema import declared_schema_digest;print(json.dumps({'native':FieldCodec.encode(NativeSchemaDeclaration.observe()),'checkpoint':declared_schema_digest()}))\"\nenv=dict(os.environ);env.pop('PYTHONPATH',None);env.pop('PYTHONHOME',None)\npacket=json.loads(subprocess.check_output([str(source_python),'-I','-B','-c',child,sys.argv[1]],env=env,text=True))\noriginal=FieldCodec.decode(NativeSchemaDeclaration,packet['native']);target=NativeSchemaDeclaration.observe();original.require_carry_target(target)\nassert original.coordination_version==9 and target.coordination_version==10\nartifact=lambda p: ReviewedArtifact(p,hashlib.sha256(p.read_bytes()).hexdigest())\ngates=tuple(FieldCodec.decode(ReviewedArtifact,r) for r in inputs['actual_gates'])\ncohort=ReviewedRetainedSummaryCohort(proof.prefix,Path(inputs['current_prefix']),read_active_route(),proof.native_package,artifact(activation_path),artifact(proof_path),gates);cohort.require_original()\nruntime=CarryNativeRuntimeInstallation(original,source_python,base/'stopped-native-carry-candidate')\nvalues=[('original-declaration.json',FieldCodec.encode(original)),('target-declaration.json',FieldCodec.encode(target)),('checkpoint-relation.json',{'source':packet['checkpoint'],'target':declared_schema_digest(),'source_python_owner':'RetainedOwnerLaunch'}),('review-plan.json',FieldCodec.encode(cohort)),('runtime-installation.json',FieldCodec.encode(runtime))]\nfor name,value in values:\n with (base/name).open('x') as f:json.dump(value,f,indent=2);f.write(\"\\n\")\nprint('Original typed whole cohort and declared9-to10 CarryNativeRuntimeInstallation prepared; public writes0')\n",
+      "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context-explorer-functional-receiving-20261004/canonical-source-0a600a2b/tools/cutover",
+      "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context-explorer-functional-receiving-20261004"
+    ],
+    "cwd": "/home/ts/wt/toad-prompt-action-owner-20261002",
+    "environment": {
+      "PYTHONPATH": "ABSENT",
+      "PYTHONHOME": "ABSENT"
+    },
+    "qualification_input": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context-explorer-functional-receiving-20261004/qualification-input.json",
+    "qualification_input_fields": {
+      "current_prefix": null,
+      "actual_gates": null
+    },
+    "runtime_owner": "CarryNativeRuntimeInstallation; Parent PreserveOwnerRuntime future one-use operation",
+    "source_python_acquisition": "Original RetainedOwnerLaunch.capture actual original process at use, no copied source_interpreter authority",
+    "source_decl_public_decoder_read": "Explicitly required inside future combined preparation purpose; source-only plan performs none",
+    "receipt_preimages_execute_argv_readback_argv": null,
+    "positive_terminal": "Own installed proof/DTO/canonical51/cohort/runtime/newonce operands FROZEN HELDParent; whole immediate claim handback; no automatic restore or next loan"
+  },
+  "native": {
+    "matching_artifact_manifest": "7a2e4aabdbc5af49dd9af942190d92086df2eb3489903674a74af51cf831cd33",
+    "matching_artifact_tree": "0d7ff54a04d4f0ff175fc889e936ca3cea8b1f98eb8b73ed6215c3373cbd984d",
+    "authority": "Original Sch keeper READ verification only under actual future receiving purpose; no artifact execution/SDK/native/provider/copy",
+    "public_original_manifest": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
+    "baseline_equivalence": false
+  },
+  "failure": "Sch whole ACTUAL issued-floor/origins/protected-original restore plus joined cleanup/whole handback; preserve raw refusal/UNKNOWN; no secondstage/check/retry",
+  "future_scope_only": true
+}
