@@ -166,11 +166,6 @@ Optional source-backed probes:
 - `benchmark_spinner.py --fps 60 --seconds 3`: native headless spinner/compositor
   timing with layout/CSS counters. This is component frame work, not terminal FPS
   and not proof of the budget under a large captured workload.
-- Add `--spinner-seconds 3 --spinner-fps 60` to `replay_state.py` to measure the
-  same native indicator in each exercised captured view. The tool preserves its
-  prior state and reports mounted/visible counts, frame work and layout/CSS calls.
-  Replay now records setter CPU/wall time, thread resource deltas, GC durations
-  and loop gaps (at least 5 ms); `compare_replays.py` summarizes those separately.
 
 ## User-authorized live capture
 
@@ -197,32 +192,15 @@ This is not a checkpoint of sockets, workers, or the entire Python heap.
 pixel capture. Unmapped windows may reject XGetImage; the Textual SVG path works
 without moving or focusing the user's window.
 
-## Headless captured-data replay
+## Archived replay results
 
-```sh
-PYTHONPATH="$TOAD_SOURCE/src:$TEXTUAL_SOURCE/src" "$APP_VENV/bin/python" \
-  tools/performance/replay_state.py \
-  --bundle "$CAPTURES/aged-live-1-state.pickle" \
-  --output "$CAPTURES/replay-1.json"
-```
-
-Replay creates a private temporary wire/config/store, reconstructs native and
-channel views, restores captured filters/drafts/placement where available, and
-exercises filters while typing. It does not clone executor ownership, contact
-the original wire, or start providers. The earlier v3 capture/replay is a bounded
-loaded-text/page representation: transient tool widgets and some live input
-metadata were not fully captured. Later capture code also records direct
-contents, but the legacy replay projection remains partial and explicitly so.
-
-Use captures from the matching core declaration revision. Replay restores exact
-tag channels through the current catalog API. Partial captures containing saved
-views are rejected: their complete catalog must be captured before those views
-can be replayed faithfully, rather than recreating them as writable channels.
-
-`--legacy-watches` disables the new subscription teardown in the replay only for
-an ownership control. Headless `settled_ms` includes pilot settlement and must
-not be presented as terminal/pixel latency. The reports separately include
-synchronous filter-setter CPU/wall time and closed-subscriber counts.
+The retired headless replay executable reconstructed removed App/ACP authorities
+and has no current source caller. Its [historical result](../../docs/audits/navigation_allocation_20260925.md)
+and captured data remain evidence at their original revision. `inspect_replay.py`
+and `compare_replays.py` remain available to read saved bundles and JSON reports;
+they do not reconstruct current application ownership. The
+[caller reconciliation](../../evidence/t4-retired-consumer-closure-20261005/DELETION.md)
+records the deletion and the separately retained external MCP adapter seam.
 
 ## Analysis and checks
 
