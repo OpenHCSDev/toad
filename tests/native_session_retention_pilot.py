@@ -136,6 +136,12 @@ async def warm_admission_acceptance(app, pilot, agent, comms, entered, release, 
     costs = {}
     widget = owner = painted_owner = None
     rows = []
+    coverage = {"warm_identity_raw_read_returns": 0,
+                "eviction_editor_reader_returns": 0,
+                "selected_without_departure": 0}
+    branches_entered = dict.fromkeys(coverage, 0)
+    explicit_evictions = 0
+    completed = False
     native = app.workspace_chrome.native
     try:
         for source in sources:
@@ -159,8 +165,25 @@ async def warm_admission_acceptance(app, pilot, agent, comms, entered, release, 
         # Each return consumes the witness from before departure. A genuine
         # native eviction restores editor/reader custody; a retained tree must
         # also retain the exact page/fragment/render identities and raw reads.
-        for source in (*reversed(sources), *sources):
+        for index, source in enumerate((*reversed(sources), *sources, sources[0])):
+            if index == 4:
+                # A selected snapshot is not a return. Prove a genuine warm
+                # departure/return before exercising original cold custody.
+                assert coverage["warm_identity_raw_read_returns"] > 0, (
+                    "No actual retained return exercised warm identity/raw-read custody", rows,
+                )
+                assert source is not app.selected_session
+                if source.presentation.widget is not None:
+                    await source.presentation.evict()
+                    explicit_evictions += 1
+                assert source.presentation.widget is None and source.presentation.state is not None
+            departed = source is not app.selected_session
             retained = source.presentation.widget is not None
+            branch = ("warm_identity_raw_read_returns" if retained else
+                      "eviction_editor_reader_returns") if departed else "selected_without_departure"
+            branches_entered[branch] += 1
+            if departed and not retained:
+                assert source.presentation.state is not None
             witness = checkpoints[source.id]
             reads = await witness.page_reads()
             await app.select_session(source.id)
@@ -171,9 +194,11 @@ async def warm_admission_acceptance(app, pilot, agent, comms, entered, release, 
             assert editor.text == witness.text
             assert view.window.scroll_y == witness.reader_y
             assert view.window.follows_tail is witness.follows_tail
+            assert view.window.histories and view.transcript.displayed_cursor is not None
             if retained:
                 await witness.verify(app, pilot)
                 assert await witness.page_reads() == reads
+            read_delta = await witness.page_reads() - reads
             # Freeze this original resource before comparing admission with
             # native lifetime effects; no renderer/worker method is replaced.
             viewport = view.window.document_viewport
@@ -211,7 +236,11 @@ async def warm_admission_acceptance(app, pilot, agent, comms, entered, release, 
                 await native._trim_retained(view)
                 assert required.widget is view
                 assert {owner for _, owner in native._presentations()} == admitted
-                rows.append({"selected": source.id, "warm_return": retained,
+                rows.append({"selected": source.id, "branch": branch,
+                             "verified": False,
+                             "departed": departed, "warm_return": departed and retained,
+                             "raw_page_read_delta": read_delta,
+                             "explicit_eviction_phase": index == 4,
                              "resources": [{"widgets": widgets, "source_bytes": size,
                                             "paint_bytes": paint, "admitted": owner in admitted}
                                            for owner, (widgets, size, paint) in costs.items()]})
@@ -221,20 +250,28 @@ async def warm_admission_acceptance(app, pilot, agent, comms, entered, release, 
             assert editor.text == witness.text.removesuffix(" with undo")
             editor.redo()
             assert editor.text == witness.text
+            rows[-1]["verified"] = True
+            coverage[branch] += 1
+        assert coverage["warm_identity_raw_read_returns"] > 0
+        assert coverage["eviction_editor_reader_returns"] > 0
+        assert len(requests) == 2, "Read-only mounted admission replayed native input"
+        assert {name: hashlib.sha256(path.read_bytes()).hexdigest()
+                for name, path in original_files.items()} == original_hashes
+        completed = True
     finally:
         checkpoints.clear()
         witness = None
         ordered = admitted = roots = ()
         costs.clear()
         widget = owner = painted_owner = None
+        Path(os.environ["NATIVE_RETENTION_RECEIPT"]).write_text(json.dumps({
+            "scope": "two genuinely loaded native journals; authored localhost input only",
+            "completed": completed, "branches_entered": branches_entered,
+            "branches_verified": coverage, "explicit_presentation_evictions": explicit_evictions,
+            "rows": rows,
+            "native_inputs": len(requests), "history_scaling_4_16_32_64": "UNRUN",
+        }, indent=2) + "\n")
     del checkpoints, witness, ordered, admitted, costs, roots, widget, owner, painted_owner
-    assert len(requests) == 2, "Read-only mounted admission replayed native input"
-    assert {name: hashlib.sha256(path.read_bytes()).hexdigest()
-            for name, path in original_files.items()} == original_hashes
-    Path(os.environ["NATIVE_RETENTION_RECEIPT"]).write_text(json.dumps({
-        "scope": "two genuinely loaded native journals; authored localhost input only",
-        "rows": rows, "native_inputs": len(requests), "history_scaling_4_16_32_64": "UNRUN",
-    }, indent=2) + "\n")
 
 
 async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
