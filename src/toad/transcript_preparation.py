@@ -16,6 +16,7 @@ from toad.widgets.transcript_fragments import TranscriptRenderTask
 from toad.widgets.message_filter import MessageCategory, keep_events
 from toad.work_preparation import (
     PreparationRuntime,
+    PreparedValue,
     RenderPreparation,
     PreparationScope,
     SerializedWork,
@@ -143,7 +144,9 @@ class TranscriptPageWork(SerializedWork[PreparedTranscriptPage], ScopedWork[Prep
     def result_size(self, result: PreparedTranscriptPage) -> int:
         return result.retained_bytes
 
-    async def execute(self, runtime: PreparationRuntime) -> PreparedTranscriptPage:
+    async def execute(
+        self, runtime: PreparationRuntime, key: WorkKey,
+    ) -> tuple[PreparedValue[PreparedTranscriptPage], int]:
         request = self.request
         page = await self.loader(before=request.before, after=request.after, through=self.through)
         cursor = request.before or request.after
@@ -157,8 +160,11 @@ class TranscriptPageWork(SerializedWork[PreparedTranscriptPage], ScopedWork[Prep
         if self.scope.closed:
             raise asyncio.CancelledError
         fragments = await runtime.submit(RenderPreparation(TranscriptRenderTask(page.events)))
-        size = await runtime.run_thread(retained_bytes, (page, fragments))
-        return PreparedTranscriptPage(page, fragments, size)
+        return await runtime.run_thread(
+            lambda: self.finish_result(key, PreparedTranscriptPage(
+                page, fragments, retained_bytes((page, fragments)),
+            )),
+        )
 
 
 class TranscriptPageBuffer(PreparedPageSource):
