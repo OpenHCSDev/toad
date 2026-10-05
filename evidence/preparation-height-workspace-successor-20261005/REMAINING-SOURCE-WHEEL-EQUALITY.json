@@ -1,0 +1,48 @@
+{
+  "status": "Source/control successor only; all package/native/decoder/App authority closed. Future fresh specific purpose required",
+  "head": "0758a124a3aa87233b0954764cc8164599df5825",
+  "retained_build_head": "db38ad541dcd07dead60e48473768905333473ff",
+  "retained_determining_source": "2832435d2cfecf410cfa2bddf017a9f0e57967e7",
+  "source_root_tree": "437e746f56a757700f4e55a52dc407890429319e",
+  "src_pyproject_uv_README_LICENSE_delta": [],
+  "assets": 319,
+  "git_working_zip_byte_equal": true,
+  "retained_wheel": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-source-wheel-20261005/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "1c4318661b2eb0bfa84462d0389a7b824c8eb23d86ba9fae6d013a027aeab3bf"
+  },
+  "retained_wheel_proof": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-source-wheel-20261005/wheel-proof.json",
+    "sha256": "60e0936e136aaab140dbd8e6cdfa5f48e0c0875df68cc3f060a7b65936ea38b4"
+  },
+  "roots_after": [
+    {
+      "root": "src/toad",
+      "modules": 288,
+      "parse_omissions": []
+    },
+    {
+      "root": "tests",
+      "modules": 397,
+      "parse_omissions": []
+    },
+    {
+      "root": "tools",
+      "modules": 41,
+      "parse_omissions": []
+    }
+  ],
+  "native_Core_dependency_roots": "Original249/324 unchanged, earlier Package evidence retained",
+  "controls": {
+    "history": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/history_stationary_local_runway_pilot.py",
+      "sha256": "a9ec167d9812271a08c9fbe5e9deaecbd0e6e89a5fadaf495283d81046439876"
+    },
+    "leaf": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/markdown_return_reuse_pilot.py",
+      "sha256": "42dc83bc83b6c0887f7ad62ea9dfadb993b58880c8bc1f01e9df7a35fecd485f"
+    }
+  },
+  "App": "UNRUN",
+  "new_build_needed": false
+}
