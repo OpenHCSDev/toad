@@ -6,6 +6,7 @@ from agent_comms.acp_extension import QueuePromptRequest
 from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import DirectTarget, channel_target
+from toad.conversation_kind import ChannelConversation, DmConversation
 
 from agent_comms.cli_commands import StartCliCommand
 import asyncio
@@ -55,6 +56,88 @@ async def until(pilot, predicate, seconds=20):
             await pilot.pause(0.05)
 
 
+def message_feedback(view, original):
+    """Observe the mounted notification belonging to this original wire row."""
+    rows = [widget for message, widget in view.message_history.rows
+            if message.reference == original.reference]
+    assert len(rows) == 1, (original.reference, len(rows))
+    return rows[0].query_one(MessageNotifications)
+
+
+async def direct_reply_feedback(
+    pilot, app, comms, owner_mode, project, entered, release, hold_next
+):
+    """One real DM; observe it open, hidden during settlement and reopened."""
+    user = comms.messaging.user_identity(str(project)).name
+    navigation = NavigationContext(app, owner_mode, project, user)
+    await DirectTarget("beta").open(navigation)
+    screen = app.selected_session
+    await screen.wait_content_ready()
+    dm = screen.query_one(CommsChatView)
+    assert dm.target == "beta" and dm.kind is DmConversation
+    body = "DIRECT_NATIVE_MESSAGE"
+    assert not any(message.body == body for message, _ in dm.message_history.rows)
+    entered.clear()
+    release.clear()
+    hold_next.set()
+    try:
+        await dm.submit_input(input_events.UserInputSubmitted(body))
+        await until(pilot, entered.is_set)
+        await until(pilot, lambda: any(message.body == body
+                                      for message, _ in dm.message_history.rows))
+        originals = [message for message, _ in dm.message_history.rows
+                     if message.body == body]
+        assert len(originals) == 1
+        original = originals[0]
+        assert original.sender == user and original.target == "beta"
+        await until(pilot, lambda: "Responding" in str(message_feedback(dm, original).title))
+        assert comms.registry.require("beta").executing
+        print("DM_ORIGINAL_OPEN_NOTIFICATION_WORKING", original.reference, flush=True)
+
+        await app.select_session(owner_mode)
+        assert app.selected_session is not screen
+        release.set()
+        await until(pilot, lambda: not comms.registry.require("beta").executing)
+        assert app.selected_session is not screen
+        print("DM_ORIGINAL_SETTLED_WHILE_HIDDEN", original.reference, flush=True)
+    finally:
+        release.set()
+
+    await DirectTarget("beta").open(navigation)
+    assert app.selected_session is screen, "Returning replaced the original DM admission"
+    await until(pilot, lambda: any(
+        message.sender == "beta" and message.seq > original.seq
+        and message.body.startswith("NATIVE_RESPONSE_")
+        for message, _ in dm.message_history.rows))
+    responses = [message for message, _ in dm.message_history.rows
+                 if message.sender == "beta" and message.seq > original.seq
+                 and message.body.startswith("NATIVE_RESPONSE_")]
+    assert len(responses) == 1
+    response = responses[0]
+    assert response.target == user and response.reference != original.reference
+    await until(pilot, lambda: "Responded" in str(message_feedback(dm, original).title))
+    outcomes = await asyncio.to_thread(comms.views.message_notifications, (original,))
+    assert any(item.recipient == "beta" and item.state == "Responded"
+               for item in outcomes[original.seq, original.message_id])
+    print("DM_ORIGINAL_RETURN_NOTIFICATION_AND_DISTINCT_REPLY", original.reference,
+          response.reference, flush=True)
+
+    await app.session_navigation.close(screen.id)
+    await DirectTarget("beta").open(navigation)
+    reopened = app.selected_session
+    assert reopened is not screen and reopened.id != screen.id
+    await reopened.wait_content_ready()
+    fresh = reopened.query_one(CommsChatView)
+    assert fresh.kind is DmConversation
+    await until(pilot, lambda: all(
+        sum(message.reference == reference for message, _ in fresh.message_history.rows) == 1
+        for reference in (original.reference, response.reference)))
+    await until(pilot, lambda: "Responded" in str(message_feedback(fresh, original).title))
+    print("DM_COLD_REOPEN_ORIGINAL_AND_REPLY_ONCE", original.reference,
+          response.reference, flush=True)
+    await app.select_session(owner_mode)
+
+
 async def notification_feedback(
     pilot, app, comms, owner_mode, project, entered, release, hold_next
 ):
@@ -62,12 +145,18 @@ async def notification_feedback(
     await channel_target("#team").open(NavigationContext(app, owner_mode, project, user))
     await app.selected_session.wait_content_ready()
     channel = app.selected_session.query_one(CommsChatView)
-    assert channel.target == '#team' and channel.kind == 'channel'
+    assert channel.target == '#team' and channel.kind is ChannelConversation
     entered.clear()
     release.clear()
     hold_next.set()
     await channel.submit_input(input_events.UserInputSubmitted("CHANNEL_NATIVE_TRIAGE"))
     await until(pilot, entered.is_set)
+    await until(pilot, lambda: any(message.body == "CHANNEL_NATIVE_TRIAGE"
+                                  for message, _ in channel.message_history.rows))
+    originals = [message for message, _ in channel.message_history.rows
+                 if message.body == "CHANNEL_NATIVE_TRIAGE"]
+    assert len(originals) == 1
+    original = originals[0]
     await until(pilot, lambda: comms.registry.require("beta").executing)
     await refresh_comms(channel)
     await pilot.pause()
@@ -81,7 +170,7 @@ async def notification_feedback(
     await until(pilot, lambda: "No active turns" in roster.names.render().plain)
     assert "No active turns" in roster.names.render().plain, roster.names.render()
     print("CHANNEL_IDLE_STATUS_CONFIRMED", flush=True)
-    notification = channel.query_one(MessageNotifications)
+    notification = message_feedback(channel, original)
     try:
         await until(pilot, lambda: "Checked" in str(notification.title), 5)
         assert "no response" in str(notification.title).lower(), notification.title
@@ -508,29 +597,9 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 assert view._directory_watcher is original_watcher
                 print("COLD_REATTACH_CONFIRMED", flush=True)
 
-                user = comms.messaging.user_identity(str(project)).name
-                await DirectTarget("beta").open(NavigationContext(app, owner_mode, project, user))
-                await app.selected_session.wait_content_ready()
-                dm = app.selected_session.query_one(CommsChatView)
-                assert dm.target == 'beta' and dm.kind == 'dm'
-                entered.clear()
-                release.clear()
-                hold_next.set()
-                await dm.submit_input(
-                    input_events.UserInputSubmitted("DIRECT_NATIVE_MESSAGE")
+                await direct_reply_feedback(
+                    pilot, app, comms, owner_mode, project, entered, release, hold_next
                 )
-                await until(pilot, entered.is_set)
-                assert comms.registry.require("beta").executing
-                release.set()
-                await until(
-                    pilot,
-                    lambda: any(
-                        row.sender == "beta" and row.body.startswith("NATIVE_RESPONSE_")
-                        for row, _ in dm.message_history.rows
-                    ),
-                )
-                await until(pilot, lambda: not comms.registry.require("beta").executing)
-                print("DM_NATIVE_REPLY_CONFIRMED", flush=True)
 
                 await notification_feedback(
                     pilot, app, comms, owner_mode, project, entered, release, hold_next
