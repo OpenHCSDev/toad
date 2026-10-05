@@ -1,0 +1,4592 @@
+{
+  "head": "66be6fcf1831d89f4cbf280e5d73bcb159146abb",
+  "coverage": [
+    {
+      "root": "src/toad",
+      "modules": 288,
+      "unparsed": []
+    },
+    {
+      "root": "tests",
+      "modules": 397,
+      "unparsed": []
+    }
+  ],
+  "changed_modules_compiled": 16,
+  "changed_sites": [
+    {
+      "path": "src/toad/render_backend.py",
+      "declarations": [
+        {
+          "name": "RenderExecution",
+          "line": 19,
+          "bases": [
+            "ABC",
+            "Generic[ResultT]"
+          ],
+          "members": [
+            {
+              "name": "complete",
+              "line": 20
+            },
+            {
+              "name": "execute",
+              "line": 25
+            },
+            {
+              "name": "accept_result",
+              "line": 29
+            }
+          ]
+        },
+        {
+          "name": "RenderTask",
+          "line": 33,
+          "bases": [
+            "RenderExecution[ResultT]",
+            "DeclaredFamily"
+          ],
+          "members": [
+            {
+              "name": "capture_result",
+              "line": 36
+            },
+            {
+              "name": "complete_capture",
+              "line": 47
+            },
+            {
+              "name": "preparation_identity",
+              "line": 52
+            },
+            {
+              "name": "preparation_storage",
+              "line": 59
+            }
+          ]
+        },
+        {
+          "name": "ReusableRenderTask",
+          "line": 64,
+          "bases": [
+            "RenderTask[ResultT]"
+          ],
+          "members": [
+            {
+              "name": "preparation_identity",
+              "line": 65
+            },
+            {
+              "name": "preparation_storage",
+              "line": 72
+            }
+          ]
+        },
+        {
+          "name": "RendererSpawn",
+          "line": 78,
+          "bases": [
+            "ABC"
+          ],
+          "members": [
+            {
+              "name": "prepare_spawn",
+              "line": 80
+            }
+          ]
+        },
+        {
+          "name": "Renderer",
+          "line": 95,
+          "bases": [
+            "RendererSpawn"
+          ],
+          "members": [
+            {
+              "name": "__init__",
+              "line": 96
+            },
+            {
+              "name": "_submission_finished",
+              "line": 99
+            },
+            {
+              "name": "prepare",
+              "line": 104
+            },
+            {
+              "name": "warm_up",
+              "line": 113
+            },
+            {
+              "name": "submit",
+              "line": 116
+            },
+            {
+              "name": "_submit",
+              "line": 127
+            },
+            {
+              "name": "_close_submissions",
+              "line": 144
+            },
+            {
+              "name": "capture",
+              "line": 149
+            },
+            {
+              "name": "aclose",
+              "line": 153
+            }
+          ]
+        }
+      ],
+      "facts": [
+        {
+          "name": "src/toad/render_backend.py::complete",
+          "calls": [
+            "accept_result"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_backend.py::execute",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_backend.py::accept_result",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_backend.py::capture_result",
+          "calls": [
+            "RenderPreparation",
+            "accept_result",
+            "execute",
+            "store_result"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_backend.py::complete_capture",
+          "calls": [
+            "accept"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_backend.py::preparation_identity",
+          "calls": [
+            "WorkKey",
+            "object",
+            "type"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_backend.py::preparation_storage",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_backend.py::preparation_identity",
+          "calls": [
+            "identity",
+            "replace"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_backend.py::preparation_storage",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_backend.py::prepare_spawn",
+          "calls": [
+            "ensure_running"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_backend.py::__init__",
+          "calls": [
+            "set"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_backend.py::_submission_finished",
+          "calls": [
+            "cancelled",
+            "discard",
+            "exception"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_backend.py::prepare",
+          "calls": [
+            "capture"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_backend.py::warm_up",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_backend.py::submit",
+          "calls": [
+            "_submit",
+            "add",
+            "add_done_callback",
+            "cancel",
+            "create_task",
+            "shield"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_backend.py::_submit",
+          "calls": [
+            "accept_result",
+            "cancelled",
+            "capture",
+            "create_task",
+            "exception",
+            "materialize",
+            "result",
+            "to_thread",
+            "wait"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_backend.py::_close_submissions",
+          "calls": [
+            "gather",
+            "tuple"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_backend.py::capture",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_backend.py::aclose",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        }
+      ]
+    },
+    {
+      "path": "src/toad/render_processes.py",
+      "declarations": [
+        {
+          "name": "RenderProcessPool",
+          "line": 32,
+          "bases": [
+            "Renderer"
+          ],
+          "members": [
+            {
+              "name": "__init__",
+              "line": 46
+            },
+            {
+              "name": "closed",
+              "line": 61
+            },
+            {
+              "name": "_bind_loop",
+              "line": 65
+            },
+            {
+              "name": "_finished",
+              "line": 73
+            },
+            {
+              "name": "run",
+              "line": 80
+            },
+            {
+              "name": "capture",
+              "line": 103
+            },
+            {
+              "name": "aclose",
+              "line": 107
+            },
+            {
+              "name": "_join",
+              "line": 120
+            }
+          ]
+        }
+      ],
+      "facts": [
+        {
+          "name": "src/toad/render_processes.py::_initialize_worker",
+          "calls": [
+            "pop"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_processes.py::__init__",
+          "calls": [
+            "Event",
+            "ValueError",
+            "__init__",
+            "isinstance",
+            "set",
+            "super"
+          ],
+          "keys": {},
+          "type_checks": {
+            "value": 2
+          }
+        },
+        {
+          "name": "src/toad/render_processes.py::closed",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_processes.py::_bind_loop",
+          "calls": [
+            "RuntimeError",
+            "get_running_loop"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_processes.py::_finished",
+          "calls": [
+            "cancelled",
+            "discard",
+            "exception",
+            "set"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_processes.py::run",
+          "calls": [
+            "ProcessPoolExecutor",
+            "RuntimeError",
+            "_bind_loop",
+            "add",
+            "add_done_callback",
+            "clear",
+            "get_context",
+            "len",
+            "result",
+            "submit",
+            "wait",
+            "wrap_future"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_processes.py::capture",
+          "calls": [
+            "complete_capture",
+            "run"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_processes.py::aclose",
+          "calls": [
+            "_bind_loop",
+            "_close_submissions",
+            "_join",
+            "create_task",
+            "result",
+            "set",
+            "wait"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_processes.py::_join",
+          "calls": [
+            "_close_submissions",
+            "gather",
+            "to_thread",
+            "tuple"
+          ],
+          "keys": {},
+          "type_checks": {}
+        }
+      ]
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "declarations": [
+        {
+          "name": "RendererIdentity",
+          "line": 22,
+          "bases": [
+            "FieldRepresentation"
+          ],
+          "members": [
+            {
+              "name": "encode",
+              "line": 26
+            },
+            {
+              "name": "decode",
+              "line": 32
+            }
+          ]
+        },
+        {
+          "name": "RendererCapture",
+          "line": 36,
+          "bases": [
+            "FieldRepresentation"
+          ],
+          "members": [
+            {
+              "name": "encode",
+              "line": 40
+            },
+            {
+              "name": "decode",
+              "line": 44
+            },
+            {
+              "name": "capture",
+              "line": 51
+            },
+            {
+              "name": "restore",
+              "line": 55
+            }
+          ]
+        },
+        {
+          "name": "TaskCapture",
+          "line": 58,
+          "bases": [
+            "RendererCapture"
+          ],
+          "members": [
+            {
+              "name": "capture",
+              "line": 60
+            },
+            {
+              "name": "restore",
+              "line": 64
+            }
+          ]
+        },
+        {
+          "name": "ResultCapture",
+          "line": 70,
+          "bases": [
+            "RendererCapture"
+          ],
+          "members": [
+            {
+              "name": "capture",
+              "line": 72
+            },
+            {
+              "name": "restore",
+              "line": 76
+            }
+          ]
+        },
+        {
+          "name": "RenderCommandTransport",
+          "line": 83,
+          "bases": [
+            "ABC"
+          ],
+          "members": [
+            {
+              "name": "execute",
+              "line": 85
+            },
+            {
+              "name": "exchange",
+              "line": 87
+            }
+          ]
+        },
+        {
+          "name": "RenderCommand",
+          "line": 92,
+          "bases": [
+            "RenderCommandTransport",
+            "DeclaredFamily"
+          ],
+          "members": []
+        },
+        {
+          "name": "ClientCommand",
+          "line": 96,
+          "bases": [
+            "RenderCommand"
+          ],
+          "members": []
+        },
+        {
+          "name": "RequestCommand",
+          "line": 101,
+          "bases": [
+            "ClientCommand"
+          ],
+          "members": []
+        },
+        {
+          "name": "InitialRenderRequest",
+          "line": 105,
+          "bases": [
+            "RequestCommand"
+          ],
+          "members": [
+            {
+              "name": "exchange",
+              "line": 106
+            }
+          ]
+        },
+        {
+          "name": "RetainedRenderRequest",
+          "line": 113,
+          "bases": [
+            "RequestCommand"
+          ],
+          "members": [
+            {
+              "name": "exchange",
+              "line": 114
+            }
+          ]
+        },
+        {
+          "name": "SubmitRender",
+          "line": 123,
+          "bases": [
+            "InitialRenderRequest"
+          ],
+          "members": [
+            {
+              "name": "execute",
+              "line": 126
+            }
+          ]
+        },
+        {
+          "name": "PollRender",
+          "line": 130,
+          "bases": [
+            "RetainedRenderRequest"
+          ],
+          "members": [
+            {
+              "name": "execute",
+              "line": 131
+            }
+          ]
+        },
+        {
+          "name": "CancelRender",
+          "line": 135,
+          "bases": [
+            "RequestCommand"
+          ],
+          "members": [
+            {
+              "name": "execute",
+              "line": 136
+            }
+          ]
+        },
+        {
+          "name": "AcknowledgeRender",
+          "line": 141,
+          "bases": [
+            "RequestCommand"
+          ],
+          "members": [
+            {
+              "name": "execute",
+              "line": 142
+            }
+          ]
+        },
+        {
+          "name": "ReleaseRender",
+          "line": 147,
+          "bases": [
+            "ClientCommand"
+          ],
+          "members": [
+            {
+              "name": "execute",
+              "line": 148
+            }
+          ]
+        },
+        {
+          "name": "ShutdownRender",
+          "line": 153,
+          "bases": [
+            "RenderCommand"
+          ],
+          "members": [
+            {
+              "name": "execute",
+              "line": 154
+            }
+          ]
+        },
+        {
+          "name": "RenderReplyProgression",
+          "line": 158,
+          "bases": [
+            "ABC"
+          ],
+          "members": [
+            {
+              "name": "request_identity",
+              "line": 159
+            },
+            {
+              "name": "advance",
+              "line": 163
+            }
+          ]
+        },
+        {
+          "name": "RenderReply",
+          "line": 168,
+          "bases": [
+            "RenderReplyProgression",
+            "DeclaredFamily"
+          ],
+          "members": []
+        },
+        {
+          "name": "RequestReply",
+          "line": 172,
+          "bases": [
+            "RenderReply"
+          ],
+          "members": [
+            {
+              "name": "request_identity",
+              "line": 175
+            }
+          ]
+        },
+        {
+          "name": "AcceptedReply",
+          "line": 180,
+          "bases": [
+            "RequestReply"
+          ],
+          "members": [
+            {
+              "name": "advance",
+              "line": 181
+            }
+          ]
+        },
+        {
+          "name": "BusyReply",
+          "line": 186,
+          "bases": [
+            "RequestReply"
+          ],
+          "members": [
+            {
+              "name": "advance",
+              "line": 187
+            }
+          ]
+        },
+        {
+          "name": "PendingReply",
+          "line": 193,
+          "bases": [
+            "RequestReply"
+          ],
+          "members": [
+            {
+              "name": "advance",
+              "line": 194
+            }
+          ]
+        },
+        {
+          "name": "CompleteReply",
+          "line": 200,
+          "bases": [
+            "RequestReply"
+          ],
+          "members": [
+            {
+              "name": "advance",
+              "line": 203
+            }
+          ]
+        },
+        {
+          "name": "CancelledReply",
+          "line": 210,
+          "bases": [
+            "RequestReply"
+          ],
+          "members": [
+            {
+              "name": "advance",
+              "line": 211
+            }
+          ]
+        },
+        {
+          "name": "FailedReply",
+          "line": 217,
+          "bases": [
+            "RequestReply"
+          ],
+          "members": [
+            {
+              "name": "advance",
+              "line": 220
+            }
+          ]
+        },
+        {
+          "name": "RejectedReply",
+          "line": 226,
+          "bases": [
+            "FailedReply"
+          ],
+          "members": [
+            {
+              "name": "advance",
+              "line": 227
+            }
+          ]
+        },
+        {
+          "name": "UnknownReply",
+          "line": 232,
+          "bases": [
+            "RequestReply"
+          ],
+          "members": [
+            {
+              "name": "advance",
+              "line": 233
+            }
+          ]
+        },
+        {
+          "name": "AcknowledgedReply",
+          "line": 238,
+          "bases": [
+            "RenderReply"
+          ],
+          "members": [
+            {
+              "name": "request_identity",
+              "line": 241
+            },
+            {
+              "name": "advance",
+              "line": 244
+            }
+          ]
+        }
+      ],
+      "facts": [
+        {
+          "name": "src/toad/render_protocol.py::encode",
+          "calls": [
+            "TypeError",
+            "isinstance"
+          ],
+          "keys": {},
+          "type_checks": {
+            "value": 1
+          }
+        },
+        {
+          "name": "src/toad/render_protocol.py::decode",
+          "calls": [
+            "encode"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::encode",
+          "calls": [
+            "capture",
+            "dumps"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::decode",
+          "calls": [
+            "ValueError",
+            "isinstance",
+            "loads",
+            "restore"
+          ],
+          "keys": {},
+          "type_checks": {
+            "value": 1
+          }
+        },
+        {
+          "name": "src/toad/render_protocol.py::capture",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::restore",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::capture",
+          "calls": [
+            "restore"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::restore",
+          "calls": [
+            "TypeError",
+            "members_with",
+            "type"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::capture",
+          "calls": [
+            "restore"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::restore",
+          "calls": [
+            "accept"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::execute",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::exchange",
+          "calls": [
+            "_exchange"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::exchange",
+          "calls": [
+            "exchange",
+            "super"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::exchange",
+          "calls": [
+            "CancelRender",
+            "_exchange",
+            "exchange",
+            "super"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::execute",
+          "calls": [
+            "submit"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::execute",
+          "calls": [
+            "poll"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::execute",
+          "calls": [
+            "cancel"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::execute",
+          "calls": [
+            "acknowledge"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::execute",
+          "calls": [
+            "release"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::execute",
+          "calls": [
+            "shutdown"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::request_identity",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::advance",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::request_identity",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::advance",
+          "calls": [
+            "PollRender"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::advance",
+          "calls": [
+            "SubmitRender",
+            "sleep"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::advance",
+          "calls": [
+            "PollRender",
+            "sleep"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::advance",
+          "calls": [
+            "acknowledge",
+            "set_result"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::advance",
+          "calls": [
+            "acknowledge"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::advance",
+          "calls": [
+            "RuntimeError",
+            "acknowledge"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::advance",
+          "calls": [
+            "RuntimeError"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::advance",
+          "calls": [
+            "RuntimeError"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::request_identity",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_protocol.py::advance",
+          "calls": [
+            "RuntimeError"
+          ],
+          "keys": {},
+          "type_checks": {}
+        }
+      ]
+    },
+    {
+      "path": "src/toad/render_runtime.py",
+      "declarations": [
+        {
+          "name": "PersistentRenderClient",
+          "line": 23,
+          "bases": [
+            "Renderer"
+          ],
+          "members": [
+            {
+              "name": "__init__",
+              "line": 31
+            },
+            {
+              "name": "resolved_pool",
+              "line": 41
+            },
+            {
+              "name": "_bind_loop",
+              "line": 48
+            },
+            {
+              "name": "_initialize",
+              "line": 55
+            },
+            {
+              "name": "_get_pool",
+              "line": 59
+            },
+            {
+              "name": "_retire",
+              "line": 83
+            },
+            {
+              "name": "capture",
+              "line": 89
+            },
+            {
+              "name": "warm_up",
+              "line": 97
+            },
+            {
+              "name": "aclose",
+              "line": 114
+            },
+            {
+              "name": "_close",
+              "line": 123
+            }
+          ]
+        }
+      ],
+      "facts": [
+        {
+          "name": "src/toad/render_runtime.py::_observe",
+          "calls": [
+            "cancelled",
+            "exception"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_runtime.py::__init__",
+          "calls": [
+            "RenderServiceConfig",
+            "__init__",
+            "super"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_runtime.py::resolved_pool",
+          "calls": [
+            "cancelled",
+            "done",
+            "exception",
+            "result"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_runtime.py::_bind_loop",
+          "calls": [
+            "RuntimeError",
+            "get_running_loop"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_runtime.py::_initialize",
+          "calls": [
+            "PersistentRendererPool",
+            "to_thread"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_runtime.py::_get_pool",
+          "calls": [
+            "RuntimeError",
+            "_bind_loop",
+            "_initialize",
+            "add_done_callback",
+            "create_task",
+            "result",
+            "wait"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_runtime.py::_retire",
+          "calls": [
+            "aclose",
+            "add_done_callback",
+            "create_task"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_runtime.py::capture",
+          "calls": [
+            "_get_pool",
+            "_retire",
+            "capture"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_runtime.py::warm_up",
+          "calls": [
+            "MarkdownRenderTask",
+            "PatchRenderTask",
+            "gather",
+            "prepare"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_runtime.py::aclose",
+          "calls": [
+            "_bind_loop",
+            "_close",
+            "add_done_callback",
+            "create_task",
+            "result",
+            "wait"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_runtime.py::_close",
+          "calls": [
+            "_close_submissions",
+            "aclose",
+            "cancelled",
+            "exception",
+            "result",
+            "wait"
+          ],
+          "keys": {},
+          "type_checks": {}
+        }
+      ]
+    },
+    {
+      "path": "src/toad/render_service.py",
+      "declarations": [
+        {
+          "name": "RenderServiceConfig",
+          "line": 34,
+          "bases": [],
+          "members": [
+            {
+              "name": "__post_init__",
+              "line": 39
+            }
+          ]
+        },
+        {
+          "name": "PendingRender",
+          "line": 57,
+          "bases": [],
+          "members": []
+        },
+        {
+          "name": "RenderService",
+          "line": 64,
+          "bases": [],
+          "members": [
+            {
+              "name": "__init__",
+              "line": 72
+            },
+            {
+              "name": "pending_count",
+              "line": 83
+            },
+            {
+              "name": "reap",
+              "line": 86
+            },
+            {
+              "name": "_touch",
+              "line": 96
+            },
+            {
+              "name": "_abandon",
+              "line": 99
+            },
+            {
+              "name": "_owned",
+              "line": 106
+            },
+            {
+              "name": "submit",
+              "line": 111
+            },
+            {
+              "name": "poll",
+              "line": 129
+            },
+            {
+              "name": "cancel",
+              "line": 143
+            },
+            {
+              "name": "acknowledge",
+              "line": 151
+            },
+            {
+              "name": "release",
+              "line": 159
+            },
+            {
+              "name": "shutdown",
+              "line": 164
+            },
+            {
+              "name": "close",
+              "line": 168
+            }
+          ]
+        }
+      ],
+      "facts": [
+        {
+          "name": "src/toad/render_service.py::_initialize_render_worker",
+          "calls": [
+            "RuntimeError",
+            "_initialize_worker",
+            "current"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_service.py::__post_init__",
+          "calls": [
+            "ValueError",
+            "any",
+            "isfinite",
+            "isinstance",
+            "type"
+          ],
+          "keys": {},
+          "type_checks": {
+            "self.client_lease_seconds": 1
+          }
+        },
+        {
+          "name": "src/toad/render_service.py::__init__",
+          "calls": [
+            "ProcessPoolExecutor",
+            "get_context"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_service.py::pending_count",
+          "calls": [
+            "len"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_service.py::reap",
+          "calls": [
+            "_abandon",
+            "done",
+            "items",
+            "monotonic",
+            "pop",
+            "tuple"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_service.py::_touch",
+          "calls": [
+            "monotonic"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_service.py::_abandon",
+          "calls": [
+            "cancel",
+            "pop",
+            "values"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_service.py::_owned",
+          "calls": [
+            "_touch",
+            "get"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_service.py::submit",
+          "calls": [
+            "AcceptedReply",
+            "BusyReply",
+            "PendingRender",
+            "RejectedReply",
+            "UnknownReply",
+            "_touch",
+            "get",
+            "len",
+            "reap",
+            "submit"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_service.py::poll",
+          "calls": [
+            "CancelledReply",
+            "CompleteReply",
+            "FailedReply",
+            "PendingReply",
+            "UnknownReply",
+            "_owned",
+            "cancelled",
+            "done",
+            "result",
+            "type"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_service.py::cancel",
+          "calls": [
+            "AcknowledgedReply",
+            "UnknownReply",
+            "_owned",
+            "cancel"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_service.py::acknowledge",
+          "calls": [
+            "AcknowledgedReply",
+            "PendingReply",
+            "_owned",
+            "done",
+            "pop"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_service.py::release",
+          "calls": [
+            "AcknowledgedReply",
+            "_abandon",
+            "reap"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_service.py::shutdown",
+          "calls": [
+            "AcknowledgedReply"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_service.py::close",
+          "calls": [
+            "clear",
+            "shutdown"
+          ],
+          "keys": {},
+          "type_checks": {}
+        }
+      ]
+    },
+    {
+      "path": "src/toad/render_zmq.py",
+      "declarations": [
+        {
+          "name": "RendererEndpoint",
+          "line": 55,
+          "bases": [],
+          "members": [
+            {
+              "name": "__post_init__",
+              "line": 60
+            },
+            {
+              "name": "prepare_directory",
+              "line": 64
+            },
+            {
+              "name": "for_runtime",
+              "line": 73
+            },
+            {
+              "name": "application",
+              "line": 79
+            },
+            {
+              "name": "config",
+              "line": 83
+            }
+          ]
+        },
+        {
+          "name": "RendererServer",
+          "line": 88,
+          "bases": [
+            "ZMQServer"
+          ],
+          "members": [
+            {
+              "name": "__init__",
+              "line": 91
+            },
+            {
+              "name": "_create_pong_response",
+              "line": 99
+            },
+            {
+              "name": "process_messages",
+              "line": 104
+            },
+            {
+              "name": "handle_control_message",
+              "line": 108
+            },
+            {
+              "name": "handle_data_message",
+              "line": 117
+            }
+          ]
+        },
+        {
+          "name": "RendererTransport",
+          "line": 121,
+          "bases": [
+            "ExecutionClient[RenderCommand, None]"
+          ],
+          "members": [
+            {
+              "name": "serialize_task",
+              "line": 122
+            },
+            {
+              "name": "send_data",
+              "line": 125
+            }
+          ]
+        },
+        {
+          "name": "RendererClient",
+          "line": 132,
+          "bases": [
+            "RendererTransport"
+          ],
+          "members": [
+            {
+              "name": "__init__",
+              "line": 133
+            },
+            {
+              "name": "_spawn_server_process",
+              "line": 139
+            },
+            {
+              "name": "require_identity",
+              "line": 153
+            }
+          ]
+        },
+        {
+          "name": "RendererConnection",
+          "line": 160,
+          "bases": [],
+          "members": [
+            {
+              "name": "__init__",
+              "line": 163
+            },
+            {
+              "name": "exchange",
+              "line": 167
+            },
+            {
+              "name": "release",
+              "line": 184
+            },
+            {
+              "name": "close",
+              "line": 193
+            }
+          ]
+        },
+        {
+          "name": "RenderCancellation",
+          "line": 200,
+          "bases": [],
+          "members": []
+        },
+        {
+          "name": "RenderSubmission",
+          "line": 206,
+          "bases": [
+            "RenderCancellation",
+            "Generic[ResultT]"
+          ],
+          "members": []
+        },
+        {
+          "name": "RendererSessionFailed",
+          "line": 211,
+          "bases": [
+            "RuntimeError"
+          ],
+          "members": []
+        },
+        {
+          "name": "PersistentRendererPool",
+          "line": 215,
+          "bases": [
+            "Renderer"
+          ],
+          "members": [
+            {
+              "name": "__init__",
+              "line": 218
+            },
+            {
+              "name": "_bind_loop",
+              "line": 237
+            },
+            {
+              "name": "_exchange",
+              "line": 245
+            },
+            {
+              "name": "_finished",
+              "line": 258
+            },
+            {
+              "name": "capture",
+              "line": 264
+            },
+            {
+              "name": "_run",
+              "line": 286
+            },
+            {
+              "name": "acknowledge",
+              "line": 293
+            },
+            {
+              "name": "aclose",
+              "line": 298
+            },
+            {
+              "name": "_close",
+              "line": 307
+            },
+            {
+              "name": "shutdown_service",
+              "line": 317
+            }
+          ]
+        }
+      ],
+      "facts": [
+        {
+          "name": "src/toad/render_zmq.py::__post_init__",
+          "calls": [
+            "ValueError",
+            "is_absolute"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_zmq.py::prepare_directory",
+          "calls": [
+            "PermissionError",
+            "S_IMODE",
+            "S_ISDIR",
+            "getuid",
+            "lstat",
+            "mkdir"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_zmq.py::for_runtime",
+          "calls": [
+            "cls",
+            "current"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_zmq.py::application",
+          "calls": [
+            "EndpointApplication"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_zmq.py::config",
+          "calls": [
+            "ZMQConfig",
+            "str"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_zmq.py::__init__",
+          "calls": [
+            "RenderService",
+            "RuntimeError",
+            "__init__",
+            "current",
+            "prepare_directory",
+            "super"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_zmq.py::_create_pong_response",
+          "calls": [
+            "_create_pong_response",
+            "frozenset",
+            "replace",
+            "super"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_zmq.py::process_messages",
+          "calls": [
+            "process_messages",
+            "reap",
+            "super"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_zmq.py::handle_control_message",
+          "calls": [
+            "decode",
+            "encode",
+            "execute",
+            "getpid",
+            "isinstance",
+            "replace",
+            "request_shutdown"
+          ],
+          "keys": {},
+          "type_checks": {
+            "command": 1
+          }
+        },
+        {
+          "name": "src/toad/render_zmq.py::handle_data_message",
+          "calls": [
+            "TypeError"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_zmq.py::serialize_task",
+          "calls": [
+            "encode"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_zmq.py::send_data",
+          "calls": [
+            "_send_control_request",
+            "decode",
+            "serialize_task"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_zmq.py::__init__",
+          "calls": [
+            "__init__",
+            "super"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_zmq.py::_spawn_server_process",
+          "calls": [
+            "Popen",
+            "dict",
+            "pop",
+            "str"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_zmq.py::require_identity",
+          "calls": [
+            "RuntimeError",
+            "compatibility_with",
+            "require_match"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_zmq.py::__init__",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_zmq.py::exchange",
+          "calls": [
+            "RendererClient",
+            "RuntimeError",
+            "connect",
+            "disconnect",
+            "isinstance",
+            "prepare_directory",
+            "request_identity",
+            "require_identity",
+            "send_data"
+          ],
+          "keys": {},
+          "type_checks": {
+            "command": 1
+          }
+        },
+        {
+          "name": "src/toad/render_zmq.py::release",
+          "calls": [
+            "ReleaseRender",
+            "send_data"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_zmq.py::close",
+          "calls": [
+            "disconnect"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_zmq.py::__init__",
+          "calls": [
+            "Event",
+            "RenderServiceConfig",
+            "RendererConnection",
+            "ThreadPoolExecutor",
+            "ValueError",
+            "__init__",
+            "isfinite",
+            "isinstance",
+            "set",
+            "super",
+            "uuid4"
+          ],
+          "keys": {},
+          "type_checks": {
+            "poll_interval": 1
+          }
+        },
+        {
+          "name": "src/toad/render_zmq.py::_bind_loop",
+          "calls": [
+            "RuntimeError",
+            "get_running_loop"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_zmq.py::_exchange",
+          "calls": [
+            "RendererSessionFailed",
+            "_bind_loop",
+            "run_in_executor",
+            "set"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_zmq.py::_finished",
+          "calls": [
+            "cancelled",
+            "discard",
+            "exception",
+            "set"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_zmq.py::capture",
+          "calls": [
+            "RenderSubmission",
+            "RendererSessionFailed",
+            "RuntimeError",
+            "_bind_loop",
+            "_run",
+            "add",
+            "add_done_callback",
+            "capture",
+            "cast",
+            "clear",
+            "complete_capture",
+            "create_future",
+            "create_task",
+            "len",
+            "uuid4",
+            "wait"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_zmq.py::_run",
+          "calls": [
+            "SubmitRender",
+            "advance",
+            "exchange",
+            "result"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_zmq.py::acknowledge",
+          "calls": [
+            "AcknowledgeRender",
+            "_exchange"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_zmq.py::aclose",
+          "calls": [
+            "_bind_loop",
+            "_close",
+            "create_task",
+            "result",
+            "set",
+            "wait"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_zmq.py::_close",
+          "calls": [
+            "_bind_loop",
+            "_close_submissions",
+            "gather",
+            "run_in_executor",
+            "to_thread",
+            "tuple"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/render_zmq.py::shutdown_service",
+          "calls": [
+            "to_thread"
+          ],
+          "keys": {},
+          "type_checks": {}
+        }
+      ]
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "declarations": [
+        {
+          "name": "WorkLane",
+          "line": 26,
+          "bases": [
+            "Enum"
+          ],
+          "members": []
+        },
+        {
+          "name": "PreparationScope",
+          "line": 31,
+          "bases": [],
+          "members": [
+            {
+              "name": "__init__",
+              "line": 34
+            }
+          ]
+        },
+        {
+          "name": "WorkKey",
+          "line": 39,
+          "bases": [],
+          "members": []
+        },
+        {
+          "name": "PreparedValue",
+          "line": 45,
+          "bases": [
+            "ABC",
+            "Generic[ResultT]"
+          ],
+          "members": [
+            {
+              "name": "accept",
+              "line": 53
+            },
+            {
+              "name": "materialize",
+              "line": 60
+            }
+          ]
+        },
+        {
+          "name": "CopiedValue",
+          "line": 65,
+          "bases": [
+            "PreparedValue[ResultT]"
+          ],
+          "members": [
+            {
+              "name": "materialize",
+              "line": 69
+            }
+          ]
+        },
+        {
+          "name": "SerializedValue",
+          "line": 74,
+          "bases": [
+            "PreparedValue[ResultT]"
+          ],
+          "members": [
+            {
+              "name": "size",
+              "line": 78
+            },
+            {
+              "name": "materialize",
+              "line": 81
+            }
+          ]
+        },
+        {
+          "name": "PreparationWork",
+          "line": 91,
+          "bases": [
+            "ABC",
+            "Generic[ResultT]"
+          ],
+          "members": [
+            {
+              "name": "result_size",
+              "line": 96
+            },
+            {
+              "name": "store_result",
+              "line": 99
+            },
+            {
+              "name": "finish_result",
+              "line": 102
+            },
+            {
+              "name": "finish_prepared",
+              "line": 111
+            },
+            {
+              "name": "lane",
+              "line": 121
+            },
+            {
+              "name": "identity",
+              "line": 125
+            },
+            {
+              "name": "execute",
+              "line": 129
+            }
+          ]
+        },
+        {
+          "name": "ReusableWork",
+          "line": 135,
+          "bases": [
+            "PreparationWork[ResultT]"
+          ],
+          "members": []
+        },
+        {
+          "name": "SerializedWork",
+          "line": 141,
+          "bases": [
+            "ReusableWork[ResultT]"
+          ],
+          "members": [
+            {
+              "name": "store_result",
+              "line": 144
+            }
+          ]
+        },
+        {
+          "name": "ContentAddressedWork",
+          "line": 148,
+          "bases": [
+            "PreparationWork[ResultT]"
+          ],
+          "members": [
+            {
+              "name": "inputs",
+              "line": 151
+            },
+            {
+              "name": "identity",
+              "line": 154
+            }
+          ]
+        },
+        {
+          "name": "ScopedWork",
+          "line": 159,
+          "bases": [
+            "PreparationWork[ResultT]"
+          ],
+          "members": [
+            {
+              "name": "work_key",
+              "line": 162
+            },
+            {
+              "name": "identity",
+              "line": 165
+            }
+          ]
+        },
+        {
+          "name": "ThreadWork",
+          "line": 169,
+          "bases": [
+            "PreparationWork[ResultT]"
+          ],
+          "members": [
+            {
+              "name": "prepare",
+              "line": 173
+            },
+            {
+              "name": "execute",
+              "line": 176
+            }
+          ]
+        },
+        {
+          "name": "RendererWork",
+          "line": 182,
+          "bases": [
+            "PreparationWork[ResultT]"
+          ],
+          "members": [
+            {
+              "name": "render_task",
+              "line": 187
+            },
+            {
+              "name": "execute",
+              "line": 190
+            }
+          ]
+        },
+        {
+          "name": "RenderPreparation",
+          "line": 198,
+          "bases": [
+            "ContentAddressedWork[ResultT]",
+            "RendererWork[ResultT]"
+          ],
+          "members": [
+            {
+              "name": "identity",
+              "line": 202
+            },
+            {
+              "name": "inputs",
+              "line": 206
+            },
+            {
+              "name": "render_task",
+              "line": 210
+            },
+            {
+              "name": "retain_result",
+              "line": 214
+            },
+            {
+              "name": "store_result",
+              "line": 217
+            }
+          ]
+        },
+        {
+          "name": "PreparationRuntime",
+          "line": 251,
+          "bases": [],
+          "members": [
+            {
+              "name": "__init__",
+              "line": 260
+            },
+            {
+              "name": "run_thread",
+              "line": 278
+            },
+            {
+              "name": "discard_scope",
+              "line": 297
+            },
+            {
+              "name": "submit",
+              "line": 305
+            },
+            {
+              "name": "prepare",
+              "line": 309
+            },
+            {
+              "name": "_prepare",
+              "line": 313
+            },
+            {
+              "name": "_deliver",
+              "line": 351
+            },
+            {
+              "name": "_execute",
+              "line": 360
+            },
+            {
+              "name": "aclose",
+              "line": 372
+            },
+            {
+              "name": "_close",
+              "line": 379
+            }
+          ]
+        },
+        {
+          "name": "PreparedRenderer",
+          "line": 389,
+          "bases": [
+            "Renderer"
+          ],
+          "members": [
+            {
+              "name": "__init__",
+              "line": 392
+            },
+            {
+              "name": "submit",
+              "line": 396
+            },
+            {
+              "name": "capture",
+              "line": 399
+            },
+            {
+              "name": "prepare",
+              "line": 403
+            },
+            {
+              "name": "warm_up",
+              "line": 406
+            },
+            {
+              "name": "aclose",
+              "line": 409
+            }
+          ]
+        }
+      ],
+      "facts": [
+        {
+          "name": "src/toad/work_preparation.py::serialize_result",
+          "calls": [
+            "SerializedValue",
+            "dumps"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::retained_bytes",
+          "calls": [
+            "add",
+            "append",
+            "extend",
+            "fields",
+            "get",
+            "getattr",
+            "getsizeof",
+            "hasattr",
+            "id",
+            "is_dataclass",
+            "isinstance",
+            "keys",
+            "pop",
+            "set",
+            "type",
+            "values",
+            "vars"
+          ],
+          "keys": {
+            "base.__dict__": [
+              "__slots__"
+            ]
+          },
+          "type_checks": {
+            "item": 4,
+            "slots": 1
+          }
+        },
+        {
+          "name": "src/toad/work_preparation.py::__init__",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::accept",
+          "calls": [
+            "TypeError",
+            "isinstance"
+          ],
+          "keys": {},
+          "type_checks": {
+            "value": 1
+          }
+        },
+        {
+          "name": "src/toad/work_preparation.py::materialize",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::materialize",
+          "calls": [
+            "deepcopy"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::size",
+          "calls": [
+            "getsizeof"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::materialize",
+          "calls": [
+            "loads"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::result_size",
+          "calls": [
+            "retained_bytes"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::store_result",
+          "calls": [
+            "CopiedValue",
+            "result_size"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::finish_result",
+          "calls": [
+            "finish_prepared",
+            "store_result"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::finish_prepared",
+          "calls": [
+            "getsizeof",
+            "retained_bytes"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::lane",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::identity",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::execute",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::store_result",
+          "calls": [
+            "serialize_result"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::inputs",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::identity",
+          "calls": [
+            "WorkKey",
+            "digest",
+            "dumps",
+            "run_thread",
+            "sha256",
+            "type"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::work_key",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::identity",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::prepare",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::execute",
+          "calls": [
+            "finish_result",
+            "prepare",
+            "run_thread"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::render_task",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::execute",
+          "calls": [
+            "capture",
+            "run_thread"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::identity",
+          "calls": [
+            "preparation_identity"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::inputs",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::render_task",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::retain_result",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::store_result",
+          "calls": [
+            "store_result"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::__init__",
+          "calls": [
+            "Event",
+            "OrderedDict",
+            "Semaphore",
+            "ValueError",
+            "fromkeys",
+            "isinstance",
+            "set"
+          ],
+          "keys": {},
+          "type_checks": {
+            "value": 2
+          }
+        },
+        {
+          "name": "src/toad/work_preparation.py::run_thread",
+          "calls": [
+            "acquire",
+            "add",
+            "add_done_callback",
+            "cancelled",
+            "create_task",
+            "discard",
+            "exception",
+            "release",
+            "shield",
+            "to_thread"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::discard_scope",
+          "calls": [
+            "pop",
+            "set",
+            "tuple"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::submit",
+          "calls": [
+            "_deliver",
+            "_prepare",
+            "cast"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::prepare",
+          "calls": [
+            "_prepare"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::_prepare",
+          "calls": [
+            "_execute",
+            "add_done_callback",
+            "cancelled",
+            "clear",
+            "create_task",
+            "exception",
+            "get",
+            "identity",
+            "move_to_end",
+            "pop",
+            "set",
+            "shield",
+            "type",
+            "wait"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::_deliver",
+          "calls": [
+            "run_thread"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::_execute",
+          "calls": [
+            "execute",
+            "len",
+            "popitem"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::aclose",
+          "calls": [
+            "_close",
+            "create_task",
+            "set",
+            "shield"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::_close",
+          "calls": [
+            "aclose",
+            "clear",
+            "gather",
+            "tuple",
+            "values"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::__init__",
+          "calls": [
+            "__init__",
+            "super"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::submit",
+          "calls": [
+            "RenderPreparation",
+            "submit"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::capture",
+          "calls": [
+            "RenderPreparation",
+            "_prepare"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::prepare",
+          "calls": [
+            "RenderPreparation",
+            "prepare"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::warm_up",
+          "calls": [
+            "warm_up"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::aclose",
+          "calls": [
+            "_close_submissions",
+            "aclose"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::finished",
+          "calls": [
+            "cancelled",
+            "discard",
+            "exception",
+            "release"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "src/toad/work_preparation.py::finished",
+          "calls": [
+            "cancelled",
+            "exception",
+            "pop",
+            "set"
+          ],
+          "keys": {},
+          "type_checks": {}
+        }
+      ]
+    },
+    {
+      "path": "tests/markdown_process_lifecycle_pilot.py",
+      "declarations": [
+        {
+          "name": "ControlledPool",
+          "line": 17,
+          "bases": [
+            "Renderer"
+          ],
+          "members": [
+            {
+              "name": "__init__",
+              "line": 18
+            },
+            {
+              "name": "run",
+              "line": 23
+            },
+            {
+              "name": "capture",
+              "line": 29
+            },
+            {
+              "name": "complete",
+              "line": 34
+            },
+            {
+              "name": "aclose",
+              "line": 38
+            }
+          ]
+        }
+      ],
+      "facts": [
+        {
+          "name": "tests/markdown_process_lifecycle_pilot.py::wait_requests",
+          "calls": [
+            "len",
+            "sleep",
+            "timeout"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/markdown_process_lifecycle_pilot.py::update",
+          "calls": [
+            "update"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/markdown_process_lifecycle_pilot.py::append",
+          "calls": [
+            "append"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/markdown_process_lifecycle_pilot.py::main",
+          "calls": [
+            "AgentResponse",
+            "ControlledPool",
+            "Path",
+            "TemporaryDirectory",
+            "ToadApp",
+            "aclosing",
+            "append",
+            "complete",
+            "create_task",
+            "gather",
+            "isinstance",
+            "object",
+            "pause",
+            "post",
+            "print",
+            "query",
+            "query_one",
+            "remove",
+            "run_test",
+            "sleep",
+            "str",
+            "update",
+            "wait_for",
+            "wait_requests"
+          ],
+          "keys": {},
+          "type_checks": {
+            "outcome[0]": 1
+          }
+        },
+        {
+          "name": "tests/markdown_process_lifecycle_pilot.py::__init__",
+          "calls": [
+            "__init__",
+            "super"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/markdown_process_lifecycle_pilot.py::run",
+          "calls": [
+            "append",
+            "create_future",
+            "get_running_loop",
+            "result",
+            "wait"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/markdown_process_lifecycle_pilot.py::capture",
+          "calls": [
+            "capture",
+            "complete_capture",
+            "isinstance",
+            "run"
+          ],
+          "keys": {},
+          "type_checks": {
+            "task": 1
+          }
+        },
+        {
+          "name": "tests/markdown_process_lifecycle_pilot.py::complete",
+          "calls": [
+            "function",
+            "set_result"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/markdown_process_lifecycle_pilot.py::aclose",
+          "calls": [
+            "_close_submissions",
+            "cancel",
+            "done"
+          ],
+          "keys": {},
+          "type_checks": {}
+        }
+      ]
+    },
+    {
+      "path": "tests/render_families_pilot.py",
+      "declarations": [
+        {
+          "name": "CountRenderTask",
+          "line": 46,
+          "bases": [
+            "RenderTask[int]"
+          ],
+          "members": [
+            {
+              "name": "execute",
+              "line": 49
+            },
+            {
+              "name": "accept_result",
+              "line": 52
+            }
+          ]
+        },
+        {
+          "name": "ReactionClient",
+          "line": 58,
+          "bases": [],
+          "members": [
+            {
+              "name": "__init__",
+              "line": 59
+            },
+            {
+              "name": "acknowledge",
+              "line": 65
+            }
+          ]
+        },
+        {
+          "name": "RenderingFamilyTests",
+          "line": 69,
+          "bases": [
+            "unittest.IsolatedAsyncioTestCase"
+          ],
+          "members": [
+            {
+              "name": "test_prepared_markdown_survives_reply_with_independent_consumers",
+              "line": 70
+            },
+            {
+              "name": "test_captured_task_loads_its_declaring_module",
+              "line": 84
+            },
+            {
+              "name": "test_commands_and_replies_round_trip",
+              "line": 103
+            },
+            {
+              "name": "test_each_reply_owns_its_transition_and_new_member",
+              "line": 133
+            },
+            {
+              "name": "test_category_capabilities_and_new_member",
+              "line": 182
+            },
+            {
+              "name": "test_real_service_new_task_retention_isolation_and_release",
+              "line": 204
+            }
+          ]
+        },
+        {
+          "name": "QueuedReply",
+          "line": 134,
+          "bases": [
+            "PendingReply"
+          ],
+          "members": []
+        },
+        {
+          "name": "ReasoningCategory",
+          "line": 183,
+          "bases": [
+            "AgentWork",
+            "MessageCategory"
+          ],
+          "members": []
+        }
+      ],
+      "facts": [
+        {
+          "name": "tests/render_families_pilot.py::execute",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/render_families_pilot.py::accept_result",
+          "calls": [
+            "TypeError",
+            "type"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/render_families_pilot.py::__init__",
+          "calls": [
+            "uuid4"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/render_families_pilot.py::acknowledge",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/render_families_pilot.py::test_prepared_markdown_survives_reply_with_independent_consumers",
+          "calls": [
+            "CompleteReply",
+            "MarkdownRenderTask",
+            "accept_result",
+            "assertEqual",
+            "assertIsInstance",
+            "assertIsNot",
+            "assertNotEqual",
+            "capture_result",
+            "decode",
+            "encode",
+            "materialize",
+            "uuid4"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/render_families_pilot.py::test_captured_task_loads_its_declaring_module",
+          "calls": [
+            "PatchRenderTask",
+            "SubmitRender",
+            "assertEqual",
+            "decode",
+            "dumps",
+            "encode",
+            "run",
+            "uuid4"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/render_families_pilot.py::test_commands_and_replies_round_trip",
+          "calls": [
+            "CountRenderTask",
+            "PatchRenderTask",
+            "SubmitRender",
+            "assertEqual",
+            "assertRaises",
+            "decode",
+            "dict",
+            "encode",
+            "execute",
+            "fields",
+            "member",
+            "members_with",
+            "serialize_result",
+            "uuid4"
+          ],
+          "keys": {
+            "samples": [
+              "client_id",
+              "request_id"
+            ]
+          },
+          "type_checks": {}
+        },
+        {
+          "name": "tests/render_families_pilot.py::test_each_reply_owns_its_transition_and_new_member",
+          "calls": [
+            "CountRenderTask",
+            "ReactionClient",
+            "RenderSubmission",
+            "advance",
+            "assertEqual",
+            "assertIs",
+            "assertIsInstance",
+            "assertIsNone",
+            "assertRaises",
+            "create_future",
+            "decode",
+            "dict",
+            "fields",
+            "get_running_loop",
+            "int",
+            "issubclass",
+            "materialize",
+            "member",
+            "members_with",
+            "result",
+            "serialize_result",
+            "subTest",
+            "uuid4"
+          ],
+          "keys": {
+            "samples": [
+              "request_id"
+            ]
+          },
+          "type_checks": {}
+        },
+        {
+          "name": "tests/render_families_pilot.py::test_category_capabilities_and_new_member",
+          "calls": [
+            "AgentActivityBoundary",
+            "all_categories",
+            "assertFalse",
+            "assertIn",
+            "assertIs",
+            "assertTrue",
+            "decode",
+            "issubclass",
+            "members_with",
+            "observe"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/render_families_pilot.py::test_real_service_new_task_retention_isolation_and_release",
+          "calls": [
+            "AcknowledgeRender",
+            "CountRenderTask",
+            "PollRender",
+            "RenderService",
+            "RenderServiceConfig",
+            "SubmitRender",
+            "assertEqual",
+            "assertIsInstance",
+            "close",
+            "execute",
+            "isinstance",
+            "materialize",
+            "sleep",
+            "timeout",
+            "uuid4"
+          ],
+          "keys": {},
+          "type_checks": {
+            "reply": 1
+          }
+        }
+      ]
+    },
+    {
+      "path": "tests/render_runtime_pilot.py",
+      "declarations": [
+        {
+          "name": "ControlledPool",
+          "line": 20,
+          "bases": [
+            "PersistentRendererPool"
+          ],
+          "members": [
+            {
+              "name": "__init__",
+              "line": 21
+            },
+            {
+              "name": "capture",
+              "line": 27
+            },
+            {
+              "name": "aclose",
+              "line": 33
+            }
+          ]
+        },
+        {
+          "name": "HeldValue",
+          "line": 38,
+          "bases": [
+            "PreparedValue"
+          ],
+          "members": [
+            {
+              "name": "__init__",
+              "line": 41
+            },
+            {
+              "name": "materialize",
+              "line": 44
+            }
+          ]
+        },
+        {
+          "name": "DeliveryPool",
+          "line": 51,
+          "bases": [
+            "ControlledPool"
+          ],
+          "members": [
+            {
+              "name": "__init__",
+              "line": 52
+            },
+            {
+              "name": "capture",
+              "line": 56
+            }
+          ]
+        },
+        {
+          "name": "ValidationObservedPatchRenderTask",
+          "line": 60,
+          "bases": [
+            "PatchRenderTask"
+          ],
+          "members": [
+            {
+              "name": "accept_result",
+              "line": 63
+            }
+          ]
+        },
+        {
+          "name": "RuntimeTests",
+          "line": 68,
+          "bases": [
+            "unittest.IsolatedAsyncioTestCase"
+          ],
+          "members": [
+            {
+              "name": "test_cancelled_delivery_is_joined_before_backend_close",
+              "line": 69
+            },
+            {
+              "name": "test_construct_and_unused_close_do_not_fingerprint_or_start_backend",
+              "line": 95
+            },
+            {
+              "name": "test_off_loop_resolution_survives_cancelled_waiter_and_closes_owned_pool",
+              "line": 104
+            },
+            {
+              "name": "test_failed_request_is_not_replayed_and_next_request_uses_new_client",
+              "line": 138
+            }
+          ]
+        }
+      ],
+      "facts": [
+        {
+          "name": "tests/render_runtime_pilot.py::__init__",
+          "calls": [
+            "Event",
+            "__init__",
+            "super"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/render_runtime_pilot.py::capture",
+          "calls": [
+            "RendererSessionFailed",
+            "capture_result"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/render_runtime_pilot.py::aclose",
+          "calls": [
+            "aclose",
+            "set",
+            "super"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/render_runtime_pilot.py::__init__",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/render_runtime_pilot.py::materialize",
+          "calls": [
+            "AssertionError",
+            "materialize",
+            "set",
+            "wait"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/render_runtime_pilot.py::__init__",
+          "calls": [
+            "__init__",
+            "super"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/render_runtime_pilot.py::capture",
+          "calls": [
+            "HeldValue",
+            "capture",
+            "super"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/render_runtime_pilot.py::accept_result",
+          "calls": [
+            "accept_result",
+            "append",
+            "get_ident",
+            "super"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/render_runtime_pilot.py::test_cancelled_delivery_is_joined_before_backend_close",
+          "calls": [
+            "DeliveryPool",
+            "Event",
+            "Path",
+            "RenderServiceConfig",
+            "RendererEndpoint",
+            "ValidationObservedPatchRenderTask",
+            "aclose",
+            "assertEqual",
+            "assertFalse",
+            "assertNotEqual",
+            "assertRaises",
+            "assertTrue",
+            "cancel",
+            "clear",
+            "create_task",
+            "done",
+            "get_ident",
+            "is_set",
+            "set",
+            "sleep",
+            "submit",
+            "to_thread"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/render_runtime_pilot.py::test_construct_and_unused_close_do_not_fingerprint_or_start_backend",
+          "calls": [
+            "PatchRenderTask",
+            "Path",
+            "PersistentRenderClient",
+            "aclose",
+            "assertIsNone",
+            "assertRaisesRegex",
+            "assert_not_called",
+            "patch",
+            "submit"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/render_runtime_pilot.py::test_off_loop_resolution_survives_cancelled_waiter_and_closes_owned_pool",
+          "calls": [
+            "AssertionError",
+            "ControlledPool",
+            "Event",
+            "PatchRenderTask",
+            "Path",
+            "PersistentRenderClient",
+            "RenderServiceConfig",
+            "RendererEndpoint",
+            "aclose",
+            "assertEqual",
+            "assertFalse",
+            "assertNotEqual",
+            "assertRaises",
+            "assertTrue",
+            "cancel",
+            "create_task",
+            "done",
+            "get_ident",
+            "is_set",
+            "patch",
+            "set",
+            "sleep",
+            "submit",
+            "to_thread",
+            "wait"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/render_runtime_pilot.py::test_failed_request_is_not_replayed_and_next_request_uses_new_client",
+          "calls": [
+            "ControlledPool",
+            "PatchRenderTask",
+            "Path",
+            "PersistentRenderClient",
+            "RenderServiceConfig",
+            "RendererEndpoint",
+            "aclose",
+            "assertEqual",
+            "assertIs",
+            "assertRaises",
+            "assertTrue",
+            "execute",
+            "is_set",
+            "patch",
+            "submit"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/render_runtime_pilot.py::resolve",
+          "calls": [
+            "AssertionError",
+            "assertNotEqual",
+            "get_ident",
+            "set",
+            "wait"
+          ],
+          "keys": {},
+          "type_checks": {}
+        }
+      ]
+    },
+    {
+      "path": "tests/renderer_warmup_pilot.py",
+      "declarations": [
+        {
+          "name": "GateRenderer",
+          "line": 16,
+          "bases": [
+            "Renderer"
+          ],
+          "members": [
+            {
+              "name": "__init__",
+              "line": 17
+            },
+            {
+              "name": "warm_up",
+              "line": 26
+            },
+            {
+              "name": "capture",
+              "line": 35
+            },
+            {
+              "name": "aclose",
+              "line": 38
+            }
+          ]
+        },
+        {
+          "name": "FrameApp",
+          "line": 43,
+          "bases": [
+            "ToadApp"
+          ],
+          "members": [
+            {
+              "name": "__init__",
+              "line": 44
+            },
+            {
+              "name": "_display",
+              "line": 48
+            }
+          ]
+        }
+      ],
+      "facts": [
+        {
+          "name": "tests/renderer_warmup_pilot.py::main",
+          "calls": [
+            "Event",
+            "FrameApp",
+            "GateRenderer",
+            "Path",
+            "TemporaryDirectory",
+            "focus",
+            "get_running_loop",
+            "is_set",
+            "new",
+            "pause",
+            "press",
+            "print",
+            "run_test",
+            "shutdown_default_executor",
+            "str",
+            "switch_mode",
+            "update",
+            "wait",
+            "wait_for"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/renderer_warmup_pilot.py::__init__",
+          "calls": [
+            "Event",
+            "__init__",
+            "super"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/renderer_warmup_pilot.py::warm_up",
+          "calls": [
+            "is_set",
+            "set",
+            "wait"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/renderer_warmup_pilot.py::capture",
+          "calls": [
+            "AssertionError"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/renderer_warmup_pilot.py::aclose",
+          "calls": [
+            "_close_submissions"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/renderer_warmup_pilot.py::__init__",
+          "calls": [
+            "__init__",
+            "super"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/renderer_warmup_pilot.py::_display",
+          "calls": [
+            "_display",
+            "set",
+            "super"
+          ],
+          "keys": {},
+          "type_checks": {}
+        }
+      ]
+    },
+    {
+      "path": "tests/thread_render_wait_pilot.py",
+      "declarations": [
+        {
+          "name": "ReplayGate",
+          "line": 27,
+          "bases": [
+            "GateRenderer"
+          ],
+          "members": [
+            {
+              "name": "capture",
+              "line": 28
+            }
+          ]
+        }
+      ],
+      "facts": [
+        {
+          "name": "tests/thread_render_wait_pilot.py::release_gates",
+          "calls": [
+            "set"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/thread_render_wait_pilot.py::main",
+          "calls": [
+            "AgentReady",
+            "AssistantTranscript",
+            "Event",
+            "Path",
+            "ReplayGate",
+            "TemporaryDirectory",
+            "Thread",
+            "ToadApp",
+            "TranscriptCursor",
+            "TranscriptPage",
+            "_press_keys",
+            "any",
+            "bind_agent",
+            "capture",
+            "create_task",
+            "declare",
+            "deliver",
+            "focus",
+            "frozenset",
+            "get",
+            "get_running_loop",
+            "getpid",
+            "is_set",
+            "len",
+            "object",
+            "open",
+            "pause",
+            "print",
+            "publish",
+            "query",
+            "range",
+            "release_gates",
+            "run_test",
+            "set",
+            "shutdown_default_executor",
+            "sleep",
+            "snapshot",
+            "str",
+            "switch_mode",
+            "timeout",
+            "trace",
+            "tuple",
+            "update",
+            "wait",
+            "wait_for",
+            "wire"
+          ],
+          "keys": {
+            "os.environ": [
+              "TOAD_TEST_TRACE"
+            ]
+          },
+          "type_checks": {}
+        },
+        {
+          "name": "tests/thread_render_wait_pilot.py::capture",
+          "calls": [
+            "capture",
+            "isinstance",
+            "set",
+            "wait"
+          ],
+          "keys": {},
+          "type_checks": {
+            "task": 1
+          }
+        },
+        {
+          "name": "tests/thread_render_wait_pilot.py::trace",
+          "calls": [
+            "get",
+            "print"
+          ],
+          "keys": {
+            "os.environ": [
+              "TOAD_TEST_TRACE"
+            ]
+          },
+          "type_checks": {}
+        },
+        {
+          "name": "tests/thread_render_wait_pilot.py::start",
+          "calls": [
+            "AgentReady",
+            "bind_agent",
+            "create_task",
+            "deliver",
+            "publish",
+            "snapshot",
+            "wait"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/thread_render_wait_pilot.py::deliver",
+          "calls": [
+            "AgentReady",
+            "publish",
+            "snapshot",
+            "wait"
+          ],
+          "keys": {},
+          "type_checks": {}
+        }
+      ]
+    },
+    {
+      "path": "tests/transcript_prefetch_pilot.py",
+      "declarations": [
+        {
+          "name": "Renderer",
+          "line": 31,
+          "bases": [
+            "RendererBackend"
+          ],
+          "members": [
+            {
+              "name": "__init__",
+              "line": 32
+            },
+            {
+              "name": "capture",
+              "line": 36
+            },
+            {
+              "name": "aclose",
+              "line": 42
+            }
+          ]
+        }
+      ],
+      "facts": [
+        {
+          "name": "tests/transcript_prefetch_pilot.py::cursor",
+          "calls": [
+            "TranscriptCursor"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_prefetch_pilot.py::page",
+          "calls": [
+            "AssistantTranscript",
+            "TranscriptPage",
+            "cursor"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_prefetch_pilot.py::projected_checks",
+          "calls": [
+            "AssertionError",
+            "AssistantTranscript",
+            "CategoryProjection",
+            "Event",
+            "PreparationRuntime",
+            "PreparedTranscriptPage",
+            "ProjectedTranscriptSource",
+            "Renderer",
+            "TranscriptPage",
+            "TranscriptPageBuffer",
+            "UserTranscript",
+            "aclose",
+            "anext",
+            "append",
+            "cancel",
+            "close",
+            "create_task",
+            "cursor",
+            "frozenset",
+            "gather",
+            "is_set",
+            "len",
+            "original_project",
+            "page",
+            "prefetch",
+            "set",
+            "sorted",
+            "timeout",
+            "transcript_fragments",
+            "tuple",
+            "wait"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_prefetch_pilot.py::projected_app_checks",
+          "calls": [
+            "all",
+            "all_categories",
+            "any",
+            "append",
+            "bool",
+            "focus",
+            "frozenset",
+            "id",
+            "keep_events",
+            "len",
+            "object",
+            "original_dispatch",
+            "original_prefetch",
+            "original_prepare",
+            "pause",
+            "press",
+            "release_anchor",
+            "request_force",
+            "set",
+            "start_scan",
+            "until",
+            "update"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_prefetch_pilot.py::model_checks",
+          "calls": [
+            "AssertionError",
+            "Event",
+            "PageRequest",
+            "PreparationRuntime",
+            "Renderer",
+            "ToolStartTranscript",
+            "TranscriptPage",
+            "TranscriptPageBuffer",
+            "aclose",
+            "all",
+            "append",
+            "cancel",
+            "clear",
+            "close",
+            "create_task",
+            "cursor",
+            "get",
+            "get_ident",
+            "len",
+            "page",
+            "prefetch",
+            "projected_checks",
+            "range",
+            "set",
+            "wait"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_prefetch_pilot.py::main",
+          "calls": [
+            "Path",
+            "distribution",
+            "is_relative_to",
+            "locate_file",
+            "main",
+            "model_checks",
+            "print",
+            "projected_checks",
+            "resolve"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_prefetch_pilot.py::__init__",
+          "calls": [
+            "__init__",
+            "super"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_prefetch_pilot.py::capture",
+          "calls": [
+            "append",
+            "capture_result",
+            "get_ident",
+            "to_thread"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_prefetch_pilot.py::aclose",
+          "calls": [
+            "_close_submissions"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_prefetch_pilot.py::observed_prefetch",
+          "calls": [
+            "append",
+            "id",
+            "original_prefetch",
+            "update"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_prefetch_pilot.py::observed_prepare",
+          "calls": [
+            "append",
+            "id",
+            "object",
+            "original_dispatch",
+            "original_prepare"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_prefetch_pilot.py::load",
+          "calls": [
+            "append",
+            "page"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_prefetch_pilot.py::delayed",
+          "calls": [
+            "page",
+            "set",
+            "wait"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_prefetch_pilot.py::huge",
+          "calls": [
+            "ToolStartTranscript",
+            "TranscriptPage",
+            "cursor"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_prefetch_pilot.py::duplicate",
+          "calls": [
+            "page"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_prefetch_pilot.py::execute",
+          "calls": [
+            "append",
+            "capture_result",
+            "get_ident"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_prefetch_pilot.py::observed_dispatch",
+          "calls": [
+            "append",
+            "id",
+            "original_dispatch"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_prefetch_pilot.py::load",
+          "calls": [
+            "AssistantTranscript",
+            "TranscriptPage",
+            "UserTranscript",
+            "append",
+            "cursor"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_prefetch_pilot.py::held_project",
+          "calls": [
+            "original_project",
+            "set",
+            "wait"
+          ],
+          "keys": {},
+          "type_checks": {}
+        }
+      ]
+    },
+    {
+      "path": "tests/transcript_process_pilot.py",
+      "declarations": [
+        {
+          "name": "ObservedPool",
+          "line": 52,
+          "bases": [
+            "RenderProcessPool"
+          ],
+          "members": [
+            {
+              "name": "__init__",
+              "line": 53
+            },
+            {
+              "name": "hold",
+              "line": 61
+            },
+            {
+              "name": "run",
+              "line": 65
+            }
+          ]
+        }
+      ],
+      "facts": [
+        {
+          "name": "tests/transcript_process_pilot.py::observed_parse",
+          "calls": [
+            "function",
+            "getpid",
+            "monotonic"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_process_pilot.py::page",
+          "calls": [
+            "AssistantTranscript",
+            "TranscriptCursor",
+            "TranscriptPage"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_process_pilot.py::until",
+          "calls": [
+            "predicate",
+            "sleep",
+            "timeout"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_process_pilot.py::main",
+          "calls": [
+            "AgentResponse",
+            "App",
+            "AssistantTranscript",
+            "IncomingTranscript",
+            "LatestViewportRequest",
+            "Message",
+            "MessageReference",
+            "MessageRoute",
+            "NoticeTranscript",
+            "ObservedPool",
+            "Path",
+            "SentTranscript",
+            "SimpleNamespace",
+            "TemporaryDirectory",
+            "ThinkingTranscript",
+            "ToadApp",
+            "ToolDiff",
+            "ToolEndTranscript",
+            "ToolStartTranscript",
+            "TranscriptPageView",
+            "TurnRouting",
+            "_jump_latest",
+            "_load_page",
+            "_update_content",
+            "aclose",
+            "active_children",
+            "append",
+            "cancel",
+            "create_task",
+            "dumps",
+            "ensure_future",
+            "gather",
+            "getpid",
+            "heartbeat",
+            "hold",
+            "invalidate",
+            "join",
+            "len",
+            "loads",
+            "max",
+            "monotonic",
+            "object",
+            "page",
+            "patch",
+            "pause",
+            "post",
+            "prepare_transcript_fragments",
+            "print",
+            "property",
+            "query_one",
+            "range",
+            "release_anchor",
+            "remove",
+            "remove_children",
+            "run_test",
+            "set",
+            "set_interval",
+            "sleep",
+            "snapshot",
+            "stop",
+            "str",
+            "suppress",
+            "transcript_fragments",
+            "tuple",
+            "type",
+            "until",
+            "update",
+            "update_live",
+            "zip"
+          ],
+          "keys": {
+            "kwargs": [
+              "through"
+            ]
+          },
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_process_pilot.py::__init__",
+          "calls": [
+            "Event",
+            "__init__",
+            "set",
+            "super"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_process_pilot.py::hold",
+          "calls": [
+            "clear"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_process_pilot.py::run",
+          "calls": [
+            "RenderPreparation",
+            "accept_result",
+            "append",
+            "isinstance",
+            "locked",
+            "run",
+            "set",
+            "store_result",
+            "super",
+            "wait"
+          ],
+          "keys": {},
+          "type_checks": {
+            "function.__self__": 1
+          }
+        },
+        {
+          "name": "tests/transcript_process_pilot.py::heartbeat",
+          "calls": [
+            "append",
+            "monotonic",
+            "sleep"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_process_pilot.py::load",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_process_pilot.py::load",
+          "calls": [
+            "page"
+          ],
+          "keys": {
+            "kwargs": [
+              "through"
+            ]
+          },
+          "type_checks": {}
+        },
+        {
+          "name": "tests/transcript_process_pilot.py::load_latest",
+          "calls": [
+            "page"
+          ],
+          "keys": {
+            "kwargs": [
+              "through"
+            ]
+          },
+          "type_checks": {}
+        }
+      ]
+    },
+    {
+      "path": "tests/work_preparation_pilot.py",
+      "declarations": [
+        {
+          "name": "ModelWork",
+          "line": 19,
+          "bases": [
+            "ReusableWork[dict]",
+            "ContentAddressedWork[dict]",
+            "ThreadWork[dict]"
+          ],
+          "members": [
+            {
+              "name": "inputs",
+              "line": 25
+            },
+            {
+              "name": "prepare",
+              "line": 28
+            }
+          ]
+        },
+        {
+          "name": "Backend",
+          "line": 34,
+          "bases": [
+            "Renderer"
+          ],
+          "members": [
+            {
+              "name": "__init__",
+              "line": 35
+            },
+            {
+              "name": "capture",
+              "line": 39
+            },
+            {
+              "name": "aclose",
+              "line": 43
+            }
+          ]
+        },
+        {
+          "name": "BlockingWork",
+          "line": 77,
+          "bases": [
+            "ModelWork"
+          ],
+          "members": [
+            {
+              "name": "prepare",
+              "line": 78
+            }
+          ]
+        }
+      ],
+      "facts": [
+        {
+          "name": "tests/work_preparation_pilot.py::main",
+          "calls": [
+            "AssistantTranscript",
+            "Backend",
+            "BlockingWork",
+            "Event",
+            "MarkdownRenderTask",
+            "ModelWork",
+            "PreparationRuntime",
+            "PreparedRenderer",
+            "TimeoutError",
+            "TranscriptRenderTask",
+            "aclose",
+            "all",
+            "append",
+            "cancel",
+            "create_task",
+            "dataclass",
+            "gather",
+            "get_ident",
+            "is_set",
+            "len",
+            "materialize",
+            "object",
+            "prepare",
+            "print",
+            "set",
+            "sleep",
+            "submit",
+            "super",
+            "to_thread",
+            "wait"
+          ],
+          "keys": {
+            "first": [
+              "rows"
+            ]
+          },
+          "type_checks": {}
+        },
+        {
+          "name": "tests/work_preparation_pilot.py::inputs",
+          "calls": [],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/work_preparation_pilot.py::prepare",
+          "calls": [
+            "append",
+            "get_ident",
+            "type"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/work_preparation_pilot.py::__init__",
+          "calls": [
+            "__init__",
+            "super"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/work_preparation_pilot.py::capture",
+          "calls": [
+            "to_thread"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/work_preparation_pilot.py::aclose",
+          "calls": [
+            "_close_submissions"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/work_preparation_pilot.py::delivered",
+          "calls": [
+            "materialize"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/work_preparation_pilot.py::prepare",
+          "calls": [
+            "TimeoutError",
+            "prepare",
+            "set",
+            "super",
+            "wait"
+          ],
+          "keys": {},
+          "type_checks": {}
+        }
+      ]
+    },
+    {
+      "path": "tests/worker_preview_pilot.py",
+      "declarations": [
+        {
+          "name": "GateRenderer",
+          "line": 31,
+          "bases": [
+            "Renderer"
+          ],
+          "members": [
+            {
+              "name": "__init__",
+              "line": 32
+            },
+            {
+              "name": "capture",
+              "line": 40
+            },
+            {
+              "name": "aclose",
+              "line": 47
+            }
+          ]
+        }
+      ],
+      "facts": [
+        {
+          "name": "tests/worker_preview_pilot.py::main",
+          "calls": [
+            "AssertionError",
+            "Event",
+            "GateRenderer",
+            "Path",
+            "Strip",
+            "SyntaxSource",
+            "Table",
+            "TemporaryDirectory",
+            "TimeoutError",
+            "ToadApp",
+            "ToolCall",
+            "WorkerStatic",
+            "_Styled",
+            "add_row",
+            "any",
+            "clear",
+            "close",
+            "extract",
+            "focus",
+            "get",
+            "get_running_loop",
+            "get_selection",
+            "is_set",
+            "join",
+            "len",
+            "list",
+            "materialize",
+            "mount",
+            "new",
+            "object",
+            "original_read",
+            "pause",
+            "post",
+            "prepare_spawn",
+            "press",
+            "preview",
+            "print",
+            "query_one",
+            "refresh",
+            "remove",
+            "render",
+            "render_line",
+            "render_strips",
+            "resize_terminal",
+            "run_test",
+            "set",
+            "set_expanded",
+            "set_source",
+            "shutdown_default_executor",
+            "sleep",
+            "split_and_crop_lines",
+            "staticmethod",
+            "str",
+            "switch_mode",
+            "timeout",
+            "to_thread",
+            "tuple",
+            "update",
+            "wait",
+            "wait_for",
+            "wait_ready",
+            "write_bytes",
+            "write_text"
+          ],
+          "keys": {
+            "segment.style.meta": [
+              "offset"
+            ]
+          },
+          "type_checks": {}
+        },
+        {
+          "name": "tests/worker_preview_pilot.py::__init__",
+          "calls": [
+            "Event",
+            "RenderProcessPool",
+            "__init__",
+            "prepare_spawn",
+            "super"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/worker_preview_pilot.py::capture",
+          "calls": [
+            "append",
+            "capture",
+            "isinstance",
+            "set",
+            "wait"
+          ],
+          "keys": {},
+          "type_checks": {
+            "task": 1
+          }
+        },
+        {
+          "name": "tests/worker_preview_pilot.py::aclose",
+          "calls": [
+            "_close_submissions",
+            "aclose",
+            "set"
+          ],
+          "keys": {},
+          "type_checks": {}
+        },
+        {
+          "name": "tests/worker_preview_pilot.py::blocked_read",
+          "calls": [
+            "TimeoutError",
+            "original_read",
+            "set",
+            "wait"
+          ],
+          "keys": {},
+          "type_checks": {}
+        }
+      ]
+    }
+  ],
+  "deleted_authority": "CapturedResult removed; RendererWork no longer calls renderer.submit or serializes a delivered graph; local/persistent workers call task.capture_result through original admission.",
+  "preserved_authority": "RenderTask.preparation_storage selects storage; task.accept_result validates producer result; PreparedValue validates representation at transport; runtime handles keys/cache/accounting/independent materialization/final scope fences. Direct Renderer.submit worker validates delivered data and joins decoder. RenderExecution.complete remains original headless SDK contract.",
+  "dynamic_resolution": "No full dynamic resolution claim; codec/family discovery and observing/gating overrides read semantically."
+}

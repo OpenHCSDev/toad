@@ -1,0 +1,65 @@
+{
+  "head": "44b9cdaac9284efe968f496c71a3f5711ce1d36b",
+  "scope": "One serial changed source-control batch, no installed App/prefix, SDK/native artifact execution, provider/input/physical or latency claim. Original renderer service executes pure data-only tasks.",
+  "source_paths": [
+    "/home/ts/wt/toad-regression-widget-cost-20261001/src",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/tests",
+    "/home/ts/wt/comms-field-codec-closure-20260928/src",
+    "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native67-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+    "/home/ts/.cache/uv/archive-v0/-NU2kxipCBjt_Fj1",
+    "/home/ts/.cache/uv/archive-v0/jUH5yYHRflCjOYpG",
+    "/home/ts/.cache/uv/archive-v0/JppO5vdKQt7V2hsS",
+    "/home/ts/.cache/uv/archive-v0/mNatOBGB9uuf-bXB"
+  ],
+  "core_source_head": "e5f3811b5fd94d69cffe48ec76311afc687d8b08",
+  "core_limit": "Existing source dependency, not equality with pinned7b68 or installed qualification.",
+  "scratch": "/home/ts/.cache/agent-scratch/einstein-render-transport-source01-20261005",
+  "controls": [
+    {
+      "control": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/work_preparation_pilot.py",
+      "sha256": "7dbb7c436fdebaa3eb1ff895429e62520f0a88b60ad0b32e392dd1b87437cd99",
+      "argv": [
+        "/usr/bin/python",
+        "-B",
+        "/home/ts/wt/toad-regression-widget-cost-20261001/tests/work_preparation_pilot.py"
+      ],
+      "cwd": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "identity": {
+        "pid": 3241408,
+        "start_time": 68098756
+      },
+      "outcome": {
+        "kind": "exited",
+        "code": 0
+      },
+      "elapsed": 3.0093536119675264,
+      "controller_alive_after_join": false,
+      "groups": [],
+      "stdout": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/source-control01/work_preparation_pilot.py.stdout.log",
+      "stderr": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/source-control01/work_preparation_pilot.py.stderr.log"
+    },
+    {
+      "control": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/render_runtime_pilot.py",
+      "sha256": "10f41377769148c03843f1d0e086aa11042676ae7577570b76b82c36548c790d",
+      "argv": [
+        "/usr/bin/python",
+        "-B",
+        "/home/ts/wt/toad-regression-widget-cost-20261001/tests/render_runtime_pilot.py"
+      ],
+      "cwd": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "identity": {
+        "pid": 3243162,
+        "start_time": 68099059
+      },
+      "outcome": {
+        "kind": "exited",
+        "code": 1
+      },
+      "elapsed": 1.0208699810318649,
+      "controller_alive_after_join": false,
+      "groups": [],
+      "stdout": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/source-control01/render_runtime_pilot.py.stdout.log",
+      "stderr": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/source-control01/render_runtime_pilot.py.stderr.log"
+    }
+  ]
+}
