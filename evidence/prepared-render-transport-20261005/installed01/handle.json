@@ -1,0 +1,15 @@
+{
+  "controller": {
+    "pid": 245478,
+    "start_time": 68678182
+  },
+  "child": {
+    "pid": 246010,
+    "start_time": 68678285
+  },
+  "start": 686782.850300855,
+  "stdout": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/installed01/stdout.log",
+  "stderr": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/installed01/stderr.log",
+  "owner": "Original installed BoundedRun.session / AttachedChild",
+  "scope": "Actual installed local spawn and private persistent renderer transport; official SDK model validation only; captured Unicode Markdown and Rich strips independently delivered/retained. No mounted GUI/native SDK/ACP/session/provider/input/firstpaint/frame speed or physical claim."
+}

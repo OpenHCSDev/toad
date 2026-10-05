@@ -1,0 +1,61 @@
+{
+  "scope": "Read original uv cache metadata; no prefix access. Original five locked wheel inputs, no resolver/build/native action.",
+  "inputs": [
+    {
+      "name": "zmqruntime",
+      "cache_http": "/home/ts/.cache/uv/wheels-v6/pypi/zmqruntime/0.2.24-py3-none-any.http",
+      "cache_http_sha256": "add537f739ed498adbd3dbedef96c5dcacff09c1437893145b13509ed4fb6edf",
+      "filename": "zmqruntime-0.2.24-py3-none-any.whl",
+      "wheel_sha256": "0e8b2ef68b52d8ede0777cce34c2da8330f897a16d337963ac51289ae496a977",
+      "bytes": 83575,
+      "original_url": "https://files.pythonhosted.org/packages/16/fb/2b1c1695fb5aea3e883a6ba25eb97f226cf1c0990b32fac2b70c9e16ca8d/zmqruntime-0.2.24-py3-none-any.whl",
+      "cache_archive": "/home/ts/.cache/uv/archive-v0/ilBf44Ijf0_EPtT1",
+      "cached_payload_present": true
+    },
+    {
+      "name": "python-introspect",
+      "cache_http": "/home/ts/.cache/uv/wheels-v6/pypi/python-introspect/0.1.14-py3-none-any.http",
+      "cache_http_sha256": "1fb4bd0809f550b740777b575b475aa3a43147a538ba59e86e0da3c18d614994",
+      "filename": "python_introspect-0.1.14-py3-none-any.whl",
+      "wheel_sha256": "54c548c67befffbd72e26d7b0ec420db661ba1a5a6096b6873dc37cfa1c21635",
+      "bytes": 35291,
+      "original_url": "https://files.pythonhosted.org/packages/56/37/29a6358f29415fd8fa20c5cfa09693a3cb6b143a9636e2ed89dc6c1df1a5/python_introspect-0.1.14-py3-none-any.whl",
+      "cache_archive": "/home/ts/.cache/uv/archive-v0/G_2I2CjMLjta_IXs",
+      "cached_payload_present": true
+    },
+    {
+      "name": "portalocker",
+      "cache_http": "/home/ts/.cache/uv/wheels-v6/pypi/portalocker/4.4.0-py3-none-any.http",
+      "cache_http_sha256": "28fd986793d03a70bd9b65c5233a76d33c044fadc2b5b785ef3cf49da11cb2b6",
+      "filename": "portalocker-4.4.0-py3-none-any.whl",
+      "wheel_sha256": "a8e99ea29bfb61766ee0b4008cbaf0651e8e050f7a2485ebf54316480e99226e",
+      "bytes": 129647,
+      "original_url": "https://files.pythonhosted.org/packages/52/6c/07fa2775e87b6e241c2aca5cef79f65e450bc115de55f03cda6251f81690/portalocker-4.4.0-py3-none-any.whl",
+      "cache_archive": "/home/ts/.cache/uv/archive-v0/67xXFbNM1dT27RcP",
+      "cached_payload_present": true
+    },
+    {
+      "name": "numpy",
+      "cache_http": "/home/ts/.cache/uv/wheels-v6/pypi/numpy/2.5.3-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.http",
+      "cache_http_sha256": "38331fa3bf912a43ca9ea199995ca693aadc258e8d75fad98e38f917ca942526",
+      "filename": "numpy-2.5.3-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "wheel_sha256": "b0521d0f4aebb6e06189451025fa17a913287b13c03d5fe05c017333b654ea5b",
+      "bytes": 16711928,
+      "original_url": "https://files.pythonhosted.org/packages/45/8f/9beacf79ca7c650688ad0baa80931adb988fe6e6e5d5903c23cc3dbd70eb/numpy-2.5.3-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "cache_archive": "/home/ts/.cache/uv/archive-v0/otaRr3OyLoKUDym4",
+      "cached_payload_present": false
+    },
+    {
+      "name": "pyzmq",
+      "cache_http": "/home/ts/.cache/uv/wheels-v6/pypi/pyzmq/27.2.0-cp312-abi3-manylinux_2_26_x86_64.manylinux_2_28_x86_64.http",
+      "cache_http_sha256": "8510732f24358904cf14563ea64ca825222802babf12a57e7dd118744b5f0780",
+      "filename": "pyzmq-27.2.0-cp312-abi3-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl",
+      "wheel_sha256": "dea74fd65f1fc5f7fe167916a473ebe6ed6174e5e5d9de11ea6583661be6cf43",
+      "bytes": 872258,
+      "original_url": "https://files.pythonhosted.org/packages/62/2c/d5828306f795e8d34676d266823b74e2101e0ad3760d12083de3e02abbb2/pyzmq-27.2.0-cp312-abi3-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl",
+      "cache_archive": "/home/ts/.cache/uv/archive-v0/p2a6I0E2x-r-c9w-",
+      "cached_payload_present": false
+    }
+  ],
+  "preserved_negative": "First cached RECORD inventory refused missing NumPy cache archive before any output. PyZMQ archive likewise absent; other three RECORD inventories verified. No installed/control outcome."
+}

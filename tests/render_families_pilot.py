@@ -14,7 +14,6 @@ from agent_comms.field_codec import FieldCodec
 from toad.render_protocol import (
     RenderCommand,
     RenderReply,
-    CapturedResult,
     SubmitRender,
     PollRender,
     AcknowledgeRender,
@@ -29,9 +28,10 @@ from toad.render_protocol import (
     AcknowledgedReply,
 )
 from toad.render_service import RenderService, RenderServiceConfig
-from toad.render_tasks import PatchRenderTask
+from toad.render_tasks import PatchRenderTask, MarkdownRenderTask
 from toad.render_backend import RenderTask
 from toad.render_zmq import RenderSubmission
+from toad.work_preparation import SerializedValue, serialize_result
 from toad.widgets.agent_activity import AgentActivityBoundary
 from toad.widgets.message_filter import (
     all_categories,
@@ -67,6 +67,20 @@ class ReactionClient:
 
 
 class RenderingFamilyTests(unittest.IsolatedAsyncioTestCase):
+    def test_prepared_markdown_survives_reply_with_independent_consumers(self):
+        task = MarkdownRenderTask("# café 界\n\n```python\nvalue = 17\n```\n", False, True)
+        prepared = task.capture_result()
+        self.assertIsInstance(prepared, SerializedValue)
+        reply = CompleteReply(uuid4(), prepared)
+        received = FieldCodec.decode(RenderReply, FieldCodec.encode(reply))
+        self.assertEqual(received.result.payload, prepared.payload)
+        first = task.accept_result(received.result.materialize())
+        second = task.accept_result(received.result.materialize())
+        self.assertIsNot(first.tokens, second.tokens)
+        self.assertIsNot(first.fences, second.fences)
+        first.tokens[0].content = "consumer edit"
+        self.assertNotEqual(first.tokens[0].content, second.tokens[0].content)
+
     def test_captured_task_loads_its_declaring_module(self):
         """Detect eager native catalog loading and lost decode-before-admission."""
         encoded = FieldCodec.encode(SubmitRender(
@@ -91,7 +105,7 @@ print('declaring module loaded from captured task; generic transport had no fron
             client_id=uuid4(),
             request_id=uuid4(),
             task=PatchRenderTask("patch", False, True),
-            result=CapturedResult(9),
+            result=serialize_result(9),
             error="worker error",
         )
         for family in (RenderCommand, RenderReply):
@@ -121,7 +135,7 @@ print('declaring module loaded from captured task; generic transport had no fron
             pass
 
         samples = dict(
-            request_id=uuid4(), result=CapturedResult(9), error="worker error"
+            request_id=uuid4(), result=serialize_result(9), error="worker error"
         )
         for member in RenderReply.members_with(RenderReply):
             with self.subTest(member=member):
@@ -156,7 +170,7 @@ print('declaring module loaded from captured task; generic transport had no fron
                     next_command = await reply.advance(submission, client)
                     if issubclass(member, CompleteReply):
                         self.assertIsNone(next_command)
-                        self.assertEqual(submission.result.result(), 9)
+                        self.assertEqual(submission.result.result().materialize(), 9)
                         self.assertEqual(client.acks, 1)
                     elif issubclass(member, BusyReply):
                         self.assertIsInstance(next_command, SubmitRender)
@@ -208,7 +222,7 @@ print('declaring module loaded from captured task; generic transport had no fron
                     await asyncio.sleep(0.01)
                     reply = PollRender(client, request).execute(service)
             self.assertIsInstance(reply, CompleteReply)
-            self.assertEqual(reply.result.value, 17)
+            self.assertEqual(reply.result.materialize(), 17)
             self.assertEqual(PollRender(client, request).execute(service), reply)
             self.assertEqual(service.pending_count, 1)
             AcknowledgeRender(client, request).execute(service)

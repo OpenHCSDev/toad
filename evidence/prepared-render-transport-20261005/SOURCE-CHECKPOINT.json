@@ -1,0 +1,115 @@
+{
+  "scope": "SOURCE CHECKPOINT ONLY; installed Markdown/Rich/local/persistent transport and first-paint/frame measurements remain unqualified. No accepted456/457 replay or prefix/native/provider/input operation.",
+  "production": "4952f759a",
+  "final_control_head": "66be6fcf",
+  "source_outcomes": [
+    {
+      "batch": "source-control01",
+      "controls": [
+        {
+          "name": "work_preparation_pilot.py",
+          "outcome": {
+            "kind": "exited",
+            "code": 0
+          },
+          "elapsed": 3.0093536119675264,
+          "joined": true,
+          "groups": []
+        },
+        {
+          "name": "render_runtime_pilot.py",
+          "outcome": {
+            "kind": "exited",
+            "code": 1
+          },
+          "elapsed": 1.0208699810318649,
+          "joined": true,
+          "groups": []
+        }
+      ]
+    },
+    {
+      "batch": "source-control02",
+      "controls": [
+        {
+          "name": "render_runtime_pilot.py",
+          "outcome": {
+            "kind": "exited",
+            "code": 1
+          },
+          "elapsed": 0.9537457820260897,
+          "joined": true,
+          "groups": []
+        }
+      ]
+    },
+    {
+      "batch": "source-control03",
+      "controls": [
+        {
+          "name": "render_runtime_pilot.py",
+          "outcome": {
+            "kind": "exited",
+            "code": 0
+          },
+          "elapsed": 3.297890804009512,
+          "joined": true,
+          "groups": []
+        },
+        {
+          "name": "render_families_pilot.py",
+          "outcome": {
+            "kind": "exited",
+            "code": 0
+          },
+          "elapsed": 9.605092815007083,
+          "joined": true,
+          "groups": []
+        },
+        {
+          "name": "persistent_renderer_lifecycle_pilot.py",
+          "outcome": {
+            "kind": "exited",
+            "code": 1
+          },
+          "elapsed": 2.879790720064193,
+          "joined": true,
+          "groups": []
+        }
+      ]
+    },
+    {
+      "batch": "source-control04",
+      "controls": [
+        {
+          "name": "render_runtime_pilot.py",
+          "outcome": {
+            "kind": "exited",
+            "code": 0
+          },
+          "elapsed": 2.875581811997108,
+          "joined": true,
+          "groups": []
+        },
+        {
+          "name": "serialized_preparation_pilot.py",
+          "outcome": {
+            "kind": "exited",
+            "code": 0
+          },
+          "elapsed": 2.585611310089007,
+          "joined": true,
+          "groups": []
+        }
+      ]
+    }
+  ],
+  "qualified": "Shared preparation policy; declared captured Markdown protocol roundtrip and independent mutations; real pure renderer worker retention/ownership/ack; raw delivery-thread validation, cancellation joins decoder on close; persistent failure/cancel/lease teardown; serialized mutable-independent delivery and retention limits.",
+  "limits": [
+    "Two initial optional dependency imports failed before cases; existing cached declared dependency closure used without install/copy.",
+    "Observed two unchanged fingerprint-guard failures: missing textual_speedups source identity. Separately, RendererBuild.fingerprint requires filesystem paths, while this harness imports Textual from ZIP; that is source-supported incompatibility, not a measured second failure. Guards not replayed or weakened.",
+    "Core source dependency e5f3811b is not claimed equal pinned7b68; final installed cohort remains a separate qualification.",
+    "No speed, frame cadence, physical UI or full workflow claim."
+  ],
+  "cleanup": "Original BoundedRun sessions/controllers joined, recorded identities absent and original groups empty. Source controls used only named owned scratch and no user history."
+}

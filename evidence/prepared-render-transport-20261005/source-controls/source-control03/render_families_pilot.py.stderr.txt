@@ -1,0 +1,13 @@
+test_captured_task_loads_its_declaring_module (__main__.RenderingFamilyTests.test_captured_task_loads_its_declaring_module)
+Detect eager native catalog loading and lost decode-before-admission. ... ok
+test_category_capabilities_and_new_member (__main__.RenderingFamilyTests.test_category_capabilities_and_new_member) ... ok
+test_commands_and_replies_round_trip (__main__.RenderingFamilyTests.test_commands_and_replies_round_trip) ... ok
+test_each_reply_owns_its_transition_and_new_member (__main__.RenderingFamilyTests.test_each_reply_owns_its_transition_and_new_member) ... ok
+test_prepared_markdown_survives_reply_with_independent_consumers (__main__.RenderingFamilyTests.test_prepared_markdown_survives_reply_with_independent_consumers) ... ok
+test_real_service_new_task_retention_isolation_and_release (__main__.RenderingFamilyTests.test_real_service_new_task_retention_isolation_and_release) ... Executing <Task finished name='Task-23' coro=<RenderingFamilyTests.test_real_service_new_task_retention_isolation_and_release() done, defined at /home/ts/wt/toad-regression-widget-cost-20261001/tests/render_families_pilot.py:204> result=None created at /usr/lib/python3.14/asyncio/runners.py:110> took 0.465 seconds
+ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 6.751s
+
+OK

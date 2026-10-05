@@ -1,0 +1,49 @@
+test_cancelled_caller_and_close_waiter_do_not_abandon_owned_teardown (__main__.LifecycleTests.test_cancelled_caller_and_close_waiter_do_not_abandon_owned_teardown) ... ok
+test_failed_rpc_wakes_admission_waiters_and_stops_lease_renewal (__main__.LifecycleTests.test_failed_rpc_wakes_admission_waiters_and_stops_lease_renewal) ... ok
+test_ipc_directory_is_private_and_existing_public_directory_rejected (__main__.LifecycleTests.test_ipc_directory_is_private_and_existing_public_directory_rejected) ... ok
+test_lazy_worker_rechecks_service_build_before_accepting_work (__main__.LifecycleTests.test_lazy_worker_rechecks_service_build_before_accepting_work) ... FAIL
+test_nonfinite_poll_intervals_rejected (__main__.LifecycleTests.test_nonfinite_poll_intervals_rejected) ... ok
+test_startup_rejects_stale_build_before_constructing_service (__main__.LifecycleTests.test_startup_rejects_stale_build_before_constructing_service) ... FAIL
+
+======================================================================
+FAIL: test_lazy_worker_rechecks_service_build_before_accepting_work (__main__.LifecycleTests.test_lazy_worker_rechecks_service_build_before_accepting_work)
+----------------------------------------------------------------------
+RuntimeError: Renderer dependency has no source identity: textual_speedups
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/lib/python3.14/asyncio/runners.py", line 128, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/usr/lib/python3.14/asyncio/base_events.py", line 720, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/persistent_renderer_lifecycle_pilot.py", line 129, in test_lazy_worker_rechecks_service_build_before_accepting_work
+    with self.assertRaisesRegex(RuntimeError, "changed before worker startup"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "changed before worker startup" does not match "Renderer dependency has no source identity: textual_speedups"
+
+======================================================================
+FAIL: test_startup_rejects_stale_build_before_constructing_service (__main__.LifecycleTests.test_startup_rejects_stale_build_before_constructing_service)
+----------------------------------------------------------------------
+RuntimeError: Renderer dependency has no source identity: textual_speedups
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/lib/python3.14/asyncio/runners.py", line 128, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/usr/lib/python3.14/asyncio/base_events.py", line 720, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/persistent_renderer_lifecycle_pilot.py", line 123, in test_startup_rejects_stale_build_before_constructing_service
+    with self.assertRaisesRegex(RuntimeError, "changed before service startup"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "changed before service startup" does not match "Renderer dependency has no source identity: textual_speedups"
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.046s
+
+FAILED (failures=2)

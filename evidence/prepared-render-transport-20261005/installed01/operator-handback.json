@@ -1,0 +1,145 @@
+{
+  "state": "PASS; original Einstein renderer READ/operator claim RETURNED now; no package or next-control custody",
+  "issued": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Heis460-Einstein458-joint-render-extra-package-two-controls-issued-grant.json",
+    "sha256": "262ae8f4e638bf76c7d8bd0b47651ef50a7f64551332394cc66c8d0f8d93dde7"
+  },
+  "control": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/frozen-799979/render_execution_preparation_installed_pilot.py",
+    "sha256": "0fb5533145dfde22a569312e9356962bb5cbbe0f8ee266694290eff61678f526",
+    "argv": [
+      "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+      "-B",
+      "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/frozen-799979/render_execution_preparation_installed_pilot.py",
+      "/home/ts/.cache/agent-scratch/h460458/transport"
+    ],
+    "cwd": "/home/ts/wt/toad-regression-widget-cost-20261001",
+    "environment": {
+      "inherit": "ordinary system environment; no application source paths, no credential contents in receipts",
+      "unset": [
+        "PYTHONPATH",
+        "PYTHONHOME",
+        "VIRTUAL_ENV",
+        "AGENT_COMMS_THREAD",
+        "AGENT_COMMS_RUNTIME",
+        "PI_AGENT_ID",
+        "PI_PROMPT"
+      ],
+      "set": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "AGENT_COMMS_ROOT": "/home/ts/.cache/agent-scratch/h460458/wire",
+        "TMPDIR": "/home/ts/.cache/agent-scratch/h460458/tmp"
+      }
+    }
+  },
+  "terminal": {
+    "elapsed": 10.718514887033962,
+    "returncode": 0,
+    "timed_out": false,
+    "error": null,
+    "drain_errors": [],
+    "outcome": {
+      "kind": "exited",
+      "code": 0
+    },
+    "child_retired": true,
+    "owned_group_members": [],
+    "controller": {
+      "pid": 245478,
+      "start_time": 68678182
+    },
+    "child": {
+      "pid": 246010,
+      "start_time": 68678285
+    },
+    "scope": "Actual installed local spawn and private persistent renderer transport; official SDK model validation only; captured Unicode Markdown and Rich strips independently delivered/retained. No mounted GUI/native SDK/ACP/session/provider/input/firstpaint/frame speed or physical claim.",
+    "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Heis460-Einstein458-joint-render-extra-package-two-controls-issued-grant.json",
+    "native_inputs": 0,
+    "provider_calls": 0
+  },
+  "original_control": {
+    "python": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+    "provider_calls": 0,
+    "public_inputs": 0,
+    "headless_official_sdk_accepted_and_rejected": true,
+    "local_official_sdk_accepted_and_rejected": true,
+    "persistent_official_sdk_accepted_and_rejected": true,
+    "wrong_completed_result_refused": true,
+    "non_reusable_capture_not_shared_or_retained": true,
+    "reusable_capture_shared_retained_and_independently_delivered": true,
+    "local_captured_markdown_rich_independent_delivery": true,
+    "persistent_captured_markdown_rich_independent_delivery": true,
+    "elapsed": 7.769484477932565,
+    "cleanup": [],
+    "state": "PASS",
+    "scope": "Actual installed local spawn, persistent ZMQ worker, official SDK and headless/application validation. No terminal pixels or provider turn."
+  },
+  "receipts": {
+    "run.py": {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/installed01/run.py",
+      "sha256": "957a74ad9a1577d0e95afffaff7f864a19636bfdce0ed04391758fa840d2d1a1",
+      "bytes": 3862
+    },
+    "command.json": {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/installed01/command.json",
+      "sha256": "d8b60a966eacf95f4bc6f226854ef1e00bfc416b1f43dc474eefcc239490de77",
+      "bytes": 1244
+    },
+    "grant-binding.json": {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/installed01/grant-binding.json",
+      "sha256": "8ce3139b7929fbaac86136af043713247fcd5e57dc57b730e9c2dc2127b8f8bb",
+      "bytes": 554
+    },
+    "handle.json": {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/installed01/handle.json",
+      "sha256": "ca7597d522a2d950a8a3674d250b20ae2370b7629f25d7f8e67bd1cc6868672d",
+      "bytes": 792
+    },
+    "terminal.json": {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/installed01/terminal.json",
+      "sha256": "c8f6e7a39ca90831539b0a1b51ef2c86833f35e5e163aecf5a25f95d6f0ee405",
+      "bytes": 851
+    },
+    "stdout.log": {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/installed01/stdout.log",
+      "sha256": "4478fc81cacb541245804553673fae1a3669b38ce6aec2d7cc4e12ec5de2bd1d",
+      "bytes": 831
+    },
+    "stderr.log": {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/installed01/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "control-receipt.json": {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/installed01/control-receipt.json",
+      "sha256": "a147368140b17ba0317d97c6088df2ce89976ffbd3c8b958624a3de269c07b03",
+      "bytes": 863
+    },
+    "original_control_receipt": {
+      "path": "/home/ts/.cache/agent-scratch/h460458/transport/receipt.json",
+      "sha256": "a147368140b17ba0317d97c6088df2ce89976ffbd3c8b958624a3de269c07b03",
+      "bytes": 863
+    },
+    "candidate-source-proof.json": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-render-transport458-20261005/candidate-source-proof.json",
+      "sha256": "348254c11f011c0dd26d1c4b1ef9089d259dd1df01394208648956a9c1ca0ec4"
+    },
+    "candidate-activation.json": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-render-transport458-20261005/candidate-activation.json",
+      "sha256": "9c73c45b2db4c852fc71ea5356498b504a8fb16b0a33c1dcb41f1129399cf8a6"
+    },
+    "operator_handoff": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-render-transport458-20261005/RENDERER-OPERATOR-HANDOFF.json",
+      "sha256": "e9ea8cf69a497536c69d896b9eab7b46c79a065250ef5abc85056279cb5be0bc"
+    }
+  },
+  "controller_proc_absent": true,
+  "child_proc_absent": true,
+  "owned_group_members": [],
+  "owned_sockets": [],
+  "closed_resources": "Original control awaits both runtime closes, local/persistent/cache pending[], explicit persistent shutdown_service True and exact multiprocessing active_children preimage. Original BoundedRun retires child+group and joins stdout/stderr.",
+  "proof_and_DTO_unchanged": true,
+  "limits": "Renderer workers/service individual births were not captured by the frozen control; do not infer identities. Original close assertions plus original session-group retirement and owned socket absence are retained. No mountedGUI/nativeSDK/ACP/session/provider/input/firstpaint/frame/speed/physical claim.",
+  "other_operations": "Heis cold93d remains separately held for original Bohr release after this joined return. No Einstein packagewrite/floorrestore; Heis sole actualCURRENT4471468/69/428 restoration custody. Optional5/raw wheels held through whole purpose, no cleanup/retry/secondcheck authority inferred.",
+  "returned_at": 1791211280.636174
+}
