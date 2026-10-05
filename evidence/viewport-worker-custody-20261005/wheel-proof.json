@@ -1,0 +1,57 @@
+{
+  "state": "SOURCE_FILEWHEEL_PREPARED_APP_UNRUN",
+  "source_head": "7ecec607f9723d4f1747494564dd7b1b174b2180",
+  "production_head": "4f0ea5ef3c7b3ed183bbb92e13fef3cedf73543e",
+  "base_main": "cac7268a733f62f6db57580fd63b64abd52be359",
+  "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+  "sha256": "b2e420e5b2eed1aaa96d815b2abf38f990272a047417c2ca5082c01d9149a151",
+  "bytes": 2251159,
+  "source_assets": 319,
+  "python_assets": 288,
+  "git_local_zip_equal": true,
+  "missing_extra_assets": [],
+  "record_entries_verified": 324,
+  "dist_info_sha256": {
+    "batrachian_toad-0.6.20.dist-info/METADATA": "3fde2bfef1346f91a2bad2c6dfbca28a40710dc38ca987f66266a6064c3c43ee",
+    "batrachian_toad-0.6.20.dist-info/RECORD": "6572172ca3407508398e363274da8d9f19ae84772e5a1591fcff2a83ee9e9b48",
+    "batrachian_toad-0.6.20.dist-info/WHEEL": "58b82a17209f9bf2804afe161f2632d0fde933f9bb2792fd936b2474a2e2ac2f",
+    "batrachian_toad-0.6.20.dist-info/entry_points.txt": "12cacbee8134076f2a99542ab81f8682c88f39cbea62228e9c3b950d319d4528",
+    "batrachian_toad-0.6.20.dist-info/licenses/LICENSE": "4df3c306dddaaf4baffdff5ca820cc679ac8cd6dc263c6a74517783e42fa7a3b"
+  },
+  "changed_assets_from_base_main": [
+    "src/toad/widgets/viewport_body.py"
+  ],
+  "unchanged_assets_from_base_main": 318,
+  "declared_sources": {
+    "agent-comms": {
+      "git": "https://github.com/OpenHCSDev/agent-comms.git",
+      "rev": "7b68d630caa654d3e9884f45cbd6493718752a0c"
+    },
+    "textual": {
+      "git": "https://github.com/OpenHCSDev/textual.git",
+      "rev": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78"
+    },
+    "textual-diff-view": {
+      "git": "https://github.com/OpenHCSDev/textual-diff-view.git",
+      "rev": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+    }
+  },
+  "build_input_sha256": {
+    "pyproject.toml": "9217f909f62f5d9fe6959f6b81237d2c3dfcdd31f134b63d4581315696703bde",
+    "uv.lock": "8989e7ccf5ac0da22d369d4adde7f4a5092ce27d47321a2e24fc3cf4c743060d",
+    "README.md": "11b3f5195acb00a19a73229749e2e71ba924314a8b1c650f05a2bf43f537d35d",
+    "LICENSE": "4df3c306dddaaf4baffdff5ca820cc679ac8cd6dc263c6a74517783e42fa7a3b"
+  },
+  "inventory": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/wheel/source-inventory.json",
+  "inventory_sha256": "6fa9721f2efa188962b386fe7a0f353f9efc96e32d184a78ceb53f8e7a633a54",
+  "build_receipt": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/wheel/build-receipt.json",
+  "build_receipt_sha256": "49d709192cc12bd5a1ae08d9f9b82ea79b43c28b5b41033163231e2659d65617",
+  "control_path": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/viewport_body_lifetime_pilot.py",
+  "control_sha256": "085bce4deba13863bf1bbf22ce53d33352ca72400d743d48d213d4604da1626a",
+  "proposal_path": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/viewport-worker-custody-20261005/PROPOSED-MOUNTED-CONTROL.json",
+  "proposal_sha256": "20c7c4aa587fe0123d249444069d5a30b67a931ef78bf01abe87c3e419094bff",
+  "application_python": null,
+  "App_native_provider_run": false,
+  "prefix_changes": false,
+  "Heis_joint_source_union": "UNBOUND; future integrated319Git/ZIP and fullmetadata must match actual installed purpose"
+}

@@ -1,0 +1,33 @@
+{
+  "state": "Installedstage PASS; ownproof not executed at this checkpoint, requires existingBohr effectivecommand binding",
+  "recorded_at": 1791221086.5678651,
+  "issued": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch465-accepted-main-functional-preparation-only-issued-grant.json",
+    "sha256": "d409f70ea50b0952333624c28de4e844dc5f69f6547aa3520f54adcad8daeacd"
+  },
+  "matching_READ": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper465-accepted-main-functional-READ-issued-20261005.json",
+    "sha256": "a81aa5bb257efea1d043d1e7b0786d491bd5f4481c85f3abbdc6cf4b0f7554c9"
+  },
+  "stage_terminal": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/accepted-main-functional-receiving-20261005/stage-terminal.json",
+    "sha256": "39b1907ce3589476307bd974d2eacc63fa3b6a0ba9ca7c463f0e007fa833d970"
+  },
+  "effective_proof_helper": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/accepted-main-functional-receiving-20261005/prove-installed.py",
+    "sha256": "d87d6df084238185c7bcd256d2b509d83c17b39c65f60b8ad146d8042d622e8b"
+  },
+  "effective_proof_command": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/accepted-main-functional-receiving-20261005/proof-command.json",
+    "sha256": "12ff8ae450004a14132adb306c78382003d058a0072f27251d0d8c6176695672"
+  },
+  "preexecution_origin_shape_correction": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/accepted-main-functional-receiving-20261005/proof-origin-shape-correction.json",
+    "sha256": "1e2812684bc93fdd07079a1720e05b4a46bbca67cc5f44f7af933c9606e366f8"
+  },
+  "native_EXEC": false,
+  "App_SDK_provider_input": false,
+  "public485459_Heis334_Arendt540_protected": true,
+  "candidate_disposition": "SoleSch under freshd409 purpose; positivefreezeHELDPARENT and wholeimmediateclaimreturn; negativeactual448 floorrestore",
+  "no_product_wheel_control_delta_or_restage": true
+}

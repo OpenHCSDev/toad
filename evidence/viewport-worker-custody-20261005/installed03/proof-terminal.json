@@ -1,0 +1,19 @@
+{
+  "exit_code": 0,
+  "seconds": 3.64153940603137,
+  "argv": [
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+    "-B",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/viewport-worker-custody-20261005/prepared-485-installed-source-proof.py",
+    "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Einstein466-SessionView03-NoAgent-worker-mounted-package-App-issued-grant.json",
+    "3e2801cad7de40d742a1dcd47e469129c346f19ee391100a590d15c76bfe48dd",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper466-SessionView03-READ-issued-20261005.json",
+    "f889313c571a48b2ff86394cef92bb1aa1fca9169cd6c7ec7ffff39dd34dae7e",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03"
+  ],
+  "cwd": "/home/ts/wt/toad-regression-widget-cost-20261001",
+  "lifecycle_sha256_at_admission": "f566f10ccefcc60a82fe4c3c0c57f5a80504ae21abe94fce2b48b4d37362750a",
+  "child_synchronously_joined": true,
+  "App_runs": 0,
+  "native_execution": false
+}

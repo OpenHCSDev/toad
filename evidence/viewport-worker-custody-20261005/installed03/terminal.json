@@ -1,0 +1,31 @@
+{
+  "elapsed": 6.13824640691746,
+  "returncode": 0,
+  "timed_out": false,
+  "error": null,
+  "drain_errors": [],
+  "outcome": {
+    "kind": "exited",
+    "code": 0
+  },
+  "child_retired": true,
+  "owned_group_members": [],
+  "controller": {
+    "pid": 1573863,
+    "start_time": 70920311
+  },
+  "child": {
+    "pid": 1573967,
+    "start_time": 70920376
+  },
+  "scope": [
+    "One installed mounted NoAgent original App/Worker case",
+    "Cancel acquired worker before original _reconcile entry and join native cancellation",
+    "Same source/window/membership resume; three demand requests borrow exact same Worker",
+    "Original entered worker finishes; later independent frame demand remains legitimate",
+    "Close joins actual admitted worker and releases viewport resources; original App/preparation cleanup joins"
+  ],
+  "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Einstein466-SessionView03-NoAgent-worker-mounted-package-App-issued-grant.json",
+  "native_inputs": 0,
+  "provider_calls": 0
+}

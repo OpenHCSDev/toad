@@ -1,0 +1,61 @@
+{
+  "scope": "Source-only read of retained wheel ZIP metadata; no prefix/import/test/App/native execution",
+  "original_failure": {
+    "helper": "prepared-485-installed-source-proof.py",
+    "line": 81,
+    "expected_raw_zip_paths_equal_RECORD": "source oracle includes directory indexes as payload"
+  },
+  "wheels": [
+    {
+      "wheel": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/c3-goal-selection675-wheel-20261005/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "a685578e439aa2f7010219aa6032ae7e7307a68393e6d6adbb084563f39f43c5",
+      "explicit_directory_entries": [],
+      "missing_payload_RECORD_paths": [],
+      "extra_RECORD_paths": [],
+      "raw_zip_vs_RECORD_difference": [],
+      "payload_only_equal": true
+    },
+    {
+      "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-source-wheel-20261005/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "1c4318661b2eb0bfa84462d0389a7b824c8eb23d86ba9fae6d013a027aeab3bf",
+      "explicit_directory_entries": [],
+      "missing_payload_RECORD_paths": [],
+      "extra_RECORD_paths": [],
+      "raw_zip_vs_RECORD_difference": [],
+      "payload_only_equal": true
+    },
+    {
+      "wheel": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native67-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+      "sha256": "16c9f5e7a1aca9f7a339fdb859c1743bbc0ba8f17327ba3debd4b13959ca927d",
+      "explicit_directory_entries": [],
+      "missing_payload_RECORD_paths": [],
+      "extra_RECORD_paths": [],
+      "raw_zip_vs_RECORD_difference": [],
+      "payload_only_equal": true
+    },
+    {
+      "wheel": "/home/ts/wt/nra-skill-publish-20261002/.artifacts/family-flattened-collector-20261004/wheels/nominal_refactor_audit-0.1.0-py3-none-any.whl",
+      "sha256": "8d489731728ebf9f7e0f90ef2b14e7e3b5d2f90ed82bd8b1482d735f82869886",
+      "explicit_directory_entries": [],
+      "missing_payload_RECORD_paths": [],
+      "extra_RECORD_paths": [],
+      "raw_zip_vs_RECORD_difference": [],
+      "payload_only_equal": true
+    },
+    {
+      "wheel": "/home/ts/.cache/uv/sdists-v9/git/6a8a377ce2150d3f/8fa7d4d0db993ea3/textual_diff_view-0.1.5-py3-none-any.whl",
+      "sha256": "be7089c8f282e07e893b0254a0859e0f1b243a7ba591749f2053fa1fb775ad36",
+      "explicit_directory_entries": [
+        "textual_diff_view-0.1.5.dist-info/",
+        "textual_diff_view/"
+      ],
+      "missing_payload_RECORD_paths": [],
+      "extra_RECORD_paths": [],
+      "raw_zip_vs_RECORD_difference": [
+        "textual_diff_view-0.1.5.dist-info/",
+        "textual_diff_view/"
+      ],
+      "payload_only_equal": true
+    }
+  ]
+}

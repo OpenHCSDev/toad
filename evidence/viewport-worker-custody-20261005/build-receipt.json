@@ -1,0 +1,37 @@
+{
+  "source_head": "7ecec607f9723d4f1747494564dd7b1b174b2180",
+  "production_head": "4f0ea5ef3c7b3ed183bbb92e13fef3cedf73543e",
+  "argv": [
+    "/usr/bin/python",
+    "-B",
+    "-m",
+    "build",
+    "--wheel",
+    "--no-isolation",
+    "--outdir",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/wheel"
+  ],
+  "cwd": "/home/ts/wt/toad-regression-widget-cost-20261001",
+  "backend_readonly": "/home/ts/.cache/uv/archive-v0/RgcgNn7xR1Zs9HSF",
+  "backend_metadata_sha256": "acd3b755437aa07859ebe3ed9b71d94536fa183cc851bbd95b437ba3fe7e09b6",
+  "env": {
+    "PYTHONPATH": "/home/ts/.cache/uv/archive-v0/RgcgNn7xR1Zs9HSF",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "authority": "Parent ONE source-only cachedHatch1.28 normal466 filewheel; Heis confirms no matching retained319 artifact",
+  "attempt": 1,
+  "new_environment": false,
+  "dependency_resolution": false,
+  "prefix_changes": false,
+  "App_run": false,
+  "Core_native_build": false,
+  "build_inputs": {
+    "pyproject.toml": "9217f909f62f5d9fe6959f6b81237d2c3dfcdd31f134b63d4581315696703bde",
+    "uv.lock": "8989e7ccf5ac0da22d369d4adde7f4a5092ce27d47321a2e24fc3cf4c743060d",
+    "README.md": "11b3f5195acb00a19a73229749e2e71ba924314a8b1c650f05a2bf43f537d35d",
+    "LICENSE": "4df3c306dddaaf4baffdff5ca820cc679ac8cd6dc263c6a74517783e42fa7a3b"
+  },
+  "exit_code": 0,
+  "seconds": 0.6694245850667357,
+  "child_synchronously_joined": true
+}

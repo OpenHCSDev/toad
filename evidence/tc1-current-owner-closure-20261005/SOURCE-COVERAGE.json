@@ -1,0 +1,40 @@
+{
+  "determining_main": "cac7268a733f62f6db57580fd63b64abd52be359",
+  "original_tool": "audit.findings.Package.load via audit.repository.Repository",
+  "coverage": {
+    "src/toad": {
+      "parsed": 288,
+      "omissions": []
+    },
+    "tests": {
+      "parsed": 398,
+      "omissions": []
+    }
+  },
+  "declared_dependency": {
+    "revision": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78",
+    "root": "src/textual",
+    "parsed": 249,
+    "omissions": []
+  },
+  "owner_modules": [
+    "src/toad/screens/workspace.py",
+    "src/toad/session_presentation.py",
+    "src/toad/terminal_execution.py",
+    "src/toad/transcript_publication.py",
+    "src/toad/transcript_source_preparation.py",
+    "src/toad/widgets/project_tree_intent.py",
+    "src/toad/widgets/viewport_body.py",
+    "src/toad/workspace_chrome.py"
+  ],
+  "owner_class_declarations": 53,
+  "raw_source_index": ".artifacts/tc1-current-owner-closure-20261005/source-index.json",
+  "raw_source_index_sha256": "e3473e313936d2e200aaefb6148739b52468823f3e9a2c85a6dcb7e955c8b453",
+  "resolution_limits": [
+    "Name index includes collisions such as Command; qualifying imports and inheritance must be read before treating a site as a consumer.",
+    "Dynamic Textual message handlers/reactives and weak references require source reasoning; this AST evidence makes no behavioral or installed claim."
+  ],
+  "source_only": true,
+  "production_changes": false,
+  "tests_build_app_package_provider_operations": false
+}

@@ -42,15 +42,14 @@ async def worker_custody(output: Path):
                           XDG_DATA_HOME=str(root / "data"))
         app = InstalledApp(project_dir=str(root))
         async with app.run_test(size=(110, 35)) as pilot:
-            session = app.selected_session
-            await session.wait_content_ready()
-            assert await session.wait_presented()
-            view = session.conversation
+            await app.selected_session.wait_content_ready()
+            assert await app.selected_session.wait_presented()
+            view = app.selected_session.conversation
             assert view.agent is None
             window = view.window
             manager = window.document_viewport
             source, membership = app.workspace_sessions.source, manager.membership
-            assert window.is_attached and session.is_current
+            assert window.is_attached and view.is_current
             await manager.suspend_source()
 
             # Observe entry into the original method, without replacing its

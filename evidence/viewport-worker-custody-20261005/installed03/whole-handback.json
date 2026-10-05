@@ -1,0 +1,238 @@
+{
+  "state": "Scoped mounted worker acceptance PASS; WHOLE package/import/App/operator/nativeREAD claims RETURNED; actual459 restored",
+  "issued": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Einstein466-SessionView03-NoAgent-worker-mounted-package-App-issued-grant.json",
+    "sha256": "3e2801cad7de40d742a1dcd47e469129c346f19ee391100a590d15c76bfe48dd"
+  },
+  "stage_attempts": 1,
+  "proof_attempts": 1,
+  "App_attempts": 1,
+  "proof_exit_code": 0,
+  "proof_seconds": 3.64153940603137,
+  "terminal": {
+    "elapsed": 6.13824640691746,
+    "returncode": 0,
+    "timed_out": false,
+    "error": null,
+    "drain_errors": [],
+    "outcome": {
+      "kind": "exited",
+      "code": 0
+    },
+    "child_retired": true,
+    "owned_group_members": [],
+    "controller": {
+      "pid": 1573863,
+      "start_time": 70920311
+    },
+    "child": {
+      "pid": 1573967,
+      "start_time": 70920376
+    },
+    "scope": [
+      "One installed mounted NoAgent original App/Worker case",
+      "Cancel acquired worker before original _reconcile entry and join native cancellation",
+      "Same source/window/membership resume; three demand requests borrow exact same Worker",
+      "Original entered worker finishes; later independent frame demand remains legitimate",
+      "Close joins actual admitted worker and releases viewport resources; original App/preparation cleanup joins"
+    ],
+    "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Einstein466-SessionView03-NoAgent-worker-mounted-package-App-issued-grant.json",
+    "native_inputs": 0,
+    "provider_calls": 0
+  },
+  "scoped_acceptance": {
+    "scope": "Mounted viewport pre-entry cancellation/resume/coalescing/close",
+    "pre_entry_cancelled": "CANCELLED",
+    "resumed": "SUCCESS",
+    "coalesced_requests": 3,
+    "close_cancelled": "CANCELLED",
+    "same_source_and_window": true,
+    "viewport_workers": [],
+    "state": "PASS"
+  },
+  "restoration": {
+    "normal_Toad1c43_installer_runs": 1,
+    "whole_floor": {
+      "state": "PASS",
+      "actual_floor": "NONLIVE485CURRENT459",
+      "original_members": 1467,
+      "other65_records": 1865,
+      "protected_originals": 266,
+      "versions": 69,
+      "RAWorigins": 69,
+      "failures": [],
+      "extras": [],
+      "sockets": [],
+      "PREFIXactivation_sha256": "273d1ae8cbd9b38adfeb17e379419beea26c5a52fa2394aff16de6661c6eec11",
+      "actual_archive": {
+        "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/485-current459-before466/original-current459-package-floor.tar.gz",
+        "sha256": "1563f43e54f84c6c1534aa13c41e0a785bd0e467b68496fa84e1072704dadca0",
+        "bytes": 3988872,
+        "members": 1467,
+        "mode": 384
+      },
+      "issued_sha256": "3e2801cad7de40d742a1dcd47e469129c346f19ee391100a590d15c76bfe48dd",
+      "whole_current459_restored": true,
+      "no_archive_member_write_or_donor_mutation": true
+    }
+  },
+  "receipts": {
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/agent_comms-installed-inventory.json": {
+      "sha256": "99aa3ffc430e8af3471c8502c4a6335681a2a79e27913ec1d77c60ba4d04455e",
+      "bytes": 60535
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/candidate-activation.json": {
+      "sha256": "f69520b5bb91cfc213375c0d3e8f78e6825f7892696b69fb27027d1f072963c2",
+      "bytes": 2217
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/candidate-packages.json": {
+      "sha256": "5553faa58134c9cf8c7e7bf08aa20103dad4dca64874c8b478cd50c97af99adf",
+      "bytes": 4811
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/candidate-source-proof.json": {
+      "sha256": "2cc508e066455492e0d34853d2b409a5c80726b635e5ab2624a5450d7863dc46",
+      "bytes": 9477
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/command.json": {
+      "sha256": "1d62671eb8e70c22886b9ff5d3a65469d6b891e8f163ea7ffcafafec7ecf1e5b",
+      "bytes": 1594
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/grant-binding.json": {
+      "sha256": "2f2af37da236fcfb12b570fc947d9386407f4eedcf553297f5649c5e23c5e79b",
+      "bytes": 555
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/handle.json": {
+      "sha256": "1e7ab711063bd33aa3bdeaffe5c3b3542448cd80faf76fdfdefb1c4bcc72c495",
+      "bytes": 973
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/install-terminal.json": {
+      "sha256": "c0afb996fb3668dceabce09d4e6478f937647f4bcfb9c5e5d5c3e3d430fdb2a9",
+      "bytes": 571
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/install.stderr.log": {
+      "sha256": "45c943f584f86b7d8819a4f68f59effc0cf6348530781a05ebea59a14e20aa84",
+      "bytes": 628
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/install.stdout.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/native-full-trust.json": {
+      "sha256": "760a77d2074b7e74e2d3183a004d705a14962bb1ee495b6b80073d78993d3260",
+      "bytes": 637
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/package-boundary-proof.json": {
+      "sha256": "043d8157735d7e5b0415c5cccdfb536c7fdcbb4a1b4f9b66587773819b1f016e",
+      "bytes": 4647
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/proof-terminal.json": {
+      "sha256": "ce8cc14a4cbf9e207d054b6c57a71e350c8f3380c1cec854f8e0bc4e0a67cb91",
+      "bytes": 1106
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/proof.stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/proof.stdout.log": {
+      "sha256": "5e6ba7f3fc0106f640a67809596edcf92b1a4965eff387a4d18866747bad33fe",
+      "bytes": 441
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/receipt.json": {
+      "sha256": "02b149043370e3e016e24ef77d66d3004f972b511fd5ebae4b7d6961191adc96",
+      "bytes": 283
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/refactor_audit-installed-inventory.json": {
+      "sha256": "11b53afecee1033b9053510fd6f5a7f489fede24df841da235a5effe869367f5",
+      "bytes": 2035
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/resolved-proof-operands.json": {
+      "sha256": "de023d39a6c2181d01a1e9ed44d786bb498f9324ccea04bc76fdcd07fd47fd1e",
+      "bytes": 4369
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/restore-install-terminal.json": {
+      "sha256": "ca7a701fa488318792f53fdc65cf75834f99499e9a036b38d8406fe3b53e9b7e",
+      "bytes": 566
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/restore.py": {
+      "sha256": "325d1e118cc60bd259b7213321b06473de8b16d0682583982090ed79d40032ec",
+      "bytes": 4438
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/restore.stderr.log": {
+      "sha256": "9aa13fb4c050abac56501d96732a6262cef944f9d050e0e747bcaa61a9cd4e88",
+      "bytes": 628
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/restore.stdout.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/run.py": {
+      "sha256": "7132c27679f4608335824658b908b343e5a4fc062a476d4d870140df92b9724d",
+      "bytes": 4242
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/stage-admission.json": {
+      "sha256": "40d801d07d2250598b959e73b3c5d23ce5eacbabaa187deb7c90d11c575b7632",
+      "bytes": 971
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/stdout.log": {
+      "sha256": "4e3c131c88233734b9325ee8699883ba6cd638da6e5aff9af2aa57289fca3d6f",
+      "bytes": 265
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/terminal.json": {
+      "sha256": "10575b9625f7fa678d02f4c456f97600895171bba57d0c64c6bfb00047d17187",
+      "bytes": 1027
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/textual-installed-inventory.json": {
+      "sha256": "fd312d93bfccb6dc405f1a8c74c39493930842c9ba9a6632ba39857c2ca3a59e",
+      "bytes": 43409
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/textual_diff_view-installed-inventory.json": {
+      "sha256": "039ec4d491fb03a0f20612e2e61c9f1732fa0dc80ce1db33eb5f22f1bd09db01",
+      "bytes": 854
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/toad-installed-inventory.json": {
+      "sha256": "4a5d0408a80cb1ec91e50bc6722db53c752ac8aa5953925dd952143185f0429b",
+      "bytes": 52338
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/whole-floor-readback.json": {
+      "sha256": "52ce8f005c7a077b199bb94b279268513a2b144b00b54828829d11498063c264",
+      "bytes": 845
+    }
+  },
+  "owned_process_identities": {
+    "controller": {
+      "pid": 1573863,
+      "start_time": 70920311,
+      "proc_absent": true
+    },
+    "child": {
+      "pid": 1573967,
+      "start_time": 70920376,
+      "proc_absent": true
+    }
+  },
+  "owned_groups": [],
+  "sockets": [],
+  "authored_temporary_model_dirs": [],
+  "native_READ_authority": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper466-SessionView03-READ-issued-20261005.json",
+    "sha256": "f889313c571a48b2ff86394cef92bb1aa1fca9169cd6c7ec7ffff39dd34dae7e"
+  },
+  "native_READ_explicitly_returned": true,
+  "native_EXEC": false,
+  "ACP_SDK_provider_input": false,
+  "worker_installed_acceptance": true,
+  "whole_TC1_performance_or_physical_acceptance": false,
+  "cleanup_strength": "Original App run_test, temporary model and runtime_fixture cleanup completed; post-context preparation._closed/no_pending/app_exception assertions passed; default executor joined. BoundedRun child retired, exactcontroller/child absent, group and sockets empty. Stage/proof/restore/readback wrapper children synchronously joined, their births not retained.",
+  "source_head_at_admission": "26500c60f",
+  "product": "4f0ea5ef3c7b3ed183bbb92e13fef3cedf73543e",
+  "control_sha256": "a8e774b4a87ed97df7151e9e23176ca1dc8fec96cb51dde10703d1ce5e85d6a9",
+  "wheel_sha256": "b2e420e5b2eed1aaa96d815b2abf38f990272a047417c2ca5082c01d9149a151",
+  "no_retry_or_secondstage": true,
+  "prior_09bc_and_6d265_raw_negatives_preserved": true,
+  "shared_lifecycle": "Only OriginalBohr independently closes existing3e280; issued bytes unchanged",
+  "public_style22_334_540_protected": true
+}

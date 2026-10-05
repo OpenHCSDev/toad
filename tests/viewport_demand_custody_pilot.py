@@ -39,7 +39,7 @@ async def main():
                 for j in range(8)), paginate=False) for i in range(12)]
             await view.contents.mount(*bodies)
             async with asyncio.timeout(20):
-                while manager._running or any(not body.body_ready for body in bodies):
+                while manager._worker is not None or any(not body.body_ready for body in bodies):
                     await pilot.pause(.02)
             await manager.suspend_source()
             window.focus(scroll_visible=False)

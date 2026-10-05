@@ -1,0 +1,140 @@
+{
+  "state": "WHOLE package/import/proof/READ claims RETURNED; firstproofFAIL preserved; mounted085b App UNRUN",
+  "issued": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Einstein466-NoAgent-worker-mounted-package-App-issued-grant.json",
+    "sha256": "09bc509150185772587216843f9f323ccf201f2009f734a569dae111f52c0787"
+  },
+  "stage_attempts": 1,
+  "proof_attempts": 1,
+  "App_attempts": 0,
+  "proof_exit_code": 1,
+  "proof_seconds": 1.8312139119952917,
+  "failure": "Preparedproof line81 requires raw ZIP member set equal RECORD paths; assertion failed before candidate proof/DTO/nativeFullTrust/App. Source/control qualification not reached.",
+  "restoration": {
+    "normal_Toad1c43_installer_runs": 1,
+    "exit_code": 0,
+    "whole_floor": {
+      "state": "PASS",
+      "actual_floor": "NONLIVE485CURRENT459",
+      "original_members": 1467,
+      "other65_records": 1865,
+      "protected_originals": 266,
+      "versions": 69,
+      "RAWorigins": 69,
+      "failures": [],
+      "extras": [],
+      "sockets": [],
+      "PREFIXactivation_sha256": "273d1ae8cbd9b38adfeb17e379419beea26c5a52fa2394aff16de6661c6eec11",
+      "actual_archive": {
+        "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/485-current459-before466/original-current459-package-floor.tar.gz",
+        "sha256": "1563f43e54f84c6c1534aa13c41e0a785bd0e467b68496fa84e1072704dadca0",
+        "bytes": 3988872,
+        "members": 1467,
+        "mode": 384
+      },
+      "issued_sha256": "09bc509150185772587216843f9f323ccf201f2009f734a569dae111f52c0787",
+      "whole_current459_restored": true,
+      "no_archive_member_write_or_donor_mutation": true
+    },
+    "readback_only_after_recorder_error": true,
+    "no_archive_member_write_or_donor_mutation": true
+  },
+  "receipts": {
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/stage-admission.json": {
+      "sha256": "705ebc8f88c43b4bfc68fdc5c3d67003ef4dd70af7941f870670ef5e465272bb",
+      "bytes": 1247
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/install.stdout.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/install.stderr.log": {
+      "sha256": "a6bd719580176d45a8725a79651454e501ba49d4be2a61f79c9568c9ff727d62",
+      "bytes": 629
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/install-terminal.json": {
+      "sha256": "bc0252d3dde7250708a91b876e4d84b815df80c4bc85058b533ced9edecf5650",
+      "bytes": 572
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/proof-grant-binding.json": {
+      "sha256": "8c0ab49e25165ecca4ad5589f5085bc770ff54d4a61655a92815702e734b4060",
+      "bytes": 1846
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/proof.stdout.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/proof.stderr.log": {
+      "sha256": "de6a60ceb6e87903fa93685c7dd361f9dccb94910850699f815260254d7b0d5c",
+      "bytes": 347
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/proof-terminal.json": {
+      "sha256": "cee3bb285bbb650891269ae8ba433729711e180f8275b9f549da2c4cd2ea4717",
+      "bytes": 931
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/restore-install-terminal.json": {
+      "sha256": "22e5aea4bb845f24c763e3f5db66ad1fd907d0febd3bf977b00837f65d62d7b0",
+      "bytes": 565
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/restore.stdout.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/restore.stderr.log": {
+      "sha256": "f25cfaf92305fecf98f1c3ca384ad8dc750b38b3e3e9bafd61752e848d819bdf",
+      "bytes": 628
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/restore-recorder-negative.json": {
+      "sha256": "5a2580f924665e740c3fbf670a22e274f4b0fb6a1800b65f167774b0571aa98f",
+      "bytes": 835
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/whole-floor-readback.json": {
+      "sha256": "f07ba47f0424746052c410d87573528442031bc75ad63f4283e8237afa51ea58",
+      "bytes": 845
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/restore.py": {
+      "sha256": "0b3705220a250e13fe15b3748ff82bbc247d7e1c41722ab24423af531aa6cd94",
+      "bytes": 4392
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/restore-readback-only.py": {
+      "sha256": "e665ef74e64dcb34e25776629e6eae10b41a6ae664269e317f021162db521718",
+      "bytes": 3754
+    },
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/run.py": {
+      "sha256": "696cf8ede44a40498ebb9d0b7e00d27795f720b03e3c4b3105d41370c938d6ae",
+      "bytes": 4038
+    }
+  },
+  "source_head_at_admission": "6f05d2b47e7332d4b2c4d3a6c04c16e0a10a45aa",
+  "product": "4f0ea5ef3c7b3ed183bbb92e13fef3cedf73543e",
+  "control": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/viewport_body_lifetime_pilot.py",
+    "sha256": "085bce4deba13863bf1bbf22ce53d33352ca72400d743d48d213d4604da1626a"
+  },
+  "runtime_helper": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/runtime_fixture.py",
+    "sha256": "987399f81781f57e5cca89dc0e5214c59663d97a01bcb5bad18f35d7f8eb686f"
+  },
+  "native_READ_authority": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper466-READ-issued-20261005.json",
+    "sha256": "c53a69341c02f9e5f64ad99b52462c86a210f25738b609c0aa9286bc07ede429"
+  },
+  "native_READ_explicitly_returned": true,
+  "native_FullTrust_body_unreached": true,
+  "native_EXEC": false,
+  "ACP_SDK_provider_input": false,
+  "App_runtime_native_workers_or_sockets_created": false,
+  "ownedApp_controller_groups": [],
+  "child_custody": "Stage, proof, restore and metadata-reader subprocess.run/check_output children synchronously waited and returned. Wrapper child PID/birth not retained; no invented process-identity claim. No mounted App/BoundedRun controller was started.",
+  "owned_process_identity_capture_limit": "No subprocess PID/birth handles recorded for package/proof/readback wrappers; existing synchronous join receipts retained. Bohr fresh privileged floor/refs closes sharedlifecycle.",
+  "missing_candidate_outputs": [
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/candidate-source-proof.json",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/candidate-activation.json",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/native-full-trust.json"
+  ],
+  "no_retry_or_secondstage": true,
+  "floor_return": "ACTUAL NONLIVE485CURRENT459 1467/69origins/266/1865/PREFIXactivation, not historical421 or publicstyle22",
+  "shared_lifecycle": "Only OriginalBohr may independently close existing09bc lifecycle; issued bytes untouched",
+  "PUBLICstyle22_334_540_protected": true,
+  "full_worker_installedReady": false
+}

@@ -29,7 +29,7 @@ async def settled(view, pilot):
         while True:
             await pilot.pause(.02)
             viewport = view.window.document_viewport
-            if not viewport._running and viewport.visible_bodies_ready:
+            if viewport._worker is None and viewport.visible_bodies_ready:
                 return
 
 
@@ -112,7 +112,7 @@ async def main():
             # Idle retains its measured baseline runway. Four bodies is an
             # admission floor, not the row-derived runway's fixed size.
             assert viewport.lookahead.admission(viewport.budget, window.size.height) <= viewport.budget.item_limit(0)
-            assert not viewport._running and not viewport._pending
+            assert viewport._worker is None and not viewport._pending
             before = psutil.Process().cpu_times()
             await pilot.pause(.3)
             after = psutil.Process().cpu_times()

@@ -1,0 +1,10 @@
+{
+  "scope": "Mounted viewport pre-entry cancellation/resume/coalescing/close",
+  "pre_entry_cancelled": "CANCELLED",
+  "resumed": "SUCCESS",
+  "coalesced_requests": 3,
+  "close_cancelled": "CANCELLED",
+  "same_source_and_window": true,
+  "viewport_workers": [],
+  "state": "PASS"
+}

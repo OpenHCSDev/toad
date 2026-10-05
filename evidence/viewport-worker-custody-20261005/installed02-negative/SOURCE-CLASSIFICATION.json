@@ -1,0 +1,23 @@
+{
+  "state": "SOURCE correction only; worker affected mounted behavior remains UNQUALIFIED",
+  "failure": "Frozen085b line52 asks Conversation.is_current; actual SessionView owns is_current. Original session/window mounted then fail before worker body.",
+  "original_control": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/viewport-worker-custody-20261005/installed02-negative/viewport_body_lifetime_pilot-085b.py",
+    "sha256": "085bce4deba13863bf1bbf22ce53d33352ca72400d743d48d213d4604da1626a"
+  },
+  "corrected_control": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/viewport_body_lifetime_pilot.py",
+    "sha256": "a8e774b4a87ed97df7151e9e23176ca1dc8fec96cb51dde10703d1ce5e85d6a9"
+  },
+  "owner": "SessionView.is_current derives WorkspaceSessions.owns(self) and native screen.is_current; selected_session returns WorkspaceSource.view; Conversation is nested Vertical and its on_click already borrows ancestor SessionView.is_current.",
+  "change": "Retain original selected SessionView across content/presentation awaits, use its Conversation and original is_current. No new visibility flag, guard, timer, retries or product patch.",
+  "scope": "Worker/profile/coalescing/source/window/membership/close oracles unchanged; old main and settled AST equal; runtime_fixture and frozen b2e wheel unchanged.",
+  "consumed_purpose": "6d2658f13637c14965ba4893353a580a7166150b189b91253b9adaa7a2e19d01",
+  "whole_handback": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted02/whole-handback.json",
+    "sha256": "6d64e024d5e5f16ff8f2dc0009d1ebc9d04a7e049b7fba36b8ba23bad2b66c3d"
+  },
+  "terminal_seconds": 7.011053938069381,
+  "worker_scenario_unreached": true,
+  "no_run_build_prefix_access": true
+}

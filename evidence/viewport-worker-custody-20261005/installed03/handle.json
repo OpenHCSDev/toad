@@ -1,0 +1,21 @@
+{
+  "controller": {
+    "pid": 1573863,
+    "start_time": 70920311
+  },
+  "child": {
+    "pid": 1573967,
+    "start_time": 70920376
+  },
+  "start": 709203.760864863,
+  "stdout": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/stdout.log",
+  "stderr": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/stderr.log",
+  "owner": "Original installed BoundedRun.session / AttachedChild",
+  "scope": [
+    "One installed mounted NoAgent original App/Worker case",
+    "Cancel acquired worker before original _reconcile entry and join native cancellation",
+    "Same source/window/membership resume; three demand requests borrow exact same Worker",
+    "Original entered worker finishes; later independent frame demand remains legitimate",
+    "Close joins actual admitted worker and releases viewport resources; original App/preparation cleanup joins"
+  ]
+}
