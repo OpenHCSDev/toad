@@ -1,0 +1,42 @@
+{
+  "state": "source reading evidence, not a manifest or executable publication gate",
+  "read": [
+    {
+      "git": "69346035",
+      "path": "tools/cutover/publish_retained_summary.py",
+      "sha256": "025babf120563228d99920617d34f2e4142307d38e049405d4af49b2ecd7a960",
+      "relation": "read source only; no canonical copy"
+    },
+    {
+      "git": "69346035",
+      "path": "tools/cutover/runtime_installation.py",
+      "sha256": "9a2a9c7ee38cc64993d6cf1c3b706e77c62668dd51d6a553a86aa01022234524",
+      "relation": "read source only; no canonical copy"
+    },
+    {
+      "git": "69346035",
+      "path": "tools/cutover/native_schema_carry.py",
+      "sha256": "e7faf702b534056696229c145402b935f7872e89ae8432c848cbae5cbe811534",
+      "relation": "read source only; no canonical copy"
+    },
+    {
+      "git": "69346035",
+      "path": "tools/cutover/execute_retained_summary_foundation.py",
+      "sha256": "49c9a05298b68ccfd91dc75c9de8980e2a0a72e6b670e45d581ccac3ae6e3a19",
+      "relation": "read source only; no canonical copy"
+    },
+    {
+      "git": "69346035",
+      "path": "src/agent_comms/native_package.py",
+      "sha256": "f6832d49ee594855a1ad570bf5fb01ed1445c95c74c33f817bf3723c8fcc5c68",
+      "relation": "read source only; no canonical copy"
+    },
+    {
+      "git": "69346035",
+      "path": "src/agent_comms/coordination_tables/metadata.py",
+      "sha256": "1a8ae630b7f760b7b413b465ea40b71ab726a964547e17914fa0fb2af6701d6f",
+      "relation": "read source only; no canonical copy"
+    }
+  ],
+  "carry_owner": "PR663 bae270dd existing declaration/carry/control family read by normal Git diff; no peer edits"
+}

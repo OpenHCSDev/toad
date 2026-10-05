@@ -1,0 +1,47 @@
+# ContextExplorer functional delivery: source plan
+
+This branch starts at actual merged ToAd447 `3dc801984c211d2739c4c96c5907e068cd25820c` in the finished Sch checkout. It contains documentation only. PUBLIC334447 and its consumed operation remain protected. No package, prefix, public store, native process or holder was accessed for this plan; no canonical operators were copied.
+
+## Accepted functionality and actual package change
+
+The useful checkpoint has two distinct original acceptances:
+
+- Historical05: current Core3aac/0ed355 + ToAd76ec/e414319, one registered App PASS30.217576s. Original historical ReferenceNode read, one-match search and original byte-range export/not-current marker passed, with separate local USER correction/Promised/defaultOFF/schema10. No input/provider/nativeprompt or accepted GUI repeat.
+- Authentic continuation03: original earlier admitted source tuple, PASS23.123124s. Original sealed527f request/two spans → mounted AnnotationNode reader → GUI USER ACP correction → effective HumanLabel Obeys/Promised visible and reread. Its original receipt stays bound to that tuple. Later unchanged W6 consumer source does not rebase it.
+
+Raw retained ZIP comparison against public447 was read directly: Core5f347 → 0ed355 adds **8 members and changes23 existing members**, including the forced native pin, with no removal. ToAd7e6 → e414 retains319 members and changes exactly4: `acp/comms_updates.py`, `core/context_inspection.py`, `widgets/context_explorer.py`, `widgets/conversation.py`. These are full feature changes, not equality to public bytes. Earlier ab640/178b relations are separate historical checkpoints.
+
+External annotation/disclosure remains OFF. W7/W8 calibration/study and physical UI acceptance are not claimed or made prerequisites for this accepted functional delivery.
+
+## Existing delivery owners
+
+| Fact or operation | Existing owner and consequence |
+| --- | --- |
+| Reviewed package/source relation | `ReviewedRetainedSummaryCohort.require_original` consumes original `CohortActivation`, `InstalledSourceProof`, `ReviewedArtifact`, actual journey receipts and truthful `ArchivePackageDirectUrl`. Later installed proof must bind the actual final merged heads, imported locations and complete original wheels; branch labels or file-wheel metadata cannot invent a Git origin. |
+| Artifact086 → artifact7a | `verify_native_package` authenticates the selected artifact against the imported Core's forced manifest/tree commitment. Same import-fence sharing is resource custody, not artifact equivalence. Future target must name7a; current447's086/root remains unchanged until Parent's one-use operation. No build/copy/SDK repeat is planned. |
+| Coordination schema9 → schema10 | `NativeSchemaDeclaration` derives authentic source/target DDL, writable fields and metadata from original declarations. Mendel663 extends the existing bounded carry relation; ordinary `SchemaMeta.require_current` remains strict/read-only. Fresh schema10 initialization cannot qualify retained9→10. |
+| Stopped carry and preimages | `CarryNativeRuntimeInstallation` invokes `NativeSchemaCarryPlan` under the publisher's original all-stopped wire custody. Source Python is the authentic original447 installation, not an invented donor overlay; the target is the actual future installed merged feature. The candidate is separate persistent owned storage and exact original stores remain preimages. |
+| Owner settings/history/UNKNOWN | `PreserveOwnerRuntime`, `PublishRetainedSummary.protected_files`, recovery originals and complete audience selection retain incarnations/settings, SDK sessions/input proofs, dispositions, original bus/native/goal facts and authentication. Neither Reset nor replay is selected. |
+| Public transition and launch | Existing `execute_retained_summary_foundation` decodes the reviewed runtime member and calls the original one-use publisher. Parent alone acquires fresh audience/client admission, route-directory/wire custody, original stopped owner handoffs, retained launch and readback. No alternate stop/restart/publisher is introduced. |
+
+### Concrete carry source requirement
+
+Actual Coremain69346035 and published3aac still have the old `require_carry_target` refusal for `(9,3,3,6)` → `(10,3,3,6)`. This is already owned by Mendel663, not a new Sch patch or gate. Its published declaration/carry/control diff admits only preserved original coordination declarations/fields, unchanged native/binding/response meaning and additive members. It compares retained original facts, physical rowids, generated values, unrelated objects and autoincrement allocation; added tables remain empty. The installed stopped-copy result and final owner/Parent disposition are currently separate pending work under the new source/target grants.
+
+Future ordinary publication therefore needs the normally merged qualified663 family as well as normally merged627/434. `PreserveRuntimeInstallation` would leave the strict target reader refusing schema9, while `ResetRuntimeInstallation` would discard retained facts; neither expresses this delivery. The intended member is `CarryNativeRuntimeInstallation` with authentic observed source declaration/source Python and separate candidate location, all still unbound.
+
+### What the existing publisher does
+
+`PublishRetainedSummary` captures recovery originals before fences/signals. After all original owners stop, it revalidates audience/settings and clients, acquires original compaction/goal/native resources and synchronizes the goal ledger from authentic DDL. Carry removes only its owned replaced native stores from the byte-invariant partition; all other protected originals remain byte-identical. `NativeSchemaCarryPlan` validates original store membership/hashes, stages replacements on the destination filesystem, retains every preimage before first replace and reads back exact target hashes. Pending snapshots, hot companions, collisions, target drift and unknown partial operations refuse rather than trigger guessed recovery.
+
+Only after successful stopped installation does `ReviewedRetainedSummaryCohort.publish` change the native route/default links; retained launch checks the same original incarnations/settings. A failure may restore original runtime only when original route, complete recovery membership/hashes and original settings are still unchanged. Once carry/publication changes them, the attempt remains stopped with original preimages for explicit Parent disposition: no automatic old447 restart, rollback or second execution.
+
+## Remaining delivery custody and bindings
+
+1. **Owners/Parent:** finish installed663 and normal merge readiness of627/434/663 at their accepted scopes. Published097b/3aac,75d5/76ec and663bae are provisional source relations, not merged delivery pins. New grants ab316/d7f12 belong to Einstein/Mendel carry only; they grant Sch no receiving access.
+2. **Sch source:** normally join those actual final merges and compare all retained wheel/package/build metadata assets. Reuse0ed/e414 only if the resulting relations are exact. The future canonical51 must come from that actual merged Core head, including663; existing a38 tools are historical, and no operators are copied now.
+3. **Bohr custody:** name a genuinely eligible closed NONLIVE existing full69 holder, its actual current floor/archive/protected originals and a fresh exact receiving grant. PUBLIC334447 is excluded. Neither formerstyle22 nor current carry access becomes a Sch loan automatically.
+4. **Future authorized preparation:** original installer/typed activation/proof/fullcohort/native trust bind the actual installed target, sources, wheel origins, authentic source/target declarations and native/checkpoint relation. No source-preserve assertion is substituted for the required9→10 carry; old input proofs/source bytes/UNKNOWN stay original. Candidate DTO/proof/output are owned separately, with no historical PREFIXactivation edits.
+5. **Parent disposition:** review the exact frozen candidate and new one-use operands, then fresh original admission/one publication/retained identity/settings/default readback. Future `-I -B -c` invocation explicitly admits the exact trusted canonical directory and runs the original entrypoint through `runpy`. Commands, receipt and preimages are not created or executed by this source task.
+
+`PUBLISHED-RELATIONS.json` explicitly leaves merged heads, canonical manifest, holder/grant, installed proof, activation, exact observed declarations/checkpoint relation, stopped candidate, once commands, receipt and preimages **UNBOUND**. `READ-SOURCE-CONTRACTS.json` records read Git source identities only. These documents create no new runtime authority, inventory/scanner, migration implementation or permission gate.
