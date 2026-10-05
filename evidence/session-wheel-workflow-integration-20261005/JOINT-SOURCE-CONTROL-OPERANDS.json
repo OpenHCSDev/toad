@@ -1,0 +1,187 @@
+{
+  "source_head": "d475b7e3e7efc5b5eb39336878498349518f9146",
+  "actual_main": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+  "frozen_450": "39f3aa998fb324bb0e8308ce08303ee80e78068b",
+  "frozen_451": "84463c6b5feac6e143d90134a9e74d28a800be1e",
+  "production_files": {
+    "src/toad/directory_watcher.py": "d903d00068dc27811f243ee2415382a01d406eaecf2a74c253c01f90ab8249a6",
+    "src/toad/session_presentation.py": "7f9ced5400c750680df5c36d6c4c8f1e0f1bae3d379b4aa49bd8be7308c048d9",
+    "src/toad/transcript_source_preparation.py": "014c7c2b75547f00174215d485f9afc2e7495ff6402e3061585065fe6f1a0b10",
+    "src/toad/widgets/conversation.py": "ef6b8bfafa0fdc54d4bce105486b115f8d0ea01724965aefce3655565e57361e",
+    "src/toad/widgets/transcript_history.py": "9b519b3c351f4f19460ac1b2466ebf94e15c02c495e381f3c7855f6b2903b0d5"
+  },
+  "declared_sources": {
+    "agent-comms": {
+      "git": "https://github.com/OpenHCSDev/agent-comms.git",
+      "rev": "3aacd708fb9c699cc80c6b864e0ae8cf9ccff7f8"
+    },
+    "textual": {
+      "git": "https://github.com/OpenHCSDev/textual.git",
+      "rev": "08e3dd6b3c7839baafcac6ff9ea61eb510ff9573"
+    },
+    "textual-diff-view": {
+      "git": "https://github.com/OpenHCSDev/textual-diff-view.git",
+      "rev": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+    }
+  },
+  "controls": {
+    "tests/history_stationary_local_runway_pilot.py": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/history_stationary_local_runway_pilot.py",
+      "sha256": "8bbdbb54b686f3d314155c7b7c1c203396f3e19cdb0925ba18167eee1ebc2437"
+    },
+    "tests/native_session_retention_pilot.py": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/native_session_retention_pilot.py",
+      "sha256": "324ec8636de3a546d3f0e56e1ce3b898c5852522de86eaa1e47354c7f73c36d9"
+    },
+    "tests/l0a_native_installed_pilot.py": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/l0a_native_installed_pilot.py",
+      "sha256": "fd8b65c42fd5195efb1e2580301440c479927b40b587afbfbfd6a0246fa8b1b7"
+    },
+    "tests/runtime_fixture.py": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/runtime_fixture.py",
+      "sha256": "987399f81781f57e5cca89dc0e5214c59663d97a01bcb5bad18f35d7f8eb686f"
+    },
+    "tests/tools/record_installed_tui.py": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/record_installed_tui.py",
+      "sha256": "723d3783cd6cd875c8cef268fb33eb78673f3bac3983ea821796c7b2aa7ed435"
+    },
+    "tests/tools/scroll_observation.py": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/scroll_observation.py",
+      "sha256": "0c70f4c0af55842c6dedf04378aec5dac203066ee549bd316c8df68980558829"
+    },
+    "tools/performance/click_history.py": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/click_history.py",
+      "sha256": "9fdd1a319ae6d85c9ae2673984210f1023247d8f776b20ac926de8e3a85fee17"
+    },
+    "tools/performance/sidebar_validation_driver.py": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/sidebar_validation_driver.py",
+      "sha256": "5044144734fb3328d26829f6d3457cb554845e7d288e83aa5717a44e134f95b8"
+    },
+    "tools/performance/capture_state.py": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/capture_state.py",
+      "sha256": "8b1d4bdb888d3f49f7514f85c01ed55a04dad17b1e6946504d6ff752373a0277"
+    },
+    "tools/performance/analyze_trace.py": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/analyze_trace.py",
+      "sha256": "79ccd4a70dc311d4013004c872a115cd083d852c06b0f0d98cd84d83d5130e25"
+    }
+  },
+  "future_app_argv": [
+    "<fresh eligible actual prefix>/bin/python",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/history_stationary_local_runway_pilot.py",
+    "--installed-only",
+    "--worker-custody",
+    "--session-custody",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/session-wheel453-installed-app-20261005/app"
+  ],
+  "future_app_scope": [
+    "actual default Conversation/NativeSessionSurface/OperationalSessionPresentation and shared filesystem watcher",
+    "actual private fixture file change through held original notify\u2192queued old subscription\u2192retirement",
+    "handlerless MainScreen retains pending source, hidden presentation evicts original tree",
+    "same watcher wired before restored mount, editor document/Undo resource identity and original compositor/writer firstpaint",
+    "same original App lookahead Worker extent/reversal/source retirement and entry/byte policy bounds",
+    "original App/watcher/native observer/task wholeclose"
+  ],
+  "future_app_limits": [
+    "Agent=None is the actual authored fixture; no fake Agent or declared startup speed result",
+    "configured Agent startup/busy-turn/permission preservation remains unqualified",
+    "compositor/writer receipt is not physical pixels or CPU/smoothness comparison"
+  ],
+  "future_physical_argv": [
+    "<fresh eligible actual capture prefix>/bin/python",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/record_installed_tui.py",
+    "--capture-target",
+    "existing_thread",
+    "--journey",
+    "wheel_warm",
+    "--capture-state",
+    "--scroll-travel",
+    "--peer-thread",
+    "<fresh actual matched saved peer>",
+    "--review-timing",
+    "deferred",
+    "--max-duration",
+    "150",
+    "--output",
+    "/home/ts/.cache/agent-scratch/session-wheel453-native63-64-20261005-01/capture",
+    "--",
+    "<matching actual toad-comms>",
+    "nra-architecture"
+  ],
+  "future_physical_scope": [
+    "original existing-thread capture and isolated st/display admission/ProcessIdentity",
+    "original history pointer wheel Up/Down/reversal and End",
+    "original saved peer opening/native actual A-B-A return/draft CtrlZ retained lifetime checks",
+    "original phase/input/scroll/preparation/frame/writer receipts plus personal original moving-frame review"
+  ],
+  "future_physical_limits": [
+    "driver command bounds include helper startup; no per-event input-to-pixel causality by nearest flush",
+    "native resource return assertions do not prove fast/smooth pixels",
+    "actual opening\u2192useful-paint and wheel gaps remain product acceptance, not source correctness",
+    "no repeated held-key cohort or existing accepted ordinary capture"
+  ],
+  "source_packages": [
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "d475b7e3e7efc5b5eb39336878498349518f9146",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "d475b7e3e7efc5b5eb39336878498349518f9146",
+      "root": "tests",
+      "modules": 396,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "d475b7e3e7efc5b5eb39336878498349518f9146",
+      "root": "tools",
+      "modules": 41,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "head": "3aacd708fb9c699cc80c6b864e0ae8cf9ccff7f8",
+      "root": "src/agent_comms",
+      "modules": 324,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "08e3dd6b3c7839baafcac6ff9ea61eb510ff9573",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": []
+    }
+  ],
+  "joint_wheel": "NOT BUILT; source/control freeze delivered before final artifact under latest Parent ordering",
+  "frozen_old_wheels": "Historical203 artifacts and their distinct33be/1feb build receipts unchanged; cannot represent joint5-file production tree",
+  "runtime_purpose": "UNISSUED; no prefix reservation/import/stage/native/App/film authority",
+  "required_runtime_bindings": [
+    "actual Parent448 publication/disposition or specifically eligible NONLIVE floor",
+    "literal actual prefix/floor/archive/origins/keepers and fresh sole purpose",
+    "matching Core3aac355/native63+64 266/immutable086 trust/route and distinct artifact custody",
+    "final joint319 filewheel Git/local/ZIP/backend proof before installation",
+    "exact installed source identities and no overlay",
+    "fresh physical require_no_clients/actual owner before-after and shared-public protection",
+    "joined original App/native/watch/socket/groups cleanup and actual-floor whole restore/handback after terminal"
+  ],
+  "preserved_failures": {
+    "446saved": "FAIL49.474142917; cause unproved",
+    "446mixed": "UNRUN",
+    "446configured": "UNRUN/public decoder never activated",
+    "747": "Separate source-only fixture correction not folded"
+  },
+  "unfinished": [
+    "cold initial width",
+    "configured complete saved/unopened/channel/fork-before-answer/reply/notification/queue/status workflow",
+    "busy native/permissions/correct source lifetime across eviction",
+    "genuine loaded4/16/32/64 scaling distinct from mixedtwo-loaded cohort",
+    "continuous held Up/Down/reversal/growingEnd and warm return",
+    "backend painted cursor ACK writer witness",
+    "physical CPU/frame cause beyond responsible-resource evidence"
+  ]
+}
