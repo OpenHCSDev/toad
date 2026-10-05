@@ -6,6 +6,7 @@ background preparation from moving or mounting the reader. No Agent/provider.
 """
 
 import asyncio
+from contextlib import ExitStack
 import json
 import os
 from pathlib import Path
@@ -154,93 +155,95 @@ async def main(output, *, worker_custody=False, session_resources=False):
             await viewport.suspend_source()
             viewport.lookahead.settle()
             history = TranscriptHistory(page, loader=loader)
-            operation = history.reserve_source_work()
             if worker_custody:
                 # Authored demand data exercises the actual source worker;
                 # this is not a physical wheel or frame-time measurement.
                 viewport.lookahead.demand = MovingPreparation(-1)
             TranscriptBodyPreparation.prepare_fragments = observe
-            try:
-                await view.post(history)
-                if worker_custody:
-                    await asyncio.wait_for(entered.wait(), 10)
-                    first = next(history.lookahead_workers())
-                    demand = viewport.lookahead.demand
-                    before = viewport.lookahead.preparation_count(view.window.size.height)
-                    demand.velocity = (-app.preparation.max_entries * viewport.visible_body_rows
-                                       / viewport.budget.lookahead_seconds)
-                    after = viewport.lookahead.preparation_count(view.window.size.height)
-                    history.prepare_scroll()
-                    custody["extent_changed"] = after > before
-                    custody["same_direction_original_worker_retained"] = tuple(history.lookahead_workers()) == (first,)
-                    assert all(custody.values())
-                    release.set()
-                    await asyncio.wait_for(first.wait(), 10)
+            with ExitStack() as completion:
+                completion.callback(workers_seen.clear)
+                try:
+                    await view.post(history)
+                    assert history.is_mounted and history.window is view.window
+                    operation = history.reserve_source_work()
+                    completion.callback(history.finish_source_work, operation)
+                    if worker_custody:
+                        await asyncio.wait_for(entered.wait(), 10)
+                        first = next(history.lookahead_workers())
+                        demand = viewport.lookahead.demand
+                        before = viewport.lookahead.preparation_count(view.window.size.height)
+                        demand.velocity = (-app.preparation.max_entries * viewport.visible_body_rows
+                                           / viewport.budget.lookahead_seconds)
+                        after = viewport.lookahead.preparation_count(view.window.size.height)
+                        history.prepare_scroll()
+                        custody["extent_changed"] = after > before
+                        custody["same_direction_original_worker_retained"] = tuple(history.lookahead_workers()) == (first,)
+                        assert all(custody.values())
+                        release.set()
+                        await asyncio.wait_for(first.wait(), 10)
 
-                    entered.clear()
-                    release.clear()
-                    demand.velocity = -1
-                    history.prepare_scroll()
-                    await asyncio.wait_for(entered.wait(), 10)
-                    reverse = next(history.lookahead_workers())
-                    viewport.lookahead.observe(viewport.lookahead.position + view.window.size.height)
-                    history.prepare_scroll()
-                    successor = next(history.lookahead_workers())
-                    custody["reversal_replaced_original_worker"] = successor is not reverse
-                    try:
-                        await asyncio.wait_for(reverse.wait(), 10)
-                    except WorkerCancelled:
-                        custody["revoked_waiter_joined"] = True
-                    else:
-                        raise AssertionError("Reversal retained the obsolete preparation waiter")
-                    await history.retire_source()
-                    custody["retirement_closed_reader"] = history._page_buffer.closed
-                    custody["retirement_joined_successor"] = successor.is_finished
+                        entered.clear()
+                        release.clear()
+                        demand.velocity = -1
+                        history.prepare_scroll()
+                        await asyncio.wait_for(entered.wait(), 10)
+                        reverse = next(history.lookahead_workers())
+                        viewport.lookahead.observe(viewport.lookahead.position + view.window.size.height)
+                        history.prepare_scroll()
+                        successor = next(history.lookahead_workers())
+                        custody["reversal_replaced_original_worker"] = successor is not reverse
+                        try:
+                            await asyncio.wait_for(reverse.wait(), 10)
+                        except WorkerCancelled:
+                            custody["revoked_waiter_joined"] = True
+                        else:
+                            raise AssertionError("Reversal retained the obsolete preparation waiter")
+                        await history.retire_source()
+                        custody["retirement_closed_reader"] = history._page_buffer.closed
+                        custody["retirement_joined_successor"] = successor.is_finished
+                        release.set()
+                        assert all(custody.values())
+                    await pilot.pause(.05)
+                    resource = history.pages[0]
+                    admission = resource.capture_admission()
+                    children = tuple(resource.fragment_views)
+                    worker = workers_seen[0] if workers_seen else None
+                    if worker is not None and not worker_custody:
+                        await asyncio.wait_for(worker.wait(), 10)
+                    prepared = tuple(fragment for batch in observations for fragment in batch)
+                    prepared_indexes = [resource.fragments.index(fragment) for fragment in prepared]
+                    receipt = {
+                        "scope": "actual source Toad/native idle preparation; not installed physical acceptance",
+                        "worker_custody": custody,
+                        "transport_has_older": page.has_older,
+                        "transport_has_newer": page.has_newer,
+                        "travel_rows": viewport.lookahead.travel_rows,
+                        "local_unmounted_fragments": resource.start,
+                        "admitted_range": [admission.start, admission.stop],
+                        "prepared_indexes": prepared_indexes,
+                        "idle_local_worker_exists": worker is not None,
+                        "original_children_unchanged": tuple(resource.fragment_views) == children,
+                        "original_admission_unchanged": resource.capture_admission() == admission,
+                        "transport_reads": len(reads),
+                        "prepared_bytes": app.preparation.retained_bytes,
+                        "byte_bound": app.preparation.max_bytes,
+                        "agent_bound": view.agent is not None,
+                        "exception": str(app._exception),
+                    }
+                    (output / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
+                    print(json.dumps(receipt), flush=True)
+                    assert not page.has_older and not page.has_newer
+                    assert resource.start > 0
+                    if not worker_custody:
+                        assert not viewport.lookahead.travel_rows
+                    assert worker is not None and prepared_indexes, "Idle local source runway was skipped"
+                    assert all(index < admission.start or index >= admission.stop for index in prepared_indexes)
+                    assert tuple(resource.fragment_views) == children and resource.capture_admission() == admission
+                    assert not reads and app.preparation.retained_bytes <= app.preparation.max_bytes
+                    assert view.agent is None and app._exception is None
+                finally:
                     release.set()
-                    assert all(custody.values())
-                await pilot.pause(.05)
-                resource = history.pages[0]
-                admission = resource.capture_admission()
-                children = tuple(resource.fragment_views)
-                worker = workers_seen[0] if workers_seen else None
-                if worker is not None and not worker_custody:
-                    await asyncio.wait_for(worker.wait(), 10)
-                prepared = tuple(fragment for batch in observations for fragment in batch)
-                prepared_indexes = [resource.fragments.index(fragment) for fragment in prepared]
-                receipt = {
-                    "scope": "actual source Toad/native idle preparation; not installed physical acceptance",
-                    "worker_custody": custody,
-                    "transport_has_older": page.has_older,
-                    "transport_has_newer": page.has_newer,
-                    "travel_rows": viewport.lookahead.travel_rows,
-                    "local_unmounted_fragments": resource.start,
-                    "admitted_range": [admission.start, admission.stop],
-                    "prepared_indexes": prepared_indexes,
-                    "idle_local_worker_exists": worker is not None,
-                    "original_children_unchanged": tuple(resource.fragment_views) == children,
-                    "original_admission_unchanged": resource.capture_admission() == admission,
-                    "transport_reads": len(reads),
-                    "prepared_bytes": app.preparation.retained_bytes,
-                    "byte_bound": app.preparation.max_bytes,
-                    "agent_bound": view.agent is not None,
-                    "exception": str(app._exception),
-                }
-                (output / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
-                print(json.dumps(receipt), flush=True)
-                assert not page.has_older and not page.has_newer
-                assert resource.start > 0
-                if not worker_custody:
-                    assert not viewport.lookahead.travel_rows
-                assert worker is not None and prepared_indexes, "Idle local source runway was skipped"
-                assert all(index < admission.start or index >= admission.stop for index in prepared_indexes)
-                assert tuple(resource.fragment_views) == children and resource.capture_admission() == admission
-                assert not reads and app.preparation.retained_bytes <= app.preparation.max_bytes
-                assert view.agent is None and app._exception is None
-            finally:
-                release.set()
-                TranscriptBodyPreparation.prepare_fragments = prepare_fragments
-                history.finish_source_work(operation)
-                workers_seen.clear()
+                    TranscriptBodyPreparation.prepare_fragments = prepare_fragments
             if session_resources:
                 receipt["session_resource_custody"] = await session_custody(app, pilot, root)
         await asyncio.get_running_loop().shutdown_default_executor()

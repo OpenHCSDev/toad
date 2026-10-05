@@ -1,0 +1,21 @@
+{
+  "state": "SOURCE_ONLY corrected original mounted admission; unrun",
+  "production_equal_to": "d475b7e3e7efc5b5eb39336878498349518f9146",
+  "control": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/history_stationary_local_runway_pilot.py",
+  "control_sha256": "8b506db5a640d919f2e0d6d02cc3c143d5ccf47c44822d1dcea6a2b1f4fdd90b",
+  "frozen_failed_control_sha256": "8bbdbb54b686f3d314155c7b7c1c203396f3e19cdb0925ba18167eee1ebc2437",
+  "original_assertions_retained": 26,
+  "actual_mount_custody_assertion_added": true,
+  "retained_wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/session-wheel453-source-wheel-20261005/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+  "retained_wheel_sha256": "b13f2ca46dce0f610167e7ea79ccb978f8ab4665d77a38f44112134ab8e8bad4",
+  "build_needed": false,
+  "prior_App_consumed": true,
+  "prior_terminal": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/session-wheel453-installed-app-20261005/terminal.json",
+  "future_holder_authority": "NONE; requires fresh exact eligible disposition/grant and final native authority",
+  "proposed_existing_control_arguments": [
+    "--installed-only",
+    "--worker-custody",
+    "--session-custody"
+  ],
+  "source_relation": "Mounted Conversation.post precedes existing WorkingTranscript reservation; ExitStack registers admitted operation cleanup only after acquisition; all original worker/session assertions retained."
+}
