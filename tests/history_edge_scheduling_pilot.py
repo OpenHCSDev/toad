@@ -27,7 +27,7 @@ from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.transcript_history import TranscriptHistory
 from toad.transcript_preparation import PageRequest
 sys.path.insert(0, str(Path(__file__).resolve().parent / 'tools'))
-from record_installed_tui import (ObserveJourney, InputWarmJourney, ProcessOwner,
+from record_installed_tui import (ObserveJourney, InputWarmJourney, ProcessOwner, RuntimeSelection,
                                  WheelWarmJourney, marker_command, phase_events, main as record_main)
 from runtime_fixture import private_native_wire
 
@@ -364,7 +364,8 @@ async def retained_app(project):
 
 async def record_retained(service, project, evidence, environment, *, recording_args,
                           recording_timeout, recording_output, retained_channel_source,
-                          journey=RetainedHistorySourceJourney, application_command=None):
+                          journey=RetainedHistorySourceJourney, application_command=None,
+                          candidate=None):
     """Existing original-turn fixture callback; owns no second App or root."""
     # The existing archive owner retains original identities/provenance without
     # republishing them, reserving sequences or waking their former recipients.
@@ -390,6 +391,11 @@ async def record_retained(service, project, evidence, environment, *, recording_
     (evidence / 'joint-command.json').write_text(json.dumps(command, indent=2) + '\n')
     owner = ProcessOwner(service.registry)
     try:
+        if candidate is not None:
+            selection = RuntimeSelection.from_environment(application_command, env)
+            proof = await asyncio.to_thread(
+                selection.verify_stage, candidate, owner, env, application_command)
+            (evidence / 'candidate-runtime.json').write_text(json.dumps(proof, indent=2) + '\n')
         with (evidence / 'joint-recorder.log').open('w') as log:
             # Both the recording budget and bounded child custody are chosen
             # by its sole installed operator; this callback changes neither.
@@ -423,12 +429,11 @@ async def record_useful_paint(service, project, evidence, environment, *, candid
     await record_retained(
         service, project, evidence,
         dict(environment, TOAD_VALIDATION_USEFUL_PAINT='1'),
-        recording_args=['--staging-receipt', str(candidate),
-                        '--review-timing', 'deferred', '--max-duration', '150',
+        recording_args=['--review-timing', 'deferred', '--max-duration', '150',
                         '--startup-wait', '8', '--history-wait-seconds', '20'],
         recording_timeout=150, recording_output=evidence / 'capture',
         retained_channel_source=None, journey=WheelWarmJourney,
-        application_command=command)
+        application_command=command, candidate=candidate)
 
 
 if __name__ == '__main__':
