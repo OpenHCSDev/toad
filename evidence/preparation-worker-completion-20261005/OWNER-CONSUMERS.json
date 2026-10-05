@@ -1,0 +1,1913 @@
+{
+  "base": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+  "product_head": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+  "coverage": [
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "modules": 288,
+      "omissions": []
+    }
+  ],
+  "owners": [
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "path": "src/toad/acp/transcript_reader.py",
+      "owner": "NativeTranscriptReadWork",
+      "bases": [
+        "ScopedWork[TranscriptPage]",
+        "SerializedWork[TranscriptPage]",
+        "ThreadWork[TranscriptPage]"
+      ],
+      "methods": [
+        {
+          "method": "work_key",
+          "line": 28,
+          "calls": [
+            "WorkKey"
+          ]
+        },
+        {
+          "method": "prepare",
+          "line": 34,
+          "calls": [
+            "self.read.read"
+          ]
+        }
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "path": "src/toad/acp/transcript_reader.py",
+      "owner": "PublishedNativeTranscriptReadWork",
+      "bases": [
+        "NativeTranscriptReadWork"
+      ],
+      "methods": [
+        {
+          "method": "prepare",
+          "line": 42,
+          "calls": [
+            "StaleRevision",
+            "self.read.content_current"
+          ]
+        }
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "path": "src/toad/sidebar_preparation.py",
+      "owner": "ThreadRowsWork",
+      "bases": [
+        "SerializedWork[tuple[PreparedThreadRow, ...]]",
+        "ContentAddressedWork[tuple[PreparedThreadRow, ...]]",
+        "RendererWork[tuple[PreparedThreadRow, ...]]"
+      ],
+      "methods": [
+        {
+          "method": "capture",
+          "line": 88,
+          "calls": [
+            "cls",
+            "row.presentation",
+            "runtime.run_thread",
+            "tuple"
+          ]
+        },
+        {
+          "method": "inputs",
+          "line": 100,
+          "calls": []
+        },
+        {
+          "method": "for_rows",
+          "line": 103,
+          "calls": [
+            "replace",
+            "rows.items"
+          ]
+        },
+        {
+          "method": "content_width",
+          "line": 111,
+          "calls": [
+            "Content",
+            "max"
+          ]
+        },
+        {
+          "method": "render_task",
+          "line": 117,
+          "calls": [
+            "ThreadRowsRenderTask"
+          ]
+        }
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "path": "src/toad/sidebar_preparation.py",
+      "owner": "TabRosterWork",
+      "bases": [
+        "SerializedWork[tuple[PreparedTab, ...]]",
+        "ContentAddressedWork[tuple[PreparedTab, ...]]",
+        "RendererWork[tuple[PreparedTab, ...]]"
+      ],
+      "methods": [
+        {
+          "method": "inputs",
+          "line": 149,
+          "calls": []
+        },
+        {
+          "method": "render_task",
+          "line": 153,
+          "calls": [
+            "TabRosterRenderTask"
+          ]
+        }
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "path": "src/toad/transcript_preparation.py",
+      "owner": "TranscriptFilterWork",
+      "bases": [
+        "ThreadWork[FilteredTranscriptBatch]"
+      ],
+      "methods": [
+        {
+          "method": "identity",
+          "line": 67,
+          "calls": [
+            "WorkKey",
+            "object",
+            "type"
+          ]
+        },
+        {
+          "method": "prepare",
+          "line": 71,
+          "calls": [
+            "FilteredTranscriptBatch",
+            "keep_events",
+            "len",
+            "matches.append",
+            "reversed",
+            "tuple"
+          ]
+        }
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "path": "src/toad/transcript_preparation.py",
+      "owner": "TranscriptPageWork",
+      "bases": [
+        "SerializedWork[PreparedTranscriptPage]",
+        "ScopedWork[PreparedTranscriptPage]"
+      ],
+      "methods": [
+        {
+          "method": "work_key",
+          "line": 140,
+          "calls": [
+            "WorkKey",
+            "type"
+          ]
+        },
+        {
+          "method": "result_size",
+          "line": 143,
+          "calls": []
+        },
+        {
+          "method": "execute",
+          "line": 146,
+          "calls": [
+            "PreparedTranscriptPage",
+            "RenderPreparation",
+            "TranscriptRenderTask",
+            "ValueError",
+            "cursor.contains",
+            "edge.contains",
+            "runtime.run_thread",
+            "runtime.submit",
+            "self.loader"
+          ]
+        }
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "path": "src/toad/work_preparation.py",
+      "owner": "PreparationWork",
+      "bases": [
+        "ABC",
+        "Generic[ResultT]"
+      ],
+      "methods": [
+        {
+          "method": "result_size",
+          "line": 89,
+          "calls": [
+            "retained_bytes"
+          ]
+        },
+        {
+          "method": "store_result",
+          "line": 92,
+          "calls": [
+            "CopiedValue",
+            "self.result_size"
+          ]
+        },
+        {
+          "method": "lane",
+          "line": 97,
+          "calls": []
+        },
+        {
+          "method": "identity",
+          "line": 101,
+          "calls": []
+        },
+        {
+          "method": "execute",
+          "line": 105,
+          "calls": []
+        }
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "path": "src/toad/work_preparation.py",
+      "owner": "ThreadWork",
+      "bases": [
+        "PreparationWork[ResultT]"
+      ],
+      "methods": [
+        {
+          "method": "prepare",
+          "line": 147,
+          "calls": []
+        },
+        {
+          "method": "execute",
+          "line": 150,
+          "calls": [
+            "runtime.run_thread"
+          ]
+        }
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "path": "src/toad/work_preparation.py",
+      "owner": "RendererWork",
+      "bases": [
+        "PreparationWork[ResultT]"
+      ],
+      "methods": [
+        {
+          "method": "render_task",
+          "line": 159,
+          "calls": []
+        },
+        {
+          "method": "execute",
+          "line": 162,
+          "calls": [
+            "runtime.renderer.submit"
+          ]
+        }
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "path": "src/toad/work_preparation.py",
+      "owner": "RenderPreparation",
+      "bases": [
+        "ContentAddressedWork[ResultT]",
+        "RendererWork[ResultT]"
+      ],
+      "methods": [
+        {
+          "method": "identity",
+          "line": 171,
+          "calls": [
+            "self.task.preparation_identity"
+          ]
+        },
+        {
+          "method": "inputs",
+          "line": 175,
+          "calls": []
+        },
+        {
+          "method": "render_task",
+          "line": 179,
+          "calls": []
+        },
+        {
+          "method": "retain_result",
+          "line": 183,
+          "calls": []
+        },
+        {
+          "method": "store_result",
+          "line": 186,
+          "calls": [
+            "self.task.preparation_storage.store_result"
+          ]
+        }
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "path": "src/toad/work_preparation.py",
+      "owner": "PreparationRuntime",
+      "bases": [],
+      "methods": [
+        {
+          "method": "__init__",
+          "line": 229,
+          "calls": [
+            "OrderedDict",
+            "ValueError",
+            "asyncio.Event",
+            "asyncio.Semaphore",
+            "dict.fromkeys",
+            "isinstance",
+            "set"
+          ]
+        },
+        {
+          "method": "run_thread",
+          "line": 247,
+          "calls": [
+            "asyncio.create_task",
+            "asyncio.shield",
+            "asyncio.to_thread",
+            "completed.cancelled",
+            "completed.exception",
+            "self._thread_tasks.add",
+            "self._thread_tasks.discard",
+            "self._threads.acquire",
+            "self._threads.release",
+            "task.add_done_callback"
+          ]
+        },
+        {
+          "method": "discard_scope",
+          "line": 266,
+          "calls": [
+            "self._changed.set",
+            "self._ready.pop",
+            "tuple"
+          ]
+        },
+        {
+          "method": "submit",
+          "line": 274,
+          "calls": [
+            "cast",
+            "self._deliver",
+            "self._prepare"
+          ]
+        },
+        {
+          "method": "prepare",
+          "line": 278,
+          "calls": [
+            "self._prepare"
+          ]
+        },
+        {
+          "method": "_prepare",
+          "line": 282,
+          "calls": [
+            "asyncio.create_task",
+            "asyncio.shield",
+            "completed.cancelled",
+            "completed.exception",
+            "pending.add_done_callback",
+            "self._changed.clear",
+            "self._changed.set",
+            "self._changed.wait",
+            "self._execute",
+            "self._pending.get",
+            "self._pending.pop",
+            "self._ready.get",
+            "self._ready.move_to_end",
+            "type",
+            "work.identity"
+          ]
+        },
+        {
+          "method": "_deliver",
+          "line": 320,
+          "calls": [
+            "self.run_thread"
+          ]
+        },
+        {
+          "method": "_execute",
+          "line": 329,
+          "calls": [
+            "getsizeof",
+            "len",
+            "self._ready.popitem",
+            "self.run_thread",
+            "work.execute"
+          ]
+        },
+        {
+          "method": "aclose",
+          "line": 345,
+          "calls": [
+            "asyncio.create_task",
+            "asyncio.shield",
+            "self._changed.set",
+            "self._close"
+          ]
+        },
+        {
+          "method": "_close",
+          "line": 352,
+          "calls": [
+            "asyncio.gather",
+            "self._pending.values",
+            "self._ready.clear",
+            "self.renderer.aclose",
+            "tuple"
+          ]
+        }
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "path": "src/toad/work_preparation.py",
+      "owner": "PreparedRenderer",
+      "bases": [
+        "Renderer"
+      ],
+      "methods": [
+        {
+          "method": "__init__",
+          "line": 365,
+          "calls": []
+        },
+        {
+          "method": "submit",
+          "line": 368,
+          "calls": [
+            "RenderPreparation",
+            "self.runtime.submit"
+          ]
+        },
+        {
+          "method": "prepare",
+          "line": 371,
+          "calls": [
+            "RenderPreparation",
+            "self.runtime.prepare"
+          ]
+        },
+        {
+          "method": "warm_up",
+          "line": 374,
+          "calls": [
+            "self.runtime.renderer.warm_up"
+          ]
+        },
+        {
+          "method": "aclose",
+          "line": 377,
+          "calls": [
+            "self.runtime.aclose"
+          ]
+        }
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "path": "src/toad/acp/transcript_reader.py",
+      "owner": "NativeTranscriptReadWork",
+      "bases": [
+        "ScopedWork[TranscriptPage]",
+        "SerializedWork[TranscriptPage]",
+        "ThreadWork[TranscriptPage]"
+      ],
+      "methods": [
+        {
+          "method": "work_key",
+          "line": 28,
+          "calls": [
+            "WorkKey"
+          ]
+        },
+        {
+          "method": "prepare",
+          "line": 34,
+          "calls": [
+            "self.read.read"
+          ]
+        }
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "path": "src/toad/acp/transcript_reader.py",
+      "owner": "PublishedNativeTranscriptReadWork",
+      "bases": [
+        "NativeTranscriptReadWork"
+      ],
+      "methods": [
+        {
+          "method": "prepare",
+          "line": 42,
+          "calls": [
+            "StaleRevision",
+            "self.read.content_current"
+          ]
+        }
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "path": "src/toad/sidebar_preparation.py",
+      "owner": "ThreadRowsWork",
+      "bases": [
+        "SerializedWork[tuple[PreparedThreadRow, ...]]",
+        "ContentAddressedWork[tuple[PreparedThreadRow, ...]]",
+        "RendererWork[tuple[PreparedThreadRow, ...]]"
+      ],
+      "methods": [
+        {
+          "method": "capture",
+          "line": 88,
+          "calls": [
+            "cls",
+            "row.presentation",
+            "runtime.run_thread",
+            "tuple"
+          ]
+        },
+        {
+          "method": "inputs",
+          "line": 100,
+          "calls": []
+        },
+        {
+          "method": "for_rows",
+          "line": 103,
+          "calls": [
+            "replace",
+            "rows.items"
+          ]
+        },
+        {
+          "method": "content_width",
+          "line": 111,
+          "calls": [
+            "Content",
+            "max"
+          ]
+        },
+        {
+          "method": "render_task",
+          "line": 117,
+          "calls": [
+            "ThreadRowsRenderTask"
+          ]
+        }
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "path": "src/toad/sidebar_preparation.py",
+      "owner": "TabRosterWork",
+      "bases": [
+        "SerializedWork[tuple[PreparedTab, ...]]",
+        "ContentAddressedWork[tuple[PreparedTab, ...]]",
+        "RendererWork[tuple[PreparedTab, ...]]"
+      ],
+      "methods": [
+        {
+          "method": "inputs",
+          "line": 149,
+          "calls": []
+        },
+        {
+          "method": "render_task",
+          "line": 153,
+          "calls": [
+            "TabRosterRenderTask"
+          ]
+        }
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "path": "src/toad/transcript_preparation.py",
+      "owner": "TranscriptFilterWork",
+      "bases": [
+        "ThreadWork[FilteredTranscriptBatch]"
+      ],
+      "methods": [
+        {
+          "method": "identity",
+          "line": 68,
+          "calls": [
+            "WorkKey",
+            "object",
+            "type"
+          ]
+        },
+        {
+          "method": "prepare",
+          "line": 72,
+          "calls": [
+            "FilteredTranscriptBatch",
+            "keep_events",
+            "len",
+            "matches.append",
+            "reversed",
+            "tuple"
+          ]
+        }
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "path": "src/toad/transcript_preparation.py",
+      "owner": "TranscriptPageWork",
+      "bases": [
+        "SerializedWork[PreparedTranscriptPage]",
+        "ScopedWork[PreparedTranscriptPage]"
+      ],
+      "methods": [
+        {
+          "method": "work_key",
+          "line": 141,
+          "calls": [
+            "WorkKey",
+            "type"
+          ]
+        },
+        {
+          "method": "result_size",
+          "line": 144,
+          "calls": []
+        },
+        {
+          "method": "execute",
+          "line": 147,
+          "calls": [
+            "PreparedTranscriptPage",
+            "RenderPreparation",
+            "TranscriptRenderTask",
+            "ValueError",
+            "cursor.contains",
+            "edge.contains",
+            "retained_bytes",
+            "runtime.run_thread",
+            "runtime.submit",
+            "self.finish_result",
+            "self.loader"
+          ]
+        }
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "path": "src/toad/work_preparation.py",
+      "owner": "PreparationWork",
+      "bases": [
+        "ABC",
+        "Generic[ResultT]"
+      ],
+      "methods": [
+        {
+          "method": "result_size",
+          "line": 89,
+          "calls": [
+            "retained_bytes"
+          ]
+        },
+        {
+          "method": "store_result",
+          "line": 92,
+          "calls": [
+            "CopiedValue",
+            "self.result_size"
+          ]
+        },
+        {
+          "method": "finish_result",
+          "line": 95,
+          "calls": [
+            "getsizeof",
+            "retained_bytes",
+            "self.store_result"
+          ]
+        },
+        {
+          "method": "lane",
+          "line": 109,
+          "calls": []
+        },
+        {
+          "method": "identity",
+          "line": 113,
+          "calls": []
+        },
+        {
+          "method": "execute",
+          "line": 117,
+          "calls": []
+        }
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "path": "src/toad/work_preparation.py",
+      "owner": "ThreadWork",
+      "bases": [
+        "PreparationWork[ResultT]"
+      ],
+      "methods": [
+        {
+          "method": "prepare",
+          "line": 161,
+          "calls": []
+        },
+        {
+          "method": "execute",
+          "line": 164,
+          "calls": [
+            "runtime.run_thread",
+            "self.finish_result",
+            "self.prepare"
+          ]
+        }
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "path": "src/toad/work_preparation.py",
+      "owner": "RendererWork",
+      "bases": [
+        "PreparationWork[ResultT]"
+      ],
+      "methods": [
+        {
+          "method": "render_task",
+          "line": 175,
+          "calls": []
+        },
+        {
+          "method": "execute",
+          "line": 178,
+          "calls": [
+            "runtime.renderer.submit",
+            "runtime.run_thread"
+          ]
+        }
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "path": "src/toad/work_preparation.py",
+      "owner": "RenderPreparation",
+      "bases": [
+        "ContentAddressedWork[ResultT]",
+        "RendererWork[ResultT]"
+      ],
+      "methods": [
+        {
+          "method": "identity",
+          "line": 190,
+          "calls": [
+            "self.task.preparation_identity"
+          ]
+        },
+        {
+          "method": "inputs",
+          "line": 194,
+          "calls": []
+        },
+        {
+          "method": "render_task",
+          "line": 198,
+          "calls": []
+        },
+        {
+          "method": "retain_result",
+          "line": 202,
+          "calls": []
+        },
+        {
+          "method": "store_result",
+          "line": 205,
+          "calls": [
+            "self.task.preparation_storage.store_result"
+          ]
+        }
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "path": "src/toad/work_preparation.py",
+      "owner": "PreparationRuntime",
+      "bases": [],
+      "methods": [
+        {
+          "method": "__init__",
+          "line": 248,
+          "calls": [
+            "OrderedDict",
+            "ValueError",
+            "asyncio.Event",
+            "asyncio.Semaphore",
+            "dict.fromkeys",
+            "isinstance",
+            "set"
+          ]
+        },
+        {
+          "method": "run_thread",
+          "line": 266,
+          "calls": [
+            "asyncio.create_task",
+            "asyncio.shield",
+            "asyncio.to_thread",
+            "completed.cancelled",
+            "completed.exception",
+            "self._thread_tasks.add",
+            "self._thread_tasks.discard",
+            "self._threads.acquire",
+            "self._threads.release",
+            "task.add_done_callback"
+          ]
+        },
+        {
+          "method": "discard_scope",
+          "line": 285,
+          "calls": [
+            "self._changed.set",
+            "self._ready.pop",
+            "tuple"
+          ]
+        },
+        {
+          "method": "submit",
+          "line": 293,
+          "calls": [
+            "cast",
+            "self._deliver",
+            "self._prepare"
+          ]
+        },
+        {
+          "method": "prepare",
+          "line": 297,
+          "calls": [
+            "self._prepare"
+          ]
+        },
+        {
+          "method": "_prepare",
+          "line": 301,
+          "calls": [
+            "asyncio.create_task",
+            "asyncio.shield",
+            "completed.cancelled",
+            "completed.exception",
+            "pending.add_done_callback",
+            "self._changed.clear",
+            "self._changed.set",
+            "self._changed.wait",
+            "self._execute",
+            "self._pending.get",
+            "self._pending.pop",
+            "self._ready.get",
+            "self._ready.move_to_end",
+            "type",
+            "work.identity"
+          ]
+        },
+        {
+          "method": "_deliver",
+          "line": 339,
+          "calls": [
+            "self.run_thread"
+          ]
+        },
+        {
+          "method": "_execute",
+          "line": 348,
+          "calls": [
+            "len",
+            "self._ready.popitem",
+            "work.execute"
+          ]
+        },
+        {
+          "method": "aclose",
+          "line": 360,
+          "calls": [
+            "asyncio.create_task",
+            "asyncio.shield",
+            "self._changed.set",
+            "self._close"
+          ]
+        },
+        {
+          "method": "_close",
+          "line": 367,
+          "calls": [
+            "asyncio.gather",
+            "self._pending.values",
+            "self._ready.clear",
+            "self.renderer.aclose",
+            "tuple"
+          ]
+        }
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "path": "src/toad/work_preparation.py",
+      "owner": "PreparedRenderer",
+      "bases": [
+        "Renderer"
+      ],
+      "methods": [
+        {
+          "method": "__init__",
+          "line": 380,
+          "calls": []
+        },
+        {
+          "method": "submit",
+          "line": 383,
+          "calls": [
+            "RenderPreparation",
+            "self.runtime.submit"
+          ]
+        },
+        {
+          "method": "prepare",
+          "line": 386,
+          "calls": [
+            "RenderPreparation",
+            "self.runtime.prepare"
+          ]
+        },
+        {
+          "method": "warm_up",
+          "line": 389,
+          "calls": [
+            "self.runtime.renderer.warm_up"
+          ]
+        },
+        {
+          "method": "aclose",
+          "line": 392,
+          "calls": [
+            "self.runtime.aclose"
+          ]
+        }
+      ]
+    }
+  ],
+  "consumers": [
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/acp/agent.py::send_prompt",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/acp/agent_controller.py::validate",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/acp/agent_controller.py::attach",
+      "calls": [
+        "prepare"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/acp/transcript_reader.py::snapshot",
+      "calls": [
+        "NativeTranscriptReadWork"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/acp/transcript_reader.py::deliver",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/app.py::prepare_background",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/conversation_submission.py::execute",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/conversation_submission.py::submit",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/db.py::record_model_usage",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/db.py::recent_models",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/db.py::create",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/db.py::session_update_project",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/db.py::session_get_recent",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/db.py::create",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/db.py::update",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/frame_presentation.py::displayed",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/render_backend.py::prepare",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/render_processes.py::run",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/render_protocol.py::execute",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/render_runtime.py::submit",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/render_runtime.py::warm_up",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/render_service.py::submit",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/render_zmq.py::handle_control_message",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/screens/action_modal.py::run_command",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/screens/main.py::prepare_presentation",
+      "calls": [
+        "prepare"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/screens/permissions.py::add_diff",
+      "calls": [
+        "prepare"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/screens/workspace.py::_prepare_compositor_refresh",
+      "calls": [
+        "prepare"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/sidebar_observation.py::mount",
+      "calls": [
+        "prepare"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/target_commands.py::execute_menu",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/target_commands.py::apply",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/tool_output.py::prepare",
+      "calls": [
+        "prepare"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/tool_output.py::prepare",
+      "calls": [
+        "prepare"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/transcript_preparation.py::project",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/transcript_preparation.py::execute",
+      "calls": [
+        "RenderPreparation",
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/transcript_preparation.py::get",
+      "calls": [
+        "TranscriptPageWork",
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/transcript_publication.py::publish",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/transcript_publication.py::publish_page",
+      "calls": [
+        "RenderPreparation",
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/transcript_publication.py::request",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/transcript_publication.py::publish_source_page",
+      "calls": [
+        "prepare"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/widgets/command_pane.py::on_mount",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/widgets/committed_presentation.py::prepare",
+      "calls": [
+        "RenderPreparation",
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/widgets/comms_chat.py::submit_input",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/widgets/conversation.py::submit_input",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/widgets/patch_diff.py::prepare_patch",
+      "calls": [
+        "prepare"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/widgets/patch_diff.py::highlighted_code_lines",
+      "calls": [
+        "prepare"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/widgets/prepared_markdown.py::_parse_tokens",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/widgets/session_tabs.py::_reconcile_tabs",
+      "calls": [
+        "TabRosterWork",
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/widgets/sidebar_tree.py::reconcile_groups",
+      "calls": [
+        "ThreadRowsWork",
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/widgets/tool_content.py::_prepare",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/widgets/transcript_fragments.py::prepare_transcript_fragments",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/widgets/transcript_fragments.py::markdown",
+      "calls": [
+        "prepare"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/widgets/transcript_history.py::advance_committed",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/widgets/transcript_history.py::load_older",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/widgets/transcript_history.py::admit_initial",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/widgets/worker_static.py::_prepare",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/work_preparation.py::store_result",
+      "calls": [
+        "result_size"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/work_preparation.py::execute",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/work_preparation.py::store_result",
+      "calls": [
+        "store_result"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/work_preparation.py::_execute",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/work_preparation.py::submit",
+      "calls": [
+        "RenderPreparation",
+        "submit"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/work_preparation.py::prepare",
+      "calls": [
+        "RenderPreparation",
+        "prepare"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/workspace_chrome.py::prepare_navigation",
+      "calls": [
+        "prepare"
+      ]
+    },
+    {
+      "revision": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+      "function": "src/toad/workspace_sessions.py::select",
+      "calls": [
+        "prepare"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/acp/agent.py::send_prompt",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/acp/agent_controller.py::validate",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/acp/agent_controller.py::attach",
+      "calls": [
+        "prepare"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/acp/transcript_reader.py::snapshot",
+      "calls": [
+        "NativeTranscriptReadWork"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/acp/transcript_reader.py::deliver",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/app.py::prepare_background",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/conversation_submission.py::execute",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/conversation_submission.py::submit",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/db.py::record_model_usage",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/db.py::recent_models",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/db.py::create",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/db.py::session_update_project",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/db.py::session_get_recent",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/db.py::create",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/db.py::update",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/frame_presentation.py::displayed",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/render_backend.py::prepare",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/render_processes.py::run",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/render_protocol.py::execute",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/render_runtime.py::submit",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/render_runtime.py::warm_up",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/render_service.py::submit",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/render_zmq.py::handle_control_message",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/screens/action_modal.py::run_command",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/screens/main.py::prepare_presentation",
+      "calls": [
+        "prepare"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/screens/permissions.py::add_diff",
+      "calls": [
+        "prepare"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/screens/workspace.py::_prepare_compositor_refresh",
+      "calls": [
+        "prepare"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/sidebar_observation.py::mount",
+      "calls": [
+        "prepare"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/target_commands.py::execute_menu",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/target_commands.py::apply",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/tool_output.py::prepare",
+      "calls": [
+        "prepare"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/tool_output.py::prepare",
+      "calls": [
+        "prepare"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/transcript_preparation.py::project",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/transcript_preparation.py::execute",
+      "calls": [
+        "RenderPreparation",
+        "finish_result",
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/transcript_preparation.py::get",
+      "calls": [
+        "TranscriptPageWork",
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/transcript_publication.py::publish",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/transcript_publication.py::publish_page",
+      "calls": [
+        "RenderPreparation",
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/transcript_publication.py::request",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/transcript_publication.py::publish_source_page",
+      "calls": [
+        "prepare"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/widgets/command_pane.py::on_mount",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/widgets/committed_presentation.py::prepare",
+      "calls": [
+        "RenderPreparation",
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/widgets/comms_chat.py::submit_input",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/widgets/conversation.py::submit_input",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/widgets/patch_diff.py::prepare_patch",
+      "calls": [
+        "prepare"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/widgets/patch_diff.py::highlighted_code_lines",
+      "calls": [
+        "prepare"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/widgets/prepared_markdown.py::_parse_tokens",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/widgets/session_tabs.py::_reconcile_tabs",
+      "calls": [
+        "TabRosterWork",
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/widgets/sidebar_tree.py::reconcile_groups",
+      "calls": [
+        "ThreadRowsWork",
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/widgets/tool_content.py::_prepare",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/widgets/transcript_fragments.py::prepare_transcript_fragments",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/widgets/transcript_fragments.py::markdown",
+      "calls": [
+        "prepare"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/widgets/transcript_history.py::advance_committed",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/widgets/transcript_history.py::load_older",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/widgets/transcript_history.py::admit_initial",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/widgets/worker_static.py::_prepare",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/work_preparation.py::store_result",
+      "calls": [
+        "result_size"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/work_preparation.py::finish_result",
+      "calls": [
+        "store_result"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/work_preparation.py::execute",
+      "calls": [
+        "finish_result",
+        "prepare"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/work_preparation.py::execute",
+      "calls": [
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/work_preparation.py::store_result",
+      "calls": [
+        "store_result"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/work_preparation.py::_execute",
+      "calls": [
+        "execute"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/work_preparation.py::submit",
+      "calls": [
+        "RenderPreparation",
+        "submit"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/work_preparation.py::prepare",
+      "calls": [
+        "RenderPreparation",
+        "prepare"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/workspace_chrome.py::prepare_navigation",
+      "calls": [
+        "prepare"
+      ]
+    },
+    {
+      "revision": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+      "function": "src/toad/workspace_sessions.py::select",
+      "calls": [
+        "prepare"
+      ]
+    }
+  ],
+  "syntax": "PASS",
+  "behavior": "UNRUN",
+  "installed": "UNRUN",
+  "hashes": {
+    "src/toad/work_preparation.py": "fd570454ad1059a89baafbf9eef5a90563f7b32e1081d84c56f74c5a8507c5b1",
+    "src/toad/transcript_preparation.py": "287ebdb1d3ba06ae5634d6471c63cf3d1631cc64f456a660da19a173a41104dd"
+  }
+}

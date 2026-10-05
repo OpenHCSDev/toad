@@ -1,0 +1,66 @@
+{
+  "product": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+  "scope": "Original Backend-double source policy evidence; no installed App or speed claim. Original three ZIP-import failures preserved; one authorized corrected source-root batch only.",
+  "core_filesystem_source": "/home/ts/wt/comms-field-codec-closure-20260928/src",
+  "core_head": "e5f3811b",
+  "core_assets_equal_original_0ed_wheel": 355,
+  "resources": {
+    "root_free_gib": 6.0,
+    "home_free_gib": 10.3,
+    "ram_available_gib": 18.9,
+    "swap_used_gib": 14.5,
+    "warning": "Three small serial source controls; no cap/fleet."
+  },
+  "batches": [
+    {
+      "batch": "source-sanity01",
+      "original_receipt": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/preparation-worker-completion-20261005/source-sanity01/batch.json",
+      "receipt_sha256": "47943d5a326dae080b2fda4d6733ab477218160d06c4986dc13be422a7ce1169",
+      "results": [
+        {
+          "control": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/work_preparation_pilot.py",
+          "exit_code": 1,
+          "elapsed_seconds": 0.2244324489729479,
+          "joined": true
+        },
+        {
+          "control": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/work_preparation_delivery_pilot.py",
+          "exit_code": 1,
+          "elapsed_seconds": 0.22369299898855388,
+          "joined": true
+        },
+        {
+          "control": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/serialized_preparation_pilot.py",
+          "exit_code": 1,
+          "elapsed_seconds": 0.23703751503489912,
+          "joined": true
+        }
+      ]
+    },
+    {
+      "batch": "source-sanity02",
+      "original_receipt": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/preparation-worker-completion-20261005/source-sanity02/batch.json",
+      "receipt_sha256": "8ee0fa5bb9d326e06edba460217267d4764a1ef1c3fbed5d2adb37ecd3494f5c",
+      "results": [
+        {
+          "control": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/work_preparation_pilot.py",
+          "exit_code": 0,
+          "elapsed_seconds": 2.471650467021391,
+          "joined": true
+        },
+        {
+          "control": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/work_preparation_delivery_pilot.py",
+          "exit_code": 0,
+          "elapsed_seconds": 2.136928325984627,
+          "joined": true
+        },
+        {
+          "control": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/serialized_preparation_pilot.py",
+          "exit_code": 0,
+          "elapsed_seconds": 2.1848214199999347,
+          "joined": true
+        }
+      ]
+    }
+  ]
+}
