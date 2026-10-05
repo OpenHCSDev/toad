@@ -47,7 +47,7 @@ async def main():
 
             async def settle():
                 async with asyncio.timeout(15):
-                    while viewport._pending or viewport._running or not viewport.visible_bodies_ready:
+                    while viewport._pending or viewport._worker is not None or not viewport.visible_bodies_ready:
                         await pilot.pause(.02)
                 await pilot.pause(.05)
 

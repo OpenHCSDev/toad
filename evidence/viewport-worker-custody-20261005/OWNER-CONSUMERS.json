@@ -1,0 +1,663 @@
+{
+  "determining_main": "cac7268a733f62f6db57580fd63b64abd52be359",
+  "tool": "original audit.repository.Repository/audit.findings.Package/ParsedModule",
+  "before_coverage": {
+    "src/toad": {
+      "parsed": 288,
+      "omissions": []
+    },
+    "tests": {
+      "parsed": 398,
+      "omissions": []
+    }
+  },
+  "after_coverage": {
+    "src/toad": {
+      "parsed": 288,
+      "omissions": []
+    },
+    "tests": {
+      "parsed": 398,
+      "omissions": []
+    }
+  },
+  "native_contract_revision": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78",
+  "native_contract_prior_package_coverage": {
+    "parsed": 249,
+    "omissions": []
+  },
+  "retired_flag_sites": [
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 883,
+      "member": "self._running",
+      "access": "Store"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 987,
+      "member": "self._running",
+      "access": "Load"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 988,
+      "member": "self._running",
+      "access": "Store"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1167,
+      "member": "self._running",
+      "access": "Store"
+    },
+    {
+      "path": "tests/history_reflow_travel_pilot.py",
+      "line": 49,
+      "member": "viewport._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 410,
+      "member": "viewport._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 58,
+      "member": "viewport._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_body_lifetime_pilot.py",
+      "line": 21,
+      "member": "manager._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 50,
+      "member": "viewport._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_bounded_runway_churn_pilot.py",
+      "line": 56,
+      "member": "viewport._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_bounded_runway_churn_pilot.py",
+      "line": 64,
+      "member": "viewport._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_bounded_runway_churn_pilot.py",
+      "line": 82,
+      "member": "viewport._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_demand_custody_pilot.py",
+      "line": 42,
+      "member": "manager._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 43,
+      "member": "manager._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 84,
+      "member": "manager._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_rapid_scroll_pilot.py",
+      "line": 32,
+      "member": "viewport._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_rapid_scroll_pilot.py",
+      "line": 115,
+      "member": "viewport._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "line": 43,
+      "member": "window.document_viewport._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_runway_pilot.py",
+      "line": 37,
+      "member": "viewport._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_warm_trim_pilot.py",
+      "line": 44,
+      "member": "manager._running",
+      "access": "Load"
+    }
+  ],
+  "remaining_flag_sites": [],
+  "before_worker_family": [
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 882,
+      "member": "self._pending",
+      "access": "Store"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 883,
+      "member": "self._running",
+      "access": "Store"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 884,
+      "member": "self._worker",
+      "access": "Store"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 885,
+      "member": "self._suspended",
+      "access": "Store"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 986,
+      "member": "self._pending",
+      "access": "Store"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1023,
+      "member": "self._suspended",
+      "access": "Store"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1028,
+      "member": "self._pending",
+      "access": "Store"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1039,
+      "member": "self._suspended",
+      "access": "Store"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 987,
+      "member": "self._running",
+      "access": "Load"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 988,
+      "member": "self._running",
+      "access": "Store"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 989,
+      "member": "self._worker",
+      "access": "Store"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1030,
+      "member": "self._worker",
+      "access": "Store"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1030,
+      "member": "self._worker",
+      "access": "Load"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1167,
+      "member": "self._running",
+      "access": "Store"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 898,
+      "member": "self._suspended",
+      "access": "Load"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1077,
+      "member": "self._pending",
+      "access": "Load"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1079,
+      "member": "self._pending",
+      "access": "Store"
+    },
+    {
+      "path": "tests/history_reflow_travel_pilot.py",
+      "line": 49,
+      "member": "viewport._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 410,
+      "member": "viewport._pending",
+      "access": "Load"
+    },
+    {
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 410,
+      "member": "viewport._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 58,
+      "member": "viewport._pending",
+      "access": "Load"
+    },
+    {
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 58,
+      "member": "viewport._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_body_lifetime_pilot.py",
+      "line": 21,
+      "member": "manager._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 50,
+      "member": "viewport._pending",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 50,
+      "member": "viewport._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_bounded_runway_churn_pilot.py",
+      "line": 56,
+      "member": "viewport._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_bounded_runway_churn_pilot.py",
+      "line": 56,
+      "member": "viewport._pending",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_bounded_runway_churn_pilot.py",
+      "line": 64,
+      "member": "viewport._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_bounded_runway_churn_pilot.py",
+      "line": 64,
+      "member": "viewport._pending",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_bounded_runway_churn_pilot.py",
+      "line": 82,
+      "member": "viewport._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_bounded_runway_churn_pilot.py",
+      "line": 82,
+      "member": "viewport._pending",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_demand_custody_pilot.py",
+      "line": 42,
+      "member": "manager._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 43,
+      "member": "manager._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 84,
+      "member": "manager._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_rapid_scroll_pilot.py",
+      "line": 32,
+      "member": "viewport._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_rapid_scroll_pilot.py",
+      "line": 115,
+      "member": "viewport._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_rapid_scroll_pilot.py",
+      "line": 115,
+      "member": "viewport._pending",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "line": 43,
+      "member": "window.document_viewport._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_runway_pilot.py",
+      "line": 37,
+      "member": "viewport._running",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_runway_pilot.py",
+      "line": 37,
+      "member": "viewport._pending",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_warm_trim_pilot.py",
+      "line": 44,
+      "member": "manager._running",
+      "access": "Load"
+    }
+  ],
+  "after_worker_family": [
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 882,
+      "member": "self._pending",
+      "access": "Store"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 883,
+      "member": "self._worker",
+      "access": "Store"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 884,
+      "member": "self._suspended",
+      "access": "Store"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 985,
+      "member": "self._pending",
+      "access": "Store"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1021,
+      "member": "self._suspended",
+      "access": "Store"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1026,
+      "member": "self._pending",
+      "access": "Store"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1037,
+      "member": "self._suspended",
+      "access": "Store"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 986,
+      "member": "self._worker",
+      "access": "Load"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 987,
+      "member": "self._worker",
+      "access": "Store"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1028,
+      "member": "self._worker",
+      "access": "Store"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1028,
+      "member": "self._worker",
+      "access": "Load"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 897,
+      "member": "self._suspended",
+      "access": "Load"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1075,
+      "member": "self._pending",
+      "access": "Load"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1077,
+      "member": "self._pending",
+      "access": "Store"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1165,
+      "member": "self._worker",
+      "access": "Load"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1166,
+      "member": "self._worker",
+      "access": "Store"
+    },
+    {
+      "path": "tests/history_reflow_travel_pilot.py",
+      "line": 49,
+      "member": "viewport._worker",
+      "access": "Load"
+    },
+    {
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 410,
+      "member": "viewport._pending",
+      "access": "Load"
+    },
+    {
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 410,
+      "member": "viewport._worker",
+      "access": "Load"
+    },
+    {
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 58,
+      "member": "viewport._pending",
+      "access": "Load"
+    },
+    {
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 58,
+      "member": "viewport._worker",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_body_lifetime_pilot.py",
+      "line": 21,
+      "member": "manager._worker",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 50,
+      "member": "viewport._pending",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 50,
+      "member": "viewport._worker",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_bounded_runway_churn_pilot.py",
+      "line": 56,
+      "member": "viewport._pending",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_bounded_runway_churn_pilot.py",
+      "line": 56,
+      "member": "viewport._worker",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_bounded_runway_churn_pilot.py",
+      "line": 64,
+      "member": "viewport._worker",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_bounded_runway_churn_pilot.py",
+      "line": 64,
+      "member": "viewport._pending",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_bounded_runway_churn_pilot.py",
+      "line": 82,
+      "member": "viewport._worker",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_bounded_runway_churn_pilot.py",
+      "line": 82,
+      "member": "viewport._pending",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_demand_custody_pilot.py",
+      "line": 42,
+      "member": "manager._worker",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 43,
+      "member": "manager._worker",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 84,
+      "member": "manager._worker",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_rapid_scroll_pilot.py",
+      "line": 32,
+      "member": "viewport._worker",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_rapid_scroll_pilot.py",
+      "line": 115,
+      "member": "viewport._worker",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_rapid_scroll_pilot.py",
+      "line": 115,
+      "member": "viewport._pending",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "line": 43,
+      "member": "window.document_viewport._worker",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_runway_pilot.py",
+      "line": 37,
+      "member": "viewport._pending",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_runway_pilot.py",
+      "line": 37,
+      "member": "viewport._worker",
+      "access": "Load"
+    },
+    {
+      "path": "tests/viewport_warm_trim_pilot.py",
+      "line": 44,
+      "member": "manager._worker",
+      "access": "Load"
+    }
+  ],
+  "changed_owner_methods": [
+    "__init__",
+    "request",
+    "_reconcile"
+  ],
+  "compiled_changed_modules_without_import": [
+    "src/toad/widgets/viewport_body.py",
+    "tests/history_reflow_travel_pilot.py",
+    "tests/retained_fragment_geometry_pilot.py",
+    "tests/viewport_body_lifetime_pilot.py",
+    "tests/viewport_body_order_pilot.py",
+    "tests/viewport_bounded_runway_churn_pilot.py",
+    "tests/viewport_demand_custody_pilot.py",
+    "tests/viewport_idle_cadence_pilot.py",
+    "tests/viewport_rapid_scroll_pilot.py",
+    "tests/viewport_recent_tabs_pilot.py",
+    "tests/viewport_runway_pilot.py",
+    "tests/viewport_warm_trim_pilot.py"
+  ],
+  "unrelated_mcp_decision_running_state": "preserved; different owner",
+  "behavioral_acceptance": "UNRUN; source-only purpose"
+}

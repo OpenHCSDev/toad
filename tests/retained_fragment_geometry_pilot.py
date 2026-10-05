@@ -55,7 +55,7 @@ async def main():
                     published = asyncio.Event()
                     app.screen.frame_presentation.defer(window, published.set)
                     await published.wait()
-                    while (viewport._pending or viewport._running
+                    while (viewport._pending or viewport._worker is not None
                            or not viewport.visible_bodies_ready):
                         await pilot.pause(.02)
                 await pilot.pause(.05)
@@ -407,7 +407,7 @@ async def main():
             settled_resource = selected._body_measurement
             await pilot.pause(.5)
             assert selected._body_measurement is settled_resource
-            assert not viewport._pending and not viewport._running
+            assert not viewport._pending and viewport._worker is None
             receipt['stationary_admission_preserves_rendered_resource'] = True
             await viewport.suspend_source()
             # Original native mouse routing materializes controls before target

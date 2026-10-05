@@ -18,7 +18,7 @@ async def settled(view, pilot):
         while True:
             await pilot.pause(.02)
             manager = view.window.document_viewport
-            if not manager._running and manager.visible_bodies_ready:
+            if manager._worker is None and manager.visible_bodies_ready:
                 return
 
 
