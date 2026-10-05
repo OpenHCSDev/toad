@@ -101,6 +101,12 @@ class ProjectPanel(Vertical):
         if self.directory_tree is not None:
             self.directory_tree.refresh_if_visible()
 
+    def capture_intent(self) -> ProjectTreeIntent | None:
+        """Read the completed native projection at this panel's owner."""
+        if self.directory_tree is not None:
+            return ProjectTreeIntent.capture(self.directory_tree)
+        return None
+
 
 class RestorableProjectPanel(ProjectPanel):
     """A disposable tree restores filesystem intent using the original loader."""
@@ -108,6 +114,18 @@ class RestorableProjectPanel(ProjectPanel):
     def __init__(self, path: Path, *, intent: ProjectTreeIntent | None = None) -> None:
         super().__init__(path)
         self._intent = intent
+
+    def capture_intent(self) -> ProjectTreeIntent | None:
+        """An unfinished restore retains its original reader, not a default node."""
+        if self._intent is not None and self._intent.matches(self.path):
+            return self._intent
+        return super().capture_intent()
+
+    def watch_path(self, path: Path) -> None:
+        if self.directory_tree is not None:
+            self._intent = None
+            self.workers.cancel_group(self, "project-tree")
+        super().watch_path(path)
 
     @work(group="project-tree")
     async def _mount_tree(self) -> None:

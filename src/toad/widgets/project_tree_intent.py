@@ -30,8 +30,11 @@ class ProjectTreeIntent:
                    selected.data.path if selected is not None and selected.data is not None else None,
                    tree.scroll_offset)
 
+    def matches(self, path: Path) -> bool:
+        return Path(path) == self.path
+
     async def restore(self, tree: "ProjectDirectoryTree") -> None:
-        if Path(tree.path) != self.path:
+        if not self.matches(tree.path):
             return
         # Mount completion precedes the first native viewport layout.
         laid_out = asyncio.Event()
@@ -56,5 +59,16 @@ class ProjectTreeIntent:
         tree.cursor_line = selection.line
         # Mount/expansion produces native resize messages on the first frame.
         # Scroll on the following refresh, after their viewport limits settle.
-        tree.call_after_refresh(tree.scroll_to, self.scroll.x, self.scroll.y,
-                                animate=False)
+        committed = asyncio.get_running_loop().create_future()
+
+        def restore_viewport() -> None:
+            # Path changes and unmount cancel the panel's original worker.
+            # Its queued refresh callback must retire with that continuation.
+            if committed.cancelled():
+                return
+            tree.scroll_to(self.scroll.x, self.scroll.y, animate=False,
+                           immediate=True)
+            committed.set_result(None)
+
+        tree.call_after_refresh(restore_viewport)
+        await committed

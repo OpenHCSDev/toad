@@ -1,0 +1,300 @@
+{
+  "state": "Source repair and affected native App control published; App UNRUN/no package purpose",
+  "files": [
+    {
+      "path": "src/toad/widgets/project_panel.py",
+      "sha256": "afee30569f88c18076b87e576cdd6f9eb26a7da3c6e33179626d5c6520810945",
+      "syntax": "PASS",
+      "declarations": [
+        {
+          "name": "ProjectSearchButton",
+          "line": 20
+        },
+        {
+          "name": "ProjectPanel",
+          "line": 51
+        },
+        {
+          "name": "RestorableProjectPanel",
+          "line": 111
+        },
+        {
+          "name": "FilePreview",
+          "line": 138
+        },
+        {
+          "name": "Requested",
+          "line": 36
+        },
+        {
+          "name": "__init__",
+          "line": 39
+        },
+        {
+          "name": "action_search",
+          "line": 42
+        },
+        {
+          "name": "on_click",
+          "line": 45
+        },
+        {
+          "name": "__init__",
+          "line": 62
+        },
+        {
+          "name": "compose",
+          "line": 68
+        },
+        {
+          "name": "on_show",
+          "line": 71
+        },
+        {
+          "name": "_ensure_tree",
+          "line": 74
+        },
+        {
+          "name": "_mount_tree",
+          "line": 88
+        },
+        {
+          "name": "watch_path",
+          "line": 92
+        },
+        {
+          "name": "invalidate",
+          "line": 96
+        },
+        {
+          "name": "refresh_if_visible",
+          "line": 100
+        },
+        {
+          "name": "capture_intent",
+          "line": 104
+        },
+        {
+          "name": "__init__",
+          "line": 114
+        },
+        {
+          "name": "capture_intent",
+          "line": 118
+        },
+        {
+          "name": "watch_path",
+          "line": 124
+        },
+        {
+          "name": "_mount_tree",
+          "line": 131
+        },
+        {
+          "name": "_read_prefix",
+          "line": 165
+        },
+        {
+          "name": "__init__",
+          "line": 170
+        },
+        {
+          "name": "compose",
+          "line": 175
+        },
+        {
+          "name": "on_mount",
+          "line": 179
+        },
+        {
+          "name": "wait_ready",
+          "line": 182
+        },
+        {
+          "name": "on_unmount",
+          "line": 185
+        },
+        {
+          "name": "_load_preview",
+          "line": 189
+        }
+      ]
+    },
+    {
+      "path": "src/toad/widgets/project_tree_intent.py",
+      "sha256": "777107fe32f1e673f52bfaa296833d7d628a68ba9c8036112fe81813a60a4b0a",
+      "syntax": "PASS",
+      "declarations": [
+        {
+          "name": "ProjectTreeIntent",
+          "line": 13
+        },
+        {
+          "name": "capture",
+          "line": 20
+        },
+        {
+          "name": "matches",
+          "line": 33
+        },
+        {
+          "name": "restore",
+          "line": 36
+        },
+        {
+          "name": "restore_viewport",
+          "line": 64
+        }
+      ]
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "sha256": "c06e189968fd1971778f8295193d2435cb614dd712e4e5b3e4279655712a32f2",
+      "syntax": "PASS",
+      "declarations": [
+        {
+          "name": "SessionPanel",
+          "line": 20
+        },
+        {
+          "name": "ThreadSessionPanel",
+          "line": 42
+        },
+        {
+          "name": "CommsSessionPanel",
+          "line": 49
+        },
+        {
+          "name": "PlanSessionPanel",
+          "line": 69
+        },
+        {
+          "name": "ProjectSessionPanel",
+          "line": 89
+        },
+        {
+          "name": "RecoverySessionPanel",
+          "line": 105
+        },
+        {
+          "name": "ContextSessionPanel",
+          "line": 112
+        },
+        {
+          "name": "make_widget",
+          "line": 27
+        },
+        {
+          "name": "make_header",
+          "line": 29
+        },
+        {
+          "name": "compose_panel",
+          "line": 32
+        },
+        {
+          "name": "capture",
+          "line": 38
+        },
+        {
+          "name": "make_widget",
+          "line": 45
+        },
+        {
+          "name": "__init__",
+          "line": 50
+        },
+        {
+          "name": "make_widget",
+          "line": 53
+        },
+        {
+          "name": "make_header",
+          "line": 60
+        },
+        {
+          "name": "capture",
+          "line": 63
+        },
+        {
+          "name": "__init__",
+          "line": 72
+        },
+        {
+          "name": "make_widget",
+          "line": 75
+        },
+        {
+          "name": "update",
+          "line": 78
+        },
+        {
+          "name": "__init__",
+          "line": 93
+        },
+        {
+          "name": "make_widget",
+          "line": 96
+        },
+        {
+          "name": "capture",
+          "line": 100
+        },
+        {
+          "name": "make_widget",
+          "line": 108
+        },
+        {
+          "name": "__init__",
+          "line": 114
+        },
+        {
+          "name": "make_widget",
+          "line": 117
+        }
+      ]
+    },
+    {
+      "path": "tests/test_project_panel_intent.py",
+      "sha256": "510a851e208b698540db931eb4fc35f72cac0d631ea8f9e2ef3fdb32f11e08d6",
+      "syntax": "PASS",
+      "declarations": [
+        {
+          "name": "test_retirement_during_restore_keeps_the_project_reader",
+          "line": 16
+        },
+        {
+          "name": "journey",
+          "line": 26
+        },
+        {
+          "name": "ProjectApp",
+          "line": 31
+        },
+        {
+          "name": "compose",
+          "line": 32
+        },
+        {
+          "name": "on_mount",
+          "line": 35
+        },
+        {
+          "name": "initial_root",
+          "line": 39
+        }
+      ]
+    }
+  ],
+  "deleted_consumer": "ProjectSessionPanel.capture no longer reads native directory_tree presence/data directly",
+  "capture_owner": "ProjectPanel.capture_intent / RestorableProjectPanel pending intent override",
+  "scroll_completion": "Original next-refresh callback synchronously commits viewport before restore returns; original future cancellation revokes callback on path change/unmount",
+  "matches_owner": "ProjectTreeIntent.matches original filesystem identity",
+  "workspace_chrome": "No production delta; original placement/navigation/nativeparent contracts remain authoritative",
+  "shared_claim_notice": "Proposed exact ProjectPanel and ONLY ProjectSessionPanel.capture seam sent directly to Heisenberg before edits; current453 files disjoint",
+  "limits": [
+    "No App/test executed",
+    "No prefix/keeper/package/build/native/provider/input/recording access",
+    "Whole TC1 resource/performance acceptance remains Heisenberg-owned"
+  ]
+}

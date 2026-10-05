@@ -98,8 +98,8 @@ class ProjectSessionPanel(SessionPanel[ProjectPanel]):
         return screen._project_panel
 
     def capture(self, widget: ProjectPanel) -> None:
-        if widget.directory_tree is not None:
-            self.intent = ProjectTreeIntent.capture(widget.directory_tree)
+        if intent := widget.capture_intent():
+            self.intent = intent
 
 
 class RecoverySessionPanel(SessionPanel[RecoveryView]):
