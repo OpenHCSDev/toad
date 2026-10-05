@@ -56,5 +56,16 @@ class ProjectTreeIntent:
         tree.cursor_line = selection.line
         # Mount/expansion produces native resize messages on the first frame.
         # Scroll on the following refresh, after their viewport limits settle.
-        tree.call_after_refresh(tree.scroll_to, self.scroll.x, self.scroll.y,
-                                animate=False)
+        committed = asyncio.get_running_loop().create_future()
+
+        def restore_viewport() -> None:
+            # Path changes and unmount cancel the panel's original worker.
+            # Its queued refresh callback must retire with that continuation.
+            if committed.cancelled():
+                return
+            tree.scroll_to(self.scroll.x, self.scroll.y, animate=False,
+                           immediate=True)
+            committed.set_result(None)
+
+        tree.call_after_refresh(restore_viewport)
+        await committed

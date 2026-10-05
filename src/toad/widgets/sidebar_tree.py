@@ -12,14 +12,6 @@ from textual.widgets import Static
 from toad.widgets.sidebar_viewport import SidebarHeader
 
 
-class SidebarMembers(VerticalGroup):
-    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
-
-
-class ScrollingSidebarMembers(VerticalScroll):
-    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
-
-
 class SidebarDisclosure(Static, can_focus=True):
     BINDINGS = [Binding("enter,space", "toggle", "Expand group", show=False)]
     DEFAULT_CSS = "SidebarDisclosure { width: 2; height: 1; pointer: pointer; }"
@@ -35,8 +27,6 @@ class SidebarDisclosure(Static, can_focus=True):
 
 class SidebarGroup(VerticalGroup):
     """A common header/disclosure and optional bounded member viewport."""
-
-    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
 
     DEFAULT_CSS = """
     SidebarGroup { height: auto; }
@@ -60,7 +50,7 @@ class SidebarGroup(VerticalGroup):
         self.expanded = expanded
         self.disclosure = disclosure_type("▾" if expanded else "▸")
         self.controls = controls
-        container = ScrollingSidebarMembers if scrollable else SidebarMembers
+        container = VerticalScroll if scrollable else VerticalGroup
         self.member_container = container(classes="group-members channel-members")
 
     def compose(self) -> ComposeResult:
@@ -198,8 +188,6 @@ class SidebarGroup(VerticalGroup):
 
 class TargetTree(Vertical):
     """Common row keyboard mechanics; specialized trees own data and state."""
-
-    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
 
     DEFAULT_CSS = """
     TargetTree .-selected, TargetTree .-selected:hover, TargetTree .-selected:focus {
