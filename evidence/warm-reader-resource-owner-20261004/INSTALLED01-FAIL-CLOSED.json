@@ -1,0 +1,125 @@
+{
+  "state": "Installed01 FAILED before saved startup paint; serial2/3 unrun; whole CURRENT444 returned. Not Ready.",
+  "qualified_source_control": "fcea342b2eea0103d95acd863b864879d055961d",
+  "source_equal_control": "7e9ed795554ce8cb873d5ebea0d088da6419f8ae",
+  "wheel_sha256": "7e6dccf2d5107900f783b3b43091d04c5bd37a1405c9dedeb071bc8a82637879",
+  "actual_terminal": {
+    "name": "saved-warm-aba",
+    "argv": [
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/saved_state_user_journey_pilot.py",
+      "--warm-only"
+    ],
+    "output": "/home/ts/.cache/agent-scratch/warm446-future-installed/saved-warm-aba",
+    "scratch": "/home/ts/.cache/agent-scratch/warm446-future-installed/saved-warm-aba/scratch",
+    "App_count": 1,
+    "response_authority": "authored localhost selected-offline/fixture; genuine installed App/ACP/native, not configured provider proof",
+    "exit_code": 1,
+    "error": "Original control terminal1",
+    "traceback": "Traceback (most recent call last):\n  File \"/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm446-current444-serial3-package-proof-20261004/run-serial.py\", line 38, in <module>\n    if result['exit_code']!=0: raise RuntimeError(f\"Original control terminal{result['exit_code']}\")\n                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: Original control terminal1\n",
+    "duration_seconds": 49.474142917082645,
+    "cleanup": {
+      "remaining_owned_pids": [],
+      "errors": [],
+      "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+      "processes": [
+        {
+          "pid": 3992375,
+          "start_ticks": 64302610,
+          "returncode": 1
+        }
+      ]
+    }
+  },
+  "recorded_assistant_texts": [
+    "{\"decision\":\"IGNORE\"}",
+    "{\"decision\":\"IGNORE\"}"
+  ],
+  "expected_response_marker_present_in_recorded_assistant": false,
+  "source_counterexample": "streamed_reply and default localhost handler classify ANY historical content containing IGNORE and FULL as triage; ordinary coordination context contains both. Actual recorded seeded assistant replies are IGNORE, not expected numbered replies. No UI latency or product failure inferred.",
+  "source_custody": {
+    "original_native_paths": [
+      {
+        "path": "/home/ts/.cache/agent-scratch/warm446-future-installed/saved-warm-aba/scratch/l0a-native-7w_7iitl/pi/sessions/--home-ts-.cache-agent-scratch-warm446-future-installed-saved-warm-aba-scratch-l0a-native-7w_7iitl-project--/2026-10-05T02-30-01-189Z_01a109e5-8ce5-7618-8fbf-74f62a82fb2a.jsonl",
+        "exists_after_original_finalizer": false
+      }
+    ],
+    "original_fixture_stage_parameter": null,
+    "original_finalizer": "TemporaryDirectory removed private wire/native source tree after process cleanup; retained logs/ACP snapshot do not reconstruct removed kernels. No replay authorized."
+  },
+  "remaining_unrun": [
+    "native-mixed-cohort",
+    "configured-readonly-original-warm"
+  ],
+  "backend_or_configured_claim": false,
+  "raw_keepers": {
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm446-current444-serial3-package-proof-20261004/issued-grant.json": "59c17e757ba1ee74a4ef382fb148efad701621f690de575417d6dec1f17b1d94",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm446-current444-serial3-package-proof-20261004/effective-release.json": "009d346ac7725637b274b5c3a77ca74bd734825d7a5f09371fbdd25b944ce7a9",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm446-current444-serial3-package-proof-20261004/source-proof.json": "047205d38fc68b626f290ede269a56b4c378e87f423699d260107383a93e4ef6",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm446-current444-serial3-package-proof-20261004/candidate-activation.json": "46709ddb251410fa0e34da6797852078631816feca9e66923c8a78f174cb250b",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm446-current444-serial3-package-proof-20261004/serial-terminal.json": "866d0a6e2a3a92fa66fa60be06382bc9f17573cf84965722515623c733beeceb",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm446-current444-serial3-package-proof-20261004/code-handback.json": "06d6f42092021a74a2ac14574aa7b50a9cc635417c87bfe75d70c3c2c5faa580",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm446-current444-serial3-package-proof-20261004/final-borrowers.json": "0e517a5a6cfb6e5fff178845571ec15058c63dda04cba436468945433f263331",
+    "/home/ts/.cache/agent-scratch/warm446-future-installed/saved-warm-aba/operator-terminal.json": "1fa109b38eb3d7b7a8308533015bb4bc1d3d600b3e54b05449ed533fc927b443",
+    "/home/ts/.cache/agent-scratch/warm446-future-installed/saved-warm-aba/operator.log": "0de318ae111743c2976142d4ccaa0d833268321af8e061a3c86d803546bc019f",
+    "/home/ts/.cache/agent-scratch/warm446-future-installed/saved-warm-aba/acceptance-failure.txt": "2df46c9082a07573cae58e72dd4f1bd8573fec1127072582b86805a64aca9f09",
+    "/home/ts/.cache/agent-scratch/warm446-future-installed/saved-warm-aba/provider-failures.json": "ecd6ffe642f807b26ed2988640115efdb20e4604d63e8a1bc67008048234fc20",
+    "/home/ts/.cache/agent-scratch/warm446-future-installed/saved-warm-aba/toad-acp.log": "387f0c2748d8833718c0ead9bf4370251a34936914d2057c3c9073e7a37a8569"
+  },
+  "whole_handback": {
+    "state": "WHOLE actualNONLIVEstyle22CURRENT444 floor restored; sole446 package/import/read/execution claim returned",
+    "serial_results": [
+      {
+        "name": "saved-warm-aba",
+        "argv": [
+          "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+          "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/saved_state_user_journey_pilot.py",
+          "--warm-only"
+        ],
+        "output": "/home/ts/.cache/agent-scratch/warm446-future-installed/saved-warm-aba",
+        "scratch": "/home/ts/.cache/agent-scratch/warm446-future-installed/saved-warm-aba/scratch",
+        "App_count": 1,
+        "response_authority": "authored localhost selected-offline/fixture; genuine installed App/ACP/native, not configured provider proof",
+        "exit_code": 1,
+        "error": "Original control terminal1",
+        "traceback": "Traceback (most recent call last):\n  File \"/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm446-current444-serial3-package-proof-20261004/run-serial.py\", line 38, in <module>\n    if result['exit_code']!=0: raise RuntimeError(f\"Original control terminal{result['exit_code']}\")\n                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: Original control terminal1\n",
+        "duration_seconds": 49.474142917082645,
+        "cleanup": {
+          "remaining_owned_pids": [],
+          "errors": [],
+          "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+          "processes": [
+            {
+              "pid": 3992375,
+              "start_ticks": 64302610,
+              "returncode": 1
+            }
+          ]
+        }
+      }
+    ],
+    "unrun": [
+      "native-mixed-cohort",
+      "configured-readonly-original-warm"
+    ],
+    "archive_sha256": "b702d88fcedeef3fb7ed379cd38c84cadd56adac867f397f3ae2fa43666c500d",
+    "members_verified": 1469,
+    "packages": 69,
+    "protected_keepers_verified": 519,
+    "borrower_receipt": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm446-current444-serial3-package-proof-20261004/final-borrowers.json",
+    "borrower_receipt_sha256": "0e517a5a6cfb6e5fff178845571ec15058c63dda04cba436468945433f263331",
+    "borrowers": 0,
+    "gaps": 0,
+    "original_origins_and_activation": "Exact archived original normal filewheel origins and PREFIXactivation bytes",
+    "external_provider_inputs": 0,
+    "physical_movie": false,
+    "native086_read_execution_handed_back": true,
+    "future_holder_claim": false,
+    "scratch_disposition": [
+      {
+        "path": "/home/ts/.cache/agent-scratch/warm446-future-installed/saved-warm-aba/scratch",
+        "state": "empty owned scratch removed"
+      }
+    ]
+  }
+}
