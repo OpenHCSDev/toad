@@ -1,0 +1,58 @@
+{
+  "state": "Positive ordinary447 candidate PREPARED/FROZEN HELDParent; all immediate Sch package/import/read/build/execution claims CLOSED on handoff",
+  "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Sch447-ordinary-receiving-package-only-issued-grant.json",
+  "grant_sha256": "211048042f72631a60b3f642de105a38602e04f942cb3e23121a0d39427b4a7f",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "actual_candidate_Toad_source": "af3bf18e6108cbd56b2570abd8afa498ac19a319",
+  "baseline": "Actual334CURRENT4401468 floor archived51ae,287originals/PREFIXactivation unchanged. Positive candidate not restored; no next loan inferred.",
+  "installed_assets_with_forced_resources": 945,
+  "source_inventory_assets": 942,
+  "forced_native_assets": 3,
+  "normal_packages": 69,
+  "source_proof_sha256": "a02e99cfe5ae6311f0ef9fe2e48730f57734dffe550e808613e751997e85c012",
+  "candidate_DTO_sha256": "cc31ef069a5c0019f2ec73184d92e4a54ade9ed81d0025eed19f18fdc7879e07",
+  "canonical_manifest_sha256": "96d4d8e9eadbd24cc315ab3d2c48210bd9a940574b605348c32593b373e848ae",
+  "canonical_original_Core": "a38c06de24315fa868de45786e01fefadb0aaef1",
+  "canonical_members": 51,
+  "actual_gates": 46,
+  "own_output": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/projected-prefetch443-receiving-20261004",
+  "protected_originals_verified": 287,
+  "unchanged_keepers_verified": 2539,
+  "native_manifest": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
+  "native_tree": "dbc88ed9231d1275da3ce218aa8919a247e41ce1f010ce765e7ac0960193f4ac",
+  "native_READ_FullTrust_verified": true,
+  "native_execution": 0,
+  "source_target_native_and_checkpoint_equal": true,
+  "runtime_member": "PreserveRuntimeInstallation",
+  "owner_member": "PreserveOwnerRuntime",
+  "whole_cohort_require_original": true,
+  "new_once_operands": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/projected-prefetch443-receiving-20261004/new-publication447/once-operands.json",
+  "publication_receipt_and_preimages_absent": true,
+  "preparation_subprocesses_terminal": [
+    {
+      "phase": "install",
+      "exit_code": 0
+    },
+    {
+      "phase": "source_verification",
+      "exit_code": 0
+    },
+    {
+      "phase": "fullcohort_declarations",
+      "exit_code": 0
+    }
+  ],
+  "owned_App_native_processes": [],
+  "active_owned_handles": [],
+  "actual_holder_output_refs": 0,
+  "raw_historical_underscore_environment_refs": 19,
+  "all_uid_processes": 227,
+  "permission_gaps": 0,
+  "final_borrowers": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/projected-prefetch443-receiving-20261004/final-borrowers.json",
+  "final_borrowers_sha256": "5898b678da389aec83d3bf418b974574c33bf65c3c5b254b7a609c01acb072ef",
+  "final_reference_classification_sha256": "dcf3037077ae187591eecdf95a1c68c31a4541f26515be03cd12ea5b182d3c70",
+  "public_effects": 0,
+  "App_SDK_provider_input_movie_build_runs": 0,
+  "public_style22_current444_protected": true,
+  "independent_package_lifecycle_close": "Bohr only; issued211048 unchanged; Parent holds prepared candidate. No oldfloor restore/publication/newloan bySch."
+}
