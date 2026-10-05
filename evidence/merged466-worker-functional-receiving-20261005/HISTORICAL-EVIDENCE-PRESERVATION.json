@@ -1,0 +1,146 @@
+{
+  "restored": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/accepted-main-functional-receiving-20261005/CORE-WHEEL-SOURCE-RELATION.json",
+      "sha256": "2d184a0d2b62a9c14afd46a7353c85f99bcdf3ac5ebd22e84d63cb3fbce0b5e8",
+      "member_mode": 420,
+      "source_git": "bba30f045ab2fe76980a02fbe0ced11db41eb211",
+      "source_path": "evidence/accepted-main-functional-receiving-20261005/CORE-WHEEL-SOURCE-RELATION.json"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/accepted-main-functional-receiving-20261005/FROZEN-RECEIVING-READY.json",
+      "sha256": "372946cf28054a4a1015090c92ff23d17616c0cf61da9334cc1684bf93e760d6",
+      "member_mode": 420,
+      "source_git": "bba30f045ab2fe76980a02fbe0ced11db41eb211",
+      "source_path": "evidence/accepted-main-functional-receiving-20261005/FROZEN-RECEIVING-READY.json"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/accepted-main-functional-receiving-20261005/INSTALLED-PROOF-CHECKPOINT.json",
+      "sha256": "0dbdbfce730f762ea22cd0ab56e4c00249a3d69ba6960b3f2b5aa05a4a26c9f6",
+      "member_mode": 420,
+      "source_git": "bba30f045ab2fe76980a02fbe0ced11db41eb211",
+      "source_path": "evidence/accepted-main-functional-receiving-20261005/INSTALLED-PROOF-CHECKPOINT.json"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/accepted-main-functional-receiving-20261005/MERGED-CANONICAL-SOURCE-MANIFEST.json",
+      "sha256": "c16321ee1efb8b4f23338489f6c2b7f59581182c8db7fde0bbcf2590b2211813",
+      "member_mode": 420,
+      "source_git": "bba30f045ab2fe76980a02fbe0ced11db41eb211",
+      "source_path": "evidence/accepted-main-functional-receiving-20261005/MERGED-CANONICAL-SOURCE-MANIFEST.json"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/accepted-main-functional-receiving-20261005/MERGED-SOURCE-WHEEL-RELATION.json",
+      "sha256": "02716f2d0b385faf090464ef124cfe80e638599158059fe10a3ee157770e8e85",
+      "member_mode": 420,
+      "source_git": "bba30f045ab2fe76980a02fbe0ced11db41eb211",
+      "source_path": "evidence/accepted-main-functional-receiving-20261005/MERGED-SOURCE-WHEEL-RELATION.json"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/accepted-main-functional-receiving-20261005/PREPARATION-CUSTODY-CHECKPOINT.json",
+      "sha256": "92e66f2afc3cb32e8e700aaab785910493b435bf532204e8c244d78b8fdd85b9",
+      "member_mode": 420,
+      "source_git": "bba30f045ab2fe76980a02fbe0ced11db41eb211",
+      "source_path": "evidence/accepted-main-functional-receiving-20261005/PREPARATION-CUSTODY-CHECKPOINT.json"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/accepted-main-functional-receiving-20261005/PROPOSED-QUALIFICATION-INPUT.json",
+      "sha256": "0e910c7f23148e4daa44dd4a01244ab847a5a4e6eed09db7acdb3e3096b8f46b",
+      "member_mode": 420,
+      "source_git": "bba30f045ab2fe76980a02fbe0ced11db41eb211",
+      "source_path": "evidence/accepted-main-functional-receiving-20261005/PROPOSED-QUALIFICATION-INPUT.json"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/accepted-main-functional-receiving-20261005/PROPOSED-RECEIVING-COMMAND-PLAN.json",
+      "sha256": "8925d5b53c1bcafd553bcb7af2eebab54522d198ac2340f7d179f8673c02a275",
+      "member_mode": 420,
+      "source_git": "bba30f045ab2fe76980a02fbe0ced11db41eb211",
+      "source_path": "evidence/accepted-main-functional-receiving-20261005/PROPOSED-RECEIVING-COMMAND-PLAN.json"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/accepted-main-functional-receiving-20261005/SOURCE-PLAN.md",
+      "sha256": "67398cfc9e04c7944b4fed3dcaae2e8e8ac8e20b001e97839be126ae523e7f66",
+      "member_mode": 420,
+      "source_git": "bba30f045ab2fe76980a02fbe0ced11db41eb211",
+      "source_path": "evidence/accepted-main-functional-receiving-20261005/SOURCE-PLAN.md"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/accepted-main-functional-receiving-20261005/TOAD-WHEEL-SOURCE-PROOF.json",
+      "sha256": "d0beef1663280b3650c51b9272f8fe2c0b063402ac1f4bc2518ed4f0550d3a56",
+      "member_mode": 420,
+      "source_git": "bba30f045ab2fe76980a02fbe0ced11db41eb211",
+      "source_path": "evidence/accepted-main-functional-receiving-20261005/TOAD-WHEEL-SOURCE-PROOF.json"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged457-goal675-native67-receiving-20261005/ASSESSMENT.md",
+      "sha256": "45679b0913ccd286778f641ea05ecaadcdaa88db603e7d2133f86e65fa916611",
+      "member_mode": 420,
+      "source_git": "bba30f045ab2fe76980a02fbe0ced11db41eb211",
+      "source_path": "evidence/merged457-goal675-native67-receiving-20261005/ASSESSMENT.md"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged457-goal675-native67-receiving-20261005/EFFECTIVE-PROPOSED-RECEIVING-485-COMMAND-PLAN.json",
+      "sha256": "b0dfe6b0086d763472f1a47a9bb9068f8d1f2841a8d73abc2d77d9e8fee2d356",
+      "member_mode": 420,
+      "source_git": "bba30f045ab2fe76980a02fbe0ced11db41eb211",
+      "source_path": "evidence/merged457-goal675-native67-receiving-20261005/EFFECTIVE-PROPOSED-RECEIVING-485-COMMAND-PLAN.json"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged457-goal675-native67-receiving-20261005/EFFECTIVE-SOURCE-BINDING.md",
+      "sha256": "c9d3470f06b89de6ca8ca3fd07b3db8bc9d2e8953b48e9d335dd3126583b0400",
+      "member_mode": 420,
+      "source_git": "bba30f045ab2fe76980a02fbe0ced11db41eb211",
+      "source_path": "evidence/merged457-goal675-native67-receiving-20261005/EFFECTIVE-SOURCE-BINDING.md"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged457-goal675-native67-receiving-20261005/FROZEN-RECEIVING-READY.json",
+      "sha256": "ebe9eb366702b1c1e637daea836bec924fdfd26f1834a527aed2d1af6adfafdf",
+      "member_mode": 420,
+      "source_git": "bba30f045ab2fe76980a02fbe0ced11db41eb211",
+      "source_path": "evidence/merged457-goal675-native67-receiving-20261005/FROZEN-RECEIVING-READY.json"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged457-goal675-native67-receiving-20261005/MERGED-CANONICAL-SOURCE-MANIFEST.json",
+      "sha256": "979d7175282aed795637c006ceca0f30390720fa7a14751d5fe440b109919128",
+      "member_mode": 420,
+      "source_git": "bba30f045ab2fe76980a02fbe0ced11db41eb211",
+      "source_path": "evidence/merged457-goal675-native67-receiving-20261005/MERGED-CANONICAL-SOURCE-MANIFEST.json"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged457-goal675-native67-receiving-20261005/MERGED-SOURCE-WHEEL-RELATION.json",
+      "sha256": "c43c86fd59e48598e41aecebf842e4668420be9e10533e72d87bb0df561d0b4c",
+      "member_mode": 420,
+      "source_git": "bba30f045ab2fe76980a02fbe0ced11db41eb211",
+      "source_path": "evidence/merged457-goal675-native67-receiving-20261005/MERGED-SOURCE-WHEEL-RELATION.json"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged457-goal675-native67-receiving-20261005/PROPOSED-QUALIFICATION-INPUT.json",
+      "sha256": "b4ae583d2dc13d1bcaf2d495091e1c69e7fca8a3ac71758c7200bb0fc4613489",
+      "member_mode": 420,
+      "source_git": "bba30f045ab2fe76980a02fbe0ced11db41eb211",
+      "source_path": "evidence/merged457-goal675-native67-receiving-20261005/PROPOSED-QUALIFICATION-INPUT.json"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged457-goal675-native67-receiving-20261005/PROPOSED-RECEIVING-COMMAND-PLAN.json",
+      "sha256": "cb0f297dd7f72f0c5fc5d234bb37ae6af9a2eab1a5a1ac9252bf4349eea7aa71",
+      "member_mode": 420,
+      "source_git": "bba30f045ab2fe76980a02fbe0ced11db41eb211",
+      "source_path": "evidence/merged457-goal675-native67-receiving-20261005/PROPOSED-RECEIVING-COMMAND-PLAN.json"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged457-goal675-native67-receiving-20261005/QUALIFIED-OWNER-KEEPERS.json",
+      "sha256": "5a41de8bf2440c51ccdfc96472398c9bc706dcfccd0f9d8a2cd22931cd79667e",
+      "member_mode": 420,
+      "source_git": "bba30f045ab2fe76980a02fbe0ced11db41eb211",
+      "source_path": "evidence/merged457-goal675-native67-receiving-20261005/QUALIFIED-OWNER-KEEPERS.json"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged457-goal675-native67-receiving-20261005/SOURCE-PLAN.md",
+      "sha256": "0180ced56ef540dd7c14ccfccf1f602eabf7f8aa0d5a73a05527f264685f85fe",
+      "member_mode": 420,
+      "source_git": "bba30f045ab2fe76980a02fbe0ced11db41eb211",
+      "source_path": "evidence/merged457-goal675-native67-receiving-20261005/SOURCE-PLAN.md"
+    }
+  ],
+  "source_git": "bba30f045ab2fe76980a02fbe0ced11db41eb211",
+  "all_historical_paths_personally_equal": 20
+}
