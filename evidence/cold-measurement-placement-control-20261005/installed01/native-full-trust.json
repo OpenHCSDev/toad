@@ -1,0 +1,10 @@
+{
+  "authority": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper460-corrected-cold-only-READ-issued-20261005.json",
+  "authority_sha256": "db595f544854fc82349773651a1c49c34035b8fcba800639a4bf7bc606740bc2",
+  "package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+  "manifest": "7a2e4aabdbc5af49dd9af942190d92086df2eb3489903674a74af51cf831cd33",
+  "tree": "0d7ff54a04d4f0ff175fc889e936ca3cea8b1f98eb8b73ed6215c3373cbd984d",
+  "native_full_trust": true,
+  "artifact_execution": false,
+  "artifact_writes": false
+}

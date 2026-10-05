@@ -1,0 +1,19 @@
+{
+  "state": "Bohr independent actual CURRENT447 whole purpose closed; append-only to original ScopedReady whose pending-close field describes earlier freeze.",
+  "lifecycle": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Heis460-corrected-cold-only-package-App-lifecycle.json",
+  "lifecycle_sha256": "35977567effddb0554ed857da8284f857e0ed299b07b948ad10bbbf66455e0e3",
+  "independent_readback_sha256": "1a6c2f6c9757840cee774f1bc1d25c1434d7af895cc9a7daa95df73208e103e0",
+  "issued_grant_sha256": "3d8a2bdcd36a61c4a1b3acffc25b479aeb736ecf4138ab47c367857774281d76",
+  "members": 1468,
+  "distributions": 69,
+  "protected": 428,
+  "other66": 1883,
+  "original_assets": 945,
+  "independent_raw_census_processes": 230,
+  "owner_raw_census_processes": 247,
+  "active_private_refs": 0,
+  "gaps": 0,
+  "native_READ_handback_sha256": "b604526b5ccb0f62349eee8e3f2b8056e2005ddd409d41d2779a935ef1621d81",
+  "native_EXEC_never_authorized_or_used": true,
+  "no_new_App_build_package_census_or_holder_permission": true
+}

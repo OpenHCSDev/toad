@@ -1,0 +1,63 @@
+{
+  "source_control_head": "175e5ab21b383cf8d91243a70890bd412f7b3d81",
+  "coverage": [
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "175e5ab21b383cf8d91243a70890bd412f7b3d81",
+      "root": "src/toad",
+      "modules": 288,
+      "parse_omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "175e5ab21b383cf8d91243a70890bd412f7b3d81",
+      "root": "tests",
+      "modules": 397,
+      "parse_omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "175e5ab21b383cf8d91243a70890bd412f7b3d81",
+      "root": "tools",
+      "modules": 41,
+      "parse_omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78",
+      "root": "src/textual",
+      "modules": 249,
+      "parse_omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "head": "7b68d630caa654d3e9884f45cbd6493718752a0c",
+      "root": "src/agent_comms",
+      "modules": 324,
+      "parse_omissions": []
+    }
+  ],
+  "exact3control_placement_sites": [
+    {
+      "line": 127,
+      "target": "(ordinal, item)",
+      "iter": "styled.placements"
+    },
+    {
+      "line": 119,
+      "target": "(ordinal, item)",
+      "iter": "layout.placements"
+    },
+    {
+      "line": 140,
+      "target": "(ordinal, item)",
+      "iter": "layout.placements"
+    }
+  ],
+  "all13assertion_AST_unchanged": "SOURCE-CONTROL-CORRECTION.json",
+  "retained7546_source_assets_equal": 319,
+  "wheel_sha256": "7546bd15d78f2c06a11a2bb4e5564050017360c222e8e064abea2b560a180432",
+  "src_pyproject_uv_delta_vs1ae": 0,
+  "installed_controls": "UNRUN correctedcontrol; oldraw93d failure frozen. No build, stage, App, native, provider or additional qualification performed by this source/ZIPread.",
+  "proposal_sha256": "392d62dc55b66692f48f5a68248ad4721061b90c9f8528524e50e8963a1b3339"
+}

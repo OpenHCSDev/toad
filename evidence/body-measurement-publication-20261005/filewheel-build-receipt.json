@@ -1,0 +1,42 @@
+{
+  "source_head": "1ae124fcbc730479a8472c8fbe70f74a32afc5ef",
+  "command": [
+    "/usr/bin/python",
+    "-B",
+    "-m",
+    "build",
+    "--wheel",
+    "--no-isolation",
+    "--outdir",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-render-transport458-20261005/source-wheel/toad-wheel"
+  ],
+  "backend_readonly": "/home/ts/.cache/uv/archive-v0/RgcgNn7xR1Zs9HSF",
+  "backend_metadata_sha256": "acd3b755437aa07859ebe3ed9b71d94536fa183cc851bbd95b437ba3fe7e09b6",
+  "authority": "Parent direct source-preparation authorization: ONE cachedHatch jointwheel build; no prefix stage/runtime grant",
+  "build_inputs": {
+    "pyproject.toml": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/pyproject.toml",
+      "sha256": "9217f909f62f5d9fe6959f6b81237d2c3dfcdd31f134b63d4581315696703bde"
+    },
+    "uv.lock": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/uv.lock",
+      "sha256": "8989e7ccf5ac0da22d369d4adde7f4a5092ce27d47321a2e24fc3cf4c743060d"
+    },
+    "README.md": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/README.md",
+      "sha256": "11b3f5195acb00a19a73229749e2e71ba924314a8b1c650f05a2bf43f537d35d"
+    },
+    "LICENSE": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/LICENSE",
+      "sha256": "4df3c306dddaaf4baffdff5ca820cc679ac8cd6dc263c6a74517783e42fa7a3b"
+    }
+  },
+  "attempt": 1,
+  "seconds": 0.6292052270146087,
+  "exit_code": 0,
+  "new_environment": false,
+  "dependency_installation": false,
+  "installed_package_changes": false,
+  "Core_Text_native_build": false,
+  "App_run": false
+}

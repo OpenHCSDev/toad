@@ -1,0 +1,54 @@
+{
+  "status": "ONE NORMAL JOINT SOURCE FILEWHEEL QUALIFIED; NOT INSTALLED APP READY",
+  "authority": "Parent explicitly authorized ONE cachedHatch jointwheel build as source preparation; prefix stage still requires actual fresh issued purpose",
+  "build_head": "1ae124fcbc730479a8472c8fbe70f74a32afc5ef",
+  "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-render-transport458-20261005/source-wheel/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+  "sha256": "7546bd15d78f2c06a11a2bb4e5564050017360c222e8e064abea2b560a180432",
+  "bytes": 2251102,
+  "source_assets": 319,
+  "git_local_zip_equal": true,
+  "metadata_equal_to_original457": true,
+  "record_entries_verified": 324,
+  "keepers": [
+    {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-render-transport458-20261005/source-wheel/build-receipt.json",
+      "committed_copy": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/body-measurement-publication-20261005/filewheel-build-receipt.json",
+      "sha256": "368204aa390c1e8f73cfa1d6b73e20b6d6f0e2cbf86e122abcddcfbc7e2ca9db"
+    },
+    {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-render-transport458-20261005/source-wheel/wheel-proof.json",
+      "committed_copy": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/body-measurement-publication-20261005/filewheel-proof.json",
+      "sha256": "dad40cdf6dac015e3cb1cc3b82ed4e5a6f3147af728b4e2ca222c60bd522bbf2"
+    },
+    {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-render-transport458-20261005/source-wheel/toad-inventory.json",
+      "committed_copy": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/body-measurement-publication-20261005/filewheel-inventory.json",
+      "sha256": "e325a28327d5409f394f52a1d1b8648bd40bcf5e13e4dd4fd67fc3b73eb47191"
+    },
+    {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-render-transport458-20261005/source-wheel/build.stdout.txt",
+      "committed_copy": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/body-measurement-publication-20261005/filewheel-build.stdout.txt",
+      "sha256": "09049bfdb8c6302bdc8573999e5117ee50cbc2177c1ad275f262c6e230e9ee3e"
+    },
+    {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-render-transport458-20261005/source-wheel/build.stderr.txt",
+      "committed_copy": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/body-measurement-publication-20261005/filewheel-build.stderr.txt",
+      "sha256": "3fbf5c81df4d6f7774a09a7694742996e64ed07ccaea033ef3d34574059a981c"
+    }
+  ],
+  "exact_control_proposal": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/body-measurement-publication-20261005/FINAL-JOINT-INSTALLED-OPERANDS-PROPOSAL.json",
+    "sha256": "8f6a03816daaf0249e0fd3cd446e32f1c947a4dfd0a6cdb950153f96891f717f",
+    "build_relation": "Source build now completed under new Parent authorization; proposed actual holder floor/stage/operator grant remains unissued. This receipt supplies actual joint wheel instead of future-build placeholder."
+  },
+  "controls": {
+    "renderer": "0fb5533145dfde22a569312e9356962bb5cbbe0f8ee266694290eff61678f526",
+    "cold_App": "93d063780d05a94ac3098c2965079a2d107bf693e20b541e7a98e80f02e232bd",
+    "runtime": "UNRUN"
+  },
+  "no_environment_or_dependencies_created": true,
+  "no_prefix_access_or_installed_changes": true,
+  "no_Core_Text_native_build": true,
+  "owned_artifact_lifetime": "Hold this exact unionwheel for original stage/receiving only; after actual consumed purpose and needed receiver disposition, release obsolete generated payload via original cleanup owner while retaining concise proof. No deletion or keeper retirement is inferred now.",
+  "remaining_dependency": "Original Bohr fresh actualCURRENT447 eligibility/floor/ref/archive/origins/keepers/restore and immutable specific package/stage/operator purpose; original matching immutable7a READ for FullTrust if required."
+}

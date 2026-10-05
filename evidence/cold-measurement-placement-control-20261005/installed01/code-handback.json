@@ -1,0 +1,50 @@
+{
+  "state": "WHOLE actual334CURRENT447 floor restored; sole3d8 correctedcold package/read/operator purpose returned",
+  "issued_sha256": "3d8a2bdcd36a61c4a1b3acffc25b479aeb736ecf4138ab47c367857774281d76",
+  "cold_terminal": {
+    "elapsed": 7.62302847194951,
+    "returncode": 0,
+    "timed_out": false,
+    "error": null,
+    "drain_errors": [],
+    "outcome": {
+      "kind": "exited",
+      "code": 0
+    },
+    "child_retired": true,
+    "owned_group_members": [],
+    "controller": {
+      "pid": 622382,
+      "start_time": 69053203
+    },
+    "child": {
+      "pid": 622530,
+      "start_time": 69053305
+    },
+    "scope": "Corrected cold prepared body height and ordinal/widget/region placement; original13assertions; NoAgent/no provider or native artifact execution",
+    "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Heis460-corrected-cold-only-package-App-issued-grant.json",
+    "native_inputs": 0,
+    "provider_calls": 0
+  },
+  "floor_members_verified": 1468,
+  "packages": 69,
+  "other66_members_verified": 1883,
+  "protected_originals_verified": 428,
+  "original_versions_origins_activation_exact": true,
+  "actual_floor_archive_sha256": "41b065384c8fa6854f813f02a4eebb9fa619a0f823b836a65d1430902fa5762e",
+  "final_readback_exact_archive_recoveries": [],
+  "optional5_staged": false,
+  "candidate_extras": [],
+  "cold_temporary_directories_remaining": [],
+  "final_borrowers": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/final-borrowers.json",
+  "final_borrowers_sha256": "e43bda8fbc8842fc5f93ee545dd884a007cfda4ddf50fa473a5bca0174539d31",
+  "raw_processes": 247,
+  "active_refs": 0,
+  "gaps": 0,
+  "native7a_READ_handed_back": true,
+  "native7a_EXEC_never_authorized_or_used": true,
+  "provider_native_SDK_input": 0,
+  "physical_movie": false,
+  "future_holder_claim": false,
+  "census_owner": "Original privileged positional borrower-census.py; historical environment keys directly re-read."
+}

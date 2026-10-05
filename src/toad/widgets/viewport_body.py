@@ -155,7 +155,6 @@ class BodyMeasurement(ABC):
         worker = body.run_worker(materialize(), group="body-materialization", exit_on_error=exit_on_error)
         current = MaterializingBody(previous=self, worker=worker)
         body._update_body_measurement(current)
-        body.refresh(layout=True)
         return current
 
     async def before_publication(self) -> None:
@@ -408,7 +407,6 @@ class MaterializingBody(BodyMeasurement):
             if body._body_measurement is self:
                 # Only the current writer exposes its newly committed native
                 # tree. A newer writer still borrows the preceding pixels.
-                body.refresh(layout=True)
                 return LiveBody(self.width, self.rows, self.widgets)
             return self.previous
         return self._updated(self.previous.publication_finished(body, worker))
@@ -543,7 +541,7 @@ class MeasuredViewportBody(ViewportBody):
         # The resource owns descendant participation and cover selection as
         # well as extent. Publish that change before any native prune awaits;
         # NodeList removal happens later and cannot invalidate it for us.
-        self._invalidate_layout()
+        self.refresh(layout=True)
         if self._body_viewport is not None:
             self._body_viewport.request()
 
@@ -681,7 +679,6 @@ class MeasuredViewportBody(ViewportBody):
             self._update_body_measurement(rendered)
             self.retire_body_resources()
             await self.remove_children(children)
-            self.refresh(layout=True)
         return True
 
     async def restore_body(self):
@@ -695,9 +692,9 @@ class MeasuredViewportBody(ViewportBody):
         measurement = self._body_measurement
         height = measurement.height(self, width, lambda: native_height(container, viewport, width))
         if self._body_measurement is measurement:
-            # Extent measurement updates its current resource; it cannot
-            # replace a pending worker or overwrite width invalidation.
-            self._update_body_measurement(measurement.measured(width, height))
+            # Record native output without retiring its input measurement.
+            # A width invalidation already replaced this resource above.
+            self._body_measurement = measurement.measured(width, height)
         return height
 
     def get_content_width(self, container, viewport):

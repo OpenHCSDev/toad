@@ -1,0 +1,151 @@
+{
+  "product": "7edca294",
+  "source_control": "c29446f6117b21dd6daf311a30c137081619868f",
+  "coverage": [
+    {
+      "rev": "c29446f6117b21dd6daf311a30c137081619868f",
+      "root": "src/toad",
+      "modules": 288,
+      "parse_omissions": []
+    },
+    {
+      "rev": "c29446f6117b21dd6daf311a30c137081619868f",
+      "root": "tests",
+      "modules": 397,
+      "parse_omissions": []
+    },
+    {
+      "rev": "c29446f6117b21dd6daf311a30c137081619868f",
+      "root": "tools",
+      "modules": 41,
+      "parse_omissions": []
+    }
+  ],
+  "dependency_qualified_roots": [
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "rev": "7b68d630caa654d3e9884f45cbd6493718752a0c",
+      "root": "src/agent_comms",
+      "modules": 324,
+      "parse_omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "rev": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78",
+      "root": "src/textual",
+      "modules": 249,
+      "parse_omissions": []
+    }
+  ],
+  "body_resource_writes": [
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 489,
+      "write": "self._body_measurement"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 540,
+      "write": "self._body_measurement"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 697,
+      "write": "self._body_measurement"
+    }
+  ],
+  "all_transition_family_calls": [
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 157,
+      "call": "body._update_body_measurement(current)"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 532,
+      "call": "self._update_body_measurement(self._body_measurement.released())"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 535,
+      "call": "self._update_body_measurement(self._body_measurement.invalidated())"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 552,
+      "call": "self._update_body_measurement(self._body_measurement.style_updated(self))"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 556,
+      "call": "self._update_body_measurement(self._body_measurement.resized(size))"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 588,
+      "call": "self._body_measurement.start_materialization(self, work, exit_on_error=exit_on_error)"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 709,
+      "call": "self._update_body_measurement(LiveBody())"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 412,
+      "call": "self.previous.publication_finished(body, worker)"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 679,
+      "call": "self._update_body_measurement(rendered)"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 123,
+      "call": "self.start_materialization(body)"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 145,
+      "call": "body._update_body_measurement(body._body_measurement.publication_prepared(worker, prepared))"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 148,
+      "call": "body._update_body_measurement(body._body_measurement.publication_finished(body, worker))"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 151,
+      "call": "body._update_body_measurement(body._body_measurement.publication_failed(body, worker))"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 149,
+      "call": "body._body_measurement.publication_finished(body, worker)"
+    }
+  ],
+  "derived_extent_owner": "MeasuredViewportBody.get_content_height records original native getter output under its existing resource identity guard",
+  "source_publication_owner": "MeasuredViewportBody._update_body_measurement -> original Widget.refresh(layout=True) synchronous invalidation/request/paint/idle once",
+  "removed_publication_refresh_callers": [
+    "BodyMeasurement.start_materialization",
+    "MaterializingBody.publication_finished",
+    "MeasuredViewportBody.finish_native_retirement"
+  ],
+  "unchanged_genuine_request": "DocumentViewport.resume_source window.refresh(layout=True) preserves geometry declaration after suspension",
+  "existing_control": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/prepared_height_contract_pilot.py",
+    "sha256": "93d063780d05a94ac3098c2965079a2d107bf693e20b541e7a98e80f02e232bd",
+    "command": [
+      "ACTUAL_FRESH_ISSUED_PREFIX/bin/python",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/prepared_height_contract_pilot.py",
+      "--installed-only"
+    ],
+    "output_environment": "HEIGHT_CONTRACT_EVIDENCE=ACTUAL_OWN_ISSUED_OUTPUT/app",
+    "App_count": 1,
+    "original_assertions_preserved": 7,
+    "new_scope": "Actual cold native getter source epochs/derived extent; existing mounted code boxes/arrangement/style/relative-height; wholeApp/worker close",
+    "runtime": "UNRUN, no stage/import/App/native grant"
+  }
+}

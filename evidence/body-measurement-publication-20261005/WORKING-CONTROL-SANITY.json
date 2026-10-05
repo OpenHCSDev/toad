@@ -1,0 +1,47 @@
+{
+  "product": "7edca2943b7cc68ff99d091d088fd3e65c53ff24",
+  "source_delta": {
+    "type_identity_check": 0,
+    "long_boolean_chain": 0,
+    "boolean_chain_terms": 0,
+    "codec_subclass": 0,
+    "foreign_absence_probe": 0,
+    "string_dispatch": 0,
+    "type_switch": 0,
+    "string_dispatch_arms": 0,
+    "type_switch_arms": 0,
+    "string_key_subscript": 0,
+    "literal_key_get": 0,
+    "string_equality": 0,
+    "none_identity": 0,
+    "isinstance_call": 0,
+    "attribute_by_name": 0,
+    "getattr_default": 0,
+    "broad_except": 0,
+    "json_loads": 0,
+    "long_function": 0,
+    "class_definition": 0,
+    "abstract_base": 0,
+    "enum_class": 0,
+    "code_lines": -3
+  },
+  "positive_debt_counters": {},
+  "source_control_compilation": "PASS no imported application",
+  "original_assertions_preserved": 7,
+  "control_sha256": "93d063780d05a94ac3098c2965079a2d107bf693e20b541e7a98e80f02e232bd",
+  "control_path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/prepared_height_contract_pilot.py",
+  "native_app": "UNRUN; no prefix/runtime/native/artifact/execution grant",
+  "exact_future_command": [
+    "ELIGIBLE_ISSUED_PREFIX/bin/python",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/prepared_height_contract_pilot.py",
+    "--installed-only"
+  ],
+  "environment": {
+    "HEIGHT_CONTRACT_EVIDENCE": "OWN_ISSUED_OUTPUT/app",
+    "PYTHONPATH": "ABSENT",
+    "PYTHONHOME": "ABSENT",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONNOUSERSITE": "1"
+  },
+  "scope": "One original mounted NoAgentApp/cold native getters/source revision stability/width style relative-height/whole preparation close; no provider or native SDK input/physical capture"
+}
