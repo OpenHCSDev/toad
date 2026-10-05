@@ -1,0 +1,73 @@
+{
+  "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-render-transport458-20261005/source-wheel/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+  "sha256": "7546bd15d78f2c06a11a2bb4e5564050017360c222e8e064abea2b560a180432",
+  "bytes": 2251102,
+  "build_head": "1ae124fcbc730479a8472c8fbe70f74a32afc5ef",
+  "body_product": "7edca2943b7cc68ff99d091d088fd3e65c53ff24",
+  "transport_product": "4952f759a",
+  "transport_source": "db368ff54c21c13a4a98465f10eebce2421be38e",
+  "package_tree": "e81dc2a9f4250e0534e4838a66ed195e3c34ec77",
+  "assets": 319,
+  "python_assets": 288,
+  "git_local_zip_byte_equal": true,
+  "missing_extra_assets": [],
+  "inventory": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-render-transport458-20261005/source-wheel/toad-inventory.json",
+  "inventory_sha256": "e325a28327d5409f394f52a1d1b8648bd40bcf5e13e4dd4fd67fc3b73eb47191",
+  "build_receipt": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-render-transport458-20261005/source-wheel/build-receipt.json",
+  "build_receipt_sha256": "368204aa390c1e8f73cfa1d6b73e20b6d6f0e2cbf86e122abcddcfbc7e2ca9db",
+  "metadata_sha256": "3fde2bfef1346f91a2bad2c6dfbca28a40710dc38ca987f66266a6064c3c43ee",
+  "metadata_equal_to_original457": true,
+  "metadata_name": "batrachian-toad",
+  "metadata_version": "0.6.20",
+  "requires_python": ">=3.14",
+  "requires_dist": [
+    "agent-client-protocol==0.12.1",
+    "agent-comms[acp]",
+    "aiosqlite==0.22.1",
+    "bashlex==0.18",
+    "click==8.4.0",
+    "format-currency>=0.0.10",
+    "httpx==0.28.1",
+    "notify-py==0.3.43",
+    "packaging==26.2",
+    "pathspec==1.1.1",
+    "platformdirs==4.9.6",
+    "psutil==7.2.2",
+    "pyperclip==1.11.0",
+    "rich==15.0.0",
+    "setproctitle==1.3.7",
+    "textual-diff-view==0.1.5",
+    "textual-serve==1.1.3",
+    "textual-speedups==0.2.1",
+    "textual[syntax]==8.2.8",
+    "typeguard==4.5.2",
+    "typing-extensions==4.15.0",
+    "watchdog==6.0.0",
+    "xdg-base-dirs>=6.0.2",
+    "zmqruntime==0.2.24; extra == 'persistent-renderer'"
+  ],
+  "dist_info_sha256": {
+    "batrachian_toad-0.6.20.dist-info/METADATA": "3fde2bfef1346f91a2bad2c6dfbca28a40710dc38ca987f66266a6064c3c43ee",
+    "batrachian_toad-0.6.20.dist-info/WHEEL": "58b82a17209f9bf2804afe161f2632d0fde933f9bb2792fd936b2474a2e2ac2f",
+    "batrachian_toad-0.6.20.dist-info/entry_points.txt": "12cacbee8134076f2a99542ab81f8682c88f39cbea62228e9c3b950d319d4528",
+    "batrachian_toad-0.6.20.dist-info/licenses/LICENSE": "4df3c306dddaaf4baffdff5ca820cc679ac8cd6dc263c6a74517783e42fa7a3b",
+    "batrachian_toad-0.6.20.dist-info/RECORD": "408742da6c571b08c0d6961594b76d0e8e5073545ad73cebe94eddbc96681d31"
+  },
+  "record_entries_verified": 324,
+  "declared_sources": {
+    "agent-comms": {
+      "git": "https://github.com/OpenHCSDev/agent-comms.git",
+      "rev": "7b68d630caa654d3e9884f45cbd6493718752a0c"
+    },
+    "textual": {
+      "git": "https://github.com/OpenHCSDev/textual.git",
+      "rev": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78"
+    },
+    "textual-diff-view": {
+      "git": "https://github.com/OpenHCSDev/textual-diff-view.git",
+      "rev": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+    }
+  },
+  "source_preparation_authority": "Parent direct ONEjoint cachedHatch build; no prefix/stage/App authority",
+  "qualification": "Normal joint source artifact qualified before any stage; both actual installed controls UNRUN"
+}
