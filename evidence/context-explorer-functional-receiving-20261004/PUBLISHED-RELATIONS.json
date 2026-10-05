@@ -13,7 +13,7 @@
     "core_product": "3aacd708fb9c699cc80c6b864e0ae8cf9ccff7f8",
     "toad_docs": "75d5f0a06aa076e4784dfbfdc6d2a37850b6c4aa",
     "toad_product": "76ec05358b0ef790d10746e49ee0f09c036e2baa",
-    "carry_docs": "bae270dd2bbedc8fbfe811bd4977f5c4084f4adc",
+    "carry_docs": "1143be3954226c5b7a049f5153ec93bbe73feb77",
     "status": "not merged; final merge readiness remains original owners and Parent"
   },
   "retained_feature_wheels": [
@@ -61,7 +61,16 @@
   },
   "distinct_accepted_scopes": {
     "historical_current_tuple": "30.217576351948082s terminal0, original registered historical ReferenceNode read/search/export plus separate local USER/defaultOFF/schema10; zero inputs/providers; original handback4d895e7c",
-    "authentic_earlier_tuple": "23.123123663s terminal0, original sealed527f/two spans/AnnotationNode reader/GUI USER ACP/effective Obeys and Promised reread; original earlier source tuple remains determining; no receipt rebase or repeat"
+    "authentic_earlier_tuple": "23.123123663s terminal0, original sealed527f/two spans/AnnotationNode reader/GUI USER ACP/effective Obeys and Promised reread; original earlier source tuple remains determining; no receipt rebase or repeat",
+    "stopped_schema_carry": {
+      "head": "1143be3954226c5b7a049f5153ec93bbe73feb77",
+      "tools": "88e8d2f9983df69de876401abf0d3ec506235985",
+      "scope": "one genuine installed schema9 declaration child and authored stopped-copy carry; 4.738188295s PASS, five refusals, empty annotation members, original row identities/preimages/wire/config/proofs/journal absence preserved",
+      "receipt_sha256": "48236fe4fbb5d604662afa153bdb208a0e054e6db79e7f6b7a2b06ab964dfb65",
+      "source_and_target_READ": "returned; independent holder closure separate",
+      "merged_head": null,
+      "public_cutover_qualified": false
+    }
   },
   "runtime_member_intent": "CarryNativeRuntimeInstallation using authentic current source NativeSchemaDeclaration and future merged target; PreserveOwnerRuntime; neither Reset nor schema-preserving runtime member",
   "unbound": {
