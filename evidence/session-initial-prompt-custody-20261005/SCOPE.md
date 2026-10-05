@@ -98,3 +98,23 @@ normal union and seven accepted #458 renderer assets differ. It is not a full
 source-equal wheel for the new union. The old wheel and proposal are preserved;
 a future #461 purpose must reconcile a normal union artifact before staging.
 No additional build, App, package or runtime purpose is inferred here.
+
+## Current union artifact
+
+Parent subsequently authorized one normal cached Hatchling union build from
+frozen `34bd2caa`. It completed in 0.619 seconds. `UNION-FILEWHEEL.json` and
+`union-source-inventory.json` bind every one of the 319 Git/checkout/ZIP assets
+and all 324 RECORD entries. The new wheel SHA is
+`47f8ee49a13762cad3e1224323c3c557bf07df218136e44f087a5f29fce682e2`.
+Build metadata remains byte equal; exactly the seven accepted #458 assets
+differ from the preserved old `d47bbc52` wheel.
+
+`PROPOSED-UNION-FILEWHEEL-APP-OPERANDS.json` is the effective source-only
+proposal. It binds the new artifact to the same unchanged `85fcfcf8` control,
+literal future command and paired Core/Textual pins. The original `a70024bb`
+proposal and `d47bbc52` wheel remain byte equal. This closes the source artifact
+gap without an App, installed-package or native operation.
+
+The mounted NoAgent acceptance remains unrun. Its next eligible holder purpose
+is separate; it reserves no slot and yields to Heis's changed cold/frame purpose
+if they need the same holder. No accepted renderer or GUI control is repeated.
