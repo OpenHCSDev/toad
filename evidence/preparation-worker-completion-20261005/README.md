@@ -63,9 +63,36 @@ The failed audit attempt using unsupported revision `WORKTREE` and the first
 census invocation missing its JSON output argument executed no product code;
 the final source census uses the committed product revision.
 
+## Original source policy checks
+
+The first serial batch attempted the three unchanged original controls once.
+All three failed during import in about 0.22 seconds: Core's native resource
+loader requires a filesystem path, so its wheel ZIP cannot be a source
+runtime dependency. No policy case ran. Original logs and commands are
+preserved in `source-sanity01`; no product defect is inferred.
+
+Parent authorized one corrected batch using the existing Core filesystem
+source root. All 355 assets match the original retained Core 0ed wheel,
+including its resource declarations; the cached registry 0.2.1 and ACP 0.12.1
+meet the source contracts. The loader's original resource rule is preserved.
+The three unchanged controls passed once, serially:
+
+| Original control | Exit | Seconds | Scope |
+| --- | ---: | ---: | --- |
+| work_preparation_pilot.py | 0 | 2.472 | Sharing, copies, revision/eviction, independent lanes, cancellation, shutdown |
+| work_preparation_delivery_pilot.py | 0 | 2.137 | Fresh/cached retirement, delivery drainage, queued-worker rejection |
+| serialized_preparation_pilot.py | 0 | 2.185 | Graph release, independent deliveries, byte bounds, scope retirement |
+
+These are source runtime-policy controls with the original Backend double.
+`source-sanity02` preserves exact commands, hashes, stdout/stderr and joined
+subprocess outcomes. This is not an installed application, renderer-process,
+SDK, native-input or speed proof. No dependency installation, environment,
+prefix access or native artifact execution was used.
+
 ## Remaining acceptance
 
-Behavior and installed useful-first-paint/fast-wheel acceptance are **UNRUN**.
+Installed page/body behavior and useful-first-paint/fast-wheel acceptance are
+**UNRUN**.
 The existing preparation, serialized preparation, delivery retirement and
 page lookahead controls cover sharing, isolated mutation, shutdown and source
 revocation. A future affected installed application check should exercise
@@ -75,8 +102,8 @@ existing Markdown return pilot has real mounted body/cache/file-link
 assertions; its helper, settings and cleanup operands must be reconciled to
 the eventual admitted source before execution. No new purpose is assumed.
 
-No test, application, package, native process, provider, input, or recording
-has run for this successor. Frozen 454/455 controls, artifacts, installed
+No application, package installation, native process, provider, input, or
+recording has run for this successor. Frozen 454/455 controls, artifacts, installed
 cohorts and public runtimes remain under their original owners. Heis retains
 the complete workflow/performance objective; this source change removes one
 concrete preparation cost and does not finish that objective.
