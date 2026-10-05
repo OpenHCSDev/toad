@@ -1,0 +1,66 @@
+{
+  "status": "PROPOSED SOURCE ONLY; no prefix, package, App, artifact or execution authority inferred",
+  "integration_owner": "Heis original workspace workflow owner",
+  "control_owner": "Einstein original preparation successor",
+  "product": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+  "published_source_policy_checkpoint": "e950d27d62be640d2c637fb02e7df847558637a2",
+  "control": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/markdown_return_reuse_pilot.py",
+  "control_sha256": "be9fe74d2252a37ac16cb7a8217573210cbcb8bf6b13a42ca4460fbb5af4229b",
+  "helpers": [
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/sidebar_retirement_pilot.py",
+      "sha256": "e0791614e5279e25c120053296faab6e6c585d6a24ac1cc97dedf58c882abfe3"
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/runtime_fixture.py",
+      "sha256": "987399f81781f57e5cca89dc0e5214c59663d97a01bcb5bad18f35d7f8eb686f"
+    }
+  ],
+  "planned_argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "-B",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/tests/markdown_return_reuse_pilot.py",
+    "--installed-only",
+    "--page-wheel",
+    "--output",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/preparation-worker-completion-20261005/installed-page-body01/app"
+  ],
+  "planned_cwd": "/home/ts/wt/toad-regression-widget-cost-20261001",
+  "planned_environment": {
+    "TMPDIR": "/home/ts/.cache/agent-scratch/preparation456-installed-page-body01",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "absent_environment": [
+    "PYTHONPATH",
+    "PYTHONHOME"
+  ],
+  "planned_output": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/preparation-worker-completion-20261005/installed-page-body01",
+  "run_owner": "Existing BoundedRun.session/AttachedChild/FieldCodec timeout90, original joined stdout/stderr and groups; no copied launcher",
+  "operator_preparation": "After actual eligible purpose only: create this owned output and TMPDIR; installed application imports first, original helper test directory only; no application source overlay.",
+  "required_future_cohort": {
+    "toad": "Normal455/456 joint source, including these original two production owner files. Determining merged/integration head, filewheel and installed source proof UNBOUND; no build/package/run now.",
+    "core": "Original joint Core source and its declared dependencies must be bound by Heis; source-sanity uses Core627 filesystem assets equal0ed only, not a current installed whole-cohort claim.",
+    "textual": "Original paired native source/wheel chosen by Heis/Kepler after Native67 normal join and owned ToAd capability cleanup; no native rebuild/check by Einstein.",
+    "holder": "Literal interpreter is prospective only. Bohr must name genuine eligible floor/borrowers and issue exact future purpose. Current/frozen/public roles are protected."
+  },
+  "oracles": [
+    "Original mounted cold Markdown and native paragraphs, actual visible compositor text, ABABA retained PreparedValue identity and independently resolved file links without a body pool.",
+    "Original TranscriptHistory creates its buffer/scope. Actual async loader/page fragment renderer/finish_result delivery; same addressed PageRequest shares retained representation and returns independent result graphs.",
+    "Original CategoryProjection invokes TranscriptFilterWork and preserves original fragments; all result retention stays within existing PreparationRuntime byte limit.",
+    "Native Pilot MouseScrollUp/MouseScrollDown/reversal at original scrollable viewport coordinates, fresh widget ancestry acquisition per event, actual painted text changes and original OffsetReaderPosition admissions.",
+    "Native pointer focus plus End chooses original tail and paints final source marker. Original editor Document/undo/text remain; reader retires its own scope.",
+    "Original App/renderer/native Textual workers and thread executor are joined. No Agent or ACP/native SDK process is created; actual process-group observer belongs to the original BoundedRun owner."
+  ],
+  "limits": [
+    "Authored typed TranscriptPage source only; no saved native journal, real native I/O or provider acceptance.",
+    "Native wheel events in mounted App are not physical recording or desktop interaction proof.",
+    "Printed paint timings are observations, not a latency/performance PASS.",
+    "No acceptedExplorer/454/project or native-only controls are repeated."
+  ],
+  "source_checks": {
+    "control_ast_compile": "PASS",
+    "App_execution": "UNRUN",
+    "package_stage": "UNRUN",
+    "artifact_execution": "NOT REQUIRED OR AUTHORIZED"
+  }
+}

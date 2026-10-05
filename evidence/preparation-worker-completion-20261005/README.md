@@ -107,3 +107,20 @@ recording has run for this successor. Frozen 454/455 controls, artifacts, instal
 cohorts and public runtimes remain under their original owners. Heis retains
 the complete workflow/performance objective; this source change removes one
 concrete preparation cost and does not finish that objective.
+
+## Proposed affected application
+
+The existing `markdown_return_reuse_pilot.py` now has an optional page/wheel
+phase in the same original App. It borrows the existing installed CSS helper,
+keeps the mounted cold-Markdown/ABABA retained syntax and fresh file-link
+checks, and adds actual async page delivery, the production filter ThreadWork
+projection, native wheel/reversal/End, reader admissions, editor Document/undo
+and source retirement. The original application owns its renderer shutdown.
+Typed authored pages are not saved native history; native Pilot input is not
+physical UI recording. No speed target is claimed.
+
+`PROPOSED-PAGE-BODY-WHEEL-OPERANDS.json` names the literal future command,
+output, helper hashes and scope. The control parses/compiles; App execution
+is **UNRUN**. Heis must bind the normal joint source/filewheel and an eligible
+issued holder purpose before execution. No frozen 455 control, existing
+installed prefix, native geometry owner or accepted Explorer journey changes.
