@@ -1,0 +1,456 @@
+{
+  "before": {
+    "head": "38e175f4d1d03d55b9c4d4e299a30977d49dea3d",
+    "roots": {
+      "src/toad": {
+        "parsed": 288,
+        "omissions": []
+      },
+      "tests": {
+        "parsed": 395,
+        "omissions": []
+      },
+      "tools": {
+        "parsed": 41,
+        "omissions": []
+      }
+    },
+    "sites": [
+      {
+        "path": "src/toad/agent_surface.py",
+        "line": 16,
+        "symbol": "subscribe_core",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/core/source_events.py",
+        "line": 10,
+        "symbol": "DirectoryChanged",
+        "kind": "ClassDef"
+      },
+      {
+        "path": "src/toad/core_event_carrier.py",
+        "line": 44,
+        "symbol": "subscribe_core",
+        "kind": "FunctionDef"
+      },
+      {
+        "path": "src/toad/core_event_carrier.py",
+        "line": 79,
+        "symbol": "retire_core_observations",
+        "kind": "FunctionDef"
+      },
+      {
+        "path": "src/toad/core_event_carrier.py",
+        "line": 53,
+        "symbol": "subscribe_core",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/directory_watcher.py",
+        "line": 231,
+        "symbol": "DirectoryWatcher",
+        "kind": "ClassDef"
+      },
+      {
+        "path": "src/toad/directory_watcher.py",
+        "line": 276,
+        "symbol": "observed_revision",
+        "kind": "FunctionDef"
+      },
+      {
+        "path": "src/toad/directory_watcher.py",
+        "line": 281,
+        "symbol": "notify_if_visible",
+        "kind": "FunctionDef"
+      },
+      {
+        "path": "src/toad/directory_watcher.py",
+        "line": 310,
+        "symbol": "rebind",
+        "kind": "FunctionDef"
+      },
+      {
+        "path": "src/toad/directory_watcher.py",
+        "line": 38,
+        "symbol": "DirectoryWatcher",
+        "kind": "Name"
+      },
+      {
+        "path": "src/toad/directory_watcher.py",
+        "line": 248,
+        "symbol": "subscribe_core",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/directory_watcher.py",
+        "line": 273,
+        "symbol": "notify_if_visible",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/directory_watcher.py",
+        "line": 325,
+        "symbol": "retire_core_observations",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/directory_watcher.py",
+        "line": 295,
+        "symbol": "DirectoryChanged",
+        "kind": "Name"
+      },
+      {
+        "path": "src/toad/directory_watcher.py",
+        "line": 313,
+        "symbol": "retire_core_observations",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/directory_watcher.py",
+        "line": 315,
+        "symbol": "subscribe_core",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/screens/main.py",
+        "line": 229,
+        "symbol": "notify_if_visible",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/session_navigation.py",
+        "line": 33,
+        "symbol": "subscribe_core",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 105,
+        "symbol": "rebind",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 109,
+        "symbol": "notify_if_visible",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 126,
+        "symbol": "rebind",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/sidebar_observation.py",
+        "line": 56,
+        "symbol": "subscribe_core",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 341,
+        "symbol": "retire_core_observations",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 350,
+        "symbol": "retire_core_observations",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 363,
+        "symbol": "retire_core_observations",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/transcript_source_preparation.py",
+        "line": 167,
+        "symbol": "retire_core_observations",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/transcript_source_preparation.py",
+        "line": 186,
+        "symbol": "retire_core_observations",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/transcript_source_preparation.py",
+        "line": 161,
+        "symbol": "retire_core_observations",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/context_explorer.py",
+        "line": 34,
+        "symbol": "rebind",
+        "kind": "FunctionDef"
+      },
+      {
+        "path": "src/toad/widgets/context_explorer.py",
+        "line": 108,
+        "symbol": "rebind",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 508,
+        "symbol": "_directory_changed",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 878,
+        "symbol": "DirectoryChanged",
+        "kind": "Name"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 509,
+        "symbol": "DirectoryWatcher",
+        "kind": "Name"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 884,
+        "symbol": "_directory_changed",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 894,
+        "symbol": "_directory_changed",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 896,
+        "symbol": "_directory_changed",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 1258,
+        "symbol": "_directory_changed",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 1259,
+        "symbol": "_directory_changed",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 571,
+        "symbol": "DirectoryWatcher",
+        "kind": "Name"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 772,
+        "symbol": "DirectoryWatcher",
+        "kind": "Name"
+      },
+      {
+        "path": "src/toad/widgets/session_tabs.py",
+        "line": 187,
+        "symbol": "subscribe_core",
+        "kind": "Attribute"
+      },
+      {
+        "path": "tests/pending_thread_open_pilot.py",
+        "line": 37,
+        "symbol": "DirectoryWatcher",
+        "kind": "Name"
+      },
+      {
+        "path": "tests/pending_thread_open_pilot.py",
+        "line": 157,
+        "symbol": "DirectoryWatcher",
+        "kind": "Name"
+      },
+      {
+        "path": "tests/relationship_poll_reflow_pilot.py",
+        "line": 46,
+        "symbol": "retire_core_observations",
+        "kind": "Attribute"
+      },
+      {
+        "path": "tests/watcher_startup_cancellation.py",
+        "line": 38,
+        "symbol": "DirectoryWatcher",
+        "kind": "Name"
+      }
+    ],
+    "limits": "Syntactic attributes and nominal declarations; dynamic aliases and external subclasses unresolved."
+  },
+  "after": {
+    "head": "bf9baf771d6e285b65a55befe1170d886e02f84f",
+    "roots": {
+      "src/toad": {
+        "parsed": 288,
+        "omissions": []
+      },
+      "tests": {
+        "parsed": 395,
+        "omissions": []
+      },
+      "tools": {
+        "parsed": 41,
+        "omissions": []
+      }
+    },
+    "sites": [
+      {
+        "path": "src/toad/cli.py",
+        "line": 64,
+        "symbol": "check_directory",
+        "kind": "FunctionDef"
+      },
+      {
+        "path": "src/toad/cli.py",
+        "line": 185,
+        "symbol": "check_directory",
+        "kind": "Name"
+      },
+      {
+        "path": "src/toad/directory_watcher.py",
+        "line": 281,
+        "symbol": "notify_if_visible",
+        "kind": "FunctionDef"
+      },
+      {
+        "path": "src/toad/directory_watcher.py",
+        "line": 295,
+        "symbol": "consume_change",
+        "kind": "FunctionDef"
+      },
+      {
+        "path": "src/toad/directory_watcher.py",
+        "line": 316,
+        "symbol": "rebind",
+        "kind": "FunctionDef"
+      },
+      {
+        "path": "src/toad/directory_watcher.py",
+        "line": 251,
+        "symbol": "_dirty",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/directory_watcher.py",
+        "line": 271,
+        "symbol": "_dirty",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/directory_watcher.py",
+        "line": 273,
+        "symbol": "notify_if_visible",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/directory_watcher.py",
+        "line": 300,
+        "symbol": "_dirty",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/directory_watcher.py",
+        "line": 284,
+        "symbol": "_dirty",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/directory_watcher.py",
+        "line": 298,
+        "symbol": "_dirty",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/screens/main.py",
+        "line": 229,
+        "symbol": "notify_if_visible",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 105,
+        "symbol": "rebind",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 109,
+        "symbol": "notify_if_visible",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/session_presentation.py",
+        "line": 126,
+        "symbol": "rebind",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/context_explorer.py",
+        "line": 34,
+        "symbol": "rebind",
+        "kind": "FunctionDef"
+      },
+      {
+        "path": "src/toad/widgets/context_explorer.py",
+        "line": 108,
+        "symbol": "rebind",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 875,
+        "symbol": "check_directory",
+        "kind": "FunctionDef"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 891,
+        "symbol": "check_directory",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 1252,
+        "symbol": "check_directory",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 873,
+        "symbol": "check_directory",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 878,
+        "symbol": "consume_change",
+        "kind": "Attribute"
+      },
+      {
+        "path": "tests/directory_watcher_visibility_pilot.py",
+        "line": 32,
+        "symbol": "_dirty",
+        "kind": "Attribute"
+      },
+      {
+        "path": "tests/directory_watcher_visibility_pilot.py",
+        "line": 37,
+        "symbol": "_dirty",
+        "kind": "Attribute"
+      }
+    ],
+    "limits": "Attribute/name matching does not resolve runtime aliases, external subclasses or recipient execution."
+  }
+}
