@@ -1,0 +1,38 @@
+{
+  "state": "SCOPED installed renderer transport PASS; first-paint/frame/App scope remains Heis integration",
+  "terminal_seconds": 10.718514887033962,
+  "control_seconds": 7.769484477932565,
+  "controller": {
+    "pid": 245478,
+    "start_time": 68678182,
+    "proc_absent": true
+  },
+  "child": {
+    "pid": 246010,
+    "start_time": 68678285,
+    "proc_absent": true
+  },
+  "owned_groups": [],
+  "sockets": [],
+  "operator_claim": "Explicit READ/operator RETURNED in original262ae joint purpose; Heis sole package/fullfloor owner",
+  "handback": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/installed01/operator-handback.json",
+  "handback_sha256": "33180d52cc184d614f411f2e397aa0585fc714dcfa8336a9789e67c95f5b3abf",
+  "source_union": "Installed Heis460 normal7546 wheel; seven transport production modules unchanged frozen4952 checkpoint. Standalone #4586f68 is not claimed equal to joint7546.",
+  "passed": [
+    "actual installed localspawn and private persistentZMQ transport",
+    "headless/local/persistent officialSDK model accepted and rejected results",
+    "wrongcompleted value refusal",
+    "nonreusable capture not shared or retained",
+    "reusable capture retained/shared and independently materialized",
+    "UnicodeMarkdown and Rich resources independently delivered by bothtransports",
+    "original runtime/cache/pool/service closes; pending[] and active_children preimage"
+  ],
+  "native_artifact_execution": false,
+  "ACP_agent_SDK_process": false,
+  "provider_calls": 0,
+  "native_inputs": 0,
+  "physical_frame_firstpaint_speed_claim": false,
+  "limits": "Worker/service individual births not retained by frozen control. Original closes, sessiongroup retirement, socket absence and controller/child absence are retained. This control contains no mounted GUI or provider turn.",
+  "preserved_negatives": "All initial source optional import/fingerprint/cache-input negatives remain original source-controls and optional-wheel records. No retry or changed oracle.",
+  "remaining": "Heis solecold93d actualcheck/wholecurrent4471468/69/428 return remains separate originalpurpose. #461 pendingprompt sourcewheel/App scope remains separate."
+}

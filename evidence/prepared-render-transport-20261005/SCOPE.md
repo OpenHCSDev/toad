@@ -37,8 +37,9 @@ integration. Kepler retains native geometry/compositor ownership.
 
 AST declarations and consumers are read before implementation. Proportionate
 source controls follow coherent implementation. The affected installed Markdown,
-Rich preview, local/persistent renderer and independent delivery path remains a
-future named purpose; no package, runtime, provider or capture loan exists here.
+Rich, local/persistent renderer and independent delivery path passed under the
+explicit joint #458/#460 purpose below. Einstein's operator claim is returned;
+no provider, native artifact execution or physical capture loan was used.
 The accepted 456/457 checks and original negatives remain frozen.
 
 ## Work removed
@@ -71,11 +72,13 @@ separate original SDK validation path without a renderer or retention transport.
   `FILEWHEEL.json` names its original path/hash. This is source packaging evidence.
 - Final source coverage is 288 production modules and 397 test modules, zero
   parse omissions; all 17 changed Python modules compile. Local debt has no
-  positive counters. No installed, physical, frame cadence or speed result exists.
+  positive counters. At that checkpoint no installed, physical, frame cadence
+  or speed result existed.
 
 `SOURCE-CHECKPOINT.json` retains exact results and limits. The existing installed
 renderer control is prepared to cover both transports plus Markdown/Rich
-independent delivery; it has not run. `FUTURE-INSTALLED-SCOPE.json` identifies its
+independent delivery; its original prepared scope was unrun.
+`FUTURE-INSTALLED-SCOPE.json` identifies its
 literal control/hash and the required optional persistent-renderer dependency.
 Heis retains the first-paint/moving-frame integration; a fresh eligible holder
 purpose must bind the installed cohort before that work executes.
@@ -109,3 +112,30 @@ wheel is not claimed equal to #460. The proposed sequence stages the union once,
 runs this one renderer control, returns Einstein's operator custody, then runs
 Heis's changed cold-height control if the issued shared purpose includes it.
 There is no accepted #456/#457 replay or measured first-paint/frame gain here.
+
+## Scoped installed acceptance
+
+The original frozen `0fb55331` control ran once through installed
+`BoundedRun.session` under issued joint purpose `262ae8f4`, with the exact argv,
+environment and cwd. Heis staged the normal #458/#460 union wheel `7546bd15`
+and bound the complete 953-asset/full-74 proof before the operator handoff.
+
+Terminal exit 0 in **10.719 seconds**; the control completed in 7.769 seconds.
+Actual installed local spawn and private persistent ZMQ passed official SDK
+model validation, wrong-result refusal, reuse/retention rules, and independent
+Unicode Markdown and Rich token/strip delivery. These are renderer and SDK
+model contracts, not an ACP agent or native SDK process.
+
+The original control joined runtime/cache/pool closures, asserted pending work
+empty, shut down its persistent service and restored its multiprocessing child
+preimage. Original controller and child are absent, session groups and owned
+sockets empty. Individual worker/service births were not captured by this
+frozen control; no identities are invented. Candidate proof and DTO remain
+byte equal. `INSTALLED-SCOPED-CHECKPOINT.json` and `installed01/` preserve the
+original result and operator-return evidence. All earlier negatives remain.
+
+Einstein explicitly returned READ/operator custody to Heis and Bohr. Heis owns
+the separate cold-height App check and whole actual holder-floor restoration.
+No native artifact execution, provider/input, mounted GUI, physical pixels,
+first-paint/frame performance or speed improvement is claimed here. #461's
+pending initial-prompt App work remains a separate future purpose.

@@ -1,0 +1,13 @@
+# Ordinary receiving459 preparation
+
+The retained Core675, ToAd457, Textual67 and NRA9a wheels were installed once in the explicitly granted, nonlive485 holder. No package was built. The original InstalledSource verifier matched all 953 installed package assets to the selected Git sources and wheel bytes, all 69 package versions and truthful file origins,155 protected originals plus the separate original Ready receipt, and 1865 unchanged records from the other 65 distributions.
+
+The canonical 51 tools were acquired once from actual merged Core7b68d630. All 104 distinct original qualification references were verified, including the committed675 acceptance copies. The original whole-cohort command passed in 4.831s. Its only authorized public subprocess acquired the actual public448 source declaration and checkpoint digest through RetainedOwnerLaunch; source and target both declare schema 10 and native7a. The typed plan therefore selects PreserveRuntimeInstallation and preserves owner runtime. No carry or publication occurred.
+
+The positive candidate and 106 owned files are frozen for Parent. New once-only execute/readback operands explicitly admit the trusted canonical directory under the original interpreter with -I -B -c. Receipt and preimages remain absent. All immediate package/import/source/cohort/nativeREAD claims have been returned. Bohr alone records independent final census and lifecycle closure; Parent owns final review, normal merge, fresh public admission and any once publication. Public448 remains protected.
+
+Original675 canonical and saved SDK settlement qualification and the three original457 remaining App results retain their original scope. There was no App, SDK, provider, input, native execution, physical recording or performance rerun for receiving459. Full performance and broader live workflow claims are separate. Worker disclosure remains off.
+
+Two authored host bookkeeping negatives are retained: adding the Ready receipt to the 155 original-file count before stage, and reading install.exit as prep.exit_code during final manifest assembly. Both were corrected through their original fields without changing package, source, control or qualification bytes or repeating installation or cohort verification.
+
+The separate676 proof accidentally rewrote derived67502 artifacts. Mendel restored the exact original inventory and FullTrust bytes; requirements bytes were unchanged. Sch independently matched all 26 original67502 references and all 104 receiving references afterward. No676 native execution occurred, and no676 success or unqualified source enters this candidate.

@@ -1,0 +1,30 @@
+{
+  "state": "References to original owner receipts; no rebased or repeated run",
+  "members": [
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/evidence/c3-original-owner-boundaries-20261005/READY.json",
+      "sha256": "0a511e44e3f04e0358aaebe44cc262258406d9477e4c7e3498b5e72246c6dec1",
+      "bytes": 5439,
+      "scope": "Core675 distinct canonical6 and native2 scopes; preserve original negatives"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/c3-original-owner-boundaries675-installed02/whole-handback.json",
+      "sha256": "00db81677ce60059b701fc1b9e4e9a125ee53cafbbfbfa32a2c334db180ee442",
+      "bytes": 9712,
+      "scope": "Original67502 owner return26keepers and exactoriginalfloor restoration"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/preparation-height-workspace-successor-20261005/SCOPED-READY.json",
+      "sha256": "eb284b79251417b0105d2787f94518669f166ec8631c41de37bec993f2688509",
+      "bytes": 12096,
+      "scope": "Original457 scoped remaining three acceptance journeys; not performance acceptance"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/preparation-height-workspace-successor-20261005/INDEPENDENT-WHOLE-CLOSURE.json",
+      "sha256": "ffcffb030dbdf2d4503f751b83291f12b86614764946c63c421fa88e61f740e4",
+      "bytes": 2091,
+      "scope": "Original457 independent closure; oldfloor is historical, not this proposal holder authority"
+    }
+  ],
+  "new_receiving_gate_set": null
+}
