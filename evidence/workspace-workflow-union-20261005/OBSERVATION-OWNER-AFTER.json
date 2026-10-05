@@ -1,0 +1,75 @@
+{
+  "head": "a170e0071fadc771db27e5ae3837d21d8a3518bc",
+  "coverage": [
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "a170e0071fadc771db27e5ae3837d21d8a3518bc",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "a170e0071fadc771db27e5ae3837d21d8a3518bc",
+      "root": "tests",
+      "modules": 397,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "a170e0071fadc771db27e5ae3837d21d8a3518bc",
+      "root": "tools",
+      "modules": 41,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "head": "7b68d630caa654d3e9884f45cbd6493718752a0c",
+      "root": "src/agent_comms",
+      "modules": 324,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "06771827eeff2a98c40a41fd2bc6cb6313db7a87",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": []
+    }
+  ],
+  "queued_invalidate": [
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1000,
+      "expression": "self.call_later(self.goal_observation.invalidate)"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1001,
+      "expression": "self.call_later(self.delivery_observation.invalidate)"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1819,
+      "expression": "self.call_later(self.goal_observation.invalidate)"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1820,
+      "expression": "self.call_later(self.delivery_observation.invalidate)"
+    }
+  ],
+  "old_queued_refresh": 0,
+  "AST_is_not_runtime_proof": true,
+  "affected_runtime": "UNRUN",
+  "production_files": [
+    "src/toad/directory_watcher.py",
+    "src/toad/session_presentation.py",
+    "src/toad/transcript_source_preparation.py",
+    "src/toad/widgets/conversation.py",
+    "src/toad/widgets/project_panel.py",
+    "src/toad/widgets/project_tree_intent.py",
+    "src/toad/widgets/session_thread_panels.py",
+    "src/toad/widgets/transcript_history.py"
+  ]
+}
