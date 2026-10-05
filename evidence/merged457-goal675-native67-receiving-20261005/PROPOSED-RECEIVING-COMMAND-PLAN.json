@@ -1,0 +1,89 @@
+{
+  "state": "SOURCE ONLY future command templates; no holder, package, decoder or publication authority",
+  "source_relation": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged457-goal675-native67-receiving-20261005/MERGED-SOURCE-WHEEL-RELATION.json",
+    "sha256": "c43c86fd59e48598e41aecebf842e4668420be9e10533e72d87bb0df561d0b4c"
+  },
+  "canonical_identity_manifest": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged457-goal675-native67-receiving-20261005/MERGED-CANONICAL-SOURCE-MANIFEST.json",
+    "sha256": "979d7175282aed795637c006ceca0f30390720fa7a14751d5fe440b109919128"
+  },
+  "canonical51_actual_Core": "7b68d630caa654d3e9884f45cbd6493718752a0c",
+  "operator": "OriginalSch sole future package/cohort integration; OriginalParent sole future fresh-admitted once publication",
+  "output": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged457-goal675-native67-receiving-20261005",
+  "cwd": "/home/ts/wt/toad-prompt-action-owner-20261002",
+  "environment": {
+    "PYTHONPATH": "ABSENT",
+    "PYTHONHOME": "ABSENT"
+  },
+  "target_prefix": null,
+  "eligible_holder_disposition": null,
+  "actual_floor_archive": null,
+  "fresh_specific_issued_grant": null,
+  "canonical_prepare_readback_argv_template": [
+    "<FRESH_GRANTED_PREFIX>/bin/python",
+    "-I",
+    "-B",
+    "-c",
+    "import sys,json,hashlib,subprocess,os\nfrom pathlib import Path\nmanifest=json.loads(Path(sys.argv[1]).read_text());destination=Path(sys.argv[2]);repository=sys.argv[3]\nassert len(manifest['members'])==51 and manifest['original_core_git']=='7b68d630caa654d3e9884f45cbd6493718752a0c'\ndestination.mkdir(mode=0o700,parents=True,exist_ok=False)\nfor row in manifest['members']:\n data=subprocess.check_output(['git','-C',repository,'show',manifest['original_core_git']+':'+row['source']])\n assert hashlib.sha256(data).hexdigest()==row['sha256'] and len(data)==row['bytes']\n path=destination/Path(row['source']).name\n with path.open('xb') as opened:opened.write(data)\n os.chmod(path,int(row['git_mode'][-3:],8))\n assert hashlib.sha256(path.read_bytes()).hexdigest()==row['sha256'] and (path.stat().st_mode&0o777)==int(row['git_mode'][-3:],8)\nassert len(list(destination.iterdir()))==51\nprint('Original actual merged Core675 canonical51 copy/readback PASS; no public write')\n",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged457-goal675-native67-receiving-20261005/MERGED-CANONICAL-SOURCE-MANIFEST.json",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged457-goal675-native67-receiving-20261005/canonical-source-7b68d630/tools/cutover",
+    "/home/ts/wt/comms-task-aware-native-bundle-20261002"
+  ],
+  "cohort_prepare_argv_template": [
+    "<FRESH_GRANTED_PREFIX>/bin/python",
+    "-I",
+    "-B",
+    "-c",
+    "import sys,json,subprocess,os,hashlib\nfrom pathlib import Path\nsys.path.insert(0,sys.argv[1])\nfrom agent_comms.field_codec import FieldCodec\nfrom agent_comms.comms import Comms\nfrom agent_comms.owner_launch import RetainedOwnerLaunch\nfrom agent_comms.owner_restart import OwnerRestartRequest\nfrom agent_comms.active_route import read_active_route\nfrom publish_retained_summary import ROOT,ReviewedArtifact,ReviewedRetainedSummaryCohort,InstalledSourceProof,CohortActivation\nfrom native_schema_carry import NativeSchemaDeclaration\nfrom checkpoint_schema import declared_schema_digest\nfrom runtime_installation import PreserveRuntimeInstallation\nbase=Path(sys.argv[2]);inputs=json.loads((base/'qualification-input.json').read_text())\nassert not (base/'publication-receipt.json').exists() and not (base/'publication-receipt.originals').exists()\nproof_path=base/'source-proof.json';activation_path=base/'candidate-activation.json'\nproof=FieldCodec.decode(InstalledSourceProof,json.loads(proof_path.read_text()))\nactivation=FieldCodec.decode(CohortActivation,json.loads(activation_path.read_text()));proof.require_activation(activation)\nassert sys.executable==str(proof.prefix/'bin/python')\nservice=Comms(ROOT,private_initial_writes=False,private_claim_writes=False);snapshot=service.registry.snapshot()\nlaunches=tuple(RetainedOwnerLaunch.capture(t,snapshot) for t in OwnerRestartRequest().threads(snapshot))\ninterpreters={x.interpreter for x in launches};assert len(interpreters)==1\nsource_python=Path(next(iter(interpreters)));assert source_python==Path(inputs['current_prefix'])/'bin/python'\nchild=\"import sys,json;sys.path.insert(0,sys.argv[1]);from agent_comms.field_codec import FieldCodec;from native_schema_carry import NativeSchemaDeclaration;from checkpoint_schema import declared_schema_digest;print(json.dumps({'native':FieldCodec.encode(NativeSchemaDeclaration.observe()),'checkpoint':declared_schema_digest()}))\"\nenv=dict(os.environ);env.pop('PYTHONPATH',None);env.pop('PYTHONHOME',None)\npacket=json.loads(subprocess.check_output([str(source_python),'-I','-B','-c',child,sys.argv[1]],env=env,text=True))\noriginal=FieldCodec.decode(NativeSchemaDeclaration,packet['native']);target=NativeSchemaDeclaration.observe();original.require_carry_target(target)\nassert original==target and packet['checkpoint']==declared_schema_digest()\nartifact=lambda p: ReviewedArtifact(p,hashlib.sha256(p.read_bytes()).hexdigest())\ngates=tuple(FieldCodec.decode(ReviewedArtifact,r) for r in inputs['actual_gates'])\ncohort=ReviewedRetainedSummaryCohort(proof.prefix,Path(inputs['current_prefix']),read_active_route(),proof.native_package,artifact(activation_path),artifact(proof_path),gates);cohort.require_original()\nruntime=PreserveRuntimeInstallation(original.goal)\nvalues=[('original-declaration.json',FieldCodec.encode(original)),('target-declaration.json',FieldCodec.encode(target)),('checkpoint-relation.json',{'source':packet['checkpoint'],'target':declared_schema_digest(),'source_python_owner':'RetainedOwnerLaunch'}),('review-plan.json',FieldCodec.encode(cohort)),('runtime-installation.json',FieldCodec.encode(runtime))]\nfor name,value in values:\n with (base/name).open('x') as f:json.dump(value,f,indent=2);f.write('\\n')\nprint('Original typed whole cohort and PreserveRuntimeInstallation prepared; public writes0')\n",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged457-goal675-native67-receiving-20261005/canonical-source-7b68d630/tools/cutover",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged457-goal675-native67-receiving-20261005"
+  ],
+  "qualification_input": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged457-goal675-native67-receiving-20261005/qualification-input.json",
+  "qualification_input_fields": {
+    "current_prefix": null,
+    "actual_gates": null
+  },
+  "runtime_installation": "PreserveRuntimeInstallation only after actual source/target NativeSchemaDeclaration equality and checkpoint equality",
+  "owner_runtime": "PreserveOwnerRuntime; original root/settings/incarnations/history/auth/UNKNOWN remain owned originals",
+  "source_decoder_scope": "Requires explicit future grant for declaration/checkpoint READ INSIDE cohort; original RetainedOwnerLaunch interpreter acquired at use. None performed now.",
+  "future_once_execute_argv_template": [
+    "<FRESH_GRANTED_PREFIX>/bin/python",
+    "-I",
+    "-B",
+    "-c",
+    "import sys,runpy;sys.path.insert(0,'/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged457-goal675-native67-receiving-20261005/canonical-source-7b68d630/tools/cutover');sys.argv=['/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged457-goal675-native67-receiving-20261005/canonical-source-7b68d630/tools/cutover/execute_retained_summary_foundation.py', '--review-plan', '/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged457-goal675-native67-receiving-20261005/review-plan.json', '--receipt', '/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged457-goal675-native67-receiving-20261005/publication-receipt.json', '--runtime-installation', '/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged457-goal675-native67-receiving-20261005/runtime-installation.json', '--execute'];runpy.run_path(sys.argv[0],run_name='__main__')"
+  ],
+  "future_once_readback_argv": null,
+  "readback_contract": "Bind original publication identity reader to new receipt/current source/target after actual eligible stage; readback_publication.py is not one of canonical51, and no nonexistent canonical readback origin claimed.",
+  "publication_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged457-goal675-native67-receiving-20261005/publication-receipt.json",
+  "preimages": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged457-goal675-native67-receiving-20261005/publication-receipt.originals",
+  "receipt_or_preimages_created": false,
+  "positive_terminal": "Own new sourceproof/DTO/full953+69/nativeREAD/protected-originals/canonical/cohort/once operands frozen HELDParent; whole immediate claim handback with fresh census; no automatic restore or next loan",
+  "negative_terminal": "Whole actual issued floor restore using its authentic preimage operands, joined cleanup and independent Bohr closure",
+  "held_until_literal_grant": [
+    "prefix access/import/install",
+    "canonical operator copy",
+    "public original source declaration READ",
+    "fullcohort preparation"
+  ],
+  "Parent_only_future": [
+    "fresh actual client/audience guard",
+    "original once publisher",
+    "retained owner startup and identity readback"
+  ],
+  "prohibited_in_preparation": [
+    "App",
+    "SDK",
+    "native execution",
+    "provider/input/replay",
+    "native build/copy",
+    "env/resolve",
+    "publisher/runtimecarry/reset",
+    "public signals/client polling"
+  ],
+  "command_source_AST_compile_pass": true,
+  "JSON_writer_newline_constant_codepoints": [
+    10
+  ]
+}
