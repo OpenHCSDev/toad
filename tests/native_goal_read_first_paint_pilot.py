@@ -6,13 +6,13 @@ import os
 from pathlib import Path
 import sys
 
-from compaction_summary_stream_native_installed_pilot import reconnect_cancelled_source
-from native_loaded_return_cache_pilot import PaintedReturnApp, click_session
 from toad.navigation_target import NavigationContext, channel_target
 from toad.widgets.conversation import Conversation
 
 
 async def held_original_read(app, pilot, agent, comms):
+    from native_loaded_return_cache_pilot import click_session
+
     source = app.selected_session
     view = source.conversation
     await view.goal_observation.refresh()
@@ -174,5 +174,7 @@ if __name__ == '__main__':
         assert os.environ['AC_REAL_READ_ONLY_CUSTODY'] == '1'
         asyncio.run(main(readonly_acceptance=pending_readiness))
     else:
+        from compaction_summary_stream_native_installed_pilot import reconnect_cancelled_source
+        from native_loaded_return_cache_pilot import PaintedReturnApp
         asyncio.run(reconnect_cancelled_source(app_type=PaintedReturnApp,
                                              after_cold_load=held_original_read, headless=False))
