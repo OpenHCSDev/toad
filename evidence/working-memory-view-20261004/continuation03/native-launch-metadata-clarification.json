@@ -1,0 +1,14 @@
+{
+  "original_source_proof": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-authentic-gui-continuation03/candidate-source-proof.json",
+  "original_source_proof_sha256": "ed15e0051cf7272d90e8f5e379874a62a09e1e125d5da45c956420718d69b264",
+  "inherited_descriptive_native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-086d511f2026b10d/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+  "actual_candidate_activation_native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+  "actual_native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+  "actual_native_manifest": "7a2e4aabdbc5af49dd9af942190d92086df2eb3489903674a74af51cf831cd33",
+  "actual_native_tree": "0d7ff54a04d4f0ff175fc889e936ca3cea8b1f98eb8b73ed6215c3373cbd984d",
+  "run_environment": {
+    "AC_NATIVE_COPIED_PACKAGE": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+    "PI_COMPACTION_TEST_PACKAGE": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent"
+  },
+  "owner_boundary": "FullTrust verified packaged7a manifest; frozen control verifies both selected environment paths then pins original private runtime7a. Inherited sourceproof CLI description is not the candidate runtime launch operand. Originalproof bytes retained; no new check, rerun, or nativefault inference."
+}

@@ -1,0 +1,21 @@
+{
+  "argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "-B",
+    "-c",
+    "import sys,json; sys.path.append('/usr/lib/python3.14/site-packages'); sys.path.append('/home/ts/wt/comms-field-codec-closure-20260928/tests'); import agent_comms,toad,textual,pytest; print(json.dumps({'application_imports':[agent_comms.__file__,toad.__file__,textual.__file__],'test_runner':pytest.__file__}),flush=True); assert all('/runtime-native-style22-20261002/' in x.__file__ for x in (agent_comms,toad,textual)); sys.exit(pytest.main(sys.argv[1:]))",
+    "-o",
+    "addopts=",
+    "--noconftest",
+    "--basetemp",
+    "/home/ts/wt/w6h05",
+    "-s",
+    "-q",
+    "--tb=short",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/tests/test_context_manifest_navigation.py::test_authored_import_registered_app_and_local_user_correction"
+  ],
+  "fixture": "/home/ts/wt/w6h05",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+  "scope": "Authored-only historical ReferenceNode registered App",
+  "deadline_seconds": 90
+}

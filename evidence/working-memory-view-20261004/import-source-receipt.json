@@ -1,0 +1,32 @@
+{
+  "core_source": "e1d15072bf451a67eb213d1ce9242691fec3cfc4",
+  "toad_production_source": "786b3a10e5a7cbf11487b5308e21385cecce94e7",
+  "prior_pin_and_exact_debt": {
+    "core": "f81111f0aad87d7bdb9649c1e5aa6ac4249164eb",
+    "run": 37220074818,
+    "toad": "690e54141a36cc9406f1e593a87c33561e9bd166",
+    "run_toad": 37220203911
+  },
+  "dependency_declarations_unchanged": true,
+  "pin_delta": "three existing source-locator lines; no package graph or Text/native changes",
+  "owner": "ImportedSessionMetadata membership service -> ContextInspection -> existing ReferenceNode reader/search/export",
+  "ast": {
+    "modules": 288,
+    "omissions": 0,
+    "file": "import-source-after.json",
+    "sha256": "b7b1b99ef57b1461212e2f629ec0f2d4f6dfb01fed9d98095834f81ff5fa3b65",
+    "limits": "lexical declarations/consumers, not dynamic proof"
+  },
+  "source_validation_negative": {
+    "case": "tests/test_context_manifest_navigation.py::test_imported_instruction_reference_read_search_export_remains_historical",
+    "stage": "collection",
+    "error": "ModuleNotFoundError: No module named acp",
+    "record": "original tool output; no invented raw log or installed claim"
+  },
+  "next_acceptance": "authored synthetic private imported wire, registered historical read/search/export, USER correction, OFF worker and fresh private annotation schema",
+  "purpose": "named future purpose only; Parent C4-654 currently holds style22",
+  "provider_calls": 0,
+  "actual_codex_session_reads": 0,
+  "installed_changes": 0,
+  "handles": []
+}

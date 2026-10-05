@@ -1,0 +1,25 @@
+{
+  "files": [
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "sha256": "fc9453541895ba43924b943696eed3f956b1ea8c9d0406a3eda9fa8c876439be"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "sha256": "9dd8a62487aa4ab79acb43392d8f089f8ab71acd829d472dbba55d30dd9f5dbe"
+    },
+    {
+      "path": "tests/test_context_manifest_navigation.py",
+      "sha256": "aaf668c31c0286b8f04207282eda6c1e3d6f55d198a181cea0a4ebdcf1847a9d"
+    }
+  ],
+  "source_reasoning": {
+    "native_tree_restore": "Original intent.restore delegates native materialization to ContextTree.reveal; selected key retained across section movement, native cursor callback still original model-fenced. No focus/selection authored by reveal.",
+    "source_path": "ContextNode owns hierarchical child navigation; AnnotationSourceNode answers own membership across semantic section grouping.",
+    "authentic_input": "Existing NativeBackendFixture.open_owner(runtime_enabled=True,native_options=(--no-tools,--system-prompt,authoredfile)) owns sole attach/preparation. Original router session/prompt once seals original manifest. Exact emitted source_spans and ContributionCoordinates.sentences address controlled rows; no ContextManifest/RecordedContextTurn constructor in new control.",
+    "correction": "Mounted original declared-answer menu -> original ACP/RPC -> USER row -> effective HumanLabel -> actual explorer refresh.",
+    "limits": "Syntax and source-family reasoning only. No collection, App/native execution, installed holder access, filewheel build or provider input. Historical04 remains FAIL; authentic GUI unexecuted.",
+    "child_navigation_identity": "Different annotation items can expose the same original recorded source. Their native child positions now derive distinct keys from each parent via original dataclass replace; manifest/inspection/contributor references remain borrowed. This closes duplicate context_nodes registrations across different answer children while retaining exact source proofs."
+  },
+  "parse_omissions": []
+}

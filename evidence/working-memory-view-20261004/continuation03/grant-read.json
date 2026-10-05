@@ -1,0 +1,15 @@
+{
+  "issued": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-EinsteinW6-native-label-zero-input-GUI-continuation03-issued-grant.json",
+  "sha256": "fce19434e4de3068ac97a980b4945e0f603350f996ebd9ea7a7a8304f9fc1598",
+  "lifecycle_sha256": "af5874190ee27393a844c3cf23da9427832731ea39dce26bc2bfc262e1013cdd",
+  "control_sha256": "a6787bbb10a7cedc8856ec6516ed92bcdd20f60698c9b8b5ec61e493310609b4",
+  "helper_sha256": "a4cb188d5b472f5445cc8ba653137075455907c8e06cf0e95eb01793c4ce7575",
+  "new_native_renewal": {
+    "authority": "OriginalSch explicitNEWrenewal after actualliteralissuedfce194+lifecycleb35d/c36a+9747/controla678/helpera4cb reads/hashmatches; separatepurpose only",
+    "issued_sha256": "fce19434e4de3068ac97a980b4945e0f603350f996ebd9ea7a7a8304f9fc1598",
+    "lifecycle_read_sha256": "b35d28b17c9f21a372c6331ddb156799d578f50d0314e556d55e2338f4acf1e3",
+    "native_manifest": "7a2e4aabdbc5af49dd9af942190d92086df2eb3489903674a74af51cf831cd33",
+    "native_tree": "0d7ff54a04d4f0ff175fc889e936ca3cea8b1f98eb8b73ed6215c3373cbd984d",
+    "scope": "ONEoriginal90sApp/exactissuedpytestargs/output, ZEROadditionalinput/provider/prompt/fork/movie/SDKrepeat; twoexistingModelLabels/readnoinsert; genuineUSERACP refinement; FullTrustbeforelaunch; no663 READ/donor authority"
+  }
+}

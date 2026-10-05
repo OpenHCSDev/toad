@@ -1,0 +1,1187 @@
+{
+  "collector": "Original audit.findings.Package / FunctionFacts",
+  "coverage": [
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "head": "401fabcf424912440a6c1f6f0b466d5a047fc6dd",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "path": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "head": "b7e688292074a854870d7ca78397111c1dae1c7b",
+      "modules": 324,
+      "omissions": []
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "23f8655e222a4447f63f101151678e2f5d655c1e",
+      "modules": 249,
+      "omissions": []
+    }
+  ],
+  "members": [
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/acp/agent_controller.py::restore",
+      "lines": 29,
+      "calls": [
+        "AvailableCommandsUpdate",
+        "ClientSessionRequest",
+        "CommsUpdated",
+        "Plan",
+        "_post_private_cursor",
+        "_post_queue_view",
+        "publish",
+        "require_owner",
+        "schedule_terminal_presentation",
+        "snapshot"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/acp/permission_controller.py::present",
+      "lines": 15,
+      "calls": [
+        "_retire_projection",
+        "current_on",
+        "permission_changed",
+        "present_permission"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/acp/permission_controller.py::present",
+      "lines": 4,
+      "calls": [
+        "RequestPermission",
+        "publish"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::reader_path",
+      "lines": 10,
+      "calls": [
+        "children",
+        "reader_path",
+        "startswith"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::reader_path",
+      "lines": 8,
+      "calls": [
+        "reader_path",
+        "super"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::working_memory",
+      "lines": 25,
+      "calls": [
+        "AnnotationNode",
+        "AnnotationSourceNode",
+        "append",
+        "children",
+        "contains_span",
+        "items",
+        "original_segments",
+        "recorded",
+        "setdefault",
+        "tuple",
+        "values"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::correct_annotation",
+      "lines": 7,
+      "calls": [
+        "_request",
+        "decode",
+        "encode",
+        "require_request_id",
+        "str"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::present",
+      "lines": 2,
+      "calls": [],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/core/context_inspection.py::present",
+      "lines": 2,
+      "calls": [
+        "consumer"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/frame_presentation.py::restore",
+      "lines": 3,
+      "calls": [
+        "begin",
+        "refresh"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/frame_presentation.py::restore",
+      "lines": 2,
+      "calls": [
+        "present"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/frame_presentation.py::present",
+      "lines": 6,
+      "calls": [
+        "PresentedFrame",
+        "release",
+        "set",
+        "tuple"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/goal_interaction.py::present",
+      "lines": 3,
+      "calls": [
+        "push_screen",
+        "ref"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/input_history.py::present",
+      "lines": 2,
+      "calls": [],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/input_history.py::present",
+      "lines": 3,
+      "calls": [
+        "present",
+        "super"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/render_protocol.py::restore",
+      "lines": 1,
+      "calls": [],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/render_protocol.py::restore",
+      "lines": 4,
+      "calls": [
+        "TypeError",
+        "members_with",
+        "type"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/render_protocol.py::restore",
+      "lines": 2,
+      "calls": [
+        "CapturedResult"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/session_navigation.py::reveal",
+      "lines": 16,
+      "calls": [
+        "focus_current",
+        "notify",
+        "query_ancestor",
+        "query_one_optional",
+        "reveal",
+        "select_session"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/session_presentation.py::restore",
+      "lines": 8,
+      "calls": [
+        "restore",
+        "restore_editor_state"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/session_presentation.py::present",
+      "lines": 9,
+      "calls": [
+        "AttachedSurfaceBinding",
+        "attach",
+        "bind_agent",
+        "call_after_refresh"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/target_commands.py::available_actions",
+      "lines": 8,
+      "calls": [
+        "ValueError",
+        "capture",
+        "current",
+        "str",
+        "target_catalog"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/transcript_state.py::restore",
+      "lines": 5,
+      "calls": [
+        "TailReaderPosition",
+        "current",
+        "restore"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/comms_sidebar.py::present",
+      "lines": 13,
+      "calls": [
+        "get",
+        "join",
+        "len",
+        "query_ancestor",
+        "sorted",
+        "update"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::restore",
+      "lines": 9,
+      "calls": [
+        "resolve",
+        "restore_node"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::present",
+      "lines": 17,
+      "calls": [
+        "_reconcile",
+        "_retire",
+        "add",
+        "enumerate",
+        "expand",
+        "next",
+        "owns_node",
+        "prevent",
+        "restore_reader",
+        "set_label",
+        "tuple"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_reconcile",
+      "lines": 20,
+      "calls": [
+        "_add",
+        "_reconcile",
+        "_retire",
+        "bool",
+        "children",
+        "enumerate",
+        "pop",
+        "rebind",
+        "set_label",
+        "values"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::reveal",
+      "lines": 22,
+      "calls": [
+        "_expand",
+        "expand",
+        "get",
+        "prevent",
+        "reader_path",
+        "tuple",
+        "values"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/context_explorer.py::_restore_cursor",
+      "lines": 6,
+      "calls": [
+        "get",
+        "move_cursor",
+        "owns_node",
+        "prevent",
+        "show_detail"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/conversation.py::read_command_catalog",
+      "lines": 12,
+      "calls": [
+        "ValueError",
+        "command_target_context",
+        "query_ancestor",
+        "read"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/history_anchor.py::restore",
+      "lines": 5,
+      "calls": [
+        "_restore",
+        "current",
+        "geometry"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/project_tree_intent.py::restore",
+      "lines": 28,
+      "calls": [
+        "Event",
+        "Path",
+        "_add_to_load_queue",
+        "call_after_refresh",
+        "expand",
+        "extend",
+        "is_relative_to",
+        "pop",
+        "wait"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/session_tabs.py::_on_click",
+      "lines": 4,
+      "calls": [
+        "Clicked",
+        "post_message",
+        "stop"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/side_bar.py::reveal",
+      "lines": 5,
+      "calls": [
+        "cast"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/sidebar_tree.py::present",
+      "lines": 3,
+      "calls": [],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/terminal.py::_render_line",
+      "lines": 83,
+      "calls": [
+        "Strip",
+        "adjust_cell_length",
+        "apply_offsets",
+        "blank",
+        "crop",
+        "from_rich_text",
+        "get",
+        "get_span",
+        "get_visual_style",
+        "len",
+        "max",
+        "min",
+        "pad_right",
+        "render_segments",
+        "stylize"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/thread_comms.py::present",
+      "lines": 2,
+      "calls": [],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/viewport_body.py::restore",
+      "lines": 1,
+      "calls": [],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/viewport_body.py::restore",
+      "lines": 2,
+      "calls": [
+        "materialize_body"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/viewport_body.py::restore",
+      "lines": 2,
+      "calls": [],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/viewport_body.py::restore",
+      "lines": 2,
+      "calls": [
+        "before_publication"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/viewport_body.py::restore",
+      "lines": 4,
+      "calls": [
+        "invalidate_body",
+        "materialize_body",
+        "ready"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "member": "src/toad/widgets/viewport_body.py::_reconcile",
+      "lines": 93,
+      "calls": [
+        "ExitStack",
+        "TaskGroup",
+        "_restore_bodies",
+        "_trim_warm",
+        "accepts",
+        "accepts_frame",
+        "admission",
+        "any",
+        "append",
+        "body_order",
+        "body_roots",
+        "callback",
+        "create_task",
+        "defer",
+        "delivered",
+        "enumerate",
+        "fromkeys",
+        "keys",
+        "len",
+        "list",
+        "max",
+        "min",
+        "monotonic",
+        "move_to_end",
+        "neighbors",
+        "next",
+        "protected",
+        "range",
+        "ref",
+        "result",
+        "retire_body",
+        "runway",
+        "tuple",
+        "zip"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/acp_extension.py::present",
+      "lines": 2,
+      "calls": [
+        "delivery_unknown"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/acp_extension.py::present",
+      "lines": 2,
+      "calls": [
+        "delivery_blocked"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/compaction_source.py::require_current",
+      "lines": 8,
+      "calls": [
+        "RelationViolationError",
+        "capture",
+        "fields",
+        "getattr",
+        "join",
+        "tuple"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/compaction_summaries.py::require_current",
+      "lines": 4,
+      "calls": [
+        "CompactionJournalError",
+        "get",
+        "require_session"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/coordination_database.py::_initialize_schema",
+      "lines": 38,
+      "calls": [
+        "SchemaVersionError",
+        "_empty_schema",
+        "complete_statement",
+        "coordinator_schema",
+        "current",
+        "execute",
+        "insert",
+        "require_current",
+        "splitlines",
+        "strip"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/coordination_tables/metadata.py::require_current",
+      "lines": 9,
+      "calls": [
+        "SchemaVersionError",
+        "current",
+        "one"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/delivery_presentation.py::present",
+      "lines": 2,
+      "calls": [
+        "delivery_refused"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/goal_attempts.py::require_current",
+      "lines": 11,
+      "calls": [
+        "Generation",
+        "ReservedGeneration",
+        "StaleAttemptError",
+        "read_in"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/owner_compaction_gate.py::require_current",
+      "lines": 9,
+      "calls": [
+        "RelationViolationError",
+        "TurnId",
+        "require_exact",
+        "require_turn"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/owner_compaction_settings.py::require_current",
+      "lines": 3,
+      "calls": [
+        "PiSettingsEvidenceError"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/owner_lifecycle.py::require_current",
+      "lines": 8,
+      "calls": [
+        "OwnerGenerationChangedRefusal",
+        "OwnerSelectionChangedRefusal",
+        "require_active",
+        "require_owner_process"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/owner_restart.py::require_current",
+      "lines": 12,
+      "calls": [
+        "RelationViolationError",
+        "admission_identity",
+        "owner_identity",
+        "require_idle",
+        "require_local_process",
+        "require_stopped"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/owner_restart.py::restore",
+      "lines": 8,
+      "calls": [
+        "RelationViolationError",
+        "_launch",
+        "_launch_owner_unlocked",
+        "any"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/private_bus_checkpoint.py::require_current",
+      "lines": 3,
+      "calls": [
+        "require_marker",
+        "require_open_prefix"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/selected_participant.py::require_current",
+      "lines": 4,
+      "calls": [
+        "read",
+        "require",
+        "require_registry"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/selected_summary_admission.py::require_current",
+      "lines": 4,
+      "calls": [
+        "CompactionJournalError",
+        "matches_source",
+        "require_current_revision"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/selected_write_authority.py::require_current",
+      "lines": 3,
+      "calls": [],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/selected_write_authority.py::require_current",
+      "lines": 12,
+      "calls": [
+        "IdentityConflict",
+        "get",
+        "is_controller",
+        "isinstance"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "member": "src/agent_comms/task_sources.py::require_current",
+      "lines": 4,
+      "calls": [
+        "RelationViolationError",
+        "require_context"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/command.py::_on_click",
+      "lines": 13,
+      "calls": [
+        "Closed",
+        "_cancel_gather_commands",
+        "dismiss",
+        "get_widget_at",
+        "post_message"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/drivers/win32.py::restore",
+      "lines": 4,
+      "calls": [
+        "set_console_mode"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/pilot.py::_post_mouse_events",
+      "lines": 89,
+      "calls": [
+        "Offset",
+        "OutOfBounds",
+        "_forward_event",
+        "_get_mouse_message_arguments",
+        "get_widget_at",
+        "isinstance",
+        "mouse_event_cls",
+        "pause",
+        "query_one",
+        "range"
+      ],
+      "keys": {
+        "message_arguments": [
+          "x",
+          "y"
+        ]
+      }
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/screen.py::_forward_event",
+      "lines": 133,
+      "calls": [
+        "SelectEnd",
+        "SelectStart",
+        "SelectState",
+        "TextSelected",
+        "_apply_offset",
+        "_check_auto_scroll",
+        "_flush_pending_selection",
+        "_forward_event",
+        "_handle_mouse_move",
+        "_set_forwarded",
+        "_stop_auto_scroll",
+        "clear_selection",
+        "find_widget",
+        "focus_on_click",
+        "get_focusable_widget_at",
+        "get_style_at",
+        "get_widget_and_offset_at",
+        "get_widget_at",
+        "has_class",
+        "isinstance",
+        "post_message",
+        "set_focus",
+        "update_end",
+        "update_pointer_shape"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/scrollbar.py::_on_click",
+      "lines": 2,
+      "calls": [
+        "stop"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widget.py::_forward_event",
+      "lines": 3,
+      "calls": [
+        "_set_forwarded",
+        "post_message"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widget.py::_on_click",
+      "lines": 9,
+      "calls": [
+        "broker_event",
+        "text_select_all"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_button.py::_on_click",
+      "lines": 4,
+      "calls": [
+        "has_class",
+        "press",
+        "stop"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_collapsible.py::_on_click",
+      "lines": 4,
+      "calls": [
+        "Toggle",
+        "post_message",
+        "stop"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_data_table.py::_render_line",
+      "lines": 57,
+      "calls": [
+        "Strip",
+        "_get_offsets",
+        "_render_line_in_row",
+        "adjust_cell_length",
+        "blank",
+        "from_iterable",
+        "get_render_width",
+        "line_crop",
+        "list",
+        "simplify",
+        "sum"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_data_table.py::_on_click",
+      "lines": 34,
+      "calls": [
+        "Coordinate",
+        "HeaderSelected",
+        "RowLabelSelected",
+        "_post_selected_message",
+        "_scroll_cursor_into_view",
+        "_set_hover_cursor",
+        "get",
+        "post_message",
+        "stop"
+      ],
+      "keys": {
+        "meta": [
+          "column",
+          "out_of_bounds",
+          "row"
+        ]
+      }
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_directory_tree.py::render_label",
+      "lines": 51,
+      "calls": [
+        "assemble",
+        "copy",
+        "get_component_rich_style",
+        "highlight_regex",
+        "startswith",
+        "stylize",
+        "stylize_before"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_header.py::_on_click",
+      "lines": 2,
+      "calls": [
+        "toggle_class"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_list_item.py::_on_click",
+      "lines": 2,
+      "calls": [
+        "_ChildClicked",
+        "post_message"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_log.py::_render_line",
+      "lines": 20,
+      "calls": [
+        "_render_line_strip",
+        "apply_offsets",
+        "blank",
+        "crop_extend",
+        "len"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_masked_input.py::_on_click",
+      "lines": 5,
+      "calls": [
+        "_on_click",
+        "at_separator",
+        "move_cursor",
+        "super"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_option_list.py::_on_click",
+      "lines": 10,
+      "calls": [
+        "action_select",
+        "get"
+      ],
+      "keys": {
+        "event.style.meta": [
+          "option"
+        ]
+      }
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_placeholder.py::_on_click",
+      "lines": 3,
+      "calls": [
+        "cycle_variant"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_radio_set.py::_on_click",
+      "lines": 7,
+      "calls": [
+        "focus"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_rich_log.py::_render_line",
+      "lines": 12,
+      "calls": [
+        "blank",
+        "crop_extend",
+        "len"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_select.py::_on_click",
+      "lines": 4,
+      "calls": [
+        "Toggle",
+        "post_message",
+        "stop"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_switch.py::_on_click",
+      "lines": 4,
+      "calls": [
+        "stop",
+        "toggle"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_tabs.py::_on_click",
+      "lines": 4,
+      "calls": [
+        "Clicked",
+        "post_message",
+        "stop"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_tabs.py::_on_click",
+      "lines": 3,
+      "calls": [
+        "Clicked",
+        "post_message"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_text_area.py::_render_line",
+      "lines": 229,
+      "calls": [
+        "Segment",
+        "Strip",
+        "Style",
+        "_utf8_encode",
+        "apply_style",
+        "assemble",
+        "blank",
+        "build_byte_to_codepoint_dict",
+        "count",
+        "crop",
+        "divide",
+        "expand_tabs",
+        "expand_text_tabs_from_widths",
+        "extend_cell_length",
+        "get",
+        "get_component_rich_style",
+        "get_highlight_from_theme",
+        "get_line",
+        "get_offsets",
+        "get_tab_widths",
+        "join",
+        "len",
+        "max",
+        "range",
+        "render",
+        "set_length",
+        "sorted",
+        "str",
+        "stylize"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_toggle_button.py::_on_click",
+      "lines": 3,
+      "calls": [
+        "toggle"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_tree.py::render_label",
+      "lines": 26,
+      "calls": [
+        "assemble",
+        "copy",
+        "stylize"
+      ],
+      "keys": {}
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_tree.py::_render_line",
+      "lines": 126,
+      "calls": [
+        "Strip",
+        "Style",
+        "Text",
+        "any",
+        "append",
+        "blank",
+        "cast",
+        "copy",
+        "crop",
+        "get_component_rich_style",
+        "get_component_styles",
+        "get_guides",
+        "guides_append",
+        "len",
+        "line_pad",
+        "list",
+        "max",
+        "render",
+        "render_label",
+        "stylize",
+        "tuple"
+      ],
+      "keys": {
+        "self.LINES": [
+          "bold",
+          "default",
+          "double"
+        ]
+      }
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "member": "src/textual/widgets/_tree.py::_on_click",
+      "lines": 13,
+      "calls": [
+        "_toggle_node",
+        "get",
+        "get_node_at_line",
+        "run_action"
+      ],
+      "keys": {
+        "meta": [
+          "line",
+          "toggle"
+        ]
+      }
+    }
+  ],
+  "limits": "Lexical sites and whole package parse, not dynamic dispatch or measured old event attribution"
+}

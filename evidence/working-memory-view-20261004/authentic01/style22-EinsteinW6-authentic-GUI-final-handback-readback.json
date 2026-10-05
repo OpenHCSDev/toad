@@ -1,0 +1,74 @@
+{
+  "verified_at": 1791153525.0910523,
+  "state": "WHOLE2f2 W6 authenticGUI purpose consumed terminalFAIL before labels/App; actual436 original floor restored; no next loan",
+  "owner_output": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-authentic-gui-installed01",
+  "original_raw_keeper_hashes": {
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-authentic-gui-installed01/stdout.log": "2eab2e1ae65fed5c4a4ce91fdea0b9e65d45b25dafe4435a3159390da9a0993c",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-authentic-gui-installed01/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-authentic-gui-installed01/terminal.json": "c45a4ef9930b2d562595f7b97698da805acd84fdce4ebfa1b542908c60fecefd",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-authentic-gui-installed01/whole-handback.json": "405f5b3b5984e2bf804faaf58cc81653963ec2b13422b50fd1b0d8d40866ec85"
+  },
+  "terminal_returncode": 1,
+  "elapsed_seconds": 11.148574681952596,
+  "timed_out": false,
+  "failed_statement": "assert joined sentence-span text == whole authored file including newlines",
+  "scope_observation": "One localhost post and one native input proof, childretired. Original sealed request read/contains_span passed before failed statement. Controlled label insertion and App/GUI not reached. No second input/App/replay. Existing readback extraction also failed only wrong snapshot_meta database lookup; raw preserved.",
+  "failure_classification": "Authored wholefile-versus-sentence-span oracle mismatch; whitespace skipping per coordinates owner. Not a demonstrated product/native fault. GUI/local labels not reached. No second input/rerun.",
+  "original_process_identities_absent": [
+    {
+      "pid": 1422955,
+      "birth": 62866326
+    },
+    {
+      "pid": 1425019,
+      "birth": 62867061
+    }
+  ],
+  "private_runtime_sockets": [],
+  "fixture_scope_footer": [
+    {
+      "localhost_posts": 1,
+      "native_input_proofs": 1,
+      "children_retired": true
+    }
+  ],
+  "new_admitted_originals_preserved": [
+    {
+      "path": "/home/ts/wt/w6gui01/test_authentic_recorded_annota0/authored-system.txt",
+      "bytes": 65,
+      "sha256": "d54d5f90cc6903d865fc3b78f6c8c4e4f5d904e15014d2c8bca0570dc28755a8",
+      "preserved": true
+    },
+    {
+      "path": "/home/ts/wt/w6gui01/test_authentic_recorded_annota0/sessions/enrolled-7e422edc55c74ca39a05304dd48ffcad.jsonl",
+      "bytes": 3615,
+      "sha256": "f1a5a14a330501014ea61cf02889a1a20e3c5f2a1f2e9140e724314cf18dfa3e",
+      "preserved": true
+    }
+  ],
+  "actual_floor_members_equal": 1470,
+  "normal_versions_origins_equal": 69,
+  "protected_originals_equal": 390,
+  "extra_module_assets": 0,
+  "NRA8f61_raw8d_equal_floor": true,
+  "archive": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/retired-env-metadata/style22-actual436-before-Heis432.tar.gz",
+  "archive_sha256_unchanged": "e6f27830a69a5e60902ecf8d25dccd46b43efefef75335e2679ef78c461aba5a",
+  "new_archive_bytes": 0,
+  "actual_archive_member_write_needed": false,
+  "borrower_receipt": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-EinsteinW6-authentic-GUI-final-borrowers.json",
+  "borrower_sha256": "250d073fc043020a41b4354c04dfd560422a37399543c8258df8f1b4a15ef100",
+  "all_uid_processes": 225,
+  "holder_fixture_output_native_refs": 0,
+  "permission_gaps": 0,
+  "owner_native7a_execution_claim_returned": true,
+  "native_keeper_not_released": true,
+  "public334_defaults_unchanged": {
+    "agent-comms": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-agent",
+    "agent-comms-nk-foreground": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-nk-foreground",
+    "toad": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/toad"
+  },
+  "issued_grant_sha256_unchanged": "2f2c3f04121092200e0435119f6c5dc0badd6486022071378dec0481804304ca",
+  "no_run_install_restore_archive_or_public_operation_by_cleaner": true
+}

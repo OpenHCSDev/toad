@@ -1,0 +1,13 @@
+{
+  "state": "Restore exact actual archived NRA member; not a production refactor/metadata rewrite",
+  "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/refactor_audit/measures.py",
+  "normal_restore_wheel_sha256": "8d489731728ebf9f7e0f90ef2b14e7e3b5d2f90ed82bd8b1482d735f82869886",
+  "wheel_member_sha256": "fb6e2238b19c40a279942a0e2f840f97ccbf1ef6d44ea55f446f29b4f99fcd9b",
+  "original_archive": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/retired-env-metadata/style22-actual436-before-Heis432.tar.gz",
+  "original_archive_sha256": "e6f27830a69a5e60902ecf8d25dccd46b43efefef75335e2679ef78c461aba5a",
+  "original_member": "home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/refactor_audit/measures.py",
+  "restored_sha256": "8f6127cb184801fbf2ca162adbece5c103c0fc6693f81197632668f710af7513",
+  "atomic_new_inode": true,
+  "metadata_edited": false,
+  "public_changed": false
+}

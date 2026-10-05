@@ -1,0 +1,42 @@
+{
+  "state": "Owner wholefloor restored; release package/import/native execution claim; Bohr independent census/lifecycle closure pending",
+  "floor": {
+    "state": "Whole actual floor verified after four normal retained wheels --no-cache; no archive member restoration or source mutation. Independent closure pending",
+    "members": 1470,
+    "protected": 390,
+    "packages": 69,
+    "byte_mode_readlink_failures": [],
+    "extra_package_assets": [],
+    "remaining_private_runtime_sockets": [],
+    "native_keeper_unchanged": "Read/execution only, no artifact writes",
+    "terminal": {
+      "elapsed": 11.148574681952596,
+      "returncode": 1,
+      "timed_out": false,
+      "error": null,
+      "child_retired": true,
+      "owned_group_members": [],
+      "scope": "One authentic AnnotationNode GUI App; ONE controlled localhost input; not W7 calibration or historical Reference acceptance",
+      "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-EinsteinW6-authentic-GUI-Core627-Toad434-issued-grant.json"
+    },
+    "original_negative_preserved": true
+  },
+  "original_children": [
+    {
+      "pid": 1422955,
+      "birth": 62866326,
+      "proc_absent": true
+    },
+    {
+      "pid": 1425019,
+      "birth": 62867061,
+      "proc_absent": true
+    }
+  ],
+  "execution_returned": "Sch immutable7a execution return for exact issued2f2 purpose; keeper held unchanged",
+  "source_fixture": "/home/ts/wt/w6gui01/test_authentic_recorded_annota0",
+  "failed_statement": "assert joined sentence-span text == whole authored file including newlines",
+  "actual_scope": "One localhost post and one native input proof, childretired. Original sealed request read/contains_span passed before failed statement. Controlled label insertion and App/GUI not reached. No second input/App/replay. Existing readback extraction also failed only wrong snapshot_meta database lookup; raw preserved.",
+  "private_sockets": [],
+  "no_future_holder_claim": true
+}

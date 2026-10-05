@@ -1,0 +1,128 @@
+{
+  "scope": "Original authenticated W1 committed-request/spans positive; original W6 App/GUI preflight FAIL; not fullW6/W7/historicalReference qualification",
+  "issued_grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-EinsteinW6-authentic-GUI-Core627-Toad434-issued-grant.json",
+  "issued_sha256": "2f2c3f04121092200e0435119f6c5dc0badd6486022071378dec0481804304ca",
+  "source_receipt_head": "1e0a61f6aa401955d92788036df40eb631446df2",
+  "determining_Toad_product": "bee4062ee72f17ccd345f9ba508e72e0c2fc0b1d",
+  "original_control_sha256": "aaf668c31c0286b8f04207282eda6c1e3d6f55d198a181cea0a4ebdcf1847a9d",
+  "corrected_control_sha256": "b92ae57937f071a35b09dbcdd1dd8695dc6e57950eb0813e96a596beeed1b542",
+  "test_result": {
+    "elapsed": 11.148574681952596,
+    "returncode": 1,
+    "timed_out": false,
+    "error": null,
+    "child_retired": true,
+    "owned_group_members": [],
+    "scope": "One authentic AnnotationNode GUI App; ONE controlled localhost input; not W7 calibration or historical Reference acceptance",
+    "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-EinsteinW6-authentic-GUI-Core627-Toad434-issued-grant.json"
+  },
+  "original_owner_result": {
+    "localhost_posts": 1,
+    "native_input_proofs": 1,
+    "native_children_retired": true,
+    "label_rows": 0,
+    "annotation_requests": 0,
+    "App_started": false
+  },
+  "sealed_original": {
+    "root": "/home/ts/wt/w6gui01/test_authentic_recorded_annota0/wire",
+    "thread": "project",
+    "incarnation": {
+      "name": "project",
+      "created_at": 1791153029.938912
+    },
+    "request": "527f6dcf-963f-4a91-95a3-f0d6ca38aff8",
+    "turn": {
+      "kind": "recorded",
+      "identity": {
+        "value": "238119449abd41ed886d492d2315d614"
+      },
+      "occurrence": {
+        "incarnation": {
+          "name": "project",
+          "created_at": 1791153029.938912
+        },
+        "generation": 1
+      }
+    },
+    "source": "/home/ts/wt/w6gui01/test_authentic_recorded_annota0/authored-system.txt",
+    "source_sha256": "d54d5f90cc6903d865fc3b78f6c8c4e4f5d904e15014d2c8bca0570dc28755a8",
+    "source_bytes": 65,
+    "native_session": "/home/ts/wt/w6gui01/test_authentic_recorded_annota0/sessions/enrolled-7e422edc55c74ca39a05304dd48ffcad.jsonl",
+    "native_session_sha256": "f1a5a14a330501014ea61cf02889a1a20e3c5f2a1f2e9140e724314cf18dfa3e",
+    "input_proof_sha256": "c6c71f34ec7457b983b06360af7a0f533e5c890c875e0efb387b68e5c04e0d3a",
+    "bus_sha256": "30e9848078d5f5227469689d0801a05597da5332a51ea06e9d647806670023a4"
+  },
+  "source_contract": "ContributionCoordinates.public_text verifies exact UTF8 range/digest. sentences splits at punctuation/line boundaries, omits whitespace-only ranges and still advances byte offsets. The original complete file range includes the newline separators, its two contained sentence ranges do not. No producer bug or source-span reconstruction inferred.",
+  "correction": "Existing control now asserts original full file ranges == authored bytes and separately compares actual contained sentence texts. No production/pin/dependency/native/helper changes; retainedab640+57bf wheel product still exact. Control parsed, not collected or executed again.",
+  "continuation": "Actual admitted sealed request is now retained; next separately granted GUI continuation should reacquire canonical stopped owner and reuse this original manifest/span membership, with ZERO further input/model request. Do not rerun whole fresh-native fixture/construct manifest or resend the input. Source acquisition/control must be coherent before requesting that purpose.",
+  "closure": "Bohr independently verified1470 byte/mode/readlink+69origins+390/extra[]/sockets[], fresh225allUID0refs/gaps; original runner/native children absent. Shared lifecycle CLOSED, issued bytes unchanged. Sch7a execution returned and immutablekeeper held; no current holder/artifact claim.",
+  "unqualified": "Controlled ModelLabel insertion/AnnotationNode/USER GUIACP/effective Obeys/Promised refresh not reached. Historical03/04 reader gaps/90s unknown untouched. Paid/disclosure/defaultON/W7 calibration remain off.",
+  "evidence": [
+    {
+      "path": "authentic01/stdout.log",
+      "sha256": "2eab2e1ae65fed5c4a4ce91fdea0b9e65d45b25dafe4435a3159390da9a0993c",
+      "bytes": 2271
+    },
+    {
+      "path": "authentic01/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "authentic01/terminal.json",
+      "sha256": "c45a4ef9930b2d562595f7b97698da805acd84fdce4ebfa1b542908c60fecefd",
+      "bytes": 425
+    },
+    {
+      "path": "authentic01/handle.json",
+      "sha256": "b69b17377a77588c0b8d54c56baa10e29dffd14e2deb6fc625c44373af19a6e8",
+      "bytes": 407
+    },
+    {
+      "path": "authentic01/private-fixture-readback.json",
+      "sha256": "2acbe536c4e0651fbb51853488831f96c5885db34e664050f791fd6de1107d14",
+      "bytes": 3472
+    },
+    {
+      "path": "authentic01/readback-negative.json",
+      "sha256": "9ab1587f0f9269e1eb787d894c0ea0af14d6dd7260be5843da06b994b80f3f38",
+      "bytes": 444
+    },
+    {
+      "path": "authentic01/whole-handback.json",
+      "sha256": "405f5b3b5984e2bf804faaf58cc81653963ec2b13422b50fd1b0d8d40866ec85",
+      "bytes": 1979
+    },
+    {
+      "path": "authentic01/restore-receipt.json",
+      "sha256": "cea463fdc712e9fdcf83d1641a6f6f62a89baa03da19d3f8d2fbd43015112c33",
+      "bytes": 905
+    },
+    {
+      "path": "authentic01/candidate-source-proof.json",
+      "sha256": "328c503a415e0b88f95302c237f278268ee523a2a01016c5f81285dbe0e1e487",
+      "bytes": 9577
+    },
+    {
+      "path": "authentic01/candidate-activation.json",
+      "sha256": "1d568d89301c6a355ff50e2d4c8f444c8a501e8f1fe11eda380fb18341967729",
+      "bytes": 2217
+    },
+    {
+      "path": "authentic01/artifact-renewal.json",
+      "sha256": "7da0e56c6d3e9422109d931d69e08e91dcee5baa9258a0817fd487a10111e614",
+      "bytes": 352
+    },
+    {
+      "path": "authentic01/style22-EinsteinW6-authentic-GUI-Core627-Toad434-lifecycle.json",
+      "sha256": "a882a5226e468aec6e2d9a5fc25821b9592e8da0c7bff67652c167bf6bbe8cb1",
+      "bytes": 5751
+    },
+    {
+      "path": "authentic01/style22-EinsteinW6-authentic-GUI-final-handback-readback.json",
+      "sha256": "be5be5ff40502640776979cc53cce6c9372b0bc863a9eee9cb9218ca67d1b093",
+      "bytes": 4609
+    }
+  ]
+}
