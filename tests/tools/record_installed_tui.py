@@ -605,6 +605,31 @@ class ScrollJourney(PhysicalJourney):
         return scroll_script(idle_seconds=args.scroll_idle_seconds, hold_seconds=args.scroll_hold_seconds)
 
 
+class WheelCadenceJourney(ScrollJourney):
+    """Original native wheel targets with phase-aligned frame writer receipts."""
+
+    motion_phases = ("wheel-up", "wheel-down", "wheel-reverse", "wheel-end")
+
+    @classmethod
+    def script(cls, args):
+        if not args.capture_state or not args.scroll_travel:
+            raise ValueError("Wheel cadence requires original native state and scroll travel observation")
+        marker = marker_command()
+        settle = f"sleep {args.navigation_settle_seconds:g}"
+        # The existing terminal-stress owner uses 36 wheel events for a deep
+        # history gesture. This selects that original input, not a new scroll
+        # sensitivity or an application frame-rate limit.
+        commands = [marker + "wheel-before"]
+        state = "phase-wheel-before-state.pickle"
+        for label, wheel in (("wheel-up", -36), ("wheel-down", 36), ("wheel-reverse", -36)):
+            commands.extend((marker + label, native_click_command(state, wheel=wheel),
+                             settle, marker + label + "-done"))
+            state = f"phase-{label}-done-state.pickle"
+        commands.extend((native_click_command(state), marker + "wheel-end", "key End",
+                         settle, marker + "wheel-end-done"))
+        return "\n".join(commands) + "\n"
+
+
 class WarmScrollJourney(ScrollJourney):
     """Use one scroll journey and actual A/B/A clicks to observe retained resources."""
 
