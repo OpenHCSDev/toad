@@ -6,6 +6,7 @@ from agent_comms.acp_extension import QueuePromptRequest
 from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import DirectTarget, channel_target
+from toad.conversation_kind import ChannelConversation, DmConversation
 
 from agent_comms.cli_commands import StartCliCommand
 import asyncio
@@ -55,6 +56,88 @@ async def until(pilot, predicate, seconds=20):
             await pilot.pause(0.05)
 
 
+def message_feedback(view, original):
+    """Observe the mounted notification belonging to this original wire row."""
+    rows = [widget for message, widget in view.message_history.rows
+            if message.reference == original.reference]
+    assert len(rows) == 1, (original.reference, len(rows))
+    return rows[0].query_one(MessageNotifications)
+
+
+async def direct_reply_feedback(
+    pilot, app, comms, owner_mode, project, entered, release, hold_next
+):
+    """One real DM; observe it open, hidden during settlement and reopened."""
+    user = comms.messaging.user_identity(str(project)).name
+    navigation = NavigationContext(app, owner_mode, project, user)
+    await DirectTarget("beta").open(navigation)
+    screen = app.selected_session
+    await screen.wait_content_ready()
+    dm = screen.query_one(CommsChatView)
+    assert dm.target == "beta" and dm.conversation_kind is DmConversation
+    body = "DIRECT_NATIVE_MESSAGE"
+    assert not any(message.body == body for message, _ in dm.message_history.rows)
+    entered.clear()
+    release.clear()
+    hold_next.set()
+    try:
+        await dm.submit_input(input_events.UserInputSubmitted(body))
+        await until(pilot, entered.is_set)
+        await until(pilot, lambda: any(message.body == body
+                                      for message, _ in dm.message_history.rows))
+        originals = [message for message, _ in dm.message_history.rows
+                     if message.body == body]
+        assert len(originals) == 1
+        original = originals[0]
+        assert original.sender == user and original.target == "beta"
+        await until(pilot, lambda: "Responding" in str(message_feedback(dm, original).title))
+        assert comms.registry.require("beta").executing
+        print("DM_ORIGINAL_OPEN_NOTIFICATION_WORKING", original.reference, flush=True)
+
+        await app.select_session(owner_mode)
+        assert app.selected_session is not screen
+        release.set()
+        await until(pilot, lambda: not comms.registry.require("beta").executing)
+        assert app.selected_session is not screen
+        print("DM_ORIGINAL_SETTLED_WHILE_HIDDEN", original.reference, flush=True)
+    finally:
+        release.set()
+
+    await DirectTarget("beta").open(navigation)
+    assert app.selected_session is screen, "Returning replaced the original DM admission"
+    await until(pilot, lambda: any(
+        message.sender == "beta" and message.seq > original.seq
+        and message.body.startswith("NATIVE_RESPONSE_")
+        for message, _ in dm.message_history.rows))
+    responses = [message for message, _ in dm.message_history.rows
+                 if message.sender == "beta" and message.seq > original.seq
+                 and message.body.startswith("NATIVE_RESPONSE_")]
+    assert len(responses) == 1
+    response = responses[0]
+    assert response.target == user and response.reference != original.reference
+    await until(pilot, lambda: "Responded" in str(message_feedback(dm, original).title))
+    outcomes = await asyncio.to_thread(comms.views.message_notifications, (original,))
+    assert any(item.recipient == "beta" and item.state == "Responded"
+               for item in outcomes[original.seq, original.message_id])
+    print("DM_ORIGINAL_RETURN_NOTIFICATION_AND_DISTINCT_REPLY", original.reference,
+          response.reference, flush=True)
+
+    await app.session_navigation.close(screen.id)
+    await DirectTarget("beta").open(navigation)
+    reopened = app.selected_session
+    assert reopened is not screen and reopened.id != screen.id
+    await reopened.wait_content_ready()
+    fresh = reopened.query_one(CommsChatView)
+    assert fresh.conversation_kind is DmConversation
+    await until(pilot, lambda: all(
+        sum(message.reference == reference for message, _ in fresh.message_history.rows) == 1
+        for reference in (original.reference, response.reference)))
+    await until(pilot, lambda: "Responded" in str(message_feedback(fresh, original).title))
+    print("DM_COLD_REOPEN_ORIGINAL_AND_REPLY_ONCE", original.reference,
+          response.reference, flush=True)
+    await app.select_session(owner_mode)
+
+
 async def notification_feedback(
     pilot, app, comms, owner_mode, project, entered, release, hold_next
 ):
@@ -62,12 +145,18 @@ async def notification_feedback(
     await channel_target("#team").open(NavigationContext(app, owner_mode, project, user))
     await app.selected_session.wait_content_ready()
     channel = app.selected_session.query_one(CommsChatView)
-    assert channel.target == '#team' and channel.kind == 'channel'
+    assert channel.target == '#team' and channel.conversation_kind is ChannelConversation
     entered.clear()
     release.clear()
     hold_next.set()
     await channel.submit_input(input_events.UserInputSubmitted("CHANNEL_NATIVE_TRIAGE"))
     await until(pilot, entered.is_set)
+    await until(pilot, lambda: any(message.body == "CHANNEL_NATIVE_TRIAGE"
+                                  for message, _ in channel.message_history.rows))
+    originals = [message for message, _ in channel.message_history.rows
+                 if message.body == "CHANNEL_NATIVE_TRIAGE"]
+    assert len(originals) == 1
+    original = originals[0]
     await until(pilot, lambda: comms.registry.require("beta").executing)
     await refresh_comms(channel)
     await pilot.pause()
@@ -81,7 +170,7 @@ async def notification_feedback(
     await until(pilot, lambda: "No active turns" in roster.names.render().plain)
     assert "No active turns" in roster.names.render().plain, roster.names.render()
     print("CHANNEL_IDLE_STATUS_CONFIRMED", flush=True)
-    notification = channel.query_one(MessageNotifications)
+    notification = message_feedback(channel, original)
     try:
         await until(pilot, lambda: "Checked" in str(notification.title), 5)
         assert "no response" in str(notification.title).lower(), notification.title
@@ -103,6 +192,29 @@ async def notification_feedback(
     print("CHANNEL_NOTIFICATION", str(notification.title), flush=True)
 
 
+def selected_triage_reply(request, decision=None):
+    """Recognize only the current native input's original bounded contract."""
+    from agent_comms.field_codec import FieldCodec
+    from agent_comms.selected_triage import IgnoreSelectedTriage, SelectedTriage
+    from agent_comms.turn_context import InstructionFile
+
+    message = request["messages"][-1]
+    if message["role"] != "user":
+        return None
+    content = message["content"]
+    texts = (content,) if isinstance(content, str) else tuple(
+        block["text"] for block in content if block["type"] == "text"
+    )
+    output = InstructionFile.read("selected-triage-output.md").render(
+        SelectedTriage.output_values()
+    ).strip()
+    if not any(text.rstrip().endswith(output) for text in texts):
+        return None
+    return {"role": "assistant", "content": json.dumps(FieldCodec.encode(
+        IgnoreSelectedTriage() if decision is None else decision
+    ))}
+
+
 async def main(*, notification_only=False, retire_surface=False, app_type=ToadApp,
                acceptance=None, provider_reply=None, provider_usage=None,
                native_settings=None, prepare_state=None, expected_response_disconnects=frozenset(), headless=True, provider_request_budget=12,
@@ -112,11 +224,21 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
     evidence.mkdir(parents=True, exist_ok=True)
     package = Path(os.environ["AC_NATIVE_COPIED_PACKAGE"])
     verify_native_package(package)
-    if fixture_stage is not None:
+    # The original fixture owns the source journals through terminal evidence.
+    # Its automatic temporary directories must not erase failed/UNKNOWN inputs.
+    if fixture_stage is None:
+        fixture_stage = Path(tempfile.mkdtemp(prefix="native-fixture-", dir=evidence))
+    else:
         fixture_stage = Path(fixture_stage)
         fixture_stage.mkdir(mode=0o700, parents=True, exist_ok=False)
-        (fixture_stage / "private-root").mkdir(mode=0o700)
-        (fixture_stage / "application").mkdir(mode=0o700)
+    (fixture_stage / "private-root").mkdir(mode=0o700)
+    (fixture_stage / "application").mkdir(mode=0o700)
+    (evidence / "fixture-stage.json").write_text(json.dumps({
+        "path": str(fixture_stage),
+        "wire": str(fixture_stage / "private-root" / "wire"),
+        "application": str(fixture_stage / "application"),
+        "custody": "Original fixture stage retained after joined teardown; no automatic journal deletion or replay. Producer disposition follows consumed evidence and input custody.",
+    }, indent=2))
     requests, failures = [], []
     entered, release, hold_next = (
         threading.Event(),
@@ -141,13 +263,12 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                     hold_next.clear()
                     entered.set()
                     assert release.wait(20), "UI did not release first response"
-                content = "NATIVE_RESPONSE_" + str(len(requests))
-                if any(
-                    "IGNORE" in str(m.get("content"))
-                    and "FULL" in str(m.get("content"))
-                    for m in request["messages"]
-                ):
-                    content = '{"decision":"IGNORE"}'
+                reply, finish_reason = (provider_reply(request, len(requests))
+                                        if provider_reply else (
+                    selected_triage_reply(request) or {
+                        "role": "assistant", "content": "NATIVE_RESPONSE_" + str(len(requests))
+                    }, "stop",
+                ))
                 chunk = {
                     "id": "offline",
                     "object": "chat.completion.chunk",
@@ -156,15 +277,14 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                     "choices": [
                         {
                             "index": 0,
-                            "delta": (provider_reply(request, len(requests))[0] if provider_reply
-                                      else {"role": "assistant", "content": content}),
+                            "delta": reply,
                             "finish_reason": None,
                         }
                     ],
                 }
                 final = {
                     **chunk,
-                    "choices": [{"index": 0, "delta": {}, "finish_reason": provider_reply(request, len(requests))[1] if provider_reply else "stop"}],
+                    "choices": [{"index": 0, "delta": {}, "finish_reason": finish_reason}],
                     "usage": (provider_usage(request, len(requests)) if provider_usage else {
                         "prompt_tokens": 100,
                         "completion_tokens": 10,
@@ -213,10 +333,8 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
     server_thread.start()
     # A retained fixture keeps native paths and original proof records intact.
     with (
-        (nullcontext(str(fixture_stage / "private-root")) if fixture_stage is not None
-         else tempfile.TemporaryDirectory(prefix="comms-l0a-native-", dir="/var/tmp")) as wire_dir,
-        (nullcontext(str(fixture_stage / "application")) if fixture_stage is not None
-         else tempfile.TemporaryDirectory(prefix="l0a-native-", dir=os.environ["TMPDIR"])) as stage_dir,
+        nullcontext(str(fixture_stage / "private-root")) as wire_dir,
+        nullcontext(str(fixture_stage / "application")) as stage_dir,
     ):
         stage = Path(stage_dir)
         project = stage / "project"
@@ -394,7 +512,7 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                     replacement.prompt.prompt_text_area.restore_editor_state(retired_editor)
                     replacement.agent = agent
                     view = replacement
-                    await until(pilot, lambda: view.turns.managed_id == agent._active_turn_id)
+                    await until(pilot, lambda: view.turns.managed_id == agent.current_turn.managed_id)
                     await until(pilot, lambda: view.agent.configuration.model.selected is not None)
                     assert view.agent.configuration.model.current == "selected-offline/fixture"
                     assert view.busy_count == 1
@@ -479,29 +597,9 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 assert view._directory_watcher is original_watcher
                 print("COLD_REATTACH_CONFIRMED", flush=True)
 
-                user = comms.messaging.user_identity(str(project)).name
-                await DirectTarget("beta").open(NavigationContext(app, owner_mode, project, user))
-                await app.selected_session.wait_content_ready()
-                dm = app.selected_session.query_one(CommsChatView)
-                assert dm.target == 'beta' and dm.kind == 'dm'
-                entered.clear()
-                release.clear()
-                hold_next.set()
-                await dm.submit_input(
-                    input_events.UserInputSubmitted("DIRECT_NATIVE_MESSAGE")
+                await direct_reply_feedback(
+                    pilot, app, comms, owner_mode, project, entered, release, hold_next
                 )
-                await until(pilot, entered.is_set)
-                assert comms.registry.require("beta").executing
-                release.set()
-                await until(
-                    pilot,
-                    lambda: any(
-                        row.sender == "beta" and row.body.startswith("NATIVE_RESPONSE_")
-                        for row, _ in dm.message_history.rows
-                    ),
-                )
-                await until(pilot, lambda: not comms.registry.require("beta").executing)
-                print("DM_NATIVE_REPLY_CONFIRMED", flush=True)
 
                 await notification_feedback(
                     pilot, app, comms, owner_mode, project, entered, release, hold_next

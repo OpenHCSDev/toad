@@ -1,0 +1,205 @@
+{
+  "scope": "SOURCE ONLY future operands; no specific holder/prefix/admission/output reservation",
+  "source_product_pin_checkpoint": "b5825feb",
+  "normal_468_control_parent": "033b4c70a90c20f805138c7de8c0cfe8c7da2673",
+  "current_controls": [
+    {
+      "name": "saved-full",
+      "control": {
+        "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/saved_state_user_journey_pilot.py",
+        "sha256": "4f0948b8fb5fcab6cab12802cf8b5b3cb6498188ce3b67af8a88b787b3865dca"
+      },
+      "argv": [
+        "{future_issued_eligible_prefix}/bin/python",
+        "-B",
+        "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/saved_state_user_journey_pilot.py"
+      ],
+      "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "output": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/saved-full",
+      "environment": {
+        "L0A_EVIDENCE": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/saved-full",
+        "TMPDIR": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/saved-full/scratch",
+        "AC_NATIVE_COPIED_PACKAGE": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "unset": [
+          "PYTHONPATH",
+          "PYTHONHOME",
+          "WORKSPACE_SWITCH_PROFILE"
+        ]
+      },
+      "strength": "Authored localhost replies through original ACP/native owners; full saved acceptance includes warm/non-tail/Undo, adaptive reader, fork-before-first-answer, exact channel question/hidden settlement and original DM open/hidden/return/reopen.",
+      "executed": false,
+      "application_python": "UNBOUND",
+      "output_created": false,
+      "authority": "PROPOSAL ONLY; no stage/App/native/SDK/provider/input or source decoder authority. Each affected purpose must bind its actual argv/environment/floor and original custody before use."
+    },
+    {
+      "name": "mixed-native",
+      "control": {
+        "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/native_session_retention_pilot.py",
+        "sha256": "324ec8636de3a546d3f0e56e1ce3b898c5852522de86eaa1e47354c7f73c36d9"
+      },
+      "argv": [
+        "{future_issued_eligible_prefix}/bin/python",
+        "-B",
+        "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/native_session_retention_pilot.py"
+      ],
+      "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "output": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/mixed-native",
+      "environment": {
+        "L0A_EVIDENCE": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/mixed-native",
+        "TMPDIR": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/mixed-native/scratch",
+        "AC_NATIVE_COPIED_PACKAGE": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "WORKSPACE_COHORTS": "4,16,32,64",
+        "NATIVE_RETENTION_RECEIPT": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/mixed-native/native-retention.json",
+        "unset": [
+          "PYTHONPATH",
+          "PYTHONHOME",
+          "WORKSPACE_SWITCH_PROFILE"
+        ]
+      },
+      "strength": "Authored localhost native queue/owner continuity; logical4/16/32/64 includes exactly TWO genuine loaded histories and blank remainder. Full loaded-history scaling is unfinished.",
+      "executed": false,
+      "application_python": "UNBOUND",
+      "output_created": false,
+      "authority": "PROPOSAL ONLY; no stage/App/native/SDK/provider/input or source decoder authority. Each affected purpose must bind its actual argv/environment/floor and original custody before use."
+    },
+    {
+      "name": "configured-original-warm",
+      "control": {
+        "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/readonly_saved_reader_pilot.py",
+        "sha256": "63c36b3cde89cf899995508cf73c4b193e385826e56a2f79e640349f6cc06c0e"
+      },
+      "argv": [
+        "{future_issued_eligible_prefix}/bin/python",
+        "-B",
+        "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/readonly_saved_reader_pilot.py",
+        "--private-original-warm"
+      ],
+      "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "output": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/configured-original-warm",
+      "environment": {
+        "L0A_EVIDENCE": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/configured-original-warm",
+        "TMPDIR": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/configured-original-warm/scratch",
+        "AC_NATIVE_COPIED_PACKAGE": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "READONLY_READER_EVIDENCE": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/configured-original-warm",
+        "AC_REAL_READ_ONLY_CUSTODY": "1",
+        "AC_REAL_PROVIDER_AUTHORIZED": "Sol/high retained acceptance",
+        "AC_REAL_FIXTURE_STAGE": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/continuous474-configured-original-warm-UNBOUND",
+        "AC_REAL_CORE_HEAD": "3931f16feb8bcb2dbcc3041446ca342dea665024",
+        "AC_REAL_TOAD_HEAD": "{future_frozen_source_equal_Toad_head}",
+        "AC_REAL_SOURCE_ROOT": "{fresh_issued_original_root}",
+        "AC_REAL_SOURCE_OWNER": "{fresh_issued_original_owner}",
+        "AC_REAL_ORIGINAL_PYTHON": "{fresh_issued_original_runtime}/bin/python",
+        "PYTHONPATH": "/home/ts/wt/comms-task-aware-native-bundle-20261002/tools/cutover"
+      },
+      "strength": "Genuine >=40MB configured source copied by original SDK fork, readonly ZEROnewinput; no connected-provider first-answer/notification/queue claim.",
+      "executed": false,
+      "application_python": "UNBOUND",
+      "output_created": false,
+      "authority": "PROPOSAL ONLY; no stage/App/native/SDK/provider/input or source decoder authority. Each affected purpose must bind its actual argv/environment/floor and original custody before use."
+    },
+    {
+      "name": "native-queue-surface",
+      "control": {
+        "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/l0a_native_installed_pilot.py",
+        "sha256": "ac942dd20defe4d8074ffa3a38c1b7428a3b1475ff60ba9a094b41a2c6521a93"
+      },
+      "argv": [
+        "{future_issued_eligible_prefix}/bin/python",
+        "-B",
+        "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/l0a_native_installed_pilot.py",
+        "--retire-surface"
+      ],
+      "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "output": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/native-queue-surface",
+      "environment": {
+        "L0A_EVIDENCE": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/native-queue-surface",
+        "TMPDIR": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/native-queue-surface/scratch",
+        "AC_NATIVE_COPIED_PACKAGE": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "unset": [
+          "PYTHONPATH",
+          "PYTHONHOME",
+          "WORKSPACE_SWITCH_PROFILE"
+        ]
+      },
+      "strength": "Original authored localhost busy-input/queue/projection/native-disposition/warm-source/cold-attachment path; separate existing entrypoint, not claimed integrated into the single full saved journey.",
+      "executed": false,
+      "application_python": "UNBOUND",
+      "output_created": false,
+      "authority": "PROPOSAL ONLY; no stage/App/native/SDK/provider/input or source decoder authority. Each affected purpose must bind its actual argv/environment/floor and original custody before use."
+    }
+  ],
+  "helper_hashes": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/viewport_recent_tabs_pilot.py",
+      "sha256": "41f3ebb0c2638ccd2fff76c619fcd305c2617f6ceb460308d960935f1c6baec5"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/thread_navigation_installed_journey.py",
+      "sha256": "a17e26de602e8765f48ea22db169f42a9e48a1b46af68560807c03a807cbcc07"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/runtime_fixture.py",
+      "sha256": "c34f37f450a02f09d344352466431744892a0c788953212da5ac434d912e3315"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/original_turn_resource_real_installed_pilot.py",
+      "sha256": "6ddc46989485b6f794fd647dbf242a84f36fd6bf5ef8841f1863e1625efb5c39"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/readonly_saved_reader_pilot.py",
+      "sha256": "63c36b3cde89cf899995508cf73c4b193e385826e56a2f79e640349f6cc06c0e"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/native_session_retention_pilot.py",
+      "sha256": "324ec8636de3a546d3f0e56e1ce3b898c5852522de86eaa1e47354c7f73c36d9"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/manual_live_turn_status.py",
+      "sha256": "f333da956fcc9e367f993853aa3daabbaea8d4278feed24eaa644d51c74e48fa"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/sidebar_custody_installed_journey.py",
+      "sha256": "4129374d5a94a5c0ba743a05bce36f75b09eaa09677d33d7c0311a9280c7af92"
+    }
+  ],
+  "native_package_operand": {
+    "path": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+    "manifest": "7a2e4aabdbc5af49dd9af942190d92086df2eb3489903674a74af51cf831cd33",
+    "READ_EXEC": "UNBOUND. Actual selected Core/native proof and originalSch matching authority required by future purpose; no086 or old07 lease inheritance."
+  },
+  "configured_source_decoder": {
+    "owner": "CurrentTypedCapture/RetainedOwnerLaunch",
+    "helper_root": "/home/ts/wt/comms-task-aware-native-bundle-20261002/tools/cutover",
+    "original_python": "UNBOUND at actual future issue; do not inherit oldstyle22/public485",
+    "owner/root/model/thinking/incarnation/hash": "Fresh original typed capture/owner records and at-use fence; registry locator is not PID proof",
+    "configured_fixture_literal": "Sol/high retained acceptance is required by original fixture while readonly1/inputs[] prevent input; no provider/model change authority"
+  },
+  "installed_cohort": {
+    "Core": "3931/retained3fe355",
+    "Toad": "merged460319 with new truthful Core3931 source locator; final normal wheel UNBUILT",
+    "Text": "native71a2dd/bc47266",
+    "Diff": "original8fa7,3",
+    "NRA": "original8d,10",
+    "sources": 953,
+    "packages": 69,
+    "origins": "Must bind actual fresh floor and all truthful candidate/full69 origins; no old1470/style22 floor assumption"
+  },
+  "observer_witness_lifetime": "Retain original prepared page/fragment/fragment_view/render-cache/reader/editor identity through unchanged-return assertions. Native checkpointdict finally.clear/del precedes new input/resources; saved finally.clear followed by function return ends local witnesses. No blank-tab loaded credit or fresh capture after unchanged return.",
+  "remaining_single_configured_continuous_journey": "Saved/unopened/channel/tab/fork-before-answer/reply/DM/notification/handling/queue/status/history all need the original single coherent configured workflow. Above authoredlocalhost and readonly scopes cover distinct operands only; native queue and canonical wire/IRC proof are separate existing controls, not a new full configured acceptance.",
+  "remaining_performance": [
+    "genuine fullyloaded4/16/32/64 histories",
+    "held scroll velocity/reversal/growingEnd and coldwidth",
+    "startup-to-firstuseful and stableviewport completion",
+    "input/changedbody/video/frame cadence with measuredCPU and comparablebaseline; no FPS or gain inferred from writer acknowledgments"
+  ],
+  "preservation": "Consumed446 failures, original033b/468 and frozen07 source/raw/wheels/SDK/movies remain historical. No accepted07/466/ordinary18 rerun or new harness."
+}

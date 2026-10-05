@@ -1,0 +1,88 @@
+{
+  "scope": "SOURCE ONLY; continuous468 normal adoption, no App/provider/native/prefix operation",
+  "base_main": "5fc73b1bae18589ecece92568f4b4d58fe8fe8f2",
+  "receiving_pin_checkpoint": "b5825feb",
+  "normal_continuous_source_parent": "033b4c70a90c20f805138c7de8c0cfe8c7da2673",
+  "original_468": "7e61cd22b692e36dacd6653985e796957bb03265",
+  "source_tree": "e6104ace6f6c1178303366d5fb65dc518ee43da5",
+  "coverage": {
+    "src/toad": {
+      "before_modules": 288,
+      "after_modules": 288,
+      "before_omissions": [],
+      "after_omissions": []
+    },
+    "tests": {
+      "before_modules": 399,
+      "after_modules": 399,
+      "before_omissions": [],
+      "after_omissions": []
+    },
+    "tools": {
+      "before_modules": 40,
+      "after_modules": 40,
+      "before_omissions": [],
+      "after_omissions": []
+    },
+    "selectedCore3931": {
+      "modules": 324,
+      "omissions": []
+    },
+    "native71Text": {
+      "modules": 249,
+      "omissions": []
+    }
+  },
+  "controls": [
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "sha256": "ac942dd20defe4d8074ffa3a38c1b7428a3b1475ff60ba9a094b41a2c6521a93",
+      "compile_without_application_import": true
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "sha256": "4f0948b8fb5fcab6cab12802cf8b5b3cb6498188ce3b67af8a88b787b3865dca",
+      "compile_without_application_import": true
+    },
+    {
+      "path": "tests/sidebar_custody_installed_journey.py",
+      "sha256": "4129374d5a94a5c0ba743a05bce36f75b09eaa09677d33d7c0311a9280c7af92",
+      "compile_without_application_import": true
+    }
+  ],
+  "preserved_producers": [
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "declaration": "selected_triage_reply",
+      "AST_equal_original_a69": true
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "declaration": "streamed_reply",
+      "AST_equal_original_a69": true
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "declaration": "prepare_saved_state",
+      "AST_equal_original_a69": true
+    }
+  ],
+  "managed_turn_migration": {
+    "old": "agent._active_turn_id",
+    "new": "agent.current_turn.managed_id",
+    "owner": "ACPAgent.current_turn -> AgentPresentation.turns.owner -> ManagedTurn.state.managed_id",
+    "qualifier": "l0a.main retire_surface; same native process/queue identity, view busy count and actual managed turn assertions retained",
+    "consumer_delta_vs033b": "exactly one attribute chain replacement",
+    "production_delta": 0,
+    "remaining_historical_consumers": "Mendel472 owns separate MCP/typed fixture migration; no edits here"
+  },
+  "observer_custody": "Existing446 ReaderCheckpoint remains genuine identities through unchanged returns/non-tail/draft/Undo; native checkpoints.clear and del BEFORE input/resource counts, saved finally.clear/function return. No rebuilt witness baseline on return.",
+  "receiving_independence": "All319 merged460 product assets and new Core3931 pin metadata unchanged by this control adoption. Selected3fe/native71bc47; amended ToAd artifact still unbuilt. No frozen07 receipt/wheel mutation.",
+  "runtime_qualification": "UNRUN. Original446 savedFAIL49.474s plus later negatives preserved; mixed/configured UNRUN under consumed446. Original07 scoped motion PASS is independent.",
+  "remaining": [
+    "Full saved continuous authoredlocalhost journey has DM/hidden/reopened+channel exact-reference assertions but busy queue/direct input/projection control remains a distinct original l0a entrypoint; one configured continuous union still unfinished",
+    "4/16/32/64 mixed cohorts contain TWO genuine loaded histories and blank remainder, not full loaded-history scaling",
+    "Configured original>=40MB private readonly fork is ZEROnewinput, not connected provider/first-answer/fullqueue qualification",
+    "Held scroll/velocity/growingEnd/coldwidth/frame/CPU/baseline performance remain separate future qualification"
+  ]
+}

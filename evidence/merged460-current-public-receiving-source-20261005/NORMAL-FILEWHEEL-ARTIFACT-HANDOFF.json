@@ -1,0 +1,115 @@
+{
+  "authority": "Parent explicit ONE normal cachedHatch1.28/no-isolation build from frozen474 b687; consumed1/exit0, no repeat",
+  "source_head": "b687d6e3829735b75ed62294c271f514b4df5da8",
+  "source_relation_sha256": "ddd59e7c020b16335b18a6ac730567e77ac9e68a9baa25569f12fb212e2e45b2",
+  "current_source_head_before_evidence": "b687d6e3829735b75ed62294c271f514b4df5da8",
+  "wheel": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/merged460-current-public-receiving-source-20261005/filewheel/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "2ece83e34b795f09652e30e67bfa9bafcdc08d7a0812e9e6a122ce2a708cb217",
+    "bytes": 2251136
+  },
+  "source_root_equality": {
+    "Git_local_ZIP_assets": 319,
+    "RECORD_rows_verified": 324,
+    "root_before_after_equal": true,
+    "root_sha256": {
+      "pyproject.toml": "bd8ffc54903d895903260c67614a2c876d1a59b3ebea03460a2db421ba658cfa",
+      "uv.lock": "2374d074eef0d436acd483473de7aa57b6219f2e87055a0fb2d1eea352f4a9a9",
+      "README.md": "11b3f5195acb00a19a73229749e2e71ba924314a8b1c650f05a2bf43f537d35d",
+      "LICENSE": "4df3c306dddaaf4baffdff5ca820cc679ac8cd6dc263c6a74517783e42fa7a3b"
+    },
+    "missing": [],
+    "mismatches": [],
+    "extras": []
+  },
+  "actual_build": {
+    "exit_code": 0,
+    "seconds": 0.610557452077046,
+    "pid": 2064059,
+    "birth": 71716207,
+    "child_waited": true,
+    "proc_absent": true,
+    "backend_version": "1.28.0",
+    "command": [
+      "/usr/bin/python",
+      "-B",
+      "-m",
+      "build",
+      "--wheel",
+      "--no-isolation",
+      "--outdir",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/merged460-current-public-receiving-source-20261005/filewheel/wheel"
+    ]
+  },
+  "original_proof_refs": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/merged460-current-public-receiving-source-20261005/filewheel/preflight.json",
+      "sha256": "b3a0d58350438e3ce2358cf9f243f3b96ae53382c8a4922ff411ad481d2a008c",
+      "bytes": 1104
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/merged460-current-public-receiving-source-20261005/filewheel/attempt-started.json",
+      "sha256": "5fdd0dbe359cbcafe12ce55d953b96d2677558b6989daeb0bbdcb92da5422667",
+      "bytes": 750
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/merged460-current-public-receiving-source-20261005/filewheel/build-handle.json",
+      "sha256": "80e6d1c3e21e71239823546383d19f7b2a2a78cddb85484117f43c5166150ef8",
+      "bytes": 311
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/merged460-current-public-receiving-source-20261005/filewheel/build-receipt.json",
+      "sha256": "3aa5e3cd0d3fa0d5ea25d612e481e018669396295ce2ae1f7728d9637f2e01d4",
+      "bytes": 1048
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/merged460-current-public-receiving-source-20261005/filewheel/build.stdout.txt",
+      "sha256": "09049bfdb8c6302bdc8573999e5117ee50cbc2177c1ad275f262c6e230e9ee3e",
+      "bytes": 59
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/merged460-current-public-receiving-source-20261005/filewheel/build.stderr.txt",
+      "sha256": "3fbf5c81df4d6f7774a09a7694742996e64ed07ccaea033ef3d34574059a981c",
+      "bytes": 62
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/merged460-current-public-receiving-source-20261005/filewheel/toad-inventory.json",
+      "sha256": "e74a776643e30f74748c1334e01c75ce568e04f10a2bef022f2b782a8b63eba7",
+      "bytes": 107831
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/merged460-current-public-receiving-source-20261005/filewheel/record-proof.json",
+      "sha256": "c6e0b904a2a78c0d2e0c71fc56c3f529cb9456e5cbf031f10b82bae6c8809b40",
+      "bytes": 92028
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/merged460-current-public-receiving-source-20261005/filewheel/wheel-proof.json",
+      "sha256": "98867bca2ee781965a5a6636e1ff9de95a777a96e84031c1446b14d576ff6a56",
+      "bytes": 3630
+    }
+  ],
+  "effective_receiving_inputs": {
+    "Core": "3931f16feb8bcb2dbcc3041446ca342dea665024",
+    "Core_wheel_sha256": "3fe14077293b691000394831ed7458ecae92afd9b667af4501be2945ab86051d",
+    "Toad_new_normal_build_head": "b687d6e3829735b75ed62294c271f514b4df5da8",
+    "Toad_new_normal_wheel_sha256": "2ece83e34b795f09652e30e67bfa9bafcdc08d7a0812e9e6a122ce2a708cb217",
+    "Text": "a2dd8a9a37825a828df0d8f651ca57d92db69e5f",
+    "Text_wheel_sha256": "bc47c59ea7db78a9a443c5f5e3f10836660957f21bb998d2ffa3ae8e4a2ddbe3",
+    "NRA": "retained8d10",
+    "Diff": "retained8fa7,3",
+    "full_sources": 953,
+    "packages": 69
+  },
+  "original_receiver": "OriginalSch existing receiving owner; amendment binds only previously UNBOUND normal-Toad artifact/root provenance. Actual floor/grant/typed source/runtime/schema/publication admission remain unbound and separately owned.",
+  "same_archive_different_provenance": "New normal build yielded byte-identical2ece; uv Core locator is outside wheel METADATA. New b687/Core3931 pyproject+uv root hashes and build receipt establish new provenance. Historical2ece/25dae proof remains immutable/not relabeled.",
+  "preservation": "Old2ece/raw07, old source relations ddd59e/receiver3638, previous failures/SDK journals/movie held untouched; no accepted controls repeated.",
+  "operations_not_performed": [
+    "Core/Text/native builds",
+    "dependency resolution/new environment",
+    "package stage or prefix import",
+    "App or continuous controls",
+    "SDK/native/provider/input",
+    "public operation/publication"
+  ],
+  "remaining": "Existing receiver prepares future eligible package proof/custody/receiving qualification; no new permissions from artifact delivery. Continuous controls compiled previously only; configured journey/loaded/frame/CPU claims unfinished."
+}

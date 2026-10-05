@@ -1,0 +1,2412 @@
+{
+  "coverage": [
+    {
+      "repository": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "revision": "cac7268a733f62f6db57580fd63b64abd52be359",
+      "root": "src/toad",
+      "parsed": 288,
+      "unparsed": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "revision": "cac7268a733f62f6db57580fd63b64abd52be359",
+      "root": "tests",
+      "parsed": 398,
+      "unparsed": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "revision": "cac7268a733f62f6db57580fd63b64abd52be359",
+      "root": "tools",
+      "parsed": 41,
+      "unparsed": []
+    },
+    {
+      "repository": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "revision": "d9f7d445727d7939bf8c170ee2fd286c750795ee",
+      "root": "src/agent_comms",
+      "parsed": 324,
+      "unparsed": []
+    },
+    {
+      "repository": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "revision": "d9f7d445727d7939bf8c170ee2fd286c750795ee",
+      "root": "tests",
+      "parsed": 373,
+      "unparsed": []
+    }
+  ],
+  "sites": [
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/acp/agent_controller.py",
+      "line": 23,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import PromptRequest, QueuePromptRequest, ClearQueueRequest, SendNowRequest, CompactRequest, InputFailedUpdate, encode_request"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/acp/agent_controller.py",
+      "line": 205,
+      "kind": "call",
+      "source": "QueuePromptRequest(prompt)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/acp/comms_updates.py",
+      "line": 7,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import ContextAnnotatedUpdate, CompactionChangedUpdate, CompactionCommittedUpdate, CompactionPublishedUpdate, CoordinationChangedUpdate, CursorAdvancedUpdate, GoalChangedUpdate, InputDeliveryChangedUpdate, InputFailedUpdate, InputStartedUpdate, PromptCancelledUpdate, McpClientReceiptUpdate, QueueChangedUpdate, RequestFailedUpdate, SelectedWriteAcceptedUpdate, TextRouteUpdate, TranscriptChangedUpdate, TranscriptSnapshotUpdate, TurnChangedUpdate, decode_updates"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/conversation_kind.py",
+      "line": 139,
+      "kind": "declaration",
+      "source": "class ChannelConversation(ConversationKind):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/conversation_kind.py",
+      "line": 258,
+      "kind": "declaration",
+      "source": "class DmConversation(ConversationKind):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/conversation_kind.py",
+      "line": 15,
+      "kind": "declaration",
+      "source": "@classmethod"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/conversation_kind.py",
+      "line": 268,
+      "kind": "declaration",
+      "source": "@classmethod"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/conversation_kind.py",
+      "line": 66,
+      "kind": "import",
+      "source": "from toad.navigation_target import DirectTarget"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/conversation_kind.py",
+      "line": 73,
+      "kind": "call",
+      "source": "DirectTarget(peers[0])"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/conversation_submission.py",
+      "line": 10,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import InputStartedUpdate, QueuePromptRequest, SteerPromptRequest"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/conversation_submission.py",
+      "line": 131,
+      "kind": "call",
+      "source": "QueuePromptRequest(self.text)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/conversation_submission.py",
+      "line": 145,
+      "kind": "call",
+      "source": "QueuePromptRequest(self.text, True)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/conversation_turn.py",
+      "line": 6,
+      "kind": "import",
+      "source": "from agent_comms.turn_lease import TurnState"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/conversation_turn.py",
+      "line": 99,
+      "kind": "call",
+      "source": "TurnState()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/navigation_preparation.py",
+      "line": 84,
+      "kind": "import",
+      "source": "from toad.navigation_target import DirectTarget"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/navigation_preparation.py",
+      "line": 59,
+      "kind": "call",
+      "source": "self.kind.admitted_threads(comms.registry.snapshot(), me, target)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/navigation_preparation.py",
+      "line": 86,
+      "kind": "call",
+      "source": "DirectTarget(self.thread.name)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/navigation_target.py",
+      "line": 13,
+      "kind": "import",
+      "source": "from toad.conversation_kind import ConversationKind, ChannelConversation, DmConversation, IrcConversation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/navigation_target.py",
+      "line": 127,
+      "kind": "declaration",
+      "source": "class DirectTarget(HistoryTarget):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/navigation_target.py",
+      "line": 154,
+      "kind": "call",
+      "source": "DirectTarget(self.person.thread.name)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/navigation_target.py",
+      "line": 158,
+      "kind": "call",
+      "source": "DirectTarget(name)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/permission_presentation.py",
+      "line": 21,
+      "kind": "kind_decision",
+      "source": "(presentation := member.admit(tool_call.kind, title, content)) is not None"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/screens/comms.py",
+      "line": 20,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/screens/comms.py",
+      "line": 143,
+      "kind": "call",
+      "source": "CommsChatView(self.project_path, me=self.me, target=self.target, kind=self.kind, wire_root=self.wire_root)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/screens/historical_sessions.py",
+      "line": 171,
+      "kind": "call",
+      "source": "original.views.message_notifications(messages[start:start + MessageNotification.window_limit])"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/screens/main.py",
+      "line": 50,
+      "kind": "import",
+      "source": "from toad.navigation_target import FeedTarget, DirectTarget"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/screens/main.py",
+      "line": 407,
+      "kind": "call",
+      "source": "DirectTarget(target)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/session_admission.py",
+      "line": 56,
+      "kind": "declaration",
+      "source": "def original_threads(self, sessions: SessionAdmissions) -> tuple[tuple[str, ThreadIncarnation], ...]:"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/session_admission.py",
+      "line": 89,
+      "kind": "declaration",
+      "source": "def original_threads(self, sessions):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/session_admission.py",
+      "line": 166,
+      "kind": "declaration",
+      "source": "def original_threads(self, sessions):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/session_admission.py",
+      "line": 116,
+      "kind": "call",
+      "source": "self.original_threads(sessions)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/session_navigation.py",
+      "line": 207,
+      "kind": "declaration",
+      "source": "async def close_many(self, modes: tuple[str, ...]) -> None:"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/session_navigation.py",
+      "line": 205,
+      "kind": "call",
+      "source": "self.close_many((mode,))"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/session_navigation.py",
+      "line": 266,
+      "kind": "call",
+      "source": "self.close_many(removed)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/session_navigation.py",
+      "line": 236,
+      "kind": "call",
+      "source": "member.original_threads(self)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/widgets/comms_chat.py",
+      "line": 40,
+      "kind": "import",
+      "source": "from toad.widgets.message_notifications import MessageNotifications"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/widgets/comms_chat.py",
+      "line": 95,
+      "kind": "declaration",
+      "source": "class CommsChatView(DeliveryFailureView, Conversation):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/widgets/incoming_message.py",
+      "line": 14,
+      "kind": "import",
+      "source": "from toad.widgets.message_notifications import MessageNotifications"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/widgets/incoming_message.py",
+      "line": 51,
+      "kind": "call",
+      "source": "MessageNotifications()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/widgets/irc_message.py",
+      "line": 20,
+      "kind": "import",
+      "source": "from toad.widgets.message_notifications import MessageNotifications"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/widgets/irc_message.py",
+      "line": 90,
+      "kind": "call",
+      "source": "MessageNotifications()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/widgets/message_notifications.py",
+      "line": 10,
+      "kind": "declaration",
+      "source": "class MessageNotifications(Collapsible):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/widgets/outgoing_message.py",
+      "line": 12,
+      "kind": "import",
+      "source": "from toad.widgets.message_notifications import MessageNotifications"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/widgets/outgoing_message.py",
+      "line": 38,
+      "kind": "call",
+      "source": "MessageNotifications()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/widgets/wire_message_handling.py",
+      "line": 35,
+      "kind": "import",
+      "source": "from toad.widgets.message_notifications import MessageNotifications"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "src/toad/widgets/wire_message_handling.py",
+      "line": 42,
+      "kind": "import",
+      "source": "from toad.widgets.message_notifications import MessageNotifications"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/admission_scope_installed_pilot.py",
+      "line": 25,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/agent_configuration_native_installed_pilot.py",
+      "line": 16,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/async_tab_activation_pilot.py",
+      "line": 15,
+      "kind": "import",
+      "source": "from toad.conversation_kind import ConversationKind, ChannelConversation, DmConversation, IrcConversation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/async_tab_activation_pilot.py",
+      "line": 17,
+      "kind": "import",
+      "source": "from toad.navigation_target import NavigationContext, ThreadTarget, ChannelTarget, DirectTarget, FeedTarget"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/backend_failure_feedback_installed_journey.py",
+      "line": 13,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/blank_presentation_pilot.py",
+      "line": 340,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView, session_thread_name"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/blank_presentation_pilot.py",
+      "line": 342,
+      "kind": "import",
+      "source": "from toad.conversation_kind import ChannelConversation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 33,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 35,
+      "kind": "import",
+      "source": "from toad.widgets.message_notifications import MessageNotifications"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 333,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 376,
+      "kind": "call",
+      "source": "comms.views.message_notifications((original,))"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 394,
+      "kind": "call",
+      "source": "comms.views.message_notifications((original,))"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 32,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 35,
+      "kind": "import",
+      "source": "from toad.widgets.message_notifications import MessageNotifications"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 161,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/channel_any_mode_ui_pilot.py",
+      "line": 15,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/channel_display_basis_pilot.py",
+      "line": 16,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/channel_history_reader_pilot.py",
+      "line": 14,
+      "kind": "import",
+      "source": "from toad.conversation_kind import ChannelConversation, DmConversation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/channel_mentions_pilot.py",
+      "line": 15,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/channel_partial_paint_pilot.py",
+      "line": 17,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/channel_retirement_pilot.py",
+      "line": 18,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/channel_scope_expansion_pilot.py",
+      "line": 15,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/channel_unread_follow_pilot.py",
+      "line": 15,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/channel_visibility_observation_pilot.py",
+      "line": 14,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/channel_visibility_pilot.py",
+      "line": 73,
+      "kind": "kind_decision",
+      "source": "group._members['archived'].kind == 'dm'"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/channel_visibility_pilot.py",
+      "line": 83,
+      "kind": "kind_decision",
+      "source": "app.screen.kind == 'dm'"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/client_session_native_installed_pilot.py",
+      "line": 16,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/command_family_pilot.py",
+      "line": 20,
+      "kind": "import",
+      "source": "from saved_state_user_journey_pilot import prepare_saved_state"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/command_family_pilot.py",
+      "line": 23,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/command_family_pilot.py",
+      "line": 48,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/comms_pilot.py",
+      "line": 14,
+      "kind": "import",
+      "source": "from toad.navigation_target import DirectTarget"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/comms_pilot.py",
+      "line": 48,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/comms_pilot.py",
+      "line": 826,
+      "kind": "kind_decision",
+      "source": "app.screen.kind == 'dm'"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/comms_pilot.py",
+      "line": 855,
+      "kind": "kind_decision",
+      "source": "app.screen.kind == 'dm'"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/comms_pilot.py",
+      "line": 553,
+      "kind": "call",
+      "source": "DirectTarget('missing-peer')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/comms_scene_latency_pilot.py",
+      "line": 17,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView, session_thread_name"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 96,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, *_args):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/context_compaction_native_installed_pilot.py",
+      "line": 23,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/context_native_installed_pilot.py",
+      "line": 15,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/conversation_kind_pilot.py",
+      "line": 9,
+      "kind": "import",
+      "source": "from toad.conversation_kind import ConversationKind, ChannelConversation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/core_events_native_installed_pilot.py",
+      "line": 23,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/declared_target_actions_installed_pilot.py",
+      "line": 26,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/declared_target_actions_installed_pilot.py",
+      "line": 141,
+      "kind": "import",
+      "source": "from toad.conversation_kind import DmConversation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/declared_target_actions_installed_pilot.py",
+      "line": 159,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, actor, comms, _entered, _release, _hold, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/declared_target_actions_installed_pilot.py",
+      "line": 241,
+      "kind": "import",
+      "source": "from toad.conversation_kind import DmConversation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/declared_target_actions_installed_pilot.py",
+      "line": 246,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, actor, comms, _entered, _release, _hold, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/declared_target_actions_installed_pilot.py",
+      "line": 430,
+      "kind": "import",
+      "source": "from toad.conversation_kind import DmConversation"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/default_route_admission_pilot.py",
+      "line": 34,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/default_route_cancel_pilot.py",
+      "line": 7,
+      "kind": "import",
+      "source": "from toad.navigation_target import DirectTarget, channel_target"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/default_route_cancel_pilot.py",
+      "line": 21,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/default_route_cancel_pilot.py",
+      "line": 51,
+      "kind": "call",
+      "source": "DirectTarget('peer')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/default_route_pilot.py",
+      "line": 35,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/divider_unread_paint_pilot.py",
+      "line": 16,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/dm_rebind_paint_pilot.py",
+      "line": 4,
+      "kind": "import",
+      "source": "from toad.navigation_target import DirectTarget"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/dm_rebind_paint_pilot.py",
+      "line": 18,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/dm_rebind_paint_pilot.py",
+      "line": 55,
+      "kind": "call",
+      "source": "DirectTarget('peer')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/existing_thread_link_pilot.py",
+      "line": 4,
+      "kind": "import",
+      "source": "from toad.navigation_target import DirectTarget"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/existing_thread_link_pilot.py",
+      "line": 17,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/existing_thread_link_pilot.py",
+      "line": 97,
+      "kind": "call",
+      "source": "DirectTarget('peer')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/external_cli_native_installed_pilot.py",
+      "line": 31,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/external_cli_native_installed_pilot.py",
+      "line": 33,
+      "kind": "import",
+      "source": "from toad.widgets.message_notifications import MessageNotifications"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/external_cli_native_installed_pilot.py",
+      "line": 123,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/external_cli_native_installed_pilot.py",
+      "line": 186,
+      "kind": "kind_decision",
+      "source": "peer_dm.kind == 'dm'"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/external_cli_native_installed_pilot.py",
+      "line": 197,
+      "kind": "kind_decision",
+      "source": "dm.kind == 'dm'"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/file_path_preview_pilot.py",
+      "line": 20,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/first_fork_native_installed_pilot.py",
+      "line": 147,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/goal_pause_owner_pilot.py",
+      "line": 67,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/goal_state_installed_journey.py",
+      "line": 15,
+      "kind": "import",
+      "source": "from saved_state_user_journey_pilot import click_tab, click_thread, prepare_saved_state, screen_paint, submit_editor"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/goal_state_installed_journey.py",
+      "line": 23,
+      "kind": "import",
+      "source": "from manual_live_turn_status import require_current_activity"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/goal_state_installed_journey.py",
+      "line": 38,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/goal_state_installed_journey.py",
+      "line": 121,
+      "kind": "call",
+      "source": "require_current_activity(first)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/goal_state_installed_journey.py",
+      "line": 141,
+      "kind": "call",
+      "source": "require_current_activity(child_screen)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/goal_state_installed_journey.py",
+      "line": 34,
+      "kind": "call",
+      "source": "prepare_saved_state(*args)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/historical_views_pilot.py",
+      "line": 19,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/historical_views_pilot.py",
+      "line": 186,
+      "kind": "import",
+      "source": "from toad.widgets.message_notifications import MessageNotifications"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/historical_views_pilot.py",
+      "line": 267,
+      "kind": "call",
+      "source": "original_service.views.message_notifications(messages)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/history_edge_scheduling_pilot.py",
+      "line": 26,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/history_scroll_frames_pilot.py",
+      "line": 18,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/history_stationary_local_runway_pilot.py",
+      "line": 278,
+      "kind": "import",
+      "source": "from markdown_return_reuse_pilot import acceptance"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/history_stationary_local_runway_pilot.py",
+      "line": 283,
+      "kind": "call",
+      "source": "acceptance(app, pilot)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/inbound_history_reprojection_installed_pilot.py",
+      "line": 10,
+      "kind": "import",
+      "source": "from toad.widgets.message_notifications import MessageNotifications"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/inbound_history_reprojection_installed_pilot.py",
+      "line": 34,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/independent_native_writer_pilot.py",
+      "line": 157,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/input_failure_pilot.py",
+      "line": 1,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import InputFailedUpdate, QueuePromptRequest, encode_updates"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/input_failure_pilot.py",
+      "line": 83,
+      "kind": "call",
+      "source": "QueuePromptRequest('rpc prompt')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/input_history_native_installed_pilot.py",
+      "line": 9,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/input_visibility_native_installed_pilot.py",
+      "line": 28,
+      "kind": "import",
+      "source": "from first_fork_native_installed_pilot import InstalledApp as ForkApp, acceptance as fork_acceptance"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/input_visibility_native_installed_pilot.py",
+      "line": 205,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/l0a_native_installed_pilot.py",
+      "line": 4,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import QueuePromptRequest"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/l0a_native_installed_pilot.py",
+      "line": 8,
+      "kind": "import",
+      "source": "from toad.navigation_target import DirectTarget, channel_target"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/l0a_native_installed_pilot.py",
+      "line": 33,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/l0a_native_installed_pilot.py",
+      "line": 35,
+      "kind": "import",
+      "source": "from toad.widgets.message_notifications import MessageNotifications"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/l0a_native_installed_pilot.py",
+      "line": 58,
+      "kind": "declaration",
+      "source": "async def notification_feedback(pilot, app, comms, owner_mode, project, entered, release, hold_next):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/l0a_native_installed_pilot.py",
+      "line": 65,
+      "kind": "kind_decision",
+      "source": "channel.kind == 'channel'"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/l0a_native_installed_pilot.py",
+      "line": 97,
+      "kind": "call",
+      "source": "comms.views.message_notifications(tuple((m for m, _ in channel.message_history.rows)))"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/l0a_native_installed_pilot.py",
+      "line": 486,
+      "kind": "kind_decision",
+      "source": "dm.kind == 'dm'"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/l0a_native_installed_pilot.py",
+      "line": 506,
+      "kind": "call",
+      "source": "notification_feedback(pilot, app, comms, owner_mode, project, entered, release, hold_next)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/l0a_native_installed_pilot.py",
+      "line": 332,
+      "kind": "call",
+      "source": "notification_feedback(pilot, app, comms, owner_mode, project, entered, release, hold_next)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/l0a_native_installed_pilot.py",
+      "line": 313,
+      "kind": "call",
+      "source": "acceptance(app, pilot, agent, comms, entered, release, hold_next, requests)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/l0a_native_installed_pilot.py",
+      "line": 483,
+      "kind": "call",
+      "source": "DirectTarget('beta')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/l0a_native_installed_pilot.py",
+      "line": 387,
+      "kind": "call",
+      "source": "QueuePromptRequest('QUEUED_NATIVE_INPUT', True)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/late_native_after_join_pilot.py",
+      "line": 17,
+      "kind": "import",
+      "source": "from agent_comms.turn_lease import ActiveTurn, TurnState"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/late_native_after_join_pilot.py",
+      "line": 80,
+      "kind": "call",
+      "source": "TurnState(ActiveTurn('original-turn', os.getpid(), phase=PublishingPhase()))"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/late_native_after_join_pilot.py",
+      "line": 111,
+      "kind": "call",
+      "source": "TurnState(finished_turn_id='original-turn')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/late_native_application_pilot.py",
+      "line": 17,
+      "kind": "import",
+      "source": "from agent_comms.turn_lease import ActiveTurn, TurnState"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/late_native_application_pilot.py",
+      "line": 80,
+      "kind": "call",
+      "source": "TurnState(ActiveTurn('original-turn', os.getpid(), phase=PublishingPhase()))"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/late_native_application_pilot.py",
+      "line": 100,
+      "kind": "call",
+      "source": "TurnState(finished_turn_id='original-turn')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/manual_live_turn_status.py",
+      "line": 63,
+      "kind": "declaration",
+      "source": "def require_current_activity(source):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/manual_live_turn_status.py",
+      "line": 149,
+      "kind": "call",
+      "source": "require_current_activity(second)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/manual_live_turn_status.py",
+      "line": 153,
+      "kind": "call",
+      "source": "require_current_activity(first)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/manual_live_turn_status.py",
+      "line": 131,
+      "kind": "call",
+      "source": "require_current_activity(first)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/manual_live_turn_status.py",
+      "line": 134,
+      "kind": "call",
+      "source": "require_current_activity(second)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/manual_live_turn_status.py",
+      "line": 143,
+      "kind": "call",
+      "source": "require_current_activity(first)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/markdown_return_reuse_pilot.py",
+      "line": 136,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, *, page_and_wheel=True):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/markdown_return_reuse_pilot.py",
+      "line": 220,
+      "kind": "call",
+      "source": "acceptance(app, pilot, page_and_wheel=page_and_wheel)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/message_dividers_pilot.py",
+      "line": 23,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView, session_thread_name"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/message_notifications_pilot.py",
+      "line": 21,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/message_notifications_pilot.py",
+      "line": 22,
+      "kind": "import",
+      "source": "from toad.widgets.message_notifications import MessageNotifications"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/native_loaded_return_cache_pilot.py",
+      "line": 184,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, beta, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/native_return_anchor_trace.py",
+      "line": 11,
+      "kind": "import",
+      "source": "from native_loaded_return_cache_pilot import PaintedReturnApp, acceptance"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/native_session_retention_pilot.py",
+      "line": 1,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import QueuePromptRequest"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/native_session_retention_pilot.py",
+      "line": 113,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/native_session_retention_pilot.py",
+      "line": 212,
+      "kind": "call",
+      "source": "QueuePromptRequest(f'QUEUED_AT_{count}', True)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/native_terminal_retention_pilot.py",
+      "line": 37,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/native_tool_output_pilot.py",
+      "line": 50,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/native_widget_actions_installed_pilot.py",
+      "line": 33,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/observed_thread_activity_pilot.py",
+      "line": 4,
+      "kind": "import",
+      "source": "from toad.navigation_target import DirectTarget"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/observed_thread_activity_pilot.py",
+      "line": 24,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/observed_thread_activity_pilot.py",
+      "line": 127,
+      "kind": "call",
+      "source": "DirectTarget('dm-peer')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/original_stream_headers_installed_pilot.py",
+      "line": 44,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/owner_replacement_recovery_installed_pilot.py",
+      "line": 76,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/post_cancel_session_installed_journey.py",
+      "line": 29,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/queue_admission_pilot.py",
+      "line": 15,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import InputDeliveryChangedUpdate, InputStartedUpdate, QueuePromptRequest, decode_updates, encode_request"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/queue_admission_pilot.py",
+      "line": 108,
+      "kind": "call",
+      "source": "QueuePromptRequest(text, True)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/receiver_inbound_installed_pilot.py",
+      "line": 11,
+      "kind": "import",
+      "source": "from toad.widgets.message_notifications import MessageNotifications"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/receiver_inbound_installed_pilot.py",
+      "line": 19,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms: Comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/reconnect_source_native_installed_pilot.py",
+      "line": 27,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/response_source_custody_pilot.py",
+      "line": 13,
+      "kind": "import",
+      "source": "from agent_comms.turn_lease import ActiveTurn, TurnState"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/response_source_custody_pilot.py",
+      "line": 65,
+      "kind": "call",
+      "source": "TurnState(ActiveTurn('source-turn', os.getpid(), phase=PublishingPhase()))"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/response_source_custody_pilot.py",
+      "line": 117,
+      "kind": "call",
+      "source": "TurnState(finished_turn_id='source-turn')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/response_source_custody_pilot.py",
+      "line": 144,
+      "kind": "call",
+      "source": "TurnState(ActiveTurn('next-turn', os.getpid(), phase=PublishingPhase()))"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/restored_inbound_continuous_installed_pilot.py",
+      "line": 19,
+      "kind": "import",
+      "source": "from toad.widgets.message_notifications import MessageNotifications"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/restored_inbound_continuous_installed_pilot.py",
+      "line": 104,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/retained_input_origin_native_pilot.py",
+      "line": 13,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import QueuePromptRequest"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/retained_input_origin_native_pilot.py",
+      "line": 23,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/retained_input_origin_native_pilot.py",
+      "line": 50,
+      "kind": "call",
+      "source": "QueuePromptRequest('S2_FOLLOWING_HUMAN_INPUT: never replay the original.', True)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/retained_input_origin_observer.py",
+      "line": 20,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import QueuePromptRequest"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/retained_input_origin_observer.py",
+      "line": 54,
+      "kind": "call",
+      "source": "QueuePromptRequest(text, True)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/saved_state_user_journey_pilot.py",
+      "line": 23,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/saved_state_user_journey_pilot.py",
+      "line": 26,
+      "kind": "import",
+      "source": "from toad.widgets.message_notifications import MessageNotifications"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/saved_state_user_journey_pilot.py",
+      "line": 127,
+      "kind": "declaration",
+      "source": "async def prepare_saved_state(comms, project, requests, entered, release, hold_next):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/saved_state_user_journey_pilot.py",
+      "line": 172,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests, *, warm_only=False):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/saved_state_user_journey_pilot.py",
+      "line": 449,
+      "kind": "declaration",
+      "source": "async def fork_and_first_input(app, pilot, comms, first, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/saved_state_user_journey_pilot.py",
+      "line": 524,
+      "kind": "declaration",
+      "source": "async def channel_reply_feedback(app, pilot, comms, channel, first, entered, release, hold_next, requests, gamma):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/saved_state_user_journey_pilot.py",
+      "line": 526,
+      "kind": "import",
+      "source": "from manual_live_turn_status import require_current_activity"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/saved_state_user_journey_pilot.py",
+      "line": 540,
+      "kind": "call",
+      "source": "require_current_activity(gamma)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/saved_state_user_journey_pilot.py",
+      "line": 550,
+      "kind": "call",
+      "source": "require_current_activity(gamma)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/saved_state_user_journey_pilot.py",
+      "line": 212,
+      "kind": "call",
+      "source": "fork_and_first_input(app, pilot, comms, first, entered, release, hold_next, requests)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/saved_state_user_journey_pilot.py",
+      "line": 213,
+      "kind": "call",
+      "source": "channel_reply_feedback(app, pilot, comms, channel, first, entered, release, hold_next, requests, gamma)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/shared_channels_pilot.py",
+      "line": 26,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/sidebar_custody_installed_journey.py",
+      "line": 12,
+      "kind": "import",
+      "source": "from saved_state_user_journey_pilot import prepare_saved_state, click_tab, screen_paint, independent_source_publication, unopened_participant, clicked_reader_editor_return, fork_and_first_input, channel_reply_feedback"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/sidebar_custody_installed_journey.py",
+      "line": 33,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/sidebar_custody_installed_journey.py",
+      "line": 74,
+      "kind": "call",
+      "source": "fork_and_first_input(app, pilot, comms, first, entered, release, hold_next, requests)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/sidebar_custody_installed_journey.py",
+      "line": 75,
+      "kind": "call",
+      "source": "channel_reply_feedback(app, pilot, comms, channel, first, entered, release, hold_next, requests)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/startup_attachment_feedback_installed_journey.py",
+      "line": 20,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/stop_responsiveness_pilot.py",
+      "line": 5,
+      "kind": "import",
+      "source": "from toad.navigation_target import DirectTarget, channel_target"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/stop_responsiveness_pilot.py",
+      "line": 58,
+      "kind": "call",
+      "source": "DirectTarget('victim')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/submission_native_installed_pilot.py",
+      "line": 44,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/terminal_attention_installed_journey.py",
+      "line": 136,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests, *, notices):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/test_context_manifest_navigation.py",
+      "line": 544,
+      "kind": "call",
+      "source": "native.open_owner(runtime_enabled=True, native_options=options)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/test_conversation_submission.py",
+      "line": 4,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import QueuePromptRequest"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/test_input_custody.py",
+      "line": 6,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import QueuePromptRequest"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/test_input_custody.py",
+      "line": 25,
+      "kind": "call",
+      "source": "QueuePromptRequest('unchanged local input', True)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/test_input_history.py",
+      "line": 15,
+      "kind": "declaration",
+      "source": "async def acceptance():"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/test_input_history.py",
+      "line": 39,
+      "kind": "call",
+      "source": "acceptance()"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/thread_navigation_installed_journey.py",
+      "line": 23,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/thread_navigation_installed_journey.py",
+      "line": 60,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/thread_navigation_installed_journey.py",
+      "line": 120,
+      "kind": "kind_decision",
+      "source": "chat.kind == 'dm'"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/thread_spawn_bind_owner_installed_pilot.py",
+      "line": 7,
+      "kind": "import",
+      "source": "from saved_state_user_journey_pilot import prepare_saved_state, fork_and_first_input"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/thread_spawn_bind_owner_installed_pilot.py",
+      "line": 10,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/thread_spawn_bind_owner_installed_pilot.py",
+      "line": 13,
+      "kind": "call",
+      "source": "fork_and_first_input(app, pilot, comms, first, entered, release, hold_next, requests)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/thread_unread_start_pilot.py",
+      "line": 20,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/transcript_filter_installed_journey.py",
+      "line": 74,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/unread_navigation_pilot.py",
+      "line": 4,
+      "kind": "import",
+      "source": "from toad.navigation_target import DirectTarget, FeedTarget, channel_target"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/unread_navigation_pilot.py",
+      "line": 16,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/unread_navigation_pilot.py",
+      "line": 77,
+      "kind": "call",
+      "source": "DirectTarget('sender')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tests/viewport_recent_tabs_pilot.py",
+      "line": 155,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tools/performance/sidebar_validation_driver.py",
+      "line": 555,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tools/performance/watcher_archived_ui_pilot.py",
+      "line": 32,
+      "kind": "import",
+      "source": "from toad.navigation_target import channel_target, DirectTarget"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tools/performance/watcher_archived_ui_pilot.py",
+      "line": 34,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tools/performance/watcher_archived_ui_pilot.py",
+      "line": 53,
+      "kind": "call",
+      "source": "DirectTarget('agent-comms-ux')"
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "file": "tools/performance/watcher_archived_ui_pilot.py",
+      "line": 54,
+      "kind": "call",
+      "source": "DirectTarget('pr95-selected-pi-summary-owner')"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "src/agent_comms/acp_extension.py",
+      "line": 28,
+      "kind": "import",
+      "source": "from .turn_lease import TurnState"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "src/agent_comms/acp_extension.py",
+      "line": 509,
+      "kind": "declaration",
+      "source": "@dataclass(frozen=True)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "src/agent_comms/acp_extension.py",
+      "line": 557,
+      "kind": "declaration",
+      "source": "class QueuePromptRequest(PromptRequest):"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "src/agent_comms/acp_extension.py",
+      "line": 619,
+      "kind": "call",
+      "source": "QueuePromptRequest()"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "src/agent_comms/agent_activity.py",
+      "line": 30,
+      "kind": "import",
+      "source": "from .turn_lease import FinishedTurnFence, TurnLeaseFence, TurnState"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "src/agent_comms/agent_events.py",
+      "line": 340,
+      "kind": "declaration",
+      "source": "@dataclass(frozen=True)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "src/agent_comms/backend.py",
+      "line": 696,
+      "kind": "call",
+      "source": "events.TurnState(state='failed', reason_code='session_identity_uncertain', elapsed_ms=0, phase=ShutdownPhase())"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "src/agent_comms/history_views.py",
+      "line": 85,
+      "kind": "declaration",
+      "source": "def message_notifications(self, messages: Sequence[Message]):"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "src/agent_comms/input_drain.py",
+      "line": 17,
+      "kind": "import",
+      "source": "from .acp_extension import PromptRequest, InputDeliveryChangedUpdate, InputStartedUpdate, QueueChangedUpdate, QueueScope, QueueProjection, encode_updates"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "src/agent_comms/input_drain.py",
+      "line": 393,
+      "kind": "call",
+      "source": "InputDeliveryChangedUpdate(item.input_id)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "src/agent_comms/input_drain.py",
+      "line": 169,
+      "kind": "call",
+      "source": "InputDeliveryChangedUpdate(input_id)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "src/agent_comms/registration.py",
+      "line": 26,
+      "kind": "import",
+      "source": "from .turn_lease import FinishedTurnFence, TurnLeaseFence, TurnState"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "src/agent_comms/registry_document.py",
+      "line": 31,
+      "kind": "import",
+      "source": "from .turn_lease import ActiveTurn, FinishedTurnFence, TurnLeaseFence, TurnState"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "src/agent_comms/threads.py",
+      "line": 27,
+      "kind": "import",
+      "source": "from .turn_lease import ActiveTurn, TurnFence, TurnLeaseFence, TurnState"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "src/agent_comms/threads.py",
+      "line": 82,
+      "kind": "call",
+      "source": "TurnState(self.active_turn, self.last_finished_turn_id)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "src/agent_comms/transcript_updates.py",
+      "line": 20,
+      "kind": "import",
+      "source": "from .turn_lease import TurnState"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "src/agent_comms/turn_lease.py",
+      "line": 50,
+      "kind": "declaration",
+      "source": "@dataclass(frozen=True)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "src/agent_comms/turn_progress.py",
+      "line": 28,
+      "kind": "import",
+      "source": "from .turn_lease import TurnState"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "src/agent_comms/turn_runner.py",
+      "line": 51,
+      "kind": "import",
+      "source": "from .turn_lease import TurnLeaseFence, TurnState"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "src/agent_comms/turn_runner.py",
+      "line": 152,
+      "kind": "call",
+      "source": "TurnState()"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "src/agent_comms/turn_watchdog.py",
+      "line": 117,
+      "kind": "call",
+      "source": "events.TurnState(state=state, reason_code=reason_code, elapsed_ms=max(0, elapsed_ms), phase=phase, attempt=attempt)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/attached_history_installed_pilot.py",
+      "line": 24,
+      "kind": "import",
+      "source": "from toad.navigation_target import DirectTarget, NavigationContext, channel_target"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/attached_history_installed_pilot.py",
+      "line": 26,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/attached_history_installed_pilot.py",
+      "line": 128,
+      "kind": "call",
+      "source": "DirectTarget('openhcs-pr159-viewer-bind-owner')"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/c4_coordination_installed_ui.py",
+      "line": 57,
+      "kind": "call",
+      "source": "comms.views.message_notifications((message,))"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/channel_drain_readiness_installed_ui.py",
+      "line": 27,
+      "kind": "import",
+      "source": "from toad.widgets.comms_chat import CommsChatView"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/channel_drain_readiness_installed_ui.py",
+      "line": 28,
+      "kind": "import",
+      "source": "from toad.widgets.message_notifications import MessageNotifications"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/channel_drain_readiness_installed_ui.py",
+      "line": 55,
+      "kind": "declaration",
+      "source": "async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/native_backend_fixture.py",
+      "line": 99,
+      "kind": "declaration",
+      "source": "@asynccontextmanager"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/retained_task_native_journey.py",
+      "line": 13,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import CompactRequest, QueuePromptRequest, encode_request"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/retained_task_native_journey.py",
+      "line": 136,
+      "kind": "call",
+      "source": "QueuePromptRequest('S2_DISTINCT_AFTER_THREE_COMPACTIONS', origin=origin)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/retained_task_native_journey.py",
+      "line": 97,
+      "kind": "call",
+      "source": "QueuePromptRequest(wording, origin=origin)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp.py",
+      "line": 27,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import ClearQueueRequest, ContextUsage, CoordinationChangedUpdate, GoalChangedUpdate, InputDeliveryChangedUpdate, InputFailedUpdate, InputStartedUpdate, RequestFailedUpdate, TranscriptChangedUpdate, TranscriptSnapshotUpdate, TurnChangedUpdate, decode_updates, encode_request"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp.py",
+      "line": 205,
+      "kind": "call",
+      "source": "native.open_owner()"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp.py",
+      "line": 229,
+      "kind": "call",
+      "source": "native.open_owner()"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp.py",
+      "line": 245,
+      "kind": "call",
+      "source": "native.open_owner()"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp.py",
+      "line": 1510,
+      "kind": "call",
+      "source": "native.open_owner(native_options=('--tools', 'bash'), client=Client())"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp.py",
+      "line": 1559,
+      "kind": "call",
+      "source": "native.open_owner(native_options=('--tools', 'bash'), client=Client())"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp_channel_disposition.py",
+      "line": 70,
+      "kind": "call",
+      "source": "comms.views.message_notifications([first])"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp_channel_disposition.py",
+      "line": 106,
+      "kind": "call",
+      "source": "comms.views.message_notifications([message])"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp_channel_disposition.py",
+      "line": 175,
+      "kind": "call",
+      "source": "comms.views.message_notifications([message])"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp_channel_disposition.py",
+      "line": 193,
+      "kind": "call",
+      "source": "comms.views.message_notifications([message])"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp_extension.py",
+      "line": 6,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import AgentCommsUpdate, AvailableQueueProjection, CompactionChangedUpdate, CompactionCommittedUpdate, CompactionPublishedUpdate, CoordinationChangedUpdate, CursorAdvancedUpdate, CursorEnvelope, CursorScope, GoalChangedUpdate, InputDeliveryChangedUpdate, InputFailedUpdate, InputStartedUpdate, McpClientReceiptUpdate, QueueChangedUpdate, QueueItem, QueueScope, RequestFailedUpdate, PromptCancelledUpdate, SelectedWriteAcceptedUpdate, TextRouteUpdate, TranscriptChangedUpdate, TranscriptSnapshotUpdate, TurnChangedUpdate, UnavailableCursorObservation, decode_updates, encode_updates"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp_extension.py",
+      "line": 41,
+      "kind": "import",
+      "source": "from agent_comms.turn_lease import ActiveTurn, TurnState"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp_extension.py",
+      "line": 104,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import ClearQueueRequest, CommsRequest, CompactRequest, QueuePromptRequest, SelectedWriteRequest, SendNowRequest, SteerPromptRequest, decode_request, encode_request"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp_extension.py",
+      "line": 79,
+      "kind": "call",
+      "source": "InputDeliveryChangedUpdate('input')"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp_extension.py",
+      "line": 117,
+      "kind": "call",
+      "source": "QueuePromptRequest('queue', True)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp_extension.py",
+      "line": 86,
+      "kind": "call",
+      "source": "TurnState(ActiveTurn('turn', 123, started_at=1.0))"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp_extension.py",
+      "line": 87,
+      "kind": "call",
+      "source": "TurnState(finished_turn_id='turn')"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp_goal_input_authority.py",
+      "line": 15,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import InputDeliveryChangedUpdate, QueuePromptRequest, TranscriptSnapshotUpdate, decode_updates, encode_request"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp_goal_input_authority.py",
+      "line": 74,
+      "kind": "call",
+      "source": "QueuePromptRequest(user_text='follow-up as typed', defer_display=True)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp_input_disposition.py",
+      "line": 17,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import InputDeliveryChangedUpdate, QueuePromptRequest, SteerPromptRequest, decode_updates, encode_request"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp_input_disposition.py",
+      "line": 48,
+      "kind": "call",
+      "source": "native.open_owner()"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp_input_disposition.py",
+      "line": 93,
+      "kind": "call",
+      "source": "native.open_owner(runtime_enabled=True)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp_input_disposition.py",
+      "line": 172,
+      "kind": "call",
+      "source": "native.open_owner(runtime_enabled=True)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp_input_disposition.py",
+      "line": 106,
+      "kind": "call",
+      "source": "QueuePromptRequest()"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp_private_nk_delivery.py",
+      "line": 587,
+      "kind": "call",
+      "source": "native.open_owner(runtime_enabled=True, auto_wake=True)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp_queue_contract.py",
+      "line": 13,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import InputDeliveryChangedUpdate, InputStartedUpdate, QueueChangedUpdate, QueueItem, CursorScope, QueueScope, QueuePromptRequest, SteerPromptRequest, UnavailableQueueProjection, decode_updates, encode_request, encode_updates"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp_queue_contract.py",
+      "line": 133,
+      "kind": "call",
+      "source": "QueuePromptRequest('same')"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp_queue_contract.py",
+      "line": 168,
+      "kind": "call",
+      "source": "QueuePromptRequest('valid', True)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_acp_queue_contract.py",
+      "line": 111,
+      "kind": "call",
+      "source": "QueuePromptRequest('\\ud800', True)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_captured_input_dispatch.py",
+      "line": 9,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import InputDeliveryChangedUpdate, decode_updates"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_channel_bus_ownership.py",
+      "line": 15,
+      "kind": "call",
+      "source": "comms.views.message_notifications((original.message,))"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_channel_bus_ownership.py",
+      "line": 30,
+      "kind": "call",
+      "source": "comms.views.message_notifications((message,))"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_channel_input_batch.py",
+      "line": 62,
+      "kind": "call",
+      "source": "native.open_owner()"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_coordinated_runtime.py",
+      "line": 1332,
+      "kind": "call",
+      "source": "comms.views.message_notifications((_initial.message,))"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_current_input_origin.py",
+      "line": 11,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import QueuePromptRequest, decode_request, encode_request"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_current_input_origin.py",
+      "line": 68,
+      "kind": "call",
+      "source": "QueuePromptRequest('Never replay UNKNOWN', origin=origin)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_goal_failure_native.py",
+      "line": 13,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import CompactionChangedUpdate, CompactionPublishedUpdate, InputDeliveryChangedUpdate, QueuePromptRequest, decode_updates, encode_request"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_goal_failure_native.py",
+      "line": 141,
+      "kind": "call",
+      "source": "QueuePromptRequest(user_text='Fresh queued input during scheduled preparation', defer_display=True)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_goal_selection_native.py",
+      "line": 21,
+      "kind": "call",
+      "source": "native.open_owner(runtime_enabled=True, auto_wake=False)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_goal_wait_certified_reply.py",
+      "line": 98,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import InputDeliveryChangedUpdate, decode_updates"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_image_inputs.py",
+      "line": 15,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import InputDeliveryChangedUpdate, QueueChangedUpdate, QueuePromptRequest, SteerPromptRequest, TurnStartedUpdate, decode_updates, encode_request"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_image_inputs.py",
+      "line": 123,
+      "kind": "call",
+      "source": "QueuePromptRequest(reference, True)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_image_inputs.py",
+      "line": 180,
+      "kind": "call",
+      "source": "QueuePromptRequest(reference, True)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_input_drain.py",
+      "line": 15,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import InputDeliveryChangedUpdate, InputFailedUpdate, QueuePromptRequest, SendNowRequest, SteerPromptRequest, decode_updates, encode_request"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_input_drain.py",
+      "line": 37,
+      "kind": "call",
+      "source": "native.open_owner()"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_input_drain.py",
+      "line": 230,
+      "kind": "call",
+      "source": "native.open_owner()"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_input_drain_native.py",
+      "line": 12,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import InputDeliveryChangedUpdate, InputStartedUpdate, QueueChangedUpdate, QueuePromptRequest, decode_updates, encode_request"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_input_drain_native.py",
+      "line": 93,
+      "kind": "call",
+      "source": "QueuePromptRequest()"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_input_drain_native.py",
+      "line": 101,
+      "kind": "call",
+      "source": "QueuePromptRequest(defer_display=True)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_mcp_relay.py",
+      "line": 37,
+      "kind": "call",
+      "source": "native.open_owner()"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_message_notifications.py",
+      "line": 12,
+      "kind": "call",
+      "source": "comms.views.message_notifications((message,))"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_message_notifications.py",
+      "line": 29,
+      "kind": "call",
+      "source": "comms.views.message_notifications((wrong,))"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_outbound_transcript_source.py",
+      "line": 160,
+      "kind": "call",
+      "source": "comms.views.message_notifications((message,))"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_outbound_transcript_source.py",
+      "line": 172,
+      "kind": "call",
+      "source": "comms.views.message_notifications((message,))"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_outbound_transcript_source.py",
+      "line": 291,
+      "kind": "call",
+      "source": "comms.views.message_notifications((message,))"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_project.py",
+      "line": 122,
+      "kind": "call",
+      "source": "native.open_owner()"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_prompt_queue.py",
+      "line": 5,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import InputStartedUpdate, QueueChangedUpdate, QueuePromptRequest, SteerPromptRequest, decode_updates, encode_request"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_prompt_queue.py",
+      "line": 53,
+      "kind": "call",
+      "source": "QueuePromptRequest('later', True)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_prompt_queue.py",
+      "line": 99,
+      "kind": "call",
+      "source": "QueuePromptRequest(None, True)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_runtime_goal_retry_running.py",
+      "line": 37,
+      "kind": "call",
+      "source": "native.open_owner(runtime_enabled=True, auto_wake=True)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_runtime_goal_retry_running.py",
+      "line": 204,
+      "kind": "call",
+      "source": "native.open_owner(runtime_enabled=True)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_same_owner_native_fork.py",
+      "line": 49,
+      "kind": "call",
+      "source": "native.open_owner(runtime_enabled=True, auto_wake=False, client=SimpleNamespace(session_update=observe_restoration))"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_same_owner_native_fork.py",
+      "line": 144,
+      "kind": "call",
+      "source": "native.open_owner(runtime_enabled=True, auto_wake=False)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_selected_owner_compaction_integration.py",
+      "line": 363,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import CompactionPublishedUpdate, InputDeliveryChangedUpdate, QueuePromptRequest, decode_updates, encode_request"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_selected_owner_compaction_integration.py",
+      "line": 482,
+      "kind": "call",
+      "source": "QueuePromptRequest(defer_display=True)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_selected_owner_followup.py",
+      "line": 11,
+      "kind": "import",
+      "source": "from agent_comms.acp_extension import InputDeliveryChangedUpdate, decode_updates"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_stack_retry_running.py",
+      "line": 24,
+      "kind": "call",
+      "source": "native.open_owner(runtime_enabled=True, auto_wake=True)"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "file": "tests/test_turn_runner.py",
+      "line": 23,
+      "kind": "call",
+      "source": "native.open_owner()"
+    }
+  ],
+  "limits": [
+    "Attribute call spelling is candidate resolution, not a dynamic runtime binding proof",
+    "Historical broad controls/source do not supply actual current installed or configured acceptance",
+    "Current ordinary18checks are separately accepted and not rerun"
+  ]
+}

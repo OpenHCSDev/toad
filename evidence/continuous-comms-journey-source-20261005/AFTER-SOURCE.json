@@ -1,0 +1,118 @@
+{
+  "source_head": "b8a17c7bc6e731ba6d89720463cb3b4711f0b5ed",
+  "coverage": [
+    {
+      "revision": "b8a17c7bc6e731ba6d89720463cb3b4711f0b5ed",
+      "root": "src/toad",
+      "parsed": 288,
+      "unparsed": []
+    },
+    {
+      "revision": "b8a17c7bc6e731ba6d89720463cb3b4711f0b5ed",
+      "root": "tests",
+      "parsed": 398,
+      "unparsed": []
+    },
+    {
+      "revision": "b8a17c7bc6e731ba6d89720463cb3b4711f0b5ed",
+      "root": "tools",
+      "parsed": 41,
+      "unparsed": []
+    }
+  ],
+  "existing_control_call_sites": [
+    {
+      "file": "tests/l0a_native_installed_pilot.py",
+      "line": 173,
+      "call": "message_feedback",
+      "arguments": 2
+    },
+    {
+      "file": "tests/l0a_native_installed_pilot.py",
+      "line": 600,
+      "call": "direct_reply_feedback",
+      "arguments": 8
+    },
+    {
+      "file": "tests/l0a_native_installed_pilot.py",
+      "line": 118,
+      "call": "message_feedback",
+      "arguments": 2
+    },
+    {
+      "file": "tests/l0a_native_installed_pilot.py",
+      "line": 135,
+      "call": "message_feedback",
+      "arguments": 2
+    },
+    {
+      "file": "tests/l0a_native_installed_pilot.py",
+      "line": 93,
+      "call": "message_feedback",
+      "arguments": 2
+    },
+    {
+      "file": "tests/saved_state_user_journey_pilot.py",
+      "line": 565,
+      "call": "message_feedback",
+      "arguments": 2
+    },
+    {
+      "file": "tests/saved_state_user_journey_pilot.py",
+      "line": 212,
+      "call": "channel_reply_feedback",
+      "arguments": 10
+    },
+    {
+      "file": "tests/saved_state_user_journey_pilot.py",
+      "line": 214,
+      "call": "direct_reply_feedback",
+      "arguments": 8
+    },
+    {
+      "file": "tests/saved_state_user_journey_pilot.py",
+      "line": 549,
+      "call": "message_feedback",
+      "arguments": 2
+    },
+    {
+      "file": "tests/saved_state_user_journey_pilot.py",
+      "line": 561,
+      "call": "message_feedback",
+      "arguments": 2
+    },
+    {
+      "file": "tests/sidebar_custody_installed_journey.py",
+      "line": 75,
+      "call": "channel_reply_feedback",
+      "arguments": 10
+    },
+    {
+      "file": "tests/sidebar_custody_installed_journey.py",
+      "line": 76,
+      "call": "direct_reply_feedback",
+      "arguments": 8
+    }
+  ],
+  "protected_heis_declarations": {
+    "tests/l0a_native_installed_pilot.py:selected_triage_reply": "a2232016c64e2f5927bec0754992d74c6cc42291bc41821b7c7b836bcbc07652",
+    "tests/saved_state_user_journey_pilot.py:prepare_saved_state": "63a5945919cde9ee5d4ec223731b1df4869ffc76be54b593ed3e01df8aaf2924",
+    "tests/saved_state_user_journey_pilot.py:streamed_reply": "ecf4fa0d8b814934c7f9b9cf6d84d23c4e119b17c74a3d5c50a2036a768546d1"
+  },
+  "production_tools_dependency_runtime_fixture_diff": "ZERO vs cac7268a",
+  "source_compile": "PASS, text compiled without application import or bytecode writes",
+  "executed_tests": 0,
+  "application_native_provider_inputs": 0,
+  "remaining_scope": "actual affected continuous installed journey remains unexecuted; original Heis whole-workflow integration owner",
+  "untouched_adjacent_external_cli_typed_kind_debt": [
+    "tests/external_cli_native_installed_pilot.py:186",
+    "tests/external_cli_native_installed_pilot.py:197"
+  ],
+  "limits": "AST candidate call names do not resolve dynamic attributes; existing independent queue/canonical-wire controls are not cumulative acceptance of this new journey",
+  "final_post_census_delta": "Remove unused saved-state MessageNotifications import after exact-reference consumer migration; no declaration or call-site changes.",
+  "changed_control_sha256": {
+    "tests/l0a_native_installed_pilot.py": "1a98b7ec020bc4c85600e4de164dcddb2f597fc660ebcc8a2e885b841cc8f89f",
+    "tests/saved_state_user_journey_pilot.py": "4f0948b8fb5fcab6cab12802cf8b5b3cb6498188ce3b67af8a88b787b3865dca",
+    "tests/sidebar_custody_installed_journey.py": "4129374d5a94a5c0ba743a05bce36f75b09eaa09677d33d7c0311a9280c7af92"
+  }
+}

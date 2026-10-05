@@ -11,7 +11,9 @@ from agent_comms.acp import CommsClient
 from agent_comms.acp_extension import RequestFailedUpdate, decode_updates
 from agent_comms.threads import Thread
 from l0a_native_installed_pilot import main as native_fixture
-from l0a_native_installed_pilot import until
+from l0a_native_installed_pilot import (
+    selected_triage_reply, until, message_feedback, direct_reply_feedback,
+)
 from native_session_retention_pilot import InstalledApp, conversation_paint
 from runtime_fixture import wait_channel_roster, wait_fork_dialog
 from textual.widgets import Input
@@ -23,7 +25,6 @@ from toad.widgets.channel_participants import ChannelParticipants
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_menu import ContextMenuItem
 from toad.widgets.comms_sidebar import ChannelGroup, CommsRow
-from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.session_tabs import SessionLabel
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.transcript_history import TranscriptFragmentView
@@ -45,10 +46,7 @@ assert len(STREAM_REPLY) == 2800
 
 def streamed_reply(request, number):
     content = STREAM_REPLY if number == 3 else f"NATIVE_RESPONSE_{number}"
-    if any("IGNORE" in str(message.get("content")) and "FULL" in str(message.get("content"))
-           for message in request["messages"]):
-        content = '{"decision":"IGNORE"}'
-    return {"role": "assistant", "content": content}, "stop"
+    return selected_triage_reply(request) or {"role": "assistant", "content": content}, "stop"
 
 
 class StreamJourneyApp(InstalledApp):
@@ -212,6 +210,8 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await fork_and_first_input(app, pilot, comms, first, entered, release, hold_next, requests)
     await channel_reply_feedback(app, pilot, comms, channel, first, entered, release,
                                  hold_next, requests, gamma)
+    await direct_reply_feedback(pilot, app, comms, first.id, app.project_dir,
+                                entered, release, hold_next)
 
 
 async def independent_source_publication(agent, comms):
@@ -532,6 +532,12 @@ async def channel_reply_feedback(app, pilot, comms, channel, first, entered, rel
     hold_next.set()
     await submit_editor(pilot, chat.prompt.prompt_text_area, "@gamma JOURNEY_CHANNEL_QUESTION")
     await until(pilot, entered.is_set)
+    await until(pilot, lambda: any(message.body == "@gamma JOURNEY_CHANNEL_QUESTION"
+                                  for message, _ in chat.message_history.rows))
+    originals = [message for message, _ in chat.message_history.rows
+                 if message.body == "@gamma JOURNEY_CHANNEL_QUESTION"]
+    assert len(originals) == 1
+    original = originals[0]
     participants = chat.query_one(ChannelParticipants)
     await until(pilot, lambda: "gamma" in participants.names.render().plain)
     assert comms.registry.require("gamma").executing
@@ -539,19 +545,23 @@ async def channel_reply_feedback(app, pilot, comms, channel, first, entered, rel
     await until(pilot, lambda: gamma.conversation.agent.current_turn.busy)
     require_current_activity(gamma)
     await click_tab(app, pilot, channel.id)
-    await until(pilot, lambda: "Responding" in screen_paint(app))
+    await until(pilot, lambda: "Responding" in str(message_feedback(chat, original).title))
+    assert "Responding" in screen_paint(app)
     print("CHANNEL_NOTIFICATION_ACTUAL_NATIVE_WORKING_STATUS", flush=True)
-    release.set()
-    await until(pilot, lambda: f"NATIVE_RESPONSE_{before + 1}" in screen_paint(app))
-    await until(pilot, lambda: any("Responded" in str(feedback.title)
-                                 for feedback in chat.query(MessageNotifications)))
     await click_tab(app, pilot, gamma.id)
+    release.set()
     await until(pilot, lambda: not gamma.conversation.agent.current_turn.busy)
     require_current_activity(gamma)
     assert not comms.registry.require("gamma").executing
+    assert app.selected_session is gamma
+    print("CHANNEL_ORIGINAL_SETTLED_WHILE_HIDDEN", original.reference, flush=True)
     await click_tab(app, pilot, channel.id)
-    feedback = next(feedback for feedback in chat.query(MessageNotifications)
-                    if "Responded" in str(feedback.title))
+    await until(pilot, lambda: f"NATIVE_RESPONSE_{before + 1}" in screen_paint(app))
+    await until(pilot, lambda: "Responded" in str(message_feedback(chat, original).title))
+    outcomes = await asyncio.to_thread(comms.views.message_notifications, (original,))
+    assert any(item.recipient == "gamma" and item.state == "Responded"
+               for item in outcomes[original.seq, original.message_id])
+    feedback = message_feedback(chat, original)
     title = feedback.query_one("CollapsibleTitle")
     title.scroll_visible(animate=False, immediate=True)
     await pilot.pause()

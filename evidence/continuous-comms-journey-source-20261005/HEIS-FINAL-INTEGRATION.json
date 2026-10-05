@@ -1,0 +1,65 @@
+{
+  "normal_merged_contributor_final": "7e61cd22b692e36dacd6653985e796957bb03265",
+  "normal_merge_commit": "adda2bc54215a8fc5ea0963e46e5ce1d9d84ff84",
+  "earlier_integration": "6ddcb401307201fecc81ea49c83d8da238627e21",
+  "frozen_performance_source": "558d4cffde0c1748b9bad5676adee91878c95edd",
+  "controls": [
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "sha256": "985128549a41c72c6f3351e37cb8c1a8d41ba9b95a32b1004ca6b837bbe9347c",
+      "compile_without_import": true
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "sha256": "4f0948b8fb5fcab6cab12802cf8b5b3cb6498188ce3b67af8a88b787b3865dca",
+      "compile_without_import": true
+    },
+    {
+      "path": "tests/sidebar_custody_installed_journey.py",
+      "sha256": "4129374d5a94a5c0ba743a05bce36f75b09eaa09677d33d7c0311a9280c7af92",
+      "compile_without_import": true
+    }
+  ],
+  "preserved_producers": [
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "declaration": "selected_triage_reply",
+      "AST_equal_a69": true
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "declaration": "streamed_reply",
+      "AST_equal_a69": true
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "declaration": "prepare_saved_state",
+      "AST_equal_a69": true
+    }
+  ],
+  "complete_Package_census": {
+    "src/toad": {
+      "before_modules": 288,
+      "after_modules": 288,
+      "before_omissions": [],
+      "after_omissions": []
+    },
+    "tests": {
+      "before_modules": 399,
+      "after_modules": 399,
+      "before_omissions": [],
+      "after_omissions": []
+    },
+    "tools": {
+      "before_modules": 41,
+      "after_modules": 41,
+      "before_omissions": [],
+      "after_omissions": []
+    }
+  },
+  "source_only": true,
+  "runtime": "UNRUN",
+  "integration_correction": "Three CommsChatView assertions derive conversation_kind, actual declaring owner. Contributor source/raw previews retained; no product alias or compatibility path.",
+  "zero_product_tools_pins_fixture_delta_vs_558d": [],
+  "scope": "Existinglocalhost ACP/native continuous controls; configured paid/input and physical fullworkflow acceptance remains unfinished and needs its own purpose. No 460 motion control mutation, provider/input/package/native execution or new harness."
+}

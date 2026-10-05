@@ -1,0 +1,327 @@
+{
+  "scope": "Append-only literal future output/environment operand correction; UNRUN/UNBOUND, no new helper/guard/path algorithm",
+  "original_manifest": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/merged460-current-public-receiving-source-20261005/FUTURE-CONTINUOUS-INSTALLED-OPERANDS.json",
+  "original_sha256": "4a8ff908c30c496cf77a3f4f8ce58223572c40ca70853990852ce6eaa4c4afc8",
+  "formula_owner": "SelectedCore3931 src/agent_comms/runtime.py::socket_path",
+  "formula": "return root / 'runtime' / f'{pid}.sock'",
+  "formula_sha256": "c5d0524f5442d311d53150a578a1ccee737f9c5761bb98772917cfcfda361058",
+  "pid_width": 7,
+  "actual_host_pid_max": 4194304,
+  "mkdtemp_suffix_width": 8,
+  "Linux_pathname_limit_bytes": 107,
+  "length_calculation": "UTF-8 bytes of root/runtime/{7-digit pid}.sock; l0a root=evidence/native-fixture-{8}/private-root/wire; configured root=AC_REAL_FIXTURE_STAGE/wire",
+  "bindings": [
+    {
+      "name": "saved-full",
+      "original": {
+        "name": "saved-full",
+        "control": {
+          "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/saved_state_user_journey_pilot.py",
+          "sha256": "4f0948b8fb5fcab6cab12802cf8b5b3cb6498188ce3b67af8a88b787b3865dca"
+        },
+        "argv": [
+          "{future_issued_eligible_prefix}/bin/python",
+          "-B",
+          "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/saved_state_user_journey_pilot.py"
+        ],
+        "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+        "output": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/saved-full",
+        "environment": {
+          "L0A_EVIDENCE": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/saved-full",
+          "TMPDIR": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/saved-full/scratch",
+          "AC_NATIVE_COPIED_PACKAGE": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONNOUSERSITE": "1",
+          "unset": [
+            "PYTHONPATH",
+            "PYTHONHOME",
+            "WORKSPACE_SWITCH_PROFILE"
+          ]
+        },
+        "strength": "Authored localhost replies through original ACP/native owners; full saved acceptance includes warm/non-tail/Undo, adaptive reader, fork-before-first-answer, exact channel question/hidden settlement and original DM open/hidden/return/reopen.",
+        "executed": false,
+        "application_python": "UNBOUND",
+        "output_created": false,
+        "authority": "PROPOSAL ONLY; no stage/App/native/SDK/provider/input or source decoder authority. Each affected purpose must bind its actual argv/environment/floor and original custody before use."
+      },
+      "effective": {
+        "name": "saved-full",
+        "control": {
+          "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/saved_state_user_journey_pilot.py",
+          "sha256": "4f0948b8fb5fcab6cab12802cf8b5b3cb6498188ce3b67af8a88b787b3865dca"
+        },
+        "argv": [
+          "{future_issued_eligible_prefix}/bin/python",
+          "-B",
+          "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/saved_state_user_journey_pilot.py"
+        ],
+        "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+        "output": "/home/ts/.cache/agent-scratch/h474/sf",
+        "environment": {
+          "L0A_EVIDENCE": "/home/ts/.cache/agent-scratch/h474/sf",
+          "TMPDIR": "/home/ts/.cache/agent-scratch/h474/sf/tmp",
+          "AC_NATIVE_COPIED_PACKAGE": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONNOUSERSITE": "1",
+          "unset": [
+            "PYTHONPATH",
+            "PYTHONHOME",
+            "WORKSPACE_SWITCH_PROFILE"
+          ]
+        },
+        "strength": "Authored localhost replies through original ACP/native owners; full saved acceptance includes warm/non-tail/Undo, adaptive reader, fork-before-first-answer, exact channel question/hidden settlement and original DM open/hidden/return/reopen.",
+        "executed": false,
+        "application_python": "UNBOUND",
+        "output_created": false,
+        "authority": "PROPOSAL ONLY; no stage/App/native/SDK/provider/input or source decoder authority. Each affected purpose must bind its actual argv/environment/floor and original custody before use."
+      },
+      "original_runtime_root": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/saved-full/native-fixture-abcdefgh/private-root/wire",
+      "original_root_bytes": 122,
+      "original_runtime_socket": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/saved-full/native-fixture-abcdefgh/private-root/wire/runtime/9999999.sock",
+      "original_socket_bytes": 143,
+      "effective_runtime_root": "/home/ts/.cache/agent-scratch/h474/sf/native-fixture-abcdefgh/private-root/wire",
+      "effective_root_bytes": 79,
+      "effective_runtime_socket": "/home/ts/.cache/agent-scratch/h474/sf/native-fixture-abcdefgh/private-root/wire/runtime/9999999.sock",
+      "effective_socket_bytes": 100
+    },
+    {
+      "name": "mixed-native",
+      "original": {
+        "name": "mixed-native",
+        "control": {
+          "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/native_session_retention_pilot.py",
+          "sha256": "324ec8636de3a546d3f0e56e1ce3b898c5852522de86eaa1e47354c7f73c36d9"
+        },
+        "argv": [
+          "{future_issued_eligible_prefix}/bin/python",
+          "-B",
+          "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/native_session_retention_pilot.py"
+        ],
+        "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+        "output": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/mixed-native",
+        "environment": {
+          "L0A_EVIDENCE": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/mixed-native",
+          "TMPDIR": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/mixed-native/scratch",
+          "AC_NATIVE_COPIED_PACKAGE": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONNOUSERSITE": "1",
+          "WORKSPACE_COHORTS": "4,16,32,64",
+          "NATIVE_RETENTION_RECEIPT": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/mixed-native/native-retention.json",
+          "unset": [
+            "PYTHONPATH",
+            "PYTHONHOME",
+            "WORKSPACE_SWITCH_PROFILE"
+          ]
+        },
+        "strength": "Authored localhost native queue/owner continuity; logical4/16/32/64 includes exactly TWO genuine loaded histories and blank remainder. Full loaded-history scaling is unfinished.",
+        "executed": false,
+        "application_python": "UNBOUND",
+        "output_created": false,
+        "authority": "PROPOSAL ONLY; no stage/App/native/SDK/provider/input or source decoder authority. Each affected purpose must bind its actual argv/environment/floor and original custody before use."
+      },
+      "effective": {
+        "name": "mixed-native",
+        "control": {
+          "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/native_session_retention_pilot.py",
+          "sha256": "324ec8636de3a546d3f0e56e1ce3b898c5852522de86eaa1e47354c7f73c36d9"
+        },
+        "argv": [
+          "{future_issued_eligible_prefix}/bin/python",
+          "-B",
+          "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/native_session_retention_pilot.py"
+        ],
+        "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+        "output": "/home/ts/.cache/agent-scratch/h474/mn",
+        "environment": {
+          "L0A_EVIDENCE": "/home/ts/.cache/agent-scratch/h474/mn",
+          "TMPDIR": "/home/ts/.cache/agent-scratch/h474/mn/tmp",
+          "AC_NATIVE_COPIED_PACKAGE": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONNOUSERSITE": "1",
+          "WORKSPACE_COHORTS": "4,16,32,64",
+          "NATIVE_RETENTION_RECEIPT": "/home/ts/.cache/agent-scratch/h474/mn/native-retention.json",
+          "unset": [
+            "PYTHONPATH",
+            "PYTHONHOME",
+            "WORKSPACE_SWITCH_PROFILE"
+          ]
+        },
+        "strength": "Authored localhost native queue/owner continuity; logical4/16/32/64 includes exactly TWO genuine loaded histories and blank remainder. Full loaded-history scaling is unfinished.",
+        "executed": false,
+        "application_python": "UNBOUND",
+        "output_created": false,
+        "authority": "PROPOSAL ONLY; no stage/App/native/SDK/provider/input or source decoder authority. Each affected purpose must bind its actual argv/environment/floor and original custody before use."
+      },
+      "original_runtime_root": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/mixed-native/native-fixture-abcdefgh/private-root/wire",
+      "original_root_bytes": 124,
+      "original_runtime_socket": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/mixed-native/native-fixture-abcdefgh/private-root/wire/runtime/9999999.sock",
+      "original_socket_bytes": 145,
+      "effective_runtime_root": "/home/ts/.cache/agent-scratch/h474/mn/native-fixture-abcdefgh/private-root/wire",
+      "effective_root_bytes": 79,
+      "effective_runtime_socket": "/home/ts/.cache/agent-scratch/h474/mn/native-fixture-abcdefgh/private-root/wire/runtime/9999999.sock",
+      "effective_socket_bytes": 100
+    },
+    {
+      "name": "configured-original-warm",
+      "original": {
+        "name": "configured-original-warm",
+        "control": {
+          "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/readonly_saved_reader_pilot.py",
+          "sha256": "63c36b3cde89cf899995508cf73c4b193e385826e56a2f79e640349f6cc06c0e"
+        },
+        "argv": [
+          "{future_issued_eligible_prefix}/bin/python",
+          "-B",
+          "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/readonly_saved_reader_pilot.py",
+          "--private-original-warm"
+        ],
+        "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+        "output": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/configured-original-warm",
+        "environment": {
+          "L0A_EVIDENCE": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/configured-original-warm",
+          "TMPDIR": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/configured-original-warm/scratch",
+          "AC_NATIVE_COPIED_PACKAGE": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONNOUSERSITE": "1",
+          "READONLY_READER_EVIDENCE": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/configured-original-warm",
+          "AC_REAL_READ_ONLY_CUSTODY": "1",
+          "AC_REAL_PROVIDER_AUTHORIZED": "Sol/high retained acceptance",
+          "AC_REAL_FIXTURE_STAGE": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/continuous474-configured-original-warm-UNBOUND",
+          "AC_REAL_CORE_HEAD": "3931f16feb8bcb2dbcc3041446ca342dea665024",
+          "AC_REAL_TOAD_HEAD": "{future_frozen_source_equal_Toad_head}",
+          "AC_REAL_SOURCE_ROOT": "{fresh_issued_original_root}",
+          "AC_REAL_SOURCE_OWNER": "{fresh_issued_original_owner}",
+          "AC_REAL_ORIGINAL_PYTHON": "{fresh_issued_original_runtime}/bin/python",
+          "PYTHONPATH": "/home/ts/wt/comms-task-aware-native-bundle-20261002/tools/cutover"
+        },
+        "strength": "Genuine >=40MB configured source copied by original SDK fork, readonly ZEROnewinput; no connected-provider first-answer/notification/queue claim.",
+        "executed": false,
+        "application_python": "UNBOUND",
+        "output_created": false,
+        "authority": "PROPOSAL ONLY; no stage/App/native/SDK/provider/input or source decoder authority. Each affected purpose must bind its actual argv/environment/floor and original custody before use."
+      },
+      "effective": {
+        "name": "configured-original-warm",
+        "control": {
+          "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/readonly_saved_reader_pilot.py",
+          "sha256": "63c36b3cde89cf899995508cf73c4b193e385826e56a2f79e640349f6cc06c0e"
+        },
+        "argv": [
+          "{future_issued_eligible_prefix}/bin/python",
+          "-B",
+          "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/readonly_saved_reader_pilot.py",
+          "--private-original-warm"
+        ],
+        "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+        "output": "/home/ts/.cache/agent-scratch/h474/cw",
+        "environment": {
+          "L0A_EVIDENCE": "/home/ts/.cache/agent-scratch/h474/cw",
+          "TMPDIR": "/home/ts/.cache/agent-scratch/h474/cw/tmp",
+          "AC_NATIVE_COPIED_PACKAGE": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONNOUSERSITE": "1",
+          "READONLY_READER_EVIDENCE": "/home/ts/.cache/agent-scratch/h474/cw",
+          "AC_REAL_READ_ONLY_CUSTODY": "1",
+          "AC_REAL_PROVIDER_AUTHORIZED": "Sol/high retained acceptance",
+          "AC_REAL_FIXTURE_STAGE": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/h474cw",
+          "AC_REAL_CORE_HEAD": "3931f16feb8bcb2dbcc3041446ca342dea665024",
+          "AC_REAL_TOAD_HEAD": "{future_frozen_source_equal_Toad_head}",
+          "AC_REAL_SOURCE_ROOT": "{fresh_issued_original_root}",
+          "AC_REAL_SOURCE_OWNER": "{fresh_issued_original_owner}",
+          "AC_REAL_ORIGINAL_PYTHON": "{fresh_issued_original_runtime}/bin/python",
+          "PYTHONPATH": "/home/ts/wt/comms-task-aware-native-bundle-20261002/tools/cutover"
+        },
+        "strength": "Genuine >=40MB configured source copied by original SDK fork, readonly ZEROnewinput; no connected-provider first-answer/notification/queue claim.",
+        "executed": false,
+        "application_python": "UNBOUND",
+        "output_created": false,
+        "authority": "PROPOSAL ONLY; no stage/App/native/SDK/provider/input or source decoder authority. Each affected purpose must bind its actual argv/environment/floor and original custody before use."
+      },
+      "original_runtime_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/continuous474-configured-original-warm-UNBOUND/wire",
+      "original_root_bytes": 121,
+      "original_runtime_socket": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/continuous474-configured-original-warm-UNBOUND/wire/runtime/9999999.sock",
+      "original_socket_bytes": 142,
+      "effective_runtime_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/h474cw/wire",
+      "effective_root_bytes": 81,
+      "effective_runtime_socket": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/h474cw/wire/runtime/9999999.sock",
+      "effective_socket_bytes": 102
+    },
+    {
+      "name": "native-queue-surface",
+      "original": {
+        "name": "native-queue-surface",
+        "control": {
+          "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/l0a_native_installed_pilot.py",
+          "sha256": "ac942dd20defe4d8074ffa3a38c1b7428a3b1475ff60ba9a094b41a2c6521a93"
+        },
+        "argv": [
+          "{future_issued_eligible_prefix}/bin/python",
+          "-B",
+          "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/l0a_native_installed_pilot.py",
+          "--retire-surface"
+        ],
+        "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+        "output": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/native-queue-surface",
+        "environment": {
+          "L0A_EVIDENCE": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/native-queue-surface",
+          "TMPDIR": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/native-queue-surface/scratch",
+          "AC_NATIVE_COPIED_PACKAGE": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONNOUSERSITE": "1",
+          "unset": [
+            "PYTHONPATH",
+            "PYTHONHOME",
+            "WORKSPACE_SWITCH_PROFILE"
+          ]
+        },
+        "strength": "Original authored localhost busy-input/queue/projection/native-disposition/warm-source/cold-attachment path; separate existing entrypoint, not claimed integrated into the single full saved journey.",
+        "executed": false,
+        "application_python": "UNBOUND",
+        "output_created": false,
+        "authority": "PROPOSAL ONLY; no stage/App/native/SDK/provider/input or source decoder authority. Each affected purpose must bind its actual argv/environment/floor and original custody before use."
+      },
+      "effective": {
+        "name": "native-queue-surface",
+        "control": {
+          "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/l0a_native_installed_pilot.py",
+          "sha256": "ac942dd20defe4d8074ffa3a38c1b7428a3b1475ff60ba9a094b41a2c6521a93"
+        },
+        "argv": [
+          "{future_issued_eligible_prefix}/bin/python",
+          "-B",
+          "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/l0a_native_installed_pilot.py",
+          "--retire-surface"
+        ],
+        "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+        "output": "/home/ts/.cache/agent-scratch/h474/ns",
+        "environment": {
+          "L0A_EVIDENCE": "/home/ts/.cache/agent-scratch/h474/ns",
+          "TMPDIR": "/home/ts/.cache/agent-scratch/h474/ns/tmp",
+          "AC_NATIVE_COPIED_PACKAGE": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONNOUSERSITE": "1",
+          "unset": [
+            "PYTHONPATH",
+            "PYTHONHOME",
+            "WORKSPACE_SWITCH_PROFILE"
+          ]
+        },
+        "strength": "Original authored localhost busy-input/queue/projection/native-disposition/warm-source/cold-attachment path; separate existing entrypoint, not claimed integrated into the single full saved journey.",
+        "executed": false,
+        "application_python": "UNBOUND",
+        "output_created": false,
+        "authority": "PROPOSAL ONLY; no stage/App/native/SDK/provider/input or source decoder authority. Each affected purpose must bind its actual argv/environment/floor and original custody before use."
+      },
+      "original_runtime_root": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/native-queue-surface/native-fixture-abcdefgh/private-root/wire",
+      "original_root_bytes": 132,
+      "original_runtime_socket": "/home/ts/.cache/agent-scratch/continuous474-future-installed-20261005/native-queue-surface/native-fixture-abcdefgh/private-root/wire/runtime/9999999.sock",
+      "original_socket_bytes": 153,
+      "effective_runtime_root": "/home/ts/.cache/agent-scratch/h474/ns/native-fixture-abcdefgh/private-root/wire",
+      "effective_root_bytes": 79,
+      "effective_runtime_socket": "/home/ts/.cache/agent-scratch/h474/ns/native-fixture-abcdefgh/private-root/wire/runtime/9999999.sock",
+      "effective_socket_bytes": 100
+    }
+  ],
+  "current_product_build": "Frozenb687/source/root/wheel proof unaffected; no source/pin/controlbody change",
+  "source_authority": "Future interpreter/floor/grant/native/source decoder/admission remainUNBOUND; originalfour manifestbytes retained; this is no job authorization"
+}

@@ -6,7 +6,7 @@ original full saved journey, including its stricter idle assertion, is retained.
 import asyncio
 from pathlib import Path
 
-from l0a_native_installed_pilot import main as native_fixture, until
+from l0a_native_installed_pilot import main as native_fixture, until, direct_reply_feedback
 from native_session_retention_pilot import InstalledApp, conversation_paint
 from runtime_fixture import wait_channel_roster
 from saved_state_user_journey_pilot import (
@@ -68,11 +68,12 @@ async def acceptance(app,pilot,agent,comms,entered,release,hold_next,requests):
     await click_tab(app,pilot,first.id)
     await until(pilot,lambda:'NATIVE_RESPONSE_2' in conversation_paint(app.screen))
     assert len(requests)==2
-    await unopened_participant(app,pilot,comms,channel,entered,release,hold_next,requests)
+    gamma=await unopened_participant(app,pilot,comms,channel,entered,release,hold_next,requests)
     await clicked_reader_editor_return(app,pilot,first)
     assert sidebar.projection.channels['#team'] is retained
     await fork_and_first_input(app,pilot,comms,first,entered,release,hold_next,requests)
-    await channel_reply_feedback(app,pilot,comms,channel,first,entered,release,hold_next,requests)
+    await channel_reply_feedback(app,pilot,comms,channel,first,entered,release,hold_next,requests,gamma)
+    await direct_reply_feedback(pilot,app,comms,first.id,app.project_dir,entered,release,hold_next)
     assert sidebar.projection.channels['#team'] is retained
     assert app._exception is None
     print('SAVED_HIERARCHY_KEYBOARD_MENU_CHANNEL_PARTICIPANT_FORK_REPLY_RETURN_PASS',flush=True)
