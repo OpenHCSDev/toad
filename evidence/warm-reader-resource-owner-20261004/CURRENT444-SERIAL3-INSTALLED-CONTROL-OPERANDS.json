@@ -302,15 +302,20 @@
     "observed_at": 1791165773.693405,
     "evidence_strength": "Fresh existing original ownerrecord metadata read, NOT authenticated CurrentTypedCapture execution or future PID promise. Source actor selected by original name/incarnation; no PID operand. Exact originaldecoder capture+require_current obtains actual process/auth/arguments under issued read authority before genuine private fork; refuse mismatched source lifetime.",
     "original_decoder_python": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
-    "source_READ_authority_needed": "Explicit readonly existing CurrentTypedCapture/read_original_owner subprocess on PUBLIC334 original current447 decoder, shared registry lock and selected process retained launch/auth RAM capture for this configured control ONLY. No App execution, package write, source signals/restarts/prompts/inputs on PUBLIC334. Parent sent literal source-read relationship for binding; this proposal does NOT itself grant it.",
     "configured_inputs": 0,
     "genuine_private_SDK_forks": 1,
     "synthetic_seed": false,
-    "custody": "Original source digest/current identity before+after; auth remains RAM-only; no historical PID or UNKNOWN replay. Readonly callback original currentThreadProjection, not format guess."
+    "custody": "Original source digest/current identity before+after; auth remains RAM-only; no historical PID or UNKNOWN replay. Readonly callback original currentThreadProjection, not format guess.",
+    "source_READ_authority": "Parent explicitly authorizes ORIGINAL PUBLIC334/current447 decoder READ/execution ONLY existing read_original_owner.py under CurrentTypedCapture inside fresh446 purpose. Fresh named nra-architecture launch/config/auth stays RAM-only; fresh original identity/hash fence before privatefork. NO PUBLIC334 App/package/native-input/signals. Metadata locator alone never authorizes execution; literal newBohr serial3 purpose + Sch086 still required before jobs."
   },
   "generated_payload_lifetime": {
     "owner": "Original l0a runtime_fixture finally + original_turn_resource_real_installed_pilot finally / stop_test_children; capture/transferred journals keep original owner disposition. Bohr sole shared cleanup.",
     "at_terminal": "Retain concise original receipt/terminal/source proofs and unresolved failure artifacts; join original App/session/native/worker/socket/controller groups. Original per-control TMPDIR and exact owned noinput privatefork stage remain named above; release disposable generated payload to Bohr after determining receipt and custody consumed. No cleanup of source/user/UNKNOWN/auth or unrelated stage.",
     "no_new_payload_created_yet": true
+  },
+  "prior_current444_proposal": {
+    "published_head": "2b825963",
+    "sha256": "ca798c0b23c7afd88f835515e34faad0d3874bc8cd871c78f3ee3d7e9430a016",
+    "correction": "Parent explicit original decoder READ relation received after proposal publication; source/control/product/floor bytes unchanged."
   }
 }
