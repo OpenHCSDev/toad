@@ -1,0 +1,184 @@
+{
+  "source_head": "12f4c10f09e92092b037340396425f717fd6903d",
+  "collector": "original audit.findings.Package",
+  "coverage": [
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "head": "12f4c10f09e92092b037340396425f717fd6903d",
+      "root": "src/toad",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "head": "12f4c10f09e92092b037340396425f717fd6903d",
+      "root": "tests",
+      "parsed": 398,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "head": "12f4c10f09e92092b037340396425f717fd6903d",
+      "root": "tools",
+      "parsed": 40,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "head": "38a0533e5efa12ae0be9266e6b842ac07e3769ab",
+      "root": "src/agent_comms",
+      "parsed": 324,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "head": "38a0533e5efa12ae0be9266e6b842ac07e3769ab",
+      "root": "tests",
+      "parsed": 373,
+      "omissions": []
+    }
+  ],
+  "callers": [
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "path": "tests/native_permission_ui.py",
+      "line": 15,
+      "source": "from mcp_observation_fixture import AGENT_DATA, exercise_boundaries, notes"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "path": "tests/test_mcp_acceptance.py",
+      "line": 1,
+      "source": "'Opt-in real native Pi + MCP SDK + ACP + optional actual Toad acceptance.\\n\\nAC_MCP_NATIVE_BIN names an explicitly prepared native Pi launcher. No installation,\\nreal credentials or external provider is used. AC_MCP_TOAD_ADAPTER optionally names\\nan owner-supplied module exporting async-context-manager open_observer(case, path).\\nWithout that adapter these tests prove the Pi/ACP path, NOT Toad rendering.\\n'"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "path": "tests/test_mcp_acceptance.py",
+      "line": 288,
+      "source": "'AC_MCP_TOAD_ADAPTER'"
+    }
+  ],
+  "three_file_sites": [
+    {
+      "path": "tests/mcp_observation_fixture.py",
+      "line": 2,
+      "source": "from agent_comms.acp_extension import McpClientReceiptUpdate, TurnStartedUpdate, TurnSettledUpdate, encode_updates"
+    },
+    {
+      "path": "tests/mcp_observation_fixture.py",
+      "line": 14,
+      "declaration": "packet"
+    },
+    {
+      "path": "tests/mcp_observation_fixture.py",
+      "line": 19,
+      "declaration": "notes"
+    },
+    {
+      "path": "tests/mcp_observation_fixture.py",
+      "line": 24,
+      "declaration": "exercise_boundaries"
+    },
+    {
+      "path": "tests/mcp_observation_fixture.py",
+      "line": 30,
+      "declaration": "send"
+    },
+    {
+      "path": "tests/mcp_observation_fixture.py",
+      "line": 36,
+      "source": "send(TurnStartedUpdate('observed', None, None, None))"
+    },
+    {
+      "path": "tests/mcp_observation_fixture.py",
+      "line": 37,
+      "source": "agent._active_turn_id"
+    },
+    {
+      "path": "tests/mcp_observation_fixture.py",
+      "line": 51,
+      "source": "send(TurnSettledUpdate('retired'))"
+    },
+    {
+      "path": "tests/mcp_observation_fixture.py",
+      "line": 52,
+      "source": "agent._active_turn_id"
+    },
+    {
+      "path": "tests/mcp_observation_fixture.py",
+      "line": 53,
+      "source": "send(TurnSettledUpdate('observed'))"
+    },
+    {
+      "path": "tests/mcp_observation_fixture.py",
+      "line": 54,
+      "source": "agent._active_turn_id"
+    },
+    {
+      "path": "tests/mcp_observation_fixture.py",
+      "line": 54,
+      "source": "view._mcp_live_turn"
+    },
+    {
+      "path": "tests/mcp_observation_fixture.py",
+      "line": 36,
+      "source": "TurnStartedUpdate('observed', None, None, None)"
+    },
+    {
+      "path": "tests/mcp_observation_fixture.py",
+      "line": 51,
+      "source": "TurnSettledUpdate('retired')"
+    },
+    {
+      "path": "tests/mcp_observation_fixture.py",
+      "line": 53,
+      "source": "TurnSettledUpdate('observed')"
+    },
+    {
+      "path": "tests/native_permission_ui.py",
+      "line": 25,
+      "declaration": "Observer"
+    },
+    {
+      "path": "tests/native_permission_ui.py",
+      "line": 125,
+      "declaration": "open_observer"
+    },
+    {
+      "path": "tests/native_permission_ui.py",
+      "line": 26,
+      "declaration": "__init__"
+    },
+    {
+      "path": "tests/native_permission_ui.py",
+      "line": 35,
+      "declaration": "session_update"
+    },
+    {
+      "path": "tests/native_permission_ui.py",
+      "line": 56,
+      "declaration": "request_permission"
+    },
+    {
+      "path": "tests/native_permission_ui.py",
+      "line": 114,
+      "declaration": "disconnected"
+    },
+    {
+      "path": "tests/typed_comms_command_pilot.py",
+      "line": 35,
+      "declaration": "main"
+    },
+    {
+      "path": "tests/typed_comms_command_pilot.py",
+      "line": 54,
+      "source": "agent._active_turn_id"
+    },
+    {
+      "path": "tests/typed_comms_command_pilot.py",
+      "line": 71,
+      "source": "agent._active_turn_id"
+    }
+  ],
+  "dynamic_limit": "Core external AC_MCP_TOAD_ADAPTER selects an arbitrary module.open_observer; no default current06 or S4 use. Source evidence cannot qualify that native execution."
+}
