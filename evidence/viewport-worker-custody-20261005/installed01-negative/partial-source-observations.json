@@ -1,0 +1,38 @@
+{
+  "state": "Partial source observations before raw terminalFAIL, not complete typed proof/DTO or mountedApp qualification",
+  "inventories": [
+    {
+      "module": "agent_comms",
+      "assets": 355,
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/agent_comms-installed-inventory.json",
+      "sha256": "99aa3ffc430e8af3471c8502c4a6335681a2a79e27913ec1d77c60ba4d04455e",
+      "byte_equal": true
+    },
+    {
+      "module": "refactor_audit",
+      "assets": 10,
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/refactor_audit-installed-inventory.json",
+      "sha256": "11b53afecee1033b9053510fd6f5a7f489fede24df841da235a5effe869367f5",
+      "byte_equal": true
+    },
+    {
+      "module": "textual",
+      "assets": 266,
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/textual-installed-inventory.json",
+      "sha256": "fd312d93bfccb6dc405f1a8c74c39493930842c9ba9a6632ba39857c2ca3a59e",
+      "byte_equal": true
+    },
+    {
+      "module": "toad",
+      "assets": 319,
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/toad-installed-inventory.json",
+      "sha256": "4a5d0408a80cb1ec91e50bc6722db53c752ac8aa5953925dd952143185f0429b",
+      "byte_equal": true
+    }
+  ],
+  "completed_inventory_assets": 950,
+  "Diff_payload_bytes_compared_before_RECORD_assertion": 3,
+  "full_native_FullTrust_DTO_App": "UNREACHED",
+  "prefix_is_restored": true,
+  "source_only_diagnostic": "Diff retained wheel has two explicit directory entries absent from RECORD; every retained wheel payload set equals its RECORD. The authored raw ZIP set assertion is the faulty proof oracle. No installed/native/product fault inferred."
+}

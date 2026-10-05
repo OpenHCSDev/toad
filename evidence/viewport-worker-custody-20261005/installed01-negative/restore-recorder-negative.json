@@ -1,0 +1,10 @@
+{
+  "state": "Normal restore already completed exit0; bookkeeping TypeError after actual package/origin checks, before readback receipt",
+  "failed_helper": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/restore.py",
+  "failed_helper_sha256": "0b3705220a250e13fe15b3748ff82bbc247d7e1c41722ab24423af531aa6cd94",
+  "error": "TypeError('object supporting the buffer API required') at final issued_sha256 from raw variable shadowed by origin text",
+  "new_readback_helper": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/restore-readback-only.py",
+  "new_readback_sha256": "e665ef74e64dcb34e25776629e6eae10b41a6ae664269e317f021162db521718",
+  "installer_repeated": false,
+  "App_or_sourceproof_repeated": false
+}
