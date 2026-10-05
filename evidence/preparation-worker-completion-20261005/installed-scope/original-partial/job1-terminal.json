@@ -1,0 +1,32 @@
+{
+  "number": 1,
+  "argv": [
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/history_stationary_local_runway_pilot.py",
+    "--installed-only",
+    "--worker-custody",
+    "--session-custody",
+    "--preparation-completion",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/no-agent/app"
+  ],
+  "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+  "issued_sha256": "7bba978063cfe1e517576cdc520b1e653d1c40d70823049a62ef30ab81ed7f1e",
+  "exit_code": 1,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "provider_input": false,
+  "native_SDK_input": false,
+  "movie": false,
+  "outcome": {
+    "kind": "exited",
+    "code": 1
+  },
+  "identity": {
+    "pid": 2449648,
+    "start_time": 67698806
+  },
+  "duration_seconds": 9.248196679051034,
+  "retired": true
+}

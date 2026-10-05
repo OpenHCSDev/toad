@@ -1,5 +1,9 @@
 # Preparation completion on its original worker
 
+**Scoped Ready:** unchanged product `ec10e2eb`, three original source policy
+controls and the affected installed body/page/wheel consumers qualify.
+Physical UI, speed/frame gain and the complete workflow remain unqualified.
+
 Source successor to the frozen workspace 455 cohort. Heis owns workspace
 integration; Kepler owns native compositor and scroll geometry. This seam is
 the existing preparation work family in `work_preparation.py`, plus the sole
@@ -89,24 +93,32 @@ subprocess outcomes. This is not an installed application, renderer-process,
 SDK, native-input or speed proof. No dependency installation, environment,
 prefix access or native artifact execution was used.
 
-## Remaining acceptance
+## Installed functional scope
 
-Installed page/body behavior and useful-first-paint/fast-wheel acceptance are
-**UNRUN**.
-The existing preparation, serialized preparation, delivery retirement and
-page lookahead controls cover sharing, isolated mutation, shutdown and source
-revocation. A future affected installed application check should exercise
-native Markdown/fragment delivery and wheel/reversal using the normal joint
-workflow cohort, not repeat frozen 454 or accepted Explorer controls. The
-existing Markdown return pilot has real mounted body/cache/file-link
-assertions; its helper, settings and cleanup operands must be reconciled to
-the eventual admitted source before execution. No new purpose is assumed.
+The original three source-policy controls and two existing Heis App results
+qualify this owner migration. No new application or verification run was
+performed for this evidence checkpoint.
 
-No application, package installation, native process, provider, input, or
-recording has run for this successor. Frozen 454/455 controls, artifacts, installed
-cohorts and public runtimes remain under their original owners. Heis retains
-the complete workflow/performance objective; this source change removes one
-concrete preparation cost and does not finish that objective.
+| Original result | Terminal | Qualified scope |
+| --- | --- | --- |
+| First joint 457 App | FAIL 9.248s, preserved | Mounted cold Markdown/ABABA retained syntax and fresh file links; async page 8..16, original filter ThreadWork, independent delivery and retained page identity before pointer operand failure |
+| Remaining native-wheel App | PASS 10.177s | Native Up/Down/reversal and painted strips; non-tail reader/admissions; same editor draft/Document/undo; native focused End paints tail; source retirement and original App/preparation workers joined |
+
+The remaining App used the corrected integer-cell leaf and the same
+production owner files. Both files are byte-equal to the installed proof's
+Git source `2832435d`; no source overlay or dependency bypass was reported.
+Its repeated async page setup is regression/setup, not another independent
+acceptance credit. `SCOPED-READY.json` binds the original terminal, raw logs,
+receipts and source proof; exact copies keep their original bytes.
+
+This is an installed authored typed-page NoAgent application, not saved native
+I/O, configured busy-Agent, physical recording or latency/CPU proof. Original
+terminals record no provider or native SDK input. Heis retains the full
+workflow/performance objective and the admitted package purpose; his whole
+floor return/Bohr independent closure are still their custody. This feature
+checkpoint does not claim that purpose closed or borrow another package slot.
+
+## Historical source preparation
 
 ## Proposed affected application
 
@@ -120,8 +132,8 @@ Typed authored pages are not saved native history; native Pilot input is not
 physical UI recording. No speed target is claimed.
 
 `PROPOSED-PAGE-BODY-WHEEL-OPERANDS.json` names the literal future command,
-output, helper hashes and scope. The control parses/compiles; App execution
-is **UNRUN**. Heis must bind the normal joint source/filewheel and an eligible
+output, helper hashes and scope. At that source preparation checkpoint the control parsed/compiled and App
+execution was **UNRUN**; the original scoped outcomes are now bound above. Heis must bind the normal joint source/filewheel and an eligible
 issued holder purpose before execution. No frozen 455 control, existing
 installed prefix, native geometry owner or accepted Explorer journey changes.
 
@@ -147,5 +159,6 @@ a product or latency diagnosis; original raw evidence and 7f0b control remain.
 `CONTROL-CELL-OPERAND-CORRECTION.json` records the complete three-consumer
 correction. Both acquisitions now use the native Region offset plus integer
 half extents; hit lookup, wheel and End-click receive that same integer
-Offset. No product, caller, timing or oracle changes. The corrected control
-parses/compiles; no App or runtime rerun has occurred or is inferred.
+Offset. No product, caller, timing or oracle changes. At `e8a34cd0` publication the corrected control parsed/compiled and no App
+rerun was inferred. Heis subsequently obtained the separately admitted
+remaining-purpose pass bound above.

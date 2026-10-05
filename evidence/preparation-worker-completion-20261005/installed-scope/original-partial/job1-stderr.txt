@@ -1,0 +1,36 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/history_stationary_local_runway_pilot.py", line 283, in <module>
+    asyncio.run(main(Path(sys.argv[-1]), worker_custody="--worker-custody" in sys.argv,
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     session_resources="--session-custody" in sys.argv,
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     preparation_completion="--preparation-completion" in sys.argv))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/history_stationary_local_runway_pilot.py", line 271, in main
+    receipt["preparation_completion"] = await acceptance(app, pilot)
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/markdown_return_reuse_pilot.py", line 186, in acceptance
+    receipt["page_wheel"] = await page_wheel(app, pilot, view)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/markdown_return_reuse_pilot.py", line 96, in page_wheel
+    hit, _ = app.screen.get_widget_at(*offset)
+             ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/textual/screen.py", line 659, in get_widget_at
+    return self._compositor.get_widget_at(x, y)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/textual/_compositor.py", line 1219, in get_widget_at
+    for hit in self.get_widgets_at(x, y):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/textual/_compositor.py", line 1236, in get_widgets_at
+    if contains(region, x, y) and contains(clip, x, y) and widget.visible:
+       ~~~~~~~~^^^^^^^^^^^^^^
+TypeError: argument 'x': 'float' object cannot be interpreted as an integer
