@@ -211,6 +211,39 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         """Measured viewport demand admits source-specific edge reads."""
         self._scroll_changed()
 
+    def request_lookahead(self, intent) -> None:
+        """One source worker consumes the latest measured preparation demand.
+
+        Updating the requested extent does not revoke an admitted pure batch.
+        The source leaf checks its original source, page and direction custody;
+        after that pass this worker takes the latest intent, without restarting
+        its waiter on every scroll or layout publication.
+        """
+        if intent == self._prefetch_intent:
+            return
+        previous = self._prefetch_intent
+        self._prefetch_intent = intent
+        if self._prefetch_worker is not None and not self._prefetch_worker.is_finished:
+            if previous is not None and self.lookahead_current(previous):
+                return
+            self._prefetch_worker.cancel()
+
+        async def prepare() -> None:
+            while (intent := self._prefetch_intent) is not None:
+                await self.prepare_lookahead(intent)
+                if self._prefetch_intent is intent:
+                    return
+
+        self._prefetch_worker = self.run_worker(prepare, group="history-lookahead", exit_on_error=False)
+
+    async def prepare_lookahead(self, intent) -> None:
+        """The prepared source leaf supplies its bounded page/body work."""
+        raise NotImplementedError
+
+    def lookahead_current(self, intent) -> bool:
+        """Source, page and direction custody revoke an obsolete waiter."""
+        raise NotImplementedError
+
     @property
     def prefetch_distance(self) -> int:
         """Start background reads before the earlier edge enters the viewport."""
