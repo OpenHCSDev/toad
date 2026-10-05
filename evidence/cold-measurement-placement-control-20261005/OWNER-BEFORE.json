@@ -1,0 +1,95 @@
+{
+  "tool": "Original refactor-audit Package/Repository full roots and borrowed parsed nodes",
+  "head": "22177726ea4a5eb6bf7ccec660f58d10ec8cf287",
+  "coverage": [
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "22177726ea4a5eb6bf7ccec660f58d10ec8cf287",
+      "root": "src/toad",
+      "modules": 288,
+      "parse_omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "22177726ea4a5eb6bf7ccec660f58d10ec8cf287",
+      "root": "tests",
+      "modules": 397,
+      "parse_omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "22177726ea4a5eb6bf7ccec660f58d10ec8cf287",
+      "root": "tools",
+      "modules": 41,
+      "parse_omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78",
+      "root": "src/textual",
+      "modules": 249,
+      "parse_omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "head": "7b68d630caa654d3e9884f45cbd6493718752a0c",
+      "root": "src/agent_comms",
+      "modules": 324,
+      "parse_omissions": []
+    }
+  ],
+  "native_and_control_sites": [
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/prepared_height_contract_pilot.py",
+      "line": 125,
+      "node": "styled.placements"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/prepared_height_contract_pilot.py",
+      "line": 118,
+      "node": "layout.placements"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/prepared_height_contract_pilot.py",
+      "line": 137,
+      "node": "layout.placements"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/layout.py",
+      "line": 24,
+      "node": "DockArrangeResult"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/layout.py",
+      "line": 38,
+      "node": "@classmethod\ndef from_placements(cls, placements: list[WidgetPlacement], widgets: set[Widget], scroll_spacing: Spacing) -> DockArrangeResult:\n    \"\"\"Bind rank once when the original arrangement is constructed.\n\n        Duplicate placements for one widget share its first source ordinal.\n        Only this indexed sequence survives; the construction dictionary and\n        layout producer's unindexed list are not companion retained resources.\n        \"\"\"\n    ordinals: dict[Widget, int] = {}\n    return cls([(ordinals.setdefault(placement.widget, index), placement) for index, placement in enumerate(placements)], widgets, scroll_spacing)"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/layout.py",
+      "line": 96,
+      "node": "self.placements"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/layout.py",
+      "line": 67,
+      "node": "self.placements"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/layout.py",
+      "line": 110,
+      "node": "self.placements"
+    }
+  ],
+  "original_control_sha256": "93d063780d05a94ac3098c2965079a2d107bf693e20b541e7a98e80f02e232bd",
+  "failure": "Exit1/9.379145881s originalline118 tuple.widget before finalreceipt. OriginalDockArrangeResult.placements is indexed(ordinal,WidgetPlacement) in actualnative67. All3 authored projections require originalordinal/placement unpack. No product/nativefault or coldacceptance inferred.",
+  "authored_AST_operand_negative": "First initial sourceAST lookup used shortd733, ambiguous against historicalcommit/tree. No sourcechanged/census completed. Actualfullsourceheads from originalcandidateproof are used here.",
+  "source_package": "Frozen7546/1ae product unchanged. No sourceoverlay/newbuild/renderer/App/proofretry authorized by source correction."
+}

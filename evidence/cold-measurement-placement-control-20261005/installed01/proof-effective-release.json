@@ -1,0 +1,120 @@
+{
+  "issued_at": 1791213205.1988928,
+  "state": "OPEN corrected460 stageONE consumed; exactNEWownedproof helperRELEASED underNEWREAD; coldAppHELD actualproofDTO",
+  "issued_grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Heis460-corrected-cold-only-package-App-issued-grant.json",
+  "issued_sha256": "3d8a2bdcd36a61c4a1b3acffc25b479aeb736ecf4138ab47c367857774281d76",
+  "issued_bytes_immutable": true,
+  "recipient": "01a0ee64-8b4f-7921-a359-2357a04a19e1",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "package_authorized": true,
+  "build_authorized": false,
+  "proof_execution_authorized": true,
+  "execution_authorized": false,
+  "cold_execution_authorized": false,
+  "native_READ_authorized": true,
+  "native_EXEC_authorized": false,
+  "stage_attempts_consumed": 1,
+  "cold_attempts_consumed": 0,
+  "stage_argv": [
+    "uv",
+    "pip",
+    "install",
+    "--python",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+    "--no-deps",
+    "--no-cache",
+    "--no-index",
+    "--link-mode",
+    "copy",
+    "--reinstall",
+    "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/c3-goal-selection675-wheel-20261005/agent_comms-0.1.0-py3-none-any.whl",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-render-transport458-20261005/source-wheel/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native67-filewheel-20261005/textual-8.2.8-py3-none-any.whl"
+  ],
+  "cold_control": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/prepared_height_contract_pilot.py",
+    "sha256": "af1ee4ede20f015bd7b7c554aafa284963edce6463cfc5a2f724d6b5281192d2",
+    "argv": [
+      "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+      "-B",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/prepared_height_contract_pilot.py",
+      "--installed-only"
+    ],
+    "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+    "environment": {
+      "inherit": "ordinary system environment, no app source paths",
+      "unset": [
+        "PYTHONPATH",
+        "PYTHONHOME",
+        "VIRTUAL_ENV",
+        "AGENT_COMMS_THREAD",
+        "AGENT_COMMS_RUNTIME",
+        "PI_AGENT_ID",
+        "PI_PROMPT"
+      ],
+      "set": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "HEIGHT_CONTRACT_EVIDENCE": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/cold-height"
+      }
+    },
+    "timeout": 90,
+    "runner": "Original installed BoundedRun.session/AttachedChild +FieldCodec, originalrun_cold custody. No fabricated actor, sourceoverlay, customtimeouts/caps."
+  },
+  "effective_proposal": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/cold-measurement-placement-control-20261005/PROPOSED-COLD-ONLY-OPERANDS.json",
+    "sha256": "392d62dc55b66692f48f5a68248ad4721061b90c9f8528524e50e8963a1b3339"
+  },
+  "fresh_floor_source_readback": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Heis460-corrected-cold-only-floor-source-readback.json",
+    "sha256": "aa4e131826f3fced1246364ad06b523f1c1013ecd85725343460086d8ab3a867"
+  },
+  "fresh_borrowers": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Heis460-corrected-cold-only-borrowers.json",
+    "sha256": "f40c7a0baa4b0730eacc0c9515f8fe8363a5f0fb336d4c8ca9632618df760a6e"
+  },
+  "whole_actualCURRENT4471468_69_428_restore_required": true,
+  "shared_lifecycle_writer": "OriginalBohrONLY",
+  "no_retry_nextloan": true,
+  "previous_lifecycle_sha256": "7a98c71a064159806d12e6c6d27fe09820cccfd3bce1e8a19dd4b41f123ddb60",
+  "native_READ_authority": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper460-corrected-cold-only-READ-issued-20261005.json",
+    "sha256": "db595f544854fc82349773651a1c49c34035b8fcba800639a4bf7bc606740bc2"
+  },
+  "native_READ_bound_at": 1791213355.7591703,
+  "stage_terminal": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/stage-terminal.json",
+    "sha256": "a7a2228fc98a74a264be431d63be9c590b9bdba0dbd38f35f45da8cff005ee00"
+  },
+  "stage_recorded_at": 1791213797.1822784,
+  "proof_argv": [
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+    "-B",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/verify_installed.py"
+  ],
+  "proof_cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+  "proof_environment": {
+    "unset": [
+      "PYTHONPATH",
+      "PYTHONHOME",
+      "VIRTUAL_ENV",
+      "AGENT_COMMS_THREAD",
+      "AGENT_COMMS_RUNTIME",
+      "PI_AGENT_ID",
+      "PI_PROMPT"
+    ],
+    "set": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONNOUSERSITE": "1"
+    }
+  },
+  "proof_helper": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/verify_installed.py",
+    "sha256": "ae637babca3f4d450550e048e3dbe841b8cf45ed61320ddf497ed89478b9b692"
+  },
+  "proof_command": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/proof-command.json",
+    "sha256": "6966eface780939f1f26c055a9c111ba63ec1a761bc5f074842f6239fd631db2"
+  },
+  "proof_bound_at": 1791214078.6841252
+}

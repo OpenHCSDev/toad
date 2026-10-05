@@ -1,0 +1,33 @@
+{
+  "issued_sha256": "3d8a2bdcd36a61c4a1b3acffc25b479aeb736ecf4138ab47c367857774281d76",
+  "source_assets": 953,
+  "source_inventories": {
+    "agent_comms": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/agent_comms-installed-inventory.json",
+      "sha256": "8d60044b157ac8982cc4bd1646e1e00a2a0f722f75518ea1d5663534ef3bd952"
+    },
+    "toad": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/toad-installed-inventory.json",
+      "sha256": "ddb52e944967612fc31eeee322d9e05839fcebde7c44fed172b8021931c403e4"
+    },
+    "textual": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/textual-installed-inventory.json",
+      "sha256": "30402704f5686a84d83e5d64b9c80a1e4399e421ced08591a5668d52922b797c"
+    },
+    "textual_diff_view": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/textual_diff_view-installed-inventory.json",
+      "sha256": "3109f836f3a9056cd6ddb7535f1beebc16717576ad4ab1d2ba4d9059521cd0c8"
+    },
+    "refactor_audit": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/refactor_audit-installed-inventory.json",
+      "sha256": "eb84572d9ffe6753f201ae941f47b869ad3e643f4b5dccb175786fff7bcf9c91"
+    }
+  },
+  "package_count": 69,
+  "other66_unchanged": 1883,
+  "protected_originals_unchanged": 428,
+  "sdk": "0.12.1",
+  "native_full_trust": true,
+  "Apps_run": 0,
+  "renderer_controls_run": 0
+}
