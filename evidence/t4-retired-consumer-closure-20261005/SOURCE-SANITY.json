@@ -1,0 +1,13 @@
+{
+  "base": "289f1c6cd7667abf985ddba265d6469a95e3ea48",
+  "checks": {
+    "whitespace": "PASS",
+    "production_tests_pins_unchanged": true,
+    "preserved_source_hashes": 8,
+    "tools_changed_exactly": [
+      "tools/performance/README.md",
+      "tools/performance/replay_state.py"
+    ]
+  },
+  "limits": "Source diff/hash only; no Python source remains edited, no compile/tests/runtime/application import occurred."
+}
