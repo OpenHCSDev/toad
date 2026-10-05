@@ -12,15 +12,11 @@ from uuid import UUID
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldRepresentation
 from toad.render_backend import RenderTask
+from toad.work_preparation import PreparedValue
 
 if TYPE_CHECKING:
     from toad.render_service import RenderService
     from toad.render_zmq import PersistentRendererPool, RenderSubmission
-
-
-@dataclass(frozen=True)
-class CapturedResult:
-    value: object
 
 
 class RendererIdentity(FieldRepresentation):
@@ -74,13 +70,11 @@ class TaskCapture(RendererCapture):
 class ResultCapture(RendererCapture):
     @classmethod
     def capture(cls, value):
-        if not isinstance(value, CapturedResult):
-            raise TypeError("Expected a captured rendering result")
-        return value.value
+        return cls.restore(value)
 
     @classmethod
     def restore(cls, value):
-        return CapturedResult(value)
+        return PreparedValue.accept(value)
 
 
 RenderIdentity = Annotated[UUID, RendererIdentity]
@@ -204,11 +198,11 @@ class PendingReply(RequestReply):
 
 @dataclass(frozen=True)
 class CompleteReply(RequestReply):
-    result: Annotated[CapturedResult, ResultCapture]
+    result: Annotated[PreparedValue, ResultCapture]
 
     async def advance(self, submission, client):
         await client.acknowledge(submission)
-        submission.result.set_result(self.result.value)
+        submission.result.set_result(self.result)
         return None
 
 

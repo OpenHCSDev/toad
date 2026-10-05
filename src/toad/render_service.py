@@ -27,7 +27,6 @@ from toad.render_protocol import (
     RejectedReply,
     CompleteReply,
     AcknowledgedReply,
-    CapturedResult,
 )
 
 
@@ -123,7 +122,7 @@ class RenderService:
             )
         if len(self._jobs) >= self.config.max_pending:
             return BusyReply(command.request_id)
-        future: Future[object] = self._executor.submit(command.task.execute)
+        future: Future[object] = self._executor.submit(command.task.capture_result)
         self._jobs[command.request_id] = PendingRender(command.client_id, future)
         return AcceptedReply(command.request_id)
 
@@ -139,7 +138,7 @@ class RenderService:
             result = job.future.result()
         except Exception as error:
             return FailedReply(command.request_id, f"{type(error).__name__}: {error}")
-        return CompleteReply(command.request_id, CapturedResult(result))
+        return CompleteReply(command.request_id, result)
 
     def cancel(self, command: CancelRender) -> RenderReply:
         job = self._owned(command.client_id, command.request_id)

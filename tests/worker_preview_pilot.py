@@ -30,21 +30,23 @@ ResultT = TypeVar("ResultT")
 
 class GateRenderer(Renderer):
     def __init__(self):
+        super().__init__()
         RenderProcessPool.prepare_spawn()
         self.pool = RenderProcessPool()
         self.entered = asyncio.Event()
         self.release = asyncio.Event()
         self.requests = []
 
-    async def submit(self, task: RenderTask[ResultT]) -> ResultT:
+    async def capture(self, task: RenderTask[ResultT]):
         if isinstance(task, RichRenderTask):
             self.requests.append(task)
             self.entered.set()
             await self.release.wait()
-        return await self.pool.submit(task)
+        return await self.pool.capture(task)
 
     async def aclose(self) -> None:
         self.release.set()
+        await self._close_submissions()
         await self.pool.aclose()
 
 

@@ -49,6 +49,13 @@ class PreparedValue(ABC, Generic[ResultT]):
 
     size: int
 
+    @classmethod
+    def accept(cls, value: object) -> PreparedValue:
+        """Accept the private renderer's declaration-selected representation."""
+        if not isinstance(value, cls):
+            raise TypeError("Expected a prepared rendering value")
+        return value
+
     @abstractmethod
     def materialize(self) -> ResultT:
         """Return independent mutable data to one consumer."""
@@ -99,7 +106,12 @@ class PreparationWork(ABC, Generic[ResultT]):
         them with the result, before returning to the runtime's cache owner.
         Unretained work still owns independent delivery, without retained cost.
         """
-        prepared = self.store_result(result)
+        return self.finish_prepared(key, self.store_result(result))
+
+    def finish_prepared(
+        self, key: WorkKey, prepared: PreparedValue[ResultT],
+    ) -> tuple[PreparedValue[ResultT], int]:
+        """Account for the original representation without encoding it again."""
         size = (prepared.size + getsizeof(key) + retained_bytes(key.revision)
                 if self.retain_result else 0)
         return prepared, size
@@ -178,8 +190,8 @@ class RendererWork(PreparationWork[ResultT]):
     async def execute(
         self, runtime: PreparationRuntime, key: WorkKey,
     ) -> tuple[PreparedValue[ResultT], int]:
-        result = await runtime.renderer.submit(self.render_task)
-        return await runtime.run_thread(self.finish_result, key, result)
+        prepared = await runtime.renderer.capture(self.render_task)
+        return await runtime.run_thread(self.finish_prepared, key, prepared)
 
 
 @dataclass(frozen=True)
@@ -378,10 +390,15 @@ class PreparedRenderer(Renderer):
     """Expose the existing renderer API through shared preparation by default."""
 
     def __init__(self, runtime: PreparationRuntime) -> None:
+        super().__init__()
         self.runtime = runtime
 
     async def submit(self, task: RenderTask[ResultT]) -> ResultT:
         return await self.runtime.submit(RenderPreparation(task))
+
+    async def capture(self, task: RenderTask[ResultT]) -> PreparedValue[ResultT]:
+        _, prepared = await self.runtime._prepare(RenderPreparation(task))
+        return prepared
 
     async def prepare(self, task: RenderTask[ResultT]) -> None:
         await self.runtime.prepare(RenderPreparation(task))
@@ -390,4 +407,5 @@ class PreparedRenderer(Renderer):
         await self.runtime.renderer.warm_up(project=project, ansi=ansi, dark=dark)
 
     async def aclose(self) -> None:
+        await self._close_submissions()
         await self.runtime.aclose()

@@ -16,6 +16,7 @@ from toad.transcript_preparation import (
 from toad.widgets.message_filter import AgentCategory, UserCategory, all_categories
 from toad.widgets.transcript_fragments import transcript_fragments
 from toad.work_preparation import PreparationRuntime
+from toad.render_backend import Renderer as RendererBackend
 
 
 def cursor(offset):
@@ -27,18 +28,19 @@ def page(before, after, *, text=None):
                           cursor(before), cursor(after), before > 0, after < 1000)
 
 
-class Renderer:
+class Renderer(RendererBackend):
     def __init__(self):
+        super().__init__()
         self.threads = []
 
-    async def submit(self, task):
+    async def capture(self, task):
         def execute():
             self.threads.append(threading.get_ident())
-            return task.execute()
+            return task.capture_result()
         return await asyncio.to_thread(execute)
 
     async def aclose(self):
-        pass
+        await self._close_submissions()
 
 
 async def projected_checks():

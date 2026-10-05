@@ -32,6 +32,7 @@ from runtime_fixture import ToadApp
 from textual.app import App
 
 from toad.render_processes import RenderProcessPool
+from toad.work_preparation import RenderPreparation
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.transcript_fragments import (
     prepare_transcript_fragments,
@@ -76,7 +77,8 @@ class ObservedPool(RenderProcessPool):
         self.observations.append((pid, started, finished))
         self.entered.set()
         await self.release.wait()
-        return result
+        task = function.__self__
+        return RenderPreparation(task).store_result(task.accept_result(result))
 
 
 def page(text, *, older=False, cursor=None):

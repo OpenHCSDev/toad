@@ -17,6 +17,7 @@ from toad.render_backend import Renderer
 
 if TYPE_CHECKING:
     from toad.render_backend import RenderTask
+    from toad.work_preparation import PreparedValue
 
 
 Result = TypeVar("Result")
@@ -43,6 +44,7 @@ class RenderProcessPool(Renderer):
     """
 
     def __init__(self, max_workers: int = 2, max_pending: int = 4) -> None:
+        super().__init__()
         for name, value in (("max_workers", max_workers), ("max_pending", max_pending)):
             if isinstance(value, bool) or not isinstance(value, int) or value < 1:
                 raise ValueError(f"{name} must be a positive integer")
@@ -98,9 +100,9 @@ class RenderProcessPool(Renderer):
         await asyncio.wait((future,))
         return future.result()
 
-    async def submit(self, task: "RenderTask[Result]") -> Result:
+    async def capture(self, task: "RenderTask[Result]") -> "PreparedValue[Result]":
         """Submit a typed rendering operation to the persistent app-owned pool."""
-        return await task.complete(self.run(task.execute))
+        return await task.complete_capture(self.run(task.capture_result))
 
     async def aclose(self) -> None:
         """Asynchronously join this pool; safe to call concurrently or repeatedly."""
@@ -108,6 +110,7 @@ class RenderProcessPool(Renderer):
         self._closed = True
         self._changed.set()
         if self._executor is None:
+            await self._close_submissions()
             return
         if self._shutdown is None:
             self._shutdown = asyncio.create_task(self._join(), name="render-process-shutdown")
@@ -116,6 +119,7 @@ class RenderProcessPool(Renderer):
 
     async def _join(self) -> None:
         assert self._executor is not None
+        await self._close_submissions()
         await asyncio.to_thread(self._executor.shutdown, wait=True, cancel_futures=True)
         # Drain result callbacks before teardown is reported complete.
         if self._pending:

@@ -33,13 +33,15 @@ class ModelWork(ReusableWork[dict], ContentAddressedWork[dict], ThreadWork[dict]
 
 class Backend(Renderer):
     def __init__(self):
+        super().__init__()
         self.calls = self.closes = 0
 
-    async def submit(self, task):
+    async def capture(self, task):
         self.calls += 1
-        return await asyncio.to_thread(task.execute)
+        return await asyncio.to_thread(task.capture_result)
 
     async def aclose(self):
+        await self._close_submissions()
         self.closes += 1
 
 

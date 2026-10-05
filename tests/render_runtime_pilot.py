@@ -3,7 +3,7 @@
 import asyncio
 from pathlib import Path
 from threading import Event, get_ident
-from typing import TypeVar
+from typing import ClassVar, TypeVar
 import unittest
 from unittest.mock import patch
 
@@ -12,6 +12,7 @@ from toad.render_service import RenderServiceConfig
 from toad.render_tasks import PatchRenderTask
 from toad.render_backend import RenderTask
 from toad.render_zmq import PersistentRendererPool, RendererEndpoint, RendererSessionFailed
+from toad.work_preparation import PreparedValue
 
 ResultT = TypeVar("ResultT")
 
@@ -23,18 +24,74 @@ class ControlledPool(PersistentRendererPool):
         self.calls = 0
         self.drained = asyncio.Event()
 
-    async def submit(self, task: RenderTask[ResultT]) -> ResultT:
+    async def capture(self, task: RenderTask[ResultT]):
         self.calls += 1
         if self.fail:
             raise RendererSessionFailed("fixture failure")
-        return task.execute()
+        return task.capture_result()
 
     async def aclose(self) -> None:
         await super().aclose()
         self.drained.set()
 
 
+class HeldValue(PreparedValue):
+    size = 0
+
+    def __init__(self, value, entered, release):
+        self.value, self.entered, self.release = value, entered, release
+
+    def materialize(self):
+        self.entered.set()
+        if not self.release.wait(5):
+            raise AssertionError("Test did not release delivery worker")
+        return self.value.materialize()
+
+
+class DeliveryPool(ControlledPool):
+    def __init__(self, endpoint, config, entered, release):
+        super().__init__(endpoint, config)
+        self.entered, self.release = entered, release
+
+    async def capture(self, task):
+        return HeldValue(await super().capture(task), self.entered, self.release)
+
+
+class ValidationObservedPatchRenderTask(PatchRenderTask):
+    validation_threads: ClassVar[list[int]] = []
+
+    def accept_result(self, result):
+        self.validation_threads.append(get_ident())
+        return super().accept_result(result)
+
+
 class RuntimeTests(unittest.IsolatedAsyncioTestCase):
+    async def test_cancelled_delivery_is_joined_before_backend_close(self):
+        entered, release = Event(), Event()
+        main_thread = get_ident()
+        ValidationObservedPatchRenderTask.validation_threads.clear()
+        pool = DeliveryPool(RendererEndpoint(Path("/unused-render-test"), "test"),
+                            RenderServiceConfig(), entered, release)
+        waiting = asyncio.create_task(pool.submit(ValidationObservedPatchRenderTask("patch", False, True)))
+        try:
+            self.assertTrue(await asyncio.to_thread(entered.wait, 2))
+            waiting.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await waiting
+            closing = asyncio.create_task(pool.aclose())
+            await asyncio.sleep(0)
+            self.assertFalse(pool.drained.is_set())
+            self.assertFalse(closing.done())
+            release.set()
+            await closing
+            self.assertTrue(pool.drained.is_set())
+            self.assertFalse(pool._submissions)
+            self.assertEqual(ValidationObservedPatchRenderTask.validation_threads[0], main_thread)
+            self.assertNotEqual(ValidationObservedPatchRenderTask.validation_threads[-1], main_thread)
+        finally:
+            release.set()
+            await pool.aclose()
+
     async def test_construct_and_unused_close_do_not_fingerprint_or_start_backend(self) -> None:
         with patch("toad.render_runtime.RendererEndpoint.for_runtime") as resolve:
             renderer = PersistentRenderClient(Path("/unused-render-test"))
