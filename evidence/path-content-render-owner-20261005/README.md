@@ -40,3 +40,13 @@ PathContent supplies its exact four authored rules without reading or copying
 foreign Styles. RULE-OWNER-CORRECTION.json preserves the initial negative source
 and final compile/measure evidence. The original before/check/after records stay
 historical; no runtime cause or acceptance is inferred from this source finding.
+
+The final focused source control uses the actual native `Widget.styles`
+RenderStyles producer, the unchanged real PathContent constructor, wide
+characters, selection, links and post style. Widths9/60 and heights0/1/3/-1/None
+preserve the complete render's original segments/cell metadata; zero width is
+empty. Source02 PASS (one unittest with ten subcases,1.294s controller/.005s test).
+Source01 failed before the test because the source command omitted Core's
+original declaration dependency. Both raw command/log receipts are retained;
+adding the already audited Core source path changed no product or assertion.
+System interpreter and existing dependencies only; no holder or App.
