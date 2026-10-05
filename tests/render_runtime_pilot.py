@@ -12,6 +12,7 @@ from toad.render_service import RenderServiceConfig
 from toad.render_tasks import PatchRenderTask
 from toad.render_backend import RenderTask
 from toad.render_zmq import PersistentRendererPool, RendererEndpoint, RendererSessionFailed
+from toad.work_preparation import PreparedValue
 
 ResultT = TypeVar("ResultT")
 
@@ -34,7 +35,51 @@ class ControlledPool(PersistentRendererPool):
         self.drained.set()
 
 
+class HeldValue(PreparedValue):
+    size = 0
+
+    def __init__(self, value, entered, release):
+        self.value, self.entered, self.release = value, entered, release
+
+    def materialize(self):
+        self.entered.set()
+        if not self.release.wait(5):
+            raise AssertionError("Test did not release delivery worker")
+        return self.value.materialize()
+
+
+class DeliveryPool(ControlledPool):
+    def __init__(self, endpoint, config, entered, release):
+        super().__init__(endpoint, config)
+        self.entered, self.release = entered, release
+
+    async def capture(self, task):
+        return HeldValue(await super().capture(task), self.entered, self.release)
+
+
 class RuntimeTests(unittest.IsolatedAsyncioTestCase):
+    async def test_cancelled_delivery_is_joined_before_backend_close(self):
+        entered, release = Event(), Event()
+        pool = DeliveryPool(RendererEndpoint(Path("/unused-render-test"), "test"),
+                            RenderServiceConfig(), entered, release)
+        waiting = asyncio.create_task(pool.submit(PatchRenderTask("patch", False, True)))
+        try:
+            self.assertTrue(await asyncio.to_thread(entered.wait, 2))
+            waiting.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await waiting
+            closing = asyncio.create_task(pool.aclose())
+            await asyncio.sleep(0)
+            self.assertFalse(pool.drained.is_set())
+            self.assertFalse(closing.done())
+            release.set()
+            await closing
+            self.assertTrue(pool.drained.is_set())
+            self.assertFalse(pool._submissions)
+        finally:
+            release.set()
+            await pool.aclose()
+
     async def test_construct_and_unused_close_do_not_fingerprint_or_start_backend(self) -> None:
         with patch("toad.render_runtime.RendererEndpoint.for_runtime") as resolve:
             renderer = PersistentRenderClient(Path("/unused-render-test"))

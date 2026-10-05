@@ -28,10 +28,10 @@ from toad.render_protocol import (
     AcknowledgedReply,
 )
 from toad.render_service import RenderService, RenderServiceConfig
-from toad.render_tasks import PatchRenderTask
+from toad.render_tasks import PatchRenderTask, MarkdownRenderTask
 from toad.render_backend import RenderTask
 from toad.render_zmq import RenderSubmission
-from toad.work_preparation import serialize_result
+from toad.work_preparation import SerializedValue, serialize_result
 from toad.widgets.agent_activity import AgentActivityBoundary
 from toad.widgets.message_filter import (
     all_categories,
@@ -67,6 +67,20 @@ class ReactionClient:
 
 
 class RenderingFamilyTests(unittest.IsolatedAsyncioTestCase):
+    def test_prepared_markdown_survives_reply_with_independent_consumers(self):
+        task = MarkdownRenderTask("# café 界\n\n```python\nvalue = 17\n```\n", False, True)
+        prepared = task.capture_result()
+        self.assertIsInstance(prepared, SerializedValue)
+        reply = CompleteReply(uuid4(), prepared)
+        received = FieldCodec.decode(RenderReply, FieldCodec.encode(reply))
+        self.assertEqual(received.result.payload, prepared.payload)
+        first = task.accept_result(received.result.materialize())
+        second = task.accept_result(received.result.materialize())
+        self.assertIsNot(first.tokens, second.tokens)
+        self.assertIsNot(first.fences, second.fences)
+        first.tokens[0].content = "consumer edit"
+        self.assertNotEqual(first.tokens[0].content, second.tokens[0].content)
+
     def test_captured_task_loads_its_declaring_module(self):
         """Detect eager native catalog loading and lost decode-before-admission."""
         encoded = FieldCodec.encode(SubmitRender(
