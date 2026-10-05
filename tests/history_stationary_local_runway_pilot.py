@@ -99,7 +99,8 @@ async def session_custody(app, pilot, root):
         bindings.clear()
 
 
-async def main(output, *, worker_custody=False, session_resources=False):
+async def main(output, *, worker_custody=False, session_resources=False,
+               preparation_completion=False):
     output.mkdir(parents=True, exist_ok=False)
     if "--installed-only" in sys.argv:
         import importlib.metadata as metadata
@@ -254,9 +255,24 @@ async def main(output, *, worker_custody=False, session_resources=False):
                 finally:
                     release.set()
                     TranscriptBodyPreparation.prepare_fragments = prepare_fragments
+            if preparation_completion:
+                # Native Unmount owns the pager's remaining source retirement.
+                # Remove it while its original window is still mounted, before
+                # session custody evicts that conversation and restores a new one.
+                await history.remove()
             if session_resources:
                 receipt["session_resource_custody"] = await session_custody(app, pilot, root)
+            if preparation_completion:
+                from markdown_return_reuse_pilot import acceptance
+
+                # Session custody may have remounted the selected conversation;
+                # the old viewport above no longer owns its source publication.
+                app.selected_session.conversation.window.document_viewport.resume_source()
+                receipt["preparation_completion"] = await acceptance(app, pilot)
         await asyncio.get_running_loop().shutdown_default_executor()
+        if preparation_completion:
+            assert app.preparation._closed and not app.preparation._pending and not app.preparation._thread_tasks
+            receipt["original_preparation_workers_joined"] = True
         receipt["whole_original_App_shutdown"] = True
         receipt["app_exception"] = str(app._exception)
         assert app._exception is None
@@ -265,4 +281,5 @@ async def main(output, *, worker_custody=False, session_resources=False):
 
 if __name__ == "__main__":
     asyncio.run(main(Path(sys.argv[-1]), worker_custody="--worker-custody" in sys.argv,
-                     session_resources="--session-custody" in sys.argv))
+                     session_resources="--session-custody" in sys.argv,
+                     preparation_completion="--preparation-completion" in sys.argv))
