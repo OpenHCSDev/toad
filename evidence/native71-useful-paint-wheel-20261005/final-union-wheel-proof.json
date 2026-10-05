@@ -1,0 +1,31 @@
+{
+  "head": "8981fde1e308393941cd7a31b0f65ec57cc3e3f5",
+  "actual_main461": "eb6eafa547778ba4394723b9e28cf5b6650d93d8",
+  "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/union461-filewheel/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+  "sha256": "7f401a4c3319c73e6c3f423a315759f66e0018f2c14336f39702c7157f39921e",
+  "bytes": 2251148,
+  "assets": 319,
+  "Git_local_ZIP_equal": true,
+  "missing": [],
+  "extra": [],
+  "RECORD_rows": 324,
+  "RECORD_verified": true,
+  "metadata_sha256": "3fde2bfef1346f91a2bad2c6dfbca28a40710dc38ca987f66266a6064c3c43ee",
+  "inventory": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/union461-filewheel/toad-inventory.json",
+  "inventory_sha256": "44d885ccbb75d53528f2e932759afcf82a3d8ab155584cc1a0d6f9cebd43f58e",
+  "native_pin": "a2dd8a9a37825a828df0d8f651ca57d92db69e5f",
+  "build_inputs": {
+    "pyproject.toml": "31081151e3e8d6fd5d84e145a13276a0a6ddd1a1b661d57957b707889bc02b6c",
+    "uv.lock": "60249ac93de25c0142012fa74c1482c6e06a520236f6640fdcedbffb18d762f0",
+    "README.md": "11b3f5195acb00a19a73229749e2e71ba924314a8b1c650f05a2bf43f537d35d",
+    "LICENSE": "4df3c306dddaaf4baffdff5ca820cc679ac8cd6dc263c6a74517783e42fa7a3b"
+  },
+  "changed_vs_original_661_37b7": [
+    "src/toad/screens/main.py",
+    "src/toad/session_presentation.py",
+    "src/toad/widgets/conversation.py"
+  ],
+  "old_37b7_full_source_equal": false,
+  "stage": false,
+  "App": false
+}

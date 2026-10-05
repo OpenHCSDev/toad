@@ -1,0 +1,1087 @@
+[
+  {
+    "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+    "head": "HEAD",
+    "root": "src/toad",
+    "modules": 288,
+    "omissions": [],
+    "sites": [
+      {
+        "path": "src/toad/app.py",
+        "line": 440,
+        "site": "super()._display"
+      },
+      {
+        "path": "src/toad/visuals/columns.py",
+        "line": 222,
+        "site": "line.truncate(content_width, pad=True).render_segments"
+      },
+      {
+        "path": "src/toad/widgets/highlighted_textarea.py",
+        "line": 159,
+        "site": "line.render_segments"
+      },
+      {
+        "path": "src/toad/widgets/patch_diff.py",
+        "line": 267,
+        "site": "line.render_segments"
+      },
+      {
+        "path": "src/toad/widgets/patch_diff.py",
+        "line": 339,
+        "site": "row.render_strips"
+      },
+      {
+        "path": "src/toad/widgets/patch_diff.py",
+        "line": 367,
+        "site": "_DiffRow(self.source, y).render_strips"
+      },
+      {
+        "path": "src/toad/widgets/path_search.py",
+        "line": 70,
+        "site": "Content.render_strips"
+      },
+      {
+        "path": "src/toad/widgets/path_search.py",
+        "line": 126,
+        "site": "placeholder.render_segments"
+      },
+      {
+        "path": "src/toad/widgets/prepared_markdown.py",
+        "line": 155,
+        "site": "self.content.render_strips"
+      },
+      {
+        "path": "src/toad/widgets/terminal.py",
+        "line": 352,
+        "site": "line.render_segments"
+      }
+    ]
+  },
+  {
+    "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+    "head": "HEAD",
+    "root": "tests",
+    "modules": 398,
+    "omissions": [],
+    "sites": [
+      {
+        "path": "tests/acp_specification_installed_pilot.py",
+        "line": 24,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/agent_configuration_native_installed_pilot.py",
+        "line": 45,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/agent_selection_configured_installed_pilot.py",
+        "line": 194,
+        "site": "app.workspace_screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/agent_startup_failure_installed_pilot.py",
+        "line": 49,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/agent_startup_failure_installed_pilot.py",
+        "line": 54,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/app_focus_latency_pilot.py",
+        "line": 20,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/async_tab_activation_pilot.py",
+        "line": 27,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/async_thread_open_pilot.py",
+        "line": 108,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/async_thread_open_pilot.py",
+        "line": 168,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/blank_presentation_pilot.py",
+        "line": 381,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/blank_presentation_pilot.py",
+        "line": 572,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/blank_presentation_pilot.py",
+        "line": 293,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/block_interaction_pilot.py",
+        "line": 33,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/canonical_wire_conversation_installed_pilot.py",
+        "line": 264,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/catalog_actions_native_installed_pilot.py",
+        "line": 88,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/channel_disclosure_publication_pilot.py",
+        "line": 235,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/channel_partial_paint_pilot.py",
+        "line": 75,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/channel_roster_retention_pilot.py",
+        "line": 30,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/checkpoint_source_pivot_pilot.py",
+        "line": 92,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/client_session_native_installed_pilot.py",
+        "line": 50,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/client_session_native_installed_pilot.py",
+        "line": 49,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/client_session_native_installed_pilot.py",
+        "line": 61,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/client_session_native_installed_pilot.py",
+        "line": 74,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/client_session_native_installed_pilot.py",
+        "line": 102,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/command_family_pilot.py",
+        "line": 62,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/command_family_pilot.py",
+        "line": 130,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/comms_scene_latency_pilot.py",
+        "line": 27,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/compaction_pilot.py",
+        "line": 77,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+        "line": 29,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+        "line": 30,
+        "site": "self.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+        "line": 137,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+        "line": 164,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+        "line": 172,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+        "line": 184,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+        "line": 369,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/context_compaction_native_installed_pilot.py",
+        "line": 20,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/context_native_installed_pilot.py",
+        "line": 27,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/context_native_installed_pilot.py",
+        "line": 37,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/context_usage_pilot.py",
+        "line": 44,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/context_usage_pilot.py",
+        "line": 65,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/diff_damage_latency_pilot.py",
+        "line": 20,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/diff_row_damage_pilot.py",
+        "line": 37,
+        "site": "visual.render_strips"
+      },
+      {
+        "path": "tests/diff_row_damage_pilot.py",
+        "line": 39,
+        "site": "_DiffRow(visual, y).render_strips"
+      },
+      {
+        "path": "tests/editor_key_workflow_pilot.py",
+        "line": 102,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/existing_thread_tab_title_pilot.py",
+        "line": 130,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/file_path_preview_pilot.py",
+        "line": 128,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/file_path_preview_pilot.py",
+        "line": 162,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/file_path_preview_pilot.py",
+        "line": 172,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/file_path_preview_pilot.py",
+        "line": 183,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/file_preview_latency_pilot.py",
+        "line": 77,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/first_fork_native_installed_pilot.py",
+        "line": 300,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/first_frame_terminal_app.py",
+        "line": 23,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/fresh_fork_pilot.py",
+        "line": 104,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/fresh_fork_pilot.py",
+        "line": 132,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/goal_details_pilot.py",
+        "line": 41,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/goal_details_pilot.py",
+        "line": 45,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/goal_objective_edit_pilot.py",
+        "line": 127,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/goal_objective_edit_pilot.py",
+        "line": 112,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/goal_server_poll_pilot.py",
+        "line": 123,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/goal_server_poll_pilot.py",
+        "line": 136,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/goal_server_poll_pilot.py",
+        "line": 144,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/goal_standby_history_pilot.py",
+        "line": 196,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/goal_standby_history_pilot.py",
+        "line": 170,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/goal_standby_history_pilot.py",
+        "line": 183,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/guards/test_goal_interaction.py",
+        "line": 49,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/guards/test_live_output.py",
+        "line": 56,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/guards/test_tool_output.py",
+        "line": 87,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/guards/test_transcript_publication.py",
+        "line": 150,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/history_availability_installed_pilot.py",
+        "line": 67,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/history_availability_installed_pilot.py",
+        "line": 79,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/history_availability_installed_pilot.py",
+        "line": 72,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/history_frame_publication_pilot.py",
+        "line": 40,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/history_frame_publication_pilot.py",
+        "line": 48,
+        "site": "screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/history_scroll_frames_pilot.py",
+        "line": 31,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/in_out_underfill_pilot.py",
+        "line": 67,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/in_out_underfill_pilot.py",
+        "line": 95,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/input_history_native_installed_pilot.py",
+        "line": 23,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/input_history_native_installed_pilot.py",
+        "line": 27,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/input_visibility_native_installed_pilot.py",
+        "line": 177,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/input_visibility_native_installed_pilot.py",
+        "line": 185,
+        "site": "renderable.render_segments"
+      },
+      {
+        "path": "tests/l0a_native_installed_pilot.py",
+        "line": 45,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/l0a_native_installed_pilot.py",
+        "line": 542,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/large_stream_pilot.py",
+        "line": 128,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/large_stream_pilot.py",
+        "line": 70,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/late_native_after_join_pilot.py",
+        "line": 48,
+        "site": "app._display"
+      },
+      {
+        "path": "tests/late_native_after_join_pilot.py",
+        "line": 61,
+        "site": "app._display"
+      },
+      {
+        "path": "tests/late_native_application_pilot.py",
+        "line": 48,
+        "site": "app._display"
+      },
+      {
+        "path": "tests/late_native_application_pilot.py",
+        "line": 61,
+        "site": "app._display"
+      },
+      {
+        "path": "tests/long_message_pilot.py",
+        "line": 49,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/long_message_pilot.py",
+        "line": 52,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/long_message_pilot.py",
+        "line": 56,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/mcp_decision_pty_pilot.py",
+        "line": 34,
+        "site": "widget.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/message_dividers_pilot.py",
+        "line": 336,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/native_loaded_return_cache_pilot.py",
+        "line": 51,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/native_loaded_return_cache_pilot.py",
+        "line": 64,
+        "site": "screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/native_loaded_return_cache_pilot.py",
+        "line": 459,
+        "site": "frame._compositor.render_strips"
+      },
+      {
+        "path": "tests/native_loaded_return_cache_pilot.py",
+        "line": 244,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/native_permission_ui.py",
+        "line": 70,
+        "site": "self.app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/native_permission_ui.py",
+        "line": 80,
+        "site": "self.app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/native_session_retention_pilot.py",
+        "line": 91,
+        "site": "screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/native_session_retention_pilot.py",
+        "line": 49,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/native_session_retention_pilot.py",
+        "line": 53,
+        "site": "screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/native_tool_output_pilot.py",
+        "line": 46,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/native_widget_actions_installed_pilot.py",
+        "line": 30,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/original_turn_resource_real_installed_pilot.py",
+        "line": 43,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/original_turn_resource_real_installed_pilot.py",
+        "line": 249,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/pending_thread_open_pilot.py",
+        "line": 40,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/pending_thread_open_pilot.py",
+        "line": 52,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/permission_pending_mount_pilot.py",
+        "line": 112,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/permission_pending_mount_pilot.py",
+        "line": 75,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/persistent_workspace_source_navigation_pilot.py",
+        "line": 58,
+        "site": "frame._compositor.render_strips"
+      },
+      {
+        "path": "tests/prepared_diff_rows_pilot.py",
+        "line": 55,
+        "site": "_DiffRow(visual, 0).render_strips"
+      },
+      {
+        "path": "tests/quit_save_installed_pilot.py",
+        "line": 20,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/reader_geometry_pilot.py",
+        "line": 25,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/reader_geometry_pilot.py",
+        "line": 30,
+        "site": "screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/readonly_saved_reader_pilot.py",
+        "line": 42,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/readonly_saved_reader_pilot.py",
+        "line": 53,
+        "site": "screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/receiver_inbound_installed_pilot.py",
+        "line": 16,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/reconnect_source_native_installed_pilot.py",
+        "line": 50,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/recovery_view_pilot.py",
+        "line": 30,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/relationship_poll_reflow_pilot.py",
+        "line": 71,
+        "site": "app._display"
+      },
+      {
+        "path": "tests/relationship_poll_reflow_pilot.py",
+        "line": 110,
+        "site": "app._display"
+      },
+      {
+        "path": "tests/renderer_warmup_pilot.py",
+        "line": 49,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/resize_render_pilot.py",
+        "line": 39,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/resize_render_pilot.py",
+        "line": 51,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/response_source_custody_pilot.py",
+        "line": 40,
+        "site": "app._display"
+      },
+      {
+        "path": "tests/response_source_custody_pilot.py",
+        "line": 54,
+        "site": "app._display"
+      },
+      {
+        "path": "tests/retained_fragment_geometry_pilot.py",
+        "line": 138,
+        "site": "scene.render_strips"
+      },
+      {
+        "path": "tests/retained_input_origin_observer.py",
+        "line": 131,
+        "site": "self.app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/retained_tool_text_pilot.py",
+        "line": 52,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/saved_state_user_journey_pilot.py",
+        "line": 65,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/saved_state_user_journey_pilot.py",
+        "line": 161,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/scroll_select_latency_pilot.py",
+        "line": 32,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/session_details_pilot.py",
+        "line": 51,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/session_details_pilot.py",
+        "line": 102,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/session_route_installed_pilot.py",
+        "line": 51,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/shared_channels_pilot.py",
+        "line": 41,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/sidebar_collapse_latency_pilot.py",
+        "line": 26,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/sidebar_edge_anchor_installed_pilot.py",
+        "line": 20,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/sidebar_latency_pilot.py",
+        "line": 41,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/sidebar_navigation_pilot.py",
+        "line": 60,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/sidebar_navigation_pilot.py",
+        "line": 38,
+        "site": "screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/sidebar_projection_pilot.py",
+        "line": 25,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/sidebar_retirement_pilot.py",
+        "line": 61,
+        "site": "widget.screen.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/tab_history_controls_pilot.py",
+        "line": 26,
+        "site": "screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/tab_history_controls_pilot.py",
+        "line": 87,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/tab_scrollbar_top_pilot.py",
+        "line": 63,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/tab_scrollbar_top_pilot.py",
+        "line": 121,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/terminal_attention_installed_journey.py",
+        "line": 142,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/terminal_attention_installed_journey.py",
+        "line": 163,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/terminal_attention_installed_journey.py",
+        "line": 212,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/test_path_content_render.py",
+        "line": 30,
+        "site": "content.render_strips"
+      },
+      {
+        "path": "tests/test_path_content_render.py",
+        "line": 40,
+        "site": "content.render_strips"
+      },
+      {
+        "path": "tests/test_path_content_render.py",
+        "line": 33,
+        "site": "content.render_strips"
+      },
+      {
+        "path": "tests/thread_activation_pilot.py",
+        "line": 46,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/thread_activation_pilot.py",
+        "line": 38,
+        "site": "screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/thread_navigation_installed_journey.py",
+        "line": 122,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/thread_navigation_installed_journey.py",
+        "line": 150,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/thread_navigation_installed_journey.py",
+        "line": 163,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/throbber_render_cache_pilot.py",
+        "line": 40,
+        "site": "visual.render_strips"
+      },
+      {
+        "path": "tests/throbber_render_cache_pilot.py",
+        "line": 44,
+        "site": "ThrobberVisual(get_time=lambda value=clock: value).render_strips"
+      },
+      {
+        "path": "tests/tool_diff_lifecycle_pilot.py",
+        "line": 32,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/tool_diff_pilot.py",
+        "line": 42,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/transcript_filter_installed_journey.py",
+        "line": 83,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/transcript_history_pilot.py",
+        "line": 136,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/transcript_history_pilot.py",
+        "line": 73,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/view_switch_latency.py",
+        "line": 39,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/viewport_body_order_pilot.py",
+        "line": 447,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/viewport_layout_reentry_pilot.py",
+        "line": 69,
+        "site": "screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/viewport_rapid_scroll_pilot.py",
+        "line": 24,
+        "site": "super()._display"
+      },
+      {
+        "path": "tests/viewport_rapid_scroll_pilot.py",
+        "line": 82,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/worker_native_size_pilot.py",
+        "line": 160,
+        "site": "scene.render_strips"
+      },
+      {
+        "path": "tests/worker_preview_pilot.py",
+        "line": 99,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/worker_preview_pilot.py",
+        "line": 111,
+        "site": "app.screen._compositor.render_strips"
+      },
+      {
+        "path": "tests/worker_preview_pilot.py",
+        "line": 133,
+        "site": "app.screen._compositor.render_strips"
+      }
+    ]
+  },
+  {
+    "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+    "head": "HEAD",
+    "root": "tools",
+    "modules": 41,
+    "omissions": [],
+    "sites": [
+      {
+        "path": "tools/performance/capture_state.py",
+        "line": 64,
+        "site": "ValidationDriver.observe_application_frames"
+      },
+      {
+        "path": "tools/performance/profile_thread_open.py",
+        "line": 38,
+        "site": "super()._display"
+      },
+      {
+        "path": "tools/performance/sidebar_validation_driver.py",
+        "line": 377,
+        "site": "self.observe_frames"
+      },
+      {
+        "path": "tools/performance/sidebar_validation_driver.py",
+        "line": 341,
+        "site": "cls.observe_frames"
+      }
+    ]
+  },
+  {
+    "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+    "head": "a2dd8a9a37825a828df0d8f651ca57d92db69e5f",
+    "root": "src/textual",
+    "modules": 249,
+    "omissions": [],
+    "sites": [
+      {
+        "path": "src/textual/_border.py",
+        "line": 403,
+        "site": "text_label.render_segments"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1541,
+        "site": "self.render_strips"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 492,
+        "site": "self._get_line_chops"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 515,
+        "site": "self._get_line_chops"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1731,
+        "site": "self.render_strips"
+      },
+      {
+        "path": "src/textual/app.py",
+        "line": 3894,
+        "site": "renderable.render_segments"
+      },
+      {
+        "path": "src/textual/app.py",
+        "line": 3899,
+        "site": "renderable.render_segments"
+      },
+      {
+        "path": "src/textual/content.py",
+        "line": 1453,
+        "site": "self.render_segments"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 843,
+        "site": "self._display"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 867,
+        "site": "self._display"
+      },
+      {
+        "path": "src/textual/screen.py",
+        "line": 1232,
+        "site": "app._display"
+      },
+      {
+        "path": "src/textual/screen.py",
+        "line": 1246,
+        "site": "app._display"
+      },
+      {
+        "path": "src/textual/visual.py",
+        "line": 227,
+        "site": "visual.render_strips"
+      },
+      {
+        "path": "src/textual/visual.py",
+        "line": 411,
+        "site": "self._visual.render_strips"
+      },
+      {
+        "path": "src/textual/widgets/_text_area.py",
+        "line": 1410,
+        "site": "content.render_segments"
+      }
+    ]
+  },
+  {
+    "repository": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+    "head": "7b68d630caa654d3e9884f45cbd6493718752a0c",
+    "root": "src/agent_comms",
+    "modules": 324,
+    "omissions": [],
+    "sites": [
+      {
+        "path": "src/agent_comms/context_segments/optional_awareness.py",
+        "line": 184,
+        "site": "TurnContext.render_segments"
+      },
+      {
+        "path": "src/agent_comms/input_drain.py",
+        "line": 375,
+        "site": "TurnContext.render_segments"
+      },
+      {
+        "path": "src/agent_comms/input_drain.py",
+        "line": 367,
+        "site": "TurnContext.render_segments"
+      },
+      {
+        "path": "src/agent_comms/turn_context.py",
+        "line": 983,
+        "site": "self.render_segments"
+      }
+    ]
+  }
+]
