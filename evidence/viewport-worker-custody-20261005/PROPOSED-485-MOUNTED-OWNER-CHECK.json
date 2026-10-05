@@ -1,0 +1,203 @@
+{
+  "state": "PREPARED466_SOURCE_FROZEN;485_ELIGIBILITY_FLOOR_AUTHORITY_UNBOUND;APP_UNRUN",
+  "source_receipt_head": "f7894f8f2e7c386badd99f807a0b655f438c58ac",
+  "wheel_build_head": "7ecec607f9723d4f1747494564dd7b1b174b2180",
+  "determining_product": "4f0ea5ef3c7b3ed183bbb92e13fef3cedf73543e",
+  "base_main": "cac7268a733f62f6db57580fd63b64abd52be359",
+  "Toad_filewheel": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "b2e420e5b2eed1aaa96d815b2abf38f990272a047417c2ca5082c01d9149a151",
+    "bytes": 2251159,
+    "source_assets": 319,
+    "inventory": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/wheel/source-inventory.json",
+    "inventory_sha256": "6fa9721f2efa188962b386fe7a0f353f9efc96e32d184a78ceb53f8e7a633a54",
+    "build_receipt": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/wheel/build-receipt.json",
+    "build_receipt_sha256": "49d709192cc12bd5a1ae08d9f9b82ea79b43c28b5b41033163231e2659d65617"
+  },
+  "wheel_proof": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/viewport-worker-custody-20261005/wheel-proof.json",
+    "sha256": "fbda0ee99ba485a372a46925e380d2a41bf7f4e7fa68c9de4e8b3a7d1e3768eb"
+  },
+  "preserved_original_control_proposal": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/viewport-worker-custody-20261005/PROPOSED-MOUNTED-CONTROL.json",
+    "sha256": "20c7c4aa587fe0123d249444069d5a30b67a931ef78bf01abe87c3e419094bff"
+  },
+  "declared_sources": {
+    "agent-comms": {
+      "git": "https://github.com/OpenHCSDev/agent-comms.git",
+      "rev": "7b68d630caa654d3e9884f45cbd6493718752a0c"
+    },
+    "textual": {
+      "git": "https://github.com/OpenHCSDev/textual.git",
+      "rev": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78"
+    },
+    "textual-diff-view": {
+      "git": "https://github.com/OpenHCSDev/textual-diff-view.git",
+      "rev": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+    }
+  },
+  "candidate_holder": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "package_writer_and_overall_floor_return": "Original Einstein ONLY after literal issued eligible-purpose grant; no access/reservation inferred",
+  "operator": "Original Einstein; one exact085b mounted NoAgent control after source-proof binding and lifecycle release",
+  "proposed_stage_argv": [
+    "uv",
+    "pip",
+    "install",
+    "--python",
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+    "--no-deps",
+    "--no-cache",
+    "--link-mode",
+    "copy",
+    "--reinstall",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/wheel/batrachian_toad-0.6.20-py3-none-any.whl"
+  ],
+  "stage_count": 1,
+  "build_count": 0,
+  "reuse_existing_dependencies": {
+    "historical_source_proof": {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged457-goal675-native67-receiving-20261005/source-proof.json",
+      "sha256": "f07c68f783974b1a2312ebd5650131aab3dbb79e48ef9c58a1707426d47c8e29"
+    },
+    "historical_source_heads": {
+      "agent_comms": "7b68d630caa654d3e9884f45cbd6493718752a0c",
+      "toad": "e32253a5601400234b7ef0b5a191185c7427647a",
+      "textual": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78",
+      "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "refactor_audit": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10"
+    },
+    "source_supported_relation": "Core7b68/Textd733/Diff8fa7 exactly equal frozen466 declared sources. Reuse actual installed originals if independently verified unchanged at grant. No Core/Text/dependency install proposed. Historical record is not fresh installed equality or eligibility.",
+    "expected_assets": {
+      "agent_comms": 355,
+      "toad": 319,
+      "textual": 266,
+      "refactor_audit": 10,
+      "textual_diff_view": 3
+    },
+    "expected_total_assets": 953,
+    "expected_distributions": 69,
+    "unchanged_distributions": 68,
+    "sdk": "0.12.1"
+  },
+  "control": {
+    "state": "SOURCE_PREPARED_APP_UNRUN",
+    "production_head": "4f0ea5ef3c7b3ed183bbb92e13fef3cedf73543e",
+    "integration_owner": "Heisenberg; whole TC1/460 and eligible joint installed source/wheel relation",
+    "contributor": "Einstein; released DocumentViewport worker lifetime/control seam",
+    "application_python": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+    "application_python_binding": "PROPOSED485 ONLY; requires Bohr actual former-public disposition, fresh floor/refs, issued grant and explicit source-proof/release before import/App",
+    "argv_after_python": [
+      "-B",
+      "-c",
+      "import runpy, sys\nsys.path.append('/home/ts/wt/toad-regression-widget-cost-20261001/tests')\nsys.argv = ['/home/ts/wt/toad-regression-widget-cost-20261001/tests/viewport_body_lifetime_pilot.py', '--worker-custody-only', '/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01']\nrunpy.run_path('/home/ts/wt/toad-regression-widget-cost-20261001/tests/viewport_body_lifetime_pilot.py', run_name=\"__main__\")\n"
+    ],
+    "cwd": "/home/ts/wt/toad-regression-widget-cost-20261001",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "unset_env": [
+      "PYTHONPATH"
+    ],
+    "control_path": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/viewport_body_lifetime_pilot.py",
+    "control_sha256": "085bce4deba13863bf1bbf22ce53d33352ca72400d743d48d213d4604da1626a",
+    "planned_output": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01",
+    "authored_scratch": "TemporaryDirectory beneath planned_output, joined original runtime_fixture cleanup before removal",
+    "original_outer_runner": "existing BoundedRun.session; duration and actual interpreter/output bound by eligible issued joint purpose",
+    "scope": [
+      "One installed mounted NoAgent original App/Worker case",
+      "Cancel acquired worker before original _reconcile entry and join native cancellation",
+      "Same source/window/membership resume; three demand requests borrow exact same Worker",
+      "Original entered worker finishes; later independent frame demand remains legitimate",
+      "Close joins actual admitted worker and releases viewport resources; original App/preparation cleanup joins"
+    ],
+    "original_control_main_and_settled_AST": "UNCHANGED; old body churn mode not executed",
+    "entry_observation": "temporary Python profile of exact original method code/owner + native get_current_worker; no work replacement; previous hook chained/restored in finally",
+    "production_pin_metadata_delta": "ZERO versus 4f0ea5ef",
+    "App_execution_authorized": false,
+    "package_build_stage_authorized": false,
+    "native_artifact_execution": false,
+    "ACP_provider_input_fork_movie": false,
+    "old_accepted_journeys_repeat": false,
+    "result": null,
+    "argv": [
+      "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+      "-B",
+      "-c",
+      "import runpy, sys\nsys.path.append('/home/ts/wt/toad-regression-widget-cost-20261001/tests')\nsys.argv = ['/home/ts/wt/toad-regression-widget-cost-20261001/tests/viewport_body_lifetime_pilot.py', '--worker-custody-only', '/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01']\nrunpy.run_path('/home/ts/wt/toad-regression-widget-cost-20261001/tests/viewport_body_lifetime_pilot.py', run_name=\"__main__\")\n"
+    ],
+    "helper_path": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/runtime_fixture.py",
+    "helper_sha256": "987399f81781f57e5cca89dc0e5214c59663d97a01bcb5bad18f35d7f8eb686f",
+    "environment": {
+      "unset": [
+        "PYTHONPATH",
+        "PYTHONHOME",
+        "VIRTUAL_ENV",
+        "AGENT_COMMS_THREAD",
+        "AGENT_COMMS_RUNTIME",
+        "PI_AGENT_ID",
+        "PI_PROMPT"
+      ],
+      "set": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "TOAD_TEST_ATTEMPT": "einstein466-worker-mounted01-20261005",
+        "TMPDIR": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/tmp",
+        "AGENT_COMMS_ROOT": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/bootstrap-wire"
+      }
+    },
+    "runner": {
+      "owner": "Original installed BoundedRun.session / AttachedChild",
+      "timeout_seconds": 90,
+      "attempts": 1,
+      "stdout": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/stdout.log",
+      "stderr": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/stderr.log",
+      "terminal": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/terminal.json",
+      "handles": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/handle.json",
+      "no_new_framework": true
+    }
+  },
+  "candidate_sourceproof": {
+    "output": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/candidate-source-proof.json",
+    "DTO": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/candidate-activation.json",
+    "source_relation": "All319 b2e bytes/fullbuildmetadata verified against frozen7ece source+ZIP and actual install; retained Core/Text/Diff/NRA actual original wheel+origin equality; full69 versions/origins and other68 unchanged. Use existing InstalledSource.require_package and ArchivePackageDirectUrl/VcsPackageDirectUrl, not filewheel Git metadata.",
+    "no_source_overlay": true,
+    "native_full_trust": "Not inferred from historical sourceproof. NoAgent does not use artifact execution. If selected original proof requires fresh FullTrust, bind separate original Sch matching READ-only authority to literal issued grant before that proof; never nativeEXEC.",
+    "native_execution": false,
+    "PREFIXactivation_and_old_proofs": "IMMUTABLE; ownDTO/output only"
+  },
+  "floor_return": {
+    "actual_floor": null,
+    "actual_preimage": null,
+    "actual_archive": null,
+    "actual_restore_filewheels": null,
+    "actual_69_versions_origins": null,
+    "actual_protected_originals": null,
+    "actual_PREFIXactivation": null,
+    "required_before_issue": "Original Bohr actual former-public485 disposition/fresh original source-floor+hash-mode-link, full69 origins, protected originals/operations, matching genuine restore operands/archive, and allUID refs/import/launcher/registry aliases clearance. Bind literal records in effective proposal/lifecycle; old421/615/436/334 floor must not be inferred.",
+    "action": "After single terminal PASS/FAIL/uncertainty, join original App/preparation/workers/executor and BoundedRun controller/groups/private sockets, restore entire ACTUAL issued floor bytes/modes/readlinks/full69 origins/protected originals using existing normal no-cache installer and actual preimage/archive as authoritative, publish own whole handback, Bohr independently closes. No retry/secondstage/newpurpose."
+  },
+  "disposition_records_read": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Sch459-ordinary-receiving-preparation-only-lifecycle.json",
+      "sha256": "baa621c1ff6f70f33d469a97ed29a83b1347a2c2ac8015ec370c2c8580fbcc97"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Sch459-public-role-disposition.json",
+      "sha256": "861346fcd0e6bd9ac60b563e777ea2e7a4f0934ce6d6ed8405ee57353936e55b"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch465-actual-PUBLIC-publication-disposition.json",
+      "sha256": "5155c0f0fc02cdd1a33e0bcb680660337d542d2127ac00d58d14a82133c1b764"
+    }
+  ],
+  "protected_other_purposes": [
+    "CURRENT PUBLICstyle22 excluded",
+    "334 sole460 performance excluded",
+    "540678 excluded"
+  ],
+  "no_authority_inferred": true,
+  "App_execution_authorized": false,
+  "package_install_authorized": false,
+  "ACP_SDK_native_EXEC_provider_input_fork_movie": false,
+  "accepted_journey_repeat": false,
+  "remaining": "Actual eligible485 contract/floor/restore/source/refs and literal issued grant/proof/release only. If Bohr reports no eligible separate holder, preserve this proposal and name exact reason; do not wait on unrelated performance as a source gate."
+}
