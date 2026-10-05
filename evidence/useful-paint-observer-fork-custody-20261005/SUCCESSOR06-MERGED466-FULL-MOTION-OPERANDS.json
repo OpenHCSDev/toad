@@ -51,7 +51,7 @@
     "NRA8d": 10,
     "TextDiff8fa": 3
   },
-  "candidate_assets": 319,
+  "candidate_assets": 953,
   "distributions": 69,
   "app_count": 1,
   "outer_argv": [
@@ -454,5 +454,10 @@
     "sha256": "8182cb6ea916cedd7056aed62abe1cdb6bf5c54bdf198025439a6aa0191db70d",
     "bytes": 52096
   },
-  "supersedes_control_binding_only": "Supersedes unissued62e proposal after Parent actual466merge. ONLY new native right-sidebar disclosure in recorder +originalviewport_recent_tabs consumer migration to _worker, mergedviewport_body source. One normal unionToadwheel2ece exactfull319 replaces old7f/b2e for this newpurpose; unchangedCorea685/Textbc47/NRA8d/no newdeps/acceptedcontrol replay."
+  "supersedes_control_binding_only": "Supersedes unissued62e proposal after Parent actual466merge. ONLY new native right-sidebar disclosure in recorder +originalviewport_recent_tabs consumer migration to _worker, mergedviewport_body source. One normal unionToadwheel2ece exactfull319 replaces old7f/b2e for this newpurpose; unchangedCorea685/Textbc47/NRA8d/no newdeps/acceptedcontrol replay.",
+  "asset_count_precision": {
+    "previous_published_head": "272dad4f4",
+    "previous_manifest_sha256": "2354890d58fbf98b799e214bc0e8c6fe6f798323366a01d16407c18feca289fb",
+    "correction": "candidate_assets names full staged355Core+319Toad+266Text+3Diff+10NRA=953, not ToAd-only319; previous235 preserved in Git. Actual wheel/proof/full69 unchanged; no build or source/control change."
+  }
 }
