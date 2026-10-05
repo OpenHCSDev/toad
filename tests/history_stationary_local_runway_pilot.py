@@ -12,22 +12,39 @@ from pathlib import Path
 import sys
 from tempfile import TemporaryDirectory
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+if "--installed-only" not in sys.argv:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from agent_comms.comms import Comms
+from agent_comms.threads import Thread
 from agent_comms.transcript_events import AssistantTranscript
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from toad.app import ToadApp
 from toad.widgets.transcript_fragments import TranscriptBodyPreparation
 from toad.widgets.transcript_history import TranscriptHistory
+from toad.widgets.presentation_window import MovingPreparation
+from toad.widgets.comms_chat import session_thread_name
+from textual.worker import WorkerCancelled
 
 
-async def main(output):
+async def main(output, *, worker_custody=False):
     output.mkdir(parents=True, exist_ok=False)
+    if "--installed-only" in sys.argv:
+        import importlib.metadata as metadata
+        import toad
+        package = Path(metadata.distribution("batrachian-toad").locate_file("toad")).resolve()
+        assert Path(toad.__file__).resolve().parent == package
+        assert package.is_relative_to(Path(sys.prefix).resolve())
     observations = []
+    custody = {}
+    entered, release = asyncio.Event(), asyncio.Event()
+    if not worker_custody:
+        release.set()
     prepare_fragments = TranscriptBodyPreparation.prepare_fragments
 
     async def observe(preparation, fragments, keep_going, *, batch_size):
+        entered.set()
+        await release.wait()
         await prepare_fragments(preparation, fragments, keep_going, batch_size=batch_size)
         observations.append(tuple(fragments))
 
@@ -39,6 +56,7 @@ async def main(output):
                           XDG_DATA_HOME=str(root / "data"))
         service = Comms(root / "wire")
         service.messaging.initialize_private_initial_protocol()
+        service.registry.declare(Thread(session_thread_name(root), frozenset(), str(root)))
         # Seed the original typed page contract, not a hand-authored journal
         # decoder. The installed physical gate owns real saved-source proof.
         source = str(root / "saved-source")
@@ -63,20 +81,61 @@ async def main(output):
             viewport.lookahead.settle()
             history = TranscriptHistory(page, loader=loader)
             operation = history.reserve_source_work()
+            if worker_custody:
+                # Authored demand data exercises the actual source worker;
+                # this is not a physical wheel or frame-time measurement.
+                viewport.lookahead.demand = MovingPreparation(-1)
             TranscriptBodyPreparation.prepare_fragments = observe
             try:
                 await view.post(history)
+                if worker_custody:
+                    await asyncio.wait_for(entered.wait(), 10)
+                    first = history._prefetch_worker
+                    demand = viewport.lookahead.demand
+                    before = viewport.lookahead.preparation_count(view.window.size.height)
+                    demand.velocity = (-app.preparation.max_entries * viewport.visible_body_rows
+                                       / viewport.budget.lookahead_seconds)
+                    after = viewport.lookahead.preparation_count(view.window.size.height)
+                    history.prepare_scroll()
+                    custody["extent_changed"] = after > before
+                    custody["same_direction_original_worker_retained"] = history._prefetch_worker is first
+                    assert all(custody.values())
+                    release.set()
+                    await asyncio.wait_for(first.wait(), 10)
+
+                    entered.clear()
+                    release.clear()
+                    demand.velocity = -1
+                    history.prepare_scroll()
+                    await asyncio.wait_for(entered.wait(), 10)
+                    reverse = history._prefetch_worker
+                    viewport.lookahead.observe(viewport.lookahead.position + view.window.size.height)
+                    history.prepare_scroll()
+                    successor = history._prefetch_worker
+                    custody["reversal_replaced_original_worker"] = successor is not reverse
+                    try:
+                        await asyncio.wait_for(reverse.wait(), 10)
+                    except WorkerCancelled:
+                        custody["revoked_waiter_joined"] = True
+                    else:
+                        raise AssertionError("Reversal retained the obsolete preparation waiter")
+                    await history.retire_source()
+                    custody["retirement_closed_reader"] = history._page_buffer.closed
+                    custody["retirement_joined_successor"] = successor.is_finished
+                    release.set()
+                    assert all(custody.values())
                 await pilot.pause(.05)
                 resource = history.pages[0]
                 admission = resource.capture_admission()
                 children = tuple(resource.fragment_views)
                 worker = history._prefetch_worker
-                if worker is not None:
+                if worker is not None and not worker_custody:
                     await asyncio.wait_for(worker.wait(), 10)
                 prepared = tuple(fragment for batch in observations for fragment in batch)
                 prepared_indexes = [resource.fragments.index(fragment) for fragment in prepared]
                 receipt = {
                     "scope": "actual source Toad/native idle preparation; not installed physical acceptance",
+                    "worker_custody": custody,
                     "transport_has_older": page.has_older,
                     "transport_has_newer": page.has_newer,
                     "travel_rows": viewport.lookahead.travel_rows,
@@ -95,17 +154,24 @@ async def main(output):
                 (output / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
                 print(json.dumps(receipt), flush=True)
                 assert not page.has_older and not page.has_newer
-                assert resource.start > 0 and not viewport.lookahead.travel_rows
+                assert resource.start > 0
+                if not worker_custody:
+                    assert not viewport.lookahead.travel_rows
                 assert worker is not None and prepared_indexes, "Idle local source runway was skipped"
                 assert all(index < admission.start or index >= admission.stop for index in prepared_indexes)
                 assert tuple(resource.fragment_views) == children and resource.capture_admission() == admission
                 assert not reads and app.preparation.retained_bytes <= app.preparation.max_bytes
                 assert view.agent is None and app._exception is None
             finally:
+                release.set()
                 TranscriptBodyPreparation.prepare_fragments = prepare_fragments
                 history.finish_source_work(operation)
         await asyncio.get_running_loop().shutdown_default_executor()
+        receipt["whole_original_App_shutdown"] = True
+        receipt["app_exception"] = str(app._exception)
+        assert app._exception is None
+        (output / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
 
 
 if __name__ == "__main__":
-    asyncio.run(main(Path(sys.argv[1])))
+    asyncio.run(main(Path(sys.argv[-1]), worker_custody="--worker-custody" in sys.argv))
