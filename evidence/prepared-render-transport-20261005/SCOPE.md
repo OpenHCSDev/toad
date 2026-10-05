@@ -79,3 +79,33 @@ independent delivery; it has not run. `FUTURE-INSTALLED-SCOPE.json` identifies i
 literal control/hash and the required optional persistent-renderer dependency.
 Heis retains the first-paint/moving-frame integration; a fresh eligible holder
 purpose must bind the installed cohort before that work executes.
+
+## Exact installed proposal
+
+`PROPOSED-INSTALLED-OPERANDS.json` fixes the original control command, environment,
+short private IPC output and operator handoff. Bohr identified former public334
+as a possible holder; its actual current447 floor, archive, aliases, borrowers
+and restoration operands still require a fresh issued purpose. No prefix was
+read, imported or changed during this preparation.
+
+The recorded 69-package cohort needs five optional packages: zmqruntime 0.2.24,
+python-introspect 0.1.14, portalocker 4.4.0, NumPy 2.5.3 and PyZMQ 27.2.0.
+Their original metadata supplies the active requirements. Existing recorded
+annotated-types, metaclass-registry and psutil versions satisfy the remaining
+requirements; the actual eligible floor must verify them before launch.
+
+The three small cached archives passed their RECORD checks. NumPy and PyZMQ
+cache indexes had missing payloads; that preparation failure is retained.
+Five original wheels were fetched once using their exact cached URLs and
+SHA256 values, with no resolver, build, shared cache or installed-package write.
+`OPTIONAL-CACHED-ARTIFACTS.json` and `OPTIONAL-WHEEL-RECORD-PROOF.json` bind every
+wheel, metadata and verified RECORD. The owned originals occupy 17,832,699 bytes
+under `/home/ts/.cache/agent-scratch/einstein-render458-pinned-extra-wheels-20261005`
+and remain held for the named future purpose and restoration.
+
+Heis has normally joined this source into #460. He owns its complete union,
+one normal union wheel and the overall stage/restoration; the standalone #458
+wheel is not claimed equal to #460. The proposed sequence stages the union once,
+runs this one renderer control, returns Einstein's operator custody, then runs
+Heis's changed cold-height control if the issued shared purpose includes it.
+There is no accepted #456/#457 replay or measured first-paint/frame gain here.
