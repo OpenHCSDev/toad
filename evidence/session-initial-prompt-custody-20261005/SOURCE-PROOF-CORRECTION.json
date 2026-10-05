@@ -1,0 +1,55 @@
+{
+  "state": "Source-only corrected installed proof; fresh literal purpose and matching native READ authority remain unbound; unrun",
+  "original_consumed_grant_sha256": "f191755cc7170af79245bde1e0b9b24a1f28d52261fd35b6c17ec2b1cd53104e",
+  "original_failure_and_whole_return": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed01/whole-handback.json",
+    "sha256": "0de9374f5310fa4fa895009725bbf8a28764f691ee6ab6cef94bdc00ecd5eff7",
+    "bytes": 13028
+  },
+  "preserved_failed_helper": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed01/verify_installed-final.py",
+    "sha256": "5a8c4c864c95a3c05b877f4518d5d2df6d3bd50127d530bc23d1025a1f545548",
+    "bytes": 11790
+  },
+  "corrected_helper": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/session-initial-prompt-custody-20261005/prepared-installed-source-proof.py",
+    "sha256": "ccd4d1b136e749e6fb0ae246c8eb2639a5ed138d6634dbf9defa75af14339778",
+    "bytes": 10852
+  },
+  "reuse_original_algorithm": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/verify_installed.py",
+    "sha256": "ae637babca3f4d450550e048e3dbe841b8cf45ed61320ddf497ed89478b9b692",
+    "bytes": 10623
+  },
+  "source_relation": "Delete the historical Diff inventory lookup and digest assertion. Include authentic cached Diff wheel in the existing five-package ZIP/installed inventory loop. Keep original VCSDirectURL and InstalledSource.require_package behavior; own new emitted inventory digest. The old proof8a8/c1ab/ec4 and failed helper remain unchanged. No frontend/application/native correction.",
+  "diff_artifact": {
+    "path": "/home/ts/.cache/uv/sdists-v9/git/6a8a377ce2150d3f/8fa7d4d0db993ea3/textual_diff_view-0.1.5-py3-none-any.whl",
+    "sha256": "be7089c8f282e07e893b0254a0859e0f1b243a7ba591749f2053fa1fb775ad36",
+    "source_head": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+    "members": 3,
+    "origin": "original VCSDirectURL; the cached artifact is a reviewed byte source, not a rewritten installed origin"
+  },
+  "future_proof_argv": [
+    "ACTUAL_ELIGIBLE_PREFIX/bin/python",
+    "-B",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/session-initial-prompt-custody-20261005/prepared-installed-source-proof.py",
+    "NEW_LITERAL_ISSUED_GRANT_PATH",
+    "NEW_ISSUED_SHA256",
+    "NEW_LITERAL_NATIVE_READ_AUTHORITY_PATH",
+    "NEW_NATIVE_READ_SHA256",
+    "NEW_OWNED_OUTPUT"
+  ],
+  "unbound": [
+    "fresh actual floor/clearance/issued purpose",
+    "matching NEW native READ receipt",
+    "exact proof output/command binding",
+    "App release after proof/DTO"
+  ],
+  "unchanged_App_control": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/session_initial_prompt_custody_pilot.py",
+    "sha256": "85fcfcf894a188355b9a16fac48707cc74c51f28178c5bd75481f43acb3ccd0a",
+    "bytes": 6617
+  },
+  "no_new_wheel_build_or_App_control_needed": true,
+  "checked": "One Python source parse/compile and raw cached Diff ZIP SHA/member read. No installed proof/App/native operation."
+}

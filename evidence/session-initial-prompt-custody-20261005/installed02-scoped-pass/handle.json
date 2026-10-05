@@ -1,0 +1,15 @@
+{
+  "controller": {
+    "pid": 742063,
+    "start_time": 69296982
+  },
+  "child": {
+    "pid": 742075,
+    "start_time": 69297081
+  },
+  "start": 692970.813419258,
+  "stdout": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/installed02/stdout.log",
+  "stderr": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/installed02/stderr.log",
+  "owner": "Original installed BoundedRun.session / AttachedChild",
+  "scope": "ONE actual NoAgent mounted App; two plain pre-admission UserInputSubmitted UI events refused before backend submission by agent=None; constructor failure retains pending prompt; successful construction transfers; newest pending evict/remount once; original draft Document/Undo and Ctrl-Z; consumed value absent on second remount; original session close releases state."
+}

@@ -1,0 +1,10 @@
+{
+  "state": "Independent Bohr original uv environment bootstrap classification",
+  "receipt": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Einstein461-original-environment-bootstrap-classification.json",
+    "sha256": "7ed0109ca7c6570faaa6ad89ea30b5992afc1d9d82a06568d3f1810343f45e3c"
+  },
+  "original_whole_handback_unchanged": "0de9374f5310fa4fa895009725bbf8a28764f691ee6ab6cef94bdc00ecd5eff7",
+  "coverage": "Two bootstrap files predate the stage and are classified separately; original captured preimage hashes were not available. No deletion, modification or repeated restoration. Broader extra package files zero per original owner disposition.",
+  "no_nextloan": true
+}

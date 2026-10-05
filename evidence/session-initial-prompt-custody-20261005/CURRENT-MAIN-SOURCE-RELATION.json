@@ -1,0 +1,71 @@
+{
+  "state": "Normal source union published; no build/App/prefix effect",
+  "source_union": "ffd698e5b60e5a37641107be2512d5bb27cc3e62",
+  "actual_merged_main": "6d0de99cd2d2929107a731b00b63605ed43f7bbb",
+  "initial_prompt_source_previous": "00aa328903ebb99668cb84062d429d8eade7bfaf",
+  "initial_prompt_source_and_control_unchanged": {
+    "src/toad/screens/main.py": "2a601c11762edf3d56526de9970cb9df0de386705c444cafead06659276e09b1",
+    "src/toad/widgets/conversation.py": "b1c2ea8f624c5e1dcc69d1174377d60ae83541c5a3d1d61c6adefd21efa69736",
+    "src/toad/session_presentation.py": "412886c5ce3e033baf8c69e8b476202fe82f638822c4737e8022f7d986d63d25",
+    "tests/session_initial_prompt_custody_pilot.py": "85fcfcf894a188355b9a16fac48707cc74c51f28178c5bd75481f43acb3ccd0a"
+  },
+  "old_filewheel": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/source-wheel/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "d47bbc52700903cf0929c2b593b4b6f1eeab38980fd21fa8f1e473c376aa7089",
+    "build_head": "2c1da8ed9872af5f030549aa11b956e8335995e0",
+    "full_source_equal_to_union": false,
+    "same_assets": 312,
+    "changed_assets": [
+      {
+        "path": "src/toad/render_backend.py",
+        "old_wheel_sha256": "bcd6f3ca5e4ee930e0e7989711818df9b402f09df4590b6e7aae355532d7966a",
+        "merged_source_sha256": "258bbdd2de31b4298f3c2fde7ba3d0fbf692a07603d2552a29574edc07016fbb",
+        "equals_accepted_main458": true
+      },
+      {
+        "path": "src/toad/render_processes.py",
+        "old_wheel_sha256": "8bdea112f1de60f05a5f5d6f3c70d02129c5418b5d685f5170108081a40df0a2",
+        "merged_source_sha256": "e63d0889b4967bb24232a2bec300010d65c203482caf1e03fd562000e1abc01b",
+        "equals_accepted_main458": true
+      },
+      {
+        "path": "src/toad/render_protocol.py",
+        "old_wheel_sha256": "3d6d0874acb101caf942e4a9f162190e84f44f150635beb352a9c61fccf1e822",
+        "merged_source_sha256": "b1e6360f1be93f9d1747f516e41276c10ffaab7be01947067fdbe34c431564cb",
+        "equals_accepted_main458": true
+      },
+      {
+        "path": "src/toad/render_runtime.py",
+        "old_wheel_sha256": "54029f7e774673a94b300f92c2b020dbf7c430146a4464d3292dc543f8808a96",
+        "merged_source_sha256": "686732d3436e13434922dcbc995d524a6ecebf06523251894609fb921395081b",
+        "equals_accepted_main458": true
+      },
+      {
+        "path": "src/toad/render_service.py",
+        "old_wheel_sha256": "f168901e484efd8e0dc4744f66c00712b18e9634d0c7fc50ceae133ca3fdb44e",
+        "merged_source_sha256": "9beabf1f07bdbb09ecd125ccbaa1611f26aaf84da97644d72a263b5119b378d0",
+        "equals_accepted_main458": true
+      },
+      {
+        "path": "src/toad/render_zmq.py",
+        "old_wheel_sha256": "c4a7360859d282dc6b1bcddf04b70259a0a16d82030f9f9b43926e92c77ed5dc",
+        "merged_source_sha256": "696af0a2e24f922f00d9d805b222c7226fb198fafb33ff0dd0906063cebb5f62",
+        "equals_accepted_main458": true
+      },
+      {
+        "path": "src/toad/work_preparation.py",
+        "old_wheel_sha256": "fd570454ad1059a89baafbf9eef5a90563f7b32e1081d84c56f74c5a8507c5b1",
+        "merged_source_sha256": "b3f956797cd36e733926ae32faede1a3e671489e7f41c996227cc15f7de37aed",
+        "equals_accepted_main458": true
+      }
+    ]
+  },
+  "pins_build_inputs_unchanged": true,
+  "original_proposal": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/session-initial-prompt-custody-20261005/PROPOSED-FILEWHEEL-APP-OPERANDS.json",
+    "sha256": "a70024bbda8b1a61c33f94bcbe96010cd9e7c6bf106063e99c2946d3f9beda0e",
+    "state": "Prepared historical pre458 source-wheel tuple; preserve unchanged and reconcile with a source-equal normal union artifact before any future issued purpose."
+  },
+  "current_joint458460": "Frozen7546/proof348254/DTO9c73/control0fb+93d unchanged. Heis sole package/floor restoration; Einstein returned renderer custody.",
+  "remaining": "Future #461 mounted App is unrun; new normal source-equal union wheel is an actual seven-asset difference, not a docs/control rebuild. No new build or holder purpose is inferred by this merge."
+}

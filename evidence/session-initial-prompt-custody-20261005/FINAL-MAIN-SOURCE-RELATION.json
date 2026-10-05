@@ -1,0 +1,29 @@
+{
+  "state": "Normal current main source join after scoped App and whole owner restoration",
+  "main": "769e78a6c7087849d51b778b418b1467a3de1644",
+  "union": "ee440739d66f230ec964308d2df4db1c857d959c",
+  "qualified_owners_and_corrected_control": [
+    {
+      "path": "src/toad/screens/main.py",
+      "sha256": "2a601c11762edf3d56526de9970cb9df0de386705c444cafead06659276e09b1",
+      "byte_equal_to_qualified_source": true
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "sha256": "412886c5ce3e033baf8c69e8b476202fe82f638822c4737e8022f7d986d63d25",
+      "byte_equal_to_qualified_source": true
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "sha256": "b1c2ea8f624c5e1dcc69d1174377d60ae83541c5a3d1d61c6adefd21efa69736",
+      "byte_equal_to_qualified_source": true
+    },
+    {
+      "path": "tests/session_initial_prompt_custody_pilot.py",
+      "sha256": "2a619c9ac361f88fdd52f07a621b6523b7385f1fea145ad6c032d74ce9f2cdc0",
+      "byte_equal_to_qualified_source": true
+    }
+  ],
+  "source_checks": "The normal merge changed none of these original three owners or control. Main body placement/recorder changes are separately qualified, not repeated here.",
+  "no_new_build_or_App": true
+}

@@ -1,0 +1,291 @@
+{
+  "state": "OriginalEinstein461 corrected proof02 scoped NoAgent App PASS; whole package/import/operator and native READ RETURNED",
+  "issued_grant": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Einstein461-corrected-proof02-NoAgent-package-App-issued-grant.json",
+    "sha256": "cf2d5a3ab1ba0a03ba4e00b971b9c9edbaf9ec6d627138f5ae8d9a34444d860a",
+    "bytes": 1936977
+  },
+  "source_product_unchanged": "759abc2ada95fcb1f642a552b115a979ed7e33c7",
+  "source_union": "ffd698e5b60e5a37641107be2512d5bb27cc3e62",
+  "control_source_receipt": "8f03cd247",
+  "corrected_control_sha256": "2a619c9ac361f88fdd52f07a621b6523b7385f1fea145ad6c032d74ce9f2cdc0",
+  "App_scope": {
+    "scope": "Mounted NoAgent constructor/eviction/remount/close and draft/Undo custody.",
+    "native_inputs": 0,
+    "provider_calls": 0,
+    "public_inputs": 0,
+    "failed_constructor_retains_successful_constructor_transfers": true,
+    "pending_eviction_remount_once_and_original_draft_undo": true,
+    "consumed_input_not_restored_and_close_releases_state": true,
+    "local_ui_publications": {
+      "INITIAL_LOCAL_UI_EVENT": 1,
+      "NEWEST_PENDING_LOCAL_UI_EVENT": 1
+    },
+    "state": "PASS",
+    "cleanup": []
+  },
+  "App_terminal": {
+    "elapsed": 12.189038248034194,
+    "returncode": 0,
+    "timed_out": false,
+    "error": null,
+    "drain_errors": [],
+    "outcome": {
+      "kind": "exited",
+      "code": 0
+    },
+    "child_retired": true,
+    "owned_group_members": [],
+    "controller": {
+      "pid": 742063,
+      "start_time": 69296982
+    },
+    "child": {
+      "pid": 742075,
+      "start_time": 69297081
+    },
+    "scope": "ONE actual NoAgent mounted App; two plain pre-admission UserInputSubmitted UI events refused before backend submission by agent=None; constructor failure retains pending prompt; successful construction transfers; newest pending evict/remount once; original draft Document/Undo and Ctrl-Z; consumed value absent on second remount; original session close releases state.",
+    "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Einstein461-corrected-proof02-NoAgent-package-App-issued-grant.json",
+    "native_inputs": 0,
+    "provider_calls": 0
+  },
+  "sourceproof_PASS": {
+    "seconds": 8.510596643085591,
+    "source_assets": 953,
+    "packages": 69,
+    "sdk": "0.12.1",
+    "native_FullTrust": true,
+    "native_EXEC": false
+  },
+  "all_original_receipts": [
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/stage-attempt.json",
+      "sha256": "b0a549c71ee64f229ab3584c6fa9d2cfea4708cfbe6ef0434b2e64f141310b68",
+      "bytes": 3056
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/stage-terminal.json",
+      "sha256": "70881344d84ec30ae329e9995697e911b328637a147df0090b4d799c7d9e10c9",
+      "bytes": 872
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/stage.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/stage.stderr.log",
+      "sha256": "5d4c19052fd92525d11c7f24e92ee8fe0e88f2c54c1111f6ea0c1cda871070d5",
+      "bytes": 1293
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/proof-command-binding.json",
+      "sha256": "8f447936e204d58685bf8ea4b56edeec94940cf4b437f582830ffec6e22a6dbe",
+      "bytes": 3313
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/sourceproof-terminal.json",
+      "sha256": "cf31e673200149cf85b5581daf0876c4797ceac62adb9c11ea724361c6604a77",
+      "bytes": 1316
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/sourceproof.stdout.log",
+      "sha256": "e5aaddae8269e8becf385744069396519dfaa1395ac236eaae09a895cb29fe0d",
+      "bytes": 473
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/sourceproof.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/candidate-source-proof.json",
+      "sha256": "6559068f324bfbd843869a79c8433fa3c221d9c1b6cbae0cfc4ca730c4ebcb38",
+      "bytes": 9567
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/candidate-activation.json",
+      "sha256": "c26ee093fbd157dc286103d2d1de4f0702970ba48a7bf39e816ddafc5a905c4b",
+      "bytes": 2374
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/native-full-trust.json",
+      "sha256": "0e15be19fe55d23db5b638a14ff71bc2a263641176c0da3f7d292ca292d22b81",
+      "bytes": 632
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/package-boundary-proof.json",
+      "sha256": "0774ea61ac1dcb625dfe57cee7ca2edbae8b5cdd80f0c72f2584729ebbaa20a6",
+      "bytes": 5586
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/candidate-packages.json",
+      "sha256": "c46cd258a1938835b0b92e961db35b3bf8ac573a236366b73b3f1c75c1dc0606",
+      "bytes": 4756
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/restore-attempt.json",
+      "sha256": "167426edbe806204a7ef8fbc33197360bc77acbcb939358de4338b4d3cb383af",
+      "bytes": 2167
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/restore-terminal.json",
+      "sha256": "d2ce4fac7d0830c088ca1caa267d5ca5e779ebbf01bb6217e059b56caa17cfdb",
+      "bytes": 988
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/restore.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/restore.stderr.log",
+      "sha256": "a4cf999dba0ecccd7608b4741f5ea76813d6c77dd877ef565355890ca411bf2e",
+      "bytes": 1478
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/restore-whole-file-readback.json",
+      "sha256": "3acd751d093a56efb89ff594a2d2123685af9800eaca33cb2dd9bdf9d2fb9c83",
+      "bytes": 454
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/restored-packages.json",
+      "sha256": "46f9ca2b12689bb9d91ea694206906d481e88bc5498c97fb555f6d20cbe66628",
+      "bytes": 4858
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/agent_comms-installed-inventory.json",
+      "sha256": "6dab1cb24f30b82e6654ebc3b76d72d2fc409b703819087f9aece261718fe26e",
+      "bytes": 60481
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/toad-installed-inventory.json",
+      "sha256": "00eb8b876023326ed8ad0b7b2c61c6fe4667db54526b3dffd18e2baf330ad962",
+      "bytes": 52319
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/textual-installed-inventory.json",
+      "sha256": "1f96959f97e8b3fb6f53a179d3b35ac0850266cd22c04f6be4f9925834bead9c",
+      "bytes": 43355
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/refactor_audit-installed-inventory.json",
+      "sha256": "79ef08af65adb585d30c0564b72fe87cbce47766f65f055c3b0cc2204468fc46",
+      "bytes": 1981
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/textual_diff_view-installed-inventory.json",
+      "sha256": "3be0f2c57a6a988ded36b67b68481aa5d3949377b22f0ba2de52019d64dfc8cc",
+      "bytes": 800
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/installed02/grant-binding.json",
+      "sha256": "5db9c820b7d82a9da4172813f8a2d3ff4c83529237c857a7703ebcecfbe6690e",
+      "bytes": 541
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/installed02/command.json",
+      "sha256": "9ac25c62a3cbf5186c34b522230c17931779d32d91d1d468488d335048f6ca42",
+      "bytes": 1310
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/installed02/handle.json",
+      "sha256": "a0e8e63c0496e68c74aea8cf57b96b700afdfed1bf30ba90deaf1dd0b9228645",
+      "bytes": 892
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/installed02/stdout.log",
+      "sha256": "75bfc7df54a863d91515e9bcf7df5d56685f957f7327a1626171c871ddf0fb86",
+      "bytes": 467
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/installed02/stderr.log",
+      "sha256": "9dca3dc597504647a6677cf12ee66a64cd5a981a3ff9b7bc26267b9750b6edce",
+      "bytes": 2261
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/installed02/terminal.json",
+      "sha256": "d35a0c432d046ed12c26fb86567ec8df50a1854f02b04f05b9ad0146a7e9f0ba",
+      "bytes": 935
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/installed02/app-receipt.json",
+      "sha256": "059f463c2b9e6ae7f4bdebba1acae1740a195bb892ac7e7e73bb93dde4d08430",
+      "bytes": 501
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/installed02/owned-cleanup.json",
+      "sha256": "802304c643e3c8a5119bb2e0bfbaca3d01c675ed436d99331f48870b90b0fadc",
+      "bytes": 828
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/installed02/run.py",
+      "sha256": "e0704197c1cd1c149873f257b68a581b54576d50759d54ca45dad9baecd5b8ca",
+      "bytes": 3840
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/installed02/session_initial_prompt_custody_pilot-85fc-unrun.py",
+      "sha256": "85fcfcf894a188355b9a16fac48707cc74c51f28178c5bd75481f43acb3ccd0a",
+      "bytes": 6617
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/installed02/run-before-control-reconciliation-unrun.py",
+      "sha256": "26569529e91083e9345afefe3790ec9805df9bb6d3939c02c863728f4470796a",
+      "bytes": 3795
+    }
+  ],
+  "stderr_observation": "Original raw stderr contains UnregisteredThreadError from catalog preparation for an authored unregistered NoAgent project. App._exception was asserted None and scoped assertions passed. No uncaught App failure or relation to this prompt-custody change is inferred; raw log preserved.",
+  "restoration": {
+    "state": "Actual CURRENT448 normal restoration readback",
+    "original_current448_records": 1477,
+    "original_other66_records": 1883,
+    "original_environment_bootstrap_records": 2,
+    "failures": [],
+    "extra_assets": [],
+    "protected_originals": 626,
+    "separate_wrappers": 5,
+    "PREFIXactivation_sha256": "2d46e956b37e599add12718b06770cce5a1b53c1421c95a3e69201d34750c63b",
+    "raw_original_origins_sha_equal": true,
+    "archive_member_writes": false
+  },
+  "original69_versions_and_raw_origins_restored": true,
+  "owned_cleanup": {
+    "state": "Original App/child retired and actual owned scratch disposed after scoped receipt retention",
+    "owned_process_identities_absent": [
+      {
+        "pid": 742063,
+        "start_time": 69296982
+      },
+      {
+        "pid": 742075,
+        "start_time": 69297081
+      }
+    ],
+    "owned_group_members": [],
+    "private_sockets": [],
+    "App_receipt": {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/installed02/app-receipt.json",
+      "sha256": "059f463c2b9e6ae7f4bdebba1acae1740a195bb892ac7e7e73bb93dde4d08430"
+    },
+    "scratch_removed": "/home/ts/.cache/agent-scratch/einstein-tc1-461-mounted02-20261005",
+    "remaining": [],
+    "App_runtime_preparation_executor_joined": true,
+    "individual_worker_births_not_retained": true,
+    "no_native_process_launched": true
+  },
+  "matching_native_READ_return": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper461-corrected-proof02-NoAgent-READ-issued-20261005.json",
+    "sha256": "d4ce291a91ae13e02b4913a2c3faab233c0a6605a4daced53807a24c7474cef1",
+    "state": "RETURNED",
+    "native_EXEC_granted_or_used": false,
+    "keeper_unchanged": true
+  },
+  "limits": [
+    "No physical UI/provider/ACP/SDK/native input or arbitrary Textual mount failure tested. Two local UI events were refused before backend admission by agent=None.",
+    "Individual installer/proof/restore/worker birth identities were not retained; synchronous children were waited, original App/controller exact identities retired/group empty.",
+    "Independent privileged floor/census closure belongs to original Bohr."
+  ],
+  "first_failed_proof_and_unrun85fc_preserved": true,
+  "public_CURRENT485459_and_independent334_540_protected": true,
+  "no_nextloan": true
+}

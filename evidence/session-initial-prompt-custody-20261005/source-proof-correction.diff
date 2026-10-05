@@ -1,0 +1,69 @@
+--- preserved-failed-5a8-proof
++++ prepared-successor-proof
+@@ -2,17 +2,21 @@
+ import csv,hashlib,importlib,importlib.metadata as metadata,io,json,os,stat,sys,zipfile
+ from dataclasses import replace
+ from pathlib import Path
+-OUT=Path(__file__).parent
+-GRANT=Path('/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Einstein461-current448-union-NoAgent-package-App-issued-grant.json')
+-AUTHORITY=Path('/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper461-current448-union-NoAgent-READ-issued-20261005.json')
++GRANT=Path(sys.argv[1]); grant_sha=sys.argv[2]
++AUTHORITY=Path(sys.argv[3]); authority_sha=sys.argv[4]
++OUT=Path(sys.argv[5])
+ def digest(path):
+  with Path(path).open('rb') as stream:return hashlib.file_digest(stream,'sha256').hexdigest()
+ def write(path,value):
+  with path.open('x') as stream:stream.write(json.dumps(value,indent=2)+'\n')
+-assert digest(GRANT)=='f191755cc7170af79245bde1e0b9b24a1f28d52261fd35b6c17ec2b1cd53104e'
++assert digest(GRANT)==grant_sha
+ g=json.loads(GRANT.read_text());l=json.loads(Path(g['lifecycle']).read_text())
+ assert l['proof_execution_authorized'] and l['native_READ_authorized'] and not l['execution_authorized'] and not l['native_EXEC_authorized']
+-assert digest(AUTHORITY)=='039a5fe88ba10ade2baf77ccf40c473f683606de789a7613b521a625f183ab42'
++assert digest(AUTHORITY)==authority_sha
++read_authority=json.loads(AUTHORITY.read_text())
++assert read_authority['holder_grant']=={'path':str(GRANT),'sha256':grant_sha}
++assert read_authority['native_READ_authorized'] and not read_authority['native_EXEC_authorized']
++assert OUT==Path(g['owned_output'])
+ prefix=Path(g['prefix']);assert Path(sys.prefix)==prefix and not os.environ.get('PYTHONPATH') and not os.environ.get('PYTHONHOME')
+ for record in g['unchanged_other66_records']:
+  p=Path(record['path']);assert stat.S_IMODE(p.lstat().st_mode)==record['mode'],p
+@@ -42,6 +46,9 @@
+  source=next(s for s in prior.sources if s.module==module)
+  r=next(r for r in g['restore_filewheels'] if r['module']==module);wheel=Path(r['path']);wheel_sha=r['sha256']
+  inputs.append((module,dist,source.head,wheel,wheel_sha))
++# Original cold460 proof acquires Diff's authentic cached wheel; VCS origin stays VCS.
++diff=next(s for s in prior.sources if s.module=='textual_diff_view')
++inputs.append((diff.module,'textual-diff-view',diff.head,Path('/home/ts/.cache/uv/sdists-v9/git/6a8a377ce2150d3f/8fa7d4d0db993ea3/textual_diff_view-0.1.5-py3-none-any.whl'),'be7089c8f282e07e893b0254a0859e0f1b243a7ba591749f2053fa1fb775ad36'))
+ sources=[];artifacts=[];inventories={};metadata_records={}
+ for module_name,distname,head,wheel,wheel_sha in inputs:
+  assert digest(wheel)==wheel_sha
+@@ -68,27 +75,13 @@
+  else:assert direct==g['original69_origins'][distname]['contents']
+  source=FieldCodec.decode(InstalledSource,{'module':module_name,'head':head,'location':str(location),'files':len(members),'python_files':sum(n.endswith('.py') for n in members),'byte_equal':True,'direct_url':direct,'inventory_sha256':digest(inventory_path)})
+  artifact=ReviewedArtifact(wheel,wheel_sha);source.require_package(module_name,location,direct,(artifact,));sources.append(source);artifacts.append(artifact);inventories[module_name]={'path':str(inventory_path),'sha256':digest(inventory_path)}
+-# Diff retains its authentic VCS origin and original floor inventory.
+-diff=next(s for s in prior.sources if s.module=='textual_diff_view')
+-diff_inventory=prior_path.parent/'textual_diff_view-inventory.json'
+-assert digest(diff_inventory)==diff.inventory_sha256
+-diff_rows=json.loads(diff_inventory.read_text())
+-diff_location=Path(importlib.import_module(diff.module).__file__).parent
+-assert diff_location==Path(diff.location) and diff_location.parent==installed
+-for row in diff_rows:assert digest(installed/row['path'])==row['sha256'] and (installed/row['path']).stat().st_size==row['bytes']
+-assert {str(p.relative_to(installed)) for p in diff_location.rglob('*') if p.is_file() and '__pycache__' not in p.parts and p.suffix!='.pyc'}=={row['path'] for row in diff_rows}
+-diff_direct=json.loads(metadata.distribution('textual-diff-view').read_text('direct_url.json'))
+-diff.require_package(diff.module,diff_location,diff_direct,tuple(artifacts))
+-diff_output=OUT/'textual_diff_view-installed-inventory.json';write(diff_output,{'original_inventory':str(diff_inventory),'original_inventory_sha256':digest(diff_inventory),'module':diff.module,'assets':diff_rows,'byte_equal':True,'missing_extra':[],'original_VCS_origin':diff_direct})
+-sources.append(replace(diff,inventory_sha256=digest(diff_output)))
+-inventories[diff.module]={'path':str(diff_output),'sha256':digest(diff_output)}
+ assert sum(s.files for s in sources)==953
+ assert digest(installed/'refactor_audit/measures.py')=='8f6127cb184801fbf2ca162adbece5c103c0fc6693f81197632668f710af7513'
+ native=g['matching_native_reference'];native_path=Path(native['package']);assert digest(MANIFEST)==native['manifest'];verify_native_package(native_path);assert package_tree_digest(native_path)==native['tree']
+ write(OUT/'native-full-trust.json',{'authority':str(AUTHORITY),'authority_sha256':digest(AUTHORITY),'package':str(native_path),'manifest':native['manifest'],'tree':native['tree'],'native_full_trust':True,'artifact_execution':False,'artifact_writes':False})
+ package_tuple=tuple(sorted(packages.items()));sdk=metadata.version('agent-client-protocol');assert sdk=='0.12.1';requirements_sha=hashlib.sha256(json.dumps(package_tuple,separators=(',',':')).encode()).hexdigest()
+-proof=replace(prior,state='HELD461 own953/full69 CURRENT448 artifact proof; exactNoAgentApp unrun',prefix=prefix,sources=tuple(sources),native_package=native_path,native_cli=str(native_path/'dist/cli.js'),native_manifest=native['manifest'],native_tree=native['tree'],native_full_trust=True,sdk=sdk,package_count=69,packages=package_tuple,requirements_sha256=requirements_sha,protected_old_prefix_files=626,protected_old_prefix_files_unchanged=True,public_install_changed=False,new_native_build=False,source_overlay=False,dependency_bypass=False,journey_owners=('OriginalEinstein461 exact85fcNoAgent after bound release',),journey_assessment='Original953/full69 source/artifact/typed origin proof only; other66/1883+626keepers+5originalwrappers/PREFIXactivation unchanged. NativeREAD only/no App/nativeprocess/SDK/ACP/provider/input. Two local preadmissionUIevents only under later fresh release.',archive_artifacts=tuple(artifacts))
+-activation=FieldCodec.decode(CohortActivation,{'stage':str(prefix),'pins':{s.module:s.head for s in sources if s.module!='textual_diff_view'},'sdk':sdk,'textual_diff_view':next(s.head for s in sources if s.module=='textual_diff_view'),'native_package':str(native_path),'state':'HELD461 private CURRENT448 independentNoAgent candidate; no public operation','staging_receipt':str(OUT/'candidate-source-proof.json'),'bins':{n:str(prefix/'bin'/n) for n in ('python','toad','agent-comms','agent-comms-acp','agent-comms-agent','pi-comms-native')},'native_cli':str(native_path/'dist/cli.js'),'native_manifest':native['manifest'],'native_tree':native['tree'],'native_configuration_note':'Original issuedf191 CURRENT4481477/69/626+5wrappers/archive492630. Exact675Corea685+461union47f8+Text6716c9. NEW039a7aREAD proof only, artifactEXECfalse. Original85fcApp held finalproof/DTO/release; public485459 protected. WholeactualCURRENT448 restoration afterterminal.'})
++proof=replace(prior,state='HELD461 own953/full69 CURRENT448 artifact proof; exactNoAgentApp unrun',prefix=prefix,sources=tuple(sources),native_package=native_path,native_cli=str(native_path/'dist/cli.js'),native_manifest=native['manifest'],native_tree=native['tree'],native_full_trust=True,sdk=sdk,package_count=69,packages=package_tuple,requirements_sha256=requirements_sha,protected_old_prefix_files=626,protected_old_prefix_files_unchanged=True,public_install_changed=False,new_native_build=False,source_overlay=False,dependency_bypass=False,journey_owners=('OriginalEinstein461 exact85fcNoAgent after bound release',),journey_assessment='Original953/full69 source/artifact/typed origin proof only; other66/1883+626keepers+5originalwrappers/PREFIXactivation unchanged. NativeREAD only/no App/nativeprocess/SDK/ACP/provider/input. Diff bytes acquired from authentic cached wheel; original VCS installer origin retained. Two local preadmissionUIevents only under later fresh release.',archive_artifacts=tuple(artifacts))
++activation=FieldCodec.decode(CohortActivation,{'stage':str(prefix),'pins':{s.module:s.head for s in sources if s.module!='textual_diff_view'},'sdk':sdk,'textual_diff_view':next(s.head for s in sources if s.module=='textual_diff_view'),'native_package':str(native_path),'state':'HELD461 private CURRENT448 independentNoAgent candidate; no public operation','staging_receipt':str(OUT/'candidate-source-proof.json'),'bins':{n:str(prefix/'bin'/n) for n in ('python','toad','agent-comms','agent-comms-acp','agent-comms-agent','pi-comms-native')},'native_cli':str(native_path/'dist/cli.js'),'native_manifest':native['manifest'],'native_tree':native['tree'],'native_configuration_note':'Fresh literal holder grant and matching native READ authority are passed to this proof and validated. Original85fc App remains held until finalproof/DTO/release. No artifact EXEC or public operation. Actual floor/restoration are owned by the fresh issued grant.'})
+ proof.require_activation(activation)
+ write(OUT/'candidate-source-proof.json',FieldCodec.encode(proof));write(OUT/'candidate-activation.json',FieldCodec.encode(activation))
+ write(OUT/'package-boundary-proof.json',{'issued_sha256':digest(GRANT),'source_assets':953,'source_inventories':inventories,'buildmetadata_RECORD':metadata_records,'package_count':69,'packages':package_tuple,'other66_files_unchanged':1883,'protected_originals_unchanged':626,'separate_wrappers_unchanged':5,'PREFIXactivation_unchanged':True,'sdk':sdk,'native_full_trust':True,'Apps_run':0,'native_execution':False})
