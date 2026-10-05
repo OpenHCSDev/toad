@@ -1,0 +1,27 @@
+{
+  "issued_grant_sha256": "679abc6536af1cf1f1046f04d75dfb6cc24f2b19666b0e687c4407536195df3f",
+  "effective_proposal_sha256": "aa5f84f326e6713514f7ba37098343d8530701d9f3342da29c9c562a5f24898b",
+  "actual449_merge": "2b97bf256fdddc15a909a95df8712db176962341",
+  "qualified_gate_count": 62,
+  "qualification_input": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context-explorer-functional-receiving-20261004/qualification-input.json",
+    "sha256": "2923a4ab832b624cc7d4fc1cb5bfdf4c7edff1794fda04dcbca247182584bf00"
+  },
+  "source_relation": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context-explorer-functional-receiving-20261004/post449-merged-source-relation.json",
+    "sha256": "910ea048caae414fb8477a9e0f78223429f22fb1ce771314c7fbae7241c3937e"
+  },
+  "sourceproof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context-explorer-functional-receiving-20261004/source-proof.json",
+    "sha256": "8a8fd8201d4357e648d55979340bce16ab2d7e89d6db1fbe8f312de1e1cbc578"
+  },
+  "candidate_DTO": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context-explorer-functional-receiving-20261004/candidate-activation.json",
+    "sha256": "113a6293414c95ed040b6b1021cc2f70f66291a3722c755baa5ccb276392f64f"
+  },
+  "canonical_manifest": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/context-explorer-functional-receiving-20261004/MERGED-CANONICAL-SOURCE-MANIFEST.json",
+    "sha256": "3245b0da7ecfcd7f9a451b3be9d489906738a4cf4d8926fdbe1004b13f65c382"
+  },
+  "status": "Concrete reconciliation submitted for same lifecycle receiving release; no cohort command/public decoder yet"
+}

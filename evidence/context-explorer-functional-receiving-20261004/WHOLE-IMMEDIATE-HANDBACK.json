@@ -1,0 +1,38 @@
+{
+  "state": "Explicit whole IMMEDIATE Sch package/import/source/cohort/native7aREAD claim returned; positive frozen candidate HELDParent",
+  "issued_sha256": "679abc6536af1cf1f1046f04d75dfb6cc24f2b19666b0e687c4407536195df3f",
+  "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "floor_disposition": "Candidate retained positive; historicalCURRENT444 b702 recovery archive/519 unchanged; no floor restoration or nextloan inferred",
+  "READY": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context-explorer-functional-receiving-20261004/READY.json",
+    "sha256": "8ed33ab119346f9664100e210df4ebbe3b31630fee87dbee16d7fe9705cd992d"
+  },
+  "frozen_manifest": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context-explorer-functional-receiving-20261004/frozen-manifest.json",
+    "sha256": "8e1d831afd5d02a5579f17b8a6f62539dac9be8a543d00a281ac89c59d13503c",
+    "count": 107
+  },
+  "source_proof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context-explorer-functional-receiving-20261004/source-proof.json",
+    "sha256": "8a8fd8201d4357e648d55979340bce16ab2d7e89d6db1fbe8f312de1e1cbc578"
+  },
+  "candidate_DTO": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context-explorer-functional-receiving-20261004/candidate-activation.json",
+    "sha256": "113a6293414c95ed040b6b1021cc2f70f66291a3722c755baa5ccb276392f64f"
+  },
+  "candidate_terminal_readback": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context-explorer-functional-receiving-20261004/terminal-candidate-readback.json",
+    "sha256": "dcd23009a5dc8f5df0a2875655eaed6645df7ee480c03899674aac9764809e38"
+  },
+  "original_preparation_process_custody": "Both exact prep subprocess.run operations synchronously joined with terminal receipts; scoped source subprocess.check_output joined; no persistent App/SDK/native/socket or worker launched by Sch",
+  "exact_owned_process_birth_limit": "Prep wrapper did not retain subprocess births; no invented identity/absence claim; Bohr fresh privileged census requested",
+  "owned_open_operations": [],
+  "Einstein_onecheck_consumed_and_joined": true,
+  "native_7a_READ_returned": true,
+  "native_execution_never_granted_used": true,
+  "keeper_7a_086_immutable_retained": true,
+  "public334447_and_shared19native086READ_preserved": true,
+  "fresh_independent_census_lifecycle_owner": "Bohr only; request holder/output/native7a proof borrower readback and close existing679abc lifecycle only",
+  "no_more_prefix_import_READ_write_execution_build_claim": true,
+  "receipt_preimages_absent": true
+}

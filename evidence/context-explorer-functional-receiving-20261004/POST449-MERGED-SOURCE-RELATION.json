@@ -1,0 +1,39 @@
+{
+  "state": "Actual normal449 merge full319 Git/retainedZIP/buildmetadata matches unchanged installed candidate; no restage or check repeat",
+  "actual_Toad_merge": "2b97bf256fdddc15a909a95df8712db176962341",
+  "actual_449_frozen_head": "9bc783f137fe46d211f3c0562c73eb1007b26210",
+  "original_staged_Toad_source": "c160c05b193b13add79c881a2129e13747e40cd1",
+  "receiving_source_head": "3081cea4b204623128d08f82c04b2e2054bd03f4",
+  "Toad_asset_members": 319,
+  "full_Git_ZIP_sha_bytes_verified": true,
+  "buildmetadata_tests_tools_diff": [],
+  "Toad_wheel": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/annotation-address-successor/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "1a8ad3507b6a567a203d16eac55e3ef53d5f04526b106b6aa41599f93cfd1b16"
+  },
+  "original_owner_sourceproof": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/annotation-address-successor/source-proof.json",
+    "sha256": "5570f891343fd6f6f026f72f026a41960cb9bc2e1e88c81191244e4afe67391a"
+  },
+  "original_installed_sourceproof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context-explorer-functional-receiving-20261004/source-proof.json",
+    "sha256": "8a8fd8201d4357e648d55979340bce16ab2d7e89d6db1fbe8f312de1e1cbc578"
+  },
+  "original_candidate_DTO": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context-explorer-functional-receiving-20261004/candidate-activation.json",
+    "sha256": "113a6293414c95ed040b6b1021cc2f70f66291a3722c755baa5ccb276392f64f"
+  },
+  "selected_Core_canonical_source": "0a600a2b0287c5fbfef907e6e623652c587f66df",
+  "actual_Core_merged_locator": "2ec1d064c131a20d33f880ca63a3252dc0a17ce0",
+  "Core_src_stack_forced_buildmetadata_tools_delta": [],
+  "Core_members": 355,
+  "Core_original_installed_source_relation": "Actual0a/source3aac/retained0ed355 verified by original8a8 source proof; later2ec tools/runtime byte-equal",
+  "canonical51_manifest": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/context-explorer-functional-receiving-20261004/MERGED-CANONICAL-SOURCE-MANIFEST.json",
+    "sha256": "3245b0da7ecfcd7f9a451b3be9d489906738a4cf4d8926fdbe1004b13f65c382"
+  },
+  "canonical51_Git_byte_equal_to_actual2ec": true,
+  "public_source_decoder_run": false,
+  "native_execution": false,
+  "restage": false
+}

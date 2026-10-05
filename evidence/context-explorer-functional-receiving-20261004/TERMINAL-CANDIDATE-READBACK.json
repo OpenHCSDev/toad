@@ -1,0 +1,16 @@
+{
+  "state": "Positive candidate readback PASS; no public operation",
+  "installed_assets": 953,
+  "normal_distributions": 69,
+  "unchanged67_distribution_files_hash_mode_link_equal": 2157,
+  "original519_hash_equal": true,
+  "full_cohort_distinct_gates": 60,
+  "source_coordination_schema": 9,
+  "target_coordination_schema": 10,
+  "checkpoint_schema_digest_equal": true,
+  "native_READ_FullTrust": "Original corrected wholecohort require_original passed; artifact executionfalse",
+  "receipt_preimages_runtime_carry_candidate_absent": true,
+  "sourceproof_DTO_original_hashes_unchanged": true,
+  "once_execute_readback_AST_compile": true,
+  "newcommands_executed": false
+}

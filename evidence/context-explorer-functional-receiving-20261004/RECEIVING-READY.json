@@ -1,0 +1,44 @@
+{
+  "state": "Scoped functional receiving candidate preparation PASS/FROZEN HELDParent; public delivery unexecuted",
+  "installed_assets": 953,
+  "normal_distributions": 69,
+  "protected_originals": 519,
+  "unchanged67_distribution_file_keepers": 2157,
+  "canonical51_source": "0a600a2b0287c5fbfef907e6e623652c587f66df",
+  "current_Core_merged_locator": "2ec1d064c131a20d33f880ca63a3252dc0a17ce0",
+  "actual449_merge": "2b97bf256fdddc15a909a95df8712db176962341",
+  "selected_Toad_producer_pin": "c160c05b193b13add79c881a2129e13747e40cd1",
+  "package_Git_wheel_current_merge_relation": "Full355/319 package source/metadata relation preserved with original ArchiveDirectURLs, no VCS origin claim",
+  "distinct_installed_gate_count": 60,
+  "canonical_prepare_exit": 0,
+  "cohort_prepare_corrected_exit": 0,
+  "cohort_prepare_corrected_elapsed_seconds": 8.520108723081648,
+  "original_failed_cohort_list_guard_preserved": true,
+  "frozen_manifest": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context-explorer-functional-receiving-20261004/frozen-manifest.json",
+    "sha256": "8e1d831afd5d02a5579f17b8a6f62539dac9be8a543d00a281ac89c59d13503c",
+    "count": 107
+  },
+  "native_transition": {
+    "source_manifest": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
+    "target_manifest": "7a2e4aabdbc5af49dd9af942190d92086df2eb3489903674a74af51cf831cd33",
+    "original_source_schema": 9,
+    "target_schema": 10,
+    "checkpoint_digest_equal": true,
+    "runtime_member": "CarryNativeRuntimeInstallation",
+    "owner_runtime": "PreserveOwnerRuntime",
+    "executed": false
+  },
+  "scopes": [
+    "Original authentic AnnotationNode GUI23.123s distinct accepted tuple preserved",
+    "Original historicalReference reader/search/export30.217s preserved",
+    "Original genuine9to10 authoredstoppedcopy carry4.738s preserved",
+    "Original443 projected-only9.344s preserved",
+    "Actual449 mountedTree5.404s/pytest1PASS preserved"
+  ],
+  "W7_W8_external_worker_disclosure": "Separate unfinished/off, no functional delivery hold",
+  "publication_receipt_present": false,
+  "preimages_present": false,
+  "App_SDK_provider_input_native_execution_publiccarry_guard_publisher_signals": false,
+  "next_owner": "Parent exact source/artifact review and fresh original public admission/one-use disposition; no automatic next loan or positivefloorrestore"
+}
