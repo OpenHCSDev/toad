@@ -1,8 +1,8 @@
 from agent_comms.acp_extension import QueuePromptRequest
-"""Matched logical-session scaling with a real ACP/owner/Pi loopback path.
+"""Mixed logical-session scaling with a real ACP/owner/Pi loopback path.
 
-One native owner and one ACP attachment remain fixed across4/16/32/64 tabs.
-This measures presentation scaling without changing the backend source cohort.
+Two native owners and two ACP attachments supply two loaded histories;
+the remaining logical tabs are blank, not a loaded-history scaling cohort.
 No Agent, transport, queue, editor or renderer method is mocked.
 """
 
@@ -339,12 +339,15 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             await asyncio.wait_for(agent.send_prompt(f"QUEUED_AT_{count}", request=QueuePromptRequest(f"QUEUED_AT_{count}", True)), 10)
             await until(pilot, lambda: bool(agent.queue_attachment.projection.items))
             state = owner_view.presentation.state
-            assert state is not None
-            assert state.editor.document is document and state.editor.history is history
-            assert state.editor.document.text == "untouched native draft with undo"
-            rich_views = {id(view) for screen in app.workspace_sessions.views.values()
+            editor_state = (state.editor if state is not None else
+                            owner_view.conversation.prompt.prompt_text_area.capture_editor_state())
+            assert editor_state.document is document and editor_state.history is history
+            assert editor_state.document.text == "untouched native draft with undo"
+            rich_views = {view for screen in app.workspace_sessions.views.values()
                           for view in screen.query("Conversation")}
-            assert len(rich_views) == 1, "Inactive rich presentation escaped global admission"
+            retained = {owner.widget for _, owner in app.workspace_chrome.native._presentations()}
+            assert rich_views == retained, "A native tree escaped its presentation's custody"
+            assert app.workspace_chrome.native.widget is app.selected_session.conversation
             record = {
                 "global_rich_views": len(rich_views),
                 "tabs": count, "rss_bytes": psutil.Process().memory_info().rss,
