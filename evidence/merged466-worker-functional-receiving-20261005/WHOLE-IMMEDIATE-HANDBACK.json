@@ -1,0 +1,72 @@
+{
+  "state": "Wholeimmediate package/import/source/proof/cohort preparation +matching7aREAD RETURNED; candidate FROZEN HELDParent",
+  "issued_sha256": "5c99babc3004e4959a247548c60a937d6813fde069ad6ec54cae747a2e5b5e30",
+  "prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "positive_floor_disposition": "Prepared471 held; actual485CURRENT459 archive1563/preimage97c recovery retained. No automatic floorrestore or nextloan.",
+  "READY": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/READY.json",
+    "sha256": "cac81096e013ca9922acb70966adaf2aa06af8919054bfe84a754ef93efe4b46"
+  },
+  "frozen_manifest": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/frozen-manifest.json",
+    "sha256": "6d829f849cc69558911e9eecb9fe012e19d5c17cbf9073719a053c9e61f8f1aa",
+    "count": 107
+  },
+  "sourceproof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/source-proof.json",
+    "sha256": "8f501b8b60e556a40609ef533f7bb1b509a0a712db052822b5653f41931c22d4"
+  },
+  "candidate_DTO": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/candidate-activation.json",
+    "sha256": "03e1db2ef13e47d6a59dfc340200e0e107cab348e2e9790a5fd72cde4224de1f"
+  },
+  "candidate_readback": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/terminal-candidate-readback.json",
+    "sha256": "763b25106c2b307e69718f6eb688a10453f0496b21a59c245e734bded0859802"
+  },
+  "preparation_terminals": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/stage-terminal.json",
+      "sha256": "367d63974eacbd73a32dbab7e39c8caf3ed68d1b7f4d58c9843964852e40be04"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/proof-terminal.json",
+      "sha256": "e75b47f5fec892af2431da21a5a50a2c1bb28b579f619402b8fbd7d5e6504c42"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/qualification_input_prepare-terminal.json",
+      "sha256": "d77d51e63344e11eaf1d2b1fb0a18de4d9ab028dec9bf6903287624e74c82a52"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/canonical_prepare_readback-terminal.json",
+      "sha256": "de88bd0d3cbe28175c4527326d535927c28d911fe1bd086b481af5801ab526f7"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/readback_prepare-terminal.json",
+      "sha256": "7ab7f0a9b14cc9a0dda7df08e75ad92cdccb9570b2905aa6f91b6248309e7215"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/cohort_prepare-terminal.json",
+      "sha256": "74831daab87b48b307e32fc617c5f2057c8cd75f5e27627fee747597e28070c6"
+    }
+  ],
+  "owned_open_operations": [],
+  "original_controller_births_retained_joined_absent": true,
+  "source_decoder_birth_limit": "Original synchronous source-declaration subprocess joined; exact nested decoder birth not separately retained. No inventedPID; Bohr freshprivilegedcensus requested.",
+  "native7a_READ_returned": true,
+  "nativeEXEC_never_granted_used": true,
+  "keeper7a_086_immutable_held": true,
+  "PUBLIC465_Heis334_Arendt540_protected": true,
+  "original_privateauth_history_input_UNKNOWN_preserved": true,
+  "no_future_prefix_import_read_write_exec_claim": true,
+  "receipt_preimages_absent": true,
+  "fresh_privileged_borrowers": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/final-borrowers.json",
+    "sha256": "52b4d74492ac53bc72b4d36e749e00b848a8fcad20f490f1a1178e356ff6da07"
+  },
+  "fresh_reference_classification": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/final-reference-classification.json",
+    "sha256": "2957c61dd8e5462043909f09cfb7ba8e1ae12f6051ec54cbe1506d4e73b36f0c"
+  },
+  "fresh_independent_holder_census_lifecycle_owner": "OriginalBohr ONLY"
+}
