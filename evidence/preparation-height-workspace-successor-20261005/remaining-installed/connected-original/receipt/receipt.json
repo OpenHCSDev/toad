@@ -1,0 +1,27 @@
+{
+  "provider": "openai-codex/gpt-6.1-sol",
+  "thinking": "off",
+  "original_bytes": 41357574,
+  "original_inputs_replayed": 0,
+  "completed_phases": [
+    "original_saved_history_open",
+    "readonly_resource_acceptance"
+  ],
+  "core": "7b68d630caa654d3e9884f45cbd6493718752a0c",
+  "toad": "0758a124a3aa87233b0954764cc8164599df5825",
+  "launch_source": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+  "saved_source": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+  "saved_source_sha256": "7f1640ed6f4aa94db28c08257e3ac2e8f1d41ff7dd1d3a21e241f45009f1b19a",
+  "original_source_custody": {
+    "sha256": "7f1640ed6f4aa94db28c08257e3ac2e8f1d41ff7dd1d3a21e241f45009f1b19a",
+    "owner": {
+      "pid": 1817557,
+      "start_time": 65371423
+    },
+    "unchanged": true
+  },
+  "complete": true,
+  "inputs": [],
+  "elapsed_seconds": 15.616,
+  "children_retired": true
+}

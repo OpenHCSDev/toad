@@ -1,0 +1,241 @@
+{
+  "tool": "original refactor-audit Package",
+  "before": "ceaeb7f5a47e619a66604f62b468eb9fc963cba9",
+  "head": "d007d215b3e73b0a43c8d864d8be1c36ee9a7bd8",
+  "pattern": "IMPL-12",
+  "packages": [
+    {
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": [],
+      "sites": []
+    },
+    {
+      "root": "tests",
+      "modules": 395,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 114,
+          "import": "viewport_recent_tabs_pilot"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 147,
+          "call": "ReaderCheckpoint.capture",
+          "arguments": 3,
+          "keywords": []
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 147,
+          "reference": "ReaderCheckpoint",
+          "context": "Load"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 188,
+          "reference": "readonly_acceptance",
+          "context": "Load"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 226,
+          "reference": "readonly_acceptance",
+          "context": "Load"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 227,
+          "call": "readonly_acceptance",
+          "arguments": 5,
+          "keywords": []
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 227,
+          "reference": "readonly_acceptance",
+          "context": "Load"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 25,
+          "import": "viewport_recent_tabs_pilot"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 120,
+          "declaration": "warm_pages",
+          "end": 206
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 312,
+          "declaration": "private_original_warm",
+          "end": 347
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 330,
+          "call": "ReaderCheckpoint.capture",
+          "arguments": 3,
+          "keywords": []
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 342,
+          "call": "warm_pages",
+          "arguments": 6,
+          "keywords": [
+            "undo_text"
+          ]
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 330,
+          "reference": "ReaderCheckpoint",
+          "context": "Load"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 342,
+          "reference": "warm_pages",
+          "context": "Load"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 353,
+          "reference": "private_original_warm",
+          "context": "Load"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 241,
+          "call": "ReaderCheckpoint.capture",
+          "arguments": 3,
+          "keywords": []
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 243,
+          "call": "warm_pages",
+          "arguments": 6,
+          "keywords": []
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 241,
+          "reference": "ReaderCheckpoint",
+          "context": "Load"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 243,
+          "reference": "warm_pages",
+          "context": "Load"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 18,
+          "import": "viewport_recent_tabs_pilot"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 192,
+          "call": "ReaderCheckpoint.record_failed_reader",
+          "arguments": 2,
+          "keywords": []
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 192,
+          "reference": "ReaderCheckpoint",
+          "context": "Load"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 335,
+          "call": "ReaderCheckpoint.record_failed_reader",
+          "arguments": 2,
+          "keywords": []
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 346,
+          "call": "ReaderCheckpoint.capture",
+          "arguments": 3,
+          "keywords": []
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 335,
+          "reference": "ReaderCheckpoint",
+          "context": "Load"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 346,
+          "reference": "ReaderCheckpoint",
+          "context": "Load"
+        },
+        {
+          "path": "tests/viewport_recent_tabs_pilot.py",
+          "line": 56,
+          "declaration": "ReaderCheckpoint",
+          "end": 152
+        }
+      ]
+    },
+    {
+      "root": "tools",
+      "modules": 41,
+      "omissions": [],
+      "sites": []
+    }
+  ],
+  "native_context": {
+    "head": "1bdc18c363cbc0f938537a71aa8ba0225d03e25e",
+    "root": "src/textual",
+    "modules": 249,
+    "omissions": [],
+    "edit": false
+  },
+  "unchanged_assertion_consumers": {
+    "tests/native_session_retention_pilot.py": {
+      "assertions": 22,
+      "ast_equal": true,
+      "blob_equal": true
+    },
+    "tests/saved_state_user_journey_pilot.py": {
+      "assertions": 65,
+      "ast_equal": true,
+      "blob_equal": true
+    }
+  },
+  "fixture_blob_equal": true,
+  "production_and_pins_equal": true,
+  "control_hashes": {
+    "tests/readonly_saved_reader_pilot.py": "97058a6d275b877c5d9f85d2d447b9b496908eeb2b0684e3a0bb9d483e17c92d",
+    "tests/viewport_recent_tabs_pilot.py": "16c040f9d91bc7d06bcd9e64fed04b0ef5d063c8d7179f4b91f777e2946df072"
+  },
+  "closure": {
+    "warm_pages_direct_calls": 2,
+    "ReaderCheckpoint_direct_constructors": "capture classmethod only",
+    "committed_native_fragment_views": "captured original property tuple and verified with is",
+    "witness_lifetime": "two original consumers unchanged; both configured direct callers finally-delete checkpoint; auxiliary cache witnesses released before parked disposal",
+    "zero_input_guard": "unchanged original configured fixture",
+    "native_undo_redo": "original TextArea ctrl+z/ctrl+y and original EditHistory checkpoint"
+  },
+  "qualification": {
+    "source_parse_diff_only": true,
+    "app": false,
+    "prefix_access": false,
+    "build": false,
+    "provider": false,
+    "sdk_fork_or_input": false,
+    "physical": false,
+    "continuous_workflow": false,
+    "dynamic_resolution": "external aliases/runtime monkeypatches not proved by lexical AST"
+  }
+}

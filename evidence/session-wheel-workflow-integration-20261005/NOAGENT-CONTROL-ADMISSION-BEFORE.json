@@ -1,0 +1,103 @@
+{
+  "head": "09147f7d99cd30a75022c56d1b70f679fea7319b",
+  "source_only": true,
+  "package_roots": [
+    {
+      "root": "src/toad",
+      "modules": 288,
+      "parse_omissions": [],
+      "sites": [
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 89,
+          "call": "self.prepare_scroll()"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 105,
+          "call": "self.prepare_scroll()"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 207,
+          "call": "self.prepare_scroll()"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 165,
+          "call": "self.finish_source_work(operation)"
+        },
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 79,
+          "call": "self.reserve_source_work()"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 590,
+          "write": "self.window = self.query_ancestor(HistoryWindow)"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 538,
+          "call": "self.prepare_scroll()"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 1024,
+          "call": "self.reserve_source_work()"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 659,
+          "call": "self.reserve_source_work()"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 1037,
+          "call": "self.reserve_source_work()"
+        }
+      ]
+    },
+    {
+      "root": "tests",
+      "modules": 396,
+      "parse_omissions": [],
+      "sites": [
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 157,
+          "call": "history.reserve_source_work()"
+        },
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 242,
+          "call": "history.finish_source_work(operation)"
+        },
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 173,
+          "call": "history.prepare_scroll()"
+        },
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 183,
+          "call": "history.prepare_scroll()"
+        },
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 187,
+          "call": "history.prepare_scroll()"
+        }
+      ]
+    },
+    {
+      "root": "tools",
+      "modules": 41,
+      "parse_omissions": [],
+      "sites": []
+    }
+  ],
+  "negative_terminal_sha256": "f3c977d13b13a42d8095e040168f973c318a57148aec9d702362f5d1c1bf2476",
+  "App_run_count_consumed": 1
+}

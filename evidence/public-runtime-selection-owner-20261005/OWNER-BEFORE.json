@@ -1,0 +1,287 @@
+{
+  "coverage": [
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "d51402ef",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "d51402ef",
+      "root": "tests",
+      "modules": 396,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "d51402ef",
+      "root": "tools",
+      "modules": 41,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "head": "0a600a2b",
+      "root": "src/agent_comms",
+      "modules": 324,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "180cbd94",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/maintenance_ingress.py",
+      "line": 147,
+      "kind": "call",
+      "name": "read_active_route"
+    },
+    {
+      "root": "tests",
+      "path": "tests/browser_serving_pilot.py",
+      "line": 69,
+      "kind": "call",
+      "name": "read_active_route"
+    },
+    {
+      "root": "tests",
+      "path": "tests/cold_context_installed_physical.py",
+      "line": 393,
+      "kind": "call",
+      "name": "verify_stage"
+    },
+    {
+      "root": "tests",
+      "path": "tests/f4_declared_family_installed_pilot.py",
+      "line": 53,
+      "kind": "call",
+      "name": "read_active_route"
+    },
+    {
+      "root": "tests",
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 314,
+      "kind": "declaration",
+      "name": "runtime_probe"
+    },
+    {
+      "root": "tests",
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 354,
+      "kind": "declaration",
+      "name": "RuntimeSelection"
+    },
+    {
+      "root": "tests",
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 165,
+      "kind": "declaration",
+      "name": "receipt"
+    },
+    {
+      "root": "tests",
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 186,
+      "kind": "declaration",
+      "name": "receipt"
+    },
+    {
+      "root": "tests",
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 360,
+      "kind": "declaration",
+      "name": "from_environment"
+    },
+    {
+      "root": "tests",
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 376,
+      "kind": "declaration",
+      "name": "verify_stage"
+    },
+    {
+      "root": "tests",
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 405,
+      "kind": "declaration",
+      "name": "receipt"
+    },
+    {
+      "root": "tests",
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 323,
+      "kind": "call",
+      "name": "private_nk_from_environment"
+    },
+    {
+      "root": "tests",
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 390,
+      "kind": "call",
+      "name": "require_activation"
+    },
+    {
+      "root": "tests",
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1104,
+      "kind": "call",
+      "name": "read_active_route"
+    },
+    {
+      "root": "tests",
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1112,
+      "kind": "call",
+      "name": "from_environment"
+    },
+    {
+      "root": "tests",
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1144,
+      "kind": "call",
+      "name": "from_environment"
+    },
+    {
+      "root": "tests",
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1172,
+      "kind": "call",
+      "name": "read_active_route"
+    },
+    {
+      "root": "tests",
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1243,
+      "kind": "call",
+      "name": "from_environment"
+    },
+    {
+      "root": "tests",
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 396,
+      "kind": "call",
+      "name": "require_package"
+    },
+    {
+      "root": "tests",
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1190,
+      "kind": "call",
+      "name": "from_environment"
+    },
+    {
+      "root": "tests",
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1756,
+      "kind": "call",
+      "name": "receipt"
+    },
+    {
+      "root": "tests",
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1961,
+      "kind": "call",
+      "name": "receipt"
+    },
+    {
+      "root": "tests",
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2186,
+      "kind": "call",
+      "name": "runtime_probe"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/acp.py",
+      "line": 528,
+      "kind": "call",
+      "name": "private_nk_from_environment"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/active_route.py",
+      "line": 157,
+      "kind": "declaration",
+      "name": "read_active_route"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/active_route.py",
+      "line": 47,
+      "kind": "call",
+      "name": "read_active_route"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/active_route.py",
+      "line": 135,
+      "kind": "call",
+      "name": "read_active_route"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/active_route.py",
+      "line": 225,
+      "kind": "call",
+      "name": "read_active_route"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/active_route.py",
+      "line": 279,
+      "kind": "call",
+      "name": "read_active_route"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/active_route.py",
+      "line": 328,
+      "kind": "call",
+      "name": "read_active_route"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/private_nk_entrypoint.py",
+      "line": 94,
+      "kind": "declaration",
+      "name": "private_nk_from_environment"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/private_nk_entrypoint.py",
+      "line": 35,
+      "kind": "declaration",
+      "name": "from_environment"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/private_nk_entrypoint.py",
+      "line": 71,
+      "kind": "call",
+      "name": "read_active_route"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/worker.py",
+      "line": 17,
+      "kind": "call",
+      "name": "private_nk_from_environment"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/worker.py",
+      "line": 93,
+      "kind": "call",
+      "name": "private_nk_from_environment"
+    }
+  ],
+  "native_and_Core_changed": false
+}

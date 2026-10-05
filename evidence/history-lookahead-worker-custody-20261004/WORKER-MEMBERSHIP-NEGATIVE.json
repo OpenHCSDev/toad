@@ -1,0 +1,10 @@
+{
+  "head": "a5e40eae2efce1890a80dab4ffa3172b928c8763",
+  "path": "src/toad/transcript_source_preparation.py",
+  "local_audit_delta": {
+    "foreign_absence_probe": 1,
+    "none_identity": 1,
+    "code_lines": 30
+  },
+  "site": "lookahead_workers: not worker.is_finished; active lifecycle belongs to original Worker"
+}

@@ -1,0 +1,302 @@
+{
+  "head": "722b5c1321762b3f88aaacd2e3ba74ceda492259",
+  "normal_main": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+  "contribution": "16ae4aac502b574ec261f54d59fdb338853c2039",
+  "original_450_production": "f34ff1644ffcc957e8d694c61be1b1133455fa97",
+  "native_or_runtime_operations": false,
+  "packages": [
+    {
+      "head": "722b5c1321762b3f88aaacd2e3ba74ceda492259",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "head": "722b5c1321762b3f88aaacd2e3ba74ceda492259",
+      "root": "tests",
+      "modules": 396,
+      "omissions": []
+    },
+    {
+      "head": "722b5c1321762b3f88aaacd2e3ba74ceda492259",
+      "root": "tools",
+      "modules": 41,
+      "omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "path": "src/toad/directory_watcher.py",
+      "line": 276,
+      "kind": "FunctionDef",
+      "name": "observed_revision",
+      "source": "def observed_revision(self) -> int:\n        \"\"\"Source-owned invalidation even while a tab has no visible surface.\"\"\"\n        with self._delivery_lock:\n            return self._observed_revision"
+    },
+    {
+      "path": "src/toad/directory_watcher.py",
+      "line": 281,
+      "kind": "FunctionDef",
+      "name": "notify_if_visible",
+      "source": "def notify_if_visible(self) -> None:\n        \"\"\"Offer the original invalidation; queued delivery does not consume it.\"\"\"\n        with self._delivery_lock:\n            if (not self._dirty or self._stop_event.is_set()\n                    or not self._widget.is_attached):\n                return\n       "
+    },
+    {
+      "path": "src/toad/directory_watcher.py",
+      "line": 295,
+      "kind": "FunctionDef",
+      "name": "consume_change",
+      "source": "def consume_change(self, widget: Widget) -> bool:\n        \"\"\"Only the still-bound recipient can consume a source invalidation.\"\"\"\n        with self._delivery_lock:\n            if self._widget is not widget or not self._dirty:\n                return False\n            self._dirty = False\n            r"
+    },
+    {
+      "path": "src/toad/directory_watcher.py",
+      "line": 316,
+      "kind": "FunctionDef",
+      "name": "rebind",
+      "source": "def rebind(self, widget: Widget) -> None:\n        \"\"\"Move notification custody without restarting the path observation.\"\"\"\n        with self._delivery_lock:\n            self._widget.retire_core_observations(self.events)\n            self._widget = widget\n            widget.subscribe_core(self.events)"
+    },
+    {
+      "path": "src/toad/directory_watcher.py",
+      "line": 273,
+      "kind": "Attribute",
+      "name": "notify_if_visible",
+      "source": "self.notify_if_visible"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 83,
+      "kind": "AsyncFunctionDef",
+      "name": "release_binding",
+      "source": "async def release_binding(self, conversation: Conversation, screen: \"MainScreen\") -> None: ..."
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 86,
+      "kind": "AsyncFunctionDef",
+      "name": "attach_binding",
+      "source": "async def attach_binding(self, conversation: Conversation) -> None: ..."
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 98,
+      "kind": "FunctionDef",
+      "name": "wire",
+      "source": "def wire(self, conversation: Conversation) -> None:\n        if self.agent is not None:\n            from toad.widgets.conversation import ConversationSessionBinding\n\n            conversation.set_reactive(ConversationSessionBinding.agent, self.agent)\n        if self.directory_watcher is not None:\n    "
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 107,
+      "kind": "AsyncFunctionDef",
+      "name": "present",
+      "source": "async def present(self, conversation: Conversation) -> None:\n        if self.directory_watcher is not None:\n            conversation.call_after_refresh(self.directory_watcher.notify_if_visible)\n        if self.shell is not None:\n            conversation._shell = self.shell\n            await self.she"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 117,
+      "kind": "AsyncFunctionDef",
+      "name": "detach",
+      "source": "async def detach(self, conversation: Conversation, screen: \"MainScreen\") -> None:\n        self.agent = conversation.agent\n        self.shell = conversation._shell\n        conversation._shell = None\n        if self.shell is not None:\n            await self.shell.detach()\n        self.directory_watche"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 159,
+      "kind": "AsyncFunctionDef",
+      "name": "release_binding",
+      "source": "async def release_binding(self, conversation: Conversation, screen: \"MainScreen\") -> None:\n        await self.sources.detach(conversation, screen)"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 162,
+      "kind": "AsyncFunctionDef",
+      "name": "attach_binding",
+      "source": "async def attach_binding(self, conversation: Conversation) -> None:\n        await self.sources.present(conversation)"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 166,
+      "kind": "AsyncFunctionDef",
+      "name": "acquire",
+      "source": "async def acquire(self, screen: \"MainScreen\"):\n        \"\"\"Mount owned resources before workspace admission, then restore them.\n\n        The workspace admits the yielded native tree before operational\n        attachment can await or publish its restored presentation.\n        \"\"\"\n        returning = s"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 179,
+      "kind": "Attribute",
+      "name": "wire",
+      "source": "self.sources.wire"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 105,
+      "kind": "Attribute",
+      "name": "rebind",
+      "source": "self.directory_watcher.rebind"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 109,
+      "kind": "Attribute",
+      "name": "notify_if_visible",
+      "source": "self.directory_watcher.notify_if_visible"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 126,
+      "kind": "Attribute",
+      "name": "rebind",
+      "source": "self.directory_watcher.rebind"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 160,
+      "kind": "Attribute",
+      "name": "detach",
+      "source": "self.sources.detach"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 163,
+      "kind": "Attribute",
+      "name": "present",
+      "source": "self.sources.present"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 185,
+      "kind": "Attribute",
+      "name": "attach_binding",
+      "source": "self.attach_binding"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 122,
+      "kind": "Attribute",
+      "name": "detach",
+      "source": "self.shell.detach"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 240,
+      "kind": "Attribute",
+      "name": "release_binding",
+      "source": "screen.presentation.release_binding"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 249,
+      "kind": "Attribute",
+      "name": "acquire",
+      "source": "screen.presentation.acquire"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 286,
+      "kind": "Attribute",
+      "name": "release_binding",
+      "source": "owner.release_binding"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 293,
+      "kind": "Attribute",
+      "name": "release_binding",
+      "source": "self.view.presentation.release_binding"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 876,
+      "kind": "FunctionDef",
+      "name": "check_directory",
+      "source": "def check_directory(self) -> None:\n        \"\"\"Invalidate native projections from the original watcher, once consumed.\"\"\"\n        watcher = self._directory_watcher\n        if watcher is not None and not watcher.consume_change(self) and watcher.enabled:\n            return\n        self.prompt.project_d"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 892,
+      "kind": "Attribute",
+      "name": "check_directory",
+      "source": "self.check_directory"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1253,
+      "kind": "Attribute",
+      "name": "check_directory",
+      "source": "self.check_directory"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1582,
+      "kind": "Attribute",
+      "name": "present",
+      "source": "history.present"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 874,
+      "kind": "Attribute",
+      "name": "check_directory",
+      "source": "self.check_directory"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1586,
+      "kind": "Attribute",
+      "name": "present",
+      "source": "request.present"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 879,
+      "kind": "Attribute",
+      "name": "consume_change",
+      "source": "watcher.consume_change"
+    },
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 23,
+      "kind": "alias",
+      "name": "wire",
+      "source": "wire"
+    },
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 286,
+      "kind": "Name",
+      "name": "wire",
+      "source": "wire"
+    },
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "line": 80,
+      "kind": "Name",
+      "name": "wire",
+      "source": "wire"
+    },
+    {
+      "path": "tests/conversation_kind_pilot.py",
+      "line": 6,
+      "kind": "alias",
+      "name": "wire",
+      "source": "wire"
+    },
+    {
+      "path": "tests/conversation_kind_pilot.py",
+      "line": 19,
+      "kind": "Name",
+      "name": "wire",
+      "source": "wire"
+    }
+  ],
+  "ownership": "OperationalSessionPresentation acquires/pre-mount-restores actual source before NativeSessionSurface admission. Retained DirectoryWatcher is wired before mount. Queued publication does not consume dirty; still-bound Conversation consumes original pending fact under original delivery lock. Handlerless/retired/busy recipients preserve it.",
+  "future_affected_scope": [
+    "actual retained watcher change queued to old Conversation then subscription retirement",
+    "handlerless screen ownership does not clear dirty",
+    "restored Conversation binds before mount and original changed source reaches prompt and directory tree",
+    "busy original turn defers source consumption to terminal/turn completion",
+    "actual original watcher/task/Conversation wholeclose"
+  ],
+  "qualification": "Source owner/consumer and parse evidence only; actual affected App pending new named purpose; no watcher process or filesystem experiment",
+  "source_files": {
+    "src/toad/session_presentation.py": "7f9ced5400c750680df5c36d6c4c8f1e0f1bae3d379b4aa49bd8be7308c048d9",
+    "src/toad/directory_watcher.py": "d903d00068dc27811f243ee2415382a01d406eaecf2a74c253c01f90ab8249a6",
+    "src/toad/widgets/conversation.py": "ef6b8bfafa0fdc54d4bce105486b115f8d0ea01724965aefce3655565e57361e"
+  }
+}

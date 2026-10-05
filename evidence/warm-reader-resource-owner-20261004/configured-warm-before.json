@@ -1,0 +1,154 @@
+{
+  "tool": "original refactor-audit Package",
+  "head": "ceaeb7f5a47e619a66604f62b468eb9fc963cba9",
+  "packages": [
+    {
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": [],
+      "sites": []
+    },
+    {
+      "root": "tests",
+      "modules": 395,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "tests/independent_native_writer_pilot.py",
+          "line": 25,
+          "import": "viewport_recent_tabs_pilot"
+        },
+        {
+          "path": "tests/native_loaded_return_cache_pilot.py",
+          "line": 17,
+          "import": "viewport_recent_tabs_pilot"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 114,
+          "import": "viewport_recent_tabs_pilot"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 147,
+          "reference": "ReaderCheckpoint"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 81,
+          "declaration": "main"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 186,
+          "reference": "readonly_capture"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 326,
+          "reference": "readonly_capture"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 188,
+          "reference": "readonly_acceptance"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 212,
+          "reference": "readonly_capture"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 226,
+          "reference": "readonly_acceptance"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 227,
+          "reference": "readonly_acceptance"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 94,
+          "declaration": "record_retained_validation"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 119,
+          "declaration": "warm_pages"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 192,
+          "declaration": "main"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 293,
+          "declaration": "private_original_warm"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 318,
+          "import": "original_turn_resource_real_installed_pilot"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 311,
+          "reference": "warm_pages"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 225,
+          "reference": "warm_pages"
+        },
+        {
+          "path": "tests/retained_body_transfer_pilot.py",
+          "line": 10,
+          "import": "viewport_recent_tabs_pilot"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 18,
+          "import": "viewport_recent_tabs_pilot"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 192,
+          "reference": "ReaderCheckpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 335,
+          "reference": "ReaderCheckpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 346,
+          "reference": "ReaderCheckpoint"
+        },
+        {
+          "path": "tests/tools/sqlite_busy_recording.py",
+          "line": 163,
+          "import": "original_turn_resource_real_installed_pilot"
+        },
+        {
+          "path": "tests/viewport_recent_tabs_pilot.py",
+          "line": 56,
+          "declaration": "ReaderCheckpoint"
+        }
+      ]
+    },
+    {
+      "root": "tools",
+      "modules": 41,
+      "omissions": [],
+      "sites": []
+    }
+  ],
+  "native_context": "Retained59 native249/zero omissions original snapshot unchanged",
+  "owner": "ReaderCheckpoint genuine identity/resource witness, private-original warm caller owns non-tail/draft/Undo setup; configured fixture retains zero-input/child disposition custody",
+  "before": "Existing configured warm_pages separately snapshots pages/fragment children/style strips/editor/reader intent; its private callback did not establish a non-tail or post-return Undo check.",
+  "scope": "Source-only third consumer; no owner capture/import/provider/SDK/history/holder operation"
+}

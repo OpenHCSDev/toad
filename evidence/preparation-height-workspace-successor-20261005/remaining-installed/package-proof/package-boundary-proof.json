@@ -1,0 +1,24 @@
+{
+  "issued_sha256": "3b47246f551332752dc4befa226c2e06d51ddae8f47b2db519a35f823cd79e56",
+  "primary_assets": 940,
+  "other66": 1883,
+  "frozen155": 155,
+  "all69_exact": true,
+  "native_full_trust": true,
+  "inventories": {
+    "agent_comms": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-remaining-integer-cell-App-20261005/package-proof/agent_comms-installed-inventory.json",
+      "sha256": "8d60044b157ac8982cc4bd1646e1e00a2a0f722f75518ea1d5663534ef3bd952"
+    },
+    "toad": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-remaining-integer-cell-App-20261005/package-proof/toad-installed-inventory.json",
+      "sha256": "17f2866591d3d2652195dc90299eec45ab9e66fe177508e8c934a0ce29a1a671"
+    },
+    "textual": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-remaining-integer-cell-App-20261005/package-proof/textual-installed-inventory.json",
+      "sha256": "30402704f5686a84d83e5d64b9c80a1e4399e421ced08591a5668d52922b797c"
+    }
+  },
+  "Apps_run": 0,
+  "native_EXEC": false
+}

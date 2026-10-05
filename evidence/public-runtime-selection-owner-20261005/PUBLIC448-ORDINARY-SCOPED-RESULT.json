@@ -1,0 +1,43 @@
+{
+  "state": "CURRENT PUBLIC448 ordinary still-image acceptance PASS; observer correction qualified at this scope only",
+  "source_head": "b3231719a04b8f65e949074bd83bc627a33d011b",
+  "recorder_sha256": "7ee8e728ec2e924d0e2a4306c347c1f539717e03ffb053ac8ea1376ca66191f5",
+  "actual_public_product": "Core0a600/ToadExplorer c160/Text180/native7a; NOT determining453 productd475",
+  "checks_true": 18,
+  "capture_duration_seconds": 63.05917560099624,
+  "whole_operator_duration_seconds": 77.3321045350749,
+  "original_images_reviewed_AFTER_UI_exit": {
+    "/home/ts/.cache/agent-scratch/public448-ordinary-display-20261005-02/capture/phase-warm-ready.png": "4ca7455458f60f30cd91f718e17faa51e9442b52ebe7352cbcf6d0b2a45373d6",
+    "/home/ts/.cache/agent-scratch/public448-ordinary-display-20261005-02/capture/phase-channel-return.png": "e1d47fc423ed6bed8ac9bf00ec1d1283c36c9e7dbd0a9175035a667dc2fd24b3",
+    "/home/ts/.cache/agent-scratch/public448-ordinary-display-20261005-02/capture/phase-native-return.png": "8114c8e16135e7710ef436788801376d3a4269d0ca831f3840290f62bf41f784"
+  },
+  "runtime_unchanged": true,
+  "original_owner_same_alive": true,
+  "owned_UI_absent": true,
+  "cleanup_remaining": [],
+  "cleanup_errors": [],
+  "keepers": {
+    "/home/ts/.cache/agent-scratch/public448-ordinary-display-20261005-02/capture/receipt.json": "c7a978e4a1e9d504beced5e5f355182169948035b10d3c8572c85b93ca6ab98a",
+    "/home/ts/.cache/agent-scratch/public448-ordinary-display-20261005-02/operator-terminal.json": "ff78faad14c770ce64f8bf45d84c0e5422c9c22f37d1c27c65fd626f28f4bd97",
+    "/home/ts/.cache/agent-scratch/public448-ordinary-display-20261005-02/owner-after-terminal.json": "9364347899333f90c2f794ab5d95a06e0f7fddafc7694a4948b6224e29cb6648",
+    "/home/ts/.cache/agent-scratch/public448-ordinary-display-20261005-02/personal-after-review.json": "409f475a6053c1fe595f33973d0b150adee49fa91152639eac739f94c32283b3",
+    "/home/ts/.cache/agent-scratch/public448-ordinary-display-20261005-02/capture/retained-lifetime-review.json": "c9f009300ce4a2b38a71c50c01d3a26669b725dbdf53acbb42516699a37eb53a"
+  },
+  "prior_preUI_negative_preserved": "/home/ts/.cache/agent-scratch/public448-ordinary-display-20261005-01/capture/receipt.json",
+  "prior_preUI_negative_sha256": "9679fd28ffec23f2cc2b790f55eee97232951e8077e0edd01896dde2fcf6096c",
+  "movie": false,
+  "profile": false,
+  "package_changes": false,
+  "provider_or_model_or_nativeSDK_inputs": 0,
+  "scope_limits": [
+    "Not453 worker/session acceptance",
+    "Not454 project intent App acceptance",
+    "No physical motion/smoothness/FPS/CPU gain or fullperformance closure",
+    "No newrun/loan/republication authority"
+  ],
+  "own_generated_private_copies_retired": [
+    "/home/ts/.cache/agent-scratch/public448-ordinary-display-20261005-02/ui-state",
+    "/home/ts/.cache/agent-scratch/public448-ordinary-display-20261005-02/ui-data",
+    "/home/ts/.cache/agent-scratch/public448-ordinary-display-20261005-02/capture/ui-config"
+  ]
+}

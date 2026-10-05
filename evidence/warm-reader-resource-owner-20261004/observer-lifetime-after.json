@@ -1,0 +1,313 @@
+{
+  "tool": "original refactor-audit Package",
+  "head": "e6e00355ed2744b376df273eeb5967c5836a26dd",
+  "packages": [
+    {
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": [],
+      "sites": []
+    },
+    {
+      "root": "tests",
+      "modules": 395,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "tests/independent_native_writer_pilot.py",
+          "line": 93,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/independent_native_writer_pilot.py",
+          "line": 112,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/independent_native_writer_pilot.py",
+          "line": 123,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 142,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 198,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 192,
+          "reference": "loaded_reader_positions"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 236,
+          "reference": "loaded_reader_positions"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 241,
+          "reference": "resource_snapshot"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 147,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 197,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 171,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 176,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 147,
+          "reference": "ReaderCheckpoint"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 193,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 172,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 177,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 178,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 133,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 146,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 152,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 157,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 160,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 169,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 179,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 188,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 207,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 212,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 233,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 241,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 246,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 260,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 108,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 231,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 326,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 348,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 355,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 355,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 348,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 348,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 366,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 192,
+          "reference": "ReaderCheckpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 346,
+          "reference": "checkpoints"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 349,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 351,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 335,
+          "reference": "ReaderCheckpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 346,
+          "reference": "ReaderCheckpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 350,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 356,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 357,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 359,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 352,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 126,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 140,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 147,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 135,
+          "reference": "checkpoint"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 175,
+          "reference": "checkpoint"
+        }
+      ]
+    },
+    {
+      "root": "tools",
+      "modules": 41,
+      "omissions": [],
+      "sites": []
+    }
+  ],
+  "src_delta": "",
+  "native_dependency": "Unchanged retained59 original249/0 snapshot; no native edits",
+  "all_original_assertion_AST_equal": true,
+  "warm_custody": "Full page/fragment/body/cache identity witnesses remain alive throughout unchanged returns. Scalar reader positions captured before clearing original dict, then dict deleted before send_prompt and resource_snapshot. Saved A/B/A clears original list in finally and function exits after final Undo assertions; no post-proof resource sampling in that scope.",
+  "limits": [
+    "Source-only; no App/build/provider/input/purpose",
+    "Earlier e0a source preview preserved; no RSS/object acceptance rebased"
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "state": "SOURCE_CORRECTED; ordinary UI acceptance UNRUN",
+  "recorder_sha256": "7ee8e728ec2e924d0e2a4306c347c1f539717e03ffb053ac8ea1376ca66191f5",
+  "before_head": "d51402ef",
+  "before_coverage": [
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "d51402ef",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "d51402ef",
+      "root": "tests",
+      "modules": 396,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "d51402ef",
+      "root": "tools",
+      "modules": 41,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "head": "0a600a2b",
+      "root": "src/agent_comms",
+      "modules": 324,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "180cbd94",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": []
+    }
+  ],
+  "changed_module_AST_parsed": true,
+  "omissions": 0,
+  "original_shared_consumers": [
+    "record runtime_before/runtime_after",
+    "cold_context_installed_physical RuntimeSelection.verify_stage",
+    "private/source/existing/owned-fork RuntimeSelection.from_environment"
+  ],
+  "owner_correction": "RuntimeSelection.receipt borrows actual route/native launch. Explicit verify_stage binds original CohortActivation/InstalledSourceProof, imported installer origin and candidate native. Historical PREFIX activation remains an observation.",
+  "preserved_actual_stage_checks": [
+    "proof.require_activation",
+    "source.require_package",
+    "actual launch vs supplied activation native",
+    "selected prefix",
+    "native launch vs actual route"
+  ],
+  "product_Core_native_metadata_changed": false,
+  "first_attempt": {
+    "App_launched": false,
+    "images": 0,
+    "exit": 1,
+    "duration_seconds": 2.9143319780705497,
+    "receipt_sha256": "9679fd28ffec23f2cc2b790f55eee97232951e8077e0edd01896dde2fcf6096c",
+    "cleanup": {
+      "remaining_owned_pids": [],
+      "errors": []
+    },
+    "original_owner_same_alive": true
+  },
+  "raw_keepers": {
+    "/home/ts/.cache/agent-scratch/public448-ordinary-display-20261005-01/operator.py": "796930f02e9129fda996819af1097a3135b808e8a99a55c4817bdd5fef03ca06",
+    "/home/ts/.cache/agent-scratch/public448-ordinary-display-20261005-01/command.json": "ccd4ddb69ae6e6072745874faf7713a36b4d51be941d775b0768dbb7e39c50da",
+    "/home/ts/.cache/agent-scratch/public448-ordinary-display-20261005-01/admission.json": "91b75b190e2f487792f640fb7ceaf6a43e21f214a85560fd518b34dfe64f6447",
+    "/home/ts/.cache/agent-scratch/public448-ordinary-display-20261005-01/operator-start.json": "95b9089bfaf5b3885631429b9be002e6c209baf1daf6b7772b3bd1cd5a9b38ea",
+    "/home/ts/.cache/agent-scratch/public448-ordinary-display-20261005-01/operator-terminal.json": "cc084a09c639961c8e3514b4efbd9728a40eadaa226fba701156c5ecf6dd8432",
+    "/home/ts/.cache/agent-scratch/public448-ordinary-display-20261005-01/operator.log": "03b60e18777e5e1ebc9e07da2cdf0fa27090d7df478887d30832409d7297d43d",
+    "/home/ts/.cache/agent-scratch/public448-ordinary-display-20261005-01/owner-after-terminal.json": "297d09056141e3b78f69237fc7aa58e1dde33f0e36498738da35bac69c2ac0e1",
+    "/home/ts/.cache/agent-scratch/public448-ordinary-display-20261005-01/capture/receipt.json": "9679fd28ffec23f2cc2b790f55eee97232951e8077e0edd01896dde2fcf6096c"
+  },
+  "owned_generated_private_copies_retired": [
+    "/home/ts/.cache/agent-scratch/public448-ordinary-display-20261005-01/ui-state",
+    "/home/ts/.cache/agent-scratch/public448-ordinary-display-20261005-01/ui-data",
+    "/home/ts/.cache/agent-scratch/public448-ordinary-display-20261005-01/capture/ui-config"
+  ],
+  "rerun": false,
+  "remaining_boundary": "ONE corrected ordinary public448 still-image journey only after fresh actual require_no_clients19 and explicit next-attempt disposition"
+}

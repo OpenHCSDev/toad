@@ -1,0 +1,120 @@
+{
+  "head": "3352ba9e97d044ac5b6f6dada4eb220c88ecbc0f",
+  "native": "9ea7a109b648be526ce5d000b2c94799b57f3c23",
+  "native_modules": 249,
+  "native_parse_omissions": [],
+  "Toad_modules": 288,
+  "Toad_parse_omissions": [],
+  "consumers": [
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 214,
+      "expression": "view.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/mounted_message_history.py",
+      "line": 176,
+      "expression": "self.view.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/mounted_message_history.py",
+      "line": 301,
+      "expression": "self.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/transcript_filter.py",
+      "line": 191,
+      "expression": "owner.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/transcript_filter.py",
+      "line": 130,
+      "expression": "snapshot.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/widgets/committed_presentation.py",
+      "line": 294,
+      "expression": "view.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 317,
+      "expression": "self.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 173,
+      "expression": "self.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "line": 54,
+      "expression": "screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 246,
+      "expression": "self.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/widgets/recovery_view.py",
+      "line": 112,
+      "expression": "self.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 40,
+      "expression": "self.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 367,
+      "expression": "self.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/widgets/throbber.py",
+      "line": 132,
+      "expression": "screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 285,
+      "expression": "self.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 562,
+      "expression": "self.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 790,
+      "expression": "self.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 808,
+      "expression": "self.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 948,
+      "expression": "self.window.screen._compositor.visible_widgets"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1086,
+      "expression": "screen._compositor.visible_widgets"
+    }
+  ],
+  "semantic_relation": {
+    "original_widget_extent": "first tuple region preserved; TranscriptHistory/MountedMessageHistory/ToolCall paging uses this",
+    "paint_rect": "second tuple positive scene-bounded original visible_region; original body/window/intersection consumers remain source-compatible",
+    "membership": "positive native scene paint admission; fully clipped widgets omitted, logical compositor.widgets preserved",
+    "direct_native_get_renders_Toad_consumers": 0,
+    "Toad_migration_required": false
+  },
+  "source_asset_delta": "native compositor16+/23- vs65; e253 is NOT source equal",
+  "runtime_acceptance": "UNRUN",
+  "source_tests": "Kepler22 actualnative controls, no new repeated tests here"
+}

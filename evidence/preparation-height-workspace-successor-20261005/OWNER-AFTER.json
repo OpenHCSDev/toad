@@ -1,0 +1,76 @@
+{
+  "source_head": "2832435d2cfecf410cfa2bddf017a9f0e57967e7",
+  "after": [
+    {
+      "root": "src/toad",
+      "modules": 288,
+      "parse_omissions": []
+    },
+    {
+      "root": "tests",
+      "modules": 397,
+      "parse_omissions": []
+    },
+    {
+      "root": "tools",
+      "modules": 41,
+      "parse_omissions": []
+    }
+  ],
+  "dependency_before_roots_unchanged": [
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "rev": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78",
+      "root": "src/textual",
+      "modules": 249,
+      "parse_omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "rev": "7b68d630caa654d3e9884f45cbd6493718752a0c",
+      "root": "src/agent_comms",
+      "modules": 324,
+      "parse_omissions": []
+    }
+  ],
+  "retired_flag_sites": [],
+  "retired_empty_type_consumers": [],
+  "native_source": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78",
+  "native_wheel": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native67-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+  "native_wheel_sha256": "16c9f5e7a1aca9f7a339fdb859c1743bbc0ba8f17327ba3debd4b13959ca927d",
+  "native_inventory_sha256": "1f84bbc64a9d2846cee092bfdf07ce2f319bb2a82f904bafe64dfae0e7748b9f",
+  "native_qualified_scope": "Original native62 sourceApp PASS only; not Toad installed/physical/CPU scope",
+  "future_body_control": {
+    "status": "Source only; installed App UNRUN, no package/runtime authority",
+    "original_assertions": 27,
+    "preserved_in_original_order": true,
+    "new_assertions": 1,
+    "original_control_revision": "09318be4a8de61a4d6d255ca6fbb743e5084055f",
+    "caller": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/history_stationary_local_runway_pilot.py",
+      "sha256": "8778ff149c9dcf165e9a3757f6fada6dc2ed3575c20300c6bb0a9caf9cae479c"
+    },
+    "leaf": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/markdown_return_reuse_pilot.py",
+      "sha256": "7f0b3e78ed253e6aec8b8a836908b9fd6dae1b0e6d38ab96e53d498e3b66bd4d",
+      "normal_join": "2d4efb64f"
+    },
+    "admission": [
+      "Finish original27 assertion family and ExitStack/release/prepare_fragments restoration",
+      "await original fixture history.remove while its owning window is still mounted; native Unmount retires source",
+      "original session_custody evicts/restores original source/editor Document/Undo",
+      "resume selected_session.conversation.window.document_viewport after remount, no stale viewport reuse",
+      "import original normal-joint acceptance leaf and invoke once in same App/pilot/root",
+      "whole original run_test shutdown then executor join then PreparationRuntime closed/pending/threadTasks assertion"
+    ],
+    "scope": "Authored typed-page NoAgent App; no saved SDK history, physical/CPU/latency acceptance",
+    "standalone_leaf_preserved": true,
+    "additional_App_count": 0,
+    "flag": "--preparation-completion",
+    "syntax_compile": "PASS (no imported application)"
+  },
+  "package_runtime_access": false,
+  "new_joint_Toad_build_required": true,
+  "old6977_source_equal": false,
+  "application_checks": "UNRUN"
+}

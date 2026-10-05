@@ -1,0 +1,11 @@
+{
+  "before_sha256": "8bbdbb54b686f3d314155c7b7c1c203396f3e19cdb0925ba18167eee1ebc2437",
+  "after_sha256": "8b506db5a640d919f2e0d6d02cc3c143d5ccf47c44822d1dcea6a2b1f4fdd90b",
+  "original_assertions": 26,
+  "all_original_assertion_ASTs_retained": true,
+  "new_assertion": "history.is_mounted and history.window is view.window",
+  "production_changed": false,
+  "App_rerun": false,
+  "worker_entry_observer_changed": false,
+  "correction": "Original Conversation.post/AwaitMount completes TranscriptHistory.on_mount window acquisition BEFORE WorkingTranscript reservation; original ExitStack owns finish only after actual admission. Finally releases holder/restores observer, then exact operation settles and borrowed worker references clear."
+}

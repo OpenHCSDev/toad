@@ -485,8 +485,6 @@ class RenderedBody(MeasuredBody):
 class MeasuredViewportBody(ViewportBody):
     """The body owns Live, Rendered and Measured behavior, not copied flags."""
 
-    CACHE_HEIGHT_INDEPENDENT_BOX = True
-    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
     CACHE_SUBTREE_GEOMETRY = True
 
     def __init__(self, *args, **kwargs):

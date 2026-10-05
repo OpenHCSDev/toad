@@ -1,0 +1,314 @@
+{
+  "before_head": "0eb1494d446934c6c01636fc78ddb890a7310fbe",
+  "coverage": [
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "0eb1494d446934c6c01636fc78ddb890a7310fbe",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "0eb1494d446934c6c01636fc78ddb890a7310fbe",
+      "root": "tests",
+      "modules": 397,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "0eb1494d446934c6c01636fc78ddb890a7310fbe",
+      "root": "tools",
+      "modules": 41,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "head": "3aacd708",
+      "root": "src/agent_comms",
+      "modules": 324,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "06771827",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 218,
+      "kind": "Load",
+      "expression": "view.goal_observation"
+    },
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 219,
+      "kind": "Load",
+      "expression": "view.goal_observation"
+    },
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 164,
+      "kind": "Load",
+      "expression": "view.goal_observation"
+    },
+    {
+      "path": "src/toad/goal_interaction.py",
+      "line": 202,
+      "kind": "Load",
+      "expression": "self.view.goal_observation"
+    },
+    {
+      "path": "src/toad/session_observation.py",
+      "line": 9,
+      "kind": "declaration",
+      "name": "SessionObservation"
+    },
+    {
+      "path": "src/toad/session_observation.py",
+      "line": 93,
+      "kind": "declaration",
+      "name": "GoalObservation"
+    },
+    {
+      "path": "src/toad/session_observation.py",
+      "line": 106,
+      "kind": "declaration",
+      "name": "InputDeliveryObservation"
+    },
+    {
+      "path": "src/toad/slash_command.py",
+      "line": 202,
+      "kind": "Load",
+      "expression": "conversation.goal_observation"
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 197,
+      "kind": "declaration",
+      "name": "watch_agent"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 554,
+      "kind": "declaration",
+      "name": "refresh_native_projection"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 985,
+      "kind": "declaration",
+      "name": "on_agent_ready"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1796,
+      "kind": "declaration",
+      "name": "watch_agent"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 514,
+      "kind": "Store",
+      "expression": "self.goal_observation"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 516,
+      "kind": "Store",
+      "expression": "self.delivery_observation"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1000,
+      "kind": "queued callback",
+      "expression": "self.call_later(self.goal_observation.refresh)"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1001,
+      "kind": "queued callback",
+      "expression": "self.call_later(self.delivery_observation.refresh)"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 562,
+      "kind": "Load",
+      "expression": "self.goal_observation"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 563,
+      "kind": "Load",
+      "expression": "self.delivery_observation"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1000,
+      "kind": "Load",
+      "expression": "self.goal_observation"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1001,
+      "kind": "Load",
+      "expression": "self.delivery_observation"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1698,
+      "kind": "Load",
+      "expression": "self.delivery_observation"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1819,
+      "kind": "queued callback",
+      "expression": "self.call_later(self.goal_observation.refresh)"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1820,
+      "kind": "queued callback",
+      "expression": "self.call_later(self.delivery_observation.refresh)"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 2222,
+      "kind": "Load",
+      "expression": "self.conversation.goal_observation"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1703,
+      "kind": "Load",
+      "expression": "self.delivery_observation"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1706,
+      "kind": "Load",
+      "expression": "self.delivery_observation"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1707,
+      "kind": "Load",
+      "expression": "self.delivery_observation"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 526,
+      "kind": "Load",
+      "expression": "self.goal_observation"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 526,
+      "kind": "Load",
+      "expression": "self.delivery_observation"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1819,
+      "kind": "Load",
+      "expression": "self.goal_observation"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1820,
+      "kind": "Load",
+      "expression": "self.delivery_observation"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 516,
+      "kind": "declaration",
+      "name": "watch_agent"
+    },
+    {
+      "path": "tests/goal_objective_edit_pilot.py",
+      "line": 75,
+      "kind": "Load",
+      "expression": "conversation.goal_observation"
+    },
+    {
+      "path": "tests/goal_objective_edit_pilot.py",
+      "line": 124,
+      "kind": "Load",
+      "expression": "conversation.goal_observation"
+    },
+    {
+      "path": "tests/goal_objective_edit_pilot.py",
+      "line": 152,
+      "kind": "Load",
+      "expression": "conversation.goal_observation"
+    },
+    {
+      "path": "tests/goal_standby_history_pilot.py",
+      "line": 136,
+      "kind": "Load",
+      "expression": "conversation.goal_observation"
+    },
+    {
+      "path": "tests/goal_standby_history_pilot.py",
+      "line": 142,
+      "kind": "Load",
+      "expression": "conversation.goal_observation"
+    },
+    {
+      "path": "tests/goal_standby_history_pilot.py",
+      "line": 148,
+      "kind": "Load",
+      "expression": "conversation.goal_observation"
+    },
+    {
+      "path": "tests/goal_state_installed_journey.py",
+      "line": 61,
+      "kind": "Load",
+      "expression": "view.goal_observation"
+    },
+    {
+      "path": "tests/goal_state_installed_journey.py",
+      "line": 61,
+      "kind": "Load",
+      "expression": "view.goal_observation"
+    },
+    {
+      "path": "tests/manual_live_turn_status.py",
+      "line": 158,
+      "kind": "Load",
+      "expression": "view.goal_observation"
+    },
+    {
+      "path": "tests/native_goal_read_first_paint_pilot.py",
+      "line": 20,
+      "kind": "Load",
+      "expression": "view.goal_observation"
+    },
+    {
+      "path": "tests/native_goal_read_first_paint_pilot.py",
+      "line": 15,
+      "kind": "Load",
+      "expression": "view.goal_observation"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 237,
+      "kind": "Load",
+      "expression": "view.goal_observation"
+    },
+    {
+      "path": "src/agent_comms/selected_source.py",
+      "line": 41,
+      "kind": "declaration",
+      "name": "SessionObservation"
+    }
+  ],
+  "owner": "Existing SessionObservation revision/task/source/close; queued callback borrows invalidation instead of awaiting observation",
+  "configured_runtime_unqualified": true
+}

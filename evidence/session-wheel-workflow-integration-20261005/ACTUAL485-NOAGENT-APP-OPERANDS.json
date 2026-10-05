@@ -1,0 +1,174 @@
+{
+  "state": "PUBLISHED proposal for fresh specific485 purpose; no grant/access/runtime authority inferred",
+  "source_head_at_binding": "352968b1086969dc4a93dbddad9832cf2e007f3a",
+  "determining_product_control": "d475b7e3e7efc5b5eb39336878498349518f9146",
+  "source_control_build_input_delta": [],
+  "preserved_joint_manifest": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/session-wheel-workflow-integration-20261005/JOINT-SOURCE-CONTROL-OPERANDS.json",
+    "sha256": "2b4640b5bd08fc46eaf9b3b1ea6a97142395c87c3c040a5f7c498a568d859f2f"
+  },
+  "native_relation_correction": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/session-wheel453-source-wheel-20261005/effective-native-relation-correction.json",
+    "sha256": "99eaf31403252d8838abf5fb5a898b3283e57336dabefc0dc25f2a4250f5b9e4"
+  },
+  "actual_floor": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-actual-unused421-after-Parent-supersede-current-floor-readback.json",
+    "sha256": "e2808c4783fd74dce55d8c20b59b7018d2c44685cc6c29ff92b6ad028f2b6bd2",
+    "prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+    "python": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+    "members": 1441,
+    "distributions": 69,
+    "primary_assets": 927,
+    "unchanged_other66_members": 1883,
+    "NRA": "Actual d392 VCS package/origin retained exactly; no NRA8d replacement",
+    "activation_sha256": "273d1ae8cbd9b38adfeb17e379419beea26c5a52fa2394aff16de6661c6eec11",
+    "protected_originals": 155,
+    "archive": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/retired-env-metadata/485-actual-unused421-after-Parent-supersede-before453.tar.gz",
+    "archive_sha256": "ea89e4749e43593d86b7664c70e5763a2267cdc0d7c884325a7f9ff9129799a7",
+    "archive_members": 1441,
+    "normal_restore_wheels": [
+      {
+        "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/original-batch616-wheels/agent_comms-0.1.0-py3-none-any.whl",
+        "sha256": "aa1ec28ed8f7c47bc10ce26d4364ed7d13aed3a02ddb1ed4d7e09b743c0aad80",
+        "installed_members": 342
+      },
+      {
+        "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sidebar420-source-20261004/final-toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+        "sha256": "423b879d6576b7a781f1f84b6a505c800b237773fc461a1fd6859090b90e1562",
+        "installed_members": 319
+      },
+      {
+        "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/text51-filewheel-e23e6365de-20261004/textual-8.2.8-py3-none-any.whl",
+        "sha256": "dcd0d3cc11a6332866326afa0c76fb18c5df0439bf354d40fbcf9c48bf72fe77",
+        "installed_members": 266
+      }
+    ],
+    "source_root_relation": "Current candidate421 installed sourceproof names historicalpublished419 prefix534 as its source. Not new453 physicalroute/admission authority; all5 actualdefaultsPUBLIC334447 remain protected. No original root/session/wire/auth/UNKNOWN borrowed.",
+    "parent_disposition_sha256": "791fb4f50fe838b20c86dd1c0c89d9e9f8a7c9831a5d46016334525ec01709fc"
+  },
+  "candidate": {
+    "Core": {
+      "path": "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-historical-main3aac-source/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "0ed358e9a1d845f3fdceca138d0f2fa02824ac61161b3d8ba9a5e32b1cc3b6e3",
+      "assets": 355,
+      "source": "3aacd708fb9c699cc80c6b864e0ae8cf9ccff7f8"
+    },
+    "Toad": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/session-wheel453-source-wheel-20261005/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "b13f2ca46dce0f610167e7ea79ccb978f8ab4665d77a38f44112134ab8e8bad4",
+      "assets": 319,
+      "determining_source": "d475b7e3e7efc5b5eb39336878498349518f9146",
+      "build_head": "352968b1086969dc4a93dbddad9832cf2e007f3a",
+      "wheel_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/session-wheel453-source-wheel-20261005/wheel-proof.json",
+      "wheel_proof_sha256": "4217cdc86d70ba253a093ad1724de23e6f90870a1a0c8972a7e66f72da8cbfa9",
+      "inventory": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/session-wheel453-source-wheel-20261005/toad-inventory.json",
+      "inventory_sha256": "97772d5a2ed78787e137b911b5e3b38f82e8b13a9b602e29b0df7097f5489009"
+    },
+    "Textual": {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native63-64-filewheel-20261004/textual-8.2.8-py3-none-any.whl",
+      "sha256": "487baca7049166cdb570241c97a7e435f9037076b203f4b90be330e3ebecf37b",
+      "assets": 266,
+      "source": "08e3dd6b3c7839baafcac6ff9ea61eb510ff9573"
+    },
+    "primary_assets": 940,
+    "other66": "All actual floor1883 members and distribution origins unchanged, including Diff/NRA; no historical auxiliary asset count substitution",
+    "SDK": "0.12.1",
+    "distribution_count": 69,
+    "stage": "After issued grant only: three retained normal filewheels --no-deps --no-cache; no build or uv VCS source sync",
+    "source_proof_before_App": "Original exact Git/local/ZIP inputs + actual installed paths/source/origins + source-only no-overlay import proof; own source-proof.json only"
+  },
+  "controls": {
+    "tests/history_stationary_local_runway_pilot.py": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/history_stationary_local_runway_pilot.py",
+      "sha256": "8bbdbb54b686f3d314155c7b7c1c203396f3e19cdb0925ba18167eee1ebc2437"
+    },
+    "tests/native_session_retention_pilot.py": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/native_session_retention_pilot.py",
+      "sha256": "324ec8636de3a546d3f0e56e1ce3b898c5852522de86eaa1e47354c7f73c36d9"
+    },
+    "tests/l0a_native_installed_pilot.py": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/l0a_native_installed_pilot.py",
+      "sha256": "fd8b65c42fd5195efb1e2580301440c479927b40b587afbfbfd6a0246fa8b1b7"
+    },
+    "tests/runtime_fixture.py": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/runtime_fixture.py",
+      "sha256": "987399f81781f57e5cca89dc0e5214c59663d97a01bcb5bad18f35d7f8eb686f"
+    }
+  },
+  "App_count": 1,
+  "app_command": [
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/history_stationary_local_runway_pilot.py",
+    "--installed-only",
+    "--worker-custody",
+    "--session-custody",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/session-wheel453-installed-app-20261005/app"
+  ],
+  "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+  "app_env": {
+    "inherit": "Ordinary host environment except listed removals; no arbitrary memory/fleet limits",
+    "remove_exact": [
+      "PYTHONPATH",
+      "PYTHONHOME",
+      "VIRTUAL_ENV",
+      "L0A_EVIDENCE"
+    ],
+    "remove_prefixes": [
+      "AGENT_COMMS_",
+      "AC_NATIVE_",
+      "TOAD_PERF_"
+    ],
+    "set": {
+      "PYTHONNOUSERSITE": "1",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "TOAD_TEST_ATTEMPT": "Heis453-NoAgent485-20261005-01",
+      "TMPDIR": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/session-wheel453-installed-app-20261005/scratch",
+      "AGENT_COMMS_ROOT": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/session-wheel453-installed-app-20261005/bootstrap/wire",
+      "XDG_CONFIG_HOME": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/session-wheel453-installed-app-20261005/bootstrap/config",
+      "XDG_STATE_HOME": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/session-wheel453-installed-app-20261005/bootstrap/state",
+      "XDG_DATA_HOME": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/session-wheel453-installed-app-20261005/bootstrap/data",
+      "XDG_CACHE_HOME": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/session-wheel453-installed-app-20261005/bootstrap/cache",
+      "XDG_RUNTIME_DIR": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/session-wheel453-installed-app-20261005/bootstrap/runtime"
+    }
+  },
+  "owned_output": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/session-wheel453-installed-app-20261005",
+  "candidate_DTO": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/session-wheel453-installed-app-20261005/candidate-activation.json",
+  "candidate_sourceproof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/session-wheel453-installed-app-20261005/source-proof.json",
+  "terminal": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/session-wheel453-installed-app-20261005/terminal.json",
+  "handback": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/session-wheel453-installed-app-20261005/code-handback.json",
+  "private_root": "Fresh own700 bootstrap/scratch created only after issued grant; original pilot TemporaryDirectory(dir=app output) authors its own wire/config/state/data and declared default Thread before App. No historical534/root/source/session/auth/history borrowed.",
+  "scope": [
+    "actual default Conversation/NativeSessionSurface/OperationalSessionPresentation and shared filesystem watcher",
+    "actual private fixture file change through held original notify\u2192queued old subscription\u2192retirement",
+    "handlerless MainScreen retains pending source, hidden presentation evicts original tree",
+    "same watcher wired before restored mount, editor document/Undo resource identity and original compositor/writer firstpaint",
+    "same original App lookahead Worker extent/reversal/source retirement and entry/byte policy bounds",
+    "original App/watcher/native observer/task wholeclose"
+  ],
+  "limits": [
+    "Agent=None is the actual authored fixture; no fake Agent or declared startup speed result",
+    "configured Agent startup/busy-turn/permission preservation remains unqualified",
+    "compositor/writer receipt is not physical pixels or CPU/smoothness comparison"
+  ],
+  "native": {
+    "packaged_candidate_manifest": "7a2e4aabdbc5af49dd9af942190d92086df2eb3489903674a74af51cf831cd33",
+    "read_only": "Any artifact FullTrust check must have new matching7a READ custody bound to actual purpose. This proposal grants no donor access.",
+    "execution": "Agent=None App; no Pi/nativeSDK/node/provider/ACP launch. Original watchdog/filesystem native OS observer is part of App custody. No native7a EXEC or old086 execution inheritance.",
+    "physical": "UNBOUND/UNGRANTED separate genuinely matched7a public/source/route/owner admission and WheelWarm controls, not represented by this NoAgent App"
+  },
+  "cleanup_restore": {
+    "stop": "One attempt; stop/preserve first failure or uncertain effect; no retry/second App",
+    "App": "Original run_test cleanup, owned attempt-tagged children/private worker receipts, watcher stop/join, message-pump/worker/socket groups and default executor joined; record actual owned process births/terminal and absence",
+    "payload": "Pilot owns temporary fixture cleanup; preserve concise App receipt/log/negative. Retire only named closed owned disposable scratch after original borrower evidence; no shared/user/UNKNOWN removal",
+    "floor": "Normal three original filewheels --no-deps --no-cache; exact actual1441 metadata/bin/root/member SHA/mode/readlink/origins +69 and155/PREFIXactivation; other66 all1883 members unchanged, no extras. Restore actual oldCore086 relation, actualNRA d392 VCS origin; no old416/436 restoration substitution. Existing ea89 archive exact metadata recovery if necessary, never rewrite provenance.",
+    "handback": "Fresh actual holder/output borrower census/absence, full original floor readback and explicit7a READ return if issued; Bohr alone shared lifecycle writer; no automatic successor loan"
+  },
+  "preserved_failures": {
+    "446saved": "FAIL49.474142917; cause unproved",
+    "446mixed": "UNRUN",
+    "446configured": "UNRUN/public decoder never activated",
+    "747": "Separate source-only fixture correction not folded"
+  },
+  "runtime_result": "UNRUN",
+  "package_access": "NONE before new immutable issued grant and literal read; floor read above is Bohr record only, not installed prefix access"
+}

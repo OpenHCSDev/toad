@@ -2,6 +2,7 @@
 
 import asyncio
 from abc import ABC, abstractmethod
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from weakref import ref
@@ -95,6 +96,10 @@ class OperationalSessionSources:
         self.directory_watcher = None
 
     def wire(self, conversation: Conversation) -> None:
+        if self.agent is not None:
+            from toad.widgets.conversation import ConversationSessionBinding
+
+            conversation.set_reactive(ConversationSessionBinding.agent, self.agent)
         if self.directory_watcher is not None:
             conversation._directory_watcher = self.directory_watcher
             self.directory_watcher.rebind(conversation)
@@ -155,8 +160,37 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         await self.sources.detach(conversation, screen)
 
     async def attach_binding(self, conversation: Conversation) -> None:
-        self.sources.wire(conversation)
         await self.sources.present(conversation)
+
+    @asynccontextmanager
+    async def acquire(self, screen: "MainScreen"):
+        """Mount owned resources before workspace admission, then restore them.
+
+        The workspace admits the yielded native tree before operational
+        attachment can await or publish its restored presentation.
+        """
+        returning = self.widget is not None
+        if not returning:
+            slot = screen.query_one(SessionSurfaceSlot)
+            content = slot.parent
+            assert isinstance(content, Widget)
+            self.widget = screen._make_conversation()
+        conversation = self.widget
+        self.sources.wire(conversation)
+        if not returning:
+            if self.state is not None:
+                conversation._initial_prompt = self.state.initial_prompt
+            await content.mount(conversation, before=slot)
+        yield conversation
+        await self.attach_binding(conversation)
+        if self.state is not None:
+            self.state.restore(conversation)
+            self.state = None
+        await conversation.prepare_retained_session()
+        conversation.display = True
+        if returning:
+            conversation.start_native_session()
+        conversation.prompt.focus()
 
     async def close(self, screen: "MainScreen") -> None:
         await screen.app.workspace_chrome.native.dispose(screen)
@@ -212,31 +246,8 @@ class NativeSessionSurface:
             if self.view is screen:
                 return
             assert self.view is None, "Departing source must retire before admitting the next source"
-            owner = screen.presentation
-            returning = owner.widget is not None
-            if not returning:
-                slot = screen.query_one(SessionSurfaceSlot)
-                content = slot.parent
-                assert isinstance(content, Widget)
-                owner.widget = screen._make_conversation()
-                if owner.sources.agent is not None:
-                    from toad.widgets.conversation import ConversationSessionBinding
-
-                    owner.widget.set_reactive(ConversationSessionBinding.agent, owner.sources.agent)
-                if owner.state is not None:
-                    owner.widget._initial_prompt = owner.state.initial_prompt
-                await content.mount(owner.widget, before=slot)
-            conversation = owner.widget
-            self.view = screen
-            await owner.attach_binding(conversation)
-            if owner.state is not None:
-                owner.state.restore(conversation)
-                owner.state = None
-            await conversation.prepare_retained_session()
-            conversation.display = True
-            if returning:
-                conversation.start_native_session()
-            conversation.prompt.focus()
+            async with screen.presentation.acquire(screen) as conversation:
+                self.view = screen
             await self._trim_retained(conversation)
 
     async def _trim_retained(self, selected: Conversation) -> None:

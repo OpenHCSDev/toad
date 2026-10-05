@@ -1,0 +1,14 @@
+{
+  "state": "SOURCE ONLY original control sample-custody correction; UNRUN/no next grant",
+  "frozen_product": "3352ba9e97d044ac5b6f6dada4eb220c88ecbc0f",
+  "previous_source_control": "9bb27ce198cd2b770b4e06a9305f039c6d92a1e2",
+  "production_pins_delta": [],
+  "control_sha256": "edee56fe3257a2187407491ca972d710a89fae52c054c030e6d449084a1b4cf6",
+  "original_assertion_AST_equal": true,
+  "assertions": 27,
+  "extent_owner": "DirectionalPreparation.observe owns sampled_at + demand.moved; ahead_rows/preparation_count consumes fresh travel, measured density and existing max_entries. Direct velocity changes across awaited mount did not refresh sample time.",
+  "worker_owner": "request_lookahead uses source_snapshot/current original page admissions and DirectionalPreparation.accepts identity. MovingPreparation.moved retains same directional demand; reversal returns new demand and exclusive Worker manager cancels old waiter. WorkingTranscript.accepts_publication delegates original live source; no generation mirror.",
+  "viewport_lifetime": "suspend_source retires original settle timer/worker and prevents frame/scroll observation through accepts_frame; fixture sampling remains explicitly authored on original DirectionalPreparation, not a physical wheel claim.",
+  "correction": "Refresh sample through original observe before slow-count and fast-count, then fresh sample before reversal setup. Both old assertion terms retained; individual flags/counts written before combined assertion. No timer/privateclock/prod change.",
+  "actual_failure_cause": "UNPROVED: frozen actual01 did not record individual terms; source flaw is not a measured cause attribution."
+}

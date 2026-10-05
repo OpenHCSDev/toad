@@ -1,0 +1,203 @@
+{
+  "tool": "original refactor-audit Package",
+  "head": "f3fb7ebc2878ed946f1217f2d38872d34c219d91",
+  "packages": [
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "f3fb7ebc2878ed946f1217f2d38872d34c219d91",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "src/toad/visuals/columns.py",
+          "line": 79,
+          "reference": "self._render_cache",
+          "access": "Store"
+        },
+        {
+          "path": "src/toad/visuals/columns.py",
+          "line": 247,
+          "reference": "self._render_cache",
+          "access": "Load"
+        },
+        {
+          "path": "src/toad/visuals/columns.py",
+          "line": 150,
+          "reference": "self._render_cache",
+          "access": "Load"
+        },
+        {
+          "path": "src/toad/visuals/columns.py",
+          "line": 181,
+          "reference": "self._render_cache",
+          "access": "Load"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "f3fb7ebc2878ed946f1217f2d38872d34c219d91",
+      "root": "tests",
+      "modules": 395,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 328,
+          "declaration": "ReaderCheckpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 398,
+          "reference": "self.rendered_bodies",
+          "access": "Load"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 398,
+          "reference": "self.rendered_content",
+          "access": "Load"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 403,
+          "reference": "body()._render_cache",
+          "access": "Load"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 408,
+          "reference": "self.rendered_bodies",
+          "access": "Load"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 195,
+          "reference": "ReaderCheckpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 385,
+          "reference": "block._render_cache",
+          "access": "Load"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 405,
+          "reference": "body()._render_cache",
+          "access": "Load"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 416,
+          "reference": "ReaderCheckpoint"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "f3fb7ebc2878ed946f1217f2d38872d34c219d91",
+      "root": "tools",
+      "modules": 41,
+      "omissions": [],
+      "sites": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "1bdc18c363cbc0f938537a71aa8ba0225d03e25e",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "src/textual/strip.py",
+          "line": 115,
+          "reference": "self._render_cache",
+          "access": "Store"
+        },
+        {
+          "path": "src/textual/strip.py",
+          "line": 755,
+          "reference": "self._render_cache",
+          "access": "Load"
+        },
+        {
+          "path": "src/textual/strip.py",
+          "line": 842,
+          "reference": "strip._render_cache",
+          "access": "Store"
+        },
+        {
+          "path": "src/textual/strip.py",
+          "line": 842,
+          "reference": "self._render_cache",
+          "access": "Load"
+        },
+        {
+          "path": "src/textual/strip.py",
+          "line": 310,
+          "reference": "joined_strip._render_cache",
+          "access": "Store"
+        },
+        {
+          "path": "src/textual/strip.py",
+          "line": 741,
+          "reference": "self._render_cache",
+          "access": "Load"
+        },
+        {
+          "path": "src/textual/strip.py",
+          "line": 744,
+          "reference": "self._render_cache",
+          "access": "Store"
+        },
+        {
+          "path": "src/textual/strip.py",
+          "line": 309,
+          "reference": "strip._render_cache",
+          "access": "Load"
+        },
+        {
+          "path": "src/textual/strip.py",
+          "line": 311,
+          "reference": "strip._render_cache",
+          "access": "Load"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 539,
+          "reference": "self._render_cache",
+          "access": "Store"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 4484,
+          "reference": "self._render_cache",
+          "access": "Store"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 4780,
+          "reference": "self._render_cache",
+          "access": "Store"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 4499,
+          "reference": "self._render_cache",
+          "access": "Load"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 4502,
+          "reference": "self._render_cache",
+          "access": "Load"
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Complete lexical AST coverage, not dynamic receiver equivalence or runtime validation. Original native dependency at retained59 source, no native edits."
+  ]
+}

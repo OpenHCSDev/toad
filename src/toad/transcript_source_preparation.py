@@ -35,11 +35,12 @@ class HistorySourceSnapshot:
 class TranscriptSourcePreparation(CoreEventReceiver):
     """Shared source preparation; native widget and operational session stay separate."""
 
+    LOOKAHEAD_GROUP = "history-lookahead"
+
     def __init__(self, *args, source_state: TranscriptState, **kwargs):
         self._source_state = source_state
         self._generation = 0
         self._page_buffer: PreparedPageSource | None = None
-        self._prefetch_worker = None
         self._prefetch_intent = None
         self._check_pending = False
         super().__init__(*args, **kwargs)
@@ -117,8 +118,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
 
     def request_latest(self) -> None:
         self.window.document_viewport.destination()
-        if self._prefetch_worker is not None:
-            self._prefetch_worker.cancel()
+        self.workers.cancel_group(self, self.LOOKAHEAD_GROUP)
         self._prefetch_intent = None
         self.state.request_latest(self, LatestViewportRequest(self.window.scroll_revision))
 
@@ -210,6 +210,44 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     def prepare_scroll(self) -> None:
         """Measured viewport demand admits source-specific edge reads."""
         self._scroll_changed()
+
+    def request_lookahead(self, intent) -> None:
+        """One source worker consumes the latest measured preparation demand.
+
+        Updating the requested extent does not revoke an admitted pure batch.
+        The source leaf checks its original source, page and direction custody;
+        after that pass this worker takes the latest intent, without restarting
+        its waiter on every scroll or layout publication.
+        """
+        previous = self._prefetch_intent
+        current = previous is not None and self.lookahead_current(previous)
+        if current and intent == previous:
+            return
+        self._prefetch_intent = intent
+        if current and any(self.lookahead_workers()):
+            return
+
+        async def prepare() -> None:
+            while (intent := self._prefetch_intent) is not None:
+                await self.prepare_lookahead(intent)
+                if self._prefetch_intent is intent:
+                    return
+
+        self.run_worker(prepare, group=self.LOOKAHEAD_GROUP, exclusive=True, exit_on_error=False)
+
+    def lookahead_workers(self):
+        """Borrow current custody from the original native worker manager."""
+        return (worker for worker in reversed(self.workers)
+                if worker.node is self and worker.group == self.LOOKAHEAD_GROUP
+                and worker.is_running)
+
+    async def prepare_lookahead(self, intent) -> None:
+        """The prepared source leaf supplies its bounded page/body work."""
+        raise NotImplementedError
+
+    def lookahead_current(self, intent) -> bool:
+        """Source, page and direction custody revoke an obsolete waiter."""
+        raise NotImplementedError
 
     @property
     def prefetch_distance(self) -> int:

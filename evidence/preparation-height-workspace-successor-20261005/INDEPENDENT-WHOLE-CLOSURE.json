@@ -1,0 +1,42 @@
+{
+  "state": "Original Bohr independent whole holder closure and Sch immutable READ/EXEC return; no current/future holder authority",
+  "issued_sha256": "3b47246f551332752dc4befa226c2e06d51ddae8f47b2db519a35f823cd79e56",
+  "lifecycle": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis457-remaining-integer-cell-serial3-package-App-lifecycle.json",
+    "sha256": "4126bea88dfe807ee40f21ceb46901edfbdc555a49d1f7da13819d0abf74befe"
+  },
+  "determining_refs": {
+    "independent_final_floor_readback": {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis457-remaining-independent-final-floor-readback.json",
+      "sha256": "02b482836dc4b58abcb3660502a5197193fecd4a12ecdff4bbabe17287a84dc5"
+    },
+    "independent_final_borrowers": {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis457-remaining-independent-final-borrowers.json",
+      "sha256": "d3957ccb32e9a41fbfb424956d180902d4e05f3aa1df679c6133af23323a1dc5",
+      "processes": 238,
+      "private_holder_output_scratch_bootstrap_refs": 0,
+      "gaps": 0
+    },
+    "independent_final_native_reference_classification": {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis457-remaining-independent-final-native-reference-classification.json",
+      "sha256": "90383baa14ae95f098ac49c8572a2c91a4f80390e67a7b41907b4231ce5e6ae2",
+      "shared_PUBLIC448_refs_preserved": 19
+    },
+    "Sch_READ_EXEC_return": {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper457-remaining-READ-EXEC-handback-20261005.json",
+      "sha256": "0110468bddc4884143f3bdc6d949e285ca40dab84e82c25392616de4e309da3b",
+      "READ_EXEC_CLOSED": true,
+      "keeper_immutable_HELD": true
+    }
+  },
+  "owner_raw_processes": 239,
+  "independent_processes": 238,
+  "actual_floor_members": 1441,
+  "normal_versions_origins": 69,
+  "protected_prefix_originals": 155,
+  "other66_members": 1883,
+  "private_refs": 0,
+  "gaps": 0,
+  "public_shared_refs_preserved": 19,
+  "product_controls_pins_change": false
+}

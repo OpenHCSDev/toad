@@ -1,0 +1,450 @@
+{
+  "source_head": "1febf9f787b6d9890e13ec4cd43f93b041e72210",
+  "scope": "Source/dependency AST and offline original interval decoder only; no package import/App/native execution",
+  "packages": [
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "1febf9f787b6d9890e13ec4cd43f93b041e72210",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "1febf9f787b6d9890e13ec4cd43f93b041e72210",
+      "root": "tests",
+      "modules": 396,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "1febf9f787b6d9890e13ec4cd43f93b041e72210",
+      "root": "tools",
+      "modules": 41,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "head": "3aacd708fb9c699cc80c6b864e0ae8cf9ccff7f8",
+      "root": "src/agent_comms",
+      "modules": 324,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "08e3dd6b3c7839baafcac6ff9ea61eb510ff9573",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/session_presentation.py",
+      "line": 205,
+      "kind": "Attribute",
+      "name": "retire_source",
+      "source": "history.retire_source"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/setting_effects.py",
+      "line": 22,
+      "kind": "Attribute",
+      "name": "prepare_scroll",
+      "source": "history.prepare_scroll"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 184,
+      "kind": "AsyncFunctionDef",
+      "name": "retire_source",
+      "source": "async def retire_source(self, *, parked: bool = False) -> None:\n        \"\"\"End pager mutations before any of its bodies transfer to the shelf.\"\"\"\n        self.retire_core_observations(self.app.coordination_access.events)\n        source = self._source_state.retirement_source()\n        self._source_state = (ParkedSourceTranscript(source) if parked\n  "
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 210,
+      "kind": "FunctionDef",
+      "name": "prepare_scroll",
+      "source": "def prepare_scroll(self) -> None:\n        \"\"\"Measured viewport demand admits source-specific edge reads.\"\"\"\n        self._scroll_changed()"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 214,
+      "kind": "FunctionDef",
+      "name": "request_lookahead",
+      "source": "def request_lookahead(self, intent) -> None:\n        \"\"\"One source worker consumes the latest measured preparation demand.\n\n        Updating the requested extent does not revoke an admitted pure batch.\n        The source leaf checks its original source, page and direction custody;\n        after that pass this worker takes the latest intent, without"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 238,
+      "kind": "FunctionDef",
+      "name": "lookahead_workers",
+      "source": "def lookahead_workers(self):\n        \"\"\"Borrow current custody from the original native worker manager.\"\"\"\n        return (worker for worker in reversed(self.workers)\n                if worker.node is self and worker.group == self.LOOKAHEAD_GROUP\n                and worker.is_running)"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 244,
+      "kind": "AsyncFunctionDef",
+      "name": "prepare_lookahead",
+      "source": "async def prepare_lookahead(self, intent) -> None:\n        \"\"\"The prepared source leaf supplies its bounded page/body work.\"\"\"\n        raise NotImplementedError"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 248,
+      "kind": "FunctionDef",
+      "name": "lookahead_current",
+      "source": "def lookahead_current(self, intent) -> bool:\n        \"\"\"Source, page and direction custody revoke an obsolete waiter.\"\"\"\n        raise NotImplementedError"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 38,
+      "kind": "Name",
+      "name": "LOOKAHEAD_GROUP",
+      "source": "LOOKAHEAD_GROUP"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 89,
+      "kind": "Attribute",
+      "name": "prepare_scroll",
+      "source": "self.prepare_scroll"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 105,
+      "kind": "Attribute",
+      "name": "prepare_scroll",
+      "source": "self.prepare_scroll"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 121,
+      "kind": "Attribute",
+      "name": "LOOKAHEAD_GROUP",
+      "source": "self.LOOKAHEAD_GROUP"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 207,
+      "kind": "Attribute",
+      "name": "prepare_scroll",
+      "source": "self.prepare_scroll"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 223,
+      "kind": "Attribute",
+      "name": "lookahead_current",
+      "source": "self.lookahead_current"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 236,
+      "kind": "Attribute",
+      "name": "LOOKAHEAD_GROUP",
+      "source": "self.LOOKAHEAD_GROUP"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 227,
+      "kind": "Attribute",
+      "name": "lookahead_workers",
+      "source": "self.lookahead_workers"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 232,
+      "kind": "Attribute",
+      "name": "prepare_lookahead",
+      "source": "self.prepare_lookahead"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 241,
+      "kind": "Attribute",
+      "name": "LOOKAHEAD_GROUP",
+      "source": "self.LOOKAHEAD_GROUP"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 737,
+      "kind": "FunctionDef",
+      "name": "prepare_scroll",
+      "source": "def prepare_scroll(self) -> None:\n        if (self.loader is None or not self.is_mounted or not self.state.accepts_publication or not self.screen.is_current\n                or not self.selected_categories):\n            return\n        reader = self._reader()\n        edges = (self.pages[0].page.before if self.pages[0].page.has_older else None,\n      "
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 759,
+      "kind": "AsyncFunctionDef",
+      "name": "prepare_lookahead",
+      "source": "async def prepare_lookahead(self, intent) -> None:\n        reader, edges, rounds, count, demand, pages, admissions, snapshot = intent\n        current = partial(self.lookahead_current, intent)\n        from toad.widgets.transcript_fragments import TranscriptBodyPreparation\n        preparation = TranscriptBodyPreparation(\n            self.app.render_p"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 774,
+      "kind": "FunctionDef",
+      "name": "lookahead_current",
+      "source": "def lookahead_current(self, intent) -> bool:\n        reader, _edges, _rounds, _count, demand, pages, admissions, snapshot = intent\n        return (snapshot.current(self)\n                and snapshot.window.document_viewport.lookahead.accepts(demand)\n                and all(page.capture_admission() == admission\n                        for page, admi"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 538,
+      "kind": "Attribute",
+      "name": "prepare_scroll",
+      "source": "self.prepare_scroll"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 756,
+      "kind": "Attribute",
+      "name": "request_lookahead",
+      "source": "self.request_lookahead"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 761,
+      "kind": "Attribute",
+      "name": "lookahead_current",
+      "source": "self.lookahead_current"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1023,
+      "kind": "Attribute",
+      "name": "prepare_scroll",
+      "source": "history.prepare_scroll"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1005,
+      "kind": "Attribute",
+      "name": "prepare_scroll",
+      "source": "history.prepare_scroll"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/history_page_batch_mount_pilot.py",
+      "line": 287,
+      "kind": "Attribute",
+      "name": "retire_source",
+      "source": "pending.retire_source"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 101,
+      "kind": "Attribute",
+      "name": "prepare_scroll",
+      "source": "history.prepare_scroll"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 111,
+      "kind": "Attribute",
+      "name": "prepare_scroll",
+      "source": "history.prepare_scroll"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 115,
+      "kind": "Attribute",
+      "name": "prepare_scroll",
+      "source": "history.prepare_scroll"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 95,
+      "kind": "Attribute",
+      "name": "lookahead_workers",
+      "source": "history.lookahead_workers"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 113,
+      "kind": "Attribute",
+      "name": "lookahead_workers",
+      "source": "history.lookahead_workers"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 116,
+      "kind": "Attribute",
+      "name": "lookahead_workers",
+      "source": "history.lookahead_workers"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 124,
+      "kind": "Attribute",
+      "name": "retire_source",
+      "source": "history.retire_source"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 103,
+      "kind": "Attribute",
+      "name": "lookahead_workers",
+      "source": "history.lookahead_workers"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/message_dividers_pilot.py",
+      "line": 240,
+      "kind": "Attribute",
+      "name": "retire_source",
+      "source": "history.retire_source"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/message_dividers_pilot.py",
+      "line": 187,
+      "kind": "Attribute",
+      "name": "retire_source",
+      "source": "history.retire_source"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/retained_history_projection_pilot.py",
+      "line": 55,
+      "kind": "Attribute",
+      "name": "retire_source",
+      "source": "history.retire_source"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/retained_history_projection_pilot.py",
+      "line": 82,
+      "kind": "Attribute",
+      "name": "retire_source",
+      "source": "history.retire_source"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/retained_page_scope_pilot.py",
+      "line": 118,
+      "kind": "Attribute",
+      "name": "retire_source",
+      "source": "history.retire_source"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 626,
+      "kind": "ClassDef",
+      "name": "WheelCadenceJourney",
+      "source": "class WheelCadenceJourney(ScrollJourney):\n    \"\"\"Original native wheel targets with phase-aligned frame writer receipts.\"\"\"\n\n    motion_phases = (\"wheel-up\", \"wheel-down\", \"wheel-reverse\", \"wheel-end\")\n\n    @classmethod\n    def script(cls, args):\n        if not args.capture_state or not args.scroll_travel:\n            raise ValueError(\"Wheel cadenc"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 452,
+      "kind": "FunctionDef",
+      "name": "review_intervals",
+      "source": "def review_intervals(cls, args, output, duration, *, origin_ns):\n        \"\"\"Select gestures from original phase and checked command receipts.\n\n        Phase markers precede diagnostic exports. Key and wheel review use\n        checked command intervals, excluding exports and the following wait.\n        These are physical driver bounds, not terminal "
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1551,
+      "kind": "Attribute",
+      "name": "review_intervals",
+      "source": "args.journey.review_intervals"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1598,
+      "kind": "Attribute",
+      "name": "review_intervals",
+      "source": "journey.review_intervals"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1517,
+      "kind": "Attribute",
+      "name": "review_intervals",
+      "source": "journey.review_intervals"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1979,
+      "kind": "Attribute",
+      "name": "review_intervals",
+      "source": "args.journey.review_intervals"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/transcript_lifecycle_pilot.py",
+      "line": 64,
+      "kind": "Attribute",
+      "name": "retire_source",
+      "source": "history.retire_source"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/transcript_lifecycle_pilot.py",
+      "line": 72,
+      "kind": "Attribute",
+      "name": "retire_source",
+      "source": "history.retire_source"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/transcript_source_lifetime_pilot.py",
+      "line": 126,
+      "kind": "Attribute",
+      "name": "retire_source",
+      "source": "history.retire_source"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/worker.py",
+      "line": 185,
+      "kind": "Attribute",
+      "name": "_created_time",
+      "source": "self._created_time"
+    }
+  ],
+  "offline_interval_checks": {
+    "wheel_excludes_exports_and_settle": true,
+    "failed_wheel_has_no_complete_band": true,
+    "held_key_bounds_preserved": true
+  },
+  "runtime": "UNRUN",
+  "physical_motion": "UNQUALIFIED"
+}

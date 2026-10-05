@@ -1,0 +1,152 @@
+{
+  "tool": "original refactor-audit Package",
+  "head": "778b30a917fcfbc1dfafac4a254095da5a724265",
+  "tests_modules": 395,
+  "omissions": [],
+  "sites": [
+    {
+      "path": "tests/backend_failure_feedback_installed_journey.py",
+      "line": 9,
+      "node": "from saved_state_user_journey_pilot import submit_editor, screen_paint"
+    },
+    {
+      "path": "tests/command_family_pilot.py",
+      "line": 20,
+      "node": "from saved_state_user_journey_pilot import prepare_saved_state"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 15,
+      "node": "from saved_state_user_journey_pilot import submit_editor, click_tab"
+    },
+    {
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 63,
+      "node": "from saved_state_user_journey_pilot import SavedStateSubscriber"
+    },
+    {
+      "path": "tests/context_compaction_native_installed_pilot.py",
+      "line": 105,
+      "node": "from saved_state_user_journey_pilot import SavedStateSubscriber"
+    },
+    {
+      "path": "tests/context_compaction_native_installed_pilot.py",
+      "line": 144,
+      "node": "from saved_state_user_journey_pilot import submit_editor"
+    },
+    {
+      "path": "tests/declared_target_actions_installed_pilot.py",
+      "line": 31,
+      "node": "from saved_state_user_journey_pilot import reveal_thread_row"
+    },
+    {
+      "path": "tests/external_cli_native_installed_pilot.py",
+      "line": 29,
+      "node": "from saved_state_user_journey_pilot import reveal_thread_row, submit_editor, click_tab, screen_paint"
+    },
+    {
+      "path": "tests/first_fork_native_installed_pilot.py",
+      "line": 81,
+      "node": "from saved_state_user_journey_pilot import reveal_thread_row"
+    },
+    {
+      "path": "tests/first_fork_native_installed_pilot.py",
+      "line": 68,
+      "node": "from saved_state_user_journey_pilot import submit_editor"
+    },
+    {
+      "path": "tests/goal_pause_owner_pilot.py",
+      "line": 20,
+      "node": "from saved_state_user_journey_pilot import SavedStateSubscriber, click_tab, submit_editor"
+    },
+    {
+      "path": "tests/goal_state_installed_journey.py",
+      "line": 15,
+      "node": "from saved_state_user_journey_pilot import click_tab, click_thread, prepare_saved_state, screen_paint, submit_editor"
+    },
+    {
+      "path": "tests/independent_native_writer_pilot.py",
+      "line": 24,
+      "node": "from saved_state_user_journey_pilot import SavedStateSubscriber"
+    },
+    {
+      "path": "tests/input_visibility_native_installed_pilot.py",
+      "line": 30,
+      "node": "from saved_state_user_journey_pilot import prepare_editor"
+    },
+    {
+      "path": "tests/manual_live_turn_status.py",
+      "line": 18,
+      "node": "from saved_state_user_journey_pilot import click_thread"
+    },
+    {
+      "path": "tests/native_terminal_retention_pilot.py",
+      "line": 16,
+      "node": "from saved_state_user_journey_pilot import click_tab"
+    },
+    {
+      "path": "tests/original_turn_resource_real_installed_pilot.py",
+      "line": 31,
+      "node": "from saved_state_user_journey_pilot import screen_paint, submit_editor"
+    },
+    {
+      "path": "tests/post_cancel_session_installed_journey.py",
+      "line": 12,
+      "node": "from saved_state_user_journey_pilot import submit_editor, screen_paint"
+    },
+    {
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 24,
+      "node": "from saved_state_user_journey_pilot import click_thread"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 172,
+      "declaration": "acceptance",
+      "args": "app, pilot, agent, comms, entered, release, hold_next, requests"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 324,
+      "declaration": "clicked_reader_editor_return",
+      "args": "app, pilot, first"
+    },
+    {
+      "path": "tests/sidebar_custody_installed_journey.py",
+      "line": 12,
+      "node": "from saved_state_user_journey_pilot import prepare_saved_state, click_tab, screen_paint, independent_source_publication, unopened_participant, clicked_reader_editor_return, fork_and_first_input, channel_reply_feedback"
+    },
+    {
+      "path": "tests/startup_attachment_feedback_installed_journey.py",
+      "line": 9,
+      "node": "from saved_state_user_journey_pilot import screen_paint"
+    },
+    {
+      "path": "tests/submission_native_installed_pilot.py",
+      "line": 13,
+      "node": "from saved_state_user_journey_pilot import click_tab, screen_paint"
+    },
+    {
+      "path": "tests/terminal_attention_installed_journey.py",
+      "line": 32,
+      "node": "from saved_state_user_journey_pilot import SavedStateSubscriber, click_tab"
+    },
+    {
+      "path": "tests/thread_navigation_installed_journey.py",
+      "line": 19,
+      "node": "from saved_state_user_journey_pilot import SavedStateSubscriber, click_tab"
+    },
+    {
+      "path": "tests/thread_spawn_bind_owner_installed_pilot.py",
+      "line": 7,
+      "node": "from saved_state_user_journey_pilot import prepare_saved_state, fork_and_first_input"
+    },
+    {
+      "path": "tests/transcript_filter_installed_journey.py",
+      "line": 16,
+      "node": "from saved_state_user_journey_pilot import SavedStateSubscriber, click_tab"
+    }
+  ],
+  "dependency_context": "configured-continuous-before.json binds unchanged9a75 production288/tools41/Core324/native59 249, zero omissions; current778 join changes only receiving evidence.",
+  "decision": "Route existing saved-state acceptance through its warm completion boundary; preserve every original assertion and default full journey. No new App/harness/provider or production flag."
+}

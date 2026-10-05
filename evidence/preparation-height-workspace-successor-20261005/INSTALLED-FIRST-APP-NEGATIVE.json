@@ -1,0 +1,175 @@
+{
+  "state": "Original457 first installed App PARTIAL FAIL; consumed1/3 and whole original485 floor restored. NO retry or future package/native claim",
+  "source_control_head": "db38ad541dcd07dead60e48473768905333473ff",
+  "determining_product": "2832435d2cfecf410cfa2bddf017a9f0e57967e7",
+  "product_control_pins_delta": [],
+  "original455_FAIL_preserved": true,
+  "wheel_sha256": "1c4318661b2eb0bfa84462d0389a7b824c8eb23d86ba9fae6d013a027aeab3bf",
+  "terminal": {
+    "number": 1,
+    "argv": [
+      "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/history_stationary_local_runway_pilot.py",
+      "--installed-only",
+      "--worker-custody",
+      "--session-custody",
+      "--preparation-completion",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/no-agent/app"
+    ],
+    "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+    "issued_sha256": "7bba978063cfe1e517576cdc520b1e653d1c40d70823049a62ef30ab81ed7f1e",
+    "exit_code": 1,
+    "cleanup": {
+      "remaining_owned_pids": [],
+      "errors": []
+    },
+    "provider_input": false,
+    "native_SDK_input": false,
+    "movie": false,
+    "outcome": {
+      "kind": "exited",
+      "code": 1
+    },
+    "identity": {
+      "pid": 2449648,
+      "start_time": 67698806
+    },
+    "duration_seconds": 9.248196679051034,
+    "retired": true
+  },
+  "worker_progress": {
+    "checks": {
+      "extent_changed": true,
+      "same_direction_original_worker_retained": true
+    },
+    "before_count": 6,
+    "after_count": 256
+  },
+  "reached_scope": {
+    "original27_stationary_custody_assertions": "Completed before unchanged leaf invocation; original receipt + stdout retained",
+    "all_six_worker_custody_terms": true,
+    "runway_counts": [
+      6,
+      256
+    ],
+    "session_remount_editor_document_undo_watcher": "Original helper returned before acceptance (source call order plus reached acceptance stack); not separately serialized after failure",
+    "ABABA_mount_real_paragraph_compositor_cache_fresh_links": "Original leaf stdout prints completed successful phase",
+    "actual_async_page_filter_retained_independent_delivery": "Original leaf stdout prints completed8..16 phase; raw loader one8..16 interval",
+    "native_wheel": "UNREACHED: first hit-test raises before dispatch",
+    "reversal_End": "UNREACHED",
+    "whole_preparation_shutdown_assertion": "UNREACHED; original BoundedRun attached child/group terminal retired/empty",
+    "project454": "UNRUN",
+    "configured_readiness": "UNRUN; no nativeEXEC or public source decoder activation"
+  },
+  "failure": {
+    "path": "tests/markdown_return_reuse_pilot.py",
+    "line": 96,
+    "error": "TypeError: argument 'x': 'float' object cannot be interpreted as an integer",
+    "source": "scrollable_content_region.center passed to get_widget_at native integer-cell API",
+    "classification": "Authored control coordinate operand; no demonstrated Toad/native production defect or performance cause",
+    "owner": "Einstein original456 leaf control; exact source family fix requested without runtime/retry"
+  },
+  "handback": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/code-handback.json",
+    "sha256": "1ddd739331ca995416156698e3e0e5c1a93dfc72cc02c14d3bd7934925d4c3ab",
+    "floor1441_other661883_packages69_frozen155": true,
+    "restored_metadata_patch_count": 0,
+    "census_path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/final-borrowers.json",
+    "census_sha256": "0e582e840f153af88277ffa941158d750b9320ee161c0832589a519aff081d8f",
+    "raw_process_count": 218,
+    "active_refs": 0,
+    "gaps": 0,
+    "scratch_retired": true,
+    "native7a_READ_explicitly_returned": true,
+    "native7a_EXEC_used": false,
+    "independent_Bohr_closure": "pending; only issuer mutates shared lifecycle"
+  },
+  "keepers": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/job1-terminal.json",
+      "sha256": "73bc3b5b0e6cb85a1b77b4dfb43da1220685e15a9a27ff8e3397849ee934a887"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/job1-stdout.log",
+      "sha256": "705de8f2b7549ab39e6f0d57eec78a133e35a17632accd0748974a8801545ee8"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/job1-stderr.log",
+      "sha256": "d3e92956caad099e706be6b1c7c60fb73c2941bb3542fe92114f5839f28c87a1"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/job1-effective-release.json",
+      "sha256": "cd6ce5648610a21542f2b62c133e2c7c1974f325a5f76b43fd64acc9578d9603"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/job1-start.json",
+      "sha256": "1e75c25626cd86103571e8167cd72900aecb15631e7dd1bb3300a9cfed5eee77"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/job1-active-controller.json",
+      "sha256": "02255a5d0f62a1dc69b36245e2bfc89214c365607d1444fe46fbdfd00dd757cb"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/no-agent/app/receipt.json",
+      "sha256": "28f38831fa8d9cbbdb82abc7c273b034a5831606e6412e1e5c9bc0b484f8a52c"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/no-agent/app/worker-custody-progress.json",
+      "sha256": "bd0f48458de58f61389ac460d0a151ec54dd4a692aa7c52363853b572fd6ff0d"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/package-proof/source-proof.json",
+      "sha256": "9de1e2cb0947fb5b6730080c9c99e2e4b42d725c87fc29cbf8d169455a9dc2f1"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/package-proof/candidate-activation.json",
+      "sha256": "f1a75f11d942dd60ea199383a49d5ef98d9356238d3ab0c916d382969c8089f6"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/package-proof/package-boundary-proof.json",
+      "sha256": "8391f1f6ff744f510f89b7e50ae26b030f0be36bb6e80f09f8b86018cd9ce0a4"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/package-proof/stage-terminal.json",
+      "sha256": "6e70b16a122da1673967d47294db6663da7774467a343782c2888e34acfde0bf"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/package-proof/proof-terminal.json",
+      "sha256": "9d0354c2f621c643ca09da2a735cb98a7ac217ced278463fcfa15a063ab797d7"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/code-handback.json",
+      "sha256": "1ddd739331ca995416156698e3e0e5c1a93dfc72cc02c14d3bd7934925d4c3ab"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/final-borrowers.json",
+      "sha256": "0e582e840f153af88277ffa941158d750b9320ee161c0832589a519aff081d8f"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/final-borrowers-classification.json",
+      "sha256": "e8c89144b4e76732e3b19a91cc1870a3af94b2b48c22468c6f4098be02c58454"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/restore-install.log",
+      "sha256": "d76e2babde95d3d5538caad10c881dd7ecf6f79f12577daff6a110914c420c59"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/restore-pipcheck.log",
+      "sha256": "77bcbc958df98746202f0cd460a217c27ee0deca531bab8dabaa13faa1adfd1d"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-joint-authored-App-20261005/issued-grant.json",
+      "sha256": "7bba978063cfe1e517576cdc520b1e653d1c40d70823049a62ef30ab81ed7f1e"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-source-wheel-20261005/wheel-proof.json",
+      "sha256": "60e0936e136aaab140dbd8e6cdfa5f48e0c0875df68cc3f060a7b65936ea38b4"
+    }
+  ],
+  "limits": [
+    "No complete worker/page/wheel sameApp PASS",
+    "No nativeWheel/End/project/configured SDK acceptance",
+    "No physical/CPU/smoothness gain/fullperformance claim",
+    "Public448 unchanged; no provider/newSDKinput/fork/movie/public decoder used"
+  ]
+}

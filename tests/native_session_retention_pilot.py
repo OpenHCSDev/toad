@@ -111,6 +111,8 @@ def resource_snapshot(owner, acp_process):
 
 
 async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
+    from viewport_recent_tabs_pilot import ReaderCheckpoint
+
     workspace = app.screen
     owner_mode = app.selected_mode
     owner_view = app.selected_session
@@ -135,39 +137,65 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     active_prompt = None
     try:
         for count in tuple(map(int, os.environ.get("WORKSPACE_COHORTS", "4,16,32,64").split(","))):
-            while len(modes) < count:
-                index = len(modes)
-                details = await app.session_navigation.new(lambda: MainScreen(
-                    original.project_path, agent_session_id=f"cohort-{index}"))
-                modes.append(details.mode_name)
-                marker = f"BLANK_TAB_DRAFT_{index}"
-                app.selected_session.conversation.prompt.prompt_text_area.insert(marker)
-                markers[details.mode_name] = (marker,)
-                await pilot.pause(.02)
-            # Each cohort uses the same three strict visit phases. Do not hide
-            # a bad phase with the predecessor's optional diagnostic filtering.
-            durations = []
-            painted = []
-            profile_path = os.environ.get("WORKSPACE_SWITCH_PROFILE")
-            profiler = cProfile.Profile() if count == 4 and profile_path else None
-            if profiler is not None:
-                profiler.enable()
-            for order in (tuple(reversed(modes)), tuple(modes), tuple(reversed(modes))):
-                for mode in order:
-                    if mode == app.selected_mode:
-                        continue
-                    timing = await physical_painted_switch(app, pilot, mode, markers[mode])
-                    painted.append({"mode": mode, "source": "loaded-native" if mode in loaded_modes else "blank",
-                                    **timing})
-                    assert app.selected_mode == mode and app.selected_session.id == mode
-                    assert app.screen is workspace, "Tab change replaced native WorkspaceScreen"
-                    durations.append(timing["first_paint_ms"])
-            if profiler is not None:
-                profiler.disable()
-                with Path(profile_path).open("w") as stream:
-                    stats = pstats.Stats(profiler, stream=stream).sort_stats("cumulative")
-                    stats.print_stats(55)
-                    stats.print_callers("viewer_snapshot")
+            # Capture the two actual unchanged native sources before this
+            # cohort; blank logical tabs are not loaded-history witnesses.
+            checkpoints = {}
+            try:
+                for mode in (owner_mode, alpha_mode):
+                    if app.selected_mode != mode:
+                        await physical_painted_switch(app, pilot, mode, markers[mode])
+                    checkpoints[mode] = await ReaderCheckpoint.capture(
+                        app.selected_session, app, pilot,
+                    )
+                while len(modes) < count:
+                    index = len(modes)
+                    details = await app.session_navigation.new(lambda: MainScreen(
+                        original.project_path, agent_session_id=f"cohort-{index}"))
+                    modes.append(details.mode_name)
+                    marker = f"BLANK_TAB_DRAFT_{index}"
+                    app.selected_session.conversation.prompt.prompt_text_area.insert(marker)
+                    markers[details.mode_name] = (marker,)
+                    await pilot.pause(.02)
+                # Each cohort uses the same three strict visit phases. Do not hide
+                # a bad phase with the predecessor's optional diagnostic filtering.
+                durations = []
+                painted = []
+                profile_path = os.environ.get("WORKSPACE_SWITCH_PROFILE")
+                profiler = cProfile.Profile() if count == 4 and profile_path else None
+                if profiler is not None:
+                    profiler.enable()
+                for order in (tuple(reversed(modes)), tuple(modes), tuple(reversed(modes))):
+                    for mode in order:
+                        if mode == app.selected_mode:
+                            continue
+                        if mode in checkpoints:
+                            reads_before = await checkpoints[mode].page_reads()
+                        timing = await physical_painted_switch(app, pilot, mode, markers[mode])
+                        painted.append({"mode": mode, "source": "loaded-native" if mode in loaded_modes else "blank",
+                                        **timing})
+                        if mode in checkpoints:
+                            await checkpoints[mode].verify(app, pilot)
+                            read_delta = await checkpoints[mode].page_reads() - reads_before
+                            assert read_delta == 0, ("Warm return repeated raw page acquisition", mode, read_delta)
+                            painted[-1]["raw_page_read_delta"] = read_delta
+                            painted[-1]["warm_page_fragments_and_rendered_rows_retained"] = True
+                        assert app.selected_mode == mode and app.selected_session.id == mode
+                        assert app.screen is workspace, "Tab change replaced native WorkspaceScreen"
+                        durations.append(timing["first_paint_ms"])
+                if profiler is not None:
+                    profiler.disable()
+                    with Path(profile_path).open("w") as stream:
+                        stats = pstats.Stats(profiler, stream=stream).sort_stats("cumulative")
+                        stats.print_stats(55)
+                        stats.print_callers("viewer_snapshot")
+                # Retain scalar evidence before retiring the identity witnesses.
+                loaded_reader_positions = {mode: witness.reader_y
+                                           for mode, witness in checkpoints.items()}
+            finally:
+                # The warm proof ends here, before new input and resource counts.
+                # Empty the graph owners even when an identity assertion fails.
+                checkpoints.clear()
+            del checkpoints
             await app.select_session(modes[-1])
             entered.clear()
             release.clear()
@@ -201,6 +229,11 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                 "switches_over_100ms": sum(value > 100 for value in durations),
                 "switch_count": len(durations), "fixed_native_owners": 2,
                 "fixed_acp_attachments": 2,
+                "unchanged_loaded_resource_returns": sum(
+                    item.get("warm_page_fragments_and_rendered_rows_retained", False)
+                    for item in painted
+                ),
+                "loaded_reader_positions": loaded_reader_positions,
                 "measurement": "physical Pilot tab click: production selection to first actual compositor output with destination draft; no fixed settle added, headless not terminal writer latency",
                 "painted_switches": painted,
                 "blank_median_ms": statistics.median(item["first_paint_ms"] for item in painted if item["source"] == "blank"),

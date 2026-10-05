@@ -3,9 +3,8 @@
 import asyncio
 import json
 import os
-from dataclasses import dataclass
 from pathlib import Path
-from weakref import ReferenceType, ref
+from weakref import ref
 
 from acp.schema import TextContentBlock
 from agent_comms.acp import CommsClient
@@ -16,8 +15,7 @@ from l0a_native_installed_pilot import until
 from native_session_retention_pilot import InstalledApp, conversation_paint
 from runtime_fixture import wait_channel_roster, wait_fork_dialog
 from textual.widgets import Input
-from textual.widgets._markdown import MarkdownBlock
-from viewport_recent_tabs_pilot import settled
+from viewport_recent_tabs_pilot import ReaderCheckpoint, settled
 
 from toad.screens.comms import CommsScreen
 from agent_comms.cli_commands import ForkCliCommand
@@ -26,7 +24,6 @@ from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_menu import ContextMenuItem
 from toad.widgets.comms_sidebar import ChannelGroup, CommsRow
 from toad.widgets.message_notifications import MessageNotifications
-from toad.widgets.prepared_markdown import PreparedConversationMarkdown
 from toad.widgets.session_tabs import SessionLabel
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.transcript_history import TranscriptFragmentView
@@ -172,7 +169,8 @@ async def click_tab(app, pilot, session_id):
     await until(pilot, lambda: app.selected_session.id == session_id)
 
 
-async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
+async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests,
+                     *, warm_only=False):
     first = app.selected_session
     await until(pilot, lambda: "NATIVE_RESPONSE_2" in conversation_paint(app.screen))
     assert "SAVED_READER_1" in conversation_paint(app.screen)
@@ -208,6 +206,8 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     print("SAME_CHANNEL_FROM_SECOND_AGENT_REUSES_ONE_EXISTING_TAB", flush=True)
     await click_tab(app, pilot, gamma.id)
     await clicked_reader_editor_return(app, pilot, first)
+    if warm_only:
+        return
     await adaptive_reader_journey(app, pilot, requests)
     await fork_and_first_input(app, pilot, comms, first, entered, release, hold_next, requests)
     await channel_reply_feedback(app, pilot, comms, channel, first, entered, release,
@@ -324,114 +324,49 @@ async def unopened_participant(app, pilot, comms, channel, entered, release, hol
     return gamma
 
 
-@dataclass
-class ReaderCheckpoint:
-    source: object
-    document: object
-    history: object
-    reader_y: float
-    painted: str
-    rendered_bodies: tuple[ReferenceType[MarkdownBlock], ...]
-    rendered_content: tuple[object, ...]
-
-    @staticmethod
-    def record_failed_reader(source, app):
-        view = source.conversation
-        evidence = Path(os.environ["L0A_EVIDENCE"])
-        diagnostic = {
-            "source": source.id,
-            "native_session": view.agent.session_id,
-            "reader_region": str(view.window.region),
-            "reader_virtual_size": str(view.window.virtual_size),
-            "scroll_y": view.window.scroll_y,
-            "max_scroll_y": view.window.max_scroll_y,
-            "markdown": [{
-                "region": str(body.region), "virtual_size": str(body.virtual_size),
-                "display": body.display, "ready": body.body_ready,
-                "children": len(body.children), "parent": type(body.parent).__name__,
-            } for body in view.query(PreparedConversationMarkdown)],
-        }
-        (evidence / "body-return-geometry.json").write_text(json.dumps(diagnostic, indent=2))
-        (evidence / "body-return-reader.txt").write_text(conversation_paint(app.screen))
-        (evidence / "body-return.svg").write_text(app.export_screenshot())
-        print("BODY_RETURN_GEOMETRY_FAILURE", diagnostic, flush=True)
-
-    @classmethod
-    async def capture(cls, source, app, pilot):
-        view = source.conversation
-        await settled(pilot, view)
-        try:
-            await until(pilot, lambda: view.window.max_scroll_y > 0)
-        except TimeoutError:
-            cls.record_failed_reader(source, app)
-            raise
-        view.window.release_anchor()
-        view.window.scroll_to(y=min(5, view.window.max_scroll_y - 1),
-                              animate=False, immediate=True)
-        await settled(pilot, view)
-        assert view.window.follows_tail is False
-        editor = view.prompt.prompt_text_area
-        editor.insert("draft-" + source.id)
-        editor.history.checkpoint()
-        editor.insert(" with undo")
-        region = view.window.scrollable_content_region
-        bodies = tuple(block for markdown in view.query(PreparedConversationMarkdown)
-                       for block in markdown.query(MarkdownBlock)
-                       if block in app.screen._compositor.visible_widgets
-                       if block.region.overlaps(region))
-        assert len(bodies) > 0, "Checkpoint needs actually rendered native Markdown bodies"
-        return cls(source, editor.document, editor.history, view.window.scroll_y,
-                   conversation_paint(app.screen), tuple(ref(block) for block in bodies),
-                   tuple(block._render_cache for block in bodies))
-
-    async def verify(self, app, pilot):
-        view = self.source.conversation
-        await settled(pilot, view)
-        editor = view.prompt.prompt_text_area
-        assert editor.document is self.document
-        assert editor.history is self.history
-        assert editor.text == "draft-" + self.source.id + " with undo"
-        assert view.window.scroll_y == self.reader_y
-        assert conversation_paint(app.screen) == self.painted
-        current_bodies = {block for block in view.query(MarkdownBlock)
-                          if block in app.screen._compositor.visible_widgets}
-        for body, rendered in zip(self.rendered_bodies, self.rendered_content):
-            assert body() in current_bodies, (
-                "Native tab return replaced a previously rendered Markdown body",
-                self.source.id, body(),
-            )
-            assert body()._render_cache is rendered, (
-                "Warm return rendered an unchanged Markdown body again",
-                self.source.id, body(), rendered.size, body()._render_cache.size,
-            )
-        print("CLICKED_RETURN_ACTUAL_RENDERED_BODY_IDENTITY", self.source.id,
-              len(self.rendered_bodies), flush=True)
-
-
 async def clicked_reader_editor_return(app, pilot, first):
     second = app.selected_session
     checkpoints = []
-    for source in (first, second):
-        await click_tab(app, pilot, source.id)
-        checkpoints.append(await ReaderCheckpoint.capture(source, app, pilot))
-    raw_reads = []
-    for checkpoint in (*checkpoints, checkpoints[0]):
-        agent = checkpoint.source.presentation.sources.agent
-        async with agent.controller.transcripts.bind(agent.coordination.wire_root) as reader:
-            before = reader.transcripts.page_reads
-        await click_tab(app, pilot, checkpoint.source.id)
-        await checkpoint.verify(app, pilot)
-        async with agent.controller.transcripts.bind(agent.coordination.wire_root) as reader:
-            raw_reads.append(reader.transcripts.page_reads - before)
-    assert raw_reads == [0, 0, 0], ("Already-loaded source repeated raw page reads", raw_reads)
-    print("CLICKED_ABA_CANONICAL_RAW_PAGE_READ_COUNTS", raw_reads, flush=True)
-    for checkpoint in checkpoints:
-        await click_tab(app, pilot, checkpoint.source.id)
-        editor = checkpoint.source.conversation.prompt.prompt_text_area
-        editor.undo()
-        assert editor.text == "draft-" + checkpoint.source.id
-    await click_tab(app, pilot, first.id)
-    print("CLICKED_ABA_SAVED_READER_DOCUMENT_HISTORY_DRAFT_UNDO_PRESERVED", flush=True)
+    try:
+        for source in (first, second):
+            await click_tab(app, pilot, source.id)
+            view = source.conversation
+            await settled(pilot, view)
+            try:
+                await until(pilot, lambda: view.window.max_scroll_y > 0)
+            except TimeoutError:
+                ReaderCheckpoint.record_failed_reader(source, app)
+                raise
+            view.window.release_anchor()
+            view.window.scroll_to(y=min(5, view.window.max_scroll_y - 1),
+                                  animate=False, immediate=True)
+            await settled(pilot, view)
+            assert view.window.follows_tail is False
+            editor = view.prompt.prompt_text_area
+            editor.insert("draft-" + source.id)
+            editor.history.checkpoint()
+            editor.insert(" with undo")
+            checkpoints.append(await ReaderCheckpoint.capture(source, app, pilot))
+        raw_reads = []
+        for checkpoint in (*checkpoints, checkpoints[0]):
+            before = await checkpoint.page_reads()
+            await click_tab(app, pilot, checkpoint.source.id)
+            await checkpoint.verify(app, pilot)
+            raw_reads.append(await checkpoint.page_reads() - before)
+        assert raw_reads == [0, 0, 0], ("Already-loaded source repeated raw page reads", raw_reads)
+        print("CLICKED_ABA_CANONICAL_RAW_PAGE_READ_COUNTS", raw_reads, flush=True)
+        for checkpoint in checkpoints:
+            await click_tab(app, pilot, checkpoint.source.id)
+            editor = checkpoint.source.conversation.prompt.prompt_text_area
+            editor.undo()
+            assert editor.text == "draft-" + checkpoint.source.id
+        await click_tab(app, pilot, first.id)
+        print("CLICKED_ABA_SAVED_READER_DOCUMENT_HISTORY_DRAFT_UNDO_PRESERVED", flush=True)
+
+    finally:
+        # Keep genuine identity witnesses through final warm/Undo assertions.
+        # Function exit releases loop-local witnesses before the next journey.
+        checkpoints.clear()
 
 
 async def adaptive_reader_journey(app, pilot, requests):
@@ -637,7 +572,15 @@ async def channel_reply_feedback(app, pilot, comms, channel, first, entered, rel
 
 
 if __name__ == "__main__":
+    import argparse
+    from functools import partial
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--warm-only", action="store_true",
+                        help="Stop after the original saved warm A/B/A and Undo checks")
+    args = parser.parse_args()
     asyncio.run(native_fixture(
-        app_type=StreamJourneyApp, prepare_state=prepare_saved_state, acceptance=acceptance,
+        app_type=StreamJourneyApp, prepare_state=prepare_saved_state,
+        acceptance=partial(acceptance, warm_only=args.warm_only),
         provider_reply=streamed_reply, provider_chunk_characters=40,
     ))

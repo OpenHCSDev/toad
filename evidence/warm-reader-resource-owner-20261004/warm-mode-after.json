@@ -1,0 +1,25 @@
+{
+  "tool": "original refactor-audit Package",
+  "head": "7e9ed795554ce8cb873d5ebea0d088da6419f8ae",
+  "packages": [
+    {
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "modules": 395,
+      "omissions": []
+    },
+    {
+      "root": "tools",
+      "modules": 41,
+      "omissions": []
+    }
+  ],
+  "unchanged_dependency_context": "configured-continuous-before.json: published Core source324/frozen native59 249 zero omissions; no dependency/native source changed. This is source context, not installed347 asset proof.",
+  "closure": "Existing saved-state __main__ routes original acceptance to completed warm+Undo; false retains full original journey. Original configured owner carries its already-acquired evidence path through environment replacement, preserving original ReaderCheckpoint failure diagnostics. No new harness, provider, snapshot or rendering owner.",
+  "preserved_assertions": "saved65, mixed22, readonly25, checkpoint31, original fixture29 assertion ASTs equal historical9a75; mixed/readonly/checkpoint file bytes unchanged.",
+  "dynamic_limits": "External dynamic aliases not proven by lexical AST; runtime remains unqualified."
+}

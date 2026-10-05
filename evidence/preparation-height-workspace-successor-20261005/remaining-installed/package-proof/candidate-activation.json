@@ -1,0 +1,25 @@
+{
+  "stage": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "pins": {
+    "agent_comms": "7b68d630caa654d3e9884f45cbd6493718752a0c",
+    "toad": "2832435d2cfecf410cfa2bddf017a9f0e57967e7",
+    "textual": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78"
+  },
+  "sdk": "0.12.1",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+  "state": "HELD457 remaining private485 remainingissued3b472; all Apps unrun",
+  "staging_receipt": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-remaining-integer-cell-App-20261005/package-proof/source-proof.json",
+  "bins": {
+    "python": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+    "toad": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/toad",
+    "agent-comms": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/agent-comms-agent",
+    "pi-comms-native": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/pi-comms-native"
+  },
+  "native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+  "native_manifest": "7a2e4aabdbc5af49dd9af942190d92086df2eb3489903674a74af51cf831cd33",
+  "native_tree": "0d7ff54a04d4f0ff175fc889e936ca3cea8b1f98eb8b73ed6215c3373cbd984d",
+  "native_configuration_note": "Actual NONLIVE485 unused421 floor archiveea89:1441 members,69 original origins,frozen155/PREFIXactivation plus1883 other66 files/NRA d392. Candidate Core675/Toad283243 Text67 genuinely replaces original616/420/51; currentcontrol0758/source40477 byte-equal retained1c43; no rebuild. Native7a READ proof only; all Apps held. Whole actual issued floor restoration required; no public style22 change."
+}

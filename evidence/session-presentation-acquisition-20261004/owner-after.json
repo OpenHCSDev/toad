@@ -1,0 +1,55 @@
+{
+  "source": "f34ff1644ffcc957e8d694c61be1b1133455fa97",
+  "modules": 288,
+  "parse_omissions": [],
+  "changed_production_files": [
+    "src/toad/session_presentation.py",
+    "src/toad/directory_watcher.py"
+  ],
+  "NativeSurface_foreign_state_or_sources_attributes": [],
+  "acquisition_calls": [
+    {
+      "line": 179,
+      "expression": "self.sources.wire(conversation)"
+    },
+    {
+      "line": 193,
+      "expression": "conversation.prompt.focus()"
+    },
+    {
+      "line": 174,
+      "expression": "screen.query_one(SessionSurfaceSlot)"
+    },
+    {
+      "line": 176,
+      "expression": "isinstance(content, Widget)"
+    },
+    {
+      "line": 177,
+      "expression": "screen._make_conversation()"
+    },
+    {
+      "line": 185,
+      "expression": "self.attach_binding(conversation)"
+    },
+    {
+      "line": 187,
+      "expression": "self.state.restore(conversation)"
+    },
+    {
+      "line": 189,
+      "expression": "conversation.prepare_retained_session()"
+    },
+    {
+      "line": 192,
+      "expression": "conversation.start_native_session()"
+    },
+    {
+      "line": 183,
+      "expression": "content.mount(conversation, before=slot)"
+    }
+  ],
+  "qualified446_controls_tools_pins_delta": [],
+  "runtime_qualification": false,
+  "limitations": "Lexical/source evidence, no dynamic-alias or runtime proof; affected tests and installed remount/source lifetime remain."
+}

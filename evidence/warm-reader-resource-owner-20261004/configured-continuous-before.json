@@ -1,0 +1,846 @@
+{
+  "tool": "original refactor-audit Package",
+  "head": "9a75f8bcee4ecaf1161c05fb18d4acfb8798eaad",
+  "packages": [
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "9a75f8bcee4ecaf1161c05fb18d4acfb8798eaad",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": [],
+      "sites": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "9a75f8bcee4ecaf1161c05fb18d4acfb8798eaad",
+      "root": "tests",
+      "modules": 395,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "tests/agent_selection_configured_installed_pilot.py",
+          "line": 67,
+          "node": "Name",
+          "subject": "ForkSessionHelper"
+        },
+        {
+          "path": "tests/backend_failure_feedback_installed_journey.py",
+          "line": 27,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/backend_failure_feedback_installed_journey.py",
+          "line": 27,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+          "line": 143,
+          "node": "Name",
+          "subject": "ForkSessionHelper"
+        },
+        {
+          "path": "tests/cold_context_installed_physical.py",
+          "line": 308,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/cold_context_installed_physical.py",
+          "line": 308,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/cold_context_installed_physical.py",
+          "line": 380,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/cold_context_installed_physical.py",
+          "line": 502,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/cold_context_installed_physical.py",
+          "line": 532,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/cold_context_installed_physical.py",
+          "line": 534,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/cold_context_installed_physical.py",
+          "line": 380,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/cold_context_installed_physical.py",
+          "line": 502,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/cold_context_installed_physical.py",
+          "line": 533,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/cold_context_installed_physical.py",
+          "line": 535,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+          "line": 267,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+          "line": 267,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+          "line": 194,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+          "line": 194,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/context_compaction_native_installed_pilot.py",
+          "line": 170,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/context_compaction_native_installed_pilot.py",
+          "line": 170,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/f4_declared_family_installed_pilot.py",
+          "line": 52,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/f4_declared_family_installed_pilot.py",
+          "line": 52,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/f4_declared_family_installed_pilot.py",
+          "line": 158,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/f4_declared_family_installed_pilot.py",
+          "line": 158,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/goal_pause_owner_pilot.py",
+          "line": 73,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/goal_pause_owner_pilot.py",
+          "line": 55,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/goal_pause_owner_pilot.py",
+          "line": 73,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/goal_pause_owner_pilot.py",
+          "line": 55,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/input_visibility_native_installed_pilot.py",
+          "line": 222,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/input_visibility_native_installed_pilot.py",
+          "line": 222,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/input_visibility_native_installed_pilot.py",
+          "line": 157,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/input_visibility_native_installed_pilot.py",
+          "line": 157,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/l0a_native_installed_pilot.py",
+          "line": 444,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/l0a_native_installed_pilot.py",
+          "line": 444,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 147,
+          "node": "Name",
+          "subject": "ReaderCheckpoint"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 35,
+          "node": "ClassDef",
+          "subject": "ResourceJourneyApp"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 56,
+          "node": "FunctionDef",
+          "subject": "disposition_rows"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 81,
+          "node": "Name",
+          "subject": "ResourceJourneyApp"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 63,
+          "node": "Name",
+          "subject": "disposition_rows"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 186,
+          "node": "Name",
+          "subject": "readonly_capture"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 326,
+          "node": "Name",
+          "subject": "readonly_capture"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 105,
+          "node": "Name",
+          "subject": "ForkSessionHelper"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 172,
+          "node": "Name",
+          "subject": "disposition_rows"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 188,
+          "node": "Name",
+          "subject": "readonly_acceptance"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 57,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 212,
+          "node": "Name",
+          "subject": "readonly_capture"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 226,
+          "node": "Name",
+          "subject": "readonly_acceptance"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 192,
+          "node": "Name",
+          "subject": "ForkSessionHelper"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 227,
+          "node": "Name",
+          "subject": "readonly_acceptance"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 307,
+          "node": "Name",
+          "subject": "disposition_rows"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 57,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 181,
+          "node": "Name",
+          "subject": "disposition_rows"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 315,
+          "node": "Name",
+          "subject": "disposition_rows"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 308,
+          "node": "Name",
+          "subject": "disposition_rows"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 176,
+          "node": "Name",
+          "subject": "disposition_rows"
+        },
+        {
+          "path": "tests/post_cancel_session_installed_journey.py",
+          "line": 44,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/post_cancel_session_installed_journey.py",
+          "line": 60,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/post_cancel_session_installed_journey.py",
+          "line": 71,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/post_cancel_session_installed_journey.py",
+          "line": 82,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/post_cancel_session_installed_journey.py",
+          "line": 45,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/post_cancel_session_installed_journey.py",
+          "line": 44,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/post_cancel_session_installed_journey.py",
+          "line": 60,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/post_cancel_session_installed_journey.py",
+          "line": 71,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/post_cancel_session_installed_journey.py",
+          "line": 82,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/post_cancel_session_installed_journey.py",
+          "line": 45,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 332,
+          "node": "Name",
+          "subject": "ReaderCheckpoint"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 243,
+          "node": "Name",
+          "subject": "ReaderCheckpoint"
+        },
+        {
+          "path": "tests/retained_input_origin_native_pilot.py",
+          "line": 40,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/retained_input_origin_native_pilot.py",
+          "line": 40,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/retained_input_origin_native_pilot.py",
+          "line": 62,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/retained_input_origin_observer.py",
+          "line": 52,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/retained_input_origin_observer.py",
+          "line": 68,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/retained_input_origin_observer.py",
+          "line": 52,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/retained_input_origin_observer.py",
+          "line": 68,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/retained_input_origin_observer.py",
+          "line": 105,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 446,
+          "node": "AsyncFunctionDef",
+          "subject": "fork_and_first_input"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 209,
+          "node": "Name",
+          "subject": "fork_and_first_input"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 192,
+          "node": "Name",
+          "subject": "ReaderCheckpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 335,
+          "node": "Name",
+          "subject": "ReaderCheckpoint"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 346,
+          "node": "Name",
+          "subject": "ReaderCheckpoint"
+        },
+        {
+          "path": "tests/sidebar_custody_installed_journey.py",
+          "line": 74,
+          "node": "Name",
+          "subject": "fork_and_first_input"
+        },
+        {
+          "path": "tests/submission_native_installed_pilot.py",
+          "line": 110,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/submission_native_installed_pilot.py",
+          "line": 110,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "tests/thread_spawn_bind_owner_installed_pilot.py",
+          "line": 13,
+          "node": "Name",
+          "subject": "fork_and_first_input"
+        },
+        {
+          "path": "tests/viewport_recent_tabs_pilot.py",
+          "line": 56,
+          "node": "ClassDef",
+          "subject": "ReaderCheckpoint"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "9a75f8bcee4ecaf1161c05fb18d4acfb8798eaad",
+      "root": "tools",
+      "modules": 41,
+      "omissions": [],
+      "sites": []
+    },
+    {
+      "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+      "head": "b30b4d5f8523afe18a84c96f434c31bfd410702c",
+      "root": "src/agent_comms",
+      "modules": 324,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "src/agent_comms/channel_input_batch.py",
+          "line": 54,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/cli_commands.py",
+          "line": 658,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/cli_commands.py",
+          "line": 542,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/cli_commands.py",
+          "line": 658,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/cli_commands.py",
+          "line": 542,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/compaction_boundary.py",
+          "line": 32,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/compaction_private_inputs.py",
+          "line": 56,
+          "node": "Name",
+          "subject": "ForkSessionHelper"
+        },
+        {
+          "path": "src/agent_comms/compaction_private_inputs.py",
+          "line": 213,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/compaction_private_inputs.py",
+          "line": 214,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/compaction_summaries.py",
+          "line": 162,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/compaction_summaries.py",
+          "line": 101,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/compaction_summaries.py",
+          "line": 163,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/compaction_summaries.py",
+          "line": 102,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/goal_actions.py",
+          "line": 254,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/goal_actions.py",
+          "line": 254,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/goal_management.py",
+          "line": 115,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/goal_management.py",
+          "line": 131,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/goal_management.py",
+          "line": 84,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/goal_management.py",
+          "line": 115,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/goal_management.py",
+          "line": 48,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/goal_management.py",
+          "line": 68,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/goal_management.py",
+          "line": 84,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/goal_management.py",
+          "line": 48,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/goal_management.py",
+          "line": 68,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/input_disposition.py",
+          "line": 226,
+          "node": "ClassDef",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/input_drain.py",
+          "line": 86,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/input_drain.py",
+          "line": 86,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/input_origin.py",
+          "line": 55,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/input_origin.py",
+          "line": 55,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/native_fork.py",
+          "line": 21,
+          "node": "ClassDef",
+          "subject": "ForkSessionHelper"
+        },
+        {
+          "path": "src/agent_comms/owner_compaction_commit.py",
+          "line": 52,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/owner_compaction_commit.py",
+          "line": 52,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/selected_summary_admission.py",
+          "line": 126,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/task_sources.py",
+          "line": 559,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/task_sources.py",
+          "line": 559,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/thread_management.py",
+          "line": 569,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/thread_management.py",
+          "line": 569,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/transcript_routes.py",
+          "line": 230,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/transcript_routes.py",
+          "line": 230,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/transcripts.py",
+          "line": 514,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/transcripts.py",
+          "line": 514,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/turn_input_binding.py",
+          "line": 26,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/turn_input_source.py",
+          "line": 47,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/turn_input_source.py",
+          "line": 132,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/turn_input_source.py",
+          "line": 150,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/turn_input_source.py",
+          "line": 207,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/wire_log.py",
+          "line": 192,
+          "node": "Name",
+          "subject": "InputDispositions"
+        },
+        {
+          "path": "src/agent_comms/wire_log.py",
+          "line": 192,
+          "node": "Name",
+          "subject": "InputDispositions"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "1bdc18c363cbc0f938537a71aa8ba0225d03e25e",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": [],
+      "sites": []
+    }
+  ]
+}
