@@ -1,8 +1,9 @@
 """Bounded OS custody check, separate from the real installed UI acceptance.
 
 Run with the paired installed Python and VIDEO_TERMINAL_PROBE_OUTPUT pointing
-to a fresh named agent-scratch directory. AGENT_COMMS_ROOT selects an existing
-private or archived Registration for the profiler's owner exclusion. No capture,
+to a fresh named agent-scratch directory. TOAD_VIDEO_CAPTURE_TARGET and its
+original route operands select the declared existing private capture fixture.
+No capture,
 app state replacement or owner bus operations.
 """
 import importlib.util
@@ -47,29 +48,46 @@ def main():
         env = os.environ.copy()
         env['DISPLAY'] = f':{number}'
         result['display'] = env['DISPLAY']
-        terminal = owner.start(['st', '-e', sys.executable, '-c', 'import time; time.sleep(30)'], env=env)
-        program = recorder.terminal_program(owner, terminal.child.identity, time.monotonic() + 5)
+        recorder.CaptureTarget.decode(env['TOAD_VIDEO_CAPTURE_TARGET']).read_route(env)
+        abrupt = output / 'abrupt-terminal'
+        abrupt.mkdir()
+        env['TOAD_VIDEO_OUTPUT'] = str(abrupt)
+        launcher, terminal, program = owner.start_terminal(
+            [sys.executable, '-c', 'import time; time.sleep(30)'], env=env)
         assert os.getsid(program.child.identity.pid) == program.child.identity.pid
         terminal.stop(signal.SIGKILL)
         program.stop()
         assert not program.child.identity.alive()
-        result['cases']['abrupt_terminal_exit'] = 'separate program session cleaned'
+        result['cases']['abrupt_terminal_exit'] = program.receipt()
 
-        failed = owner.start(['st', '-e', '/usr/bin/sleep', '30'], env=env)
-        published = []
+        wrong = output / 'wrong-interpreter'
+        wrong.mkdir()
+        env['TOAD_VIDEO_OUTPUT'] = str(wrong)
+        failed_launcher = owner.start([sys.executable, str(source), '--terminal-launch',
+                                       '/usr/bin/sleep', '30'], env=env)
+        terminal_source = wrong / 'terminal-launch.json'
+        deadline = time.monotonic() + 5
+        while not terminal_source.exists() and failed_launcher.child.identity.alive() and time.monotonic() < deadline:
+            time.sleep(.05)
+        failed = owner.transfer_terminal(failed_launcher.child.identity, terminal_source)
         try:
             recorder.terminal_program(owner, failed.child.identity, time.monotonic() + .5,
-                                      published.append)
+                                      wrong / 'program-launch.json')
             raise AssertionError('Wrong interpreter unexpectedly accepted')
         except RuntimeError:
             pass
-        assert len(published) == 1
-        result['cases']['runtime_verification_failure'] = 'custody acquired before failed verification'
+        wrong_program = owner.transfer_program(failed.child.identity, wrong / 'program-launch.json')
+        assert wrong_program.child.identity.alive()
+        wrong_program.stop()
+        failed.stop()
+        result['cases']['runtime_verification_failure'] = wrong_program.receipt()
 
         profile = output / 'profiler-handoff'
         profile.mkdir()
         env.update(TOAD_VIDEO_OUTPUT=str(profile), TOAD_VIDEO_PROFILE_RATE='10',
-                   TOAD_VIDEO_PROFILE_DURATION='5')
+                   TOAD_VIDEO_PROFILE_DURATION='5',
+                   TOAD_VIDEO_PROFILE_SAMPLING=recorder.ConsistentSampling.declared_name,
+                   TOAD_VIDEO_PROFILE_THREADS=recorder.AllThreadSampling.declared_name)
         with (profile / 'log').open('w') as log:
             wrapper = owner.start([sys.executable, str(source), '--profile-launch',
                                    sys.executable, '-c', 'import time; time.sleep(30)'],
@@ -78,11 +96,14 @@ def main():
             while not (profile / 'profile-launch.json').exists() and time.monotonic() < deadline:
                 assert wrapper.process.poll() is None
                 time.sleep(.05)
-            lease = json.loads((profile / 'profile-terminal.json').read_text())
-            owner.transfer(lease['pid'], lease['start_ticks'])
-            owner.transfer(lease['program']['pid'], lease['program']['start_ticks'])
+            lease = json.loads((profile / 'terminal-launch.json').read_text())
+            launcher = owner.transfer(lease['launcher']['pid'], lease['launcher']['start_ticks'])
+            terminal = owner.transfer_terminal(launcher.child.identity, profile / 'terminal-launch.json')
+            program = owner.transfer_program(terminal.child.identity, profile / 'program-launch.json')
             wrapper.stop(signal.SIGKILL)
-        result['cases']['profiler_abrupt_exit'] = 'exact terminal and program leases recovered'
+            program.stop()
+            terminal.stop()
+        result['cases']['profiler_abrupt_exit'] = program.receipt()
     finally:
         result['cleanup'] = owner.cleanup()
         result['still_live'] = [p.child.identity.pid for p in owner.children if p.child.identity.alive()]

@@ -280,14 +280,28 @@ Cleanup uses installed `agent_comms.child_process` **ParentedProcess** custody,
 **Platform** process groups and identity-bound pidfd signaling. It never adopts
 arbitrary descendants or detached service sessions. The real **Registration** snapshot
 also excludes durable comms owners by their declared process identities. The
-terminal's one direct `-e` program starts a separate session: its exact launch
-identity is transferred to **ObservedProcess** and its executable is verified
-against the selected interpreter. Failed verification still cleans that launch.
-The profiler wrapper publishes its st identity before Core releases the exec
-gate, then atomically publishes the program identity in `profile-terminal.json`.
-The parent recovers both on timeout or profiler failure. Transferred custody
-cannot claim a parent's reap result. `ui_identity` and `terminal_processes` include
-the verified UI session and its group. Background service lifetimes remain
+terminal parent retains its real **st** child and publishes its acquired identity
+and actual wait result in `terminal-launch.json`. st's direct `-e` program is
+the UI parent: it relinquishes its controlling PTY, then the existing Core
+**ControllingTerminalCommand** acquires that inherited PTY for the new UI session.
+That parent retains the real UI child and publishes `program-launch.json`.
+Both publications precede the child's exec-gate release and finish only after
+original child cleanup. The reader verifies the st/parent/UI relation and the
+selected interpreter after the gate and PTY command have exec'd away.
+Failed verification still cleans the acquired resource through its original parent.
+
+Ordinary and profiled captures use the same terminal-parent producer. The
+profiler wrapper execs py-spy while remaining an ancestor of that retained
+parent, st and the UI. This preserves ptrace ancestry without losing st's real
+wait owner. Partial launch and profiler failure recover both original publications.
+Transferred observation supplies identity and stop custody; the published
+**ParentedProcess** result supplies the exit outcome. `ui_exit` and `terminal_exit`
+keep those results separate from cleanup signals and the delivered quit request.
+Forced retirement, missing child result and nonzero UI or st exits fail both modes;
+PTY EIO alone does not identify an application exception. `terminal_stderr` hashes
+the original st log, including a legitimately empty log. `ui_identity` and
+`terminal_processes` include the verified UI session and its group.
+Background service lifetimes remain
 with their existing owners. No command-name heuristics or copied PID registry
 establish stop authority.
 
@@ -301,8 +315,10 @@ then uses its own lifecycle teardown. No production owner is restarted.
 
 The owned acceptance probes in `evidence/installed-tui-video` extend the existing
 native fixture; their multiprocessing entry guards are required. The separate
-terminal custody probe covers abrupt terminal/profiler exit and failed runtime
-verification. Its sleeping OS programs establish cleanup only; real UI acceptance
+terminal custody probe follows this same producer for abrupt terminal/profiler
+exit and failed runtime verification. Its earlier retained results qualify the
+earlier source only; the changed producer requires a new explicitly granted run.
+Its sleeping OS programs establish cleanup only; real UI acceptance
 comes from the private installed journey. After a host/server interruption, inspect
 saved identities and input dispositions before any new action. A resume check must
 attach the original surviving owners and send a uniquely new loopback input only
