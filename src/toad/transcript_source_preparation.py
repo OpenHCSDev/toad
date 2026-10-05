@@ -239,7 +239,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         """Borrow current custody from the original native worker manager."""
         return (worker for worker in self.workers
                 if worker.node is self and worker.group == self.LOOKAHEAD_GROUP
-                and not worker.is_finished)
+                and worker.is_running)
 
     async def prepare_lookahead(self, intent) -> None:
         """The prepared source leaf supplies its bounded page/body work."""

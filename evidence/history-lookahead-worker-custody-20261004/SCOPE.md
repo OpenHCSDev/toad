@@ -52,3 +52,10 @@ Initial source audit preserved in SOURCE-CHECKPOINT-01.json: moving the nullable
 worker check added one ForeignAbsenceProbe to the shared file. The complete
 worker-manager migration removes the pointer rather than offsetting that
 negative against a deletion in another file.
+
+Native Worker._start sets RUNNING synchronously before scheduling work. This
+source always starts workers immediately. Worker.is_running therefore owns
+active group membership, including the admitted task before its first await;
+finished/cancelled entries awaiting manager callback are not current waiters.
+The original property supplies that fact. The intermediate negative probe
+against is_finished is preserved in WORKER-MEMBERSHIP-NEGATIVE.json.
