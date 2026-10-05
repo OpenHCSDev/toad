@@ -1,0 +1,28 @@
+{
+  "coverage": [
+    {
+      "root": "src/toad",
+      "revision": "b072f4a2e6d899f1a8e5b57086ad3cbed189fdf9",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "revision": "b072f4a2e6d899f1a8e5b57086ad3cbed189fdf9",
+      "parsed": 399,
+      "omissions": []
+    },
+    {
+      "root": "tools",
+      "revision": "b072f4a2e6d899f1a8e5b57086ad3cbed189fdf9",
+      "parsed": 41,
+      "omissions": []
+    }
+  ],
+  "dependencies": "Unchanged original before context Core7b68/Texta2dd; 324/249 zero omissions",
+  "wheel_source_build": "8981fde1e308393941cd7a31b0f65ec57cc3e3f5",
+  "src_pyproject_uv_delta": "ZERO",
+  "compiled": "SOURCE-CHECKS.json",
+  "retired": "SessionView.layout_navigation/on_transcript_snapshot/new_session_screen, first-frame override, cold retention flags, Textual decorated registry mutation/startup dispatch pseudo-witness, inferred native-forks/sessions layout",
+  "qualified_runtime": "UNRUN"
+}

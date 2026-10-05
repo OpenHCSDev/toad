@@ -1,0 +1,697 @@
+{
+  "coverage": [
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "61625f5598cd0c6ee7ed631cd7d0a20a99751640",
+      "root": "src/toad",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "61625f5598cd0c6ee7ed631cd7d0a20a99751640",
+      "root": "tests",
+      "parsed": 399,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "61625f5598cd0c6ee7ed631cd7d0a20a99751640",
+      "root": "tools",
+      "parsed": 41,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "revision": "7b68d630caa654d3e9884f45cbd6493718752a0c",
+      "root": "src/agent_comms",
+      "parsed": 324,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "revision": "a2dd8a9a37825a828df0d8f651ca57d92db69e5f",
+      "root": "src/textual",
+      "parsed": 249,
+      "omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/app.py",
+      "line": 482,
+      "kind": "Attribute",
+      "name": "prepare_navigation",
+      "source": "self.workspace_screen.prepare_navigation"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/app.py",
+      "line": 483,
+      "kind": "Attribute",
+      "name": "layout_navigation",
+      "source": "self.workspace_screen.layout_navigation"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/comms.py",
+      "line": 212,
+      "kind": "Attribute",
+      "name": "prepare_navigation",
+      "source": "self.screen.prepare_navigation"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/comms.py",
+      "line": 213,
+      "kind": "Attribute",
+      "name": "layout_navigation",
+      "source": "self.screen.layout_navigation"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/session_view.py",
+      "line": 50,
+      "kind": "AsyncFunctionDef",
+      "name": "prepare_navigation",
+      "source": "async def prepare_navigation(self) -> bool:\n    \"\"\"Reconcile only this logical source's sidebar navigation and observers.\"\"\"\n    from toad.widgets.side_bar import SideBar, SideBarCollapsible\n    changed = False\n    for sidebar in self.query"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/workspace.py",
+      "line": 180,
+      "kind": "FunctionDef",
+      "name": "_refresh_layout",
+      "source": "def _refresh_layout(self, size: Size | None=None, scroll: bool=False) -> None:\n    from toad.widgets.history_anchor import WindowRestoration\n    tracked = tuple(self.viewport_presentation.anchors)\n    anchors = [(window, position) for windo"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/workspace.py",
+      "line": 247,
+      "kind": "AsyncFunctionDef",
+      "name": "prepare_navigation",
+      "source": "async def prepare_navigation(self) -> None:\n    from toad.widgets.session_tabs import SessionsTabs\n    self.frame_presentation.begin()\n    changed = await self.app.selected_session.prepare_navigation()\n    changed |= self.app.workspace_chro"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/workspace.py",
+      "line": 259,
+      "kind": "AsyncFunctionDef",
+      "name": "layout_navigation",
+      "source": "async def layout_navigation(self) -> None:\n    \"\"\"Measure the selected source and restore its own sidebar position.\"\"\"\n    roster = self.app.workspace_chrome.channels.roster\n    if self._navigation_layout.reusable(self, self.app.size):\n    "
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/workspace.py",
+      "line": 252,
+      "kind": "Attribute",
+      "name": "prepare_navigation",
+      "source": "self.app.workspace_chrome.prepare_navigation"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/workspace.py",
+      "line": 266,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "self._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/workspace.py",
+      "line": 220,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "self._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/workspace.py",
+      "line": 251,
+      "kind": "Attribute",
+      "name": "prepare_navigation",
+      "source": "self.app.selected_session.prepare_navigation"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/workspace.py",
+      "line": 268,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "self._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/workspace.py",
+      "line": 198,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "super()._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/workspace.py",
+      "line": 205,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "super()._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/workspace.py",
+      "line": 264,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "self._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/screens/workspace.py",
+      "line": 210,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "super()._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/sidebar_navigation.py",
+      "line": 95,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "self.sidebar.screen._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/sidebar_navigation.py",
+      "line": 97,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "self.sidebar.screen._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/workspace_chrome.py",
+      "line": 39,
+      "kind": "FunctionDef",
+      "name": "prepare_navigation",
+      "source": "def prepare_navigation(self, screen) -> bool:\n    \"\"\"Restore the single shared Channels surface independently of tab-local panels.\"\"\"\n    changed = self.channels.restore_navigation()\n    self.channels.schedule_hydration()\n    roster = self."
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/activity_spinners_pilot.py",
+      "line": 92,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "app.screen._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/agent_selection_configured_installed_pilot.py",
+      "line": 67,
+      "kind": "Name",
+      "name": "ForkSessionHelper",
+      "source": "ForkSessionHelper"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/agent_selection_configured_installed_pilot.py",
+      "line": 68,
+      "kind": "Name",
+      "name": "ForkSessionRequest",
+      "source": "ForkSessionRequest"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/blank_presentation_pilot.py",
+      "line": 413,
+      "kind": "Name",
+      "name": "prepare_navigation",
+      "source": "prepare_navigation"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/blank_presentation_pilot.py",
+      "line": 413,
+      "kind": "Attribute",
+      "name": "prepare_navigation",
+      "source": "WorkspaceScreen.prepare_navigation"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/blank_presentation_pilot.py",
+      "line": 416,
+      "kind": "Name",
+      "name": "prepare_navigation",
+      "source": "prepare_navigation"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 143,
+      "kind": "Name",
+      "name": "ForkSessionHelper",
+      "source": "ForkSessionHelper"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 144,
+      "kind": "Name",
+      "name": "ForkSessionRequest",
+      "source": "ForkSessionRequest"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/guards/test_transcript_publication.py",
+      "line": 105,
+      "kind": "Attribute",
+      "name": "prepare_navigation",
+      "source": "app.screen.prepare_navigation"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/guards/test_transcript_publication.py",
+      "line": 106,
+      "kind": "Attribute",
+      "name": "layout_navigation",
+      "source": "app.screen.layout_navigation"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/original_turn_resource_real_installed_pilot.py",
+      "line": 105,
+      "kind": "Name",
+      "name": "ForkSessionHelper",
+      "source": "ForkSessionHelper"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/original_turn_resource_real_installed_pilot.py",
+      "line": 106,
+      "kind": "Name",
+      "name": "ForkSessionRequest",
+      "source": "ForkSessionRequest"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/original_turn_resource_real_installed_pilot.py",
+      "line": 330,
+      "kind": "Name",
+      "name": "retain_fixture_journals",
+      "source": "retain_fixture_journals"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/original_turn_resource_real_installed_pilot.py",
+      "line": 194,
+      "kind": "Name",
+      "name": "ForkSessionHelper",
+      "source": "ForkSessionHelper"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/original_turn_resource_real_installed_pilot.py",
+      "line": 195,
+      "kind": "Name",
+      "name": "ForkSessionRequest",
+      "source": "ForkSessionRequest"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/profile_hot_paths_pilot.py",
+      "line": 69,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "app.screen._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/relationship_poll_reflow_pilot.py",
+      "line": 70,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "screen._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/relationship_poll_reflow_pilot.py",
+      "line": 88,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "screen._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/relationship_poll_reflow_pilot.py",
+      "line": 98,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "screen._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 68,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "app.screen._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/retained_tool_text_pilot.py",
+      "line": 144,
+      "kind": "Attribute",
+      "name": "_compositor_refresh",
+      "source": "modal._compositor_refresh"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/runtime_fixture.py",
+      "line": 215,
+      "kind": "FunctionDef",
+      "name": "retain_fixture_journals",
+      "source": "def retain_fixture_journals(paths, *, stage: Path, evidence: Path, cold_mount: Path=Path('/run/media/ts/hdd')) -> dict:\n    \"\"\"Cold-retain exact owned SDK copies after terminal keeper publication.\n\n    This does not dispose source history o"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 104,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "SessionView._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 120,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "SessionView._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/sidebar_metadata_reflow_pilot.py",
+      "line": 49,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "screen._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/unread_paint_only_pilot.py",
+      "line": 61,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "screen._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/unread_paint_only_pilot.py",
+      "line": 82,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "screen._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/view_switch_latency.py",
+      "line": 128,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "SessionView._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/view_switch_latency.py",
+      "line": 135,
+      "kind": "Attribute",
+      "name": "layout_navigation",
+      "source": "SessionView.layout_navigation"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/viewport_body_lifetime_pilot.py",
+      "line": 91,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "app.screen._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/viewport_layout_reentry_pilot.py",
+      "line": 33,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "screen._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/viewport_layout_reentry_pilot.py",
+      "line": 47,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "screen._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tests/viewport_layout_reentry_pilot.py",
+      "line": 51,
+      "kind": "Attribute",
+      "name": "_compositor_refresh",
+      "source": "screen._compositor_refresh"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tools/performance/benchmark_spinner.py",
+      "line": 39,
+      "kind": "Attribute",
+      "name": "_compositor_refresh",
+      "source": "app.screen._compositor_refresh"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tools/performance/benchmark_spinner.py",
+      "line": 58,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "app.screen._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tools/performance/sidebar_validation_driver.py",
+      "line": 172,
+      "kind": "Attribute",
+      "name": "RETAIN_INACTIVE_PRESENTATION",
+      "source": "SessionView.RETAIN_INACTIVE_PRESENTATION"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tools/performance/sidebar_validation_driver.py",
+      "line": 174,
+      "kind": "Attribute",
+      "name": "RETAIN_INACTIVE_PAINT",
+      "source": "SessionView.RETAIN_INACTIVE_PAINT"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tools/performance/sidebar_validation_driver.py",
+      "line": 194,
+      "kind": "Attribute",
+      "name": "_first_frame_presented",
+      "source": "SessionView._first_frame_presented"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "tools/performance/sidebar_validation_driver.py",
+      "line": 733,
+      "kind": "Attribute",
+      "name": "RETAIN_INACTIVE_PRESENTATION",
+      "source": "screen.RETAIN_INACTIVE_PRESENTATION"
+    },
+    {
+      "repository": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "path": "src/agent_comms/compaction_private_inputs.py",
+      "line": 56,
+      "kind": "Name",
+      "name": "ForkSessionHelper",
+      "source": "ForkSessionHelper"
+    },
+    {
+      "repository": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "path": "src/agent_comms/compaction_records.py",
+      "line": 358,
+      "kind": "ClassDef",
+      "name": "NativeForkCreation",
+      "source": "@dataclass(frozen=True)\nclass NativeForkCreation(NativeSessionIdentity, SessionJournalHistory, TypedTable):\n    \"\"\"The SDK's returned creation, not an enrollment reconstructed from history.\n\n    One record owns the original source relations"
+    },
+    {
+      "repository": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "path": "src/agent_comms/native_entries.py",
+      "line": 357,
+      "kind": "Name",
+      "name": "NativeForkCreation",
+      "source": "NativeForkCreation"
+    },
+    {
+      "repository": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "path": "src/agent_comms/native_fork.py",
+      "line": 15,
+      "kind": "ClassDef",
+      "name": "ForkSessionRequest",
+      "source": "@dataclass(frozen=True)\nclass ForkSessionRequest(SessionHelperRequest):\n    cwd: str\n    directory: str | None = None\n    creation_kind: type[NativeForkCreation] = field(default=NativeForkCreation, kw_only=True)"
+    },
+    {
+      "repository": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "path": "src/agent_comms/native_fork.py",
+      "line": 21,
+      "kind": "ClassDef",
+      "name": "ForkSessionHelper",
+      "source": "class ForkSessionHelper(PiHelper):\n    script = Path(__file__).with_name('_pi_helpers') / 'fork_session.mjs'\n    request = ForkSessionRequest\n    result = NativeForkCreation"
+    },
+    {
+      "repository": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "path": "src/agent_comms/native_fork.py",
+      "line": 23,
+      "kind": "Name",
+      "name": "ForkSessionRequest",
+      "source": "ForkSessionRequest"
+    },
+    {
+      "repository": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "path": "src/agent_comms/native_fork.py",
+      "line": 24,
+      "kind": "Name",
+      "name": "NativeForkCreation",
+      "source": "NativeForkCreation"
+    },
+    {
+      "repository": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "path": "src/agent_comms/native_fork.py",
+      "line": 18,
+      "kind": "Name",
+      "name": "NativeForkCreation",
+      "source": "NativeForkCreation"
+    },
+    {
+      "repository": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "path": "src/agent_comms/native_fork.py",
+      "line": 18,
+      "kind": "Name",
+      "name": "NativeForkCreation",
+      "source": "NativeForkCreation"
+    },
+    {
+      "repository": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "path": "src/agent_comms/native_fork.py",
+      "line": 38,
+      "kind": "Name",
+      "name": "ForkSessionRequest",
+      "source": "ForkSessionRequest"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/app.py",
+      "line": 3851,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "self.screen._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/screen.py",
+      "line": 1207,
+      "kind": "FunctionDef",
+      "name": "_compositor_refresh",
+      "source": "def _compositor_refresh(self) -> None:\n    \"\"\"Perform a compositor refresh.\"\"\"\n    app = self.app\n    if app._batch_count:\n        return\n    background_screens = app._background_screens\n    screens = (*background_screens, self) if self is "
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/screen.py",
+      "line": 1357,
+      "kind": "FunctionDef",
+      "name": "_refresh_layout",
+      "source": "def _refresh_layout(self, size: Size | None=None, scroll: bool=False) -> None:\n    \"\"\"Refresh the layout (can change size and positions of widgets).\"\"\"\n    size = self.outer_size if size is None else size\n    if self.app.is_inline:\n        "
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/screen.py",
+      "line": 1592,
+      "kind": "Name",
+      "name": "RETAIN_INACTIVE_PAINT",
+      "source": "RETAIN_INACTIVE_PAINT"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/screen.py",
+      "line": 1597,
+      "kind": "Name",
+      "name": "RETAIN_INACTIVE_PRESENTATION",
+      "source": "RETAIN_INACTIVE_PRESENTATION"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/screen.py",
+      "line": 1587,
+      "kind": "Attribute",
+      "name": "RETAIN_INACTIVE_PRESENTATION",
+      "source": "self.RETAIN_INACTIVE_PRESENTATION"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/screen.py",
+      "line": 1434,
+      "kind": "Attribute",
+      "name": "_compositor_refresh",
+      "source": "self._compositor_refresh"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/screen.py",
+      "line": 1541,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "self._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/screen.py",
+      "line": 1589,
+      "kind": "Attribute",
+      "name": "RETAIN_INACTIVE_PAINT",
+      "source": "self.RETAIN_INACTIVE_PAINT"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/screen.py",
+      "line": 1272,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "self._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/screen.py",
+      "line": 1281,
+      "kind": "Attribute",
+      "name": "_compositor_refresh",
+      "source": "self._compositor_refresh"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/screen.py",
+      "line": 1560,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "self._refresh_layout"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/screen.py",
+      "line": 1275,
+      "kind": "Attribute",
+      "name": "_refresh_layout",
+      "source": "self._refresh_layout"
+    }
+  ]
+}
