@@ -1,0 +1,33 @@
+{
+  "argv": [
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+    "-B",
+    "-c",
+    "import runpy, sys\nsys.path.append('/home/ts/wt/toad-regression-widget-cost-20261001/tests')\nsys.argv = ['/home/ts/wt/toad-regression-widget-cost-20261001/tests/viewport_body_lifetime_pilot.py', '--worker-custody-only', '/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03']\nrunpy.run_path('/home/ts/wt/toad-regression-widget-cost-20261001/tests/viewport_body_lifetime_pilot.py', run_name=\"__main__\")\n"
+  ],
+  "cwd": "/home/ts/wt/toad-regression-widget-cost-20261001",
+  "environment": {
+    "unset": [
+      "PYTHONPATH",
+      "PYTHONHOME",
+      "VIRTUAL_ENV",
+      "AGENT_COMMS_THREAD",
+      "AGENT_COMMS_RUNTIME",
+      "PI_AGENT_ID",
+      "PI_PROMPT"
+    ],
+    "set": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "TOAD_TEST_ATTEMPT": "einstein466-worker-mounted03-20261005",
+      "TMPDIR": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/tmp",
+      "AGENT_COMMS_ROOT": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/bootstrap-wire"
+    }
+  },
+  "control_sha256": "a8e774b4a87ed97df7151e9e23176ca1dc8fec96cb51dde10703d1ce5e85d6a9",
+  "timeout": 90,
+  "python": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+  "controller": {
+    "pid": 1573863,
+    "start_time": 70920311
+  }
+}

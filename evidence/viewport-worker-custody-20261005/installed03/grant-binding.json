@@ -1,0 +1,8 @@
+{
+  "issued": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Einstein466-SessionView03-NoAgent-worker-mounted-package-App-issued-grant.json",
+  "issued_sha256": "3e2801cad7de40d742a1dcd47e469129c346f19ee391100a590d15c76bfe48dd",
+  "lifecycle": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Einstein466-SessionView03-NoAgent-worker-mounted-package-App-lifecycle.json",
+  "lifecycle_sha256_at_launch": "e77a96ca87e39eb1cf3b05e51ad8f9886c09ccc69bb7aa349155ad49cc324811",
+  "NoAgent_only": true,
+  "native_execution": false
+}

@@ -1,0 +1,79 @@
+{
+  "state": "SCOPED INSTALLED DocumentViewport worker custody READY",
+  "source_head": "26500c60f74f40baf983e62b1ede7c195b65d0c3",
+  "determining_product": "4f0ea5ef3c7b3ed183bbb92e13fef3cedf73543e",
+  "wheel_sha256": "b2e420e5b2eed1aaa96d815b2abf38f990272a047417c2ca5082c01d9149a151",
+  "control_sha256": "a8e774b4a87ed97df7151e9e23176ca1dc8fec96cb51dde10703d1ce5e85d6a9",
+  "runtime_helper_sha256": "987399f81781f57e5cca89dc0e5214c59663d97a01bcb5bad18f35d7f8eb686f",
+  "installed_assets": 953,
+  "packages": 69,
+  "native_READ_only": true,
+  "native_EXEC_ACP_SDK_provider_input": false,
+  "App_attempts": 1,
+  "App_seconds": 6.13824640691746,
+  "scope": {
+    "scope": "Mounted viewport pre-entry cancellation/resume/coalescing/close",
+    "pre_entry_cancelled": "CANCELLED",
+    "resumed": "SUCCESS",
+    "coalesced_requests": 3,
+    "close_cancelled": "CANCELLED",
+    "same_source_and_window": true,
+    "viewport_workers": [],
+    "state": "PASS"
+  },
+  "whole_return": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted03/whole-handback.json",
+    "sha256": "1cb259452552f605cb6dbfa97feb3fa3f35cb03832a34d2088ec0d290dba6078"
+  },
+  "owner_floor_restoration": "1467 actual459 records/69RAWorigins/266protected+1865other65/PREFIXactivation exact; normaloriginalToad1c43 installer once; noextras/groups/sockets",
+  "native_READ_explicit_return": true,
+  "independent_package_lifecycle_close": "OriginalBohr pending independentreadback/census; not fabricated here",
+  "retained_negatives": [
+    "original09bc ZIPdirectory RECORD mismatch and restoration-recorder shadowTypeError",
+    "original6d265 mounted085b Conversation.is_current AttributeError beforeworker qualification"
+  ],
+  "whole_TC1_physical_performance_claim": false,
+  "no_repeat_build_newloan": true,
+  "compact_receipts": {
+    "command.json": {
+      "sha256": "1d62671eb8e70c22886b9ff5d3a65469d6b891e8f163ea7ffcafafec7ecf1e5b",
+      "bytes": 1594
+    },
+    "grant-binding.json": {
+      "sha256": "2f2af37da236fcfb12b570fc947d9386407f4eedcf553297f5649c5e23c5e79b",
+      "bytes": 555
+    },
+    "handle.json": {
+      "sha256": "1e7ab711063bd33aa3bdeaffe5c3b3542448cd80faf76fdfdefb1c4bcc72c495",
+      "bytes": 973
+    },
+    "proof-terminal.json": {
+      "sha256": "ce8cc14a4cbf9e207d054b6c57a71e350c8f3380c1cec854f8e0bc4e0a67cb91",
+      "bytes": 1106
+    },
+    "receipt.json": {
+      "sha256": "02b149043370e3e016e24ef77d66d3004f972b511fd5ebae4b7d6961191adc96",
+      "bytes": 283
+    },
+    "stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "stdout.log": {
+      "sha256": "4e3c131c88233734b9325ee8699883ba6cd638da6e5aff9af2aa57289fca3d6f",
+      "bytes": 265
+    },
+    "terminal.json": {
+      "sha256": "10575b9625f7fa678d02f4c456f97600895171bba57d0c64c6bfb00047d17187",
+      "bytes": 1027
+    },
+    "whole-floor-readback.json": {
+      "sha256": "52ce8f005c7a077b199bb94b279268513a2b144b00b54828829d11498063c264",
+      "bytes": 845
+    },
+    "whole-handback.json": {
+      "sha256": "1cb259452552f605cb6dbfa97feb3fa3f35cb03832a34d2088ec0d290dba6078",
+      "bytes": 12396
+    }
+  }
+}
