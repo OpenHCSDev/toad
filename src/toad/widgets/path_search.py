@@ -74,8 +74,7 @@ class PathContent(Content):
             style,
             replace(
                 options,
-                rules=options.rules
-                | {
+                rules={
                     "text_wrap": "nowrap",
                     "text_overflow": "clip",
                     "text_align": "left",

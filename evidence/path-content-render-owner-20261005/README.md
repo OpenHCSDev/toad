@@ -9,8 +9,9 @@ strip construction. The sole Toad private `_wrap_and_format` caller and its
 copied height slicing/strip loop are removed (IMPL-12).
 
 `dataclasses.replace` retains the original `RenderOptions` selection,
-selection style, post style and style resolver references. Only four authored
-path policy rules are replaced. Path shortening, zero width and native tab8
+selection style, post style and style resolver references. The native render
+owner consumes the four original fixed path policy rules directly.
+Path shortening, zero width and native tab8
 remain the original contracts. Positive, zero, negative and unbounded height
 follow the same native public projection. `PreparedDiffLine` already inherits
 that owner and needs no migration.
@@ -31,3 +32,11 @@ path picker, useful first paint, moving frames, CPU or speed. No App, package,
 wheel, prefix import, capture or provider operation belongs to this checkpoint.
 Final native public projection controls remain Kepler's native owner scope;
 the next changed installed frame cohort is separate from the frozen460 purpose.
+
+Kepler's source review found the initial rules-union counterexample:
+`Visual.to_strips` passes a Styles resource, not necessarily a dictionary.
+That original resource supports rule reads but not dictionary union. The final
+PathContent supplies its exact four authored rules without reading or copying
+foreign Styles. RULE-OWNER-CORRECTION.json preserves the initial negative source
+and final compile/measure evidence. The original before/check/after records stay
+historical; no runtime cause or acceptance is inferred from this source finding.
