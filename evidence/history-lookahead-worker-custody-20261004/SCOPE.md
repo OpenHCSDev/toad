@@ -1,7 +1,8 @@
 # History lookahead worker custody
 
-Source-only successor after the closed 446 attempt. No installed acceptance,
-wheel build, holder imports, native changes or performance gain is claimed.
+Source-only successor after the closed 446 attempt. The normal standalone
+source artifact is built; installed acceptance and performance gain remain
+unqualified. No holder imports or native source edits occurred.
 
 ## Original work removed
 
@@ -79,3 +80,34 @@ source consumer checks report zero nullable-worker mirror sites and one group
 declaration/admission owner. Complete Package roots: Toad288/tests396/tools41,
 Core316/native249, zero parse omissions. The automatic required Debt binds the
 exact current pushed head separately; it is not an installed acceptance.
+
+## Combined source artifact and wheel input
+
+The source locator now binds published Text63+64 `08e3dd6b` and declared
+Core `3aacd708`. The retained Core355 and native266 artifacts match their
+producer hashes. The final normal Toad wheel proves all319 Git/local/ZIP
+assets, with no missing or extra package files. Its bytes equal the earlier
+source-only wheel because the changed tool.uv locator/lock inputs do not alter
+packaged dependency metadata. Both distinct build-head receipts are retained;
+the earlier source/locator proof is not rewritten.
+
+The existing recorder now owns a body-wheel Up/Down/reversal/End journey.
+Its review selects checked wheel-helper intervals, excluding phase exports
+and the following settling wait. Failed helpers emit failure receipts rather
+than completed-command receipts. These are driver bounds, including helper
+startup, not exact input-injection or input-to-pixel times. The original native
+MouseScroll/scroll/frame/writer records and moving pixels remain necessary to
+judge the affected path. Nearest unrelated flushes are not causal evidence.
+
+`COMBINED-SOURCE-CHECKPOINT.json` records the complete determining roots:
+Toad288/tests396/tools41, Core324 and Text249, zero parse omissions, plus three
+offline original receipt-decoder checks. Earlier Core316/native59 evidence
+remains the original historical source scope.
+
+`COMBINED-ARTIFACT-CONTROL-OPERANDS.json` names the exact source artifacts,
+controls and future command templates. It explicitly leaves actual runtime
+prefix, floor, matching route and native execution authority unassigned.
+No public or former-private floor is inferred from the closed446 return.
+The authored worker App and physical wheel journey remain unrun; full cold
+width, held motion, growing End, configured continuous journey and loaded
+history scaling remain unfinished.
