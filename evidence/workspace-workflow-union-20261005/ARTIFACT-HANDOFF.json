@@ -1,0 +1,17 @@
+{
+  "head": "64f242e5ba4cce350c9f6601ed01c17d2727a89e",
+  "wheel_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/workspace455-source-wheel-20261005/wheel-proof.json",
+  "wheel_proof_sha256": "46d07df746b620f056ca4f551781dccf6ba7c5e483c3ef9187408f8fab8d3387",
+  "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/workspace455-source-wheel-20261005/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+  "wheel_sha256": "6977d1e14af1c450759aa4ccef4951ed6d07138b16a13628a2fc5d5f37557f8b",
+  "assets": 319,
+  "manifest": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/workspace-workflow-union-20261005/FINAL-JOINT-SOURCE-CONTROL-BUILD-OPERANDS.json",
+  "manifest_sha256": "c4651d3ab3360cbb1cd2389c6f7418829d867bc77d17b5f0ff67a2e5097b9026",
+  "Core_main": "7b68d630caa654d3e9884f45cbd6493718752a0c",
+  "native_main": "9ea7a109b648be526ce5d000b2c94799b57f3c23",
+  "authored_App_count": 2,
+  "authored_runtime": "UNRUN",
+  "connected_configured_fixture": "separate UNBOUND/unrun; no fakeAgentReady/watcher; no oldcancelledUNKNOWN fixture selected",
+  "holder_access_or_stage": false,
+  "preserved_453_and_446_failures": true
+}
