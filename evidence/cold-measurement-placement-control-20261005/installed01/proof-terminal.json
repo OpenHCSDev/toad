@@ -1,0 +1,10 @@
+{
+  "argv": [
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+    "-B",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/verify_installed.py"
+  ],
+  "returncode": 0,
+  "elapsed": 7.330273081082851,
+  "lifecycle_sha256_at_launch": "769988f1d57e079144ed876909aa1792cc4f019db0ffe25a1e20266d8ab16583"
+}

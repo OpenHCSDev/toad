@@ -1,0 +1,17 @@
+{
+  "free_gib": {
+    "/": 5.9,
+    "/dev/shm": 15.4,
+    "/home": 9.7,
+    "/tmp": 11.4
+  },
+  "level": "critical",
+  "ram_available_gib": 12.4,
+  "reasons": [
+    "swap used 17.5 GiB",
+    "/ free 5.9 GiB",
+    "/home free 9.7 GiB"
+  ],
+  "swap_used_gib": 17.5,
+  "disposition": "One small serial original90s-bound NoAgentApp; retained installed69, no fleet/newenv/build or large output; actual memory availability supports bounded acceptance."
+}

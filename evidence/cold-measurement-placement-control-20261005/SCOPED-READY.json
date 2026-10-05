@@ -1,0 +1,192 @@
+{
+  "state": "SCOPED INSTALLED READY: original body measurement/publication product1ae; one corrected af1 cold NoAgent App. Full structural performance remains active.",
+  "determining_product": "1ae124fcbc730479a8472c8fbe70f74a32afc5ef",
+  "source_receipt_head": "6d46e34233851971840df8278e8613c2b46e0c1e",
+  "source_pyproject_uv_zero_delta_from_product": true,
+  "control_sha256": "af1ee4ede20f015bd7b7c554aafa284963edce6463cfc5a2f724d6b5281192d2",
+  "installed_Toad_wheel_sha256": "7546bd15d78f2c06a11a2bb4e5564050017360c222e8e064abea2b560a180432",
+  "App": {
+    "elapsed": 7.62302847194951,
+    "returncode": 0,
+    "timed_out": false,
+    "error": null,
+    "drain_errors": [],
+    "outcome": {
+      "kind": "exited",
+      "code": 0
+    },
+    "child_retired": true,
+    "owned_group_members": [],
+    "controller": {
+      "pid": 622382,
+      "start_time": 69053203
+    },
+    "child": {
+      "pid": 622530,
+      "start_time": 69053305
+    },
+    "scope": "Corrected cold prepared body height and ordinal/widget/region placement; original13assertions; NoAgent/no provider or native artifact execution",
+    "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Heis460-corrected-cold-only-package-App-issued-grant.json",
+    "native_inputs": 0,
+    "provider_calls": 0
+  },
+  "cold_height_receipt_sha256": "f445e76ff0e4e7e9c67cd48371f3f997aecc81c9a581489dd8e028ed69ff017f",
+  "assertions": 13,
+  "scope": [
+    "29 actual cold native measurements retain original source epochs while recording derived extent",
+    "24 native available-height boxes equal; original arrangement reused",
+    "authored padding invalidates placement; relative height invokes four arrangements with changed geometry",
+    "original NoAgent App/executor/preparation close; no owned group remains"
+  ],
+  "elapsed_seconds_meaning": "cold receipt elapsed_seconds times24 _get_box_model calls after body_ready. It is NOT new-tab-to-useful-first-paint latency or CPU gain.",
+  "previous_renderer_scope": "Original accepted458 local/persistent transport PASS10.718514887s/control7.769484478s; never repeated in correctedcold purpose.",
+  "historical_failure": "Original93d DockArrangeResult tuple.widget authored operand failure retained unchanged; exact13assertions unchanged in correctedcontrol.",
+  "whole_floor_handback": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/code-handback.json",
+    "sha256": "48440dbb330b56acd79305445179cef6dcddb97f44a6c7b39d3bc7c67152f2b7",
+    "members": 1468,
+    "distributions": 69,
+    "protected": 428,
+    "other66_members": 1883,
+    "normal_origins_and_activation_exact": true,
+    "archive_recoveries": 0,
+    "raw_final_census_processes": 247,
+    "active_refs": 0,
+    "gaps": 0,
+    "independent_Bohr_close": "pending actual independent readback"
+  },
+  "native_READ_returned": true,
+  "native_EXEC_never_authorized_or_used": true,
+  "provider_calls": 0,
+  "native_inputs": 0,
+  "physical_movie": false,
+  "Path463_and_Native70": "Separate source-qualified successor; NOT in installed7546/Text67 cohort. Current PR460 later Path source is not claimed sourceequal to this installed artifact.",
+  "remaining": [
+    "Actual new-tab useful first body paint/cold width latency",
+    "meaningful wheel frame cadence and held Up/Down/reversal/growingEnd on current matched public epoch",
+    "full loaded-history warm4/16/32/64 scaling; mixed cohort contains two loaded histories",
+    "configured continuous saved/unopened/channel/tab/fork-before-answer/reply/notification/queue/status/draftUndo/reader/resource workflow"
+  ],
+  "keepers": {
+    "issued-grant.json": {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/issued-grant.json",
+      "sha256": "3d8a2bdcd36a61c4a1b3acffc25b479aeb736ecf4138ab47c367857774281d76",
+      "committed_copy": "evidence/cold-measurement-placement-control-20261005/installed01/issued-grant.json"
+    },
+    "proof-command.json": {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/proof-command.json",
+      "sha256": "6966eface780939f1f26c055a9c111ba63ec1a761bc5f074842f6239fd631db2",
+      "committed_copy": "evidence/cold-measurement-placement-control-20261005/installed01/proof-command.json"
+    },
+    "proof-effective-release.json": {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/proof-effective-release.json",
+      "sha256": "769988f1d57e079144ed876909aa1792cc4f019db0ffe25a1e20266d8ab16583",
+      "committed_copy": "evidence/cold-measurement-placement-control-20261005/installed01/proof-effective-release.json"
+    },
+    "proof-terminal.json": {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/proof-terminal.json",
+      "sha256": "f02b4df735b12d6376d5dd73e44bda4298f2aa37f5c3005d9b279c6aaae0a738",
+      "committed_copy": "evidence/cold-measurement-placement-control-20261005/installed01/proof-terminal.json"
+    },
+    "proof.stdout.log": {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/proof.stdout.log",
+      "sha256": "43cb04e4a7ffe12ecd79e8df2b329d217df567264b70fb8fddda0a8deef878b3",
+      "committed_copy": "evidence/cold-measurement-placement-control-20261005/installed01/proof.stdout.log"
+    },
+    "proof.stderr.log": {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/proof.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "committed_copy": "evidence/cold-measurement-placement-control-20261005/installed01/proof.stderr.log"
+    },
+    "candidate-source-proof.json": {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/candidate-source-proof.json",
+      "sha256": "2fe9f958bc538e6ab57f139e1170ed533f689f9c70fc7935add629f95459601a",
+      "committed_copy": "evidence/cold-measurement-placement-control-20261005/installed01/candidate-source-proof.json"
+    },
+    "candidate-activation.json": {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/candidate-activation.json",
+      "sha256": "027508de6c8871cd242f3ac31439b7a6c7c013e74209f9753845961c3a33122a",
+      "committed_copy": "evidence/cold-measurement-placement-control-20261005/installed01/candidate-activation.json"
+    },
+    "native-full-trust.json": {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/native-full-trust.json",
+      "sha256": "a38655888206e6f7df2d1cf95225293caeb723c28506b3cbc9d683e6e699549f",
+      "committed_copy": "evidence/cold-measurement-placement-control-20261005/installed01/native-full-trust.json"
+    },
+    "package-boundary-proof.json": {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/package-boundary-proof.json",
+      "sha256": "5c54c89c732fa54c0a505b7faa75fe790365feefdcb5c9d2981c50cfbbb6256a",
+      "committed_copy": "evidence/cold-measurement-placement-control-20261005/installed01/package-boundary-proof.json"
+    },
+    "cold-command.json": {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/cold-command.json",
+      "sha256": "0187eb465d9438f08754544a036663ff655f9829660698a6476c2f8d246de4ac",
+      "committed_copy": "evidence/cold-measurement-placement-control-20261005/installed01/cold-command.json"
+    },
+    "cold-effective-release.json": {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/cold-effective-release.json",
+      "sha256": "a34211be782373a2ad8acdafbe7097293614ae2b484fe8241af1b6ce409c5cbb",
+      "committed_copy": "evidence/cold-measurement-placement-control-20261005/installed01/cold-effective-release.json"
+    },
+    "cold-handle.json": {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/cold-handle.json",
+      "sha256": "367d79b99945d8b5c9d446ee05ec20d86eda61183b37bf0c263a4046b270d69f",
+      "committed_copy": "evidence/cold-measurement-placement-control-20261005/installed01/cold-handle.json"
+    },
+    "cold-terminal.json": {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/cold-terminal.json",
+      "sha256": "6b374d0139d27b4e2dcdcf9b7b0988622d9618fdf2ba8ec6238eb036a6e688fb",
+      "committed_copy": "evidence/cold-measurement-placement-control-20261005/installed01/cold-terminal.json"
+    },
+    "cold.stdout.log": {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/cold.stdout.log",
+      "sha256": "68385a4fea14a38a8a99feaaa27806102be50eab82052d38fc1c95ff90cdd6da",
+      "committed_copy": "evidence/cold-measurement-placement-control-20261005/installed01/cold.stdout.log"
+    },
+    "cold.stderr.log": {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/cold.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "committed_copy": "evidence/cold-measurement-placement-control-20261005/installed01/cold.stderr.log"
+    },
+    "cold-height/receipt.json": {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/cold-height/receipt.json",
+      "sha256": "f445e76ff0e4e7e9c67cd48371f3f997aecc81c9a581489dd8e028ed69ff017f",
+      "committed_copy": "evidence/cold-measurement-placement-control-20261005/installed01/cold-height/receipt.json"
+    },
+    "restore-original-four-terminal.json": {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/restore-original-four-terminal.json",
+      "sha256": "e87b3ba3095c54483afc8131bd57e03095d38d32fed2a687bff02e135a3608ea",
+      "committed_copy": "evidence/cold-measurement-placement-control-20261005/installed01/restore-original-four-terminal.json"
+    },
+    "archive-recovery-readback.json": {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/archive-recovery-readback.json",
+      "sha256": "a2cee317a73622a2af455379591e8ab9987b28ad61f6492b6eb82c6afe14fd39",
+      "committed_copy": "evidence/cold-measurement-placement-control-20261005/installed01/archive-recovery-readback.json"
+    },
+    "restore-pipcheck.log": {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/restore-pipcheck.log",
+      "sha256": "6f15a0ddd43f6fdb48f2b592720c7cc1a9acea5133d669f3524777649469dca8",
+      "committed_copy": "evidence/cold-measurement-placement-control-20261005/installed01/restore-pipcheck.log"
+    },
+    "code-handback.json": {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/code-handback.json",
+      "sha256": "48440dbb330b56acd79305445179cef6dcddb97f44a6c7b39d3bc7c67152f2b7",
+      "committed_copy": "evidence/cold-measurement-placement-control-20261005/installed01/code-handback.json"
+    },
+    "final-borrowers.json": {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/final-borrowers.json",
+      "sha256": "e43bda8fbc8842fc5f93ee545dd884a007cfda4ddf50fa473a5bca0174539d31",
+      "committed_copy": "evidence/cold-measurement-placement-control-20261005/installed01/final-borrowers.json"
+    },
+    "final-borrowers-classification.json": {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/final-borrowers-classification.json",
+      "sha256": "19891ae9997aba5bfe49b60f736eaa14a12c7f0eb9b21735101e27bb24371b59",
+      "committed_copy": "evidence/cold-measurement-placement-control-20261005/installed01/final-borrowers-classification.json"
+    },
+    "pre-cold-resources.json": {
+      "original": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/pre-cold-resources.json",
+      "sha256": "847ce8c40aa99314a0e8acc09ddcc0d023f86729f15d89de8e2cca3a56c01849",
+      "committed_copy": "evidence/cold-measurement-placement-control-20261005/installed01/pre-cold-resources.json"
+    }
+  }
+}

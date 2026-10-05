@@ -1,0 +1,18 @@
+{
+  "controller": {
+    "pid": 622382,
+    "start_time": 69053203
+  },
+  "child": {
+    "pid": 622530,
+    "start_time": 69053305
+  },
+  "argv": [
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+    "-B",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/prepared_height_contract_pilot.py",
+    "--installed-only"
+  ],
+  "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+  "scope": "Corrected cold prepared body height and ordinal/widget/region placement; original13assertions; NoAgent/no provider or native artifact execution"
+}
