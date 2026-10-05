@@ -115,16 +115,14 @@ async def main():
             layouts = [markdown.arrange(Size(markdown.size.width, available))
                        for available in range(80, 104)]
             del markdown.layout.arrange
-            placements = [tuple((ordinal, item.widget, item.region)
-                                for ordinal, item in layout.placements)
+            placements = [tuple((item.widget, item.region) for item in layout.placements)
                           for layout in layouts]
             padding_before = label.styles.padding
             label.styles.padding = (padding_before.top + 1, padding_before.right,
                                     padding_before.bottom + 1, padding_before.left)
             await pilot.pause()
             styled = markdown.arrange(Size(markdown.size.width, 80))
-            styled_placements = tuple((ordinal, item.widget, item.region)
-                                      for ordinal, item in styled.placements)
+            styled_placements = tuple((item.widget, item.region) for item in styled.placements)
             label.styles.height = '1fr'
             await pilot.pause()
             relative_arrangements = []
@@ -136,8 +134,7 @@ async def main():
             relative = [markdown.arrange(Size(markdown.size.width, available))
                         for available in range(80, 84)]
             del markdown.layout.arrange
-            relative_placements = [tuple((ordinal, item.widget, item.region)
-                                         for ordinal, item in layout.placements)
+            relative_placements = [tuple((item.widget, item.region) for item in layout.placements)
                                    for layout in relative]
             receipt = dict(dependencies=dependencies, box_calls=len(calls),
                            cold_native_measurements=cold_measurements,

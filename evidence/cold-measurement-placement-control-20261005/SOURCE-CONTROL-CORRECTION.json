@@ -1,0 +1,29 @@
+{
+  "state": "Coherent originalcontrol correction; runtimeUNRUN",
+  "original_control_sha256": "93d063780d05a94ac3098c2965079a2d107bf693e20b541e7a98e80f02e232bd",
+  "corrected_control_sha256": "af1ee4ede20f015bd7b7c554aafa284963edce6463cfc5a2f724d6b5281192d2",
+  "complete3indexed_native_placement_sites": [
+    {
+      "line": 127,
+      "target": "(ordinal, item)",
+      "source": "styled.placements"
+    },
+    {
+      "line": 119,
+      "target": "(ordinal, item)",
+      "source": "layout.placements"
+    },
+    {
+      "line": 140,
+      "target": "(ordinal, item)",
+      "source": "layout.placements"
+    }
+  ],
+  "all_original_assertions_AST_equal": true,
+  "original_assertion_count": 13,
+  "scope": "Only actual DockArrangeResult originalordinal/WidgetPlacement projection. Geometry/style/relativeheight/source/box/arrangement/draft/noagent/wholeclose assertions unchanged; no product/native guard/cache/type/threshold change",
+  "frozen_product_pins_byte_equal": "ZERO src/pyproject/uv diff vs original221777; retained7546wheel/source1ae remainsfull319equal; Path/native70 source branch separate",
+  "compile": "PASS",
+  "original_actual_negative": "Originalcold93d FAIL9.379tuple.widget line118 before receipt preserved byteexact; rendererPASS notrerun",
+  "runtime": "UNRUN correctedcontrol needsfreshspecificpurpose onactualfloor, no loan/read/reservation inferred"
+}

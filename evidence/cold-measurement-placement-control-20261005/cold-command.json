@@ -1,0 +1,44 @@
+{
+  "issued": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Heis460-Einstein458-joint-render-extra-package-two-controls-issued-grant.json",
+  "issued_sha256": "262ae8f4e638bf76c7d8bd0b47651ef50a7f64551332394cc66c8d0f8d93dde7",
+  "lifecycle": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Heis460-Einstein458-joint-render-extra-package-two-controls-lifecycle.json",
+  "lifecycle_sha256_at_launch": "460af5fed556085b320729d77595ab9d611b666a95667895f35c9ae0617a909e",
+  "control": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/prepared_height_contract_pilot.py",
+    "sha256": "93d063780d05a94ac3098c2965079a2d107bf693e20b541e7a98e80f02e232bd",
+    "argv": [
+      "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+      "-B",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/prepared_height_contract_pilot.py",
+      "--installed-only"
+    ],
+    "environment": {
+      "inherit": "ordinary system environment, no app source paths",
+      "unset": [
+        "PYTHONPATH",
+        "PYTHONHOME",
+        "VIRTUAL_ENV",
+        "AGENT_COMMS_THREAD",
+        "AGENT_COMMS_RUNTIME",
+        "PI_AGENT_ID",
+        "PI_PROMPT"
+      ],
+      "set": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "HEIGHT_CONTRACT_EVIDENCE": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-render-transport458-20261005/cold-height"
+      }
+    },
+    "scope": "ONE original NoAgentApp/cold native measurement/source epochs/derived extent/box-arrangement-style-relative-height/whole preparation close",
+    "runtime": "UNRUN",
+    "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+    "operator": "Original Heis, only after renderer terminal/cleanup/explicit operator return, within same fresh specific joint purpose.",
+    "output_environment": "HEIGHT_CONTRACT_EVIDENCE owns original private TemporaryDirectory/wire/config; no public source/runtime inputs."
+  },
+  "controller": {
+    "pid": 306259,
+    "start_time": 68716693
+  },
+  "timeout": 90,
+  "owner": "Original BoundedRun.session / AttachedChild; same original renderer runner custody"
+}
