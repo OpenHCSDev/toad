@@ -9,12 +9,13 @@
     "role": "PUBLIC334447; never a staging or rollback slot"
   },
   "provisional_published_sources": {
-    "core_docs": "097b07b38a0a876e83624cb0ceaa6560cffea6a9",
+    "core_docs": "e5f3811b5fd94d69cffe48ec76311afc687d8b08",
     "core_product": "3aacd708fb9c699cc80c6b864e0ae8cf9ccff7f8",
     "toad_docs": "75d5f0a06aa076e4784dfbfdc6d2a37850b6c4aa",
     "toad_product": "76ec05358b0ef790d10746e49ee0f09c036e2baa",
     "carry_docs": "1143be3954226c5b7a049f5153ec93bbe73feb77",
-    "status": "not merged; final merge readiness remains original owners and Parent"
+    "status": "not merged; final merge readiness remains original owners and Parent",
+    "normal_carry_union": "Core627 e5f normally joined qualified663; all three tools equal final1143, package/native/pins/lock roots ZERO vs3aac/0ed; still not MAIN/canonical"
   },
   "retained_feature_wheels": [
     {

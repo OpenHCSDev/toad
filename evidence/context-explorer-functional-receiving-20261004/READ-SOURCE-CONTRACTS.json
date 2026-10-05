@@ -38,5 +38,12 @@
       "relation": "read source only; no canonical copy"
     }
   ],
-  "carry_owner": "PR663 final1143be installed qualification FINAL.json and current GH head/body read; original88e8 tools unchanged; no peer edits"
+  "carry_owner": "PR663 final1143be installed qualification FINAL.json and current GH head/body read; original88e8 tools unchanged; no peer edits",
+  "Core627_normal_union_relation": {
+    "head": "e5f3811b5fd94d69cffe48ec76311afc687d8b08",
+    "retained_package_source": "3aacd708fb9c699cc80c6b864e0ae8cf9ccff7f8",
+    "diff_src_stack_forced_pyproject_uv": "ZERO",
+    "carry_tools_vs_frozen1143": "ZERO",
+    "canonical_merged_head": null
+  }
 }
