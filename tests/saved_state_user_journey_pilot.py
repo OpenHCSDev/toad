@@ -324,40 +324,46 @@ async def unopened_participant(app, pilot, comms, channel, entered, release, hol
 async def clicked_reader_editor_return(app, pilot, first):
     second = app.selected_session
     checkpoints = []
-    for source in (first, second):
-        await click_tab(app, pilot, source.id)
-        view = source.conversation
-        await settled(pilot, view)
-        try:
-            await until(pilot, lambda: view.window.max_scroll_y > 0)
-        except TimeoutError:
-            ReaderCheckpoint.record_failed_reader(source, app)
-            raise
-        view.window.release_anchor()
-        view.window.scroll_to(y=min(5, view.window.max_scroll_y - 1),
-                              animate=False, immediate=True)
-        await settled(pilot, view)
-        assert view.window.follows_tail is False
-        editor = view.prompt.prompt_text_area
-        editor.insert("draft-" + source.id)
-        editor.history.checkpoint()
-        editor.insert(" with undo")
-        checkpoints.append(await ReaderCheckpoint.capture(source, app, pilot))
-    raw_reads = []
-    for checkpoint in (*checkpoints, checkpoints[0]):
-        before = await checkpoint.page_reads()
-        await click_tab(app, pilot, checkpoint.source.id)
-        await checkpoint.verify(app, pilot)
-        raw_reads.append(await checkpoint.page_reads() - before)
-    assert raw_reads == [0, 0, 0], ("Already-loaded source repeated raw page reads", raw_reads)
-    print("CLICKED_ABA_CANONICAL_RAW_PAGE_READ_COUNTS", raw_reads, flush=True)
-    for checkpoint in checkpoints:
-        await click_tab(app, pilot, checkpoint.source.id)
-        editor = checkpoint.source.conversation.prompt.prompt_text_area
-        editor.undo()
-        assert editor.text == "draft-" + checkpoint.source.id
-    await click_tab(app, pilot, first.id)
-    print("CLICKED_ABA_SAVED_READER_DOCUMENT_HISTORY_DRAFT_UNDO_PRESERVED", flush=True)
+    try:
+        for source in (first, second):
+            await click_tab(app, pilot, source.id)
+            view = source.conversation
+            await settled(pilot, view)
+            try:
+                await until(pilot, lambda: view.window.max_scroll_y > 0)
+            except TimeoutError:
+                ReaderCheckpoint.record_failed_reader(source, app)
+                raise
+            view.window.release_anchor()
+            view.window.scroll_to(y=min(5, view.window.max_scroll_y - 1),
+                                  animate=False, immediate=True)
+            await settled(pilot, view)
+            assert view.window.follows_tail is False
+            editor = view.prompt.prompt_text_area
+            editor.insert("draft-" + source.id)
+            editor.history.checkpoint()
+            editor.insert(" with undo")
+            checkpoints.append(await ReaderCheckpoint.capture(source, app, pilot))
+        raw_reads = []
+        for checkpoint in (*checkpoints, checkpoints[0]):
+            before = await checkpoint.page_reads()
+            await click_tab(app, pilot, checkpoint.source.id)
+            await checkpoint.verify(app, pilot)
+            raw_reads.append(await checkpoint.page_reads() - before)
+        assert raw_reads == [0, 0, 0], ("Already-loaded source repeated raw page reads", raw_reads)
+        print("CLICKED_ABA_CANONICAL_RAW_PAGE_READ_COUNTS", raw_reads, flush=True)
+        for checkpoint in checkpoints:
+            await click_tab(app, pilot, checkpoint.source.id)
+            editor = checkpoint.source.conversation.prompt.prompt_text_area
+            editor.undo()
+            assert editor.text == "draft-" + checkpoint.source.id
+        await click_tab(app, pilot, first.id)
+        print("CLICKED_ABA_SAVED_READER_DOCUMENT_HISTORY_DRAFT_UNDO_PRESERVED", flush=True)
+
+    finally:
+        # Keep genuine identity witnesses through final warm/Undo assertions.
+        # Function exit releases loop-local witnesses before the next journey.
+        checkpoints.clear()
 
 
 async def adaptive_reader_journey(app, pilot, requests):
