@@ -762,6 +762,22 @@ class RetainedLifetimeJourney(WarmScrollJourney):
         return {"peer_saved_history_loaded": NativePhase.read(output, "b-open").loaded_pages > 0}
 
 
+class WheelWarmJourney(RetainedLifetimeJourney, WheelCadenceJourney):
+    """Original wheel input plus saved-source opening, return and Undo custody."""
+
+    motion_phases = WheelCadenceJourney.motion_phases
+
+    @classmethod
+    def history_commands(cls, args):
+        return (WheelCadenceJourney.script(args), marker_command() + "reader-before-return")
+
+    @classmethod
+    def closing_commands(cls, args):
+        # The original wheel journey already exercised End. Keep the retained
+        # lifetime's final observation without injecting another End gesture.
+        return (marker_command() + "lifetime-end",)
+
+
 class ChannelLifetimeJourney(RetainedLifetimeJourney):
     """Use the same native lifetime journey with a real channel as its peer."""
 
