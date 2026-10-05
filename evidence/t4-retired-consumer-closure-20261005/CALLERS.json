@@ -1,0 +1,71 @@
+{
+  "base": "289f1c6cd7667abf985ddba265d6469a95e3ea48",
+  "core_source_head": "3931f16feb8bcb2dbcc3041446ca342dea665024",
+  "coverage": [
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "head": "289f1c6cd7667abf985ddba265d6469a95e3ea48",
+      "root": "tools",
+      "parsed": 41,
+      "unparsed": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "head": "289f1c6cd7667abf985ddba265d6469a95e3ea48",
+      "root": "tests",
+      "parsed": 398,
+      "unparsed": []
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "head": "3931f16feb8bcb2dbcc3041446ca342dea665024",
+      "root": "tests",
+      "parsed": 373,
+      "unparsed": []
+    }
+  ],
+  "candidate_sites": [
+    {
+      "repo": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "path": "tests/native_permission_ui.py",
+      "line": 15,
+      "syntax": "ImportFrom",
+      "source": "from mcp_observation_fixture import AGENT_DATA, exercise_boundaries, notes"
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "path": "tests/test_mcp_acceptance.py",
+      "line": 1,
+      "syntax": "Constant",
+      "source": "\"\"\"Opt-in real native Pi + MCP SDK + ACP + optional actual Toad acceptance."
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "path": "tests/test_mcp_acceptance.py",
+      "line": 288,
+      "syntax": "Constant",
+      "source": "    path = os.environ.get(\"AC_MCP_TOAD_ADAPTER\")"
+    }
+  ],
+  "authorities": {
+    "replay": "Retired private DTO reconstruction; no current registered/imported caller; current README instructions only.",
+    "mcp": "Core test_mcp_acceptance._observer accepts arbitrary AC_MCP_TOAD_ADAPTER path; retains external adapter seam with no named default. Native permission imports historical MCP fixture; controls retained."
+  },
+  "limits": [
+    "AST module/string-name evidence cannot prove absence of externally supplied path use. Core generic adapter loader is explicit and remains intact.",
+    "Parent-forwarded original Heis safe-checkpoint proves frozen06 does not execute these controls; Heis reserves l0a successor only.",
+    "Source/AST only; no test, application import, prefix, runtime, provider or input operation."
+  ],
+  "preserved": {
+    "docs/audits/navigation_allocation_20260925.md": "c0f00e73a4212d73ab8a262468809c123356c1bcb384cb4af0302517d364ca85",
+    "tests/l0a_native_installed_pilot.py": "fd8b65c42fd5195efb1e2580301440c479927b40b587afbfbfd6a0246fa8b1b7",
+    "tests/mcp_observation_fixture.py": "07a828df6a550e22726cbfe97f00a408ba15aeb2be407f606148675f176669c9",
+    "tests/native_permission_ui.py": "d30b2df89adf458b85a2eaf80d8437f25eb8ba3163af5575dafa2de0389e0f81",
+    "tests/typed_comms_command_pilot.py": "a60953f50f6d348f6afbe68ddcbf44b51dbf51f41e29d32840ad99b25f720113",
+    "tests/tools/record_installed_tui.py": "1e241e606d4021f9500c10f960bb4ee41c2addd6e97afc96f649bcb29098bcc0",
+    "tools/performance/compare_replays.py": "660e55467f9be6a5a4a210f42812a6ae7d04ec9a40d774db3f0e825e96abce33",
+    "tools/performance/inspect_replay.py": "6183057397502ec015a4905211e0941a33216f324cdd9b96dc2b3008908cef44"
+  },
+  "replay_retired_source_sha256": "5abe77cd10998c1a26f0f7a8ac4f9b1d075c9c09ab945f4d0688237ee84969b2",
+  "replay_parent_tree": "b61af7a9b8010ab925821be635b0f0ee8ebc92cc"
+}
