@@ -1,0 +1,84 @@
+{
+  "state": "coherent SOURCE_ONLY normal union; all new affected runtime paths UNRUN",
+  "parents": {
+    "accepted_main": "75d249246612d7682fb0ead4a8e32fe5af9efba2",
+    "frozen_453": "451d1b5fbd94b8843378bf137650f5e1ea5424fd",
+    "Einstein454": "3dd0fad4059af1882914048f5495b3a46c3f67f5",
+    "normal_merge": "0eb1494d446934c6c01636fc78ddb890a7310fbe"
+  },
+  "production_files": [
+    "src/toad/directory_watcher.py",
+    "src/toad/session_presentation.py",
+    "src/toad/transcript_source_preparation.py",
+    "src/toad/widgets/conversation.py",
+    "src/toad/widgets/project_panel.py",
+    "src/toad/widgets/project_tree_intent.py",
+    "src/toad/widgets/session_thread_panels.py",
+    "src/toad/widgets/transcript_history.py"
+  ],
+  "new_owner_change": {
+    "owner": "SessionObservation.invalidate: existing task/revision/current-source publish/close",
+    "queued_callbacks": [
+      {
+        "line": 1000,
+        "source": "goal_observation",
+        "owner_method": "invalidate"
+      },
+      {
+        "line": 1001,
+        "source": "delivery_observation",
+        "owner_method": "invalidate"
+      },
+      {
+        "line": 1819,
+        "source": "goal_observation",
+        "owner_method": "invalidate"
+      },
+      {
+        "line": 1820,
+        "source": "delivery_observation",
+        "owner_method": "invalidate"
+      }
+    ],
+    "replaced": "Four MessagePump callbacks awaiting original observation refresh/sourceRPC",
+    "preserved": [
+      "queued callback mount/frame order",
+      "coalesced original task",
+      "source identity/revision checks",
+      "weak view binding",
+      "explicit user actions awaitedrefresh/history",
+      "original close cancellation/join"
+    ]
+  },
+  "replacement_custody": {
+    "observation_Task_in_AgentProcess_responses": false,
+    "release": "Conversation._release_source_resources cancels and joins both observation tasks BEFORE viewport release/agent=None",
+    "warm_detach": "retains original Agent/observation lifetime; hiding alone is not source retirement",
+    "reconnect": "Original F1 native admission -> AgentSession.reconnect stops/restarts SAME Agent; pending RuntimeProxy read can await settlement; source/revision fence blocks stale publication",
+    "new_source_snapshot_speed_claim": false
+  },
+  "Text_pin": {
+    "head": "06771827eeff2a98c40a41fd2bc6cb6313db7a87",
+    "qualified_wheel_source": "230289d89d23195a005aadaa645686cebdcf7c04",
+    "wheel_sha256": "e253066f005a2d9d67aeae2279ee4852b92f86d13b03acf32b60f16307d79355",
+    "old08e3_487_not_sourceequal_to65": true
+  },
+  "source_checks": {
+    "new_callback_family_AST_complete": true,
+    "four_old_queued_refresh_consumers_deleted": true,
+    "control_AST_parsed": true,
+    "TOML_parse": true
+  },
+  "new_Class_registry_flag_timer_native_edit": false,
+  "holder_access_or_build_or_App": false,
+  "affected_runtime_gap": "The two planned NoAgent/project Apps do not exercise an attached Agent readiness/sourceRPC. Existing real-agent observation/control must witness pending read + actual Conversation pump/input/resize/close before claiming that new callback path.",
+  "full_workflow_unfinished": [
+    "genuine configured continuous saved startup/unopened thread/channel/immediate fork before first answer",
+    "fresh message+reply+notification+queue/status/history without UNKNOWN replay",
+    "cold initial width commit",
+    "velocity/reversal/growingEnd and actual held wheel continuous motion",
+    "four/sixteen/thirtytwo/sixtyfour loaded-history scaling vs existing two-loaded mixed cohort",
+    "warm prepared/rendered history exact identity plus draftUndo/non-tail reader/resource bounds",
+    "ambiguous original RichVisual widget/invalidation attribution remains unknown"
+  ]
+}

@@ -997,8 +997,8 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         self.agent_ready = True
         self.prompt.sync_session()
         self.query_one(ObservedThreadActivity).refresh_observation()
-        self.call_later(self.goal_observation.refresh)
-        self.call_later(self.delivery_observation.refresh)
+        self.call_later(self.goal_observation.invalidate)
+        self.call_later(self.delivery_observation.invalidate)
         self.transcript.request()
     async def _apply_session_name(self, name: str) -> None:
         if self.agent is not None:
@@ -1816,8 +1816,8 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             self.agent_ready = agent.ready
             self.status = agent.context_measurement.status()
             if self.agent_ready:
-                self.call_later(self.goal_observation.refresh)
-                self.call_later(self.delivery_observation.refresh)
+                self.call_later(self.goal_observation.invalidate)
+                self.call_later(self.delivery_observation.invalidate)
         self.update_title()
 
         if self.is_mounted:
