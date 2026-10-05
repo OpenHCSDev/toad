@@ -1,0 +1,75 @@
+{
+  "head": "25dae6d291612a3601fb35114a983d6eae379d83",
+  "actual_main466": "0bc37f7ad810d3d0c71213f0e798a1474dd78c0a",
+  "wheel": {
+    "head": "25dae6d291612a3601fb35114a983d6eae379d83",
+    "actual_main466": "0bc37f7ad810d3d0c71213f0e798a1474dd78c0a",
+    "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/union466-filewheel/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "2ece83e34b795f09652e30e67bfa9bafcdc08d7a0812e9e6a122ce2a708cb217",
+    "bytes": 2251136,
+    "assets": 319,
+    "Git_local_ZIP_equal": true,
+    "mismatches": [],
+    "missing": [],
+    "extra": [],
+    "RECORD_rows": 324,
+    "RECORD_verified": true,
+    "metadata_sha256": "3fde2bfef1346f91a2bad2c6dfbca28a40710dc38ca987f66266a6064c3c43ee",
+    "inventory": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/union466-filewheel/toad-inventory.json",
+    "inventory_sha256": "8182cb6ea916cedd7056aed62abe1cdb6bf5c54bdf198025439a6aa0191db70d",
+    "native_pin": "a2dd8a9a37825a828df0d8f651ca57d92db69e5f",
+    "build_inputs": {
+      "pyproject.toml": "31081151e3e8d6fd5d84e145a13276a0a6ddd1a1b661d57957b707889bc02b6c",
+      "uv.lock": "60249ac93de25c0142012fa74c1482c6e06a520236f6640fdcedbffb18d762f0",
+      "README.md": "11b3f5195acb00a19a73229749e2e71ba924314a8b1c650f05a2bf43f537d35d",
+      "LICENSE": "4df3c306dddaaf4baffdff5ca820cc679ac8cd6dc263c6a74517783e42fa7a3b"
+    },
+    "changed_vs_original_7f401": [
+      "src/toad/widgets/viewport_body.py"
+    ],
+    "stage": false,
+    "App": false,
+    "runtime_relation": "Accepted466 nativeWorker control used declaredTextd733 on its originalfloor. Futurechanged union uses actualTextnative71bc47, keeps genuine fullsource metadata pins; no acceptedcontrol replay or installedclaim from this build."
+  },
+  "build_receipt": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/union466-filewheel/build-receipt.json",
+    "sha256": "869ea877c73ddc026d3de20edb8f8406b1d91a360883b3e30dd3b01b79dcda30",
+    "bytes": 975
+  },
+  "wheel_proof": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/union466-filewheel/wheel-proof.json",
+    "sha256": "9fa7e6c15f7c4f16b8a1a26085c34c0db36a8fb75ccbecc2e54235cf014245ac",
+    "bytes": 1682
+  },
+  "candidate_product_delta_vs_7f": [
+    "src/toad/widgets/viewport_body.py"
+  ],
+  "changed_original20": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/viewport_recent_tabs_pilot.py",
+      "sha256": "41f3ebb0c2638ccd2fff76c619fcd305c2617f6ceb460308d960935f1c6baec5",
+      "bytes": 14996
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/record_installed_tui.py",
+      "sha256": "307da0f244ceed038af1763ea9299d4ea964107a0478864801511ac9b361e469",
+      "bytes": 143840
+    }
+  ],
+  "packages": {
+    "src": {
+      "parsed": 288,
+      "unparsed": []
+    },
+    "tests": {
+      "parsed": 399,
+      "unparsed": []
+    },
+    "tools": {
+      "parsed": 41,
+      "unparsed": []
+    }
+  },
+  "full150s_scope": "Original full usefulcold/width/nativewheel/reversal/End/unopenedB-A/draftUndo,2privateSDKforks,ZEROnewprovider/nativeinput",
+  "authority": "Parent explicitly authorized once unionwheel. No currentpackage/stage/App/decoder/nativeaccess from this source publication."
+}
