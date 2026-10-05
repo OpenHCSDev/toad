@@ -1,0 +1,37 @@
+{
+  "number": 2,
+  "argv": [
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+    "-B",
+    "-c",
+    "import sys; sys.path.append('/usr/lib/python3.14/site-packages'); import agent_comms,toad,textual,pytest; print('INSTALLED IMPORTS',*[m.__file__ for m in (agent_comms,toad,textual)],flush=True); assert all(sys.prefix in m.__file__ for m in (agent_comms,toad,textual)); sys.exit(pytest.main(sys.argv[1:]))",
+    "-o",
+    "addopts=",
+    "--noconftest",
+    "--basetemp",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-remaining-integer-cell-App-20261005/project/fixture",
+    "-q",
+    "--tb=short",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/test_project_panel_intent.py::test_retirement_during_restore_keeps_the_project_reader"
+  ],
+  "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+  "issued_sha256": "3b47246f551332752dc4befa226c2e06d51ddae8f47b2db519a35f823cd79e56",
+  "exit_code": 0,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "provider_input": false,
+  "native_SDK_input": false,
+  "movie": false,
+  "outcome": {
+    "kind": "exited",
+    "code": 0
+  },
+  "identity": {
+    "pid": 2728448,
+    "start_time": 67867594
+  },
+  "duration_seconds": 4.390803333953954,
+  "retired": true
+}

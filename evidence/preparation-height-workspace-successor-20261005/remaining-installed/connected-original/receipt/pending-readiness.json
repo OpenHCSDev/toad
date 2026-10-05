@@ -1,0 +1,17 @@
+{
+  "checks": {
+    "real_reconnect_readiness_handler": true,
+    "both_original_rpc_results_pending": true,
+    "conversation_pump_and_editor_progress": true,
+    "unsent_draft_and_undo_restored": true,
+    "actual_conversation_resize_while_reads_pending": true,
+    "original_agent_and_unfenced_frame": true,
+    "source_close_cancelled_and_joined_reads": true,
+    "source_close_revoked_observation_custody": true,
+    "actual_source_and_view_retired": true
+  },
+  "pending_work": "actual RPC results held before observation publication",
+  "watch_agent_ready_branch_exercised": false,
+  "provider_or_native_input": false,
+  "scope": "Real AgentReady Conversation callbacks/input/resize/source close; no latency or pixels claim"
+}

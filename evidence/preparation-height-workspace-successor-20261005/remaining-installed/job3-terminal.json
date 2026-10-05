@@ -1,0 +1,31 @@
+{
+  "number": 3,
+  "argv": [
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+    "-B",
+    "-c",
+    "import sys,runpy; import agent_comms,toad,textual; assert all(sys.prefix in m.__file__ for m in (agent_comms,toad,textual)); sys.path.insert(0,'/home/ts/wt/comms-task-aware-native-bundle-20261002/tools/cutover'); sys.path.insert(0,'/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests'); script=sys.argv[1]; sys.argv=sys.argv[1:]; runpy.run_path(script,run_name='__main__')",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/native_goal_read_first_paint_pilot.py",
+    "--private-original-readiness"
+  ],
+  "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+  "issued_sha256": "3b47246f551332752dc4befa226c2e06d51ddae8f47b2db519a35f823cd79e56",
+  "exit_code": 0,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "provider_input": false,
+  "native_SDK_input": false,
+  "movie": false,
+  "outcome": {
+    "kind": "exited",
+    "code": 0
+  },
+  "identity": {
+    "pid": 2875129,
+    "start_time": 67933701
+  },
+  "duration_seconds": 26.775201714015566,
+  "retired": true
+}

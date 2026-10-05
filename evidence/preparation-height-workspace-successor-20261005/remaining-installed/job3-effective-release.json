@@ -1,0 +1,319 @@
+{
+  "issued_at": 1791202439.3713653,
+  "state": "OPEN exactthirdconnectedreadonly RELEASED afterfirst2consumedPASS/joined and NEWliteralSch7aEXEC binding; scopedoriginalpublicdecoderREAD insideTHIRDONLY/currentidentity-session-hash-settingsATUSE; first2 cannot repeat/no retry/fourth",
+  "issued_grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis457-remaining-integer-cell-serial3-package-App-issued-grant.json",
+  "issued_sha256": "3b47246f551332752dc4befa226c2e06d51ddae8f47b2db519a35f823cd79e56",
+  "issued_bytes_immutable": true,
+  "prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "recipient": "01a0ee64-8b4f-7921-a359-2357a04a19e1",
+  "build_authorized": false,
+  "build_attempts_consumed": 0,
+  "package_authorized": true,
+  "stage_attempts_consumed": 1,
+  "execution_authorized": true,
+  "job_execution_authorized": [
+    false,
+    false,
+    true
+  ],
+  "job_attempts_consumed": [
+    1,
+    1,
+    0
+  ],
+  "native_READ_authorized": true,
+  "native_EXEC_authorized": true,
+  "native_READ_authority": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper457-remaining-READ-issued-20261005.json",
+    "sha256": "bfac7e0afe2734abfd5012211c0ea292c1f3f964d4dddde9a458942c60c51e08",
+    "bound_at": 1791202575.3142643,
+    "scope": "OriginalHeis matchingimmutable7a NativeFullTrust/finalremaining940+Diff3/full69/155/1883 sourceproof+DTO READ only; no App/nativeEXEC/publicdecoder activation"
+  },
+  "native_EXEC_authority": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper457-remaining-EXEC-issued-20261005.json",
+    "sha256": "0f3397ff093079860608d8a614746e74b0ab383bbaf0f0c0233b4cafe1d7d581",
+    "bound_at": 1791203484.0423903,
+    "scope": "ONE exactissued THIRDconnectedreadonly job only; no first2repeat/retry/fourth/provider/input/publicApp"
+  },
+  "source_decoder_READ_authorized": true,
+  "proposal": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/preparation-height-workspace-successor-20261005/REMAINING-SERIAL3-SOURCE-CONTROL-ARTIFACT-OPERANDS.json",
+  "proposal_sha256": "5ed10cd7afc2fc4eb327bafd9c6e1a2209748a6de137a7b96bf2d7fb692eea4b",
+  "source_receipt_head": "40477fd5e16878df97f9f8adc3e9b9911584c02c",
+  "source_control_head": "0758a124a3aa87233b0954764cc8164599df5825",
+  "determining_product": "2832435d2cfecf410cfa2bddf017a9f0e57967e7",
+  "candidate": {
+    "Core": {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/c3-goal-selection675-wheel-20261005/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "a685578e439aa2f7010219aa6032ae7e7307a68393e6d6adbb084563f39f43c5",
+      "assets": 355,
+      "source": "7b68d630caa654d3e9884f45cbd6493718752a0c",
+      "build_source": "46124bbdc9dcec39e944eb64067d9c85f3508c0e",
+      "build_main_src_stack_metadata_delta": []
+    },
+    "Textual": {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native67-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+      "sha256": "16c9f5e7a1aca9f7a339fdb859c1743bbc0ba8f17327ba3debd4b13959ca927d",
+      "source": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78",
+      "qualified_source": "3aa29fc66d4214a5bf001fdf7d5889a5535995d6",
+      "executed_source": "b158ca382f835db4351d920eef6c16f77490b2c6",
+      "assets": 266,
+      "inventory_sha256": "1f84bbc64a9d2846cee092bfdf07ce2f319bb2a82f904bafe64dfae0e7748b9f",
+      "build_source_relation": "actualmerged/qualified/executed product byte-equal as native owner proof; no native test repeat"
+    },
+    "Toad": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-source-wheel-20261005/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "1c4318661b2eb0bfa84462d0389a7b824c8eb23d86ba9fae6d013a027aeab3bf",
+      "assets": 319,
+      "build_head": "db38ad541dcd07dead60e48473768905333473ff",
+      "determining_source": "2832435d2cfecf410cfa2bddf017a9f0e57967e7",
+      "current_source_control_head": "0758a124a3aa87233b0954764cc8164599df5825",
+      "source_control_src_build_input_delta": [],
+      "wheel_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-source-wheel-20261005/wheel-proof.json",
+      "wheel_proof_sha256": "60e0936e136aaab140dbd8e6cdfa5f48e0c0875df68cc3f060a7b65936ea38b4",
+      "source_equality": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/preparation-height-workspace-successor-20261005/REMAINING-SOURCE-WHEEL-EQUALITY.json",
+      "source_equality_sha256": "2b3577ebba82b21d56e61171c073219da695c1a0a3bc965167f4d2727a2bcd3f",
+      "old6977_source_equal": false,
+      "state": "Retained normal1c43 wheel byte-equal current source/build inputs; source/control-only correction, NO new build"
+    }
+  },
+  "jobs": [
+    {
+      "number": 1,
+      "argv": [
+        "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+        "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/history_stationary_local_runway_pilot.py",
+        "--installed-only",
+        "--remaining-page-wheel",
+        "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-remaining-integer-cell-App-20261005/no-agent/app"
+      ],
+      "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "output": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-remaining-integer-cell-App-20261005/no-agent",
+      "environment": {
+        "remove_exact": [
+          "PYTHONPATH",
+          "PYTHONHOME",
+          "VIRTUAL_ENV",
+          "L0A_EVIDENCE",
+          "AC_REAL_SOURCE_FILE"
+        ],
+        "remove_prefixes": [
+          "AGENT_COMMS_",
+          "AC_NATIVE_",
+          "AC_REAL_",
+          "TOAD_PERF_"
+        ],
+        "set": {
+          "PYTHONNOUSERSITE": "1",
+          "PYTHONDONTWRITEBYTECODE": "1"
+        },
+        "owned_config_state_data": "fresh per-job owned persistent paths under exact output only; no desktop/global changes/caps"
+      },
+      "native_artifact_execution": false,
+      "future_execution": "UNRUN; exact fresh grant and installed source proof/issuer release required; no original7bba inheritance"
+    },
+    {
+      "number": 2,
+      "argv": [
+        "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+        "-B",
+        "-c",
+        "import sys; sys.path.append('/usr/lib/python3.14/site-packages'); import agent_comms,toad,textual,pytest; print('INSTALLED IMPORTS',*[m.__file__ for m in (agent_comms,toad,textual)],flush=True); assert all(sys.prefix in m.__file__ for m in (agent_comms,toad,textual)); sys.exit(pytest.main(sys.argv[1:]))",
+        "-o",
+        "addopts=",
+        "--noconftest",
+        "--basetemp",
+        "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-remaining-integer-cell-App-20261005/project/fixture",
+        "-q",
+        "--tb=short",
+        "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/test_project_panel_intent.py::test_retirement_during_restore_keeps_the_project_reader"
+      ],
+      "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "output": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-remaining-integer-cell-App-20261005/project",
+      "environment": {
+        "remove_exact": [
+          "PYTHONPATH",
+          "PYTHONHOME",
+          "VIRTUAL_ENV",
+          "L0A_EVIDENCE",
+          "AC_REAL_SOURCE_FILE"
+        ],
+        "remove_prefixes": [
+          "AGENT_COMMS_",
+          "AC_NATIVE_",
+          "AC_REAL_",
+          "TOAD_PERF_"
+        ],
+        "set": {
+          "PYTHONNOUSERSITE": "1",
+          "PYTHONDONTWRITEBYTECODE": "1"
+        },
+        "owned_config_state_data": "fresh per-job owned persistent paths under exact output only; no desktop/global changes/caps"
+      },
+      "native_artifact_execution": false,
+      "future_execution": "UNRUN; exact fresh grant and installed source proof/issuer release required; no original7bba inheritance"
+    },
+    {
+      "number": 3,
+      "argv": [
+        "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+        "-B",
+        "-c",
+        "import sys,runpy; import agent_comms,toad,textual; assert all(sys.prefix in m.__file__ for m in (agent_comms,toad,textual)); sys.path.insert(0,'/home/ts/wt/comms-task-aware-native-bundle-20261002/tools/cutover'); sys.path.insert(0,'/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests'); script=sys.argv[1]; sys.argv=sys.argv[1:]; runpy.run_path(script,run_name='__main__')",
+        "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/native_goal_read_first_paint_pilot.py",
+        "--private-original-readiness"
+      ],
+      "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "output": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-remaining-integer-cell-App-20261005/connected-original",
+      "environment": {
+        "base": {
+          "remove_exact": [
+            "PYTHONPATH",
+            "PYTHONHOME",
+            "VIRTUAL_ENV",
+            "L0A_EVIDENCE",
+            "AC_REAL_SOURCE_FILE"
+          ],
+          "remove_prefixes": [
+            "AGENT_COMMS_",
+            "AC_NATIVE_",
+            "AC_REAL_",
+            "TOAD_PERF_"
+          ],
+          "set": {
+            "PYTHONNOUSERSITE": "1",
+            "PYTHONDONTWRITEBYTECODE": "1"
+          },
+          "owned_config_state_data": "fresh per-job owned persistent paths under exact output only; no desktop/global changes/caps"
+        },
+        "set": {
+          "AC_REAL_READ_ONLY_CUSTODY": "1",
+          "AC_REAL_PROVIDER_AUTHORIZED": "Sol/high retained acceptance",
+          "AC_REAL_FIXTURE_STAGE": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-remaining-integer-cell-App-20261005/connected-original/private-original",
+          "L0A_EVIDENCE": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-remaining-integer-cell-App-20261005/connected-original/receipt",
+          "AC_REAL_CORE_HEAD": "7b68d630caa654d3e9884f45cbd6493718752a0c",
+          "AC_REAL_TOAD_HEAD": "0758a124a3aa87233b0954764cc8164599df5825",
+          "AC_REAL_ORIGINAL_PYTHON": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+          "AC_REAL_SOURCE_OWNER": "nra-architecture",
+          "AC_REAL_SOURCE_ROOT": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+          "AC_NATIVE_COPIED_PACKAGE": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent"
+        },
+        "AC_REAL_SOURCE_FILE": "ABSENT; originalCurrentTypedCapture Thread.session_file only"
+      },
+      "native_artifact_execution": true,
+      "future_execution": "UNRUN; exact fresh grant and installed source proof/issuer release required; no original7bba inheritance"
+    }
+  ],
+  "actual_floor_authority": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-actual-unused421-after-Parent-supersede-current-floor-readback.json",
+  "actual_floor_authority_sha256": "e2808c4783fd74dce55d8c20b59b7018d2c44685cc6c29ff92b6ad028f2b6bd2",
+  "actualfloor_members": 1441,
+  "normal_distributions": 69,
+  "other66_unchanged_unique_members": 1883,
+  "protected_originals": 155,
+  "fresh_floor_readback": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis457-remaining-prebinding-floor-source-readback.json",
+  "fresh_floor_readback_sha256": "5b110b6a1d95ddfed3933326bb3b96b9f34e0d8ef3a3d9f76ec3e5096874231f",
+  "fresh_borrowers": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis457-remaining-prebinding-borrowers.json",
+  "fresh_borrowers_sha256": "a3e33d25cd4f97a55919c1fc68d1a0a2c90667171af5f388d218188d160f3b14",
+  "fresh_native_reference_classification": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis457-remaining-prebinding-native-reference-classification.json",
+  "fresh_native_reference_classification_sha256": "7d170d26c1dd4b6818a95b31b1bddf076419b19b76e3023c5866958a0df1b2cb",
+  "private_refs": 0,
+  "gaps": 0,
+  "public448_shared_native_refs_preserved": 19,
+  "candidate_source_proof": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-remaining-integer-cell-App-20261005/package-proof/source-proof.json",
+    "sha256": "6ee6b02e6abc52ba7699536a107148e8cfc0c30c228beac89fd0eee71568b604"
+  },
+  "candidate_DTO": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-remaining-integer-cell-App-20261005/package-proof/candidate-activation.json",
+    "sha256": "3564126c2647a77ebe7073e2022dafc8cb985c435f816118cd4d3a12414c8aac"
+  },
+  "whole_floor_return_required": true,
+  "stop_first_failure_or_uncertain_effect": true,
+  "public_current_STYLE22_448_protected": true,
+  "shared_lifecycle_writer": "OriginalBohrONLY",
+  "no_previous_loan_inheritance": true,
+  "no_nextloan_inferred": true,
+  "no_completed27_session_ABABA_batch_repeat": true,
+  "previous_lifecycle_sha256": "0968daa24eb2baa2385bb51d012eb36b0973de5f4f0f43c422c93769648b3ea3",
+  "independent_final_candidate_readback": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis457-remaining-independent-final-candidate-readback.json",
+    "sha256": "202eec58add4a6ae04b05a7ce03cb3a607813c568c80d91d214206d298c81bb8"
+  },
+  "execution_release": {
+    "released_at": 1791202889.2429676,
+    "authorized_job_numbers": [
+      1,
+      2
+    ],
+    "exact_issued_argv_env_output": true,
+    "serial_samecandidate": true,
+    "stop_first_failure_or_uncertain_effect": true,
+    "no_nativeartifactEXEC_needed_first2": true,
+    "third_HELD_first2_PASS_joined_NEW7aEXEC_current_capture_at_use": true,
+    "no_accepted27_session_ABABA_repeat": true
+  },
+  "first_two_results": [
+    {
+      "job": 1,
+      "terminal": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-remaining-integer-cell-App-20261005/job1-terminal.json",
+      "terminal_sha256": "4f9f906053fff54032871ce7bea63e41d95092d09e2d5daad91ee4018801cab1",
+      "duration_seconds": 10.177384375943802,
+      "identity": {
+        "pid": 2717657,
+        "start_time": 67859562
+      },
+      "exit_code": 0,
+      "joined_absent": true,
+      "groups": [],
+      "cleanup": {
+        "remaining_owned_pids": [],
+        "errors": []
+      }
+    },
+    {
+      "job": 2,
+      "terminal": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-remaining-integer-cell-App-20261005/job2-terminal.json",
+      "terminal_sha256": "922fdb695df58bb93e1db334798a8727b89a38fb9d9cf40b37fdadfdc336ce56",
+      "duration_seconds": 4.390803333953954,
+      "identity": {
+        "pid": 2728448,
+        "start_time": 67867594
+      },
+      "exit_code": 0,
+      "joined_absent": true,
+      "groups": [],
+      "cleanup": {
+        "remaining_owned_pids": [],
+        "errors": []
+      }
+    }
+  ],
+  "first_App_receipt": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-remaining-integer-cell-App-20261005/no-agent/app/receipt.json",
+    "sha256": "56abed88f1d02c13edf05bbc55fa64b1c0e4b52d53bdbea30a77928b7f6e3198",
+    "scope": "Remaining page/wheel Up-Down/reversal/End reader/editor/source/Runtime wholeclose; completed27/session/ABABA not repeated",
+    "not_fullworkflow_CPU_physical_claim": true
+  },
+  "source_decoder_release": {
+    "released_at": 1791203484.0423915,
+    "exact_original_decoder_argv": [
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+      "/home/ts/wt/comms-task-aware-native-bundle-20261002/tools/cutover/read_original_owner.py",
+      "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "nra-architecture",
+      "current_thread"
+    ],
+    "scope": "Original CurrentTypedCapture/RetainedOwnerLaunch only INSIDEthird, actualprocess/incarnation/session/filehash/config/authRAM ATUSE; AC_REAL_SOURCE_FILE absent; preserve actualmodel/thinking/settings; no fixedPID/sourcepromise/standaloneprobe/publicsignals"
+  },
+  "third_execution_release": {
+    "released_at": 1791203484.0423934,
+    "job_number": 3,
+    "first2_actual_PASS_joined_bound": true,
+    "actual_candidate_sourceproof_DTO_unchanged": true,
+    "NEWSch7aEXEC_literal_read_bound": true,
+    "exact_issued_argv_env_output": true,
+    "ONE90s_originalBoundedRun_only": true,
+    "zero_newinput_provider_replay": true,
+    "refresh_actual_resources_at_launch": true,
+    "whole_actual1441_69_155_1883_restore_and_explicitREAD_EXEC_return_required": true
+  }
+}
