@@ -1,0 +1,35 @@
+{
+  "state": "SOURCE ONLY normallyjoined actual461; old7546 fullpackage equality explicitly false",
+  "actual461_main": "eb6eafa547778ba4394723b9e28cf5b6650d93d8",
+  "actual461_reviewed_head": "dc1890bae89d8ff759a0f2714b973a24c4ddb591",
+  "receiving_normal_join_head": "9b3856551f6263cfc245833d518b24ad95d6a858",
+  "old_body_render_wheel_sha256": "7546bd15d78f2c06a11a2bb4e5564050017360c222e8e064abea2b560a180432",
+  "assets_compared": 319,
+  "assets_equal": 316,
+  "changed_assets": [
+    {
+      "source": "src/toad/screens/main.py",
+      "retained_sha256": "6ca0efadd7d21af4014c7e2a896e8ea682de35d3d1a2fe4084785e90730681cd",
+      "merged_sha256": "2a601c11762edf3d56526de9970cb9df0de386705c444cafead06659276e09b1"
+    },
+    {
+      "source": "src/toad/session_presentation.py",
+      "retained_sha256": "7f9ced5400c750680df5c36d6c4c8f1e0f1bae3d379b4aa49bd8be7308c048d9",
+      "merged_sha256": "412886c5ce3e033baf8c69e8b476202fe82f638822c4737e8022f7d986d63d25"
+    },
+    {
+      "source": "src/toad/widgets/conversation.py",
+      "retained_sha256": "2c98123316ce3809ebd4022c0764779fa0255f1b17c9094dd88e22bc088b34a5",
+      "merged_sha256": "b1c2ea8f624c5e1dcc69d1174377d60ae83541c5a3d1d61c6adefd21efa69736"
+    }
+  ],
+  "root_build_input_delta": [],
+  "old7546_full_source_equal": false,
+  "old37b7_full_equality_not_assumed": true,
+  "accepted461_scope": "OneNoAgentApp12.189038s constructor/remount/Undo/close; all35receipts/independentf65aclosure accepted separately",
+  "accepted_body_renderer_recorder_historical_relations_preserved": true,
+  "final_usefulpaint_frame_source_wheel_builder": "OriginalHeis soleowner; finalfullmergedunion relation unbound until actualqualification",
+  "final_union_source_wheel_metadata_canonical_cohort_grant_onceoperands": null,
+  "no_build_package_prefix_access_acceptedcontrolrepeat_or_publicoperation": true,
+  "recorded_at": 1791218024.3251367
+}

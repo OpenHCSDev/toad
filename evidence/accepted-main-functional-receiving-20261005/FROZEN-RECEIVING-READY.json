@@ -1,0 +1,75 @@
+{
+  "state": "SCOPED functionalreceiving465 preparationREADY; positivecandidateFROZENHELDPARENT/publicationunexecuted",
+  "READY": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/accepted-main-functional-receiving-20261005/READY.json",
+    "sha256": "001675c1a5c772563dcfe8131a3691733c47df4c5e67b9988c5222703aa94280"
+  },
+  "frozen_manifest": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/accepted-main-functional-receiving-20261005/frozen-manifest.json",
+    "sha256": "566eee75076643c771cd13fd3de575fc6b9ad7758db9a49a5d9c13142f16846b",
+    "count": 111
+  },
+  "whole_immediate_handback": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/accepted-main-functional-receiving-20261005/whole-immediate-handback.json",
+    "sha256": "6ee6c996dabaf7e9bfdda573977fd381d830b379a320b6e7d9d3a5acb71897bc"
+  },
+  "sourceproof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/accepted-main-functional-receiving-20261005/source-proof.json",
+    "sha256": "b0e4dd28c8e59f7de39ee595df4f75f1aee3827914cc9e01769c1f9ca8600b40"
+  },
+  "ownDTO": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/accepted-main-functional-receiving-20261005/candidate-activation.json",
+    "sha256": "d309100bb34d306d42aa341bb1d19427fc82f51e2ee00455708533d7eaf38ca3"
+  },
+  "once_operands_PREPARED_ONLY": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/accepted-main-functional-receiving-20261005/once-operands.json",
+    "sha256": "7a1f30f99d3ce5f119495de978c88c34ae28624b4a5de53c7d7dc7ff1794557e"
+  },
+  "native_READ_closure": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper465-accepted-main-functional-READ-handback-20261005.json",
+    "sha256": "a7f47c5d701c02ebb3e204e71ff8de8711705f779a34305e838a09e520f9d5e2"
+  },
+  "stage_once": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/accepted-main-functional-receiving-20261005/stage-terminal.json",
+    "sha256": "39b1907ce3589476307bd974d2eacc63fa3b6a0ba9ca7c463f0e007fa833d970"
+  },
+  "proof_once": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/accepted-main-functional-receiving-20261005/proof-terminal.json",
+    "sha256": "858836bf0b811281b017a0f0ec8d3430f12bba8a744c141200ee736c73453ab8"
+  },
+  "canonical51_actualCore": "7800f714d09d2e180597ca9ff59a14de41469dba",
+  "canonical_manifest": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/accepted-main-functional-receiving-20261005/MERGED-CANONICAL-SOURCE-MANIFEST.json",
+    "sha256": "c16321ee1efb8b4f23338489f6c2b7f59581182c8db7fde0bbcf2590b2211813"
+  },
+  "schema_source_target": 10,
+  "native_source_target": "7a2e4aabdbc5af49dd9af942190d92086df2eb3489903674a74af51cf831cd33",
+  "runtime_member": "PreserveRuntimeInstallation",
+  "owner_runtime": "PreserveOwnerRuntime",
+  "preparation_terms": {
+    "qualification_input_prepare": {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/accepted-main-functional-receiving-20261005/qualification_input_prepare-terminal.json",
+      "sha256": "f28d31f66623aefcedcd415668cc308fbe0b6c10b1950ab113bbbeb7c3cb1a46"
+    },
+    "canonical_prepare_readback": {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/accepted-main-functional-receiving-20261005/canonical_prepare_readback-terminal.json",
+      "sha256": "056ef888a5932aaefa1f8357de39ceb8fdc13a6643fc04c95bd29a7b1352c841"
+    },
+    "readback_prepare": {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/accepted-main-functional-receiving-20261005/readback_prepare-terminal.json",
+      "sha256": "6e4823db27f6f2633b3a3870ebe2f6b44572d9f292dee76957c766949e09ca70"
+    },
+    "cohort_prepare": {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/accepted-main-functional-receiving-20261005/cohort_prepare-terminal.json",
+      "sha256": "646f28ada3d431bdf1c452af2a4c8dcc1fa29635c4e1c5e3310c8f91f1f858b2"
+    }
+  },
+  "installed953_full69_keepers_preserved": true,
+  "Original448_626_plus5_1883_bootstrap2_activation_unchanged": true,
+  "distinct_original_journey_gates": 150,
+  "accepted_control_repeat": false,
+  "further_prefix_import_write_execution_claim": false,
+  "independent_Bohr_candidate_census_close": "Requested; not claimed by this owner receipt",
+  "future_Parent_only": "Source/candidate review; original freshpublicclientadmission and newoncepublisher/readback/keeperstartupauthority afteractualclosure; no CI/performance/docs gate",
+  "PUBLIC485459_protected": true
+}
