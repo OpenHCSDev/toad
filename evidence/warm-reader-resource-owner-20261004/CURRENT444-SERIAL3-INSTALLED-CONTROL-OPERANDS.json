@@ -306,7 +306,24 @@
     "genuine_private_SDK_forks": 1,
     "synthetic_seed": false,
     "custody": "Original source digest/current identity before+after; auth remains RAM-only; no historical PID or UNKNOWN replay. Readonly callback original currentThreadProjection, not format guess.",
-    "source_READ_authority": "Parent explicitly authorizes ORIGINAL PUBLIC334/current447 decoder READ/execution ONLY existing read_original_owner.py under CurrentTypedCapture inside fresh446 purpose. Fresh named nra-architecture launch/config/auth stays RAM-only; fresh original identity/hash fence before privatefork. NO PUBLIC334 App/package/native-input/signals. Metadata locator alone never authorizes execution; literal newBohr serial3 purpose + Sch086 still required before jobs."
+    "source_READ_authority": "Parent explicitly authorizes ORIGINAL PUBLIC334/current447 decoder READ/execution ONLY existing read_original_owner.py under CurrentTypedCapture inside fresh446 purpose. Fresh named nra-architecture launch/config/auth stays RAM-only; fresh original identity/hash fence before privatefork. NO PUBLIC334 App/package/native-input/signals. Metadata locator alone never authorizes execution; literal newBohr serial3 purpose + Sch086 still required before jobs.",
+    "source_sha256_at_operand_read": "7f1640ed6f4aa94db28c08257e3ac2e8f1d41ff7dd1d3a21e241f45009f1b19a",
+    "source_hash_read": "Readonly O_NOATIME actual original file digest; stable dev/inode/size/mtime/ctime before+after. No capture/runtime/package/SDK/App executed. Original configured fixture source_digest + original_custody checks actual hash/current identity again under granted CurrentTypedCapture before/after use; unchanged source is required.",
+    "source_stat": {
+      "dev": 2084,
+      "inode": 2659658,
+      "size": 41357574,
+      "mtime_ns": 1791090849196857648,
+      "ctime_ns": 1791090849196857648
+    },
+    "decoder_subprocess_argv": [
+      "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+      "/home/ts/wt/comms-task-aware-native-bundle-20261002/tools/cutover/read_original_owner.py",
+      "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "nra-architecture",
+      "current_thread"
+    ],
+    "decoder_projection": "CurrentThreadProjection.declared_name derived by original _FamilyMeta affix Projection. Existing OriginalTypedCapture.observe removes PYTHONPATH in subprocess; initial stdin empty; repeated require_current passes exact acquired OwnerRestartSelection via original FieldCodec; no fallback decoder."
   },
   "generated_payload_lifetime": {
     "owner": "Original l0a runtime_fixture finally + original_turn_resource_real_installed_pilot finally / stop_test_children; capture/transferred journals keep original owner disposition. Bohr sole shared cleanup.",
