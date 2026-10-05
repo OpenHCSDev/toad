@@ -55,3 +55,27 @@ The complete Renderer subclasses and existing observing/gating controls migrate
 to capture. CapturedResult is removed; ResultCapture accepts PreparedValue through
 its existing nominal boundary. Headless RenderExecution.complete remains the
 separate original SDK validation path without a renderer or retention transport.
+
+## Published source checkpoint
+
+- Fourteen unique unittest cases and two existing policy controls passed at their
+  source scope. The changed delivery-thread observation case additionally proves
+  that task validation runs off the caller thread and cancelled decoding is
+  joined by close. A real pure renderer worker, declared reply codec, independent
+  Markdown results and persistent error/cancel/lease transitions were exercised.
+- Two initial optional-dependency imports failed before cases. Two unchanged
+  fingerprint checks failed on missing source dependency identity. All original
+  outcomes/logs remain in `source-controls/`; no oracle was weakened and passed
+  cases were not repeated to repair those dependency preconditions.
+- The one normal Hatchling 1.28 filewheel has all 319 Git/local/ZIP assets equal.
+  `FILEWHEEL.json` names its original path/hash. This is source packaging evidence.
+- Final source coverage is 288 production modules and 397 test modules, zero
+  parse omissions; all 17 changed Python modules compile. Local debt has no
+  positive counters. No installed, physical, frame cadence or speed result exists.
+
+`SOURCE-CHECKPOINT.json` retains exact results and limits. The existing installed
+renderer control is prepared to cover both transports plus Markdown/Rich
+independent delivery; it has not run. `FUTURE-INSTALLED-SCOPE.json` identifies its
+literal control/hash and the required optional persistent-renderer dependency.
+Heis retains the first-paint/moving-frame integration; a fresh eligible holder
+purpose must bind the installed cohort before that work executes.
