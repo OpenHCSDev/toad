@@ -1,0 +1,167 @@
+{
+  "state": "ONE_STAGE_COMPLETED;NEW_ACTUAL_SCH_READ_RECEIVED;ONE_PROOF_HELD_BOHR_BINDING",
+  "issued": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Einstein466-NoAgent-worker-mounted-package-App-issued-grant.json",
+    "sha256": "09bc509150185772587216843f9f323ccf201f2009f734a569dae111f52c0787"
+  },
+  "actual_floor": {
+    "role": "NONLIVE formerPUBLIC485 CURRENT459; PUBLIC465style22 protected",
+    "preimage": {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-current459-for466-original-floor-preimage.json",
+      "sha256": "97c403765a6647aabf613ac74f22d625c9b6cb8a9c8232e0eb074ef3f2f9a791"
+    },
+    "archive": {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/485-current459-before466/original-current459-package-floor.tar.gz",
+      "sha256": "1563f43e54f84c6c1534aa13c41e0a785bd0e467b68496fa84e1072704dadca0",
+      "bytes": 3988872,
+      "members": 1467,
+      "mode": 384
+    },
+    "members": 1467,
+    "protected": 266,
+    "other65_records": 1865,
+    "source_heads": {
+      "agent_comms": "7b68d630caa654d3e9884f45cbd6493718752a0c",
+      "toad": "e32253a5601400234b7ef0b5a191185c7427647a",
+      "textual": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78",
+      "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "refactor_audit": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10"
+    },
+    "restore_argv": [
+      "uv",
+      "pip",
+      "install",
+      "--python",
+      "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+      "--no-deps",
+      "--no-cache",
+      "--link-mode",
+      "copy",
+      "--reinstall",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/preparation-height457-source-wheel-20261005/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl"
+    ],
+    "original69_RAWorigins_authority": "Immutable issued09bc; all other68 unchanged; restore actualoriginalToad1c43 then WHOLE1467/69/266/1865 hash-mode-link readback/PREFIXactivation"
+  },
+  "stage": {
+    "terminal": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/install-terminal.json",
+    "sha256": "bc0252d3dde7250708a91b876e4d84b815df80c4bc85058b533ced9edecf5650",
+    "exit_code": 0,
+    "stage_attempts": 1,
+    "candidate_wheel": {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "b2e420e5b2eed1aaa96d815b2abf38f990272a047417c2ca5082c01d9149a151",
+      "bytes": 2251159,
+      "source_assets": 319,
+      "inventory": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/wheel/source-inventory.json",
+      "inventory_sha256": "6fa9721f2efa188962b386fe7a0f353f9efc96e32d184a78ceb53f8e7a633a54",
+      "build_receipt": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/wheel/build-receipt.json",
+      "build_receipt_sha256": "49d709192cc12bd5a1ae08d9f9b82ea79b43c28b5b41033163231e2659d65617"
+    }
+  },
+  "proof_helper": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/viewport-worker-custody-20261005/prepared-485-installed-source-proof.py",
+    "sha256": "72c47acc79d24ff8d6b216f8d760ff2da20941ad821dc73c2b983bf9b64a844e",
+    "compiled_only": true,
+    "algorithm": "Original selected675 InstalledSource/InstalledSourceProof/ReviewedArtifact/CohortActivation owners; full953 installed+originalwheel/RECORD/buildmetadata, 69 and other68RAWorigins,1865/266/PREFIXactivation. Original NativeFullTrust READONLY then ownproof/DTO.require_activation; no nativeEXEC/App."
+  },
+  "typed_proof_owner": {
+    "path": "/home/ts/wt/comms-field-codec-closure-20260928/tools/cutover/publish_retained_summary.py",
+    "sha256": "025babf120563228d99920617d34f2e4142307d38e049405d4af49b2ecd7a960",
+    "byte_equal_selected_Core7b68": true
+  },
+  "planned_proof_argv": [
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+    "-B",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/viewport-worker-custody-20261005/prepared-485-installed-source-proof.py",
+    "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Einstein466-NoAgent-worker-mounted-package-App-issued-grant.json",
+    "09bc509150185772587216843f9f323ccf201f2009f734a569dae111f52c0787",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper466-READ-issued-20261005.json",
+    "c53a69341c02f9e5f64ad99b52462c86a210f25738b609c0aa9286bc07ede429",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01"
+  ],
+  "proof_cwd": "/home/ts/wt/toad-regression-widget-cost-20261001",
+  "proof_environment": {
+    "set": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "unset": [
+      "PYTHONPATH",
+      "PYTHONHOME",
+      "VIRTUAL_ENV"
+    ]
+  },
+  "NEW_native_READ_binding": {
+    "receipt_path_proposed": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper466-READ-issued-20261005.json",
+    "sha256": "c53a69341c02f9e5f64ad99b52462c86a210f25738b609c0aa9286bc07ede429",
+    "holder_grant_must_equal": {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Einstein466-NoAgent-worker-mounted-package-App-issued-grant.json",
+      "sha256": "09bc509150185772587216843f9f323ccf201f2009f734a569dae111f52c0787"
+    },
+    "package": {
+      "package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+      "manifest": "7a2e4aabdbc5af49dd9af942190d92086df2eb3489903674a74af51cf831cd33",
+      "tree": "0d7ff54a04d4f0ff175fc889e936ca3cea8b1f98eb8b73ed6215c3373cbd984d"
+    },
+    "READ": true,
+    "EXEC": false,
+    "state": "NEWoriginalSch actual09bc grant-read READONLY issued, personallyread/hashmatched; Bohr lifecyclebinding remainsrequired beforeproof"
+  },
+  "proof_outputs": {
+    "candidate-source-proof.json": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/candidate-source-proof.json",
+    "candidate-activation.json": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/candidate-activation.json",
+    "native-full-trust.json": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/native-full-trust.json",
+    "package-boundary-proof.json": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/package-boundary-proof.json",
+    "candidate-packages.json": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/candidate-packages.json",
+    "agent_comms-installed-inventory.json": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/agent_comms-installed-inventory.json",
+    "toad-installed-inventory.json": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/toad-installed-inventory.json",
+    "textual-installed-inventory.json": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/textual-installed-inventory.json",
+    "textual_diff_view-installed-inventory.json": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/textual_diff_view-installed-inventory.json",
+    "refactor_audit-installed-inventory.json": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/refactor_audit-installed-inventory.json",
+    "proof.stdout.log": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/proof.stdout.log",
+    "proof.stderr.log": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/proof.stderr.log",
+    "proof-terminal.json": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/proof-terminal.json"
+  },
+  "control": {
+    "argv": [
+      "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+      "-B",
+      "-c",
+      "import runpy, sys\nsys.path.append('/home/ts/wt/toad-regression-widget-cost-20261001/tests')\nsys.argv = ['/home/ts/wt/toad-regression-widget-cost-20261001/tests/viewport_body_lifetime_pilot.py', '--worker-custody-only', '/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01']\nrunpy.run_path('/home/ts/wt/toad-regression-widget-cost-20261001/tests/viewport_body_lifetime_pilot.py', run_name=\"__main__\")\n"
+    ],
+    "cwd": "/home/ts/wt/toad-regression-widget-cost-20261001",
+    "environment": {
+      "unset": [
+        "PYTHONPATH",
+        "PYTHONHOME",
+        "VIRTUAL_ENV",
+        "AGENT_COMMS_THREAD",
+        "AGENT_COMMS_RUNTIME",
+        "PI_AGENT_ID",
+        "PI_PROMPT"
+      ],
+      "set": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "TOAD_TEST_ATTEMPT": "einstein466-worker-mounted01-20261005",
+        "TMPDIR": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/tmp",
+        "AGENT_COMMS_ROOT": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/joint-mounted01/bootstrap-wire"
+      }
+    },
+    "exact_control": {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/viewport_body_lifetime_pilot.py",
+      "sha256": "085bce4deba13863bf1bbf22ce53d33352ca72400d743d48d213d4604da1626a"
+    },
+    "exact_helper": {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/runtime_fixture.py",
+      "sha256": "987399f81781f57e5cca89dc0e5214c59663d97a01bcb5bad18f35d7f8eb686f"
+    },
+    "bounded_seconds": 90,
+    "attempts": 1,
+    "operator": "OriginalEinstein",
+    "result": null
+  },
+  "before_proof": "OriginalBohr binds exacthelper/argv/newREAD receipt inexisting09bc lifecycle; originalSch ownsmatching7aREAD authority; no repeatedstage or nativeEXEC.",
+  "before_App": "Actualone953proof/DTO literalhashes then originalBohr explicitrelease ofONE085b originalNoAgent mode.",
+  "whole_floor_return": "After single terminal PASS/FAIL/uncertainty, join original App/preparation/workers/executor and BoundedRun controller/groups/private sockets, restore entire ACTUAL issued floor bytes/modes/readlinks/full69 origins/protected originals using existing normal no-cache installer and actual preimage/archive as authoritative, publish own whole handback, Bohr independently closes. No retry/secondstage/newpurpose.",
+  "public_style22_334_540_protected": true,
+  "no_newbuild_env_acceptedrepeat": true
+}
