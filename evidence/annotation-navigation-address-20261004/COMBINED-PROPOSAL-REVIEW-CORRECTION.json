@@ -1,0 +1,24 @@
+{
+  "original_review": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/annotation-navigation-address-20261004/COMBINED-PROPOSAL-REVIEW.json",
+  "original_review_sha256": "189fb248b48350d6c6abd597fe241d7670b8a53081993e78ba8841dc25d3a7cb",
+  "original_proposal_sha256": "a2258dcb6019a13fc7b571dd8ac1f0f92fa492dfc7e548e53ec525124e8c866e",
+  "original_writer_codepoints": [
+    10
+  ],
+  "effective_proposal": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/context-explorer-functional-receiving-20261004/PROPOSED-COMBINED449-448-OPERANDS-NEWLINE-CORRECTED.json",
+  "effective_proposal_sha256": "aa5f84f326e6713514f7ba37098343d8530701d9f3342da29c9c562a5f24898b",
+  "effective_writer_codepoints": [
+    10
+  ],
+  "correction": "My earlier two-character/broken-writer conclusion was incorrect. I misread the escaped representation. The original review itself records actual_character_codes=[10], equal to required_character_codes=[10]. No byte witness supports a broken original writer. Both source commands emit a newline.",
+  "verified": "Hash-matched original/effective proposals, actual AST constants, code compilation and ordinary JSON document/newline roundtrip only; no future commands executed.",
+  "unchanged": "All control, argv, wheel, source and handoff operands remain equal. The original review and proposal remain immutable. Effectiveaa5f is the requested future receiving binding.",
+  "grant_read": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-SchEinstein449-448-combined-owner-check-receiving-issued-grant.json",
+    "sha256": "679abc6536af1cf1f1046f04d75dfb6cc24f2b19666b0e687c4407536195df3f",
+    "lifecycle_read_sha256": "894addde6f08b3326cd0dbad57c087ce1f954bc812216e9638d63df4b1250752",
+    "operator": "Einstein READ/control only",
+    "control_held": true,
+    "no_prefix_access": true
+  }
+}
