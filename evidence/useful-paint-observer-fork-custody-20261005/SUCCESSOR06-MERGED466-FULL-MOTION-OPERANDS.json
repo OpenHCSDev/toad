@@ -248,8 +248,8 @@
     },
     {
       "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/capture_state.py",
-      "sha256": "8b1d4bdb888d3f49f7514f85c01ed55a04dad17b1e6946504d6ff752373a0277",
-      "bytes": 33566
+      "sha256": "1cce4fa4902f11f4ffd6201293564cd8a574354591359d7ddb0b557cebdc7138",
+      "bytes": 33577
     },
     {
       "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/click_history.py",
@@ -305,6 +305,18 @@
         "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/record_installed_tui.py",
         "sha256": "307da0f244ceed038af1763ea9299d4ea964107a0478864801511ac9b361e469",
         "bytes": 143840
+      }
+    },
+    {
+      "before": {
+        "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/capture_state.py",
+        "sha256": "8b1d4bdb888d3f49f7514f85c01ed55a04dad17b1e6946504d6ff752373a0277",
+        "bytes": 33566
+      },
+      "after": {
+        "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/capture_state.py",
+        "sha256": "1cce4fa4902f11f4ffd6201293564cd8a574354591359d7ddb0b557cebdc7138",
+        "bytes": 33577
       }
     }
   ],
@@ -454,10 +466,30 @@
     "sha256": "8182cb6ea916cedd7056aed62abe1cdb6bf5c54bdf198025439a6aa0191db70d",
     "bytes": 52096
   },
-  "supersedes_control_binding_only": "Supersedes unissued62e proposal after Parent actual466merge. ONLY new native right-sidebar disclosure in recorder +originalviewport_recent_tabs consumer migration to _worker, mergedviewport_body source. One normal unionToadwheel2ece exactfull319 replaces old7f/b2e for this newpurpose; unchangedCorea685/Textbc47/NRA8d/no newdeps/acceptedcontrol replay.",
+  "supersedes_control_binding_only": "Supersedes unissued62e proposal after Parent actual466merge. ONLY new native right-sidebar disclosure in recorder +originalviewport_recent_tabs consumer migration to _worker, mergedviewport_body source. One normal unionToadwheel2ece exactfull319 replaces old7f/b2e for this newpurpose; unchangedCorea685/Textbc47/NRA8d/no newdeps/acceptedcontrol replay. Complete final capture consumer derives reconciling from original_worker; THREE of20 helper changes total, other17 unchanged. Previous4505 preserved inGit, no artifact rebuild.",
   "asset_count_precision": {
     "previous_published_head": "272dad4f4",
     "previous_manifest_sha256": "2354890d58fbf98b799e214bc0e8c6fe6f798323366a01d16407c18feca289fb",
     "correction": "candidate_assets names full staged355Core+319Toad+266Text+3Diff+10NRA=953, not ToAd-only319; previous235 preserved in Git. Actual wheel/proof/full69 unchanged; no build or source/control change."
+  },
+  "merged466_capture_consumer_completion": {
+    "prior_published_head": "1c741b7cc",
+    "prior_manifest_sha256": "4505b319226aea74cef5385ff88436c50e5204f001c0f5eb2e80545ddf02b201",
+    "before": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/capture_state.py",
+      "sha256": "8b1d4bdb888d3f49f7514f85c01ed55a04dad17b1e6946504d6ff752373a0277",
+      "bytes": 33566
+    },
+    "after": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/capture_state.py",
+      "sha256": "1cce4fa4902f11f4ffd6201293564cd8a574354591359d7ddb0b557cebdc7138",
+      "bytes": 33577
+    },
+    "owner": "snapshot_state HistoryWindow document_viewport = original DocumentViewport; _running removed by466, _worker handle now owns reconciliation admission/lifetime",
+    "correction": "Derive existing reconciling snapshot boolean from original manager._worker is not None. No new mirror/flag/alias/guard. Other _running reads in sidebar_validation_driver belong nativeToadApp, remain legitimate.",
+    "method_contract": "capture only; native hit/geometry and actual rendering/output unchanged",
+    "compile": "PASS without application imports",
+    "product_pins_wheel_delta": [],
+    "new_capture_or_test": "NONE"
   }
 }
