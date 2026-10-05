@@ -18,6 +18,9 @@ that owner and needs no migration.
 Before: original refactor-audit Package/Repository parsed288 ToAd production,
 397 tests,41 tools,324 Core and249 Textual production/460 tests; zero omissions.
 All11 related declaration/call sites are in OWNER-BEFORE.json.
+After at determining `1fbe1f09`, the same complete roots parse with zero
+omissions. OWNER-AFTER.json records zero private formatter consumers anywhere
+in Toad production, tests or tools. Native consumers retain their existing owner.
 
 SOURCE-CHECK.json records syntax compilation and the original audit measure
 comparison. No positive structural counters. The first authored audit call
