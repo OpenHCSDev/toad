@@ -1,0 +1,15 @@
+{
+  "normal_main_join": "1ca7c9b27b4acfcf42d325bb9cfbe6c137d35200",
+  "Toad_main": "262875cbd6b54bf0b6f93edfe237a8d7facfc67b",
+  "merged_functional_Toad": "75d5f0a06aa076e4784dfbfdc6d2a37850b6c4aa",
+  "merged_functional_Core": "e5f3811b5fd94d69cffe48ec76311afc687d8b08",
+  "Core_merge": "9c0888db3094be85223063af66d1108c4c100216",
+  "carry_merge": "781b20e4189efb47cd44ac6f11a74f580884c9af",
+  "src_tests_tools_pyproject_uv_delta_vs_tested_build": "ZERO",
+  "wheel": "1a8ad3507b6a567a203d16eac55e3ef53d5f04526b106b6aa41599f93cfd1b16",
+  "source_proof": "5570f891343fd6f6f026f72f026a41960cb9bc2e1e88c81191244e4afe67391a",
+  "future_proposal": "7f48115633a3fe2566af5c829f128a9048d774c4afb3dd7b94c4afca0ba81454",
+  "source_result": "Original authored native Tree check1PASS1.44s retained; no repeat",
+  "installed": "No successor installed purpose or acceptance",
+  "scope": "Normal source integration only; retained319asset proof applies through zero byte delta. No build/package/native/App/public operation."
+}

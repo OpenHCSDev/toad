@@ -1,0 +1,62 @@
+{
+  "state": "Future combined receiving handoff only; no purpose issued",
+  "source_head": "c160c05b193b13add79c881a2129e13747e40cd1",
+  "determining_Toad_product": "494d21d3e5bafadc9626e02f9d7b8dd8d9a14420",
+  "original_proposal": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/annotation-navigation-address-20261004/PROPOSED-INSTALLED-OPERANDS.json",
+  "original_proposal_sha256": "7f48115633a3fe2566af5c829f128a9048d774c4afb3dd7b94c4afca0ba81454",
+  "candidate_Core": {
+    "wheel": "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-historical-main3aac-source/agent_comms-0.1.0-py3-none-any.whl",
+    "sha256": "0ed358e9a1d845f3fdceca138d0f2fa02824ac61161b3d8ba9a5e32b1cc3b6e3",
+    "asset_count": 355,
+    "source": "3aacd708fb9c699cc80c6b864e0ae8cf9ccff7f8",
+    "proof": "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-historical-main3aac-source/source-proof.json"
+  },
+  "candidate_Toad": {
+    "wheel": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/annotation-address-successor/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "1a8ad3507b6a567a203d16eac55e3ef53d5f04526b106b6aa41599f93cfd1b16",
+    "asset_count": 319,
+    "source": "486fb2134a69ebb4cb78831e35fb89a2a45ffac6",
+    "determining_product": "494d21d3e5bafadc9626e02f9d7b8dd8d9a14420",
+    "proof": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/annotation-address-successor/source-proof.json",
+    "proof_sha256": "5570f891343fd6f6f026f72f026a41960cb9bc2e1e88c81191244e4afe67391a"
+  },
+  "control": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/test_context_annotation_identity.py",
+  "control_sha256": "5f131482047d1ec75f56ad69ae46dbc4c30f93128de38d691670b37af2c430d8",
+  "test_node": "test_overlapping_annotation_addresses_restore_their_own_range",
+  "planned_argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "-B",
+    "-c",
+    "import sys; sys.path.append('/usr/lib/python3.14/site-packages'); import agent_comms,toad,textual,pytest; print('INSTALLED IMPORTS',*[m.__file__ for m in (agent_comms,toad,textual)],flush=True); assert all(sys.prefix in m.__file__ for m in (agent_comms,toad,textual)); sys.exit(pytest.main(sys.argv[1:]))",
+    "-o",
+    "addopts=",
+    "--noconftest",
+    "--basetemp",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/annotation-address-successor/installed-authored-model",
+    "-q",
+    "--tb=short",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/tests/test_context_annotation_identity.py::test_overlapping_annotation_addresses_restore_their_own_range"
+  ],
+  "runner": "Original BoundedRun.session, one bounded narrow mounted native Tree check; installed application paths first, no source overlay or dependency installation",
+  "planned_output": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/annotation-address-successor/installed-owner-check",
+  "scope": "Two authored overlapping same-offset spans remain independently owned/revealed; HumanLabel section refinement and unmount/remount preserve the selected full address. Explicitly unsealed navigation model only.",
+  "excluded": [
+    "registered SDK/ACP application",
+    "native process or artifact execution",
+    "wire publication or sealed request fabrication",
+    "new input/provider/native prompt/fork/movie",
+    "accepted GUI or historical reader repeat",
+    "actual Codex or saved-user source",
+    "public prefix mutation"
+  ],
+  "package_owner": "Original Sch: one normal no-deps/no-cache retained Core0ed355+Toad1a8a319 stage, candidate source/origin/cohort proof, sole prefix writes and actual-floor restoration",
+  "control_owner": "Original Einstein: READ/operator borrow for exactly the published mounted Tree check; no install, restore, activation, prefix metadata or public writes",
+  "boundary": "Only after446 actual whole close, fresh actual eligible floor/archive/borrower clearance and an explicit Bohr combined purpose; no prefix reservation or access inferred",
+  "native": "No SDK/ACP/native process or immutable7a execution claim is required or granted by this control",
+  "before_control": "Sch publishes exact355+319 assets, full69 normal metadata/origins and protected original-floor source proof. Bohr binds that proof and actual owner/control handoff in the issued purpose.",
+  "after_control": "Einstein joins the original App/message-pump/worker/controller/group resources and sends actual terminal/raw result and explicit READ/operator return to Sch/Bohr before receiving freeze or restoration.",
+  "pass_disposition": "Parent may normally merge449 after the scoped installed PASS. Sch may then prepare/freeze448 with the same package bytes under the issued purpose, using truthful file-wheel origins and the original determining source relationship; no restage or build for source/evidence-only joins.",
+  "failure_disposition": "Retain raw failure and exact reached scope. Sch restores the actual floor named in the fresh purpose and returns whole package/process custody; no retry or second stage inferred.",
+  "keepers": "Frozen functional627/434 receipts, accepted GUI/historical/carry paths, all original negatives and public prefixes remain protected. No acceptance repetition.",
+  "remaining": "W7/W8 default OFF; neither blocks the useful functional receiving workflow."
+}
