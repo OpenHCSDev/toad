@@ -64,5 +64,22 @@ NoAgent admission refuses them before any backend request. It does not exercise
 shell commands, model/native input, arbitrary Textual mount failure or provider
 delivery. The control is unrun and its local UI scope requires a fresh purpose.
 
-No package/build/App/SDK/provider/input purpose exists for this draft; accepted
-project/GUI journeys are not repeated. Heis retains whole TC1 integration.
+## Source wheel checkpoint
+
+Parent authorized one source-only build from frozen `2c1da8ed9`. The existing
+cached Hatchling 1.28 backend built the normal wheel in 0.713 seconds without
+dependency installation, a new environment or installed package changes.
+`FILEWHEEL.json` and `source-inventory.json` bind all 319 Git/checkout/ZIP assets,
+all 324 RECORD entries and build metadata. The wheel SHA is
+`d47bbc52700903cf0929c2b593b4b6f1eeab38980fd21fa8f1e473c376aa7089`.
+
+The declared Core `7b68d630` and Textual `d7337ee0` pins match retained normal
+file wheels `a685578e` and `16c9f5e7`. `PROPOSED-FILEWHEEL-APP-OPERANDS.json`
+names those artifacts, the unchanged `85fcfcf8` control and a literal future
+NoAgent App command. Its candidate holder needs a fresh eligible disposition
+and issued purpose; this proposal reserves no slot. It leaves the active joint
+#458/#460 wheel, frozen renderer control and package custody unchanged.
+
+No mounted App/SDK/provider/input purpose exists for this draft. The affected
+App remains unrun, accepted project/GUI journeys are not repeated, and Heis
+retains whole TC1 integration.
