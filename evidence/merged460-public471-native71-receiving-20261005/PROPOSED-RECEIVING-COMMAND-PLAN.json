@@ -1,0 +1,315 @@
+{
+  "state": "SOURCE ONLY future474 receiving; formerstyle22 returned/closed possible holder, fresh atissue floor/refs/grant/READ remain UNBOUND",
+  "source_relation": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged460-public471-native71-receiving-20261005/MERGED-SOURCE-WHEEL-RELATION.json",
+    "sha256": "8494e7d069679366e6ce611e7027ba7f49f7325f397435523d76a596ce5ea369",
+    "bytes": 351661
+  },
+  "canonical_identity_manifest": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/MERGED-CANONICAL-SOURCE-MANIFEST.json",
+    "sha256": "d1bce92a5ae27f0de2731563562ec8a0c2c67a2e4ab509192827ecbd401520b0"
+  },
+  "canonical51_actual_Core": "3931f16feb8bcb2dbcc3041446ca342dea665024",
+  "output": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005",
+  "cwd": "/home/ts/wt/toad-prompt-action-owner-20261002",
+  "environment": {
+    "PYTHONPATH": "ABSENT",
+    "PYTHONHOME": "ABSENT",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "target_prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "eligible_holder_disposition": "Formerstyle22 possible ONLY after actualtypedwholeRETURNED/independentCLOSED29026; no currentgrant/reservation; Bohr freshactualfloor/origins/archive/refs/exclusivepurpose decides.334+540 paired684 protected,485 PUBLIC.",
+  "actual_floor_archive": null,
+  "fresh_specific_issued_grant": null,
+  "source_prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "operator": "OriginalSch sole future preparation writer; OriginalParent sole later freshadmitted oncepublisher",
+  "qualification_input": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/qualification-input.json",
+  "proposed_qualification_input": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged460-public471-native71-receiving-20261005/PROPOSED-QUALIFICATION-INPUT.json",
+    "sha256": "331f4a4d8094a622b552e3a4f626e91b252b33287f240380960b51f6209d8094",
+    "bytes": 52639
+  },
+  "qualification_gates_count": 203,
+  "runtime_installation": "UNBOUND until NativeSchemaDeclaration.observe source/target and checkpoint digest inside scoped cohort; PreserveRuntimeInstallation(original.goal) only on actual equality; differing relation returned to original NativeSchemaCarryPlan owner, no guessed carry/reset",
+  "owner_runtime": "PreserveOwnerRuntime for admitted same retained owners; actual owner/incarnation/settings admission belongs original Parent publisher",
+  "coordination_schema_source_target": "Expected10->10 from qualified source; actual declarations UNBOUND",
+  "native_manifest_source_target": "7a2e4aabdbc5af49dd9af942190d92086df2eb3489903674a74af51cf831cd33",
+  "native_tree_source_target": "0d7ff54a04d4f0ff175fc889e936ca3cea8b1f98eb8b73ed6215c3373cbd984d",
+  "retained_wheels": [
+    {
+      "package": "Core",
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/same-owner-native-fork676-corrected-wheel-20261005/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "3fe14077293b691000394831ed7458ecae92afd9b667af4501be2945ab86051d",
+      "source_git": "3931f16feb8bcb2dbcc3041446ca342dea665024",
+      "assets": 355
+    },
+    {
+      "package": "Toad",
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/merged460-current-public-receiving-source-20261005/filewheel/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "2ece83e34b795f09652e30e67bfa9bafcdc08d7a0812e9e6a122ce2a708cb217",
+      "source_git": "b687d6e3829735b75ed62294c271f514b4df5da8",
+      "assets": 319
+    },
+    {
+      "package": "Textual",
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native70-71-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+      "sha256": "bc47c59ea7db78a9a443c5f5e3f10836660957f21bb998d2ffa3ae8e4a2ddbe3",
+      "source_git": "a2dd8a9a37825a828df0d8f651ca57d92db69e5f",
+      "assets": 266
+    },
+    {
+      "package": "NRA",
+      "path": "/home/ts/wt/nra-skill-publish-20261002/.artifacts/family-flattened-collector-20261004/wheels/nominal_refactor_audit-0.1.0-py3-none-any.whl",
+      "sha256": "8d489731728ebf9f7e0f90ef2b14e7e3b5d2f90ed82bd8b1482d735f82869886",
+      "source_git": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10",
+      "assets": 10
+    }
+  ],
+  "stage_argv": [
+    "uv",
+    "pip",
+    "install",
+    "--python",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "--no-deps",
+    "--no-cache",
+    "--no-index",
+    "--link-mode",
+    "copy",
+    "--reinstall",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/merged460-current-public-receiving-source-20261005/filewheel/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native70-71-filewheel-20261005/textual-8.2.8-py3-none-any.whl"
+  ],
+  "source_decoder_scope": "ONLY actual PUBLIC471485 source-declaration/checkpoint READ subprocess INSIDE future releasedcohort via original RetainedOwnerLaunch ATUSE; no standalone/session/current-input/publicwrite/signal.",
+  "publication_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/publication-receipt.json",
+  "preimages": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/publication-receipt.originals",
+  "receipt_or_preimages_created": false,
+  "positive_terminal": "Ownproof/DTO/fullcohort/canonical/newonceoperands freeze HELDParent plus wholeimmediateclaimreturn/freshBohrreadback; noautomatic oldfloorrestore",
+  "negative_terminal": "Join ownedchildren; exactfreshlyissued actualfloorrestore andwholehandback",
+  "held_until_literal_grant": true,
+  "Parent_only_future": "Freshoriginalclientadmission/oncepublication/readback; no private grant activates it",
+  "prohibited_in_preparation": [
+    "App",
+    "SDK",
+    "provider",
+    "input",
+    "runtimecarry",
+    "publisher",
+    "publicguard",
+    "publicsignals",
+    "nativeEXEC",
+    "newenv",
+    "nativebuild/copy",
+    "acceptedcontrolrepeat"
+  ],
+  "command_source_AST_compile_pass": true,
+  "JSON_writer_newline_constant_codepoints": [
+    10
+  ],
+  "canonical_prepare_readback_argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "-I",
+    "-B",
+    "-c",
+    "import sys,json,hashlib,subprocess,os\nfrom pathlib import Path\nmanifest=json.loads(Path(sys.argv[1]).read_text());destination=Path(sys.argv[2]);repository=sys.argv[3]\nassert len(manifest['members'])==51 and manifest['original_core_git']=='3931f16feb8bcb2dbcc3041446ca342dea665024'\ndestination.mkdir(mode=0o700,parents=True,exist_ok=False)\nfor row in manifest['members']:\n data=subprocess.check_output(['git','-C',repository,'show',manifest['original_core_git']+':'+row['source']])\n assert hashlib.sha256(data).hexdigest()==row['sha256'] and len(data)==row['bytes']\n path=destination/Path(row['source']).name\n with path.open('xb') as opened:opened.write(data)\n os.chmod(path,int(row['git_mode'][-3:],8))\n assert hashlib.sha256(path.read_bytes()).hexdigest()==row['sha256'] and (path.stat().st_mode&0o777)==int(row['git_mode'][-3:],8)\nassert len(list(destination.iterdir()))==51\nprint('Original actual merged Core3931 canonical51 copy/readback PASS; no public write')\n",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/MERGED-CANONICAL-SOURCE-MANIFEST.json",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/canonical-source-3931f16f/tools/cutover",
+    "/home/ts/wt/comms-goal-ledger-schema-carry-20261002"
+  ],
+  "cohort_prepare_argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "-I",
+    "-B",
+    "-c",
+    "import sys, json, subprocess, os, hashlib\nfrom pathlib import Path\nsys.path.insert(0, sys.argv[1])\nfrom agent_comms.field_codec import FieldCodec\nfrom agent_comms.comms import Comms\nfrom agent_comms.owner_launch import RetainedOwnerLaunch\nfrom agent_comms.owner_restart import OwnerRestartRequest\nfrom agent_comms.active_route import read_active_route\nfrom publish_retained_summary import ROOT, ReviewedArtifact, ReviewedRetainedSummaryCohort, InstalledSourceProof, CohortActivation\nfrom native_schema_carry import NativeSchemaDeclaration\nfrom checkpoint_schema import declared_schema_digest\nfrom runtime_installation import PreserveRuntimeInstallation\nbase = Path(sys.argv[2])\ninputs = json.loads((base / 'qualification-input.json').read_text())\nassert not (base / 'publication-receipt.json').exists() and (not (base / 'publication-receipt.originals').exists())\nproof_path = base / 'source-proof.json'\nactivation_path = base / 'candidate-activation.json'\nproof = FieldCodec.decode(InstalledSourceProof, json.loads(proof_path.read_text()))\nactivation = FieldCodec.decode(CohortActivation, json.loads(activation_path.read_text()))\nproof.require_activation(activation)\nassert sys.executable == str(proof.prefix / 'bin/python')\nservice = Comms(ROOT, private_initial_writes=False, private_claim_writes=False)\nsnapshot = service.registry.snapshot()\nlaunches = tuple((RetainedOwnerLaunch.capture(t, snapshot) for t in OwnerRestartRequest().threads(snapshot)))\nassert len(launches) == 19\ninterpreters = {x.interpreter for x in launches}\nassert len(interpreters) == 1\nsource_python = Path(next(iter(interpreters)))\nassert source_python == Path(inputs['current_prefix']) / 'bin/python'\nchild = \"import sys,json;sys.path.insert(0,sys.argv[1]);from agent_comms.field_codec import FieldCodec;from native_schema_carry import NativeSchemaDeclaration;from checkpoint_schema import declared_schema_digest;print(json.dumps({'native':FieldCodec.encode(NativeSchemaDeclaration.observe()),'checkpoint':declared_schema_digest()}))\"\nenv = dict(os.environ)\nenv.pop('PYTHONPATH', None)\nenv.pop('PYTHONHOME', None)\npacket = json.loads(subprocess.check_output([str(source_python), '-I', '-B', '-c', child, sys.argv[1]], env=env, text=True))\noriginal = FieldCodec.decode(NativeSchemaDeclaration, packet['native'])\ntarget = NativeSchemaDeclaration.observe()\noriginal.require_carry_target(target)\nassert original == target and packet['checkpoint'] == declared_schema_digest(), 'Actual declaration/checkpoint differs: return source/target to original NativeSchemaCarryPlan owner; no inferred reset/carry'\nartifact = lambda p: ReviewedArtifact(p, hashlib.sha256(p.read_bytes()).hexdigest())\ngates = tuple((FieldCodec.decode(ReviewedArtifact, r) for r in inputs['actual_gates']))\ncohort = ReviewedRetainedSummaryCohort(proof.prefix, Path(inputs['current_prefix']), read_active_route(), proof.native_package, artifact(activation_path), artifact(proof_path), gates)\ncohort.require_original()\nruntime = PreserveRuntimeInstallation(original.goal)\nvalues = [('original-declaration.json', FieldCodec.encode(original)), ('target-declaration.json', FieldCodec.encode(target)), ('checkpoint-relation.json', {'source': packet['checkpoint'], 'target': declared_schema_digest(), 'source_python_owner': 'RetainedOwnerLaunch'}), ('review-plan.json', FieldCodec.encode(cohort)), ('runtime-installation.json', FieldCodec.encode(runtime))]\nfor name, value in values:\n    with (base / name).open('x') as f:\n        json.dump(value, f, indent=2)\n        f.write('\\n')\nprint('Original typed whole cohort and PreserveRuntimeInstallation prepared; public writes0')",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/canonical-source-3931f16f/tools/cutover",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005"
+  ],
+  "future_once_execute_argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "-I",
+    "-B",
+    "-c",
+    "import sys,runpy;sys.path.insert(0,'/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/canonical-source-3931f16f/tools/cutover');sys.argv=['/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/canonical-source-3931f16f/tools/cutover/execute_retained_summary_foundation.py', '--review-plan', '/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/review-plan.json', '--receipt', '/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/publication-receipt.json', '--runtime-installation', '/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/runtime-installation.json', '--execute'];runpy.run_path(sys.argv[0],run_name='__main__')"
+  ],
+  "future_once_readback_argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "-I",
+    "-B",
+    "-c",
+    "import sys,runpy;sys.path.insert(0,'/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/canonical-source-3931f16f/tools/cutover');sys.argv=['/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/readback_publication.py'];runpy.run_path(sys.argv[0],run_name='__main__')"
+  ],
+  "qualification_input_prepare_argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "-I",
+    "-B",
+    "-c",
+    "import sys,json,hashlib,os\nfrom pathlib import Path\nsource=Path(sys.argv[1]);target=Path(sys.argv[2]);data=source.read_bytes()\nassert hashlib.sha256(data).hexdigest()==sys.argv[3]\npacket=json.loads(data);assert packet['current_prefix']==sys.argv[4]\nassert len({row['path'] for row in packet['actual_gates']})==len(packet['actual_gates'])\nfor row in packet['actual_gates']:\n assert hashlib.sha256(Path(row['path']).read_bytes()).hexdigest()==row['sha256']\nwith target.open('xb') as stream:stream.write(data)\nos.chmod(target,0o644)\nassert target.read_bytes()==data\nprint('Original reviewed qualification inputs prepared; no public read/write')\n",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged460-public471-native71-receiving-20261005/PROPOSED-QUALIFICATION-INPUT.json",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/qualification-input.json",
+    "331f4a4d8094a622b552e3a4f626e91b252b33287f240380960b51f6209d8094",
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001"
+  ],
+  "readback_prepare_argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "-I",
+    "-B",
+    "-c",
+    "import sys,hashlib,os;from pathlib import Path;s=Path(sys.argv[1]);d=s.read_bytes();assert hashlib.sha256(d).hexdigest()==sys.argv[3];p=Path(sys.argv[2]);f=p.open('xb');f.write(d);f.close();os.chmod(p,0o644);assert p.read_bytes()==d",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged457-goal675-native67-receiving-20261005/readback_publication.py",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/readback_publication.py",
+    "fe0b26437b42eba253b3c2ebe7f7f75bb32cea0062846d5a0621617246c31025"
+  ],
+  "NRA_stage": "unchanged original8d retained; use as declared verification/recovery operand only",
+  "unchanged_stage_contract": "Expected current-public-Core3931/3fe remains355; candidateToad new4742ece319 and native71bc47266 normalonce. GenuineDiff3/NRA10 and other67versions/origins/protected assets verified from ACTUAL fresh issuedfloor, no inherited counts. If actual eligiblefloor differs, reconcile literalstage/restore before access.",
+  "ownerproof_materialization": {
+    "algorithm": {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/accepted-main-functional-receiving-20261005/prove-installed.py",
+      "sha256": "d87d6df084238185c7bcd256d2b509d83c17b39c65f60b8ad146d8042d622e8b"
+    },
+    "literal_new_helper": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/prove-installed.py",
+    "helper_sha256": null,
+    "binding": "Materialize existing proof algorithm after actual issued floor/owned-output/NEW7a READ operands; do not execute historical465 helper or hardcoded448 floor. Bind new helper+literal argv in same lifecycle before one proof. Original InstalledSourceProof.require_activation and InstalledSource.require_package own source/native/origin validation. No competing proof algorithm. Use latest original471 helper only as historical algorithm evidence if useful; decode actualissued records including mapping-versus-records semantics. Own07/675 outputs cannot be written.",
+    "proof_argv": [
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+      "-B",
+      "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/prove-installed.py",
+      "ACTUAL_FRESH_ISSUED_PATH_UNBOUND",
+      "ACTUAL_FRESH_ISSUED_SHA256_UNBOUND",
+      "ACTUAL_NEW_NATIVE_READ_PATH_UNBOUND",
+      "ACTUAL_NEW_NATIVE_READ_SHA256_UNBOUND"
+    ],
+    "owned_candidate_sourceproof": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/source-proof.json",
+    "owned_candidate_activation": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/candidate-activation.json",
+    "native_FullTrust_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/native-full-trust.json",
+    "actual_floor_and_READ_binding": null,
+    "required_operand_adaptations": [
+      "actualnewissuedfloor/protected and unchanged67/bootstrap records",
+      "selectedCore3931/native7a/953 and new474 source/root proof plus native71bc47",
+      "genuineDiff typedVCS origin and filemember inventory",
+      "only issued ownoutput destinations/exclusivepreflight before writes/import/FullTrust",
+      "NEW matching native7aREAD receipt literal; historicalalgorithm is not executable authority"
+    ]
+  },
+  "owned_output_prepare_argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "-I",
+    "-B",
+    "-c",
+    "import os,stat,sys;from pathlib import Path;p=Path(sys.argv[1]);p.mkdir(mode=0o700,exist_ok=False);assert stat.S_ISDIR(p.lstat().st_mode) and stat.S_IMODE(p.lstat().st_mode)==0o700",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005"
+  ],
+  "command_order": [
+    "owned_output_prepare_argv",
+    "stage_argv if fresh floor requires the two reviewed changed packages",
+    "one bound ownerproof after NEWREAD/helper release",
+    "canonical_prepare_readback_argv",
+    "qualification_input_prepare_argv",
+    "cohort_prepare_argv",
+    "readback_prepare_argv",
+    "freeze original typed cohort/canonical/sourceproof/DTO/gates/newonce operands HELDParent; whole immediate claim return"
+  ],
+  "future_once_not_authorized": "Both literal future_once argv are prepared source ONLY; Parent original fresh no_clients/identity/settings/all-stopped admission and NEW one-use native keeper authority after private closure; receipt/preimages absent. No private preparation activates publisher/guard/restart/runtimecarry.",
+  "source_commands_compiled_not_executed": [
+    "canonical_prepare_readback_argv",
+    "cohort_prepare_argv",
+    "future_once_execute_argv",
+    "future_once_readback_argv",
+    "qualification_input_prepare_argv",
+    "readback_prepare_argv",
+    "owned_output_prepare_argv"
+  ],
+  "negative_restore_contract": {
+    "authority": null,
+    "actual_original_Toad_filewheel": null,
+    "actual_original_Text_filewheel": null,
+    "actual_floor_archive_preimage": null,
+    "restore_argv": [
+      "uv",
+      "pip",
+      "install",
+      "--python",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+      "--no-deps",
+      "--no-cache",
+      "--no-index",
+      "--link-mode",
+      "copy",
+      "--reinstall",
+      "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/accepted-main-functional-receiving-20261005/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native67-filewheel-20261005/textual-8.2.8-py3-none-any.whl"
+    ],
+    "binding": "Actual closedtyped current465 supplies concrete originale8ad/16c9 normalrestore proposal. Fresh atissue receivingfloor/RAWorigins/archive/preimage/refs must match and bind these literals before access; if actualrelation changed, originalBohr reconciles. No newarchive/newTAR/blanketgate.",
+    "proposed_original_filewheels": [
+      {
+        "module": "toad",
+        "package": "batrachian-toad",
+        "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/accepted-main-functional-receiving-20261005/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+        "sha256": "e8ad37680defbff26e5d395fdc466e8ffedc934febc4f4bc8e37335b17d94911",
+        "bytes": 2251171
+      },
+      {
+        "module": "textual",
+        "package": "textual",
+        "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native67-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+        "sha256": "16c9f5e7a1aca9f7a339fdb859c1743bbc0ba8f17327ba3debd4b13959ca927d",
+        "bytes": 768752
+      }
+    ]
+  },
+  "existing_holder_availability": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/474-receiving-existing-holder-contract-availability-20261005.json",
+    "sha256": "c1396f255f82f8fded287009cf3600227b6387a445090e85f35d4d83d4a633a9",
+    "bytes": 5658
+  },
+  "holder_floor_refs_native_READ_and_publication_authority_UNBOUND": true,
+  "source_product_build_and_native_guard_fold": false,
+  "Toad_new_build_handoff": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/merged460-current-public-receiving-source-20261005/NORMAL-FILEWHEEL-ARTIFACT-HANDOFF.json",
+    "sha256": "c5af80da98bc251e413e2d6ad4f4de1cfc5b9beee42a89c63198a33c4d7efac1",
+    "bytes": 6140
+  },
+  "normal474_merge": "UNBOUND actualParentnormalmerge/source+rootmetadataequal before final frozen publication relation; no CI/performance gate or rebuild",
+  "existing_holder_availability_superseding_actual_return": {
+    "closed_lifecycle": {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Mendel472682-typed-only-package-mounted-lifecycle.json",
+      "sha256": "29026fe1dd2c637da01ce1238091c754229aca1a8348dc3407b871b7395e9d62",
+      "bytes": 14985
+    },
+    "independent_floor": {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Mendel472682-typed-only-independent-final-floor-readback.json",
+      "sha256": "8acad4ebf6d697c0b4365200ae27d37d18a47cc56b12d5dc917247a3c9e2451f",
+      "bytes": 16077
+    },
+    "fresh_borrowers": {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Mendel472682-typed-only-independent-final-borrowers.json",
+      "sha256": "6dc7a8740928b4ffc41e9ee7b14789c3177117000f74dd965daf90a2d832205f",
+      "bytes": 275
+    },
+    "meaning": "Possible existing holder, not a newgrant or reservation. Original no-holder c139 record preserved historically."
+  },
+  "proposed_original_floor_relation": {
+    "members": 1477,
+    "sources": 953,
+    "versions_and_RAWorigins": 69,
+    "protected": 631,
+    "current_PREFIX_and_original1883_included": true,
+    "preimage": {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Mendel472682-typed-only-current465-1477-preimage.json",
+      "sha256": "cb0f85560c962d775f5c575414e0f4fe127f058c47737f0dc94fcf9a4c382314",
+      "bytes": 1448671
+    },
+    "archive": {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/style22-current465-after471-before-Mendel472682typed/original-current465-1477.tar.gz",
+      "sha256": "375505dd3d761f8aba5870551b870f9ab95d510915a7558dffc9ef57b9ca290c",
+      "bytes": 4051812
+    },
+    "independent_readback": {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Mendel472682-typed-only-independent-final-floor-readback.json",
+      "sha256": "8acad4ebf6d697c0b4365200ae27d37d18a47cc56b12d5dc917247a3c9e2451f",
+      "bytes": 16077
+    },
+    "authority": "Original current465 floor restored byMendel and independently verified byBohr. Future receiving atissue refresh and literal grant binding UNBOUND."
+  },
+  "current_original_floor_not_permission": true
+}
