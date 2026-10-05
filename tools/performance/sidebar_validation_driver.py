@@ -19,7 +19,6 @@ from textual import events
 from textual.drivers.linux_driver import LinuxDriver
 
 records = deque(maxlen=100000)
-dispatch_counts = {}
 key_dispatches = {}
 
 
@@ -168,12 +167,10 @@ def install_observer():
 
     SideBar.toggle = measured_toggle
     from toad.screens.session_view import SessionView
-    if os.environ.get("TOAD_VALIDATION_COLD_PRESENTATIONS") == "1":
-        SessionView.RETAIN_INACTIVE_PRESENTATION = False
-    if os.environ.get("TOAD_VALIDATION_COLD_PAINT") == "1":
-        SessionView.RETAIN_INACTIVE_PAINT = False
+    from toad.screens.workspace import WorkspaceScreen
+    from toad.workspace_sessions import WorkspaceSessions
     from toad.app import ToadApp
-    from toad.widgets.conversation import Conversation
+    from toad.widgets.conversation import Conversation, ConversationCommsConsumer
     exception_handler = ToadApp._handle_exception
 
     def observed_exception(self, error):
@@ -188,23 +185,28 @@ def install_observer():
 
     ToadApp._handle_exception = observed_exception
 
-    if os.environ.get("TOAD_VALIDATION_UNGATED_STARTUP") == "1":
-        # Diagnostic policy control: ordinary after-refresh scheduling instead
-        # of the first actual presentation boundary. Not a production setting.
-        SessionView._first_frame_presented = True
-
-    navigation_methods = [(ToadApp, "_switch_mode_ready"), (SessionView, "prepare_navigation"),
-                          (SessionView, "layout_navigation"), (Conversation, "on_transcript_snapshot"),
-                          (Conversation, "on_agent_ready")]
+    navigation_methods = [
+        (ToadApp, ToadApp._switch_mode_ready),
+        (SessionView, SessionView.prepare_navigation),
+        (WorkspaceScreen, WorkspaceScreen.prepare_navigation),
+        (WorkspaceScreen, WorkspaceScreen.layout_navigation),
+        (ConversationCommsConsumer, ConversationCommsConsumer.transcript_snapshot),
+        (Conversation, Conversation.on_agent_ready),
+    ]
     if os.environ.get("TOAD_VALIDATION_OPEN_STAGES"):
         from textual.widget import Widget
         from toad.sidebar_observation import SidebarObservation
         from toad.sidebar_projection import SidebarProjection
         from toad.widgets.session_tabs import SessionsTabs
         from toad.navigation_preparation import NavigationReader
-        navigation_methods.extend(((ToadApp, "new_session_screen"), (Conversation, "initialize_view"),
-                                   (SidebarObservation, "present_cached"), (SidebarProjection, "rebuild"),
-                                   (SessionsTabs, "_sync_tabs"), (NavigationReader, "read")))
+        navigation_methods.extend((
+            (WorkspaceSessions, WorkspaceSessions.prepare),
+            (Conversation, Conversation.initialize_view),
+            (SidebarObservation, SidebarObservation.present_cached),
+            (SidebarProjection, SidebarProjection.rebuild),
+            (SessionsTabs, SessionsTabs._sync_tabs),
+            (NavigationReader, NavigationReader.read),
+        ))
         constructor = Widget.__init__
         preprocess = Widget._pre_process
 
@@ -227,8 +229,8 @@ def install_observer():
         Widget.__init__ = measured_constructor
         Widget._pre_process = measured_preprocess
 
-    for owner, method in navigation_methods:
-        original_method = getattr(owner, method)
+    for owner, original_method in navigation_methods:
+        method = original_method.__name__
 
         async def measured_navigation(self, *args, _function=original_method, _name=method, **kwargs):
             begin = time.monotonic_ns()
@@ -241,23 +243,13 @@ def install_observer():
                        self.app.current_mode if hasattr(self, "app") else None,
                        owner=type(self).__name__)
 
-        # Textual stores @on handlers by function identity in the class registry.
-        # Keep metadata and that registry aligned: replacing only the attribute
-        # would invoke the old decorated function AND the new name-based wrapper.
+        # MroDispatch reads the current method declarations. Copy the original
+        # @handles metadata with the wrapper; no Textual handler registry owns
+        # these core publications or their Comms extension consumers.
         update_wrapper(measured_navigation, original_method)
-        for handlers in owner.__dict__.get("_decorated_handlers", {}).values():
-            handlers[:] = [(measured_navigation if handler is original_method else handler, selectors)
-                           for handler, selectors in handlers]
         setattr(owner, method, measured_navigation)
-    from toad.acp.messages import TranscriptSnapshot
-    from toad.agent import AgentReady
-    dispatch_probe = object.__new__(Conversation)
-    for message in (TranscriptSnapshot((), None), AgentReady()):
-        count = len(list(dispatch_probe._get_dispatch_methods(message.handler_name, message)))
-        dispatch_counts[type(message).__name__] = count
-        assert count == 1, (type(message).__name__, count)
-    for name in ("_refresh_layout", "_compositor_refresh"):
-        original = getattr(SessionView, name)
+    for original in (WorkspaceScreen._refresh_layout, WorkspaceScreen._compositor_refresh):
+        name = original.__name__
 
         def measured(self, *args, _function=original, _name=name, **kwargs):
             begin = time.monotonic_ns()
@@ -273,7 +265,7 @@ def install_observer():
                        full_map=len(self._compositor._full_map),
                        callbacks=len(self._callbacks))
 
-        setattr(SessionView, name, measured)
+        setattr(WorkspaceScreen, name, measured)
 
     from textual._compositor import Compositor
     arrange = Compositor._arrange_root
@@ -710,7 +702,7 @@ class ValidationDriver(LinuxDriver):
                 if isinstance(widget, HistoryWindow):
                     row["follows_tail"] = widget.follows_tail
                 rows.append(row)
-        histories = [{"loading": history._loading, "fragments": history.fragment_count,
+        histories = [{"loading": not history.checkpoint_available, "fragments": history.fragment_count,
                       "has_older": history.has_older, "has_newer": history.has_newer,
                       "pages": [{"before": str(page.page.before), "after": str(page.page.after),
                                  "text_sha256": sha256(json.dumps([TranscriptCodec.encode(event)
@@ -729,12 +721,7 @@ class ValidationDriver(LinuxDriver):
                 "size": list(app.size), "tabs": [(tab.mode_name, tab.title) for tab in app.open_tabs],
                 "histories": histories, "pid": os.getpid(), "widgets": rows,
                 "mouse_captured": app.mouse_captured is not None,
-                "presentation_policy": {
-                    "retain_inactive_presentation": screen.RETAIN_INACTIVE_PRESENTATION,
-                    "retain_inactive_paint": getattr(screen, "RETAIN_INACTIVE_PAINT", None),
-                },
                 "diagnostics": {"features": sorted(app.features),
-                                "decorated_dispatch_counts": dict(dispatch_counts),
                                 "devtools_connected": app._is_devtools_connected,
                                 "asyncio_debug": self._loop.get_debug(),
                                 "slow_callback_ms": self._loop.slow_callback_duration * 1000},
@@ -749,7 +736,7 @@ class ValidationDriver(LinuxDriver):
                 "content_blocks": len(conversation.contents.children),
                 "connected": getattr(agent, "_connected_ok", None),
                 "visible_categories": sorted(category.value for category in conversation.visible_categories),
-                "filter_pending": any(history._loading or history._filter_scanning or history._advancing
+                "filter_pending": any(not history.checkpoint_available
                                       for history in conversation.query(TranscriptHistory)),
                 "errors": [{"kind": type(widget).__name__,
                             "text": str(getattr(widget, "source", getattr(widget, "content", "")))[:600]}
@@ -764,11 +751,12 @@ class ValidationDriver(LinuxDriver):
                                    "retained_bytes": preparation.retained_bytes}
         chat = screen.query_one_optional(CommsChatView)
         if chat is not None:
-            data["channel_history"] = {"initialized": chat._history_initialized,
-                                       "refreshing": chat._refresh_lock.locked(),
-                                       "count": len(chat._history),
+            history = chat.message_history
+            data["channel_history"] = {"initialized": history.source_checkpoint_available,
+                                       "refreshing": not history.checkpoint_available,
+                                       "count": len(history.rows),
                                        "text_sha256": sha256(json.dumps([(message.seq, message.body)
-                                                                          for message, _ in chat._history]).encode()).hexdigest()}
+                                                                          for message, _ in history.rows]).encode()).hexdigest()}
         Path(os.environ["TOAD_VALIDATION_SNAPSHOT"]).write_text(json.dumps(data) + "\n")
         record("snapshot", begin_ns=begin, duration_ms=(time.monotonic_ns()-begin)/1e6)
 

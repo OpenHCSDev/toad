@@ -164,10 +164,7 @@ try:
         "focused_profile": args.focused_profile, "key_route": args.key_route,
         "box_models": env.get("TOAD_VALIDATION_BOX_MODELS") == "1",
         "arrangements": env.get("TOAD_VALIDATION_ARRANGEMENTS") == "1",
-        "cold_presentations": env.get("TOAD_VALIDATION_COLD_PRESENTATIONS") == "1",
-        "cold_paint": env.get("TOAD_VALIDATION_COLD_PAINT") == "1",
         "layout_causes": env.get("TOAD_VALIDATION_LAYOUT_CAUSES") == "1",
-        "ungated_startup": env.get("TOAD_VALIDATION_UNGATED_STARTUP") == "1",
         "open_stages": env.get("TOAD_VALIDATION_OPEN_STAGES") == "1",
         "observer_sha256": sha256((TOOLS / "sidebar_validation_driver.py").read_bytes()).hexdigest(),
         "dependency_paths": extra_paths, "runtime": environment_probe["runtime"]}
