@@ -1,0 +1,13 @@
+{
+  "state": "Actual CURRENT448 normal restoration readback",
+  "original_current448_records": 1477,
+  "original_other66_records": 1883,
+  "original_environment_bootstrap_records": 2,
+  "failures": [],
+  "extra_assets": [],
+  "protected_originals": 626,
+  "separate_wrappers": 5,
+  "PREFIXactivation_sha256": "2d46e956b37e599add12718b06770cce5a1b53c1421c95a3e69201d34750c63b",
+  "raw_original_origins_sha_equal": true,
+  "archive_member_writes": false
+}

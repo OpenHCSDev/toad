@@ -1,0 +1,144 @@
+{
+  "state": "SCOPED READY: installed mounted NoAgent prompt custody",
+  "installed_Toad_wheel": "47f8ee49a13762cad3e1224323c3c557bf07df218136e44f087a5f29fce682e2",
+  "paired_Core": "7b68d630caa654d3e9884f45cbd6493718752a0c",
+  "paired_Textual": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78",
+  "qualified_control_sha256": "2a619c9ac361f88fdd52f07a621b6523b7385f1fea145ad6c032d74ce9f2cdc0",
+  "terminal": {
+    "elapsed": 12.189038248034194,
+    "returncode": 0,
+    "timed_out": false,
+    "error": null,
+    "drain_errors": [],
+    "outcome": {
+      "kind": "exited",
+      "code": 0
+    },
+    "child_retired": true,
+    "owned_group_members": [],
+    "controller": {
+      "pid": 742063,
+      "start_time": 69296982
+    },
+    "child": {
+      "pid": 742075,
+      "start_time": 69297081
+    },
+    "scope": "ONE actual NoAgent mounted App; two plain pre-admission UserInputSubmitted UI events refused before backend submission by agent=None; constructor failure retains pending prompt; successful construction transfers; newest pending evict/remount once; original draft Document/Undo and Ctrl-Z; consumed value absent on second remount; original session close releases state.",
+    "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Einstein461-corrected-proof02-NoAgent-package-App-issued-grant.json",
+    "native_inputs": 0,
+    "provider_calls": 0
+  },
+  "App_oracles": {
+    "scope": "Mounted NoAgent constructor/eviction/remount/close and draft/Undo custody.",
+    "native_inputs": 0,
+    "provider_calls": 0,
+    "public_inputs": 0,
+    "failed_constructor_retains_successful_constructor_transfers": true,
+    "pending_eviction_remount_once_and_original_draft_undo": true,
+    "consumed_input_not_restored_and_close_releases_state": true,
+    "local_ui_publications": {
+      "INITIAL_LOCAL_UI_EVENT": 1,
+      "NEWEST_PENDING_LOCAL_UI_EVENT": 1
+    },
+    "state": "PASS",
+    "cleanup": []
+  },
+  "whole_handback": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/whole-handback.json",
+    "sha256": "2038c0933c8e37b19d049519c37caccf6eac7e7da38f57ccf399fc0dc5f2a6e3",
+    "bytes": 14777
+  },
+  "receipts": [
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/whole-handback.json",
+      "sha256": "2038c0933c8e37b19d049519c37caccf6eac7e7da38f57ccf399fc0dc5f2a6e3",
+      "bytes": 14777
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/sourceproof-terminal.json",
+      "sha256": "cf31e673200149cf85b5581daf0876c4797ceac62adb9c11ea724361c6604a77",
+      "bytes": 1316
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/candidate-source-proof.json",
+      "sha256": "6559068f324bfbd843869a79c8433fa3c221d9c1b6cbae0cfc4ca730c4ebcb38",
+      "bytes": 9567
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/candidate-activation.json",
+      "sha256": "c26ee093fbd157dc286103d2d1de4f0702970ba48a7bf39e816ddafc5a905c4b",
+      "bytes": 2374
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/native-full-trust.json",
+      "sha256": "0e15be19fe55d23db5b638a14ff71bc2a263641176c0da3f7d292ca292d22b81",
+      "bytes": 632
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/package-boundary-proof.json",
+      "sha256": "0774ea61ac1dcb625dfe57cee7ca2edbae8b5cdd80f0c72f2584729ebbaa20a6",
+      "bytes": 5586
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/restore-terminal.json",
+      "sha256": "d2ce4fac7d0830c088ca1caa267d5ca5e779ebbf01bb6217e059b56caa17cfdb",
+      "bytes": 988
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02/restore-whole-file-readback.json",
+      "sha256": "3acd751d093a56efb89ff594a2d2123685af9800eaca33cb2dd9bdf9d2fb9c83",
+      "bytes": 454
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/installed02/terminal.json",
+      "sha256": "d35a0c432d046ed12c26fb86567ec8df50a1854f02b04f05b9ad0146a7e9f0ba",
+      "bytes": 935
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/installed02/app-receipt.json",
+      "sha256": "059f463c2b9e6ae7f4bdebba1acae1740a195bb892ac7e7e73bb93dde4d08430",
+      "bytes": 501
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/installed02/owned-cleanup.json",
+      "sha256": "802304c643e3c8a5119bb2e0bfbaca3d01c675ed436d99331f48870b90b0fadc",
+      "bytes": 828
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/installed02/command.json",
+      "sha256": "9ac25c62a3cbf5186c34b522230c17931779d32d91d1d468488d335048f6ca42",
+      "bytes": 1310
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/installed02/handle.json",
+      "sha256": "a0e8e63c0496e68c74aea8cf57b96b700afdfed1bf30ba90deaf1dd0b9228645",
+      "bytes": 892
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/installed02/stdout.log",
+      "sha256": "75bfc7df54a863d91515e9bcf7df5d56685f957f7327a1626171c871ddf0fb86",
+      "bytes": 467
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/installed02/stderr.log",
+      "sha256": "9dca3dc597504647a6677cf12ee66a64cd5a981a3ff9b7bc26267b9750b6edce",
+      "bytes": 2261
+    }
+  ],
+  "source_relation": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/session-initial-prompt-custody-20261005/FINAL-MAIN-SOURCE-RELATION.json",
+    "sha256": "6c28ee17bd3f9f50e25c0cef8c19fd1183c603cb1c3dd7793f783aad66b5201d",
+    "bytes": 1234
+  },
+  "whole_current448_restored_by_owner": true,
+  "independent_privileged_close": "Original Bohr pending independent floor/census only; no remaining owner operation or next loan.",
+  "stderr_observation": "Original raw stderr contains UnregisteredThreadError from catalog preparation for an authored unregistered NoAgent project. App._exception was asserted None and scoped assertions passed. No uncaught App failure or relation to this prompt-custody change is inferred; raw log preserved.",
+  "limits": [
+    "No physical UI/provider/ACP/SDK/native input or arbitrary Textual mount failure tested. Two local UI events were refused before backend admission by agent=None.",
+    "Individual installer/proof/restore/worker birth identities were not retained; synchronous children were waited, original App/controller exact identities retired/group empty.",
+    "Independent privileged floor/census closure belongs to original Bohr."
+  ],
+  "original_f191_failure_and85fc_unrun_preserved": true,
+  "no_public_release_or_provider_delivery_claim": true
+}

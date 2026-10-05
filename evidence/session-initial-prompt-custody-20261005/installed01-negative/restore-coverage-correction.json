@@ -1,0 +1,44 @@
+{
+  "state": "Original record families restored; environment bootstrap resources separately observed and preserved",
+  "preserved_readbacks": [
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed01/restore-file-readback.json",
+      "sha256": "945b837cbdc17df475ad4ee10dd9d39e110c19d6b8d40fc55d8502abd0f7b706",
+      "bytes": 232926
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed01/restore-whole-file-readback.json",
+      "sha256": "8d900e86dd6e16b4f02f96bc860234b07868cead797c611fc77888c298190ec8",
+      "bytes": 1248
+    }
+  ],
+  "captured_current448_records": 1477,
+  "unchanged_other66_records": 1883,
+  "captured_record_failures": [],
+  "extra_package_assets": [],
+  "uncaptured_environment_bootstrap_files": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/_virtualenv.pth",
+      "sha256": "69ac3d8f27e679c81b94ab30b3b56e9cd138219b1ba94a1fa3606d5a76a1433d",
+      "bytes": 18,
+      "mode": 420,
+      "inode": 17572898,
+      "mtime_ns": 1790922361759431221,
+      "ctime_ns": 1790922361759431221,
+      "ctime_predates_issued_at": true
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/_virtualenv.py",
+      "sha256": "cfb3db86aaa53bb62b5ff764970bec2d71c9228590a0ebec57f6ec926cc0bf1a",
+      "bytes": 5246,
+      "mode": 420,
+      "inode": 17572897,
+      "mtime_ns": 1790922361759431221,
+      "ctime_ns": 1790922361759431221,
+      "ctime_predates_issued_at": true
+    }
+  ],
+  "coverage_limit": "The capture lists contain package and protected proof files, not these two uv environment bootstrap files. Their actual ctime predates this issued purpose; no before-purpose hash for them was captured by this owner. Bohr independently classifies full-floor coverage. Neither file was deleted or modified by the owner.",
+  "second_restore": false,
+  "archive_member_write": false
+}
