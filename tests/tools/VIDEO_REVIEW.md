@@ -291,6 +291,11 @@ selected interpreter after the gate and PTY command have exec'd away.
 Failed verification still cleans the acquired resource through its original parent.
 
 Ordinary and profiled captures use the same terminal-parent producer. The
+producer inherits its caller's standard streams unless that caller supplies
+an explicit stream. In particular, the profiler's existing terminal.log reaches
+the retained terminal parent and st; a default child DEVNULL must not silently
+discard st's diagnostic stream. Earlier captures with that discarded stream
+cannot establish st's cause from an empty terminal.log.
 profiler wrapper execs py-spy while remaining an ancestor of that retained
 parent, st and the UI. This preserves ptrace ancestry without losing st's real
 wait owner. Partial launch and profiler failure recover both original publications.

@@ -365,11 +365,12 @@ class ProcessOwner:
         terminal = launch["process"]
         return self.transfer(terminal["pid"], terminal["start_ticks"], exit_receipt=source, parent=parent)
 
-    def start_terminal(self, command, *, env, **kwargs):
-        """Acquire the terminal parent and both published child lifetimes."""
+    def start_terminal(self, command, *, env, stdin=None, stdout=None, stderr=None, **kwargs):
+        """Acquire both child lifetimes with the terminal's original streams."""
         output = Path(env["TOAD_VIDEO_OUTPUT"])
         launcher = self.start([sys.executable, str(Path(__file__).resolve()),
-                               "--terminal-launch", *command], env=env, **kwargs)
+                               "--terminal-launch", *command], env=env,
+                              stdin=stdin, stdout=stdout, stderr=stderr, **kwargs)
         source = output / "terminal-launch.json"
         deadline = time.monotonic() + 10
         while not source.exists() and launcher.child.identity.alive() and time.monotonic() < deadline:
