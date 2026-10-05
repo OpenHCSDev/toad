@@ -1,0 +1,23 @@
+{
+  "state": "PASS",
+  "actual_floor": "NONLIVE485CURRENT459",
+  "original_members": 1467,
+  "other65_records": 1865,
+  "protected_originals": 266,
+  "versions": 69,
+  "RAWorigins": 69,
+  "failures": [],
+  "extras": [],
+  "sockets": [],
+  "PREFIXactivation_sha256": "273d1ae8cbd9b38adfeb17e379419beea26c5a52fa2394aff16de6661c6eec11",
+  "actual_archive": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/485-current459-before466/original-current459-package-floor.tar.gz",
+    "sha256": "1563f43e54f84c6c1534aa13c41e0a785bd0e467b68496fa84e1072704dadca0",
+    "bytes": 3988872,
+    "members": 1467,
+    "mode": 384
+  },
+  "issued_sha256": "3e2801cad7de40d742a1dcd47e469129c346f19ee391100a590d15c76bfe48dd",
+  "whole_current459_restored": true,
+  "no_archive_member_write_or_donor_mutation": true
+}

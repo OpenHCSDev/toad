@@ -53,7 +53,7 @@ async def main():
                 sys.setprofile(None)
             result = {'stationary_calls': dict(observed),
                       'stationary_evictions': viewport.body_evictions - before,
-                      'reconciling': viewport._running, 'pending': viewport._pending,
+                      'reconciling': viewport._worker is not None, 'pending': viewport._pending,
                       'visible_ready': viewport.visible_bodies_ready,
                       'warm_widgets': sum(1 + len(body.walk_children())
                                           for key in viewport._warm.values()
@@ -61,7 +61,7 @@ async def main():
                       'widget_limit': viewport.budget.widget_limit(window.size.height)}
             (evidence / 'receipt.json').write_text(json.dumps(result, indent=2) + '\n')
             print(json.dumps(result), flush=True)
-            assert not viewport._running and not viewport._pending, result
+            assert viewport._worker is None and not viewport._pending, result
             assert result['stationary_evictions'] == 0, result
             assert result['visible_ready']
             assert result['warm_widgets'] <= result['widget_limit']
@@ -79,7 +79,7 @@ async def main():
             await pilot.pause(.5)
             assert viewport.visible_bodies_ready
             result['resize_preserves_visible_source'] = True
-            assert not viewport._running and not viewport._pending
+            assert viewport._worker is None and not viewport._pending
             assert app._exception is None
             (evidence / 'receipt.json').write_text(json.dumps(result, indent=2) + '\n')
 
