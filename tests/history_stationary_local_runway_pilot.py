@@ -170,20 +170,30 @@ async def main(output, *, worker_custody=False, session_resources=False):
                     if worker_custody:
                         await asyncio.wait_for(entered.wait(), 10)
                         first = next(history.lookahead_workers())
+                        # The native mount above may outlive an input sample.
+                        # Admit fresh authored travel through the original
+                        # clock/direction owner before choosing its slow speed.
+                        viewport.lookahead.observe(viewport.lookahead.position - 1)
                         demand = viewport.lookahead.demand
+                        demand.velocity = -1
                         before = viewport.lookahead.preparation_count(view.window.size.height)
-                        demand.velocity = (-app.preparation.max_entries * viewport.visible_body_rows
-                                           / viewport.budget.lookahead_seconds)
+                        viewport.lookahead.observe(
+                            viewport.lookahead.position
+                            - app.preparation.max_entries * viewport.visible_body_rows)
                         after = viewport.lookahead.preparation_count(view.window.size.height)
                         history.prepare_scroll()
                         custody["extent_changed"] = after > before
                         custody["same_direction_original_worker_retained"] = tuple(history.lookahead_workers()) == (first,)
+                        (output / "worker-custody-progress.json").write_text(
+                            json.dumps({"checks": custody, "before_count": before,
+                                        "after_count": after}, indent=2) + "\n")
                         assert all(custody.values())
                         release.set()
                         await asyncio.wait_for(first.wait(), 10)
 
                         entered.clear()
                         release.clear()
+                        viewport.lookahead.observe(viewport.lookahead.position - 1)
                         demand.velocity = -1
                         history.prepare_scroll()
                         await asyncio.wait_for(entered.wait(), 10)

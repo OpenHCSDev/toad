@@ -1,0 +1,129 @@
+{
+  "state": "First authored NoAgent App FAIL; remaining two UNRUN; whole actual485 returned. No qualified455 installedReady.",
+  "source_control_head": "9bb27ce198cd2b770b4e06a9305f039c6d92a1e2",
+  "product": "3352ba9e97d044ac5b6f6dada4eb220c88ecbc0f",
+  "source_receipt_head": "bc611f6e4060943aacd77a1dee9afc7e04fc07d3",
+  "issued_sha256": "9013ac52a38e815403b37403efc498a05e1bf4b4813fe1f6986b127737414984",
+  "terminal": {
+    "number": 1,
+    "argv": [
+      "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/history_stationary_local_runway_pilot.py",
+      "--installed-only",
+      "--worker-custody",
+      "--session-custody",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/workspace455-joint-authored-App-20261005/no-agent/app"
+    ],
+    "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+    "issued_sha256": "9013ac52a38e815403b37403efc498a05e1bf4b4813fe1f6986b127737414984",
+    "exit_code": 1,
+    "cleanup": {
+      "remaining_owned_pids": [],
+      "errors": []
+    },
+    "provider_input": false,
+    "native_SDK_input": false,
+    "movie": false,
+    "outcome": {
+      "kind": "exited",
+      "code": 1
+    },
+    "identity": {
+      "pid": 2121295,
+      "start_time": 65859510
+    },
+    "duration_seconds": 6.998999277013354,
+    "retired": true
+  },
+  "failure": "line181 all(custody.values()); extent_changed and same_direction_original_worker_retained individual values not recorded. Cause remains unproved.",
+  "source_lead": "The control assigns MovingPreparation and changes velocity across awaited native mount without refreshing the DirectionalPreparation sample clock. travel_rows legitimately expires after original idle_seconds. This is a source-supported fixture lifetime flaw, not proof which actual assertion term failed.",
+  "project_UNRUN": true,
+  "configured_UNRUN": true,
+  "native_EXEC_used": false,
+  "public_decoder_used": false,
+  "provider_or_native_SDK_input": false,
+  "movie": false,
+  "whole_floor_returned": {
+    "members": 1441,
+    "normal_distributions": 69,
+    "other66_members": 1883,
+    "frozen155": true,
+    "raw_final_census_processes": 192,
+    "active_refs": 0,
+    "gaps": 0
+  },
+  "keepers": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/workspace455-joint-authored-App-20261005/package-proof/stage-terminal.json",
+      "sha256": "7374ee14eedd2eb0fa24835d8c7649cf34f5f47b29270873049b8240f771bdf0"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/workspace455-joint-authored-App-20261005/package-proof/source-proof.json",
+      "sha256": "01029e9c48fbaa54eee7ff43386d9753e12017d3444cbd97246801623ca121a5"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/workspace455-joint-authored-App-20261005/package-proof/candidate-activation.json",
+      "sha256": "781e59c981b8398846e817c4ba1c6d6aa7ac1ec8035ddb81486af7359ad47951"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/workspace455-joint-authored-App-20261005/package-proof/package-boundary-proof.json",
+      "sha256": "125a2d155caeacd6a567b3c0ff313f641e5266c52a0c2bc355686c71ffed8ff9"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/workspace455-joint-authored-App-20261005/package-proof/proof-initial-codec-negative-terminal.json",
+      "sha256": "162856b7bb5b8179fd54d51d65d86a172bc0b5d1ebb8d18775988a522956b5aa"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/workspace455-joint-authored-App-20261005/package-proof/proof-initial-codec-negative.log",
+      "sha256": "64e9e4982a7c8f3d6badf23124ec12ce27bfe9c344c8cbd8c4d9d001086b4851"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/workspace455-joint-authored-App-20261005/job1-start.json",
+      "sha256": "4dd745c2489fc5e877bf26aff6d067e5a312d4d97969c813685fc71fd8507b35"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/workspace455-joint-authored-App-20261005/job1-effective-release.json",
+      "sha256": "ef2cf2176d224d90170f9728a470bbe40ab881210629d7fa61b8da0adcd5cc64"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/workspace455-joint-authored-App-20261005/job1-active-controller.json",
+      "sha256": "ad2279a98351141ec091656f44539383b6731675c5ffcea30e4cd9aa8d49af80"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/workspace455-joint-authored-App-20261005/job1-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/workspace455-joint-authored-App-20261005/job1-stderr.log",
+      "sha256": "6fc33bf2fcd47afa202da6751a928df0d5d3a9f811bf0834d88798592c6c57f2"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/workspace455-joint-authored-App-20261005/job1-terminal.json",
+      "sha256": "019b53919b62975c88adf7b750298f04f4a1e822e2289bc3f5ec05c0202b7f8d"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/workspace455-joint-authored-App-20261005/original-controls/history_stationary_local_runway_pilot.py",
+      "sha256": "8b506db5a640d919f2e0d6d02cc3c143d5ccf47c44822d1dcea6a2b1f4fdd90b"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/workspace455-joint-authored-App-20261005/restore-install.log",
+      "sha256": "5cd925728fbd6382d62820380c2b6db0638e2a6f9bd98b4b3b2ad78733f13c81"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/workspace455-joint-authored-App-20261005/restore-pipcheck.log",
+      "sha256": "77bcbc958df98746202f0cd460a217c27ee0deca531bab8dabaa13faa1adfd1d"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/workspace455-joint-authored-App-20261005/code-handback.json",
+      "sha256": "0718a48de1a3a8e35e45f2d5af71e2b8d9f81f4c74d5d17501a63bb36d8aa02d"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/workspace455-joint-authored-App-20261005/final-borrowers.json",
+      "sha256": "46dac03819d36562df6bbcbf5a7a7eb9c5179753270751cbf5b4c8e138fee4d7"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/workspace455-joint-authored-App-20261005/final-borrowers-classification.json",
+      "sha256": "2703654a875df3e904eed144b670ef2ac67c32a31dfeece5e0d6ae475d31d354"
+    }
+  ]
+}
