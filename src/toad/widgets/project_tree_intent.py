@@ -30,11 +30,8 @@ class ProjectTreeIntent:
                    selected.data.path if selected is not None and selected.data is not None else None,
                    tree.scroll_offset)
 
-    def matches(self, path: Path) -> bool:
-        return Path(path) == self.path
-
     async def restore(self, tree: "ProjectDirectoryTree") -> None:
-        if not self.matches(tree.path):
+        if Path(tree.path) != self.path:
             return
         # Mount completion precedes the first native viewport layout.
         laid_out = asyncio.Event()

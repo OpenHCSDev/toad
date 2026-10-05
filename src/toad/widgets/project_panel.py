@@ -117,13 +117,13 @@ class RestorableProjectPanel(ProjectPanel):
 
     def capture_intent(self) -> ProjectTreeIntent | None:
         """An unfinished restore retains its original reader, not a default node."""
-        if self._intent is not None and self._intent.matches(self.path):
+        if self._intent is not None:
             return self._intent
         return super().capture_intent()
 
     def watch_path(self, path: Path) -> None:
+        self._intent = None
         if self.directory_tree is not None:
-            self._intent = None
             self.workers.cancel_group(self, "project-tree")
         super().watch_path(path)
 

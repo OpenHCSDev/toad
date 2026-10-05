@@ -3,7 +3,7 @@
   "files": [
     {
       "path": "src/toad/widgets/project_panel.py",
-      "sha256": "afee30569f88c18076b87e576cdd6f9eb26a7da3c6e33179626d5c6520810945",
+      "sha256": "8bce2b8c6c60aad41fadaaf705f580cca0e4cc9c37d05bdc37dd157fc5690031",
       "syntax": "PASS",
       "declarations": [
         {
@@ -122,7 +122,7 @@
     },
     {
       "path": "src/toad/widgets/project_tree_intent.py",
-      "sha256": "777107fe32f1e673f52bfaa296833d7d628a68ba9c8036112fe81813a60a4b0a",
+      "sha256": "936201bbefbf301054760fdd3428f3a7055aea74ba1e7214a0be136364948e43",
       "syntax": "PASS",
       "declarations": [
         {
@@ -134,16 +134,12 @@
           "line": 20
         },
         {
-          "name": "matches",
+          "name": "restore",
           "line": 33
         },
         {
-          "name": "restore",
-          "line": 36
-        },
-        {
           "name": "restore_viewport",
-          "line": 64
+          "line": 61
         }
       ]
     },
@@ -289,7 +285,7 @@
   "deleted_consumer": "ProjectSessionPanel.capture no longer reads native directory_tree presence/data directly",
   "capture_owner": "ProjectPanel.capture_intent / RestorableProjectPanel pending intent override",
   "scroll_completion": "Original next-refresh callback synchronously commits viewport before restore returns; original future cancellation revokes callback on path change/unmount",
-  "matches_owner": "ProjectTreeIntent.matches original filesystem identity",
+  "matches_owner": "Original ProjectTreeIntent.restore retains exact native-path guard. Pending panel capture does not infer a second path decision; the panel path watcher discards old intent before any new-path admission, including before mount.",
   "workspace_chrome": "No production delta; original placement/navigation/nativeparent contracts remain authoritative",
   "shared_claim_notice": "Proposed exact ProjectPanel and ONLY ProjectSessionPanel.capture seam sent directly to Heisenberg before edits; current453 files disjoint",
   "limits": [
