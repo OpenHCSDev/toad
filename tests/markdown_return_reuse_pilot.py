@@ -92,10 +92,11 @@ async def page_wheel(app, pilot, view):
         # One native event per acquisition: the Pilot forwards through Screen,
         # pointer dispatch and bubbling to the original HistoryWindow receiver.
         for _ in range(count):
-            offset = window.scrollable_content_region.center
+            region = window.scrollable_content_region
+            offset = region.offset + (region.width // 2, region.height // 2)
             hit, _ = app.screen.get_widget_at(*offset)
             assert hit is window or window in hit.ancestors
-            await pilot._post_mouse_events([event_type], offset=tuple(offset))
+            await pilot._post_mouse_events([event_type], offset=offset)
         await pilot.wait_for_scheduled_animations()
         await until(pilot, lambda: "MOUNTED_PAGE_" in viewport_text(window))
         painted = viewport_text(window)
@@ -111,8 +112,9 @@ async def page_wheel(app, pilot, view):
         print("ORIGINAL_NATIVE_WHEEL_READER", motions[-1], flush=True)
 
     # End is a genuine focused key, not a programmatic body/cursor substitute.
-    offset = window.scrollable_content_region.center
-    await pilot.click(offset=tuple(offset))
+    region = window.scrollable_content_region
+    offset = region.offset + (region.width // 2, region.height // 2)
+    await pilot.click(offset=offset)
     await pilot.pause()
     assert app.focused is window
     await pilot.press("end")
