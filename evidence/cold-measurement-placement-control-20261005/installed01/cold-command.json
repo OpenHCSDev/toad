@@ -1,0 +1,42 @@
+{
+  "issued": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Heis460-corrected-cold-only-package-App-issued-grant.json",
+  "issued_sha256": "3d8a2bdcd36a61c4a1b3acffc25b479aeb736ecf4138ab47c367857774281d76",
+  "lifecycle": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Heis460-corrected-cold-only-package-App-lifecycle.json",
+  "lifecycle_sha256_at_launch": "a34211be782373a2ad8acdafbe7097293614ae2b484fe8241af1b6ce409c5cbb",
+  "control": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/prepared_height_contract_pilot.py",
+    "sha256": "af1ee4ede20f015bd7b7c554aafa284963edce6463cfc5a2f724d6b5281192d2",
+    "argv": [
+      "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+      "-B",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/prepared_height_contract_pilot.py",
+      "--installed-only"
+    ],
+    "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+    "environment": {
+      "inherit": "ordinary system environment, no app source paths",
+      "unset": [
+        "PYTHONPATH",
+        "PYTHONHOME",
+        "VIRTUAL_ENV",
+        "AGENT_COMMS_THREAD",
+        "AGENT_COMMS_RUNTIME",
+        "PI_AGENT_ID",
+        "PI_PROMPT"
+      ],
+      "set": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "HEIGHT_CONTRACT_EVIDENCE": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/cold-height"
+      }
+    },
+    "timeout": 90,
+    "runner": "Original installed BoundedRun.session/AttachedChild +FieldCodec, originalrun_cold custody. No fabricated actor, sourceoverlay, customtimeouts/caps."
+  },
+  "controller": {
+    "pid": 622382,
+    "start_time": 69053203
+  },
+  "timeout": 90,
+  "owner": "Original BoundedRun.session / AttachedChild; same original renderer runner custody"
+}

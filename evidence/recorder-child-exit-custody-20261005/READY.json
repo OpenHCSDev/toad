@@ -1,0 +1,31 @@
+{
+  "state": "Ready at recorder OS custody + original ordinary UI/st quit + changed profile export/UI/st/diagnosticstream/cleanup scope",
+  "source": "8ccfe0c3",
+  "source_sha256": "1e241e606d4021f9500c10f960bb4ee41c2addd6e97afc96f649bcb29098bcc0",
+  "source_equal_head": "a85cda37ed093e1a9370e960f3c01087e2dcf01c",
+  "qualified02": {
+    "OS_cases_passed": 3,
+    "ordinary_passed": true,
+    "profile_FAILED": true,
+    "unchanged_accepted_cases_not_repeated": true,
+    "whole_return_sha256": "04a7f798bd0f49107251f2efc60084fe162d1192e53d5dbd412357f930d139d5"
+  },
+  "qualified03": {
+    "profile_PASS": true,
+    "controller_elapsed_seconds": 34.3310684239259,
+    "UI_exit": 0,
+    "st_exit": 0,
+    "profiler_export_exit": 0,
+    "samples": 96,
+    "sampling_errors": 0,
+    "actual_st_diagnostic_bytes": 174,
+    "raw_whole_return": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified03-profile-20261005/whole-client-return.json",
+    "raw_whole_return_sha256": "26fb3b18967f7277075cb4ee6fae524cfc2e0435ea1d98aa53299fcb0b756460",
+    "owned_identity_count": 14,
+    "all_children_controller_display_groups_joined": true
+  },
+  "all_runtime_read_client_execution_claims_returned": true,
+  "original_owner_settings_route_unchanged": true,
+  "no_active_owned_handle": true,
+  "limits": "No historical459/profile02 cause, completebody/defaultUI readiness, performance, provider/nativeSDK,input,package or publication claim. Sourcefreeze only; parent owns exacthead merge. No further test/build/CI/docs approval gate."
+}

@@ -1,0 +1,69 @@
+{
+  "status": "PREPARED, no eligible prefix or issued package/runtime authority",
+  "source_head": "83247c4b81834f42f308dbd01349a0c5795d49f8",
+  "body_product": "7edca2943b7cc68ff99d091d088fd3e65c53ff24",
+  "transport_source": "db368ff54c21c13a4a98465f10eebce2421be38e",
+  "source_assets": 319,
+  "pins_and_build_metadata": "ZERO delta vs actual merged457e322",
+  "controls": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/render_execution_preparation_installed_pilot.py",
+      "sha256": "0fb5533145dfde22a569312e9356962bb5cbbe0f8ee266694290eff61678f526",
+      "argv": [
+        "FRESH_ISSUED_PREFIX/bin/python",
+        "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/render_execution_preparation_installed_pilot.py",
+        "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-render-transport458-20261005/transport"
+      ],
+      "environment": {
+        "PYTHONPATH": "ABSENT",
+        "PYTHONHOME": "ABSENT",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1"
+      },
+      "scope": "Actual local/persistent worker typed result delivery/independent Markdown-Rich copies/retained bounds/whole worker service shutdown",
+      "runtime": "UNRUN"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/prepared_height_contract_pilot.py",
+      "sha256": "93d063780d05a94ac3098c2965079a2d107bf693e20b541e7a98e80f02e232bd",
+      "argv": [
+        "FRESH_ISSUED_PREFIX/bin/python",
+        "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/prepared_height_contract_pilot.py",
+        "--installed-only"
+      ],
+      "environment": {
+        "PYTHONPATH": "ABSENT",
+        "PYTHONHOME": "ABSENT",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "HEIGHT_CONTRACT_EVIDENCE": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-render-transport458-20261005/cold-height"
+      },
+      "scope": "ONE original NoAgentApp/cold native measurement/source epochs/derived extent/box-arrangement-style-relative-height/whole preparation close",
+      "runtime": "UNRUN"
+    }
+  ],
+  "order": "Original transport control then ONE original mounted cold measurement App; stop and retain any failure, no automatic retry",
+  "output": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-render-transport458-20261005",
+  "build": {
+    "authorized_now": false,
+    "required": "ONE normal joint ToAd wheel via original cached Hatchling1.28 no isolation; all319 Git/local/ZIP equality before install",
+    "standalone458_wheel": "6f68d3d2bc6434612beae6275ce660c1c2a792e6215132e0485ec5498422d8ad is historical standalone source, NOT combined source equal"
+  },
+  "dependencies": {
+    "core": "Actual6757b68/retained a685578e439aa2f7010219aa6032ae7e7307a68393e6d6adbb084563f39f43c5",
+    "textual": "Actual67d733/retained16c9f5e7a1aca9f7a339fdb859c1743bbc0ba8f17327ba3debd4b13959ca927d",
+    "diff": "8fa7d4d0",
+    "persistent_extra": "Original zmqruntime0.2.24 cached full declared closure; Parent-authorized within fresh actual purpose, literal operands pending Einstein handoff. Historical full69 does not include extra."
+  },
+  "floor": "Actual genuinely eligible prefix/floor/origins/keepers/archive and restore tuple must be supplied by original Bohr fresh purpose; no old485/floor or current public eligibility inferred",
+  "native": "Fresh matching immutable7a READ for NativeFullTrust proof if required by issued package purpose; NoAgent controls do not execute Pi/nativeSDK/provider",
+  "cleanup": "Original runtime/controller/service/worker/socket groups joined; own disposable payload retirement and whole actual issued floor restoration with fresh privileged handback",
+  "claims_excluded": [
+    "physical or first-paint latency",
+    "CPU gain or dominance",
+    "moving-frame cadence",
+    "full configured continuous workflow",
+    "new provider/model/nativeSDK input",
+    "accepted456/457 repetition"
+  ]
+}

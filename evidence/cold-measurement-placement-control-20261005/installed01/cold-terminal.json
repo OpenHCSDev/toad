@@ -1,0 +1,25 @@
+{
+  "elapsed": 7.62302847194951,
+  "returncode": 0,
+  "timed_out": false,
+  "error": null,
+  "drain_errors": [],
+  "outcome": {
+    "kind": "exited",
+    "code": 0
+  },
+  "child_retired": true,
+  "owned_group_members": [],
+  "controller": {
+    "pid": 622382,
+    "start_time": 69053203
+  },
+  "child": {
+    "pid": 622530,
+    "start_time": 69053305
+  },
+  "scope": "Corrected cold prepared body height and ordinal/widget/region placement; original13assertions; NoAgent/no provider or native artifact execution",
+  "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Heis460-corrected-cold-only-package-App-issued-grant.json",
+  "native_inputs": 0,
+  "provider_calls": 0
+}

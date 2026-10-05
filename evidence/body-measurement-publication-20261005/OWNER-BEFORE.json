@@ -1,0 +1,1065 @@
+{
+  "source": "e32253a5601400234b7ef0b5a191185c7427647a",
+  "tool": "Existing refactor-audit audit.findings.Package/audit.repository.Repository; Python AST nodes borrowed from complete parsed packages",
+  "coverage": [
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "rev": "e32253a5601400234b7ef0b5a191185c7427647a",
+      "root": "src/toad",
+      "modules": 288,
+      "parse_omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "rev": "e32253a5601400234b7ef0b5a191185c7427647a",
+      "root": "tests",
+      "modules": 397,
+      "parse_omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "rev": "e32253a5601400234b7ef0b5a191185c7427647a",
+      "root": "tools",
+      "modules": 41,
+      "parse_omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "rev": "7b68d630caa654d3e9884f45cbd6493718752a0c",
+      "root": "src/agent_comms",
+      "modules": 324,
+      "parse_omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "rev": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78",
+      "root": "src/textual",
+      "modules": 249,
+      "parse_omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/prepared_markdown.py",
+      "line": 39,
+      "node": "Name",
+      "symbol": "MeasuredViewportBody",
+      "expression": "MeasuredViewportBody"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/streaming_markdown.py",
+      "line": 57,
+      "node": "AsyncFunctionDef",
+      "symbol": "retirement_custody",
+      "expression": "@asynccontextmanager"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/streaming_markdown.py",
+      "line": 59,
+      "node": "Attribute",
+      "symbol": "retirement_custody",
+      "expression": "super().retirement_custody"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 37,
+      "node": "Name",
+      "symbol": "MeasuredViewportBody",
+      "expression": "MeasuredViewportBody"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 72,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 179,
+      "node": "Name",
+      "symbol": "MeasuredViewportBody",
+      "expression": "MeasuredViewportBody"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 81,
+      "node": "ClassDef",
+      "symbol": "BodyMeasurement",
+      "expression": "@dataclass(frozen=True)"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 245,
+      "node": "ClassDef",
+      "symbol": "LiveBody",
+      "expression": "@dataclass(frozen=True)"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 286,
+      "node": "ClassDef",
+      "symbol": "MaterializingBody",
+      "expression": "@dataclass(frozen=True, kw_only=True)"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 425,
+      "node": "ClassDef",
+      "symbol": "RenderedBody",
+      "expression": "@dataclass(frozen=True, kw_only=True)"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 485,
+      "node": "ClassDef",
+      "symbol": "MeasuredViewportBody",
+      "expression": "class MeasuredViewportBody(ViewportBody):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 125,
+      "node": "FunctionDef",
+      "symbol": "start_materialization",
+      "expression": "def start_materialization(self, body, work=None, *, exit_on_error=False):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 195,
+      "node": "FunctionDef",
+      "symbol": "publication_finished",
+      "expression": "def publication_finished(self, body, worker):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 199,
+      "node": "FunctionDef",
+      "symbol": "publication_failed",
+      "expression": "def publication_failed(self, body, worker):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 217,
+      "node": "Name",
+      "symbol": "BodyMeasurement",
+      "expression": "BodyMeasurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 286,
+      "node": "Name",
+      "symbol": "BodyMeasurement",
+      "expression": "BodyMeasurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 406,
+      "node": "FunctionDef",
+      "symbol": "publication_finished",
+      "expression": "def publication_finished(self, body, worker):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 416,
+      "node": "FunctionDef",
+      "symbol": "publication_failed",
+      "expression": "def publication_failed(self, body, worker):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 539,
+      "node": "FunctionDef",
+      "symbol": "_update_body_measurement",
+      "expression": "def _update_body_measurement(self, measurement):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 617,
+      "node": "AsyncFunctionDef",
+      "symbol": "retirement_custody",
+      "expression": "@asynccontextmanager"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 667,
+      "node": "AsyncFunctionDef",
+      "symbol": "finish_native_retirement",
+      "expression": "async def finish_native_retirement(self, current, children, paint):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 293,
+      "node": "Name",
+      "symbol": "BodyMeasurement",
+      "expression": "BodyMeasurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 491,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 542,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 688,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 695,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 156,
+      "node": "Name",
+      "symbol": "MaterializingBody",
+      "expression": "MaterializingBody"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 157,
+      "node": "Attribute",
+      "symbol": "_update_body_measurement",
+      "expression": "body._update_body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 491,
+      "node": "Name",
+      "symbol": "LiveBody",
+      "expression": "LiveBody"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 497,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 523,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 531,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 534,
+      "node": "Attribute",
+      "symbol": "_update_body_measurement",
+      "expression": "self._update_body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 537,
+      "node": "Attribute",
+      "symbol": "_update_body_measurement",
+      "expression": "self._update_body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 540,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 554,
+      "node": "Attribute",
+      "symbol": "_update_body_measurement",
+      "expression": "self._update_body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 558,
+      "node": "Attribute",
+      "symbol": "_update_body_measurement",
+      "expression": "self._update_body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 590,
+      "node": "Attribute",
+      "symbol": "start_materialization",
+      "expression": "self._body_measurement.start_materialization"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 632,
+      "node": "Attribute",
+      "symbol": "finish_native_retirement",
+      "expression": "self.finish_native_retirement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 690,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 697,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 712,
+      "node": "Attribute",
+      "symbol": "_update_body_measurement",
+      "expression": "self._update_body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 408,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "body._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 414,
+      "node": "Attribute",
+      "symbol": "publication_finished",
+      "expression": "self.previous.publication_finished"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 418,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "body._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 421,
+      "node": "Attribute",
+      "symbol": "publication_failed",
+      "expression": "self.previous.publication_failed"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 501,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 505,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 527,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 567,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 570,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 590,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 594,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 614,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 660,
+      "node": "Name",
+      "symbol": "RenderedBody",
+      "expression": "RenderedBody"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 671,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 675,
+      "node": "Attribute",
+      "symbol": "retirement_custody",
+      "expression": "self.retirement_custody"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 681,
+      "node": "Attribute",
+      "symbol": "_update_body_measurement",
+      "expression": "self._update_body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 700,
+      "node": "Attribute",
+      "symbol": "_update_body_measurement",
+      "expression": "self._update_body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 705,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 712,
+      "node": "Name",
+      "symbol": "LiveBody",
+      "expression": "LiveBody"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 412,
+      "node": "Name",
+      "symbol": "LiveBody",
+      "expression": "LiveBody"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 516,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 534,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 537,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 554,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 558,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 586,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 599,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 623,
+      "node": "Name",
+      "symbol": "BodyMeasurement",
+      "expression": "BodyMeasurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 625,
+      "node": "Name",
+      "symbol": "BodyMeasurement",
+      "expression": "BodyMeasurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 627,
+      "node": "Name",
+      "symbol": "BodyMeasurement",
+      "expression": "BodyMeasurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 630,
+      "node": "Name",
+      "symbol": "BodyMeasurement",
+      "expression": "BodyMeasurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 641,
+      "node": "Name",
+      "symbol": "BodyMeasurement",
+      "expression": "BodyMeasurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 648,
+      "node": "Name",
+      "symbol": "BodyMeasurement",
+      "expression": "BodyMeasurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 676,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 123,
+      "node": "Attribute",
+      "symbol": "start_materialization",
+      "expression": "self.start_materialization"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 145,
+      "node": "Attribute",
+      "symbol": "_update_body_measurement",
+      "expression": "body._update_body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 148,
+      "node": "Attribute",
+      "symbol": "_update_body_measurement",
+      "expression": "body._update_body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 151,
+      "node": "Attribute",
+      "symbol": "_update_body_measurement",
+      "expression": "body._update_body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 512,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "self._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 143,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "body._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 149,
+      "node": "Attribute",
+      "symbol": "publication_finished",
+      "expression": "body._body_measurement.publication_finished"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 152,
+      "node": "Attribute",
+      "symbol": "publication_failed",
+      "expression": "body._body_measurement.publication_failed"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 145,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "body._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 149,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "body._body_measurement"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 152,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "body._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 269,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "node._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 407,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "selected._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 221,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "member._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 409,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "selected._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 218,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "member._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 349,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "member._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 351,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "member._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 357,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "member._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 226,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "member._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 273,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "member._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 274,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "member._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 76,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "body._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 231,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "member._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 277,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "member._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 290,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "member._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 298,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "member._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 301,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "member._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 359,
+      "node": "Name",
+      "symbol": "MaterializingBody",
+      "expression": "MaterializingBody"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_tool_text_pilot.py",
+      "line": 89,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "body._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_tool_text_pilot.py",
+      "line": 90,
+      "node": "Name",
+      "symbol": "RenderedBody",
+      "expression": "RenderedBody"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_tool_text_pilot.py",
+      "line": 111,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "body._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_tool_text_pilot.py",
+      "line": 111,
+      "node": "Name",
+      "symbol": "MaterializingBody",
+      "expression": "MaterializingBody"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_tool_text_pilot.py",
+      "line": 112,
+      "node": "Name",
+      "symbol": "RenderedBody",
+      "expression": "RenderedBody"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_tool_text_pilot.py",
+      "line": 112,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "body._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 378,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "fragment._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 381,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "child._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 77,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "body._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 76,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "body._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 73,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "body._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 73,
+      "node": "Name",
+      "symbol": "MaterializingBody",
+      "expression": "MaterializingBody"
+    },
+    {
+      "root": "tests",
+      "path": "tests/viewport_rapid_scroll_pilot.py",
+      "line": 94,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "end._body_measurement"
+    },
+    {
+      "root": "tests",
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "line": 34,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "node._body_measurement"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/capture_state.py",
+      "line": 475,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "body._body_measurement"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/capture_state.py",
+      "line": 476,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "body._body_measurement"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/capture_state.py",
+      "line": 477,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "body._body_measurement"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/capture_state.py",
+      "line": 474,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "body._body_measurement"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/scroll_travel_observation.py",
+      "line": 39,
+      "node": "Attribute",
+      "symbol": "start_materialization",
+      "expression": "BodyMeasurement.start_materialization"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/scroll_travel_observation.py",
+      "line": 39,
+      "node": "Name",
+      "symbol": "BodyMeasurement",
+      "expression": "BodyMeasurement"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/scroll_travel_observation.py",
+      "line": 40,
+      "node": "Name",
+      "symbol": "MeasuredViewportBody",
+      "expression": "MeasuredViewportBody"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/scroll_travel_observation.py",
+      "line": 75,
+      "node": "Attribute",
+      "symbol": "_body_measurement",
+      "expression": "body._body_measurement"
+    }
+  ],
+  "decision": "Derived native extent must not retire its own source measurement. Existing body resource transition owns synchronous invalidation and subsequent original native request/paint publication once. Native canonical contracts unchanged.",
+  "patterns": [
+    "IMPL-12 repeated source-retirement effect",
+    "IDEN-1 derived measurement output treated as source mutation"
+  ],
+  "runtime": "UNRUN; no package/native/installed authority"
+}

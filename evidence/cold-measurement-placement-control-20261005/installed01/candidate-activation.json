@@ -1,0 +1,26 @@
+{
+  "stage": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "pins": {
+    "agent_comms": "7b68d630caa654d3e9884f45cbd6493718752a0c",
+    "toad": "1ae124fcbc730479a8472c8fbe70f74a32afc5ef",
+    "textual": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78",
+    "refactor_audit": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10"
+  },
+  "sdk": "0.12.1",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+  "state": "HELD original correctedcold3d8 actualNONLIVE334CURRENT447 purpose; cold App unrun",
+  "staging_receipt": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/candidate-source-proof.json",
+  "bins": {
+    "python": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+    "toad": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/toad",
+    "agent-comms": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-agent",
+    "pi-comms-native": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/pi-comms-native"
+  },
+  "native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+  "native_manifest": "7a2e4aabdbc5af49dd9af942190d92086df2eb3489903674a74af51cf831cd33",
+  "native_tree": "0d7ff54a04d4f0ff175fc889e936ca3cea8b1f98eb8b73ed6215c3373cbd984d",
+  "native_configuration_note": "Actual NONLIVE334 CURRENT447 archive41b065/preimagefa647:1468members/69originalorigins/428keepers/PREFIXactivation+1883other66 unchanged. Candidate675Core7b/a685,Text67d733/16c9,Toadjoint1ae/7546; three retained wheels/full69 with no optional extras. Shared immutable7a NEW READ proof only; corrected cold NoAgent App HELD. ActualCURRENT447 floor restore after terminal; PUBLIC485459 untouched."
+}

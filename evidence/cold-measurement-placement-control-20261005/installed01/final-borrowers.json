@@ -1,0 +1,125 @@
+{
+  "time": 1791214953.4477355,
+  "processes": 247,
+  "gaps": [],
+  "refs": {
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002": [
+      {
+        "pid": 3963075,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 3963076,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 3963087,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 3963089,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 3963096,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 3963234,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 3963245,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 3963609,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 3963870,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 3964233,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 3964585,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 3964732,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 3965277,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 3965646,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 3966374,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 3966992,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 3967468,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 3967732,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 3967737,
+        "kinds": [
+          "environ"
+        ]
+      }
+    ],
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005": [],
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-cold-placement-successor-20261005/cold-height": []
+  }
+}

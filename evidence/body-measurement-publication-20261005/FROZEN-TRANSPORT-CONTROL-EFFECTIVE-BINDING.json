@@ -1,0 +1,88 @@
+{
+  "status": "Effective original-control path binding only; NOT issued purpose or prefix access",
+  "base_proposal": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/body-measurement-publication-20261005/FINAL-JOINT-INSTALLED-OPERANDS-PROPOSAL.json",
+    "sha256": "8f6a03816daaf0249e0fd3cd446e32f1c947a4dfd0a6cdb950153f96891f717f"
+  },
+  "source_head": "992162f9b27462017c23d627a424ef732d1fe203",
+  "qualified_build_head": "1ae124fcbc730479a8472c8fbe70f74a32afc5ef",
+  "source_tests_pins": "ZERO delta vs qualified build head",
+  "transport_control": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/frozen-799979/render_execution_preparation_installed_pilot.py",
+    "sha256": "0fb5533145dfde22a569312e9356962bb5cbbe0f8ee266694290eff61678f526",
+    "argv": [
+      "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+      "-B",
+      "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/frozen-799979/render_execution_preparation_installed_pilot.py",
+      "/home/ts/.cache/agent-scratch/h460458/transport"
+    ],
+    "cwd": "/home/ts/wt/toad-regression-widget-cost-20261001",
+    "output": "/home/ts/.cache/agent-scratch/h460458/transport",
+    "raw_receipts": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/installed01",
+    "runner": "Existing installed agent_comms.child_process.BoundedRun.session / AttachedChild, timeout90. One exact child command; actualbirth/outcome/stdio/joined descendants/groups retained, no new runner framework.",
+    "environment": {
+      "inherit": "ordinary system environment; no application source paths, no credential contents in receipts",
+      "unset": [
+        "PYTHONPATH",
+        "PYTHONHOME",
+        "VIRTUAL_ENV",
+        "AGENT_COMMS_THREAD",
+        "AGENT_COMMS_RUNTIME",
+        "PI_AGENT_ID",
+        "PI_PROMPT"
+      ],
+      "set": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "AGENT_COMMS_ROOT": "/home/ts/.cache/agent-scratch/h460458/wire",
+        "TMPDIR": "/home/ts/.cache/agent-scratch/h460458/tmp"
+      }
+    },
+    "scope": "Actual installed local spawn and private persistent renderer transport; official SDK model validation only; captured Unicode Markdown and Rich strips independently delivered/retained. No mounted GUI/native SDK/ACP/session/provider/input/firstpaint/frame speed or physical claim.",
+    "concurrency": "Original control local1worker/pending2 and persistent1worker/pending2, one serial invocation. No invented host memory cap.",
+    "short_output_reason": "Original RendererEndpoint directory includes renderer/24hex/render_port.sock; short owned output respects Unix IPC name contract without product change.",
+    "after": "Original control runtime/cache/pool closures + explicit persistent shutdown_service, pending[] and active_children preimage. Original BoundedRun owns controller/process-group retirement, fresh census before return. No automatic retry; preserve failure/unknown.",
+    "operator_handoff": "Heis integrates/stages one final sourceequal460 union and owns full holder/floor return. Einstein has only one exact0fb renderer command READ/operator custody after actual issued handoff/release. Send joined result/return before Heis changescoldheight control; no simultaneous prefix imports or second stage.",
+    "operator": "Original Einstein only if exact fresh joint purpose explicitly binds renderer READ/operator handoff after Heis sole stage and proof. No current operator custody."
+  },
+  "unchanged": "Same 0fb published body/cwd/env/output/99-byte IPC operand/operator and serial return. Second cold-height command unchanged. No framework or production/control edits. Original proposals immutable.",
+  "original_source_records": {
+    "FUTURE-INSTALLED-SCOPE.json": {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/frozen-799979/FUTURE-INSTALLED-SCOPE.json",
+      "sha256": "b917691843a640f11a6f0c251cb89783ebd36e85f429622dd59402eb67351134"
+    },
+    "OPTIONAL-WHEEL-RECORD-PROOF.json": {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/frozen-799979/OPTIONAL-WHEEL-RECORD-PROOF.json",
+      "sha256": "e70bdac3b597c4a467138c32aa1af64124386ac72fdc005092e0f3969e21ae61"
+    },
+    "render_execution_preparation_installed_pilot.py": {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/frozen-799979/render_execution_preparation_installed_pilot.py",
+      "sha256": "0fb5533145dfde22a569312e9356962bb5cbbe0f8ee266694290eff61678f526"
+    },
+    "PROPOSED-INSTALLED-OPERANDS.json": {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/frozen-799979/PROPOSED-INSTALLED-OPERANDS.json",
+      "sha256": "9150ed9a87908f60116b945a6b175e455a27b605496e35c7e926e58e47f4b5d9"
+    },
+    "OPTIONAL-CACHED-ARTIFACTS.json": {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/frozen-799979/OPTIONAL-CACHED-ARTIFACTS.json",
+      "sha256": "1b3964aed64262036fb3a7c1f855002dac5e188a67a37c39a2eb5a9fddfc0368"
+    },
+    "FILEWHEEL.json": {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/frozen-799979/FILEWHEEL.json",
+      "sha256": "9b896038d06901a61f25049c44cf9ff65a2fca12f5b42e45ce8298fcd1fedfd5"
+    },
+    "PINNED-OPTIONAL-WHEEL-INPUTS.json": {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/frozen-799979/PINNED-OPTIONAL-WHEEL-INPUTS.json",
+      "sha256": "63f53b979e3a949c65cc67148524648c2a6b94b99990e6d5626fc1aed562b5a8"
+    },
+    "frozen-source-relation.json": {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/prepared-render-transport-20261005/frozen-799979/frozen-source-relation.json",
+      "sha256": "b875d60c008e09b9ee0776b19596e5aa259803bd4c7be4b3e88f5e7521ebbd33"
+    }
+  },
+  "filewheel": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body-measurement460-render-transport458-20261005/source-wheel/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "7546bd15d78f2c06a11a2bb4e5564050017360c222e8e064abea2b560a180432",
+    "all319": "Git/local/ZIP exact; prior build/proof retained, no repeat"
+  },
+  "custody": "Bohr binds actual eligible floor/archive/origins/protection/refs and immutable purpose before access/stage; Heis sole stage/proof/floor return, Einstein only exact renderer operator handoff, then Heis cold App. No purpose currently inferred."
+}

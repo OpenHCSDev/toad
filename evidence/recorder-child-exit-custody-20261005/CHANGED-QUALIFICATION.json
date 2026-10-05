@@ -1,0 +1,141 @@
+{
+  "status": "CHANGED_SOURCE_SUCCESSOR_PROPOSED_NOT_AUTHORIZED_FOR_EXECUTION",
+  "source_revision": "ff11a76d8a0926f86dfd3fae3407c9a5790a4252",
+  "cwd": "/home/ts/wt/toad-original-reply-handling-20261002",
+  "interpreter": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+  "interpreter_relation": "Literal original459 receipt path, not a fresh current prefix/source verification or loan. Must bind actual current installed provenance and epoch in the future purpose before imports/execution.",
+  "source_hashes": {
+    "/home/ts/wt/toad-original-reply-handling-20261002/tests/tools/record_installed_tui.py": "c36b7c1ce17bb0f580b7a5662a3aa6836a49e2a488ca7fe225f5f59bb28c3b81",
+    "/home/ts/wt/toad-original-reply-handling-20261002/evidence/installed-tui-video/terminal_custody_probe.py": "065e77b3f8072f655e3994f0d183517dc400ec37da691bab135c25d07c3732a3"
+  },
+  "baseline_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent"
+  },
+  "target_relation": "ExistingThreadCapture derives current active route, original registered nra-architecture identity and settings; original459 PID is historical, not stop/admission authority. Fresh original incarnation/epoch witness required.",
+  "environment_absent": [
+    "PYTHONPATH",
+    "AGENT_COMMS_RUNTIME_ROOT",
+    "AGENT_COMMS_ACP_LAUNCHER",
+    "AGENT_COMMS_ROOT",
+    "AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID",
+    "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
+    "AGENT_COMMS_THREAD",
+    "AGENT_COMMS_MANAGED"
+  ],
+  "serial_phases": [
+    {
+      "name": "os_custody",
+      "argv": [
+        "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+        "-B",
+        "/home/ts/wt/toad-original-reply-handling-20261002/evidence/installed-tui-video/terminal_custody_probe.py"
+      ],
+      "environment": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "TOAD_VIDEO_CAPTURE_TARGET": "existing_thread",
+        "VIDEO_TERMINAL_PROBE_OUTPUT": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/os-custody"
+      },
+      "output": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/os-custody",
+      "scope": "Original abrupt-terminal, wrong-final-interpreter and abrupt-profiler OS resource controls. No UI/provider/native input; sleeping commands do not qualify UI."
+    },
+    {
+      "name": "ordinary_ui",
+      "argv": [
+        "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+        "-B",
+        "/home/ts/wt/toad-original-reply-handling-20261002/tests/tools/record_installed_tui.py",
+        "--capture-target",
+        "existing_thread",
+        "--journey",
+        "observe",
+        "--still-images",
+        "--review-timing",
+        "deferred",
+        "--fit-window",
+        "--max-duration",
+        "45",
+        "--owner",
+        "Mendel-recorder462",
+        "--output",
+        "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/ordinary",
+        "--",
+        "toad-comms",
+        "nra-architecture"
+      ],
+      "environment": {
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "output": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/ordinary",
+      "scope": "Fresh stationary installed UI client, before/after pixels, one actual ctrl+q, original UI/st wait outcomes and joined cleanup; no body journey or message input."
+    },
+    {
+      "name": "profile_ui",
+      "argv": [
+        "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+        "-B",
+        "/home/ts/wt/toad-original-reply-handling-20261002/tests/tools/record_installed_tui.py",
+        "--capture-target",
+        "existing_thread",
+        "--journey",
+        "observe",
+        "--still-images",
+        "--review-timing",
+        "deferred",
+        "--fit-window",
+        "--max-duration",
+        "45",
+        "--owner",
+        "Mendel-recorder462",
+        "--profile",
+        "--profile-rate",
+        "10",
+        "--profile-threads",
+        "gil",
+        "--output",
+        "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/profile",
+        "--",
+        "toad-comms",
+        "nra-architecture"
+      ],
+      "environment": {
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "output": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified02-20261005/profile",
+      "scope": "Same changed UI/st custody with actual py-spy ancestor, export and quit/cleanup. Separate fresh client, no message input or performance claim."
+    }
+  ],
+  "admission": {
+    "state": "NOT_ISSUED",
+    "parent_boundary": "Fresh real public client admission plus exact installed interpreter/route/source and serial operation bounds. No new public input, guard, publisher, restart or replay.",
+    "bohr_boundary": "Specific read/execution scope if an installed prefix/private fixture is borrowed. No 540/675/676 loan inherited.",
+    "native_boundary": "No direct Pi/SDK launch, prompt or provider in these commands. Any native acquisition beyond current original owner IPC requires the matching explicit boundary; no 675/676 artifact loan inherited."
+  },
+  "required_results": [
+    "Both UI and st original ChildOutcome successful in both modes; forced or missing result remains FAIL",
+    "Actual quit request distinguished from original child completion",
+    "Profile samples actual UI and exports without ancestor/ptrace refusal",
+    "Original registered owner/session/settings unchanged and alive",
+    "All owned controllers/programs/terminal/profiler/display groups joined; receipt contains original births and real outcomes",
+    "Preserve first failure/UNKNOWN and do not replay; no acceptance granted by compilation"
+  ],
+  "original_failure": "PUBLIC459 whole FAIL/st1/EIO/unknown UI cause remains unchanged; eighteen accepted body checks are not repeated.",
+  "not_claimed": [
+    "installed or live readiness",
+    "latency or smoothness",
+    "native/provider correctness",
+    "original459 cause",
+    "new package/build/environment authority"
+  ],
+  "previous_phase": {
+    "terminal": 1,
+    "path": "/home/ts/.cache/agent-scratch/mendel-recorder462-qualified01-20261005",
+    "record": "terminal-and-handback.json",
+    "scope": "First OS phase failed; ordinary/profile never started; no replay or inheritance of consumed serial authority"
+  },
+  "smallest_changed_acceptance": [
+    "Changed original OS probe only first: true direct st death, acquired wrong interpreter refusal, abrupt profiler custody. Prior first stimulus targeted guardian so not a qualified direct st case; two later cases unqualified/unreached.",
+    "Then still-unrun ordinary/profile stationary UI only after OS PASS and fresh public client admission/current identity; no body, native SDK, provider or input wave."
+  ]
+}
