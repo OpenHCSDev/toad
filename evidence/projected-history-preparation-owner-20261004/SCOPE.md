@@ -115,3 +115,33 @@ Temporary fixture output is removed by its original lifetime. No new harness,
 production change, execution, build or holder access occurred. Future purpose
 must bind the exact controls and installed source, then join owned children and
 restore the actual floor.
+
+## Installed qualification on actual CURRENT440334 floor
+
+One fresh issued3cd purpose built a normal Toad wheel from fa6/f3fb, all319
+Git/worktree/ZIP assets equal. Installed source proof binds retained347Core,
+319Toad,266Text,3Diff and10NRA assets,69 distributions and original086 FullTrust.
+The candidate descriptor note was corrected to actual CURRENT44051ae/1468/69/287;
+prior descriptor bytes and the source proof remain preserved.
+
+The ONE installed --projected-only App passed, terminal0 in9.344005078s. It
+observed9 actual projected pages and116 completed original body dispatches;
+projected-only bodies, raw events, source retirement, resource bounds and whole
+App shutdown passed. This includes component projection revocation controls and
+the existing installed history/filter/lookahead consumer. No provider or native
+SDK input, recording, configured continuous workflow or CPU claim.
+
+Whole actual CURRENT440334 floor1468/69/origins/287 and immutable original
+PREFIXactivation were restored with four normal filewheels --no-cache, owned
+process cleanup empty, scratch removed. Fresh privileged census has no active
+holder references or gaps. The19 historical underscore-only environment strings
+were verified against the original issued classification and preserved. The
+initial restore operator incorrectly required literal zero substring matches; it
+stopped before any restoration write, and its negative is retained separately.
+No App was repeated. Explicit086 READ/execution and holder custody were returned;
+Bohr independently closes only the existing shared lifecycle.
+
+SCOPED-READY.json binds the original result, build, installed proof, descriptors,
+handback and census. Source/tests/tools/pins are unchanged from qualified fa6.
+Full continuous/velocity/reversal/growingEnd/warm cohorts and physical/CPU scope
+remain unfinished on separate source continuation #446.

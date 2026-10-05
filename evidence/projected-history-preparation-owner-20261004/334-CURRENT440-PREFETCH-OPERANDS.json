@@ -1,0 +1,90 @@
+{
+  "source_head": "f3fb7ebc2878ed946f1217f2d38872d34c219d91",
+  "frozen_projection_qualifier": "fc8f519a0",
+  "current_normal_main445": "3fb7f9b17623dae8fbf5c33bf4f6ea172d9c1fa8",
+  "production_tree": "e28829ce2adbbf04e5b7233c78774bce0bd1cece",
+  "determining_production": "ProjectedTranscriptSource17+/9; CategoryProjection original owner;4 consumers. No continuous-control successor included.",
+  "source_equal_frozen_fc8": true,
+  "Core_declared_pin": "a38c06de24315fa868de45786e01fefadb0aaef1",
+  "pyproject_sha256": "9c72780037b3dfef44df5490a39146ada426719ed406ecc7985df10f7babb267",
+  "uv_sha256": "2b07fee96178aa2c0cf315c672e749032df19a432d638c291ce39fa78477febe",
+  "controls": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/transcript_prefetch_pilot.py",
+      "sha256": "9dcb917784f51e75a6adea946c7f4e2363b2538b1723b283a90706ec3e1b4b4f"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/transcript_history_pilot.py",
+      "sha256": "ec378824738c8f09655859399484245c05c4066ce025b5541ea1bebf826f8061"
+    }
+  ],
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "output": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/projected-prefetch443-current440-334-20261004",
+  "app_command": [
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/transcript_prefetch_pilot.py",
+    "--projected-only",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/projected-prefetch443-current440-334-20261004/app"
+  ],
+  "app_count": 1,
+  "source_overlay": false,
+  "purpose_scope": [
+    "both speculative projection branches",
+    "empty projected fragments preserve raw interval/round bound",
+    "source retirement and demand revocation after await",
+    "actual installed filter/pager/lookahead and awaited original body dispatch",
+    "raw events retained/preparation bounds/whole App and worker/native closure"
+  ],
+  "excluded": [
+    "continuous/local-model or configured-provider journey",
+    "native SDK input/fork/provider",
+    "movie/profile/physical/CPU/smoothness",
+    "PUBLIC style22 access/write/old1470 restore",
+    "Core/Text/NRA/native build or source clone/newenvironment"
+  ],
+  "build": {
+    "command": [
+      "/usr/bin/python",
+      "-m",
+      "build",
+      "--wheel",
+      "--no-isolation",
+      "--outdir",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/projected-prefetch443-current440-334-20261004/toad-wheel"
+    ],
+    "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+    "backend_readonly_path": "/home/ts/.cache/uv/archive-v0/RgcgNn7xR1Zs9HSF",
+    "backend_version": "Hatchling1.28.0",
+    "wheel_sha256": "compute after ONE granted build; Git/local/ZIP/all319 asset equality and backend receipt BEFORE normal install",
+    "build_receipt": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/projected-prefetch443-current440-334-20261004/build-receipt.json",
+    "inventory": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/projected-prefetch443-current440-334-20261004/toad-inventory.json"
+  },
+  "retained_Core": {
+    "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/c4-queued-reservation656-wheel-20261004/agent_comms-0.1.0-py3-none-any.whl",
+    "sha256": "5f1667ce64c58d67e153850be91dfb669ea9e347218f8d845937a1c12c778a9c",
+    "assets": 347,
+    "source_a38_accepted_existing_proof": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/transcript441442-receiving-source-20261004/source-proof.json",
+    "source_proof_sha256": "bc8fce2a4f208048c4bce4748bbff530084ab60da00acbf52286689f635e3d71",
+    "producer_original_wheel_inventory": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/c4-queued-reservation656-wheel-20261004/wheel-source-proof.json",
+    "producer_proof_sha256": "6e2453b56c491f86719775ed5dd6ca647197856c3dc2f009c8b2ba37552e9b90",
+    "relation": "Actual current440 Core5c uses retained5f; existing444 producer proof binds a38 source equal to same retained wheel. No API-equivalence assertion or Corebuild. Candidate own full347/pin/native proof before App."
+  },
+  "retained_Text": "73d Text59/all266 unchanged",
+  "retained_NRA": "8d rawZIP measures8f61 unchanged",
+  "native": "086 immutable requires NEW matching Sch artifact authority after actual issued specific purpose, plus original NativePackage/FullTrust before App",
+  "actual_floor": {
+    "role": "Parent disposition restored NONLIVE334 CURRENT440, fresh Bohr clearance+immutableissuedpurpose still required BEFORE build/import/install/App",
+    "preimage": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-actual440-before-W6-zero-input-continuation-preimage.json",
+    "preimage_sha256": "f5d5ec28c7ebdd37f2a9f8f1407ab7b99f23d161c608630384987132157ce9e7",
+    "archive_sha256": "51ae038f74d359f8d57dd2560dfefd278aacff7447d6a7827cd1d99d5e37dead",
+    "members": 1468,
+    "distributions": 69,
+    "protected_originals": 287,
+    "Core": "5c/source5f347",
+    "Toad": "440/06445",
+    "Text": "73d",
+    "NRA": "8d/8f61",
+    "PREFIXactivation": "immutable actualcurrent440; use own candidateDTO/proof/output only"
+  },
+  "terminal": "Whole actual3344401468 hash/mode/link+69versions/origins+287keepers/PREFIXactivation restored, owned App/worker/native/socket cleanup joined, fresh privileged handback Bohr lifecycle only. No automaticrerun/newloan."
+}

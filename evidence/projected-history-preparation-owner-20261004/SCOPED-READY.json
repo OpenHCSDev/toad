@@ -1,0 +1,159 @@
+{
+  "state": "SCOPED INSTALLED APP QUALIFIED; owner whole handback complete, independent shared lifecycle closure by Bohr",
+  "qualified_source_head": "fa6ae08b59b8724a63e828e341ae4f933be48b51",
+  "determining_source_head": "f3fb7ebc2878ed946f1217f2d38872d34c219d91",
+  "production_tree": "e28829ce2adbbf04e5b7233c78774bce0bd1cece",
+  "wheel_sha256": "7e6dccf2d5107900f783b3b43091d04c5bd37a1405c9dedeb071bc8a82637879",
+  "sourceproof_sha256": "5d1a8f080d51f4dc1e2af0ab0914aa601bf26d78c2b05c2b1ae34ead4d1c0106",
+  "App_count": 1,
+  "terminal": {
+    "source_head": "fa6ae08b59b8724a63e828e341ae4f933be48b51",
+    "product_reference": "f3fb7ebc2878ed946f1217f2d38872d34c219d91",
+    "controls": [
+      {
+        "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/transcript_prefetch_pilot.py",
+        "sha256": "9dcb917784f51e75a6adea946c7f4e2363b2538b1723b283a90706ec3e1b4b4f"
+      },
+      {
+        "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/transcript_history_pilot.py",
+        "sha256": "ec378824738c8f09655859399484245c05c4066ce025b5541ea1bebf826f8061"
+      }
+    ],
+    "provider_inputs": 0,
+    "native_SDK_inputs": 0,
+    "physical_movie": false,
+    "scratch": "/home/ts/.cache/agent-scratch/projected-prefetch443-current440-334-20261004-app",
+    "App_count": 1,
+    "exit_code": 0,
+    "duration_seconds": 9.344005078077316,
+    "cleanup": {
+      "remaining_owned_pids": [],
+      "errors": [],
+      "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+      "processes": [
+        {
+          "pid": 2580069,
+          "start_ticks": 63496036,
+          "returncode": 0
+        }
+      ]
+    }
+  },
+  "scope": {
+    "actual_projected_pages": 9,
+    "completed_incoming_body_dispatches": 116,
+    "projected_only_bodies": true,
+    "raw_source_events_preserved": true,
+    "selected_source_retirement": true,
+    "runtime_resource_bounds": true,
+    "provider_inputs": 0,
+    "nativeSDK_inputs": 0,
+    "whole_original_App_shutdown": true,
+    "installed_package": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad"
+  },
+  "handback": {
+    "state": "WHOLE actual334CURRENT440 floor restored; sole443 code/import/read/execution/build claim closed",
+    "app_exit": 0,
+    "archive_sha256": "51ae038f74d359f8d57dd2560dfefd278aacff7447d6a7827cd1d99d5e37dead",
+    "members_verified": 1468,
+    "packages": 69,
+    "protected_keepers_verified": 287,
+    "borrower_receipt": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/projected-prefetch443-current440-334-20261004/final-borrowers.json",
+    "borrower_receipt_sha256": "c79c01075002cb0ccb6b55425c87a03a02a0496d0bdebecbd890701f346c264c",
+    "borrowers": 0,
+    "gaps": 0,
+    "process_cleanup": {
+      "remaining_owned_pids": [],
+      "errors": [],
+      "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+      "processes": [
+        {
+          "pid": 2580069,
+          "start_ticks": 63496036,
+          "returncode": 0
+        }
+      ]
+    },
+    "original_origins_and_activation": "Exact archived original normal filewheel origins and PREFIXactivation bytes",
+    "provider_inputs": 0,
+    "physical_movie": false,
+    "native086_read_execution_handed_back": true,
+    "future_holder_claim": false
+  },
+  "keepers": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/projected-prefetch443-current440-334-20261004/issued-grant.json",
+      "sha256": "3cd17d9354e6e1f29111e8a913152e2074feba4bb8b2dfa5f7d25d012bc941b2"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/projected-prefetch443-current440-334-20261004/build-receipt.json",
+      "sha256": "591deaf3dfb85e2ca7dff2f4c94cce841ebd584595ce829a7a77ef02be7edb95"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/projected-prefetch443-current440-334-20261004/toad-inventory.json",
+      "sha256": "2857782e0b8c73627bb0c1f129792c53fb7a674e4e3a09515b37e8e990abe748"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/projected-prefetch443-current440-334-20261004/wheel-proof.json",
+      "sha256": "53c4a7b413c8347e6179c02132ca6c4af38902f1e414b994c7c880605238bb90"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/projected-prefetch443-current440-334-20261004/source-proof.json",
+      "sha256": "5d1a8f080d51f4dc1e2af0ab0914aa601bf26d78c2b05c2b1ae34ead4d1c0106"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/projected-prefetch443-current440-334-20261004/candidate-activation.json",
+      "sha256": "051f99a42e1eaf457dd2ecc099b70c398b3a14acb095b5184bc0ce299d6c6aa1"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/projected-prefetch443-current440-334-20261004/candidate-activation-before-note-correction.json",
+      "sha256": "7c36a4800599cc6af273299f61c4ad47904aff1d07a12d4df47d778a518ef406"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/projected-prefetch443-current440-334-20261004/candidate-note-correction.json",
+      "sha256": "33aa77b4eaafae42e4f936e2dd89b8d156b6a4a877d7dd2389959c1e57fbc9a2"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/projected-prefetch443-current440-334-20261004/terminal.json",
+      "sha256": "1dc1451daa86e71c08831341e0df28feda18d6ecd7d9af1ee807b4d9889561fb"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/projected-prefetch443-current440-334-20261004/app/receipt.json",
+      "sha256": "3c78a5d13a772a06695e6d2dfb38a8559f1ef26a1c2f8a71604b9c792cc158ad"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/projected-prefetch443-current440-334-20261004/app.log",
+      "sha256": "d550ecdad2d0fdb8016e66599f89e45942301c447b2eb82eba3125dbda397f68"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/projected-prefetch443-current440-334-20261004/code-handback.json",
+      "sha256": "e3ccd018e72ba987762cdd7c03b42fe276b75323725a228c600dec23df0047f1"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/projected-prefetch443-current440-334-20261004/final-borrowers.json",
+      "sha256": "c79c01075002cb0ccb6b55425c87a03a02a0496d0bdebecbd890701f346c264c"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/projected-prefetch443-current440-334-20261004/final-reference-classification.json",
+      "sha256": "846aa46153356da03e85143bb33ffb5640cf4c40a7644b42ccebe53a3bb5d844"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/projected-prefetch443-current440-334-20261004/restore-original-census-negative.json",
+      "sha256": "6f305568fba1ed0ef9e8f631bbf8f1a1a54126f898ebbe0d10c5dac0a974a72e"
+    }
+  ],
+  "source_controls_unchanged": [
+    "9dcb917784f51e75a6adea946c7f4e2363b2538b1723b283a90706ec3e1b4b4f",
+    "ec378824738c8f09655859399484245c05c4066ce025b5541ea1bebf826f8061"
+  ],
+  "historical_negative": "Original source ZIP NativePackage import refusal preserved. Restore operator initial zero-substring-reference assertion stopped before package writes; existing grant-declared underscore-only references subsequently verified. No App rerun.",
+  "remaining": [
+    "configured continuous journey",
+    "physical motion and responsible-widget attribution",
+    "cold width/velocity/reversal/growingEnd",
+    "warm4/16/32/64 configured acceptance",
+    "CPU gain"
+  ],
+  "qualified_head_Debt": "SUCCESS37245442564/job111562307842",
+  "new_document_head_Debt": "automatic required check binds evidence checkpoint separately"
+}
