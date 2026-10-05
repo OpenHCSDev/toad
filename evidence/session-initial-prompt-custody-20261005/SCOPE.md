@@ -206,3 +206,39 @@ pending input assertions remain intact, as do both later local UI events and
 all editor/eviction/close assertions. Product, wheels, accepted proof and DTO
 are unchanged; only the control parses/compiles here. Its corrected SHA must
 be reconciled in the same cf2 lifecycle before the sole App runs.
+
+## Scoped mounted App acceptance
+
+The same fresh cf2 purpose bound the corrected 2a619 control and released one
+original BoundedRun/AttachedChild NoAgent App. It passed in 12.189038 seconds.
+The failed constructor retains the pending value; a separate successful screen
+transfers it. The newest pending value is delivered once after eviction/remount;
+the original draft Document/Undo and Ctrl-Z survive. The second remount does not
+restore consumed input, and closing removes both view and retained state.
+Exactly two local UI events were published; agent=None refuses backend
+admission. No ACP, SDK/native process, provider call or model input was used.
+
+`SCOPED-READY.json` binds the original stdout, terminal, process identities,
+installed source/DTO/trust, restoration and whole handback. Controller742063
+and child742075 are absent and the owned group is empty. The original App,
+preparation and executor joined; the owned scratch was removed after retaining
+its scoped receipt. Four original wheels restored actualCURRENT4481477 records,
+1883 unchanged records, both environment bootstrap files, raw69 origins and
+626 protected originals plus five wrappers; extra assets and sockets are empty.
+Sch native READ and owner package/import/operator claims are returned. Bohr
+independent closure remains separate; no next loan is inferred.
+
+The raw stderr includes catalog UnregisteredThreadError for the authored
+unregistered NoAgent project. The App asserted no app._exception and passed
+its custody assertions. Preserve that log without attributing a native fault
+or claiming catalog error-free behavior. Individual worker/installer/proof
+birth identities were not retained; synchronous processes were waited. This
+acceptance does not cover physical pixels, configured provider delivery,
+arbitrary Textual mount failure or native input.
+
+After the whole owner handback, current main769e78a6 was normally merged.
+`FINAL-MAIN-SOURCE-RELATION.json` proves the three owner files and corrected
+control are byte equal to the qualified source. New main body-placement and
+recorder changes retain their separate qualifications; no accepted journey or
+build was repeated. The retained47f8 wheel is the original installed artifact,
+not a claimed full-source artifact for later main body changes.

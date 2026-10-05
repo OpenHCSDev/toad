@@ -1,0 +1,21 @@
+{
+  "argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "-B",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/session-initial-prompt-custody-20261005/prepared-installed-source-proof.py",
+    "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Einstein461-corrected-proof02-NoAgent-package-App-issued-grant.json",
+    "cf2d5a3ab1ba0a03ba4e00b971b9c9edbaf9ec6d627138f5ae8d9a34444d860a",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper461-corrected-proof02-NoAgent-READ-issued-20261005.json",
+    "d4ce291a91ae13e02b4913a2c3faab233c0a6605a4daced53807a24c7474cef1",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed02"
+  ],
+  "cwd": "/home/ts/wt/toad-regression-widget-cost-20261001",
+  "script_sha256": "ccd4d1b136e749e6fb0ae246c8eb2639a5ed138d6634dbf9defa75af14339778",
+  "binding_sha256": "8f447936e204d58685bf8ea4b56edeec94940cf4b437f582830ffec6e22a6dbe",
+  "lifecycle_sha256_at_launch": "73cd047595bf4cf348996616fbb848c6518827eb299b0966951fcae257e9f8fc",
+  "seconds": 8.510596643085591,
+  "exit_code": 0,
+  "synchronously_joined": true,
+  "process_births_retained": false,
+  "App_native_EXEC": false
+}

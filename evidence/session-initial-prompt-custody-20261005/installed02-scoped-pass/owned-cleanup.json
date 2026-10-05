@@ -1,0 +1,24 @@
+{
+  "state": "Original App/child retired and actual owned scratch disposed after scoped receipt retention",
+  "owned_process_identities_absent": [
+    {
+      "pid": 742063,
+      "start_time": 69296982
+    },
+    {
+      "pid": 742075,
+      "start_time": 69297081
+    }
+  ],
+  "owned_group_members": [],
+  "private_sockets": [],
+  "App_receipt": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/installed02/app-receipt.json",
+    "sha256": "059f463c2b9e6ae7f4bdebba1acae1740a195bb892ac7e7e73bb93dde4d08430"
+  },
+  "scratch_removed": "/home/ts/.cache/agent-scratch/einstein-tc1-461-mounted02-20261005",
+  "remaining": [],
+  "App_runtime_preparation_executor_joined": true,
+  "individual_worker_births_not_retained": true,
+  "no_native_process_launched": true
+}
