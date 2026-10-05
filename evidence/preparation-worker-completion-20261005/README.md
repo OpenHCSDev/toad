@@ -27,7 +27,56 @@ other PreparationWork execution override is TranscriptPageWork. Current open
 Toad PRs contain no edits to these two files. Exact seams were sent directly
 to Heis; the native geometry boundary was sent to Kepler.
 
-Implementation, source checks and affected application acceptance are pending.
-No test, application, package, native process, provider, input, or recording is
-authorized by this source checkpoint. Frozen 454/455 controls, artifacts,
-installed cohorts and public runtimes remain under their original owners.
+## Published implementation
+
+Product `ec10e2eb` changes the existing work execution contract to return its
+completed `PreparedValue` and retained size. `PreparationWork.finish_result`
+owns representation and key accounting. ThreadWork calls it in the same
+worker that calls its original `prepare`; RendererWork calls it after its
+original renderer result. TranscriptPageWork forms and measures its original
+page in that same completion worker. The sole runtime execution consumer
+admits the completed result to its existing bounded cache.
+
+Source-declared completion dispatches, excluding unchanged identity and
+independent delivery calls:
+
+| Fresh result | Before | After |
+| --- | ---: | ---: |
+| Retained ThreadWork | 3 | 1 |
+| Unretained ThreadWork | 2 | 1 |
+| Retained renderer result | 2 | 1 |
+| Prepared page, after fragment delivery | 3 | 1 |
+
+These are call-path facts, not measured speedups. No runtime or work class,
+storage representation, cache, limit, admission lane or state flag is added.
+No former execution API remains alongside the new contract. The original
+cache retention decision and final delivery scope/shutdown checks remain in
+PreparationRuntime; each waiter still borrows the admitted task, and every
+consumer still materializes its own mutable value on worker delivery. An
+already executing thread now owns its complete pure result through shutdown;
+the existing runtime/delivery checks still refuse publication after closure.
+
+Original audit Package parsed all 288 production modules before and after
+without omissions. Both changed modules compile; diff check passes. Original
+debt census reports zero positive structural measures, 21 added code lines.
+The failed audit attempt using unsupported revision `WORKTREE` and the first
+census invocation missing its JSON output argument executed no product code;
+the final source census uses the committed product revision.
+
+## Remaining acceptance
+
+Behavior and installed useful-first-paint/fast-wheel acceptance are **UNRUN**.
+The existing preparation, serialized preparation, delivery retirement and
+page lookahead controls cover sharing, isolated mutation, shutdown and source
+revocation. A future affected installed application check should exercise
+native Markdown/fragment delivery and wheel/reversal using the normal joint
+workflow cohort, not repeat frozen 454 or accepted Explorer controls. The
+existing Markdown return pilot has real mounted body/cache/file-link
+assertions; its helper, settings and cleanup operands must be reconciled to
+the eventual admitted source before execution. No new purpose is assumed.
+
+No test, application, package, native process, provider, input, or recording
+has run for this successor. Frozen 454/455 controls, artifacts, installed
+cohorts and public runtimes remain under their original owners. Heis retains
+the complete workflow/performance objective; this source change removes one
+concrete preparation cost and does not finish that objective.
