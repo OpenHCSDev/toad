@@ -1,0 +1,157 @@
+{
+  "before_head": "7df3dc9030e836d8d0fae3877c4a195b18596796",
+  "packages_before": {
+    "src": {
+      "parsed": 288,
+      "unparsed": []
+    },
+    "tests": {
+      "parsed": 399,
+      "unparsed": []
+    },
+    "tools/performance": {
+      "parsed": 39,
+      "unparsed": []
+    }
+  },
+  "declaration_consumer_family": [
+    "PhysicalJourney.opening_commands reveals ChannelsSidebar via MainScreen.action_show_sidebar/side_bar",
+    "WheelCadenceJourney.script requires SessionThreadSidebar resize but omits its disclosure",
+    "RightSidebarTarget.locate selects native rightmost SideBarToggle",
+    "capture_state.navigation_target verifies actual native hit and publishes original terminal cell",
+    "StTerminalGrid.pixel_at converts captured cell via original terminal/X client geometry",
+    "SideBarToggle.on_click toggles its original SideBar ancestor, focus=False",
+    "SideBar.toggle/watch_collapsed/_apply_layout owns native placement and resize handle visibility",
+    "WidgetTarget.locate retains exact declared handle within original SessionThreadSidebar native region"
+  ],
+  "counterexample": "Original ctrl+b reveals ChannelsSidebar only. Captured SessionThreadSidebar width3 and native resize handle absent; within refusal is correct. Existing original right_sidebar click was never in this journey.",
+  "correction": "Acquire original right_sidebar disclosure from fresh wheel-sidebar-before snapshot, settle using original journey interval, recapture wheel-width-before; preserve original within, native drag geometry,8/-8 columns,36 wheel up/down/reverse,End,B-A,draft/Undo.",
+  "product_pin_build_delta": [],
+  "runtime_scope": "Source correction only; consumed05 FAIL preserved. Future full150s installed qualification needs fresh actual grant/proof/native authorities.",
+  "changed_methods": [
+    "WheelCadenceJourney.script"
+  ],
+  "control_after": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/record_installed_tui.py",
+    "sha256": "307da0f244ceed038af1763ea9299d4ea964107a0478864801511ac9b361e469",
+    "bytes": 143840
+  },
+  "verification": {
+    "compile": "PASS without application imports",
+    "unaffected_methods_AST_equal": true,
+    "product_pyproject_uv_delta_vs_8981": [],
+    "tests_or_App": "NOT RUN"
+  },
+  "original05_evidence": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-05/fixture/capture/driver.log",
+      "sha256": "4a358e45c0b0baf8a3b4f71fa8afcb88699bb31f8a528e6892817a65dbe7f9c7",
+      "bytes": 37875
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-05/fixture/capture/phase-warm-ready-state.json",
+      "sha256": "fccdcb65609077cd33a182a5a32ff4ec5570cdfa616c0b2f8373109fdaeee102",
+      "bytes": 296707
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-05/fixture/capture/phase-sidebar-revealed-state.json",
+      "sha256": "3ee52ffd71a81c516f07c42c7ef583d6b454f72026ecbd982f8eb1ddb681f21f",
+      "bytes": 294328
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-05/fixture/capture/phase-wheel-width-before-state.json",
+      "sha256": "a43ea5c693b0f714361ccb8101b44fe88167a90b74c14e72e57ea0179b8d94ff",
+      "bytes": 294330
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-05/fixture/capture/phase-wheel-width-before.png",
+      "sha256": "cb458e49c2164771b42ef7208cab0ea59b2e09bf19ea24363b2268326d46c0a2",
+      "bytes": 44273
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor05-installed-purpose/whole-handback.json",
+      "sha256": "e0a153e785a770b4fde816889a10132f01b6cb5c8b7092ea45f4beb7a4835a6d",
+      "bytes": 3605
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor05-installed-purpose/final-borrowers.json",
+      "sha256": "6acdd9ac805e0e82e7b74f0947910c9897a07b1e7da8e96bade23d22f9604da2",
+      "bytes": 2273
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Heis460-useful-cold-wheel-successor05-package-App-lifecycle.json",
+      "sha256": "8aea263fd70e11eae64eb534eb8a41c1d97ab5e7f75a5864f25521f3a5e5256c",
+      "bytes": 24072
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Heis460-successor05-independent-final-floor-readback.json",
+      "sha256": "f876f6c0561726473d46fb0010a4fc7f0a09d6a362c9b0f37bed20556892a809",
+      "bytes": 19507
+    }
+  ],
+  "offline_original05_useful_body": {
+    "analysis": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor05-installed-purpose/offline-useful-body-analysis.json",
+      "sha256": "f86b9395fc70f2c575d343b5de92a95a6d9a2e64d03ce343d99b57716246ddaa",
+      "bytes": 12212
+    },
+    "actual_source": [
+      {
+        "owner": 140682821786896,
+        "kind": "TranscriptHistory",
+        "before": 41294122,
+        "after": 41357675,
+        "source": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-private-original-20261005-05/native-forks/2026-10-05T20-42-10-797Z_01a10dcd-73ed-7119-b3ce-cd3ced9fd87a.jsonl",
+        "committed_fragments": 4
+      }
+    ],
+    "timings": [
+      {
+        "request": {
+          "event": "ui_child_release",
+          "ns": 708582456798266,
+          "process": {
+            "pid": 1533555,
+            "start_ticks": 70858245
+          }
+        },
+        "body_output_ms": 10847.213737,
+        "body_writer_ms": 10872.811702,
+        "ready_viewport_output_ms": 10847.213737,
+        "ready_viewport_writer_ms": 10872.811702
+      },
+      {
+        "request": {
+          "event": "app_construct_begin",
+          "ns": 708584700365519,
+          "app": 140683350116064
+        },
+        "body_output_ms": 8603.646484,
+        "body_writer_ms": 8629.244449,
+        "ready_viewport_output_ms": 8603.646484,
+        "ready_viewport_writer_ms": 8629.244449
+      },
+      {
+        "request": {
+          "event": "source_selection_requested",
+          "ns": 708584959387430,
+          "app": 140683350116064,
+          "mode": "session-1"
+        },
+        "body_output_ms": null,
+        "body_writer_ms": null,
+        "ready_viewport_output_ms": null,
+        "ready_viewport_writer_ms": null
+      }
+    ],
+    "limitation": "Selection metric unavailable: current trace selection mode session-1 vs output current outer mode workspace. Do not relabel/fabricate selection latency. Startup and construction clocks are actual. Writerack is not monitor presentation; ready predicate is not complete stable viewport; no cadence/gain/fulljourney claim."
+  },
+  "after_terminal_image_review": {
+    "image": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-05/fixture/capture/phase-wheel-width-before.png",
+    "readable_saved_body": true,
+    "unsent_draft_visible": true,
+    "collapsed_right_sidebar": true,
+    "review_timing": "AFTER terminal and mandatory restore; no new capture",
+    "wheel_width_End_BA": "UNREACHED; whole FAIL preserved"
+  }
+}

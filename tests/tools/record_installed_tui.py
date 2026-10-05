@@ -890,7 +890,12 @@ class WheelCadenceJourney(ScrollJourney):
         # sensitivity or an application frame-rate limit.
         handle = dict(target="widget", name="SidebarResizeHandle#sidebar-resize-handle",
                       within="SessionThreadSidebar")
-        commands = [*cls.opening_commands(args), marker + "wheel-width-before",
+        # ctrl+b reveals the shared channels sidebar. The session sidebar's
+        # original native disclosure owns the resize edge used below.
+        commands = [*cls.opening_commands(args), marker + "wheel-sidebar-before",
+                    native_click_command("phase-wheel-sidebar-before-state.pickle",
+                                         target="right_sidebar"),
+                    settle, marker + "wheel-width-before",
                     native_click_command("phase-wheel-width-before-state.pickle", **handle,
                                          drag_columns=8),
                     settle, marker + "wheel-width-narrow",
