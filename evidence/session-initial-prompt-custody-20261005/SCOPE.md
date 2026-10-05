@@ -118,3 +118,17 @@ gap without an App, installed-package or native operation.
 The mounted NoAgent acceptance remains unrun. Its next eligible holder purpose
 is separate; it reserves no slot and yields to Heis's changed cold/frame purpose
 if they need the same holder. No accepted renderer or GUI control is repeated.
+
+## Possible alternate holder
+
+Bohr named former style22 as a possible independent holder, not an issued loan.
+`PROPOSED-STYLE22-UNION-FILEWHEEL-APP-OPERANDS.json` changes only the future
+interpreter/holder slots in the stage and App commands. The original `49c0da1d`
+proposal, `47f8ee49` wheel and `85fcfcf8` control remain byte equal; control
+arguments, environment, cwd, output and deadline are unchanged.
+
+The alternate proposal leaves actual CURRENT448 floor/archive/preimage/restore
+and origin/protected-record bindings explicitly unbound for Bohr's readback.
+The older CURRENT444 archive is not treated as current. No prefix was accessed
+or reserved. If that actual contract prevents the independent window, #461
+follows Heis's cold/frame whole closure.
