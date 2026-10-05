@@ -24,7 +24,7 @@ from toad.widgets.transcript_fragments import TranscriptBodyPreparation
 from toad.widgets.transcript_history import TranscriptHistory
 from toad.widgets.presentation_window import MovingPreparation
 from toad.widgets.comms_chat import session_thread_name
-from textual.worker import WorkerCancelled
+from textual.worker import WorkerCancelled, get_current_worker
 
 
 async def main(output, *, worker_custody=False):
@@ -36,6 +36,7 @@ async def main(output, *, worker_custody=False):
         assert Path(toad.__file__).resolve().parent == package
         assert package.is_relative_to(Path(sys.prefix).resolve())
     observations = []
+    workers_seen = []
     custody = {}
     entered, release = asyncio.Event(), asyncio.Event()
     if not worker_custody:
@@ -43,6 +44,7 @@ async def main(output, *, worker_custody=False):
     prepare_fragments = TranscriptBodyPreparation.prepare_fragments
 
     async def observe(preparation, fragments, keep_going, *, batch_size):
+        workers_seen.append(get_current_worker())
         entered.set()
         await release.wait()
         await prepare_fragments(preparation, fragments, keep_going, batch_size=batch_size)
@@ -90,7 +92,7 @@ async def main(output, *, worker_custody=False):
                 await view.post(history)
                 if worker_custody:
                     await asyncio.wait_for(entered.wait(), 10)
-                    first = history._prefetch_worker
+                    first = next(history.lookahead_workers())
                     demand = viewport.lookahead.demand
                     before = viewport.lookahead.preparation_count(view.window.size.height)
                     demand.velocity = (-app.preparation.max_entries * viewport.visible_body_rows
@@ -98,7 +100,7 @@ async def main(output, *, worker_custody=False):
                     after = viewport.lookahead.preparation_count(view.window.size.height)
                     history.prepare_scroll()
                     custody["extent_changed"] = after > before
-                    custody["same_direction_original_worker_retained"] = history._prefetch_worker is first
+                    custody["same_direction_original_worker_retained"] = tuple(history.lookahead_workers()) == (first,)
                     assert all(custody.values())
                     release.set()
                     await asyncio.wait_for(first.wait(), 10)
@@ -108,10 +110,10 @@ async def main(output, *, worker_custody=False):
                     demand.velocity = -1
                     history.prepare_scroll()
                     await asyncio.wait_for(entered.wait(), 10)
-                    reverse = history._prefetch_worker
+                    reverse = next(history.lookahead_workers())
                     viewport.lookahead.observe(viewport.lookahead.position + view.window.size.height)
                     history.prepare_scroll()
-                    successor = history._prefetch_worker
+                    successor = next(history.lookahead_workers())
                     custody["reversal_replaced_original_worker"] = successor is not reverse
                     try:
                         await asyncio.wait_for(reverse.wait(), 10)
@@ -128,7 +130,7 @@ async def main(output, *, worker_custody=False):
                 resource = history.pages[0]
                 admission = resource.capture_admission()
                 children = tuple(resource.fragment_views)
-                worker = history._prefetch_worker
+                worker = workers_seen[0] if workers_seen else None
                 if worker is not None and not worker_custody:
                     await asyncio.wait_for(worker.wait(), 10)
                 prepared = tuple(fragment for batch in observations for fragment in batch)
@@ -166,6 +168,7 @@ async def main(output, *, worker_custody=False):
                 release.set()
                 TranscriptBodyPreparation.prepare_fragments = prepare_fragments
                 history.finish_source_work(operation)
+                workers_seen.clear()
         await asyncio.get_running_loop().shutdown_default_executor()
         receipt["whole_original_App_shutdown"] = True
         receipt["app_exception"] = str(app._exception)

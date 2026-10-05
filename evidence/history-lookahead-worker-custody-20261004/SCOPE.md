@@ -11,8 +11,8 @@ already keeps one demand object while measured speed changes in the same
 travel direction. PreparationRuntime owns actual pending work independently
 of waiter cancellation, so those cancellations did not cancel its CPU work.
 
-TranscriptSourcePreparation already owns the lookahead worker, requested
-intent, End cancellation and source retirement. It now admits one worker for
+TranscriptSourcePreparation owns the requested intent, End cancellation and
+source retirement. Textual WorkerManager owns actual worker membership. It now admits one worker for
 valid source/page/direction custody. That worker finishes an admitted pass and
 consumes the latest requested extent. The source leaf owns the actual page and
 fragment preparation; source/direction/admission replacement still cancels an
@@ -30,8 +30,10 @@ projection, render keys and runtime entry/byte/admission bounds are unchanged.
 All scroll/layout/settings callers still use prepare_scroll. Wire history's
 existing prepare_scroll schedules its own edges and never admits this saved
 page lookahead. End, park, retirement and unmount retain their original worker
-cancellation and scope closure. Only shared source admission starts the saved
-history-lookahead worker. The leaf no longer owns cancellation/restart policy.
+cancellation and scope closure. Only shared source admission starts the saved history-lookahead worker. The
+nullable _prefetch_worker field and all consumers are deleted; the declared
+LOOKAHEAD_GROUP borrows current workers from WorkerManager and uses its
+original exclusive group admission and cancellation. The leaf no longer owns cancellation/restart policy.
 
 ## Remaining qualification
 
@@ -45,3 +47,8 @@ Wheel frame latency still requires the original physical workflow and frame
 review. Kepler owns the disjoint native subtree projection family; complete
 capture and on-demand offscreen geometry stay original native contracts. This
 source change does not attribute the recorded CPU gaps or solve full UI stalls.
+
+Initial source audit preserved in SOURCE-CHECKPOINT-01.json: moving the nullable
+worker check added one ForeignAbsenceProbe to the shared file. The complete
+worker-manager migration removes the pointer rather than offsetting that
+negative against a deletion in another file.

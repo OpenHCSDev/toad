@@ -35,11 +35,12 @@ class HistorySourceSnapshot:
 class TranscriptSourcePreparation(CoreEventReceiver):
     """Shared source preparation; native widget and operational session stay separate."""
 
+    LOOKAHEAD_GROUP = "history-lookahead"
+
     def __init__(self, *args, source_state: TranscriptState, **kwargs):
         self._source_state = source_state
         self._generation = 0
         self._page_buffer: PreparedPageSource | None = None
-        self._prefetch_worker = None
         self._prefetch_intent = None
         self._check_pending = False
         super().__init__(*args, **kwargs)
@@ -117,8 +118,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
 
     def request_latest(self) -> None:
         self.window.document_viewport.destination()
-        if self._prefetch_worker is not None:
-            self._prefetch_worker.cancel()
+        self.workers.cancel_group(self, self.LOOKAHEAD_GROUP)
         self._prefetch_intent = None
         self.state.request_latest(self, LatestViewportRequest(self.window.scroll_revision))
 
@@ -223,10 +223,9 @@ class TranscriptSourcePreparation(CoreEventReceiver):
             return
         previous = self._prefetch_intent
         self._prefetch_intent = intent
-        if self._prefetch_worker is not None and not self._prefetch_worker.is_finished:
-            if previous is not None and self.lookahead_current(previous):
-                return
-            self._prefetch_worker.cancel()
+        if (previous is not None and self.lookahead_current(previous)
+                and any(self.lookahead_workers())):
+            return
 
         async def prepare() -> None:
             while (intent := self._prefetch_intent) is not None:
@@ -234,7 +233,13 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                 if self._prefetch_intent is intent:
                     return
 
-        self._prefetch_worker = self.run_worker(prepare, group="history-lookahead", exit_on_error=False)
+        self.run_worker(prepare, group=self.LOOKAHEAD_GROUP, exclusive=True, exit_on_error=False)
+
+    def lookahead_workers(self):
+        """Borrow current custody from the original native worker manager."""
+        return (worker for worker in self.workers
+                if worker.node is self and worker.group == self.LOOKAHEAD_GROUP
+                and not worker.is_finished)
 
     async def prepare_lookahead(self, intent) -> None:
         """The prepared source leaf supplies its bounded page/body work."""
