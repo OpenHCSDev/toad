@@ -753,35 +753,30 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         fragments_per_page = max(1, min(len(page.fragments) for page in pages))
         rounds = max(1, (count + fragments_per_page - 1) // fragments_per_page)
         admissions = tuple(page.capture_admission() for page in pages)
-        intent = edges, rounds, count, self.selected_categories, demand, admissions
-        if intent == self._prefetch_intent:
-            return
-        self._prefetch_intent = intent
-        if self._prefetch_worker is not None and not self._prefetch_worker.is_finished:
-            self._prefetch_worker.cancel()
+        self.request_lookahead((reader, edges, rounds, count, demand, pages, admissions,
+                                self.source_snapshot()))
 
-        async def prepare() -> None:
-            # Reader replacement and source retirement both revoke this exact
-            # intent. One owned snapshot identity is the publication fence.
-            current = lambda: (self._prefetch_intent is intent
-                               and demand is lookahead.demand)
-            from toad.widgets.transcript_fragments import TranscriptBodyPreparation
-            preparation = TranscriptBodyPreparation(
-                self.app.render_processes, self.app.native_ansi_color, self.app.current_theme.dark,
+    async def prepare_lookahead(self, intent) -> None:
+        reader, edges, rounds, count, demand, pages, admissions, snapshot = intent
+        current = partial(self.lookahead_current, intent)
+        from toad.widgets.transcript_fragments import TranscriptBodyPreparation
+        preparation = TranscriptBodyPreparation(
+            self.app.render_processes, self.app.native_ansi_color, self.app.current_theme.dark,
+        )
+        for page in pages:
+            await page.prepare_adjacent(preparation, demand, count, current)
+        async for prepared in reader.prefetch(*edges, current, rounds=rounds):
+            fragments = demand.neighbors(prepared.fragments, len(prepared.fragments), 0, count)
+            await preparation.prepare_fragments(
+                fragments, current, batch_size=self.budget.admission_items,
             )
-            # The source page already owns these unmounted leaves. Prepare its
-            # actual neighboring range, never another paging cursor or list.
-            for page in pages:
-                await page.prepare_adjacent(preparation, demand, count, current)
-            async for prepared in reader.prefetch(*edges, current, rounds=rounds):
-                # A fetched page is not mounted yet. Warm the actual incoming
-                # edge in the same syntax/fence cache used by its future body.
-                fragments = demand.neighbors(prepared.fragments, len(prepared.fragments), 0, count)
-                await preparation.prepare_fragments(
-                    fragments, current, batch_size=self.budget.admission_items,
-                )
 
-        self._prefetch_worker = self.run_worker(prepare, group="history-lookahead", exit_on_error=False)
+    def lookahead_current(self, intent) -> bool:
+        reader, _edges, _rounds, _count, demand, pages, admissions, snapshot = intent
+        return (snapshot.current(self)
+                and snapshot.window.document_viewport.lookahead.accepts(demand)
+                and all(page.capture_admission() == admission
+                        for page, admission in zip(pages, admissions)))
 
 
     def _check_edges(self) -> None:
