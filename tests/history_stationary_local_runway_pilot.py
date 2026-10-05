@@ -27,7 +27,6 @@ from toad.widgets.presentation_window import MovingPreparation
 from toad.widgets.comms_chat import session_thread_name
 from textual.worker import WorkerCancelled, get_current_worker
 from native_session_retention_pilot import PaintedSwitchApp, physical_painted_switch
-from toad.widgets.conversation import Conversation
 
 
 async def session_custody(app, pilot, root):
