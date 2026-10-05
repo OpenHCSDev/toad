@@ -1,0 +1,22 @@
+{
+  "result": "FAIL before reader/GUI correction",
+  "primary": "select_context_source line48: native cursor Context root instead of addressed AnnotationNode; focus second conjunct not evaluated",
+  "secondary": "Concurrent command catalog UnregisteredThreadError for empty target; relation to primary not established",
+  "reached": [
+    "original sealed request reacquired without new input",
+    "two contained sentence spans",
+    "controlled uncalibrated model labels",
+    "registered App/ACP/private binding and AnnotationNode model selection attempt"
+  ],
+  "unreached": [
+    "annotation reader",
+    "GUI USER correction",
+    "effective HumanLabel refresh"
+  ],
+  "timeout": false,
+  "additional_input": 0,
+  "additional_provider": 0,
+  "original_90s_cause": "UNKNOWN",
+  "current_historical_acceptance": "unfinished",
+  "full_W6": "unfinished"
+}

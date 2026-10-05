@@ -1,0 +1,18 @@
+{
+  "state": "Append-only correction of prior03 NRA raw wheel explanation; original logs/receipts unchanged",
+  "supersedes_explanation_in": [
+    "evidence/working-memory-view-20261004/installed-w6-03.json:cleanup.restore_limit",
+    "evidence/working-memory-view-20261004/SCOPE.md:Original attachment03 and native focus acquisition"
+  ],
+  "original_wheel_sha256": "8d489731728ebf9f7e0f90ef2b14e7e3b5d2f90ed82bd8b1482d735f82869886",
+  "raw_zip_member": "refactor_audit/measures.py",
+  "raw_zip_member_sha256": "8f6127cb184801fbf2ca162adbece5c103c0fc6693f81197632668f710af7513",
+  "matches_original_e6f_floor": true,
+  "fb6e_designation": "Stale installed extraction, NOT raw ZIP member",
+  "prior03": "Original failed installed readback and atomic exact archive-member restoration remain preserved; only the earlier raw-wheel attribution was wrong.",
+  "historical04": "Original installer --no-cache restored actual floor directly; NO archive-member write.",
+  "authority": {
+    "path": "evidence/working-memory-view-20261004/installed04/style22-NRA-retained-wheel-raw-ZIP-correction.json",
+    "sha256": "ffa88e877f48bc2f0bf6af72354fdb605ed78ecc582d99c4b2ab9d2a2bb34e68"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "state": "Whole actual floor verified after four normal retained wheels --no-cache; no archive member restoration or source mutation. Independent closure pending",
+  "members": 1468,
+  "protected": 287,
+  "packages": 69,
+  "byte_mode_readlink_failures": [],
+  "extra_package_assets": [],
+  "remaining_private_runtime_sockets": [],
+  "native_keeper_unchanged": "Read/execution only, no artifact writes",
+  "terminal": {
+    "elapsed": 23.12312366301194,
+    "returncode": 0,
+    "timed_out": false,
+    "error": null,
+    "child_retired": true,
+    "owned_group_members": [],
+    "scope": "One authentic AnnotationNode GUI App; ZERO new input/provider/native prompt; not W7 calibration or historical Reference acceptance",
+    "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-EinsteinW6-native-label-zero-input-GUI-continuation03-issued-grant.json"
+  },
+  "original_negative_preserved": true
+}

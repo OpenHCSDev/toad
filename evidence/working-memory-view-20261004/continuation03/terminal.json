@@ -1,0 +1,10 @@
+{
+  "elapsed": 23.12312366301194,
+  "returncode": 0,
+  "timed_out": false,
+  "error": null,
+  "child_retired": true,
+  "owned_group_members": [],
+  "scope": "One authentic AnnotationNode GUI App; ZERO new input/provider/native prompt; not W7 calibration or historical Reference acceptance",
+  "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-EinsteinW6-native-label-zero-input-GUI-continuation03-issued-grant.json"
+}

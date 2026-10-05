@@ -1,0 +1,15 @@
+{
+  "source": "00b9ad8af5f6b699ec9eb2ee927916bafd76377a",
+  "wheel": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-filewheels-00b9ad8a/batrachian_toad-0.6.20-py3-none-any.whl",
+  "sha256": "c6322ba63f8374aabc9a7d7cf06b5538c0f9bb9b5e98a8867ab2b9488ab9c3b0",
+  "bytes": 2248071,
+  "qualified": "Git/filewheel byte identity only; not installed or App",
+  "native_manifest": "7a2e4aabdbc5af49dd9af942190d92086df2eb3489903674a74af51cf831cd33",
+  "purpose": "prepared only; parent C4-654 loan active, W6 future explicit grant required",
+  "installations": 0,
+  "provider_calls": 0,
+  "new_environments": 0,
+  "asset_count": 319,
+  "inventory": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-filewheels-00b9ad8a/source-proof.json",
+  "inventory_sha256": "722e50a8002814cabb8e6794c99dfaf50622de0441955fa465b416b9318a6923"
+}

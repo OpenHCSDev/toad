@@ -1,0 +1,127 @@
+{
+  "revision": "34fdc687a5b1d9c114cf5e6d10b01fe269c9cb13",
+  "root": "src/toad",
+  "parsed_modules": 288,
+  "parse_omissions": [],
+  "sites": [
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 7,
+      "import": "from agent_comms.acp_extension import ContextAnnotatedUpdate, CompactionChangedUpdate, CompactionCommittedUpdate, CompactionPublishedUpdate, CoordinationChangedUpdate, CursorAdvancedUpdate, GoalChangedUpdate, InputDeliveryChangedUpdate, InputFailedUpdate, InputStartedUpdate, PromptCancelledUpdate, McpClientReceiptUpdate, QueueChangedUpdate, RequestFailedUpdate, SelectedWriteAcceptedUpdate, TextRouteUpdate, TranscriptChangedUpdate, TranscriptSnapshotUpdate, TurnChangedUpdate, decode_updates"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 14,
+      "import": "from agent_comms.working_memory_annotations import WorkingMemoryAnnotations"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 241,
+      "declaration": "AnnotationNode",
+      "bases": [
+        "ContextNode"
+      ],
+      "fields": [
+        "annotation: ModelLabel",
+        "source: RecordedSegmentNode"
+      ],
+      "methods": [
+        "label",
+        "children",
+        "read",
+        "describe_original",
+        "search_roots",
+        "search_description",
+        "find",
+        "correction_answers",
+        "correct"
+      ]
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 289,
+      "declaration": "AnnotationSourceNode",
+      "bases": [
+        "ContextNode"
+      ],
+      "fields": [
+        "kind: type[ContextSegment]",
+        "provenance: tuple[Provenance, ...]",
+        "answers: tuple[AnnotationNode, ...]"
+      ],
+      "methods": [
+        "label",
+        "children",
+        "detail",
+        "search_roots",
+        "search_description",
+        "find"
+      ]
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 437,
+      "declaration": "ContextInspection",
+      "bases": [],
+      "fields": [
+        "owner: Thread",
+        "manifests: tuple[ContextManifest, ...]",
+        "source: SessionObservation",
+        "service: Comms",
+        "annotations: tuple[ModelLabel, ...] = ()"
+      ],
+      "methods": [
+        "read",
+        "same_native_source",
+        "recorded",
+        "changed_since",
+        "working_memory",
+        "find",
+        "_request",
+        "native",
+        "current_source",
+        "recorded_source",
+        "recorded_segment",
+        "correct_annotation",
+        "active",
+        "contributors"
+      ]
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 449,
+      "consumer": "WorkingMemoryAnnotations.for_context(comms.root / 'coordination.sqlite3', manifests, JevClassifier.version())"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 284,
+      "consumer": "self.source.inspection.correct_annotation(self.source, self.annotation, answer, worktree)"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 477,
+      "consumer": "source.segment.contains_span(annotation.span)"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 492,
+      "consumer": "AnnotationSourceNode(f'working-memory/{section}/{answers[0].key}', kind, provenance, tuple(answers))"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 480,
+      "consumer": "AnnotationNode(f'{source.key}/annotation/{annotation.span.coordinates.offset}/{annotation.question.question.declared_name}/{annotation.question.sha256}/{annotation.classifier.classifier.declared_name}/{annotation.classifier.pin}', annotation, source)"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 354,
+      "consumer": "model.correction_answers()"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 26,
+      "import": "from agent_comms.acp_extension import ContextAnnotatedUpdate, CompactionChangedUpdate, CompactionPublishedUpdate, CoordinationChangedUpdate, GoalChangedUpdate, InputFailedUpdate, InputStartedUpdate, PromptCancelledUpdate, McpClientReceiptUpdate, PendingQueueProjection, QueueProjection, TranscriptChangedUpdate, TranscriptSnapshotUpdate, TurnChangedUpdate"
+    }
+  ],
+  "limits": "Lexical AST declarations and consumers; dynamic dispatch, resource currentness and installed path require semantic reading and application validation."
+}

@@ -1,0 +1,45 @@
+{
+  "scope": "Future shared target-window binding only; no issued grant/access/reservation/import/run",
+  "immutable_owner_operands": {
+    "gui": {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/working-memory-view-20261004/authentic-gui-native-label-operands.json",
+      "sha256": "c36a2cd6bfc8314da4f848f64d382f487c6d6517421bd5475fbd337eeb816400"
+    },
+    "gui_description_correction": {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/working-memory-view-20261004/authentic-gui-native-label-operands-correction.json",
+      "sha256": "974737e53b5d8e13e01b4adda6347eb5b140658ce1be027870a0ca3ece450148"
+    },
+    "carry": {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/evidence/working-memory-stopped-schema-carry-20261004/PROPOSED-OPERANDS.json",
+      "sha256": "b3afc8496e4dc016179f56ebfd177c338cbd6c7e112a74e697352f4f60c8cf04"
+    }
+  },
+  "carry_source_head": "88e8d2f9983df69de876401abf0d3ec506235985",
+  "carry_receipt_head": "9d6e2c956f490a337ae43f9f55f6950d1e7bb3f9",
+  "target_reuse": "Exact355 Coreab640 installation from GUI proposal is the same target wheel in carry proposal; stage once through original installer, no Corebuild/secondstage/newenv. Original source/proof relation remains required. ToAd178b319 and original GUI controla678 unchanged.",
+  "ownership": {
+    "package_writer_GUI_and_whole_floor_return": "Original Einstein only",
+    "carry_control_target_read_and_authored_stoppedcopy": "Original Mendel663 only, literal referenced carryargv/output; no packagewrite authority",
+    "donor_and_sharedtarget_issue_and_lifecycle": "Original Bohr only, donor and target distinct purposes",
+    "native_execution_renewal_GUI_only": "Original Sch must read literal actualissued bytes before NEW7a renewal; no nativejob forcarry"
+  },
+  "scope_separation": "Carry only newlyauthored source9/stoppedcopy roots named in Mendel original proposal. AuthenticW6 w6gui01/wire/request527f/source/session/proof never enters carry. GUI reads existingtwo originalModelLabels and may append authorizedUSER HumanLabel through originalACP. No input replay/insertion/deletion/fabricatedmanifest.",
+  "prerequisites": [
+    "Heis443 wholehandback is COMPLETE at the cited original lifecycle/readback; a fresh eligible334 floor/ref/origin check and explicitBohr targetpurpose remain required",
+    "GUI may proceed under its own explicit334 purpose and NEWSch7a renewal reading actualissued bytes. It is not gated on schema9 donor or carry qualification",
+    "Carry additionally requires actualArendt662 wholeclose and separatelyissued immutableTHIN540 schema9 donorread/authoredproducer purpose; those permissions never activate from this proposal",
+    "For reuse within one actualtargetwindow, explicitBohr scope must grant Einsteinpackage/GUI authority and Mendel carrytargetREAD separately, binding the three immutable owneroperands. No carry access is inferred from GUI authority",
+    "NEWmatchingSch7a execution covers ONEoriginal90s zero-inputGUI only; carry has no nativejob"
+  ],
+  "results_and_return": "Each owner records only its actually granted result and joins its own resources. If donor/carry permission is ready in the same targetwindow, reuse the stagedab640 target before Einsteinwholefloorreturn. Do not wait/hold a completedGUI window for an unready donor; GUIindependent outcome/cleanup/restore/wholehandback proceeds. An unrun carry remains explicitlyunqualified and requires a later eligible purpose; no fabricated PASS or duplicate unchanged qualification. Bohr owns sequencing/issuedscope, SchGUIexecutionreturn required.",
+  "remaining": "Historical Reference Appread/search/export and genuineGUI USER/effectiveHumanLabel refresh unqualified; W7/W8/defaultOFF/disclosure unchanged.",
+  "source_only_checks": "Read existing published operands and three ownedMendel tool hashes; no stores, holderpackages, interpreter/native/runtime imports, run, build or newinventory.",
+  "prior_shared_window_proposal_sha256": "e4c2d39e64b2655f4986637527f996152fcbcc28e35568affb53773ad4959028",
+  "completed_predecessor": {
+    "lifecycle": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Heis443-projected-prefetch-package-App-lifecycle.json",
+    "sha256": "436ded1d594d8dbb1de339076f12272fc085e18d7e303a1811d95a658422208e",
+    "state": "CLOSED WHOLE soleHeis443 consumedONEApp PASS9.344005078; actual334CURRENT440 restored1468/69origins/287, no futureloan",
+    "independent_readback": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Heis443-independent-final-handback-readback.json",
+    "readback_sha256": "a78f5e29b1fd1a56bbeeddbc35abb963868e3d3bb57a2d3cbc9283c68e25f288"
+  }
+}

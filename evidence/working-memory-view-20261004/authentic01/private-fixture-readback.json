@@ -1,0 +1,96 @@
+{
+  "scope": "Source-only certified WireLog metadata readback using determining Core source and retained NRA wheel; no holder imports/native/RPC/App or GUI qualification",
+  "fixture": "/home/ts/wt/w6gui01/test_authentic_recorded_annota0",
+  "thread": "project",
+  "incarnation": {
+    "name": "project",
+    "created_at": 1791153029.938912
+  },
+  "request": "527f6dcf-963f-4a91-95a3-f0d6ca38aff8",
+  "turn": {
+    "kind": "recorded",
+    "identity": {
+      "value": "238119449abd41ed886d492d2315d614"
+    },
+    "occurrence": {
+      "incarnation": {
+        "name": "project",
+        "created_at": 1791153029.938912
+      },
+      "generation": 1
+    }
+  },
+  "source": "/home/ts/wt/w6gui01/test_authentic_recorded_annota0/authored-system.txt",
+  "source_sha256": "d54d5f90cc6903d865fc3b78f6c8c4e4f5d904e15014d2c8bca0570dc28755a8",
+  "source_bytes": 65,
+  "source_spans": [
+    {
+      "kind": "system_layer",
+      "provenance": [
+        {
+          "kind": "file",
+          "path": "/home/ts/wt/w6gui01/test_authentic_recorded_annota0/authored-system.txt",
+          "sha256": "d54d5f90cc6903d865fc3b78f6c8c4e4f5d904e15014d2c8bca0570dc28755a8"
+        }
+      ],
+      "offset": 0,
+      "length": 65,
+      "sha256": "d54d5f90cc6903d865fc3b78f6c8c4e4f5d904e15014d2c8bca0570dc28755a8"
+    }
+  ],
+  "sentence_spans": [
+    {
+      "segment_sha256": "ce6b554c56bd069eba0e464a1e8d78623b58cf6feda8403d95836094d747c354",
+      "coordinates": {
+        "kind": "system_layer",
+        "provenance": [
+          {
+            "kind": "file",
+            "path": "/home/ts/wt/w6gui01/test_authentic_recorded_annota0/authored-system.txt",
+            "sha256": "d54d5f90cc6903d865fc3b78f6c8c4e4f5d904e15014d2c8bca0570dc28755a8"
+          }
+        ],
+        "offset": 0,
+        "length": 35,
+        "sha256": "01df73f0e750a1a10daae2baa8bceff89d536c36d40c5663e13480a0118b0ce4"
+      }
+    },
+    {
+      "segment_sha256": "ce6b554c56bd069eba0e464a1e8d78623b58cf6feda8403d95836094d747c354",
+      "coordinates": {
+        "kind": "system_layer",
+        "provenance": [
+          {
+            "kind": "file",
+            "path": "/home/ts/wt/w6gui01/test_authentic_recorded_annota0/authored-system.txt",
+            "sha256": "d54d5f90cc6903d865fc3b78f6c8c4e4f5d904e15014d2c8bca0570dc28755a8"
+          }
+        ],
+        "offset": 36,
+        "length": 28,
+        "sha256": "28340c84794585e5bb0622cbe58308675c01ef180734cc4175f8a7405ad4d2d4"
+      }
+    }
+  ],
+  "actual_sentence_text": [
+    "Keep the authored source unchanged.",
+    "Deliver the authored answer."
+  ],
+  "full_original_file_ranges": [
+    "Keep the authored source unchanged.\nDeliver the authored answer.\n"
+  ],
+  "contains_span": [
+    true,
+    true
+  ],
+  "native_session": "/home/ts/wt/w6gui01/test_authentic_recorded_annota0/sessions/enrolled-7e422edc55c74ca39a05304dd48ffcad.jsonl",
+  "native_session_sha256": "f1a5a14a330501014ea61cf02889a1a20e3c5f2a1f2e9140e724314cf18dfa3e",
+  "input_proof_sha256": "c6c71f34ec7457b983b06360af7a0f533e5c890c875e0efb387b68e5c04e0d3a",
+  "bus_sha256": "30e9848078d5f5227469689d0801a05597da5332a51ea06e9d647806670023a4",
+  "table_counts": {
+    "span_annotations": 0,
+    "annotation_requests": 0
+  },
+  "runtime_sockets": [],
+  "result": "Original ONE localhost input/ONE proof/sealed request/two file-attributed contained ranges confirmed. Test failed before labels/App because sentence spans omit intervening whitespace; no GUI/historical acceptance."
+}

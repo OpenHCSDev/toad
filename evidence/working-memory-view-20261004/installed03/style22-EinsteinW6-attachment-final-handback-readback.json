@@ -1,0 +1,50 @@
+{
+  "verified_at": 1791147646.7122686,
+  "handback": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-attachment-installed03/whole-handback.json",
+  "handback_sha256": "10c75941ea9f9bd7981873902657e1c7f54300345049ec159456a1d4f46b607c",
+  "actual_result": "ACP settlement/root/incarnation/Appmount/reference acquisition reached; focus mismatch beforeEnter; no read/search/export/fullW6PASS",
+  "terminal": {
+    "elapsed": 22.963988172006793,
+    "returncode": 1,
+    "timed_out": false,
+    "error": null,
+    "child_retired": true,
+    "owned_group_members": [],
+    "scope": "One changed authored historical App, not full W6",
+    "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-EinsteinW6-attachment-Core627-Toad434-issued-grant.json"
+  },
+  "qualified_scope": "RegisteredApp/ACP settlement/exactprivate root-incarnation/reference cursor acquisition reached. Focus was Button#context-correct beforeEnter; read/search/export UNREACHED. No fullW6PASS/nativefault/original90scause claim.",
+  "original90s_cause": "UNKNOWN",
+  "original_floor_members_verified": 1470,
+  "protected_originals_verified": 390,
+  "normal_distributions_origins_equal": 69,
+  "archive_sha256": "e6f27830a69a5e60902ecf8d25dccd46b43efefef75335e2679ef78c461aba5a",
+  "extra_W6_package_assets": [],
+  "archive_member_restoration": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-attachment-installed03/original-floor-member-restoration.json",
+  "archive_member_restoration_sha256": "7bca48109684dedaa5a2e6d40384569166b7dd1b99704fd86219ab15cc759a30",
+  "restore_operand_limit": "NRA normalwheel measures.py fb6e differs actual archived4368f61; originaltar member authoritative, actualrestoration exact, no semanticpatch/metadatarewrite. Preserve raw firstrestorefailure.",
+  "authored_source_bytes_unchanged": 502,
+  "authored_source_sha256": "dbe2ae272478234c14e492c19758fbaf8ba844b8d4938698bdd12d09a2938882",
+  "private_runtime_sockets": [],
+  "original_runner_identity_absent": {
+    "pid": 284141,
+    "start_time": 62288635
+  },
+  "borrower_receipt": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-EinsteinW6-attachment-final-borrowers.json",
+  "borrower_sha256": "7667b629adbfbd2cf708c32ef3113f8ca3be3a53b16656aef041916c60e33bd7",
+  "all_uid_processes": 254,
+  "actual_borrowers": 0,
+  "permission_gaps": 0,
+  "native7a_read_execution_claim": "Owner returned unchanged; sharedchecker0physicalrefs, immutablekeeper HELD; Sch artifact lifecycle authority separate",
+  "current_public_defaults": {
+    "agent-comms": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-agent",
+    "agent-comms-nk-foreground": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-nk-foreground",
+    "toad": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/toad"
+  },
+  "issued_sha256_unchanged": "0588855f729c5b36f41d77f85bd41285447a3d26458d8343d47095fc4996551c",
+  "new_archive_bytes": 0,
+  "cleaner_package_restore_writes": 0,
+  "new_purpose_inferred": false
+}

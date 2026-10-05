@@ -1,0 +1,104 @@
+{
+  "state": "Historical04 FAIL before Enter; both purposes independently WHOLE CLOSED",
+  "determining": {
+    "core": "759c821e4cf937d2872a7f7b7a8613f5eb3119aa",
+    "toad": "69ccc24b91ab64887c9fb77ba16e1d2dc7d4be8c",
+    "native_manifest": "7a2e4aabdbc5af49dd9af942190d92086df2eb3489903674a74af51cf831cd33",
+    "control_sha256": "43d2fd6bc652bee3431dfaa5b51272d621a56eba3b4e2061e6174f0522d79bd3"
+  },
+  "grant_sha256": "b8895b60b4280eb5aaa54cf3a67aaac0d2fe74a42d3a489cbef9c70d1cc5c8ff",
+  "terminal": {
+    "elapsed": 22.254975423100404,
+    "returncode": 1,
+    "timed_out": false,
+    "error": null,
+    "child_retired": true,
+    "owned_group_members": [],
+    "scope": "One changed authored historical App, not full W6",
+    "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-EinsteinW6-historical04-Core627-Toad434-issued-grant.json"
+  },
+  "positive_scope": [
+    "Registered App, original ACP settlement/Agent.ready and exact private root/incarnation",
+    "Historical source model acquired",
+    "Separate local USER Promised / uncalibrated model Unclassified, schema10 and defaultOFF",
+    "runtime input0, annotation requests0, bus0bytes"
+  ],
+  "failure": "Native pointer targeted the Tree widget, but cursor_node was Context root before Enter; intended historical node identity assertion failed. Focus conjunct shortcircuited and is unproven. Read/search/export UNREACHED.",
+  "source_followup": "Context read after Focus is observed in original diagnostics; no cursor/style/publication timing is recorded. Investigate original node cohort, native label geometry and pointer/style dispatch lifetime. No measured cause, native fault, product patch or unchanged rerun inferred.",
+  "full_w6_remaining": "Historical read/search/export plus separate authentic AnnotationNode grouping/exactspan and GUI correction -> ACP -> refreshed effective HumanLabel. Calibration remains separate/defaultOFF.",
+  "cleanup": {
+    "floor_members": 1470,
+    "versions_and_origins": 69,
+    "protected_proofs": 390,
+    "extra_assets": [],
+    "private_sockets": [],
+    "fresh_all_uid_processes": 236,
+    "borrowers": 0,
+    "permission_gaps": 0,
+    "runner_absent": {
+      "pid": 784577,
+      "birth": 62503495
+    },
+    "holder_claim": "CLOSED",
+    "artifact_execution": "RETURNED; immutable keeper held",
+    "restoration": "Four retained normal filewheels via original installer --no-cache; all bytes/modes/readlinks and origins read back. NO archive-member write performed or needed in04."
+  },
+  "raw_receipts": [
+    {
+      "path": "evidence/working-memory-view-20261004/installed04/stdout.log",
+      "sha256": "cc7d2a99eb01e8430f3ebf763d02ccf028556b60a35fd79917065bd21595e241"
+    },
+    {
+      "path": "evidence/working-memory-view-20261004/installed04/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/working-memory-view-20261004/installed04/terminal.json",
+      "sha256": "9dc9a0f4ca46a8420bf300a7ee2a28f3cfc98d3d08d3bbb353ba9c14e27906f4"
+    },
+    {
+      "path": "evidence/working-memory-view-20261004/installed04/handle.json",
+      "sha256": "7f268d4012bc527d6573f2b12b145d6de8fad4ec677783e1cbcf3301a12656c6"
+    },
+    {
+      "path": "evidence/working-memory-view-20261004/installed04/private-fixture-readback.json",
+      "sha256": "b5ab460528d3ef9cfac022725fe5e120d6abef50b9b933e18cca6cbd23577fe1"
+    },
+    {
+      "path": "evidence/working-memory-view-20261004/installed04/restore-receipt.json",
+      "sha256": "819fcfcdd8f459849ed7fedcb35904bff3cc39ecc9a4a4c30e5e4963a1c12303"
+    },
+    {
+      "path": "evidence/working-memory-view-20261004/installed04/restore-wording-correction.json",
+      "sha256": "8d9b51dbb0d100753c8bc9ec02034cb139f1fbe8b53474e748f9fc0a960274ae"
+    },
+    {
+      "path": "evidence/working-memory-view-20261004/installed04/whole-handback.json",
+      "sha256": "a6a1fb4d69dd9f4ab88b06df1b23ca5275dd4cfe89fb5fa07e024bc3a3c1427f"
+    },
+    {
+      "path": "evidence/working-memory-view-20261004/installed04/candidate-source-proof.json",
+      "sha256": "2416d999d14db3e7d7fb10a379f57d829d475910754bddbc53e6272a4d7c700e"
+    },
+    {
+      "path": "evidence/working-memory-view-20261004/installed04/style22-EinsteinW6-historical04-Core627-Toad434-lifecycle.json",
+      "sha256": "536888b4ff5f469da881725245cc8b3db5ff34a8214b31574fa8444a0eff926a"
+    },
+    {
+      "path": "evidence/working-memory-view-20261004/installed04/style22-EinsteinW6-historical04-final-handback-readback.json",
+      "sha256": "764f51515b680ac3ee7080898bc850fa46b7c643d797b64760eec4eb2ee5fd3d"
+    },
+    {
+      "path": "evidence/working-memory-view-20261004/installed04/style22-EinsteinW6-historical04-final-borrowers.json",
+      "sha256": "7822de5683200df8242cdd11bc0fbaf1bc9dac67e1fc07e09cc7d9f0159a5faf"
+    },
+    {
+      "path": "evidence/working-memory-view-20261004/installed04/style22-NRA-retained-wheel-raw-ZIP-correction.json",
+      "sha256": "ffa88e877f48bc2f0bf6af72354fdb605ed78ecc582d99c4b2ab9d2a2bb34e68"
+    },
+    {
+      "path": "evidence/working-memory-view-20261004/installed04/owner-debug.log",
+      "sha256": "8d6d054b2401ce728cd6ce8b2b7ed48c560aa9105edca50f0c14097c975c3c0b"
+    }
+  ]
+}

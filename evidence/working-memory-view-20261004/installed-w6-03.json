@@ -1,0 +1,80 @@
+{
+  "state": "Original installed03 negative; whole purpose independently CLOSED; changed source control unexecuted",
+  "determining": {
+    "core": "759c821e4cf937d2872a7f7b7a8613f5eb3119aa",
+    "toad": "69ccc24b91ab64887c9fb77ba16e1d2dc7d4be8c",
+    "native_manifest": "7a2e4aabdbc5af49dd9af942190d92086df2eb3489903674a74af51cf831cd33"
+  },
+  "grant_sha256": "0588855f729c5b36f41d77f85bd41285447a3d26458d8343d47095fc4996551c",
+  "terminal": {
+    "elapsed": 22.963988172006793,
+    "returncode": 1,
+    "timed_out": false,
+    "error": null,
+    "child_retired": true,
+    "owned_group_members": [],
+    "scope": "One changed authored historical App, not full W6",
+    "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-EinsteinW6-attachment-Core627-Toad434-issued-grant.json"
+  },
+  "positive_scope": [
+    "Fresh private schema10",
+    "Separate local HumanLabel author USER Promised; uncalibrated ModelLabel Unclassified",
+    "Registered App mounted; original ACP AgentSession settled and Agent.ready",
+    "Exact published private root/incarnation admitted",
+    "Original historical Tree cursor identity matched"
+  ],
+  "failure": "Before Enter, app.focused was Button#context-correct instead of ContextTree. No read/search/export was reached. Focus/Hide attribution not recorded; original90s cause remains UNKNOWN.",
+  "full_w6_remaining": "Historical read/search/export; authentic AnnotationNode Obeys/Promised exact-span + GUI context-correct -> ACP -> refreshed effective HumanLabel; calibration remains separate/default OFF.",
+  "cleanup": {
+    "floor_members": 1470,
+    "distributions_and_origins": 69,
+    "protected_proofs": 390,
+    "extra_W6_assets": [],
+    "private_sockets": [],
+    "fresh_all_uid_processes": 254,
+    "borrowers": 0,
+    "permission_gaps": 0,
+    "owner_handle_absent": {
+      "pid": 284141,
+      "birth": 62288635
+    },
+    "artifact_execution_returned": true,
+    "holder_claim_returned": true,
+    "restore_limit": "Four normal filewheels plus one exact original e6f archive member. NRA normalwheel measures.py fb6e differs actual floor8f61; retained original failed verification and atomic restoration receipt. No production/metadata patch."
+  },
+  "raw_receipts": [
+    {
+      "path": "evidence/working-memory-view-20261004/installed03/stdout.log",
+      "sha256": "aef872acfa31aae7f029ebdf6beb7813bb0b39bbb807edfb817648b5859071d7"
+    },
+    {
+      "path": "evidence/working-memory-view-20261004/installed03/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/working-memory-view-20261004/installed03/terminal.json",
+      "sha256": "2aa85bfcf3f5540bf6f09e8e7f35147c54b017b8d4a74ae9ded739a79ccedb4e"
+    },
+    {
+      "path": "evidence/working-memory-view-20261004/installed03/handle.json",
+      "sha256": "ad7cf886d17e59f1feac3b2030d2fa300a3b437f3abda37cc2766a49aa492fc9"
+    },
+    {
+      "path": "evidence/working-memory-view-20261004/installed03/private-fixture-readback.json",
+      "sha256": "5cd63bd3bb5877b747406a618fbdc866995f7655ddcddb633e418776c8fa026b"
+    },
+    {
+      "path": "evidence/working-memory-view-20261004/installed03/restore-receipt.json",
+      "sha256": "daafe8b07c3e7d0d3cf3d6ebf5446e65e6e968a11cef2ca8a0c79f46bed7adc0"
+    },
+    {
+      "path": "evidence/working-memory-view-20261004/installed03/original-floor-member-restoration.json",
+      "sha256": "7bca48109684dedaa5a2e6d40384569166b7dd1b99704fd86219ab15cc759a30"
+    },
+    {
+      "path": "evidence/working-memory-view-20261004/installed03/whole-handback.json",
+      "sha256": "10c75941ea9f9bd7981873902657e1c7f54300345049ec159456a1d4f46b607c"
+    }
+  ],
+  "source_correction": "Control will acquire original scheduled disclosure/scroll completion and freshly clipped native node label, then use original pointer dispatch for focus/selection. Cursor+focus assertions remain. No product patch or measured03 cause claimed; no new holder/run purpose."
+}

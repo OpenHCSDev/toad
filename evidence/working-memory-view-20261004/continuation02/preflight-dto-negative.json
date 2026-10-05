@@ -1,0 +1,8 @@
+{
+  "state": "Preserved own DTO preflight negative before App/native launch",
+  "log": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-authentic-gui-continuation02/preflight.log",
+  "error": "FieldCodec.encode refused PosixPath for original CohortActivation.native_cli:str",
+  "correction": "Original DTO consumer now supplies canonical CLI string. No codec/product patch, no second native trust/SDK/App or source/input operation.",
+  "source_native_trust_proof": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-authentic-gui-continuation02/candidate-source-proof.json",
+  "source_native_trust_proof_sha256": "ed15e0051cf7272d90e8f5e379874a62a09e1e125d5da45c956420718d69b264"
+}

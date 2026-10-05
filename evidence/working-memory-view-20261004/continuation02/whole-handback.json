@@ -1,0 +1,76 @@
+{
+  "scope": "Consumed sole zero-input authentic GUI continuation; no next purpose inferred",
+  "grant_sha256": "e1c3af67ce435017a76daf5eb5a458a63b63efed5df2b6f100f1db1b25644ac7",
+  "terminal": {
+    "elapsed": 18.549633945105597,
+    "returncode": 1,
+    "timed_out": false,
+    "error": null,
+    "child_retired": true,
+    "owned_group_members": [],
+    "scope": "One authentic AnnotationNode GUI App; ZERO new input/provider/native prompt; not W7 calibration or historical Reference acceptance",
+    "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-EinsteinW6-zero-input-authentic-GUI-continuation-issued-grant.json"
+  },
+  "assessment": {
+    "result": "FAIL before reader/GUI correction",
+    "primary": "select_context_source line48: native cursor Context root instead of addressed AnnotationNode; focus second conjunct not evaluated",
+    "secondary": "Concurrent command catalog UnregisteredThreadError for empty target; relation to primary not established",
+    "reached": [
+      "original sealed request reacquired without new input",
+      "two contained sentence spans",
+      "controlled uncalibrated model labels",
+      "registered App/ACP/private binding and AnnotationNode model selection attempt"
+    ],
+    "unreached": [
+      "annotation reader",
+      "GUI USER correction",
+      "effective HumanLabel refresh"
+    ],
+    "timeout": false,
+    "additional_input": 0,
+    "additional_provider": 0,
+    "original_90s_cause": "UNKNOWN",
+    "current_historical_acceptance": "unfinished",
+    "full_W6": "unfinished"
+  },
+  "floor": {
+    "state": "Whole actual floor verified after four normal retained wheels --no-cache; no archive member restoration or source mutation. Independent closure pending",
+    "members": 1468,
+    "protected": 287,
+    "packages": 69,
+    "byte_mode_readlink_failures": [],
+    "extra_package_assets": [],
+    "remaining_private_runtime_sockets": [],
+    "native_keeper_unchanged": "Read/execution only, no artifact writes",
+    "terminal": {
+      "elapsed": 18.549633945105597,
+      "returncode": 1,
+      "timed_out": false,
+      "error": null,
+      "child_retired": true,
+      "owned_group_members": [],
+      "scope": "One authentic AnnotationNode GUI App; ZERO new input/provider/native prompt; not W7 calibration or historical Reference acceptance",
+      "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-EinsteinW6-zero-input-authentic-GUI-continuation-issued-grant.json"
+    },
+    "original_negative_preserved": true
+  },
+  "original_source_session_unchanged": {
+    "source": true,
+    "native_session": true
+  },
+  "runner": {
+    "pid": 2188993,
+    "start_time": 63261056
+  },
+  "runner_proc_absent": true,
+  "artifact_execution": "Explicitly returned to original Sch; immutable keeper retained",
+  "independent_privileged_handback": "Requested from original Bohr",
+  "receipts": {
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-authentic-gui-continuation02/terminal.json": "ae86e4c049e2b8b5a7f6850693b3f12da4761a74726e1dc4158b139f1b2f5179",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-authentic-gui-continuation02/stdout.log": "523c3b1b376fe8d3da22b95dd637b525b40bd24ab33ea1b36ddfc202f5e0c770",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-authentic-gui-continuation02/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-authentic-gui-continuation02/restore-receipt.json": "f4b98be64757790602bfe35d11d052fd14c79ae30e0f0f5d6fcf8961ee9426d2",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-authentic-gui-continuation02/restored-packages.json": "0eb208b0a36bfe64bdaa3fe06ecd3cfe7813b39df8f8926c95e6a0d2c91652aa",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-authentic-gui-continuation02/assessment.json": "d91e35c26ba6e4b2261c06e9f671f9c66755ed8c07cf41012aab8c7785dc225e"
+  }
+}
