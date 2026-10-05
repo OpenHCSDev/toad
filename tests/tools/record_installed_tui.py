@@ -450,10 +450,10 @@ class PhysicalJourney(DeclaredFamily, affix="Journey"):
 
     @classmethod
     def review_intervals(cls, args, output, duration, *, origin_ns):
-        """Select gestures from original phase and checked key-command receipts.
+        """Select gestures from original phase and checked command receipts.
 
-        Phase markers precede diagnostic exports. Held-key review therefore
-        uses the command interval, not that export or the following idle wait.
+        Phase markers precede diagnostic exports. Key and wheel review use
+        checked command intervals, excluding exports and the following wait.
         These are physical driver bounds, not terminal input-delivery times.
         """
         events = phase_events(output)
@@ -490,6 +490,24 @@ class PhysicalJourney(DeclaredFamily, affix="Journey"):
                 end = (up["begin_ns"] - origin_ns) / 1e9
                 complete = True
                 basis = "checked keydown start through keyup start; release completed"
+            else:
+                wheel = next((command for command in commands
+                              if command["event"] == "driver_command_started"
+                              and "--wheel" in command["argv"]
+                              and str(Path(__file__).resolve().parents[2] / "tools/performance/click_history.py") in command["argv"]
+                              and start <= (command["ns"] - origin_ns) / 1e9 < end), None)
+                if wheel is not None:
+                    finished = next((command for command in commands
+                                     if command["event"] == "driver_command_finished"
+                                     and command["begin_ns"] == wheel["ns"]
+                                     and command["argv"] == wheel["argv"]
+                                     and (command["ns"] - origin_ns) / 1e9 <= end), None)
+                    if finished is None:
+                        continue  # Failed or outstanding gestures have no completed interval.
+                    start = (wheel["ns"] - origin_ns) / 1e9
+                    end = (finished["ns"] - origin_ns) / 1e9
+                    complete = True
+                    basis = "checked native wheel helper command; driver bounds, not input-to-pixel latency"
             seconds = min(args.review_seconds, end - start, duration - start)
             if seconds > 0:
                 intervals.append({"label": label, "start": start, "seconds": seconds,
@@ -603,6 +621,31 @@ class ScrollJourney(PhysicalJourney):
         if not args.capture_state:
             raise ValueError("Scrolling requires --capture-state for the native history focus target")
         return scroll_script(idle_seconds=args.scroll_idle_seconds, hold_seconds=args.scroll_hold_seconds)
+
+
+class WheelCadenceJourney(ScrollJourney):
+    """Original native wheel targets with phase-aligned frame writer receipts."""
+
+    motion_phases = ("wheel-up", "wheel-down", "wheel-reverse", "wheel-end")
+
+    @classmethod
+    def script(cls, args):
+        if not args.capture_state or not args.scroll_travel:
+            raise ValueError("Wheel cadence requires original native state and scroll travel observation")
+        marker = marker_command()
+        settle = f"sleep {args.navigation_settle_seconds:g}"
+        # The existing terminal-stress owner uses 36 wheel events for a deep
+        # history gesture. This selects that original input, not a new scroll
+        # sensitivity or an application frame-rate limit.
+        commands = [marker + "wheel-before"]
+        state = "phase-wheel-before-state.pickle"
+        for label, wheel in (("wheel-up", -36), ("wheel-down", 36), ("wheel-reverse", -36)):
+            commands.extend((marker + label, native_click_command(state, wheel=wheel),
+                             settle, marker + label + "-done"))
+            state = f"phase-{label}-done-state.pickle"
+        commands.extend((native_click_command(state), marker + "wheel-end", "key End",
+                         settle, marker + "wheel-end-done"))
+        return "\n".join(commands) + "\n"
 
 
 class WarmScrollJourney(ScrollJourney):
@@ -1859,7 +1902,13 @@ def record(args):
                                           stderr=subprocess.STDOUT,
                                           observe=observe, observation_interval=args.live_review_interval,
                                           timeout=max(.1, remaining() - args.tail_seconds - 1))
-                            finally:
+                            except BaseException:
+                                log.write(json.dumps({"event": "driver_command_failed",
+                                                      "ns": time.monotonic_ns(), "begin_ns": begin,
+                                                      "argv": action_argv}) + "\n")
+                                log.flush()
+                                raise
+                            else:
                                 log.write(json.dumps({"event": "driver_command_finished",
                                                       "ns": time.monotonic_ns(), "begin_ns": begin,
                                                       "argv": action_argv}) + "\n")

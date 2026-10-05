@@ -1,0 +1,2618 @@
+{
+  "packages": [
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "96f49a5f345f16b590d6ef08413909d243e1e960",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "96f49a5f345f16b590d6ef08413909d243e1e960",
+      "root": "tests",
+      "modules": 396,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "96f49a5f345f16b590d6ef08413909d243e1e960",
+      "root": "tools",
+      "modules": 41,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "head": "a38c06de24315fa868de45786e01fefadb0aaef1",
+      "root": "src/agent_comms",
+      "modules": 316,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "1bdc18c363cbc0f938537a71aa8ba0225d03e25e",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/agent.py",
+      "line": 410,
+      "kind": "AsyncFunctionDef",
+      "source": "async def cancel(self) -> bool:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 154,
+      "kind": "Attribute",
+      "source": "agent.permissions.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 80,
+      "kind": "Attribute",
+      "source": "self.agent.permissions.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/agent_process.py",
+      "line": 126,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/agent_process.py",
+      "line": 152,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/agent_process.py",
+      "line": 164,
+      "kind": "Attribute",
+      "source": "self.runner.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/agent_process.py",
+      "line": 182,
+      "kind": "Attribute",
+      "source": "self.runner.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 40,
+      "kind": "FunctionDef",
+      "source": "def cancel(self):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 137,
+      "kind": "FunctionDef",
+      "source": "def cancel(self):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 139,
+      "kind": "Attribute",
+      "source": "request.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/agent.py",
+      "line": 59,
+      "kind": "AsyncFunctionDef",
+      "source": "async def cancel(self) -> bool:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/comms_root.py",
+      "line": 115,
+      "kind": "Attribute",
+      "source": "self.task.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/conversation_turn.py",
+      "line": 157,
+      "kind": "FunctionDef",
+      "source": "@abstractmethod"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/conversation_turn.py",
+      "line": 183,
+      "kind": "FunctionDef",
+      "source": "def accepts(self, message):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/conversation_turn.py",
+      "line": 216,
+      "kind": "FunctionDef",
+      "source": "def accepts(self, message):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/conversation_turn.py",
+      "line": 261,
+      "kind": "Attribute",
+      "source": "self.binding.accepts"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/db.py",
+      "line": 42,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/directory.py",
+      "line": 133,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/directory_watcher.py",
+      "line": 52,
+      "kind": "Attribute",
+      "source": "self._pending.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/live_output.py",
+      "line": 32,
+      "kind": "FunctionDef",
+      "source": "def accepts(self, fragment: str) -> bool:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/live_output.py",
+      "line": 106,
+      "kind": "FunctionDef",
+      "source": "def accepts(self, fragment: str) -> bool:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/live_output.py",
+      "line": 43,
+      "kind": "Attribute",
+      "source": "self.accepts"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/mcp_decision.py",
+      "line": 123,
+      "kind": "Attribute",
+      "source": "self._custody.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/project_link.py",
+      "line": 187,
+      "kind": "FunctionDef",
+      "source": "@staticmethod"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/project_link.py",
+      "line": 85,
+      "kind": "Attribute",
+      "source": "SearchProjectFileLink.accepts"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/project_link.py",
+      "line": 72,
+      "kind": "Attribute",
+      "source": "SearchProjectFileLink.accepts"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/project_link.py",
+      "line": 203,
+      "kind": "Attribute",
+      "source": "self.accepts"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/render_protocol.py",
+      "line": 143,
+      "kind": "Attribute",
+      "source": "service.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/render_service.py",
+      "line": 144,
+      "kind": "FunctionDef",
+      "source": "def cancel(self, command: CancelRender) -> RenderReply:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/render_service.py",
+      "line": 149,
+      "kind": "Attribute",
+      "source": "job.future.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/render_service.py",
+      "line": 105,
+      "kind": "Attribute",
+      "source": "job.future.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/screens/comms.py",
+      "line": 227,
+      "kind": "Attribute",
+      "source": "self.workers.cancel_group"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 96,
+      "kind": "Attribute",
+      "source": "self.workers.cancel_group"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/screens/mcp_inventory.py",
+      "line": 75,
+      "kind": "Attribute",
+      "source": "self._read_task.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/screens/mcp_inventory.py",
+      "line": 81,
+      "kind": "Attribute",
+      "source": "self._read_task.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/screens/session_view.py",
+      "line": 68,
+      "kind": "Attribute",
+      "source": "window.document_viewport.resume_source"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/session_observation.py",
+      "line": 50,
+      "kind": "Attribute",
+      "source": "self.task.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/session_presentation.py",
+      "line": 205,
+      "kind": "Attribute",
+      "source": "history.retire_source"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/setting_effects.py",
+      "line": 22,
+      "kind": "Attribute",
+      "source": "history.prepare_scroll"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/sidebar_observation.py",
+      "line": 38,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/slash_command.py",
+      "line": 307,
+      "kind": "Attribute",
+      "source": "conversation.agent.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/terminal_execution.py",
+      "line": 312,
+      "kind": "Attribute",
+      "source": "self.ready.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/terminal_execution.py",
+      "line": 337,
+      "kind": "Attribute",
+      "source": "self.task.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/terminal_execution.py",
+      "line": 356,
+      "kind": "Attribute",
+      "source": "self.task.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/thread_navigation.py",
+      "line": 31,
+      "kind": "Attribute",
+      "source": "app.is_running"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/thread_navigation.py",
+      "line": 82,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/tool_output.py",
+      "line": 81,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/tool_output.py",
+      "line": 128,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/tool_output.py",
+      "line": 138,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/tool_output.py",
+      "line": 148,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/tool_output.py",
+      "line": 162,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/tool_output.py",
+      "line": 211,
+      "kind": "Attribute",
+      "source": "entry.result.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/tool_output.py",
+      "line": 443,
+      "kind": "Attribute",
+      "source": "self._worker.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/tool_output.py",
+      "line": 88,
+      "kind": "Attribute",
+      "source": "member.accepts"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/tool_output.py",
+      "line": 90,
+      "kind": "Attribute",
+      "source": "member.accepts"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_filter.py",
+      "line": 310,
+      "kind": "Attribute",
+      "source": "self.worker.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_filter.py",
+      "line": 124,
+      "kind": "Attribute",
+      "source": "projection.prepare_fragments"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_preparation.py",
+      "line": 101,
+      "kind": "FunctionDef",
+      "source": "@abstractmethod"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_preparation.py",
+      "line": 194,
+      "kind": "AsyncFunctionDef",
+      "source": "async def prefetch(self, before: TranscriptCursor | None, after: TranscriptCursor | None, keep_going: Callable[[], bool], *, rounds: int=1) -> AsyncIterator[PreparedTranscriptPage]:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_preparation.py",
+      "line": 330,
+      "kind": "AsyncFunctionDef",
+      "source": "async def prefetch(self, before: TranscriptCursor | None, after: TranscriptCursor | None, keep_going: Callable[[], bool], *, rounds: int=1) -> AsyncIterator[PreparedTranscriptPage]:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_preparation.py",
+      "line": 352,
+      "kind": "Attribute",
+      "source": "self._raw.prefetch"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_preparation.py",
+      "line": 340,
+      "kind": "Attribute",
+      "source": "self._upstream.prefetch"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_publication.py",
+      "line": 360,
+      "kind": "FunctionDef",
+      "source": "def cancel(self) -> Worker[None] | None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_publication.py",
+      "line": 623,
+      "kind": "Attribute",
+      "source": "self.source_requests.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_publication.py",
+      "line": 142,
+      "kind": "Attribute",
+      "source": "applied.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_publication.py",
+      "line": 368,
+      "kind": "Attribute",
+      "source": "worker.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_publication.py",
+      "line": 630,
+      "kind": "Attribute",
+      "source": "worker.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_publication.py",
+      "line": 680,
+      "kind": "Attribute",
+      "source": "self.source_requests.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_publication.py",
+      "line": 692,
+      "kind": "Attribute",
+      "source": "worker.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_publication.py",
+      "line": 685,
+      "kind": "Attribute",
+      "source": "view.workers.cancel_group"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_publication.py",
+      "line": 686,
+      "kind": "Attribute",
+      "source": "view.workers.cancel_group"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_publication.py",
+      "line": 687,
+      "kind": "Attribute",
+      "source": "view.workers.cancel_group"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_publication.py",
+      "line": 688,
+      "kind": "Attribute",
+      "source": "view.workers.cancel_group"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 119,
+      "kind": "FunctionDef",
+      "source": "def request_latest(self) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 184,
+      "kind": "AsyncFunctionDef",
+      "source": "async def retire_source(self, *, parked: bool=False) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 200,
+      "kind": "FunctionDef",
+      "source": "def resume_source(self) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 210,
+      "kind": "FunctionDef",
+      "source": "def prepare_scroll(self) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 214,
+      "kind": "FunctionDef",
+      "source": "def request_lookahead(self, intent) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 238,
+      "kind": "FunctionDef",
+      "source": "def lookahead_workers(self):"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 244,
+      "kind": "AsyncFunctionDef",
+      "source": "async def prepare_lookahead(self, intent) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 248,
+      "kind": "FunctionDef",
+      "source": "def lookahead_current(self, intent) -> bool:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 38,
+      "kind": "Name",
+      "source": "LOOKAHEAD_GROUP"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 44,
+      "kind": "Attribute",
+      "source": "self._prefetch_intent"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 94,
+      "kind": "Attribute",
+      "source": "self._prefetch_intent"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 122,
+      "kind": "Attribute",
+      "source": "self._prefetch_intent"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 191,
+      "kind": "Attribute",
+      "source": "self._prefetch_intent"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 202,
+      "kind": "Attribute",
+      "source": "self._prefetch_intent"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 222,
+      "kind": "Attribute",
+      "source": "self._prefetch_intent"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 226,
+      "kind": "Attribute",
+      "source": "self._prefetch_intent"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 89,
+      "kind": "Attribute",
+      "source": "self.prepare_scroll"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 105,
+      "kind": "Attribute",
+      "source": "self.prepare_scroll"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 121,
+      "kind": "Attribute",
+      "source": "self.workers.cancel_group"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 121,
+      "kind": "Attribute",
+      "source": "self.LOOKAHEAD_GROUP"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 123,
+      "kind": "Attribute",
+      "source": "self.state.request_latest"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 207,
+      "kind": "Attribute",
+      "source": "self.prepare_scroll"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 223,
+      "kind": "Attribute",
+      "source": "self.lookahead_current"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 236,
+      "kind": "Attribute",
+      "source": "self.LOOKAHEAD_GROUP"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 227,
+      "kind": "Attribute",
+      "source": "self.lookahead_workers"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 231,
+      "kind": "Attribute",
+      "source": "self._prefetch_intent"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 233,
+      "kind": "Attribute",
+      "source": "self._prefetch_intent"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 242,
+      "kind": "Attribute",
+      "source": "worker.is_running"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 232,
+      "kind": "Attribute",
+      "source": "self.prepare_lookahead"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 241,
+      "kind": "Attribute",
+      "source": "self.LOOKAHEAD_GROUP"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_state.py",
+      "line": 37,
+      "kind": "FunctionDef",
+      "source": "def request_latest(self, owner, request: 'LatestViewportRequest') -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_state.py",
+      "line": 100,
+      "kind": "FunctionDef",
+      "source": "def request_latest(self, owner, request: 'LatestViewportRequest') -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_state.py",
+      "line": 189,
+      "kind": "FunctionDef",
+      "source": "def request_latest(self, owner, request: LatestViewportRequest) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_state.py",
+      "line": 306,
+      "kind": "Attribute",
+      "source": "owner.resume_source"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_state.py",
+      "line": 159,
+      "kind": "Attribute",
+      "source": "owner.state.request_latest"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/transcript_state.py",
+      "line": 312,
+      "kind": "Attribute",
+      "source": "owner.resume_source"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/web_server.py",
+      "line": 111,
+      "kind": "FunctionDef",
+      "source": "def accepts(self, candidate: str) -> bool:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/web_server.py",
+      "line": 133,
+      "kind": "Attribute",
+      "source": "self.accepts"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/web_server.py",
+      "line": 130,
+      "kind": "Attribute",
+      "source": "self.accepts"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 469,
+      "kind": "Attribute",
+      "source": "self.app.is_running"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 400,
+      "kind": "Attribute",
+      "source": "self.workers.cancel_group"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 329,
+      "kind": "Attribute",
+      "source": "self.workers.cancel_group"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 492,
+      "kind": "Attribute",
+      "source": "self.workers.cancel_group"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 2065,
+      "kind": "Attribute",
+      "source": "agent.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 125,
+      "kind": "Attribute",
+      "source": "history.request_latest"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 46,
+      "kind": "Attribute",
+      "source": "self._read_task.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 56,
+      "kind": "Attribute",
+      "source": "self._read_task.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 262,
+      "kind": "FunctionDef",
+      "source": "def accepts(self, demand: PreparationDemand) -> bool:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/recovery_view.py",
+      "line": 62,
+      "kind": "Attribute",
+      "source": "self._read_task.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/recovery_view.py",
+      "line": 93,
+      "kind": "Attribute",
+      "source": "self._read_task.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/recovery_view.py",
+      "line": 81,
+      "kind": "Attribute",
+      "source": "self._read_task.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/retiring_sidebar.py",
+      "line": 29,
+      "kind": "Attribute",
+      "source": "self.workers.cancel_group"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 300,
+      "kind": "Attribute",
+      "source": "self._refresh_task.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 241,
+      "kind": "Attribute",
+      "source": "self._preparation_worker.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "line": 212,
+      "kind": "AsyncFunctionDef",
+      "source": "async def prepare_fragments(self, fragments, keep_going, *, batch_size: int) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 323,
+      "kind": "FunctionDef",
+      "source": "def capture_admission(self) -> TranscriptPageAdmission:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 351,
+      "kind": "AsyncFunctionDef",
+      "source": "async def prepare_adjacent(self, preparation, demand, count: int, keep_going) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 458,
+      "kind": "AsyncFunctionDef",
+      "source": "async def prepare_fragments(self, fragments, current: Callable[[], bool]) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 737,
+      "kind": "FunctionDef",
+      "source": "def prepare_scroll(self) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 759,
+      "kind": "AsyncFunctionDef",
+      "source": "async def prepare_lookahead(self, intent) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 774,
+      "kind": "FunctionDef",
+      "source": "def lookahead_current(self, intent) -> bool:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 357,
+      "kind": "Attribute",
+      "source": "self.capture_admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 538,
+      "kind": "Attribute",
+      "source": "self.prepare_scroll"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 733,
+      "kind": "Attribute",
+      "source": "self._prefetch_intent"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 756,
+      "kind": "Attribute",
+      "source": "self.request_lookahead"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 761,
+      "kind": "Attribute",
+      "source": "self.lookahead_current"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 768,
+      "kind": "Attribute",
+      "source": "reader.prefetch"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 876,
+      "kind": "Attribute",
+      "source": "edge.capture_admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 354,
+      "kind": "Attribute",
+      "source": "preparation.prepare_fragments"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 397,
+      "kind": "Attribute",
+      "source": "self.capture_admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 465,
+      "kind": "Attribute",
+      "source": "preparation.prepare_fragments"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 777,
+      "kind": "Attribute",
+      "source": "snapshot.window.document_viewport.lookahead.accepts"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 837,
+      "kind": "Attribute",
+      "source": "self.prepare_fragments"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 470,
+      "kind": "Attribute",
+      "source": "self.prepare_fragments"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 489,
+      "kind": "Attribute",
+      "source": "page.capture_admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 701,
+      "kind": "Attribute",
+      "source": "self.prepare_fragments"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 755,
+      "kind": "Attribute",
+      "source": "page.capture_admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 767,
+      "kind": "Attribute",
+      "source": "page.prepare_adjacent"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 770,
+      "kind": "Attribute",
+      "source": "preparation.prepare_fragments"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 844,
+      "kind": "Attribute",
+      "source": "view.capture_admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 891,
+      "kind": "Attribute",
+      "source": "self.prepare_fragments"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 926,
+      "kind": "Attribute",
+      "source": "edge.capture_admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 365,
+      "kind": "Attribute",
+      "source": "self.capture_admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 409,
+      "kind": "Attribute",
+      "source": "self.capture_admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 899,
+      "kind": "Attribute",
+      "source": "edge.capture_admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 778,
+      "kind": "Attribute",
+      "source": "page.capture_admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 857,
+      "kind": "Attribute",
+      "source": "view.capture_admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 419,
+      "kind": "Attribute",
+      "source": "self.capture_admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 937,
+      "kind": "Attribute",
+      "source": "edge.capture_admission"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1043,
+      "kind": "FunctionDef",
+      "source": "def resume_source(self) -> None:"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1023,
+      "kind": "Attribute",
+      "source": "history.prepare_scroll"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1037,
+      "kind": "Attribute",
+      "source": "worker.cancel"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1005,
+      "kind": "Attribute",
+      "source": "history.prepare_scroll"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1178,
+      "kind": "Attribute",
+      "source": "self.lookahead.accepts"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1159,
+      "kind": "Attribute",
+      "source": "self.lookahead.accepts"
+    },
+    {
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1192,
+      "kind": "Attribute",
+      "source": "self.lookahead.accepts"
+    },
+    {
+      "root": "tests",
+      "path": "tests/agent_process_retirement_installed_pilot.py",
+      "line": 90,
+      "kind": "Attribute",
+      "source": "runner.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/agent_process_retirement_installed_pilot.py",
+      "line": 48,
+      "kind": "Attribute",
+      "source": "start.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/agent_process_retirement_installed_pilot.py",
+      "line": 94,
+      "kind": "Attribute",
+      "source": "descendant.is_running"
+    },
+    {
+      "root": "tests",
+      "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+      "line": 286,
+      "kind": "Attribute",
+      "source": "timer.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 140,
+      "kind": "Name",
+      "source": "cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/channel_history_reader_pilot.py",
+      "line": 130,
+      "kind": "Attribute",
+      "source": "first.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/checkpoint_source_pivot_pilot.py",
+      "line": 84,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/cold_thread_latency_pilot.py",
+      "line": 304,
+      "kind": "Attribute",
+      "source": "pulse.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 107,
+      "kind": "Name",
+      "source": "cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 145,
+      "kind": "Name",
+      "source": "cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+      "line": 286,
+      "kind": "Name",
+      "source": "cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/default_route_cancel_pilot.py",
+      "line": 74,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/default_route_cancel_pilot.py",
+      "line": 126,
+      "kind": "Attribute",
+      "source": "pending.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/file_preview_latency_pilot.py",
+      "line": 80,
+      "kind": "Attribute",
+      "source": "pulse.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/first_fork_native_installed_pilot.py",
+      "line": 335,
+      "kind": "Attribute",
+      "source": "held_startup.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/guards/test_observation_cancellation.py",
+      "line": 51,
+      "kind": "Attribute",
+      "source": "callback.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/guards/test_tool_output.py",
+      "line": 63,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "root": "tests",
+      "path": "tests/guards/test_transcript_publication.py",
+      "line": 133,
+      "kind": "Attribute",
+      "source": "pending.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_frame_publication_pilot.py",
+      "line": 74,
+      "kind": "Attribute",
+      "source": "owner.is_running"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_frame_publication_pilot.py",
+      "line": 173,
+      "kind": "Attribute",
+      "source": "app.is_running"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_frame_publication_pilot.py",
+      "line": 233,
+      "kind": "Attribute",
+      "source": "owner.is_running"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_frame_publication_pilot.py",
+      "line": 201,
+      "kind": "Attribute",
+      "source": "history.request_latest"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_page_batch_mount_pilot.py",
+      "line": 185,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_page_batch_mount_pilot.py",
+      "line": 172,
+      "kind": "Attribute",
+      "source": "resource.capture_admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_page_batch_mount_pilot.py",
+      "line": 217,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_page_batch_mount_pilot.py",
+      "line": 189,
+      "kind": "Attribute",
+      "source": "resource.capture_admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_page_batch_mount_pilot.py",
+      "line": 332,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_page_batch_mount_pilot.py",
+      "line": 221,
+      "kind": "Attribute",
+      "source": "resource.capture_admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_page_batch_mount_pilot.py",
+      "line": 287,
+      "kind": "Attribute",
+      "source": "pending.retire_source"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 44,
+      "kind": "Name",
+      "source": "prepare_fragments"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 44,
+      "kind": "Attribute",
+      "source": "TranscriptBodyPreparation.prepare_fragments"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 90,
+      "kind": "Attribute",
+      "source": "TranscriptBodyPreparation.prepare_fragments"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 50,
+      "kind": "Name",
+      "source": "prepare_fragments"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 169,
+      "kind": "Attribute",
+      "source": "TranscriptBodyPreparation.prepare_fragments"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 169,
+      "kind": "Name",
+      "source": "prepare_fragments"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 131,
+      "kind": "Attribute",
+      "source": "resource.capture_admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 101,
+      "kind": "Attribute",
+      "source": "history.prepare_scroll"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 111,
+      "kind": "Attribute",
+      "source": "history.prepare_scroll"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 115,
+      "kind": "Attribute",
+      "source": "history.prepare_scroll"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 95,
+      "kind": "Attribute",
+      "source": "history.lookahead_workers"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 113,
+      "kind": "Attribute",
+      "source": "history.lookahead_workers"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 116,
+      "kind": "Attribute",
+      "source": "history.lookahead_workers"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 124,
+      "kind": "Attribute",
+      "source": "history.retire_source"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 149,
+      "kind": "Attribute",
+      "source": "resource.capture_admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 164,
+      "kind": "Attribute",
+      "source": "resource.capture_admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "line": 103,
+      "kind": "Attribute",
+      "source": "history.lookahead_workers"
+    },
+    {
+      "root": "tests",
+      "path": "tests/late_native_after_join_pilot.py",
+      "line": 147,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/late_native_after_join_pilot.py",
+      "line": 141,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/late_native_application_pilot.py",
+      "line": 150,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/late_native_application_pilot.py",
+      "line": 144,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/lazy_tools_pilot.py",
+      "line": 108,
+      "kind": "Attribute",
+      "source": "pulse.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/maintenance_cancel_process_group_pilot.py",
+      "line": 66,
+      "kind": "Attribute",
+      "source": "attempt.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/maintenance_cancel_process_group_pilot.py",
+      "line": 68,
+      "kind": "Attribute",
+      "source": "attempt.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/markdown_process_lifecycle_pilot.py",
+      "line": 42,
+      "kind": "Attribute",
+      "source": "future.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/message_dividers_pilot.py",
+      "line": 199,
+      "kind": "Attribute",
+      "source": "history.resume_source"
+    },
+    {
+      "root": "tests",
+      "path": "tests/message_dividers_pilot.py",
+      "line": 254,
+      "kind": "Attribute",
+      "source": "history.resume_source"
+    },
+    {
+      "root": "tests",
+      "path": "tests/message_dividers_pilot.py",
+      "line": 240,
+      "kind": "Attribute",
+      "source": "history.retire_source"
+    },
+    {
+      "root": "tests",
+      "path": "tests/message_dividers_pilot.py",
+      "line": 187,
+      "kind": "Attribute",
+      "source": "history.retire_source"
+    },
+    {
+      "root": "tests",
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 249,
+      "kind": "Attribute",
+      "source": "node.is_running"
+    },
+    {
+      "root": "tests",
+      "path": "tests/native_session_retention_pilot.py",
+      "line": 253,
+      "kind": "Attribute",
+      "source": "active_prompt.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/native_terminal_retention_pilot.py",
+      "line": 161,
+      "kind": "Attribute",
+      "source": "releasing.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/native_terminal_retention_pilot.py",
+      "line": 163,
+      "kind": "Attribute",
+      "source": "releasing.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/native_terminal_retention_pilot.py",
+      "line": 184,
+      "kind": "Attribute",
+      "source": "starting.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/native_terminal_retention_pilot.py",
+      "line": 98,
+      "kind": "Attribute",
+      "source": "waiter.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/native_terminal_retention_pilot.py",
+      "line": 105,
+      "kind": "Attribute",
+      "source": "waiter.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/native_tool_output_pilot.py",
+      "line": 109,
+      "kind": "Attribute",
+      "source": "sending.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/native_widget_actions_installed_pilot.py",
+      "line": 117,
+      "kind": "Attribute",
+      "source": "agent.permissions.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/navigation_preparation_pilot.py",
+      "line": 50,
+      "kind": "Attribute",
+      "source": "tasks[0].cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/permission_pending_mount_pilot.py",
+      "line": 59,
+      "kind": "Attribute",
+      "source": "request.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/persistent_render_pilot.py",
+      "line": 53,
+      "kind": "Attribute",
+      "source": "waiting.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/persistent_renderer_lifecycle_pilot.py",
+      "line": 95,
+      "kind": "Attribute",
+      "source": "request.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/persistent_renderer_lifecycle_pilot.py",
+      "line": 102,
+      "kind": "Attribute",
+      "source": "closing.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 192,
+      "kind": "Attribute",
+      "source": "sending.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/quit_save_installed_pilot.py",
+      "line": 27,
+      "kind": "Attribute",
+      "source": "app.is_running"
+    },
+    {
+      "root": "tests",
+      "path": "tests/quit_save_installed_pilot.py",
+      "line": 78,
+      "kind": "Attribute",
+      "source": "app.is_running"
+    },
+    {
+      "root": "tests",
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 201,
+      "kind": "Attribute",
+      "source": "p.is_running"
+    },
+    {
+      "root": "tests",
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 287,
+      "kind": "Attribute",
+      "source": "p.is_running"
+    },
+    {
+      "root": "tests",
+      "path": "tests/render_processes_pilot.py",
+      "line": 147,
+      "kind": "Attribute",
+      "source": "close.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/render_processes_pilot.py",
+      "line": 101,
+      "kind": "Attribute",
+      "source": "first.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/render_processes_pilot.py",
+      "line": 110,
+      "kind": "Attribute",
+      "source": "second.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/render_runtime_pilot.py",
+      "line": 67,
+      "kind": "Attribute",
+      "source": "waiting.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 91,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 127,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 162,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 400,
+      "kind": "Attribute",
+      "source": "viewport.resume_source"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_history_projection_pilot.py",
+      "line": 55,
+      "kind": "Attribute",
+      "source": "history.retire_source"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_history_projection_pilot.py",
+      "line": 82,
+      "kind": "Attribute",
+      "source": "history.retire_source"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_page_end_pilot.py",
+      "line": 40,
+      "kind": "Attribute",
+      "source": "page.capture_admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/retained_page_scope_pilot.py",
+      "line": 118,
+      "kind": "Attribute",
+      "source": "history.retire_source"
+    },
+    {
+      "root": "tests",
+      "path": "tests/sidebar_metadata_reflow_pilot.py",
+      "line": 58,
+      "kind": "Attribute",
+      "source": "viewport.resume_source"
+    },
+    {
+      "root": "tests",
+      "path": "tests/snapshot_cancellation_custody_pilot.py",
+      "line": 33,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/snapshot_cancellation_custody_pilot.py",
+      "line": 95,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/snapshot_cancellation_custody_pilot.py",
+      "line": 181,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/snapshot_cancellation_custody_pilot.py",
+      "line": 164,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/terminal_attention_installed_journey.py",
+      "line": 95,
+      "kind": "Attribute",
+      "source": "server.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/terminal_attention_installed_journey.py",
+      "line": 222,
+      "kind": "Attribute",
+      "source": "permission.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/thread_navigation_installed_journey.py",
+      "line": 84,
+      "kind": "Attribute",
+      "source": "primary.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/tool_diff_lifecycle_pilot.py",
+      "line": 102,
+      "kind": "Attribute",
+      "source": "worker.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/tool_read_latency_pilot.py",
+      "line": 63,
+      "kind": "Attribute",
+      "source": "heartbeat.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/tools/profile_trace.py",
+      "line": 96,
+      "kind": "FunctionDef",
+      "source": "def accepts(self, frame: TraceFrame) -> bool:"
+    },
+    {
+      "root": "tests",
+      "path": "tests/tools/profile_trace.py",
+      "line": 129,
+      "kind": "Attribute",
+      "source": "selection.accepts"
+    },
+    {
+      "root": "tests",
+      "path": "tests/tools/profile_trace.py",
+      "line": 126,
+      "kind": "Attribute",
+      "source": "selection.accepts"
+    },
+    {
+      "root": "tests",
+      "path": "tests/transcript_filter_installed_journey.py",
+      "line": 144,
+      "kind": "Attribute",
+      "source": "worker.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/transcript_lifecycle_pilot.py",
+      "line": 61,
+      "kind": "Attribute",
+      "source": "history.request_latest"
+    },
+    {
+      "root": "tests",
+      "path": "tests/transcript_lifecycle_pilot.py",
+      "line": 66,
+      "kind": "Attribute",
+      "source": "history.resume_source"
+    },
+    {
+      "root": "tests",
+      "path": "tests/transcript_lifecycle_pilot.py",
+      "line": 64,
+      "kind": "Attribute",
+      "source": "history.retire_source"
+    },
+    {
+      "root": "tests",
+      "path": "tests/transcript_lifecycle_pilot.py",
+      "line": 72,
+      "kind": "Attribute",
+      "source": "history.retire_source"
+    },
+    {
+      "root": "tests",
+      "path": "tests/transcript_prefetch_pilot.py",
+      "line": 145,
+      "kind": "Attribute",
+      "source": "ProjectedTranscriptSource.prefetch"
+    },
+    {
+      "root": "tests",
+      "path": "tests/transcript_prefetch_pilot.py",
+      "line": 146,
+      "kind": "Attribute",
+      "source": "TranscriptBodyPreparation.prepare_fragments"
+    },
+    {
+      "root": "tests",
+      "path": "tests/transcript_prefetch_pilot.py",
+      "line": 216,
+      "kind": "Attribute",
+      "source": "buffer.prefetch"
+    },
+    {
+      "root": "tests",
+      "path": "tests/transcript_prefetch_pilot.py",
+      "line": 222,
+      "kind": "Attribute",
+      "source": "buffer.prefetch"
+    },
+    {
+      "root": "tests",
+      "path": "tests/transcript_prefetch_pilot.py",
+      "line": 243,
+      "kind": "Attribute",
+      "source": "first.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/transcript_prefetch_pilot.py",
+      "line": 288,
+      "kind": "Attribute",
+      "source": "broken.prefetch"
+    },
+    {
+      "root": "tests",
+      "path": "tests/transcript_prefetch_pilot.py",
+      "line": 106,
+      "kind": "Attribute",
+      "source": "source.prefetch"
+    },
+    {
+      "root": "tests",
+      "path": "tests/transcript_prefetch_pilot.py",
+      "line": 126,
+      "kind": "Attribute",
+      "source": "pending.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/transcript_prefetch_pilot.py",
+      "line": 68,
+      "kind": "Attribute",
+      "source": "source.prefetch"
+    },
+    {
+      "root": "tests",
+      "path": "tests/transcript_process_pilot.py",
+      "line": 145,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/transcript_process_pilot.py",
+      "line": 219,
+      "kind": "Attribute",
+      "source": "cancelled.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/transcript_source_lifetime_pilot.py",
+      "line": 80,
+      "kind": "Attribute",
+      "source": "old_pager.pages[0].capture_admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/transcript_source_lifetime_pilot.py",
+      "line": 90,
+      "kind": "Attribute",
+      "source": "body._paged.pages[0].capture_admission"
+    },
+    {
+      "root": "tests",
+      "path": "tests/transcript_source_lifetime_pilot.py",
+      "line": 126,
+      "kind": "Attribute",
+      "source": "history.retire_source"
+    },
+    {
+      "root": "tests",
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 159,
+      "kind": "Attribute",
+      "source": "viewport.resume_source"
+    },
+    {
+      "root": "tests",
+      "path": "tests/viewport_demand_custody_pilot.py",
+      "line": 54,
+      "kind": "Name",
+      "source": "accepts"
+    },
+    {
+      "root": "tests",
+      "path": "tests/viewport_demand_custody_pilot.py",
+      "line": 54,
+      "kind": "Attribute",
+      "source": "manager.lookahead.accepts"
+    },
+    {
+      "root": "tests",
+      "path": "tests/viewport_demand_custody_pilot.py",
+      "line": 73,
+      "kind": "Attribute",
+      "source": "manager.lookahead.accepts"
+    },
+    {
+      "root": "tests",
+      "path": "tests/viewport_demand_custody_pilot.py",
+      "line": 107,
+      "kind": "Attribute",
+      "source": "manager.lookahead.accepts"
+    },
+    {
+      "root": "tests",
+      "path": "tests/viewport_demand_custody_pilot.py",
+      "line": 107,
+      "kind": "Name",
+      "source": "accepts"
+    },
+    {
+      "root": "tests",
+      "path": "tests/viewport_demand_custody_pilot.py",
+      "line": 65,
+      "kind": "Name",
+      "source": "accepts"
+    },
+    {
+      "root": "tests",
+      "path": "tests/viewport_demand_custody_pilot.py",
+      "line": 77,
+      "kind": "Attribute",
+      "source": "manager.resume_source"
+    },
+    {
+      "root": "tests",
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 70,
+      "kind": "Attribute",
+      "source": "manager.resume_source"
+    },
+    {
+      "root": "tests",
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 115,
+      "kind": "Attribute",
+      "source": "manager.resume_source"
+    },
+    {
+      "root": "tests",
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 76,
+      "kind": "Attribute",
+      "source": "body._body_measurement.worker.is_running"
+    },
+    {
+      "root": "tests",
+      "path": "tests/viewport_warm_trim_pilot.py",
+      "line": 92,
+      "kind": "Attribute",
+      "source": "manager.resume_source"
+    },
+    {
+      "root": "tests",
+      "path": "tests/work_preparation_pilot.py",
+      "line": 88,
+      "kind": "Attribute",
+      "source": "waiter.cancel"
+    },
+    {
+      "root": "tests",
+      "path": "tests/worker_native_size_pilot.py",
+      "line": 96,
+      "kind": "Attribute",
+      "source": "app.is_running"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/benchmark_spinner.py",
+      "line": 64,
+      "kind": "Attribute",
+      "source": "observer.cancel"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/capture_live.py",
+      "line": 78,
+      "kind": "Attribute",
+      "source": "process.is_running"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/profile_thread_open.py",
+      "line": 203,
+      "kind": "Attribute",
+      "source": "pulse.cancel"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/replay_state.py",
+      "line": 346,
+      "kind": "Attribute",
+      "source": "heartbeat.cancel"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/replay_state.py",
+      "line": 336,
+      "kind": "Attribute",
+      "source": "heartbeat.cancel"
+    },
+    {
+      "root": "tools",
+      "path": "tools/performance/terminal_stress.py",
+      "line": 89,
+      "kind": "Attribute",
+      "source": "process.is_running"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/acp.py",
+      "line": 327,
+      "kind": "AsyncFunctionDef",
+      "source": "async def cancel(self, session_id: str, **kwargs: Any) -> None:"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/acp.py",
+      "line": 328,
+      "kind": "Attribute",
+      "source": "self.turns.cancel"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/backend.py",
+      "line": 448,
+      "kind": "Attribute",
+      "source": "self.steering_task.cancel"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/bus_projection.py",
+      "line": 68,
+      "kind": "FunctionDef",
+      "source": "def accepts(self, revision: BusFileRevision, stream: BinaryIO) -> bool:"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/bus_projection.py",
+      "line": 91,
+      "kind": "Attribute",
+      "source": "record.accepts"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/input_drain.py",
+      "line": 447,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/pending_requests.py",
+      "line": 63,
+      "kind": "Attribute",
+      "source": "pending.future.cancel"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/pi_commands.py",
+      "line": 226,
+      "kind": "Attribute",
+      "source": "future.cancel"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/pi_commands.py",
+      "line": 318,
+      "kind": "Attribute",
+      "source": "stderr.cancel"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/restart_queue.py",
+      "line": 207,
+      "kind": "FunctionDef",
+      "source": "def cancel(comms: Comms, name: str) -> list[QueuedRestart]:"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/runtime.py",
+      "line": 533,
+      "kind": "Attribute",
+      "source": "permission.cancel"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/runtime.py",
+      "line": 538,
+      "kind": "Attribute",
+      "source": "self.task.cancel"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/runtime.py",
+      "line": 98,
+      "kind": "Attribute",
+      "source": "future.cancel"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/runtime.py",
+      "line": 508,
+      "kind": "Attribute",
+      "source": "permission.cancel"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/runtime_requests.py",
+      "line": 205,
+      "kind": "Attribute",
+      "source": "ctx.server.agent.cancel"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/selected_tool_broker.py",
+      "line": 458,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_runner.py",
+      "line": 345,
+      "kind": "AsyncFunctionDef",
+      "source": "async def cancel(self, session_id: str, **kwargs: Any) -> None:"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_runner.py",
+      "line": 363,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_runner.py",
+      "line": 574,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_watchdog.py",
+      "line": 154,
+      "kind": "Attribute",
+      "source": "read_task.cancel"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/turn_watchdog.py",
+      "line": 163,
+      "kind": "Attribute",
+      "source": "pending.cancel"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/typed_table.py",
+      "line": 58,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/typed_table.py",
+      "line": 108,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/typed_table.py",
+      "line": 116,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/typed_table.py",
+      "line": 124,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/typed_table.py",
+      "line": 132,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/typed_table.py",
+      "line": 154,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/typed_table.py",
+      "line": 166,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/typed_table.py",
+      "line": 176,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/typed_table.py",
+      "line": 187,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/typed_table.py",
+      "line": 195,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/typed_table.py",
+      "line": 99,
+      "kind": "Attribute",
+      "source": "storage.accepts"
+    },
+    {
+      "root": "src/agent_comms",
+      "path": "src/agent_comms/worker.py",
+      "line": 47,
+      "kind": "Attribute",
+      "source": "initial.cancel"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/_callback.py",
+      "line": 94,
+      "kind": "Attribute",
+      "source": "call_later_handle.cancel"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/_win_sleep.py",
+      "line": 93,
+      "kind": "AsyncFunctionDef",
+      "source": "async def cancel():"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/_win_sleep.py",
+      "line": 115,
+      "kind": "Name",
+      "source": "cancel"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/app.py",
+      "line": 2822,
+      "kind": "Attribute",
+      "source": "_screen.is_running"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/await_remove.py",
+      "line": 112,
+      "kind": "Attribute",
+      "source": "self._completion.cancel"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/command.py",
+      "line": 1175,
+      "kind": "Attribute",
+      "source": "self.workers.cancel_group"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/command.py",
+      "line": 1021,
+      "kind": "Attribute",
+      "source": "search.cancel"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/message_pump.py",
+      "line": 332,
+      "kind": "FunctionDef",
+      "source": "@property"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/pilot.py",
+      "line": 520,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/signal.py",
+      "line": 77,
+      "kind": "Attribute",
+      "source": "node.is_running"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/signal.py",
+      "line": 124,
+      "kind": "Attribute",
+      "source": "ancestor_node.is_running"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/signal.py",
+      "line": 128,
+      "kind": "Attribute",
+      "source": "node.is_running"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/timer.py",
+      "line": 100,
+      "kind": "Attribute",
+      "source": "self._task.cancel"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/timer.py",
+      "line": 120,
+      "kind": "Attribute",
+      "source": "timer._task.cancel"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 4741,
+      "kind": "Attribute",
+      "source": "self.is_running"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 177,
+      "kind": "Attribute",
+      "source": "task.cancel"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/widgets/_markdown.py",
+      "line": 75,
+      "kind": "Attribute",
+      "source": "self._task.cancel"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/worker.py",
+      "line": 224,
+      "kind": "FunctionDef",
+      "source": "@property"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/worker.py",
+      "line": 438,
+      "kind": "FunctionDef",
+      "source": "def cancel(self) -> None:"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/worker.py",
+      "line": 442,
+      "kind": "Attribute",
+      "source": "self._task.cancel"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/worker_manager.py",
+      "line": 139,
+      "kind": "FunctionDef",
+      "source": "def cancel_group(self, node: DOMNode, group: str) -> list[Worker]:"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/worker_manager.py",
+      "line": 76,
+      "kind": "Attribute",
+      "source": "self.cancel_group"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/worker_manager.py",
+      "line": 137,
+      "kind": "Attribute",
+      "source": "worker.cancel"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/worker_manager.py",
+      "line": 155,
+      "kind": "Attribute",
+      "source": "worker.cancel"
+    },
+    {
+      "root": "src/textual",
+      "path": "src/textual/worker_manager.py",
+      "line": 169,
+      "kind": "Attribute",
+      "source": "worker.cancel"
+    }
+  ],
+  "ambiguous_dynamic_resolution": "Lexical AST does not prove external overrides; declared PreparedPageSource and actual two TranscriptSourcePreparation leaves read semantically."
+}

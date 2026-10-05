@@ -1,0 +1,151 @@
+{
+  "source_head": "1febf9f787b6d9890e13ec4cd43f93b041e72210",
+  "production_source": "96f49a5f345f16b590d6ef08413909d243e1e960",
+  "production_tree": "2aa3bf38dc6e5f9eb694cc5c2f0260066a4d29a7",
+  "build_head": "1febf9f787b6d9890e13ec4cd43f93b041e72210",
+  "source_authority": "Parent source-only artifact and future affected control preparation; NO issued runtime/prefix/native execution purpose",
+  "declared_sources": {
+    "agent-comms": {
+      "git": "https://github.com/OpenHCSDev/agent-comms.git",
+      "rev": "3aacd708fb9c699cc80c6b864e0ae8cf9ccff7f8"
+    },
+    "textual": {
+      "git": "https://github.com/OpenHCSDev/textual.git",
+      "rev": "08e3dd6b3c7839baafcac6ff9ea61eb510ff9573"
+    },
+    "textual-diff-view": {
+      "git": "https://github.com/OpenHCSDev/textual-diff-view.git",
+      "rev": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+    }
+  },
+  "artifacts": {
+    "toad": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/history-lookahead451-combined-source-wheel-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "203860306379f55ad803446aea2fa6e617d41d0118eb22848b80bb1c0b4cd0a0",
+      "assets": 319,
+      "proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/history-lookahead451-combined-source-wheel-20261004/wheel-proof.json",
+      "proof_sha256": "c8c6050865f60e5277110371a90f736ec4b365d6f32b51e3378016d357139655"
+    },
+    "core": {
+      "path": "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-historical-main3aac-source/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "0ed358e9a1d845f3fdceca138d0f2fa02824ac61161b3d8ba9a5e32b1cc3b6e3",
+      "assets": 355,
+      "source_head": "3aacd708fb9c699cc80c6b864e0ae8cf9ccff7f8",
+      "proof": "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-historical-main3aac-source/source-proof.json",
+      "proof_sha256": "8d0205a430a006157f7616d7c88da838ee7f663256a49aa14e49eb71effd83e7"
+    },
+    "textual": {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native63-64-filewheel-20261004/textual-8.2.8-py3-none-any.whl",
+      "sha256": "487baca7049166cdb570241c97a7e435f9037076b203f4b90be330e3ebecf37b",
+      "assets": 266,
+      "source_head": "08e3dd6b3c7839baafcac6ff9ea61eb510ff9573",
+      "receipt": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native63-64-filewheel-20261004/build-receipt.json",
+      "receipt_sha256": "0e1ba624fb929ee24a694d55330d9e0d67efed91e9dd9ee6e75a5e87d4fac2d4",
+      "inventory": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native63-64-filewheel-20261004/source-inventory.json",
+      "inventory_sha256": "c1296c2b265994ba9780dd25061ad178300ed9fbd3238a2d5093da56b60c1287"
+    }
+  },
+  "controls": {
+    "tests/history_stationary_local_runway_pilot.py": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/history_stationary_local_runway_pilot.py",
+      "sha256": "b0dd6bcb94c65388ff27a034963b099c606958e5d31b3adf52c9b86ac4d85d27"
+    },
+    "tests/tools/record_installed_tui.py": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/record_installed_tui.py",
+      "sha256": "e5173fc158a29c5b9922a25a1beb3233c2db8b06d11e3935a55929ab90602c24"
+    },
+    "tools/performance/click_history.py": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/click_history.py",
+      "sha256": "9fdd1a319ae6d85c9ae2673984210f1023247d8f776b20ac926de8e3a85fee17"
+    },
+    "tools/performance/sidebar_validation_driver.py": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/sidebar_validation_driver.py",
+      "sha256": "5044144734fb3328d26829f6d3457cb554845e7d288e83aa5717a44e134f95b8"
+    },
+    "tools/performance/capture_state.py": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/capture_state.py",
+      "sha256": "8b1d4bdb888d3f49f7514f85c01ed55a04dad17b1e6946504d6ff752373a0277"
+    },
+    "tools/performance/analyze_trace.py": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/analyze_trace.py",
+      "sha256": "79ccd4a70dc311d4013004c872a115cd083d852c06b0f0d98cd84d83d5130e25"
+    }
+  },
+  "future_app": {
+    "argv": [
+      "<fresh eligible prefix>/bin/python",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/history_stationary_local_runway_pilot.py",
+      "--installed-only",
+      "--worker-custody",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/history-lookahead451-installed-worker-20261004/app"
+    ],
+    "output": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/history-lookahead451-installed-worker-20261004/app",
+    "scope": [
+      "same-direction extent change retains original pending Worker",
+      "reversal revokes original waiter and manager supplies replacement",
+      "source retirement joins original node work",
+      "original page/fragment/entry/byte bounds and whole App close"
+    ],
+    "state": "UNRUN; authoring demand does not prove physical wheel motion"
+  },
+  "future_physical": {
+    "argv": [
+      "<fresh eligible capture prefix>/bin/python",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/record_installed_tui.py",
+      "--capture-target",
+      "existing_thread",
+      "--journey",
+      "wheel_cadence",
+      "--capture-state",
+      "--scroll-travel",
+      "--review-timing",
+      "deferred",
+      "--max-duration",
+      "150",
+      "--output",
+      "/home/ts/.cache/agent-scratch/history-lookahead451-native63-64-wheel-20261004-01/capture",
+      "--",
+      "<actual matching toad-comms>",
+      "nra-architecture"
+    ],
+    "output": "/home/ts/.cache/agent-scratch/history-lookahead451-native63-64-wheel-20261004-01/capture",
+    "scope": [
+      "actual native history pointer wheel Up/Down/reversal and End",
+      "original mouse event/scroll/preparation/frame/writer receipts",
+      "same original moving frame review by operator after terminal",
+      "fresh original require_no_clients and actual ProcessIdentity before/after",
+      "joined original isolated st/display/UI/recorder/groups cleanup"
+    ],
+    "state": "UNRUN; actual route/native package/source cohort and floor purpose unresolved",
+    "limits": [
+      "checked wheel helper intervals exclude phase exports and settling but include helper startup; they are driver bounds, not exact injection times",
+      "original MouseScroll event records establish receipt time; nearest unrelated writer flush is not causal input-to-pixel latency",
+      "writer receipts do not prove changed or readable pixels",
+      "no physical smoothness/FPS/CPU gain claim from source or authored App"
+    ]
+  },
+  "required_bindings": [
+    "Parent actual448 publication/disposition or another specifically eligible NONLIVE floor",
+    "exact actual prefix/floor/origins/archive/keepers counts; no historic436/440/444 restore assumption",
+    "fresh specific sole package/import/App/capture purpose",
+    "matched current native route/compiled package pin and separate immutable native READ/execution authority",
+    "all actual installed assets and honest filewheel origins/full dependencies before App",
+    "private source ownership or original public admission must match chosen capture route; no native/Core overlay",
+    "exact terminal joined cleanup and whole actual floor restore under issued purpose; no automatic retry"
+  ],
+  "remaining_full_workflow": [
+    "initial cold width commit",
+    "held Up/Down/reversal/growing End continuous motion",
+    "true loaded-history4/16/32/64 scaling distinct from two-loaded mixed cohort",
+    "configured saved startup/unopened thread/channel/tabreturn/fork before first answer/reply/notifications/queue/status",
+    "warm prepared/rendered resources plus non-tail reader position/draft Undo",
+    "source receipt-tail/bounds acknowledgement and backend painted-cursor writer remain at their actual unqualified scopes"
+  ],
+  "closed_446": {
+    "first_saved": "FAIL49.474142917s; cause unproved",
+    "mixed": "UNRUN",
+    "configured": "UNRUN; public decoder never activated",
+    "runtime_authority": "returned/closed; no remaining or inherited execution"
+  },
+  "watcher_450_452": "Separate source-only contribution16ae received; no session-presentation integration in451"
+}

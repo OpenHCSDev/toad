@@ -1,0 +1,82 @@
+{
+  "head": "8ea79c05ece2f67dc7a52e274914ac0fd9acc0fe",
+  "base": "2b97bf256fdddc15a909a95df8712db176962341",
+  "scope": "Source parse/owner consumer checks only; no App/package/import/native execution",
+  "packages": [
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "8ea79c05ece2f67dc7a52e274914ac0fd9acc0fe",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "8ea79c05ece2f67dc7a52e274914ac0fd9acc0fe",
+      "root": "tests",
+      "modules": 396,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "8ea79c05ece2f67dc7a52e274914ac0fd9acc0fe",
+      "root": "tools",
+      "modules": 41,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "head": "a38c06de24315fa868de45786e01fefadb0aaef1",
+      "root": "src/agent_comms",
+      "modules": 316,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "1bdc18c363cbc0f938537a71aa8ba0225d03e25e",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": []
+    }
+  ],
+  "checks": [
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "sha256": "d5adbd40fb71a1cb32d18f19028c38a5180c8807b94e9d30be557806786cd974",
+      "local_audit_delta": {
+        "foreign_absence_probe": 1,
+        "none_identity": 3,
+        "code_lines": 27
+      },
+      "parse": "PASS"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "sha256": "9b519b3c351f4f19460ac1b2466ebf94e15c02c495e381f3c7855f6b2903b0d5",
+      "local_audit_delta": {
+        "foreign_absence_probe": -1,
+        "none_identity": -1,
+        "code_lines": 1
+      },
+      "parse": "PASS"
+    },
+    {
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "sha256": "f0421acf34a880d622d885858da8d2935e5245d80727716b2b0fc8e74a04ff81",
+      "local_audit_delta": {
+        "foreign_absence_probe": 1,
+        "string_key_subscript": 8,
+        "none_identity": 1,
+        "long_function": 1,
+        "code_lines": 63
+      },
+      "parse": "PASS"
+    }
+  ],
+  "leaf_lookahead_worker_starts": 0,
+  "shared_source_lookahead_worker_starts": 1,
+  "installed_control": "tests/history_stationary_local_runway_pilot.py --installed-only --worker-custody OUTPUT",
+  "actual_holder": "Unassigned; exact prefix/floor/native authority must be bound by a fresh named purpose before execution",
+  "runtime": "UNRUN",
+  "physical_wheel_frame_time": "UNQUALIFIED"
+}

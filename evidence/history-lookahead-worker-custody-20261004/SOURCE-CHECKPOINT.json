@@ -1,0 +1,83 @@
+{
+  "head": "96f49a5f345f16b590d6ef08413909d243e1e960",
+  "base": "2b97bf256fdddc15a909a95df8712db176962341",
+  "scope": "Source parse/owner consumer checks only; no App/package/import/native execution",
+  "packages": [
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "96f49a5f345f16b590d6ef08413909d243e1e960",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "96f49a5f345f16b590d6ef08413909d243e1e960",
+      "root": "tests",
+      "modules": 396,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "96f49a5f345f16b590d6ef08413909d243e1e960",
+      "root": "tools",
+      "modules": 41,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "head": "a38c06de24315fa868de45786e01fefadb0aaef1",
+      "root": "src/agent_comms",
+      "modules": 316,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "1bdc18c363cbc0f938537a71aa8ba0225d03e25e",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": []
+    }
+  ],
+  "checks": [
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "sha256": "014c7c2b75547f00174215d485f9afc2e7495ff6402e3061585065fe6f1a0b10",
+      "local_audit_delta": {
+        "none_identity": 1,
+        "code_lines": 30
+      },
+      "parse": "PASS"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "sha256": "9b519b3c351f4f19460ac1b2466ebf94e15c02c495e381f3c7855f6b2903b0d5",
+      "local_audit_delta": {
+        "foreign_absence_probe": -1,
+        "none_identity": -1,
+        "code_lines": 1
+      },
+      "parse": "PASS"
+    },
+    {
+      "path": "tests/history_stationary_local_runway_pilot.py",
+      "sha256": "b0dd6bcb94c65388ff27a034963b099c606958e5d31b3adf52c9b86ac4d85d27",
+      "local_audit_delta": {
+        "foreign_absence_probe": 1,
+        "string_key_subscript": 8,
+        "none_identity": 1,
+        "long_function": 1,
+        "code_lines": 66
+      },
+      "parse": "PASS"
+    }
+  ],
+  "shared_source_lookahead_worker_starts": 1,
+  "nullable_worker_mirror_sites": 0,
+  "group_declarations": 1,
+  "native_cancellation_contract": "Worker.cancel sets cancellation event/task cancellation; RUNNING persists until _run settles. Original manager ordering is descending admission time. Original retire_source cancels and joins all native node workers.",
+  "installed_control": "tests/history_stationary_local_runway_pilot.py --installed-only --worker-custody OUTPUT",
+  "actual_holder": "Unassigned; exact prefix/floor/native authority must be bound by a fresh named purpose before execution",
+  "runtime": "UNRUN",
+  "physical_wheel_frame_time": "UNQUALIFIED"
+}
