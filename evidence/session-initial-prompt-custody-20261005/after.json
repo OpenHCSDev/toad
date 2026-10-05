@@ -9,8 +9,9 @@
     },
     {
       "root": "tests",
-      "modules": 397,
-      "unparsed": []
+      "modules": 398,
+      "unparsed": [],
+      "head": "7aa9846a0085e071f395f9d9e6f6b3af936f61cb"
     }
   ],
   "compiled_production": [
@@ -93,5 +94,8 @@
       "context": "Load"
     }
   ],
-  "scope": "Complete take/ready/release/capture and existing pre-mount restore traced. No App, runtime, package, native, provider/input/physical acceptance."
+  "scope": "Complete take/ready/release/capture and existing pre-mount restore traced. No App, runtime, package, native, provider/input/physical acceptance.",
+  "final_source_control_head": "7aa9846a0085e071f395f9d9e6f6b3af936f61cb",
+  "final_changed_modules_compiled": 4,
+  "control_sha256": "85fcfcf894a188355b9a16fac48707cc74c51f28178c5bd75481f43acb3ccd0a"
 }
