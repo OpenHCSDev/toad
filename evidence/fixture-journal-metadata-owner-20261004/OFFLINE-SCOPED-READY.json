@@ -1,0 +1,79 @@
+{
+  "source_head": "c6f9ffa09d1fe5d2d972029c7d76004ab8b88fca",
+  "scope": "Original private fixture retention metadata/accessibility/source identity/owned copy custody and sole original finalizer returned receipt; offline source qualified only.",
+  "source_assets": [
+    {
+      "path": "tests/runtime_fixture.py",
+      "sha256": "987399f81781f57e5cca89dc0e5214c59663d97a01bcb5bad18f35d7f8eb686f"
+    },
+    {
+      "path": "tests/original_turn_resource_real_installed_pilot.py",
+      "sha256": "01ff3e43fcb1820009cb91fc5d9f3eaf2a8f6cef02fd22db3ef3866471ed53b5"
+    },
+    {
+      "path": "tests/test_fixture_journal_retention.py",
+      "sha256": "1888e92c3a75bced4bc3a9e7c101908e8d2125c2196011894b37a287f89e287d"
+    }
+  ],
+  "keepers": [
+    {
+      "path": "offline-controls.log",
+      "sha256": "5b89433a060fdeabfea999e52bfe37a71f0eb1361e87448eb84c75509949ab2b"
+    },
+    {
+      "path": "offline-controls.exit",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "offline-controls.json",
+      "sha256": "9c759d236116af8a91ee3de89f82e08092b67be0b9dc93cfd1d7089a5ff198b9"
+    },
+    {
+      "path": "offline-controls-corrected.log",
+      "sha256": "ab59804f106278fbb5f782c9bbf1fb0f5dc27ce51f2e46ac49d99ee79f02d671"
+    },
+    {
+      "path": "offline-controls-corrected.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "offline-controls-corrected.json",
+      "sha256": "153f32b3d7854433cdcc9d92be0dea09e8311997533d6fedc47a4f76676226fd"
+    },
+    {
+      "path": "offline-publication-controls.log",
+      "sha256": "27936728ea4749a033ad09a5a003f431380507986e06fa07859e57d7ca070cf2"
+    },
+    {
+      "path": "offline-publication-controls.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "offline-publication-controls.json",
+      "sha256": "77d6d911bea318539947b25efdaa818d7a5c7711bee076bccd21017332f33ebe"
+    },
+    {
+      "path": "offline-receipt-controls.log",
+      "sha256": "3d8f8e000658939cf0ba5fee4ff8b50dd57f2fc5387a0b59188c0fded783fb51"
+    },
+    {
+      "path": "offline-receipt-controls.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "offline-receipt-controls.json",
+      "sha256": "adc0d00de7cfad4b35ee92c732c3ae4932bd232cefceaf9e5eb224c96a3ed06b"
+    }
+  ],
+  "qualification": "Eleven authored storage cases: original borrower/gap case passed, corrected actual local-copy metadata/private-access/source-change/mount refusal eight passed, two corrected namespace publication cases passed; only new returned receipt success/refusal contract two additional controls passed. Initial3PASS/8authored mount-adapter FAIL preserved. No whole-suite unchanged repeat.",
+  "original_negative": "Authored adapter omitted Path.lstat device projection on this Python; original negative retained, helper source unchanged during adapter correction.",
+  "storage": "All generated authored scratch roots removed after terminal, no retained private journal or large payload",
+  "real_HDD": "Bohr bulk90 STOPPED modes refusal preserved. No real HDD experiment/move; unsupported metadata remains refusal, not archive success.",
+  "not_claimed": [
+    "Real HDD retention acceptance",
+    "Original journal/archive mutation",
+    "Actual borrower census/native/App/provider/holder run",
+    "UI performance/CPU gain",
+    "Merge/publication"
+  ]
+}

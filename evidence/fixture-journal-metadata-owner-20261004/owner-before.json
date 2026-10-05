@@ -1,0 +1,41 @@
+{
+  "base": "cb9bd5c89e821f45b53d465d38d11894336fa406",
+  "coverage": [
+    {
+      "root": "src/toad",
+      "head": "cb9bd5c89e821f45b53d465d38d11894336fa406",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "head": "cb9bd5c89e821f45b53d465d38d11894336fa406",
+      "modules": 394,
+      "omissions": []
+    },
+    {
+      "root": "tools",
+      "head": "cb9bd5c89e821f45b53d465d38d11894336fa406",
+      "modules": 41,
+      "omissions": []
+    }
+  ],
+  "owner": "tests/runtime_fixture.py:retain_fixture_journals",
+  "sole_consumer": "tests/original_turn_resource_real_installed_pilot.py:main.finally at327 after child retirement and terminal keeper",
+  "facts": [
+    "Mounted different filesystem",
+    "privileged original borrower census",
+    "owned original regular journal under stage/native-forks/sessions",
+    "source SHA/inode/size/mtime",
+    "exclusive hardlink final publication and same-path symlink/dirfsync"
+  ],
+  "source_gaps": [
+    "private destination directory accessibility not read back before private copy",
+    "copied fchmod outcome not checked",
+    "mtime neither restored nor checked",
+    "source identity omits mode and relevant metadata"
+  ],
+  "new_contract": "Read back private directory accessibility BEFORE bytes; copied SHA/mode/mtime and unchanged source identity before replacement. Unsupported filesystem preserves original and refuses, cleaning ONLY owned unpublished partials. No shared HDD chmod or alternate store.",
+  "native": "Original249 native dependency context unchanged; no native edit",
+  "runtime": "Source only. No original journal/census/archive/HDD/App/provider/holder run."
+}

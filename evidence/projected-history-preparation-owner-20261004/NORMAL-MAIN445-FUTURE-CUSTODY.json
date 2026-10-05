@@ -1,0 +1,31 @@
+{
+  "join_head": "c3e306e27b3b7e72a1b7a63adef19c9f8f31d697",
+  "normal_main445": "3fb7f9b17623dae8fbf5c33bf4f6ea172d9c1fa8",
+  "frozen443_source_control": "fc8f519a0",
+  "relations": [
+    {
+      "path": "src/toad/transcript_preparation.py",
+      "sha256": "00f237dd329aa9615fc3172622afde5f1d48e58526f8283263ffafcaa1c615ab",
+      "equal_frozen443": true
+    },
+    {
+      "path": "tests/transcript_prefetch_pilot.py",
+      "sha256": "9dcb917784f51e75a6adea946c7f4e2363b2538b1723b283a90706ec3e1b4b4f",
+      "equal_frozen443": true
+    },
+    {
+      "path": "tests/transcript_history_pilot.py",
+      "sha256": "ec378824738c8f09655859399484245c05c4066ce025b5541ea1bebf826f8061",
+      "equal_frozen443": true
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "sha256": "ea392441dd97d9646e7467634e67ebc345fd4f08d83760d2585f99d93713e255",
+      "equal_frozen443": true
+    }
+  ],
+  "production_delta_vs_actual_main": " src/toad/transcript_preparation.py | 26 +++++++++++++++++---------\n 1 file changed, 17 insertions(+), 9 deletions(-)\n",
+  "new_inherited_Core_pin": "a38c06de24315fa868de45786e01fefadb0aaef1",
+  "future_purpose_correction": "Original 2811 proposal is historical source/control tuple only. Old Core5f/1470 floor is NOT assumed for next purpose. Actual444 frozen candidate/disposition and eligible holder floor/counts/archive/source/origins must be bound by its fresh named grant. No grant/reservation/private restore inferred from package handback. Exact current Core artifact/source/native relation must be acquired through its original owner before future stage; no rebuild/clone/API-equivalence claim.",
+  "scope": "No runtime/build/import/App/physical/provider execution; CategoryProjection17+/9 and exact installed/control tuple remain source-qualified only."
+}

@@ -1,0 +1,187 @@
+{
+  "tool": "existing refactor-audit Package",
+  "packages": [
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "80b5ca9c0ea34193edd360e78cf9be16fdc88ae4",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "src/toad/transcript_filter.py",
+          "line": 124,
+          "reference": "projection.prepare_fragments",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/transcript_preparation.py",
+          "line": 352,
+          "reference": "self._raw.prefetch",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/transcript_preparation.py",
+          "line": 278,
+          "reference": "self.projection.project",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/transcript_preparation.py",
+          "line": 340,
+          "reference": "self._upstream.prefetch",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/transcript_preparation.py",
+          "line": 287,
+          "reference": "self._project",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/transcript_preparation.py",
+          "line": 302,
+          "reference": "self._project",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/transcript_preparation.py",
+          "line": 357,
+          "reference": "self._project",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/transcript_preparation.py",
+          "line": 344,
+          "reference": "self._project",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 354,
+          "reference": "preparation.prepare_fragments",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 465,
+          "reference": "preparation.prepare_fragments",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 776,
+          "reference": "reader.prefetch",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 842,
+          "reference": "self.prepare_fragments",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 470,
+          "reference": "self.prepare_fragments",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 701,
+          "reference": "self.prepare_fragments",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 896,
+          "reference": "self.prepare_fragments",
+          "kind": "Load"
+        },
+        {
+          "path": "src/toad/widgets/transcript_history.py",
+          "line": 780,
+          "reference": "preparation.prepare_fragments",
+          "kind": "Load"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "80b5ca9c0ea34193edd360e78cf9be16fdc88ae4",
+      "root": "tests",
+      "modules": 394,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 28,
+          "reference": "TranscriptBodyPreparation.prepare_fragments",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 66,
+          "reference": "TranscriptBodyPreparation.prepare_fragments",
+          "kind": "Store"
+        },
+        {
+          "path": "tests/history_stationary_local_runway_pilot.py",
+          "line": 105,
+          "reference": "TranscriptBodyPreparation.prepare_fragments",
+          "kind": "Store"
+        },
+        {
+          "path": "tests/transcript_prefetch_pilot.py",
+          "line": 143,
+          "reference": "buffer.prefetch",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/transcript_prefetch_pilot.py",
+          "line": 149,
+          "reference": "buffer.prefetch",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/transcript_prefetch_pilot.py",
+          "line": 215,
+          "reference": "broken.prefetch",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/transcript_prefetch_pilot.py",
+          "line": 103,
+          "reference": "source.prefetch",
+          "kind": "Load"
+        },
+        {
+          "path": "tests/transcript_prefetch_pilot.py",
+          "line": 65,
+          "reference": "source.prefetch",
+          "kind": "Load"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "80b5ca9c0ea34193edd360e78cf9be16fdc88ae4",
+      "root": "tools",
+      "modules": 41,
+      "omissions": [],
+      "sites": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "1bdc18c363cbc0f938537a71aa8ba0225d03e25e",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": [],
+      "sites": []
+    }
+  ],
+  "projected_source_projection_calls": 1,
+  "owned_projection_consumers": 4,
+  "prefetch_branches_project_before_yield": 2,
+  "limits": "Lexical declarations and calls do not prove dynamic aliases/overrides, behavioral equivalence, duration or installed UI. No native/Core production mutation."
+}

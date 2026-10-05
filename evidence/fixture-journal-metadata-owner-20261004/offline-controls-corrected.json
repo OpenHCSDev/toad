@@ -1,0 +1,23 @@
+{
+  "command": [
+    "/usr/bin/python",
+    "tests/test_fixture_journal_retention.py",
+    "-v",
+    "JournalRetention.test_discarded_file_mode_refuses_and_removes_owned_partial",
+    "JournalRetention.test_discarded_timestamp_refuses_and_removes_owned_partial",
+    "JournalRetention.test_existing_shared_directory_is_never_chmodded",
+    "JournalRetention.test_mount_replaced_before_commit_retains_original",
+    "JournalRetention.test_original_mode_change_before_commit_refuses_without_reverting_it",
+    "JournalRetention.test_private_access_revoked_after_copy_retains_original",
+    "JournalRetention.test_unsupported_directory_modes_refuse_before_any_private_copy",
+    "JournalRetention.test_verified_copy_preserves_mode_times_and_original_path"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 0.16307127592153847,
+  "runtime_fixture_sha256": "3b7fd6be15658d1ca1710a5c70f002498c42ca29497e4604fd18ce6dc36b45a0",
+  "control_sha256": "243a36b584872d88caecb5de8f11501598f1bfe7f213104957c77061eb2f9605",
+  "correction": "Authored mount/device adapter now covers Path.lstat separately; this Python does not implement lstat through patched Path.stat. Original11 batch3PASS/8authored prerequisite FAIL retained; production unchanged, only failed8 rerun.",
+  "scope": "Authored offline filesystem controls; no HDD/realjournal/privilegedcensus/App/holder/native operation.",
+  "remaining": [],
+  "scratch_removed": true
+}

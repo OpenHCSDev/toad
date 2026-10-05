@@ -1,0 +1,80 @@
+{
+  "source_control_head": "3a613abf6d07cd095a5c264a19f5ec370646ca11",
+  "actual_main_join": "cb9bd5c89e821f45b53d465d38d11894336fa406",
+  "production_tree": "e28829ce2adbbf04e5b7233c78774bce0bd1cece",
+  "determining_production": "src/toad/transcript_preparation.py 17 additions/9 deletions; one original projection owner/four consumers",
+  "controls": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/transcript_prefetch_pilot.py",
+      "sha256": "9dcb917784f51e75a6adea946c7f4e2363b2538b1723b283a90706ec3e1b4b4f"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/transcript_history_pilot.py",
+      "sha256": "ec378824738c8f09655859399484245c05c4066ce025b5541ea1bebf826f8061"
+    }
+  ],
+  "proposed_app_command": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/transcript_prefetch_pilot.py",
+    "--projected-only",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/projected-prefetch443-affected-20261004/app"
+  ],
+  "proposed_output": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/projected-prefetch443-affected-20261004",
+  "app_count": 1,
+  "affected_scope": [
+    "both projected prefetch branches/empty raw interval/source+direction revoke",
+    "actual installed filter/pager/lookahead body-dispatch consumer/raw source interval/resource bounds/source retirement/whole App close"
+  ],
+  "build": "One normal owned Toad wheel under future specific purpose, cached Hatchling/no isolation; Git/local/ZIP proof before any install. No Core/Text/NRA/native build or clone.",
+  "retained_Core_candidate": {
+    "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/c4-queued-reservation656-wheel-20261004/agent_comms-0.1.0-py3-none-any.whl",
+    "sha256": "5f1667ce64c58d67e153850be91dfb669ea9e347218f8d845937a1c12c778a9c",
+    "relation": "Core5c/347 assets, genuine swap from actual original floor1a; not equivalent fiction"
+  },
+  "retained_Text": "native59 wheel73d/266 assets unchanged",
+  "NRA": "Original8d raw ZIP measures8f61 unchanged",
+  "native": "Immutable086 requires fresh matching Sch authority/FullTrust, no current custody",
+  "future_disposition": "No current grant/reservation. After actual ordinary444 wholehandback, Bohr specific eligible-floor/grant binds exact head/control/cohort. Whole actual1470/69/origins/390 restoration and fresh borrower cleanup once at terminal. Public334 excluded.",
+  "continuous_controls": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/saved_state_user_journey_pilot.py",
+      "sha256": "ea392441dd97d9646e7467634e67ebc345fd4f08d83760d2585f99d93713e255",
+      "command": [
+        "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+        "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/saved_state_user_journey_pilot.py"
+      ],
+      "scope": "Original installed App/ACP/native clicks/adaptive reader/stream/fork/reply/queue/status/draftUndo/reader; authored localhost reply, actual new native inputs. No invocation authorized by this proposal; requires exact existing l0a environment/native-input purpose."
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/native_session_retention_pilot.py",
+      "command": [
+        "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+        "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/native_session_retention_pilot.py"
+      ],
+      "environment": {
+        "WORKSPACE_COHORTS": "4,16,32,64",
+        "NATIVE_RETENTION_RECEIPT": "own future output/retention.json"
+      },
+      "scope": "Existing two-real-native-histories plus logical blank tabs, not64 independently loaded histories. Future controls only, not current purpose."
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/original_turn_resource_real_installed_pilot.py",
+      "scope": "Configured retained Sol/high actual SDK fork; readonly callbacks refuse input. Exact existing configured capture/source custody and separately admitted input markers needed before broader continuous workflow. No40MB synthetic seed."
+    }
+  ],
+  "unqualified_obligations": [
+    "cold initial width/source materialization",
+    "measured velocity/delivery/destination runway/reversal/idle boundedness",
+    "growing End, skipped intermediate resources",
+    "warm4/16/32/64 source+prepared+painted+editor+reader retention",
+    "full configured continuous saved/unopened thread/channel/tab/fork-before-answer/newmessage/reply/notification/queue/status/history",
+    "actual continuous terminal motion and responsible resource/invalidation attribution for original writer gaps"
+  ],
+  "claims_excluded": [
+    "configured-provider acceptance from authored localhost control",
+    "physical pixels/smoothness/FPS/causal CPU gain",
+    "64 independently loaded histories from mixed logical cohorts",
+    "another accepted441/442 App or build",
+    "backend painted ACK witness"
+  ]
+}

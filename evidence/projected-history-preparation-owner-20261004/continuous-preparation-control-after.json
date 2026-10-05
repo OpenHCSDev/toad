@@ -1,0 +1,64 @@
+{
+  "tool": "existing refactor-audit Package",
+  "packages": [
+    {
+      "root": "src/toad",
+      "head": "56699147e485c7fe1feede124e0610750f79fbf6",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "head": "56699147e485c7fe1feede124e0610750f79fbf6",
+      "modules": 394,
+      "omissions": []
+    },
+    {
+      "root": "tools",
+      "head": "56699147e485c7fe1feede124e0610750f79fbf6",
+      "modules": 41,
+      "omissions": []
+    }
+  ],
+  "native59_unchanged": "Original249 modules/no omissions native dependency evidence; no native writes or new runtime proof",
+  "actual_merged_main442": "cb9bd5c89e821f45b53d465d38d11894336fa406",
+  "determining_delta": " src/toad/transcript_preparation.py      |  26 +++++---\n tests/saved_state_user_journey_pilot.py |   7 ++-\n tests/transcript_prefetch_pilot.py      | 107 ++++++++++++++++++++++++++++++--\n 3 files changed, 124 insertions(+), 16 deletions(-)\n",
+  "continuous_control_owner_relations": [
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 470,
+      "call": "lookahead.preparation_count(window.size.height)"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 506,
+      "call": "lookahead.ahead_rows(window.size.height)"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 506,
+      "call": "lookahead.budget.runway_rows(window.size.height)"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 444,
+      "call": "lookahead.ahead_rows(window.size.height)"
+    }
+  ],
+  "removed_oracles": [
+    "single viewport forecast cap",
+    "zero idle ahead_rows wait",
+    "zero idle runway assertion"
+  ],
+  "retained_assertions": [
+    "measured fast-vs-slow demand",
+    "actual direction reversal",
+    "real End latest paint",
+    "native reader geometry bounds",
+    "idle misses/provider requests unchanged",
+    "runtime retained bytes/entries/pending bounds",
+    "draft/Undo/history custody"
+  ],
+  "settled_owner": "Original StationaryPreparation from native viewport settle; no new timer/state/force-settle",
+  "runtime": "No App/provider/model/input/movie/import or holder purpose for443. Authored localhost saved_state_user_journey remains protocol/App scope; this source correction does not turn it into configured real-provider proof. Original source-control native ZIP refusal and rawlog preserved."
+}

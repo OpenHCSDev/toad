@@ -1,0 +1,25 @@
+{
+  "normal_join_head": "be9ab319847ddc023718f47a0ced85eade824c8d",
+  "actual_main444": "8224383eb",
+  "qualified_helper_control_head": "c6f9ffa09d1fe5d2d972029c7d76004ab8b88fca",
+  "source_relations": [
+    {
+      "path": "tests/runtime_fixture.py",
+      "qualified_equals_current": true,
+      "sha256": "987399f81781f57e5cca89dc0e5214c59663d97a01bcb5bad18f35d7f8eb686f"
+    },
+    {
+      "path": "tests/original_turn_resource_real_installed_pilot.py",
+      "qualified_equals_current": true,
+      "sha256": "01ff3e43fcb1820009cb91fc5d9f3eaf2a8f6cef02fd22db3ef3866471ed53b5"
+    },
+    {
+      "path": "tests/test_fixture_journal_retention.py",
+      "qualified_equals_current": true,
+      "sha256": "1888e92c3a75bced4bc3a9e7c101908e8d2125c2196011894b37a287f89e287d"
+    }
+  ],
+  "production_delta_vs_current_main": "",
+  "inherited_main_pin_delta": "diff --git a/pyproject.toml b/pyproject.toml\nindex 0f320ad2e..b7443c48e 100644\n--- a/pyproject.toml\n+++ b/pyproject.toml\n@@ -37,7 +37,7 @@ members = [\"toad\"]\n persistent-renderer = [\"zmqruntime==0.2.24\"]\n \n [tool.uv.sources]\n-agent-comms = { git = \"https://github.com/OpenHCSDev/agent-comms.git\", rev = \"5c1103077e5a982365a6d801b98bcbdb1b03c547\" }\n+agent-comms = { git = \"https://github.com/OpenHCSDev/agent-comms.git\", rev = \"a38c06de24315fa868de45786e01fefadb0aaef1\" }\n textual = { git = \"https://github.com/OpenHCSDev/textual.git\", rev = \"180cbd9471bd6674647590108ca2fe5a627eb24f\" }\n textual-diff-view = { git = \"https://github.com/OpenHCSDev/textual-diff-view.git\", rev = \"8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9\" }\n \ndiff --git a/uv.lock b/uv.lock\nindex 60434ae45..edb08ee83 100644\n--- a/uv.lock\n+++ b/uv.lock\n@@ -21,7 +21,7 @@ wheels = [\n [[package]]\n name = \"agent-comms\"\n version = \"0.1.0\"\n-source = { git = \"https://github.com/OpenHCSDev/agent-comms.git?rev=5c1103077e5a982365a6d801b98bcbdb1b03c547#5c1103077e5a982365a6d801b98bcbdb1b03c547\" }\n+source = { git = \"https://github.com/OpenHCSDev/agent-comms.git?rev=a38c06de24315fa868de45786e01fefadb0aaef1#a38c06de24315fa868de45786e01fefadb0aaef1\" }\n dependencies = [\n     { name = \"metaclass-registry\" },\n     { name = \"nominal-refactor-audit\" },\n@@ -305,7 +305,7 @@ dev = [\n [package.metadata]\n requires-dist = [\n     { name = \"agent-client-protocol\", specifier = \"==0.12.1\" },\n-    { name = \"agent-comms\", extras = [\"acp\"], git = \"https://github.com/OpenHCSDev/agent-comms.git?rev=5c1103077e5a982365a6d801b98bcbdb1b03c547\" },\n+    { name = \"agent-comms\", extras = [\"acp\"], git = \"https://github.com/OpenHCSDev/agent-comms.git?rev=a38c06de24315fa868de45786e01fefadb0aaef1\" },\n     { name = \"aiosqlite\", specifier = \"==0.22.1\" },\n     { name = \"bashlex\", specifier = \"==0.18\" },\n     { name = \"click\", specifier = \"==8.4.0\" },\n",
+  "runtime": "No controls/App/holder repeated after normal metadata/source join. Existing stdlib helper/control bytes unchanged; actual native/App/HDD scopes remain unclaimed."
+}

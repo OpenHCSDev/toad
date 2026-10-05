@@ -1,0 +1,133 @@
+{
+  "state": "SOURCE_PREPARED_ONLY; no holder grant or installed receiving acceptance",
+  "actual_Toad_main": "dd7b5a389106e69ad4dbc02340834d3b36448bd4",
+  "Core_pin": "a38c06de24315fa868de45786e01fefadb0aaef1",
+  "Text_pin": "180cbd9471bd6674647590108ca2fe5a627eb24f",
+  "NRA_pin": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10",
+  "source_delta_from_public444": [
+    "src/toad/transcript_preparation.py"
+  ],
+  "wheel_relations": {
+    "core": {
+      "source_git": "a38c06de24315fa868de45786e01fefadb0aaef1",
+      "wheel": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/c4-queued-reservation656-wheel-20261004/agent_comms-0.1.0-py3-none-any.whl",
+      "wheel_sha256": "5f1667ce64c58d67e153850be91dfb669ea9e347218f8d845937a1c12c778a9c",
+      "assets": 347,
+      "forced_native_assets_included": 3,
+      "Git_ZIP_equal": true,
+      "receiving_worktree_equal": false,
+      "no_extra_package_assets": true,
+      "RECORD_verified_members": 351,
+      "metadata_sha256": {
+        "agent_comms-0.1.0.dist-info/METADATA": "9a02a0a276afadd2f609acae02a93606f53d85a904f40f0ef162f9ceafa1fc0c",
+        "agent_comms-0.1.0.dist-info/WHEEL": "99f7cfcbcc019d9427d959c9514e6313df4ab316927e2c8c1d5f58b7468b571b",
+        "agent_comms-0.1.0.dist-info/entry_points.txt": "6e56bfd47c28174d7978791d6e7673645c69cb06141e3306961b4a88fac53a72",
+        "agent_comms-0.1.0.dist-info/licenses/LICENSE": "1fe81c33f0cdfbcea8ce2fa4bf5cc98604be54a954ff7c59cea0ff02e3c15741",
+        "agent_comms-0.1.0.dist-info/RECORD": "ae1c30a3b7e7e12e371332fa8ae8a9078c17c3bc99411b2b4ea1cfc6315685b6"
+      },
+      "inventory_commitment": "d98e56a3e5acdeba43735e66db9b9a51361ec86f56f0b28ac9ead51097886aaa"
+    },
+    "toad": {
+      "source_git": "dd7b5a389106e69ad4dbc02340834d3b36448bd4",
+      "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/projected-prefetch443-current440-334-20261004/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "wheel_sha256": "7e6dccf2d5107900f783b3b43091d04c5bd37a1405c9dedeb071bc8a82637879",
+      "assets": 319,
+      "forced_native_assets_included": 0,
+      "Git_ZIP_equal": true,
+      "receiving_worktree_equal": true,
+      "no_extra_package_assets": true,
+      "RECORD_verified_members": 323,
+      "metadata_sha256": {
+        "batrachian_toad-0.6.20.dist-info/METADATA": "3fde2bfef1346f91a2bad2c6dfbca28a40710dc38ca987f66266a6064c3c43ee",
+        "batrachian_toad-0.6.20.dist-info/WHEEL": "58b82a17209f9bf2804afe161f2632d0fde933f9bb2792fd936b2474a2e2ac2f",
+        "batrachian_toad-0.6.20.dist-info/entry_points.txt": "12cacbee8134076f2a99542ab81f8682c88f39cbea62228e9c3b950d319d4528",
+        "batrachian_toad-0.6.20.dist-info/licenses/LICENSE": "4df3c306dddaaf4baffdff5ca820cc679ac8cd6dc263c6a74517783e42fa7a3b",
+        "batrachian_toad-0.6.20.dist-info/RECORD": "12b00b04a977ea67944b9881169d6fd2b54adf03357ea3235a336ecb4313a433"
+      },
+      "inventory_commitment": "5e3f5f61e3f37f801a06975691747ae89866d421ab5274d140ec4c5f3202e11a"
+    },
+    "text": {
+      "source_git": "180cbd9471bd6674647590108ca2fe5a627eb24f",
+      "wheel": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native59-filewheel-20261004/textual-8.2.8-py3-none-any.whl",
+      "wheel_sha256": "73d4ca971dd2891c2a2266a0c5c8629e3e0ff55e802456ae60d0fedfe72fdbaa",
+      "assets": 266,
+      "forced_native_assets_included": 0,
+      "Git_ZIP_equal": true,
+      "receiving_worktree_equal": false,
+      "no_extra_package_assets": true,
+      "RECORD_verified_members": 269,
+      "metadata_sha256": {
+        "textual-8.2.8.dist-info/METADATA": "5b9bc0d0516d05f028e21044bcae5ae2b907e0f22c73e74b54fc73aad5ad0f2b",
+        "textual-8.2.8.dist-info/WHEEL": "2fe5af2dd481bc95875efe73ad0c43bcd467220a01ccb52971bba2c35f4a0ae4",
+        "textual-8.2.8.dist-info/licenses/LICENSE": "94f290a762376dfdb7768e42070618b0abfd2a2799eab1b1c097816c3a39eb57",
+        "textual-8.2.8.dist-info/RECORD": "d7aa119d579504310e742f488d643c32233d56067b98ff488f6bad94d539ed15"
+      },
+      "inventory_commitment": "05648ab3f85b8bb14b80f617bd8de8d114960cad8fa2de0f2e82a82db4660b4e"
+    },
+    "nra": {
+      "source_git": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10",
+      "wheel": "/home/ts/wt/nra-skill-publish-20261002/.artifacts/family-flattened-collector-20261004/wheels/nominal_refactor_audit-0.1.0-py3-none-any.whl",
+      "wheel_sha256": "8d489731728ebf9f7e0f90ef2b14e7e3b5d2f90ed82bd8b1482d735f82869886",
+      "assets": 10,
+      "forced_native_assets_included": 0,
+      "Git_ZIP_equal": true,
+      "receiving_worktree_equal": false,
+      "no_extra_package_assets": true,
+      "RECORD_verified_members": 13,
+      "metadata_sha256": {
+        "nominal_refactor_audit-0.1.0.dist-info/METADATA": "d7e1f1fe09d295e2e23d5017805e8ec426e0d65c819779b62070a585bc5687bd",
+        "nominal_refactor_audit-0.1.0.dist-info/WHEEL": "61532836a2b3111b7ec23519c09df7c41180c27165fb872a6d8913b566b88ad1",
+        "nominal_refactor_audit-0.1.0.dist-info/top_level.txt": "424af3bbdd1a16b783a3327984753e0e5e0a841a4d9f2d46905a8cf13af56bde",
+        "nominal_refactor_audit-0.1.0.dist-info/RECORD": "2f8776b832f4c6bd07189392681a8db263e708218514d8a0827a5d4e41d31bfc"
+      },
+      "inventory_commitment": "bd96ab5cc6be81c93e0c58051816cf7fe2c498ef6241e09f52795942eacea238"
+    }
+  },
+  "tracked_assets_with_forced_resources": 942,
+  "unchanged_diff_assets": 3,
+  "future_installed_total": 945,
+  "build_inputs_equal_original_Toad_build": {
+    "original_source": "fa6ae08b59b8724a63e828e341ae4f933be48b51",
+    "merged_source": "dd7b5a389106e69ad4dbc02340834d3b36448bd4",
+    "paths": [
+      "src",
+      "pyproject.toml",
+      "README.md",
+      "LICENSE"
+    ],
+    "equal": true
+  },
+  "canonical": {
+    "Core_source": "a38c06de24315fa868de45786e01fefadb0aaef1",
+    "members_verified": 51,
+    "original_manifest_sha256": "a51d2ef3a47654e9a74e9538b703ae2650748e6844d1cd80595a7e8103a01010",
+    "relation": "All51 original source bytes/Git modes/blobs rechecked; no canonical source copy or operator invocation",
+    "excluded": "tools/cutover/global_extension_activation.py"
+  },
+  "native_manifest": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
+  "native_tree": "dbc88ed9231d1275da3ce218aa8919a247e41ce1f010ce765e7ac0960193f4ac",
+  "NRA_raw_ZIP_measures_sha256": "8f6127cb184801fbf2ca162adbece5c103c0fc6693f81197632668f710af7513",
+  "qualification": {
+    "original_Ready": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/projected-history-preparation-owner-20261004/SCOPED-READY.json",
+    "sha256": "65a18578e9530a361789cc73aa682074b3ff979a57738c4f8706e8e9cb852edc",
+    "original_keeper_hashes_verified": 15,
+    "original_App_count": 1,
+    "seconds": 9.344005078077316,
+    "projected_pages": 9,
+    "completed_body_dispatches": 116,
+    "scope": "Original installed projected-only pages/raw preservation/source retirement/bounds/whole App closure. No CPU/physical/continuous provider claim; no rerun."
+  },
+  "holder_disposition": "No target selected or reserved. W6fce continuation03 exclusive334 and PUBLICstyle22 CURRENT444 protected. Any stage requires separate actual eligible-purpose grant after whole closure.",
+  "future_operation": "Fresh own cohort/source proof/once operands after eligible-stage grant; exact canonical interpreter -I -B -c admits trusted original directory and runpy. Original consumed440/444 operators immutable. Parent-only fresh guard/once publication.",
+  "builds": 0,
+  "holder_imports": 0,
+  "package_writes": 0,
+  "App_SDK_provider_runs": 0,
+  "public_guard_attempts": 0,
+  "unqualified_union_excluded": [
+    "W6/Core627/Toad434/7a",
+    "663carry",
+    "continuous446",
+    "other unfinished source"
+  ]
+}

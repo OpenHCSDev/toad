@@ -1,0 +1,52 @@
+{
+  "tool": "existing refactor-audit Package",
+  "head": "82596501e4907ee0324e226aecd3f5779ae12c53",
+  "normally_joined_qualified442": "b791d03f7af6fd80ad0e5e42e1c1a00d3486a29b",
+  "determining_diff_vs_qualified442": " src/toad/transcript_preparation.py |  26 +++++----\n tests/transcript_prefetch_pilot.py | 107 +++++++++++++++++++++++++++++++++++--\n 2 files changed, 120 insertions(+), 13 deletions(-)\n",
+  "packages": [
+    {
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": [],
+      "head": "82596501e4907ee0324e226aecd3f5779ae12c53"
+    },
+    {
+      "root": "tests",
+      "modules": 394,
+      "omissions": [],
+      "head": "82596501e4907ee0324e226aecd3f5779ae12c53"
+    },
+    {
+      "root": "tools",
+      "modules": 41,
+      "omissions": [],
+      "head": "82596501e4907ee0324e226aecd3f5779ae12c53"
+    }
+  ],
+  "projection_owner_calls": [
+    {
+      "line": 278,
+      "call": "self.projection.project"
+    },
+    {
+      "line": 287,
+      "call": "self._project"
+    },
+    {
+      "line": 302,
+      "call": "self._project"
+    },
+    {
+      "line": 357,
+      "call": "self._project"
+    },
+    {
+      "line": 344,
+      "call": "self._project"
+    }
+  ],
+  "native59_unchanged": "Original249 modules/no omissions evidence remains committed; no native edit/installed claim",
+  "replaced_raw_prefetch_yields": 0,
+  "runtime": "UNQUALIFIED; original system ZIP native-resource refusal retained, no App/provider/holder import/retry",
+  "dynamic_limits": "External aliases/overrides not proved by Package AST"
+}
