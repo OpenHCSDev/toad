@@ -1,6 +1,6 @@
 {
   "status": "CHANGED_SOURCE_SUCCESSOR_PROPOSED_NOT_AUTHORIZED_FOR_EXECUTION",
-  "source_revision": "Source checkpoint to be committed; exact tool/probe hashes bind this successor",
+  "source_revision": "ff11a76d8a0926f86dfd3fae3407c9a5790a4252",
   "cwd": "/home/ts/wt/toad-original-reply-handling-20261002",
   "interpreter": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
   "interpreter_relation": "Literal original459 receipt path, not a fresh current prefix/source verification or loan. Must bind actual current installed provenance and epoch in the future purpose before imports/execution.",
