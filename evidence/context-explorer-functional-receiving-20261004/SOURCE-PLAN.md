@@ -1,3 +1,17 @@
+# Current prepared receiving checkpoint
+
+The combined 449/448 preparation is complete. The positive NONLIVEstyle22 candidate is frozen and held for Parent review; Sch returned all immediate package/import/source/native7a READ claims. Bohr independent closure is requested. PUBLIC334 CURRENT447 remains protected.
+
+Actual 449 merge `2b97bf256fdddc15a909a95df8712db176962341` matches the retained 1a8 wheel and original staged c160 package/build inputs. The one mounted annotation-address Tree check passed (5.40474981s; pytest 1PASS), joined, and returned. The original distinct GUI23.123s, historical30.217s, genuine stopped carry4.738s and projected4439.344s receipts retain their original strength.
+
+Canonical51 preparation passed; corrected wholecohort preparation passed8.520s. Its actual source declaration is coordination9 and target10; checkpoint digests are equal. The original CarryNativeRuntimeInstallation is prepared but unexecuted. Final installed readback953/full69, unchanged67 distribution files2157, protected519 and distinct gates60 passed. The 107-file frozen manifest binds canonical tools, proof/DTO, gates, declarations, cohort and Parent-only once commands. Publication receipt, recovery preimages and stopped carry candidate remain absent.
+
+The original authored list refusal is retained: source proof and activation were accidentally also listed as journey gates. Removing only those two duplicates satisfied the existing owner; no product/tool/package change or repeated App occurred.
+
+`RECEIVING-READY.json`, `FROZEN-OPERANDS.json` and `WHOLE-IMMEDIATE-HANDBACK.json` record the current reviewable result. Earlier sections below record the source-preparation sequence, not current access or pending installed qualification. Future public carry/admission/publication/readback belongs solely to Parent. External worker/disclosure remains OFF; no W7/W8, physical or performance claim.
+
+---
+
 # ContextExplorer functional delivery: source plan
 
 This branch starts at actual merged ToAd447 `3dc801984c211d2739c4c96c5907e068cd25820c` in the finished Sch checkout. It now normally joins actual merged434 `262875cbd6b54bf0b6f93edfe237a8d7facfc67b`; receiving-specific changes are source evidence only. PUBLIC334447 and its consumed operation remain protected. No package, prefix, public store, native process or holder was accessed for this plan; no canonical operators were copied.
@@ -73,3 +87,15 @@ Parent normally merged the installed owner checkpoint as `2b97bf256fdddc15a909a9
 `POST449-MERGED-SOURCE-RELATION.json` records actual merged Core `2ec1d064` as a locator with package and canonical tool bytes equal to the granted `0a600a2b` source. The canonical 51 identities remain the granted original manifest. `RECEIVING-QUALIFICATION-INPUT.json` binds 62 original reviewed artifacts and the current public 334 prefix. The original installed proof and candidate DTO remain byte unchanged.
 
 The exact same-purpose receiving reconciliation was delivered to Bohr. Canonical/cohort preparation and the narrowly scoped public source declaration reader remain held until the existing lifecycle records release. No package restage, repeated owner check, native execution, runtime carry or public operation was performed. Publication remains Parent owned.
+
+## Original distinct authority refusal and input correction
+
+The released canonical 51 preparation passed. The original cohort owner then refused the authored qualification list because two entries repeated the candidate activation and source proof, which it authenticates separately. The original exit1 and stderr are retained. The correction removes those two entries from actual journey gates, leaving 60 distinct original gates; all other qualification fields, the candidate proof/DTO, canonical source and package bytes remain unchanged. Corrected cohort preparation awaits reconciliation in the same lifecycle. No native runtime carry or public write occurred.
+
+## Prepared positive candidate and custody handback
+
+Corrected original cohort preparation passed in 8.520 seconds with 60 distinct journey gates. The original owner acquired the actual public source interpreter and observed coordination schema 9, target schema 10, and equal checkpoint declaration digests. It prepared the original CarryNativeRuntimeInstallation without running the carry. The initial qualification-list refusal and its raw receipt remain retained.
+
+The same 953-asset/full69 candidate is frozen with 51 exact Core0a canonical tools, the original proof and DTO, cohort/native/checkpoint records and new Parent-only once-use execute/readback operands. Final readback verified 2,157 unrelated distribution files and all 519 protected originals. The 107-file operand manifest records hashes, bytes and modes. Receipt, recovery preimages and stopped carry candidate are absent.
+
+Sch explicitly returned the whole immediate package/import/source/native7a READ claim. Bohr owns independent borrower/floor readback and closure of the existing lifecycle. The positive candidate is held for Parent review and disposition; no automatic floor restoration, next loan, runtime carry, guard or publication is authorized. Public334 CURRENT447 and its shared immutable native086 readers remain protected. Parent alone may admit and execute the newly prepared once-operation.

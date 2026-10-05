@@ -1,0 +1,23 @@
+{
+  "state": "Authored qualification list corrected through original distinct-owner contract; tool/source/stage unchanged",
+  "original_qualification_sha256": "2923a4ab832b624cc7d4fc1cb5bfdf4c7edff1794fda04dcbca247182584bf00",
+  "effective_qualification_sha256": "8c451e3df962b76b2b00ba8c79386d1130005b5d6edce75efafd6e1adf10dbc9",
+  "removed_competing_gate_entries": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context-explorer-functional-receiving-20261004/source-proof.json",
+      "sha256": "8a8fd8201d4357e648d55979340bce16ab2d7e89d6db1fbe8f312de1e1cbc578"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context-explorer-functional-receiving-20261004/candidate-activation.json",
+      "sha256": "113a6293414c95ed040b6b1021cc2f70f66291a3722c755baa5ccb276392f64f"
+    }
+  ],
+  "actual_distinct_journey_gates": 60,
+  "original_proof_DTO_still_bound_separately": true,
+  "canonical_prepare_exit": 0,
+  "original_cohort_prepare_exit": 1,
+  "reason": "Original ReviewedRetainedSummaryCohort.require_original rejects activation/source_proof as actual_gates; no duplicated authority allowed",
+  "partial_cohort_outputs": [],
+  "runtime_carry_or_public_write": false,
+  "next": "Same-lifecycle operand reconciliation then corrected preparation only; canonical51 already complete and unchanged"
+}
