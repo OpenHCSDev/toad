@@ -1,0 +1,261 @@
+{
+  "revision": "fbecc73bd966570be87011afeb88ce9928f7a3f1",
+  "source_only": true,
+  "roots": [
+    {
+      "root": "src/toad",
+      "parsed": 288,
+      "unparsed": []
+    },
+    {
+      "root": "tests",
+      "parsed": 397,
+      "unparsed": []
+    },
+    {
+      "root": "tools",
+      "parsed": 41,
+      "unparsed": []
+    },
+    {
+      "root": "evidence",
+      "parsed": 1310,
+      "unparsed": []
+    }
+  ],
+  "consumers": [
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 326,
+      "call": "self.transfer_terminal",
+      "arguments": 2
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 327,
+      "call": "terminal_program",
+      "arguments": 4
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1549,
+      "call": "owner.start_terminal",
+      "arguments": 1
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1506,
+      "call": "owner.transfer_program",
+      "arguments": 2
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1983,
+      "call": "owner.transfer_terminal",
+      "arguments": 2
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1988,
+      "call": "owner.transfer_program",
+      "arguments": 2
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2001,
+      "call": "owner.start_terminal",
+      "arguments": 1
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2226,
+      "call": "owner.transfer_terminal",
+      "arguments": 2
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2234,
+      "call": "owner.transfer_program",
+      "arguments": 2
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 366,
+      "call": "owner.transfer_program",
+      "arguments": 2
+    },
+    {
+      "path": "evidence/installed-tui-video/terminal_custody_probe.py",
+      "line": 55,
+      "call": "owner.start_terminal",
+      "arguments": 1
+    },
+    {
+      "path": "evidence/installed-tui-video/terminal_custody_probe.py",
+      "line": 72,
+      "call": "owner.transfer_terminal",
+      "arguments": 2
+    },
+    {
+      "path": "evidence/installed-tui-video/terminal_custody_probe.py",
+      "line": 79,
+      "call": "owner.transfer_program",
+      "arguments": 2
+    },
+    {
+      "path": "evidence/installed-tui-video/terminal_custody_probe.py",
+      "line": 74,
+      "call": "recorder.terminal_program",
+      "arguments": 4
+    },
+    {
+      "path": "evidence/installed-tui-video/terminal_custody_probe.py",
+      "line": 101,
+      "call": "owner.transfer_terminal",
+      "arguments": 2
+    },
+    {
+      "path": "evidence/installed-tui-video/terminal_custody_probe.py",
+      "line": 102,
+      "call": "owner.transfer_program",
+      "arguments": 2
+    }
+  ],
+  "declarations": [
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 125,
+      "name": "OwnedProcess"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 185,
+      "name": "TransferredGroup"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 236,
+      "name": "ProfileProcess"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 257,
+      "name": "ProcessOwner"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1494,
+      "name": "terminal_program"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1531,
+      "name": "publish_terminal_lease"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1538,
+      "name": "profile_launch"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1867,
+      "name": "record"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2396,
+      "name": "main"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 154,
+      "name": "stop"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 169,
+      "name": "wait_for_exit"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 175,
+      "name": "receipt"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 191,
+      "name": "stop"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 202,
+      "name": "receipt"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 217,
+      "name": "require_successful_exit"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 241,
+      "name": "stop"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 285,
+      "name": "transfer"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 295,
+      "name": "transfer_program"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 306,
+      "name": "transfer_terminal"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 315,
+      "name": "start_terminal"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 331,
+      "name": "launch_terminal"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 376,
+      "name": "launch_program"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 598,
+      "name": "receipt"
+    }
+  ],
+  "remaining_legacy_calls": [],
+  "compiled_without_import_or_execution": [
+    "tests/tools/record_installed_tui.py",
+    "tests/provider_login_installed_physical.py",
+    "tests/cold_context_installed_physical.py",
+    "tests/native_scroll_recording_pilot.py",
+    "tests/history_edge_scheduling_pilot.py",
+    "tests/tools/editor_focus_journey.py",
+    "tests/tools/sqlite_busy_recording.py",
+    "tests/tools/physical_warm_capture.py",
+    "tests/tools/merged_selector_fixture_recording.py",
+    "tests/tools/selector_warm_recording.py",
+    "evidence/installed-tui-video/terminal_custody_probe.py"
+  ],
+  "original459": {
+    "/home/ts/.cache/agent-scratch/public459-ordinary-display-20261005-01/capture/receipt.json": "9a69e0fcbaeefc5ef00c2bbc0b2fb6bfaffa145dc79ae730e6a1fdb385977d30",
+    "/home/ts/.cache/agent-scratch/public459-ordinary-display-20261005-01/capture/terminal.log": "4c23462ff785b00fe12781668ddcc4c7c310b9cd21b9abfceec137fdf76b8e9b",
+    "/home/ts/.cache/agent-scratch/public459-ordinary-display-20261005-01/SHUTDOWN-EVIDENCE-CLASSIFICATION.json": "fcdc2e9b30000e8fa6e0002e5855df5259952e1e9beacdedb3a942799532f609",
+    "/home/ts/.cache/agent-scratch/public459-ordinary-display-20261005-01/AFTER-REVIEW.json": "472c6b541f3b5f4d2dfa9773e1e0d6c32f81214298b567ca6625bf984c8917d1"
+  }
+}

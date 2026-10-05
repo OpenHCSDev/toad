@@ -1,0 +1,67 @@
+{
+  "revision": "ff11a76d8a0926f86dfd3fae3407c9a5790a4252",
+  "source_hashes": {
+    "/home/ts/wt/toad-original-reply-handling-20261002/tests/tools/record_installed_tui.py": "c36b7c1ce17bb0f580b7a5662a3aa6836a49e2a488ca7fe225f5f59bb28c3b81",
+    "/home/ts/wt/toad-original-reply-handling-20261002/evidence/installed-tui-video/terminal_custody_probe.py": "065e77b3f8072f655e3994f0d183517dc400ec37da691bab135c25d07c3732a3"
+  },
+  "compiled_without_import_or_execution": 2,
+  "parse_omissions": [],
+  "owner_consumers": [
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1554,
+      "call": "owner.acquire_program",
+      "arguments": 3
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 380,
+      "call": "terminal_program",
+      "arguments": 4
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 233,
+      "call": "self.running_interpreter",
+      "arguments": 0
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 345,
+      "call": "self.transfer_program_parent",
+      "arguments": 1
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1565,
+      "call": "program.running_interpreter",
+      "arguments": 0
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 424,
+      "call": "owner.transfer_program_parent",
+      "arguments": 1
+    },
+    {
+      "path": "evidence/installed-tui-video/terminal_custody_probe.py",
+      "line": 75,
+      "call": "owner.acquire_program",
+      "arguments": 3
+    },
+    {
+      "path": "evidence/installed-tui-video/terminal_custody_probe.py",
+      "line": 76,
+      "call": "wrong_program.running_interpreter",
+      "arguments": 0
+    },
+    {
+      "path": "evidence/installed-tui-video/terminal_custody_probe.py",
+      "line": 78,
+      "call": "wrong_program.require_runtime_interpreter",
+      "arguments": 0
+    }
+  ],
+  "unchanged_source_context": "Original Package full fbecc parse288+397+41+1310 and Core324 remains source context. Only these two source modules changed after the first negative; this records their complete new capability consumers.",
+  "runtime_status": "First phase FAIL preserved. No successor run or ordinary/profile UI qualification."
+}
