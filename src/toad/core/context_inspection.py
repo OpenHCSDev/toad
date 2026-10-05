@@ -511,12 +511,12 @@ class ContextInspection:
                 for source in root.original_segments():
                     for annotation in self.annotations:
                         if source.segment.contains_span(annotation.span):
-                            key = (annotation.span, annotation.question, annotation.classifier)
+                            key = json.dumps(FieldCodec.encode(WorkingMemoryAnnotations.address(
+                                annotation.span, annotation.question, annotation.classifier)),
+                                sort_keys=True, separators=(",", ":"))
                             sections.setdefault(annotation.working_memory_section, {}).setdefault(
                                 key, AnnotationNode(
-                                    f"{source.key}/annotation/{annotation.span.coordinates.offset}/"
-                                    f"{annotation.question.question.declared_name}/{annotation.question.sha256}/"
-                                    f"{annotation.classifier.classifier.declared_name}/{annotation.classifier.pin}",
+                                    f"{source.key}/annotation/{key}",
                                     annotation, source))
         groups = []
         for section, nodes in sections.items():
