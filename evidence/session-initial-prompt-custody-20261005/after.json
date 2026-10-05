@@ -1,0 +1,97 @@
+{
+  "source_head": "759abc2ada95fcb1f642a552b115a979ed7e33c7",
+  "tool": "Original refactor-audit Package and Python AST references/compile; no application execution",
+  "coverage": [
+    {
+      "root": "src/toad",
+      "modules": 288,
+      "unparsed": []
+    },
+    {
+      "root": "tests",
+      "modules": 397,
+      "unparsed": []
+    }
+  ],
+  "compiled_production": [
+    "src/toad/screens/main.py",
+    "src/toad/session_presentation.py",
+    "src/toad/widgets/conversation.py"
+  ],
+  "compiled_unrun_control": "tests/session_initial_prompt_custody_pilot.py",
+  "original_pending_member_sites": [
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 172,
+      "site": "self._initial_prompt",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 252,
+      "site": "self._initial_prompt",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 250,
+      "site": "self._initial_prompt",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 47,
+      "site": "conversation.take_initial_prompt",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 182,
+      "site": "conversation._initial_prompt",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 508,
+      "site": "self._initial_prompt",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 530,
+      "site": "self._initial_prompt",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 530,
+      "site": "self._initial_prompt",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 539,
+      "site": "self.take_initial_prompt",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 618,
+      "site": "self._initial_prompt",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 617,
+      "site": "self._initial_prompt",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 627,
+      "site": "self.take_initial_prompt",
+      "context": "Load"
+    }
+  ],
+  "scope": "Complete take/ready/release/capture and existing pre-mount restore traced. No App, runtime, package, native, provider/input/physical acceptance."
+}

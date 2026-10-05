@@ -41,8 +41,28 @@ AST names do not resolve arbitrary runtime monkeypatches and do not prove replay
 
 ## Remaining acceptance
 
-After the coherent source change, compile and measure the exact changed batch.
-Prepare one real mounted App control for failed construction, pending eviction,
-remount and close while preserving draft/Undo resources. Source and installed
-acceptance are distinct. No package/build/App/SDK/provider/input purpose exists
-for this draft; accepted project/GUI journeys are not repeated.
+The working production checkpoint is `759abc2a`: 13 additions/6 deletions across
+the three original owner/consumer modules. MainScreen clears its argument only
+after successful construction. ConversationSessionBinding.take_initial_prompt
+owns take/clear for readiness, eviction capture and final view release. Readiness
+still publishes through the same stream and clears only after publication;
+shell-prefix interpretation and asynchronous transcript identity checks stay
+with that existing owner. Snapshot restoration still occurs before mounting.
+
+The exact three-module local debt delta has no positive counters; no threshold
+or exemption changed. The three production modules and the prepared App control
+compile. `after.json` binds coverage and the remaining pending member sites.
+These are source checks, not an App or replay result.
+
+`tests/session_initial_prompt_custody_pilot.py` prepares one real mounted NoAgent
+App control for failed original title acquisition, successful construction,
+newest pending eviction/remount, original Document/Undo and Ctrl-Z, a second
+remount without replay, and close. `PROPOSED-AFFECTED-APP.json` names the exact
+control and its limits. It observes the native event stream without replacing
+construction or handlers. Two plain local UI events exercise readiness; original
+NoAgent admission refuses them before any backend request. It does not exercise
+shell commands, model/native input, arbitrary Textual mount failure or provider
+delivery. The control is unrun and its local UI scope requires a fresh purpose.
+
+No package/build/App/SDK/provider/input purpose exists for this draft; accepted
+project/GUI journeys are not repeated. Heis retains whole TC1 integration.
