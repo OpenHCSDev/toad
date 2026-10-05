@@ -2,6 +2,21 @@
 
 **Dispatch head:** Toad fork `main` at `67ddc9e` (#125), 2026-09-28. **Rules:** [00-RULES.md](00-RULES.md). **Origin:** both. **Step 4,** last. Pattern IDs refer to the refactor-audit skill's catalog. The original audit below is retained as history.
 
+## Original responsibility reconciliation (2026-10-05)
+
+The [bounded main465 source receipt](../../evidence/t4-owner-reconciliation-20261005/RECONCILIATION.md)
+traces the five original production duties to their current owners and complete
+related production consumers. Turn permissions/identity/ordering, block
+navigation, tab order, clipboard strategy and Agent process/task/group lifetime
+are implemented by existing owners; this pass adds no extraction or product
+change. The original audit and earlier receipts below remain historical.
+
+Retired fields and packet types still occur in the offline replay tool and four
+historical controls. Those consumers remain separately unqualified, with exact
+sites and shared-owner coordination recorded in the receipt. Frozen continuous
+controls are unchanged. Source closure does not close the remaining continuous
+live journey, TC1 or performance work, and does not repeat ordinary465 acceptance.
+
 ## Current independent App slice
 
 Parent assigns TabOrder and text clipboard strategy to Sol in
