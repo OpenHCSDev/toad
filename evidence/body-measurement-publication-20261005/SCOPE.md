@@ -1,6 +1,6 @@
 # Body measurement and publication ownership
 
-Base actual merged457 e32253a5601400234b7ef0b5a191185c7427647a. Same finished isolated checkout, successor branch. Only production file: src/toad/widgets/viewport_body.py. Einstein458 renderer/representation/transport and Kepler native owners are unchanged.
+Base actual merged457 e32253a5601400234b7ef0b5a191185c7427647a. Same finished isolated checkout, successor branch. The body repair changes only src/toad/widgets/viewport_body.py. Frozen Einstein458 db368ff54c21c13a4a98465f10eebce2421be38e is normally joined at 83247c4b81834f42f308dbd01349a0c5795d49f8: seven disjoint renderer/representation/transport files. Native source remains unchanged.
 
 ## Concrete repeated work
 
@@ -18,4 +18,10 @@ Actual resource/source/participation transitions retain _update_body_measurement
 
 OWNER-BEFORE.json borrows existing refactor-audit Package: full288 Toad/397 tests/41 tools/324 Core/249 Text, zero parse omissions,127 relevant declaration/read/write/call sites. Patterns IMPL-12 and IDEN-1; source contract reviewed directly with native owner.
 
-Working source checkpoint only. Final affected control will extend the existing prepared_height_contract_pilot real mounted App: observe genuine cold native getters without injected state, retained measurement/arrangement reuse, native width/style/relative-height changes, pending writer coverage and original whole shutdown. No current installed/package/native/App authority. No claim of CPU dominance, frame cadence, latency or complete continuous workflow. Existing accepted457 Apps are not repeated.
+Working source checkpoint only. The existing prepared_height_contract_pilot control is prepared: observe genuine cold native getters without injected state, original box/arrangement reuse, style and relative-height changes, and original whole shutdown. Its original seven assertions remain intact. New observations retain only numeric facts, and the native getter wrapper is restored in finally before the existing box checks. Actual terminal width changes and pending writer pixel coverage are broader obligations, not assertions supplied by this control.
+
+OWNER-AFTER.json covers all original body resource writes and transition consumers. JOINT-SOURCE.json verifies full288 Toad/397 tests/41 tools with zero parse omissions, eight combined source files, exact body and transport byte equality to their reviewed checkpoints, unchanged pyproject/uv, and compiled changed source/two controls without application imports. The representation type check moved from ResultCapture to PreparedValue.accept: per-file -1/+1, aggregate unchanged; no removal of the external decoder validation.
+
+The future affected installed batch uses the existing render_execution_preparation_installed_pilot for local/persistent transport and independent Markdown/Rich delivery, then one existing cold measurement NoAgent App. Both are UNRUN. The persistent renderer requires its original optional zmqruntime0.2.24 dependency closure, which the historical full69 proof does not contain. Parent authorizes that closure within a fresh actual package purpose; literal cached operands and the eligible holder/floor remain to be bound before access. No current installed/package/native/App authority. One future normal joint ToAd wheel is required; neither the old457 nor standalone458 wheel represents the combined source.
+
+No CPU dominance, frame cadence, latency or complete continuous workflow claim. Existing accepted456/457 Apps are not repeated. Cold terminal width/useful first paint, held movement/reversal/growing End, loaded-history scaling and the configured continuous startup/channel/unopened-thread/tab/fork-before-answer/message/reply/notification/queue/status/draft/Undo/reader journey remain active independent obligations.
