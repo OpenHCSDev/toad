@@ -67,9 +67,21 @@
       "tools": "88e8d2f9983df69de876401abf0d3ec506235985",
       "scope": "one genuine installed schema9 declaration child and authored stopped-copy carry; 4.738188295s PASS, five refusals, empty annotation members, original row identities/preimages/wire/config/proofs/journal absence preserved",
       "receipt_sha256": "48236fe4fbb5d604662afa153bdb208a0e054e6db79e7f6b7a2b06ab964dfb65",
-      "source_and_target_READ": "returned; independent holder closure separate",
+      "source_and_target_READ": "returned; both carry-only purposes independently CLOSED, no next loan",
       "merged_head": null,
-      "public_cutover_qualified": false
+      "public_cutover_qualified": false,
+      "independent_closure": {
+        "source_lifecycle_sha256": "6c3e975cda92a8b9ff60fe3b7299af1f73a47e85d5ae7920cfce013abbf2540c",
+        "target_lifecycle_sha256": "ea6545524a904c830ed34c1cc01477d04e6ffe6ee5ce732941f132b8db4b7ac5",
+        "readback_sha256": "f332324156ef3198876bc803689656c4653ac768a1c492664926c19ced63e59a",
+        "census_sha256": "aa93e9704455f08936f7bcd0435964cb39b000765eb2833a4bc0ecdaa7995c20",
+        "UID_count": 219,
+        "actual_refs": 0,
+        "permission_gaps": 0,
+        "restored_floor_members": 1469,
+        "restored_origins": 69,
+        "protected_originals": 519
+      }
     }
   },
   "runtime_member_intent": "CarryNativeRuntimeInstallation using authentic current source NativeSchemaDeclaration and future merged target; PreserveOwnerRuntime; neither Reset nor schema-preserving runtime member",
