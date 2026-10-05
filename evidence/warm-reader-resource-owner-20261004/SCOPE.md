@@ -123,3 +123,49 @@ text assertions. It does not dispatch a submission key, change production
 bindings, simulate a provider response or weaken the readonly fixture guard.
 The prior source/evidence remains historical and unexecuted; its native-only
 Ctrl+Y description is explicitly superseded by this complete binding read.
+
+## Future installed operands after ordinary447 acceptance
+
+Normally joined actual main447 `3dc801984c211d2739c4c96c5907e068cd25820c`
+at `778b30a917fcfbc1dfafac4a254095da5a724265`; that join changes only
+receiving evidence, with zero production/control/tool/pin delta versus9a75.
+The accepted PUBLIC447 ordinary18-check receipt and AFTER review stay frozen.
+
+`FUTURE-INSTALLED-CONTROL-OPERANDS.json` binds determining source
+`7e9ed795554ce8cb873d5ebea0d088da6419f8ae`, three original control paths,
+SHA256s, argv/environment/output operands and original helper source hashes:
+
+| Existing entrypoint | Exact authored scope |
+| --- | --- |
+| `saved_state_user_journey_pilot.py --warm-only` | The original localhost preparation/channel/unopened-gamma stream prerequisites and actual warm A/B/A/Undo assertions. Stops after their existing completion; adaptive/fork/reply phases are not invoked. Default remains the full localhost journey. |
+| `native_session_retention_pilot.py` | 4/16/32/64 logical tabs, exactly two loaded native histories and blank remainder, original localhost queue/owner checks. Witnesses end before new input and resource observations. |
+| `readonly_saved_reader_pilot.py --private-original-warm` | Original configured/authenticated >=40MB SDK fork callback, non-tail draft/Undo, first and later unchanged-source returns and final parked disposal. Existing readonly custody requires zero native inputs; no configured answer/queue credit. |
+
+The new warm option routes the same acceptance callback to its original
+completion point (IMPL-12); no second fixture or warm oracle exists. The
+configured fixture now carries its captured `L0A_EVIDENCE` path through its
+existing retained-environment replacement, so original reader failure files
+remain writable. No authentication/model/source field changes.
+Original assertion ASTs are unchanged: saved65, mixed22, readonly25,
+shared checkpoint31, original configured fixture29. Original Package covers
+288 production/395 tests/41 tools without omissions; the original before
+context additionally parses published Core324/native59 249 without omissions.
+These are source coverage and parse/diff checks, not runtime acceptance.
+
+The interpreter is deliberately unbound until a real eligible NONLIVE prefix
+and fresh purpose are issued. Outputs are named but not created. Configured
+capture uses only the original cutover helper directory on PYTHONPATH; it
+adds no product src overlay, and its original reader subprocess removes
+PYTHONPATH. Three listed entrypoints do not authorize three Apps or reserve
+a holder. The active W6 purpose and PUBLIC334/current447 remain protected.
+The current production/build inputs remain equal to the original retained
+443 wheel's Git producer; no rebuild, wheel/prefix access or accepted App
+repeat occurred.
+
+Two-loaded mixed cohorts do not prove 4/16/32/64 genuinely loaded histories.
+Full configured startup/unopened/channel/tab/fork-before-answer/reply/
+notification/queue/status/history, cold initial width, real velocity/reversal/
+growing End and full held-scroll/warm-return physical obligations remain open.
+The TC1 presentation acquisition lead remains a separate source pass after
+this checkpoint: pre-mount binding and the derived native widget relation
+must survive; no presentation/native source was changed here.
