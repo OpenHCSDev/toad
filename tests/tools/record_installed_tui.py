@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 from abc import abstractmethod
 from contextlib import ExitStack, contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from collections import defaultdict
 import hashlib
@@ -125,6 +125,7 @@ def process_table():
 class OwnedProcess:
     child: ParentedProcess | ObservedProcess
     registration: Registration | None = None
+    signals: list = field(default_factory=list, init=False)
 
     @property
     def process(self):
@@ -145,6 +146,8 @@ class OwnedProcess:
         for identity in self.members():
             try:
                 self.child.platform.send(identity, sig)
+                self.signals.append({"pid": identity.pid, "start_ticks": identity.start_time,
+                                     "signal": int(sig), "monotonic": time.monotonic()})
             except ProcessLookupError:
                 pass
 
@@ -152,40 +155,102 @@ class OwnedProcess:
         self.send_signal(sig)
         deadline = time.monotonic() + grace_seconds
         while self.members() and time.monotonic() < deadline:
-            self.process.poll()
             time.sleep(.05)
         if self.members():
             self.send_signal(signal.SIGKILL)
-        self.process.wait(timeout=3)
+        # Only the actual parent supplies a wait result. ObservedProcess.reap
+        # retains its detached disposition through the same retirement path.
+        self.child.reap()
         deadline = time.monotonic() + 2
         while self.members() and time.monotonic() < deadline:
             time.sleep(.05)
         return [identity.pid for identity in self.members()]
 
+    def wait_for_exit(self, timeout):
+        deadline = time.monotonic() + timeout
+        while self.child.identity.alive() and time.monotonic() < deadline:
+            time.sleep(.05)
+        return not self.child.identity.alive()
+
     def receipt(self):
+        from agent_comms.child_process import ChildOutcome
+        from agent_comms.field_codec import FieldCodec
         self.process.poll()
         return {"pid": self.child.identity.pid, "start_ticks": self.child.identity.start_time,
-                "returncode": self.process.returncode}
+                "returncode": self.process.returncode, "signals": self.signals,
+                "outcome": FieldCodec.encode(ChildOutcome.from_returncode(self.process.returncode))
+                if self.process.returncode is not None else None}
 
-
+@dataclass
 class TransferredGroup(OwnedProcess):
     """Custody of one verified launch identity through installed ObservedProcess."""
 
-    def stop(self, sig=signal.SIGTERM):
-        self.send_signal(sig)
-        deadline = time.monotonic() + 3
-        while self.members() and time.monotonic() < deadline:
-            time.sleep(.05)
-        if self.members():
-            self.send_signal(signal.SIGKILL)
-        deadline = time.monotonic() + 2
-        while self.members() and time.monotonic() < deadline:
-            time.sleep(.05)
-        return [identity.pid for identity in self.members()]
+    exit_receipt: Path | None = None
+    parent: OwnedProcess | None = None
+
+    def stop(self, sig=signal.SIGTERM, *, grace_seconds=3):
+        if self.parent is not None:
+            # The original parent owns child wait, retirement and publication.
+            # Ask that resource to retire first; observed group cleanup is
+            # still required if its parent was forced before it could finish.
+            if self.child.identity.alive():
+                self.parent.stop(sig, grace_seconds=grace_seconds)
+            else:
+                self.parent.wait_for_exit(3)
+        return super().stop(sig, grace_seconds=grace_seconds)
 
     def receipt(self):
-        return {"pid": self.child.identity.pid, "start_ticks": self.child.identity.start_time,
-                "custody": "verified launch identity transferred to installed ObservedProcess"}
+        identity = {"pid": self.child.identity.pid, "start_ticks": self.child.identity.start_time}
+        result = {**identity, "signals": self.signals,
+                  "custody": "verified launch identity transferred to installed ObservedProcess"}
+        if self.exit_receipt is not None:
+            original = json.loads(self.exit_receipt.read_text())
+            if original["process"] != identity:
+                raise RuntimeError("Child exit receipt belongs to a different incarnation")
+            result["parent"] = original["launcher"]
+            result["parent_exit"] = original.get("exit")
+            result["parent_cleanup"] = original.get("cleanup")
+            result["parent_error"] = original.get("error")
+        return result
+
+    def acquired_command(self):
+        """Observe final exec after this parent's actual acquisition gate."""
+        original = json.loads(self.exit_receipt.read_text())
+        if "parent_launch_argv" not in original:
+            return None
+        self.child.platform.require(self.child.identity)
+        command = Path(f"/proc/{self.child.identity.pid}/cmdline").read_bytes().rstrip(b"\0").split(b"\0")
+        command = [os.fsdecode(argument) for argument in command]
+        if command in (original["parent_launch_argv"], original["terminal_acquisition_argv"]):
+            return None
+        return command
+
+    def running_interpreter(self):
+        self.child.platform.require(self.child.identity)
+        return Path(f"/proc/{self.child.identity.pid}/exe").resolve(strict=True)
+
+    def require_runtime_interpreter(self):
+        if self.running_interpreter() != Path(sys.executable).resolve():
+            raise ValueError("Acquired terminal program does not use the selected runtime interpreter")
+
+    @staticmethod
+    def require_successful_exit(result):
+        from agent_comms.child_process import ChildOutcome
+        from agent_comms.field_codec import FieldCodec
+        parent_exit = result.get("parent_exit")
+        if parent_exit is None:
+            raise RuntimeError(f"Original child exit is unconfirmed: {result}")
+        if parent_exit["pid"] != result["pid"] or parent_exit["start_ticks"] != result["start_ticks"]:
+            raise RuntimeError(f"Child wait result belongs to a different incarnation: {result}")
+        if result["signals"] or parent_exit["signals"]:
+            raise RuntimeError(f"Child required owned signal retirement: {result}")
+        if result["parent_error"]:
+            raise RuntimeError(f"Child parent failed: {result}")
+        cleanup = result["parent_cleanup"]
+        if cleanup is None or cleanup["remaining_owned_pids"] or cleanup["errors"]:
+            raise RuntimeError(f"Child parent cleanup is unconfirmed: {result}")
+        if not FieldCodec.decode(ChildOutcome, parent_exit["outcome"]).successful:
+            raise RuntimeError(f"Child did not exit successfully: {result}")
 
 
 class ProfileProcess(OwnedProcess):
@@ -237,11 +302,195 @@ class ProcessOwner:
         self.children.append(owned)
         return owned
 
-    def transfer(self, pid, start_ticks):
+    def transfer(self, pid, start_ticks, *, exit_receipt=None, parent=None):
         from agent_comms.child_process import ObservedProcess, ProcessIdentity
-        owned = TransferredGroup(ObservedProcess(ProcessIdentity(pid, start_ticks)), self.registration)
+        identity = ProcessIdentity(pid, start_ticks)
+        for owned in self.children:
+            if owned.child.identity == identity:
+                return owned
+        owned = TransferredGroup(ObservedProcess(identity), self.registration, exit_receipt, parent)
         self.children.append(owned)
         return owned
+
+    def transfer_program(self, terminal_identity, source):
+        """Consume the original parent's publication for this terminal only."""
+        launch = json.loads(source.read_text())
+        terminal = {"pid": terminal_identity.pid, "start_ticks": terminal_identity.start_time}
+        if launch["terminal"] != terminal:
+            raise RuntimeError("Program publication belongs to a different terminal incarnation")
+        parent = launch["launcher"]
+        parent_group = self.transfer(parent["pid"], parent["start_ticks"])
+        program = launch["process"]
+        return self.transfer(program["pid"], program["start_ticks"], exit_receipt=source, parent=parent_group)
+
+    def transfer_program_parent(self, terminal_identity):
+        """Acquire only st's one original session child, before publication."""
+        if not terminal_identity.alive():
+            return None
+        children = Path(f"/proc/{terminal_identity.pid}/task/{terminal_identity.pid}/children").read_text().split()
+        if not children:
+            return None
+        if len(children) != 1:
+            raise RuntimeError("Terminal launch has ambiguous program-parent custody")
+        from agent_comms.child_process import ProcessIdentity
+        identity = ProcessIdentity.capture(int(children[0]))
+        if os.getsid(identity.pid) != identity.pid:
+            return None
+        return self.transfer(identity.pid, identity.start_time)
+
+    def acquire_program(self, terminal_identity, source, deadline):
+        """Join original child acquisition before a consumer validates exec."""
+        while time.monotonic() < deadline and terminal_identity.alive():
+            try:
+                self.transfer_program_parent(terminal_identity)
+                if source.exists():
+                    launch = json.loads(source.read_text())
+                    if "error" in launch:
+                        raise RuntimeError(f"Original program acquisition failed: {launch}")
+                    if "process" in launch:
+                        program = self.transfer_program(terminal_identity, source)
+                        if program.acquired_command() is not None:
+                            return program
+            except (ProcessLookupError, FileNotFoundError):
+                pass
+            time.sleep(.05)
+        raise TimeoutError("Original terminal program acquisition did not complete")
+
+    def transfer_terminal(self, launcher_identity, source):
+        launch = json.loads(source.read_text())
+        launcher = {"pid": launcher_identity.pid, "start_ticks": launcher_identity.start_time}
+        if launch["launcher"] != launcher:
+            raise RuntimeError("Terminal publication belongs to a different launcher incarnation")
+        parent = self.transfer(launcher["pid"], launcher["start_ticks"])
+        terminal = launch["process"]
+        return self.transfer(terminal["pid"], terminal["start_ticks"], exit_receipt=source, parent=parent)
+
+    def start_terminal(self, command, *, env, stdin=None, stdout=None, stderr=None, **kwargs):
+        """Acquire both child lifetimes with the terminal's original streams."""
+        output = Path(env["TOAD_VIDEO_OUTPUT"])
+        launcher = self.start([sys.executable, str(Path(__file__).resolve()),
+                               "--terminal-launch", *command], env=env,
+                              stdin=stdin, stdout=stdout, stderr=stderr, **kwargs)
+        source = output / "terminal-launch.json"
+        deadline = time.monotonic() + 10
+        while not source.exists() and launcher.child.identity.alive() and time.monotonic() < deadline:
+            time.sleep(.05)
+        if not source.exists():
+            raise RuntimeError("Original terminal parent did not publish its acquired child")
+        terminal = self.transfer_terminal(launcher.child.identity, source)
+        program = terminal_program(self, terminal.child.identity, deadline, output / "program-launch.json")
+        return launcher, terminal, program
+
+    @classmethod
+    def launch_terminal(cls, command):
+        """Retain st's real parent across the ancestor's profiler exec."""
+        from agent_comms.child_process import ProcessIdentity
+        from agent_comms.registration import Registration
+
+        output = Path(os.environ["TOAD_VIDEO_OUTPUT"])
+        route = CaptureTarget.decode(os.environ["TOAD_VIDEO_CAPTURE_TARGET"]).read_route(os.environ)
+        owner = cls(Registration(route.root / "registry.json"))
+        launcher = ProcessIdentity.capture(os.getpid())
+        publication = {"launcher": {"pid": launcher.pid, "start_ticks": launcher.start_time}}
+
+        def interrupted(signum, frame):
+            raise InterruptedError(f"Terminal parent interrupted by signal {signum}")
+
+        for sig in (signal.SIGTERM, signal.SIGHUP):
+            signal.signal(sig, interrupted)
+
+        def publish_terminal(identity):
+            publication["process"] = {"pid": identity.pid, "start_ticks": identity.start_time}
+            publish_terminal_lease(output, publication, name="terminal-launch.json")
+
+        terminal = None
+        try:
+            terminal = owner.start(["st", "-e", sys.executable, str(Path(__file__).resolve()),
+                                    "--program-launch", *command], before_start=publish_terminal,
+                                   stdin=None, stdout=None, stderr=None)
+            terminal.process.wait()
+        except BaseException as error:
+            publication["error"] = f"{type(error).__name__}: {error}"
+            raise
+        finally:
+            with owner.finalizing():
+                program_source = output / "program-launch.json"
+                if terminal is not None and program_source.exists():
+                    try:
+                        owner.transfer_program(terminal.child.identity, program_source)
+                    except (OSError, ValueError, KeyError, RuntimeError) as error:
+                        publication["error"] = f"Program transfer failed: {error}"
+                elif terminal is not None:
+                    try:
+                        owner.transfer_program_parent(terminal.child.identity)
+                    except (OSError, ValueError, RuntimeError) as error:
+                        publication["error"] = f"Program-parent transfer failed: {error}"
+                publication["cleanup"] = owner.cleanup()
+                if terminal is not None:
+                    publication["exit"] = terminal.receipt()
+                publish_terminal_lease(output, publication, name="terminal-launch.json")
+        return terminal.process.returncode if terminal.process.returncode >= 0 else 128 - terminal.process.returncode
+
+    @classmethod
+    def launch_program(cls, command):
+        """Parent the UI under plain st and retain its actual wait result."""
+        import fcntl
+        import termios
+        from agent_comms.child_process import ControllingTerminalCommand, ProcessIdentity
+        from agent_comms.registration import Registration
+
+        output = Path(os.environ["TOAD_VIDEO_OUTPUT"])
+        route = CaptureTarget.decode(os.environ["TOAD_VIDEO_CAPTURE_TARGET"]).read_route(os.environ)
+        owner = cls(Registration(route.root / "registry.json"))
+        launcher = ProcessIdentity.capture(os.getpid())
+        terminal = ProcessIdentity.capture(os.getppid())
+        if os.getsid(0) != launcher.pid or not os.isatty(0):
+            raise RuntimeError("Program parent must be st's original PTY session leader")
+        publication = {
+            "launcher": {"pid": launcher.pid, "start_ticks": launcher.start_time},
+            "terminal": {"pid": terminal.pid, "start_ticks": terminal.start_time},
+            "tty": os.ttyname(0),
+        }
+        entry_argv = ControllingTerminalCommand(tuple(command)).argv()
+        publication["terminal_acquisition_argv"] = list(entry_argv)
+        publish_terminal_lease(output, publication, name="program-launch.json")
+
+        def interrupted(signum, frame):
+            raise InterruptedError(f"Program parent interrupted by signal {signum}")
+
+        for sig in (signal.SIGTERM, signal.SIGHUP):
+            signal.signal(sig, interrupted)
+        def publish_program(identity):
+            publication["process"] = {"pid": identity.pid, "start_ticks": identity.start_time}
+            publish_terminal_lease(output, publication, name="program-launch.json")
+
+        program = None
+        try:
+            # st granted this parent the PTY. Core's acquired UI starts its
+            # own session, so release our relation before the original
+            # ControllingTerminalCommand acquires the inherited PTY. The
+            # kernel's HUP to this relinquishing session is not a UI quit.
+            handler = signal.signal(signal.SIGHUP, signal.SIG_IGN)
+            try:
+                fcntl.ioctl(0, termios.TIOCNOTTY, 0)
+            finally:
+                signal.signal(signal.SIGHUP, handler)
+            program = owner.start(entry_argv,
+                                  stdin=None, stdout=None, stderr=None,
+                                  before_start=publish_program)
+            publication["parent_launch_argv"] = list(program.process.args)
+            publish_terminal_lease(output, publication, name="program-launch.json")
+            program.process.wait()
+        except BaseException as error:
+            publication["error"] = f"{type(error).__name__}: {error}"
+            raise
+        finally:
+            with owner.finalizing():
+                publication["cleanup"] = owner.cleanup()
+                if program is not None:
+                    publication["exit"] = program.receipt()
+                publish_terminal_lease(output, publication, name="program-launch.json")
+        return program.process.returncode if program.process.returncode >= 0 else 128 - program.process.returncode
 
     @contextmanager
     def finalizing(self):
@@ -1301,40 +1550,29 @@ def cpu_snapshot(root_pid):
     return result
 
 
-def terminal_program(owner, identity, deadline, before_ready=None):
-    """Verify st's one launched program and its separate OS session identity."""
-    from agent_comms.child_process import ProcessIdentity
-    program = None
+def terminal_program(owner, identity, deadline, source):
+    """Verify the UI publication and its original st/parent/child relation."""
+    program = owner.acquire_program(identity, source, deadline)
     while time.monotonic() < deadline and identity.alive():
-        # st owns exactly one -e program. Read its direct launch relationship,
-        # not a census of descendants that could include durable comms owners.
-        child_ids = Path(f"/proc/{identity.pid}/task/{identity.pid}/children")
         try:
-            children = [int(pid) for pid in child_ids.read_text().split()]
-        except FileNotFoundError:
-            break
-        if len(children) > 1:
-            raise RuntimeError("Terminal launch has ambiguous program custody")
-        if children:
-            try:
-                if program is None and os.getsid(children[0]) == children[0]:
-                    launched = ProcessIdentity.capture(children[0])
-                    program = owner.transfer(launched.pid, launched.start_time)
-                    if before_ready is not None:
-                        before_ready(launched)
-                # Verify the selected interpreter, rather than a command name.
-                if program is not None and program.child.identity.alive() and (
-                    Path(f"/proc/{program.child.identity.pid}/exe").resolve() == Path(sys.executable).resolve()
-                ):
-                    return program
-            except ProcessLookupError:
-                pass
+            child = program.child.identity
+            parent = program.parent.child.identity
+            parent_ids = Path(f"/proc/{identity.pid}/task/{identity.pid}/children").read_text().split()
+            child_ids = Path(f"/proc/{parent.pid}/task/{parent.pid}/children").read_text().split()
+            if (parent.alive() and child.alive()
+                    and parent_ids == [str(parent.pid)]
+                    and child_ids == [str(child.pid)]
+                    and os.getsid(child.pid) == child.pid
+                    and program.running_interpreter() == Path(sys.executable).resolve()):
+                return program
+        except (ProcessLookupError, FileNotFoundError):
+            pass
         time.sleep(.05)
-    raise RuntimeError("Installed terminal program did not acquire a verified runtime identity")
+    raise TimeoutError("Installed terminal program did not exec the selected runtime identity")
 
 
-def publish_terminal_lease(output, identity):
-    path = output / "profile-terminal.json"
+def publish_terminal_lease(output, identity, *, name):
+    path = output / name
     pending = path.with_suffix(".pending")
     pending.write_text(json.dumps(identity) + "\n")
     pending.replace(path)
@@ -1350,27 +1588,9 @@ def profile_launch(command):
         raise InterruptedError(f"Profiler launch interrupted by signal {signum}")
     for sig in (signal.SIGTERM, signal.SIGHUP):
         signal.signal(sig, interrupted)
-    def transfer_terminal(identity):
-        # Publish custody while Core's exec gate is closed, before st can run.
-        publish_terminal_lease(output, {"pid": identity.pid, "start_ticks": identity.start_time})
-    def transfer_program(identity):
-        lease = json.loads((output / "profile-terminal.json").read_text())
-        lease["program"] = {"pid": identity.pid, "start_ticks": identity.start_time}
-        publish_terminal_lease(output, lease)
     try:
-        terminal = owner.start(["st", "-e", *command], env=os.environ.copy(),
-                               before_start=transfer_terminal)
-        deadline = time.monotonic() + 10
-        program = terminal_program(owner, terminal.child.identity, deadline, transfer_program)
+        launcher, terminal, program = owner.start_terminal(command, env=os.environ.copy())
         ui_pid = program.child.identity.pid
-        # The real default wrapper first resolves its registered worktree in
-        # a child Python process, then execs the UI in this same identity. A
-        # profiler must attach after that exec, not to the temporary shell.
-        expected_python = Path(sys.executable).resolve()
-        while Path(f"/proc/{ui_pid}/exe").resolve() != expected_python:
-            if not program.child.identity.alive() or time.monotonic() >= deadline:
-                raise RuntimeError("Installed terminal did not exec the selected Python UI before profiling")
-            time.sleep(.02)
         sampling = ProfileSampling.decode(os.environ["TOAD_VIDEO_PROFILE_SAMPLING"])
         threads = ThreadSampling.decode(os.environ["TOAD_VIDEO_PROFILE_THREADS"])
         argv = [shutil.which("py-spy"), "record", "--pid", str(ui_pid), "--format", "chrometrace",
@@ -1379,7 +1599,9 @@ def profile_launch(command):
                 "--duration", os.environ["TOAD_VIDEO_PROFILE_DURATION"],
                 "--output", str(output / "cpu-profile.json")]
         (output / "profile-launch.json").write_text(json.dumps({
-            "terminal_pid": terminal.process.pid, "terminal_start_ticks": terminal.child.identity.start_time,
+            "terminal_launcher_pid": launcher.child.identity.pid,
+            "terminal_launcher_start_ticks": launcher.child.identity.start_time,
+            "terminal_pid": terminal.child.identity.pid, "terminal_start_ticks": terminal.child.identity.start_time,
             "ui_pid": ui_pid, "ui_start_ticks": program.child.identity.start_time, "profiler_command": argv,
             "sampling": sampling.declared_name,
             "threads": threads.declared_name,
@@ -1750,6 +1972,7 @@ def record(args):
     capture = terminal = None
     transferred_terminal = None
     transferred_program = None
+    terminal_launcher = None
     terminal_pid = None
     window = None
     try:
@@ -1798,9 +2021,18 @@ def record(args):
                     raise RuntimeError("Profiled installed launcher failed; inspect profiler/terminal logs")
                 receipt["profiler"]["launch"] = json.loads(launch.read_text())
                 terminal_pid = receipt["profiler"]["launch"]["terminal_pid"]
-                transferred_terminal = owner.transfer(terminal_pid, receipt["profiler"]["launch"]["terminal_start_ticks"])
-                transferred_program = owner.transfer(receipt["profiler"]["launch"]["ui_pid"],
-                                                     receipt["profiler"]["launch"]["ui_start_ticks"])
+                terminal_launcher = owner.transfer(receipt["profiler"]["launch"]["terminal_launcher_pid"],
+                    receipt["profiler"]["launch"]["terminal_launcher_start_ticks"])
+                transferred_terminal = owner.transfer_terminal(terminal_launcher.child.identity,
+                                                               output / "terminal-launch.json")
+                if (transferred_terminal.child.identity.pid != terminal_pid
+                        or transferred_terminal.child.identity.start_time != receipt["profiler"]["launch"]["terminal_start_ticks"]):
+                    raise RuntimeError("Profiler terminal differs from the original acquired terminal")
+                transferred_program = owner.transfer_program(
+                    transferred_terminal.child.identity, output / "program-launch.json")
+                if (transferred_program.child.identity.pid != receipt["profiler"]["launch"]["ui_pid"]
+                        or transferred_program.child.identity.start_time != receipt["profiler"]["launch"]["ui_start_ticks"]):
+                    raise RuntimeError("Profiler target differs from the original acquired program")
                 while time.monotonic() < deadline and terminal.process.poll() is None:
                     if "Sampling process" in (output / "profiler.log").read_text():
                         break
@@ -1809,10 +2041,10 @@ def record(args):
                     raise RuntimeError("Profiler failed to sample the installed UI PID")
                 receipt["profiler"]["sampling_ready_observed_monotonic"] = time.monotonic()
             else:
-                terminal = owner.start(["st", "-e", *command], env=env,
+                terminal, transferred_terminal, transferred_program = owner.start_terminal(command, env=env,
                     stderr=stack.enter_context((output / "terminal.log").open("w")))
-                terminal_pid = terminal.process.pid
-                transferred_program = terminal_program(owner, terminal.child.identity, time.monotonic() + 10)
+                terminal_launcher = terminal
+                terminal_pid = transferred_terminal.child.identity.pid
             receipt["ui_identity"] = {"pid": transferred_program.child.identity.pid,
                                       "start_ticks": transferred_program.child.identity.start_time}
             if args.capture_state:
@@ -1878,7 +2110,7 @@ def record(args):
                     raise RuntimeError("Native observer acquisition did not complete: " + str(setup))
             receipt["terminal_processes"] = {str(identity.pid): {"start_ticks": identity.start_time,
                 "command": Path(f"/proc/{identity.pid}/cmdline").read_bytes().replace(b"\0", b" ").decode(errors="replace")}
-                for group in (transferred_terminal or terminal, transferred_program)
+                for group in (transferred_terminal, transferred_program)
                 for identity in group.members() if Path(f"/proc/{identity.pid}/cmdline").exists()}
             if script:
                 (output / "actions.xdo").write_text(script)
@@ -1962,21 +2194,20 @@ def record(args):
             receipt["runtime_after"] = selection.receipt(owner, env, command)
             receipt["runtime_unchanged"] = receipt["runtime_before"] == receipt["runtime_after"]
             # Quit through the installed application; persistent owners are excluded.
+            receipt["quit"] = {"requested_monotonic": time.monotonic(), "key": "ctrl+q"}
             owner.run(["xdotool", "key", "--window", window, "ctrl+q"], env, timeout=2)
-            try:
-                terminal.process.wait(timeout=3)
-            except subprocess.TimeoutExpired:
-                pass
+            receipt["quit"]["delivered_monotonic"] = time.monotonic()
+            receipt["quit"]["program_exited_before_retirement"] = transferred_program.wait_for_exit(3)
             transferred_program.stop()
-            if transferred_terminal is not None:
-                transferred_terminal.stop()
+            transferred_terminal.stop()
             terminal.stop()
             # Owned teardown joins the original child before its exit result
             # is judged. A pending Popen is not an application failure, and a
             # forced/nonzero exit still fails the same verification below.
-            receipt["terminal_exit"] = (transferred_terminal or terminal).receipt()
-            if not args.profile and receipt["terminal_exit"]["returncode"] != 0:
-                raise RuntimeError(f"Installed terminal did not exit successfully: {receipt['terminal_exit']}")
+            receipt["terminal_exit"] = transferred_terminal.receipt()
+            receipt["ui_exit"] = transferred_program.receipt()
+            transferred_program.require_successful_exit(receipt["ui_exit"])
+            transferred_terminal.require_successful_exit(receipt["terminal_exit"])
             xvfb.stop()
             duration = receipt["duration_seconds"]
             if not args.still_images:
@@ -1995,14 +2226,14 @@ def record(args):
             receipt["journey_review"] = args.journey.review(output, receipt)
             receipt["review_intervals"] = args.journey.review_intervals(
                 args, output, duration, origin_ns=round(started * 1e9))
-            names = ["before.png", "after.png"]
+            names = ["before.png", "after.png", "program-launch.json", "terminal-launch.json"]
             if not args.still_images:
                 names.append("terminal.mp4")
             if args.capture_state:
                 names.extend(path.name for name in ("before", "after", "phase")
                              for path in output.glob(f"{name}-*") if path.is_file() and path.stat().st_size)
             if args.profile:
-                names.extend(["cpu-profile.json", "profile-review.json", "profile-launch.json", "profile-terminal.json", "profiler.log"])
+                names.extend(["cpu-profile.json", "profile-review.json", "profile-launch.json", "profiler.log"])
             names.extend(args.journey.review_artifacts)
             names.extend(path.name for path in output.glob("*-click-target.json"))
             names.extend(path.name for path in output.glob("live-*-frames.png"))
@@ -2028,17 +2259,24 @@ def record(args):
                 except (OSError, subprocess.SubprocessError, RuntimeError) as error:
                     receipt["profile_export_error"] = str(error)
                     receipt["completed"] = False
-            transfer = output / "profile-terminal.json"
-            if args.profile and transfer.exists():
+            transfer = output / "terminal-launch.json"
+            if transfer.exists():
                 try:
                     identity = json.loads(transfer.read_text())
-                    if transferred_terminal is None:
-                        transferred_terminal = owner.transfer(identity["pid"], identity["start_ticks"])
-                    if transferred_program is None and "program" in identity:
-                        program = identity["program"]
-                        transferred_program = owner.transfer(program["pid"], program["start_ticks"])
+                    if terminal_launcher is None:
+                        launcher = identity["launcher"]
+                        terminal_launcher = owner.transfer(launcher["pid"], launcher["start_ticks"])
+                    transferred_terminal = owner.transfer_terminal(terminal_launcher.child.identity, transfer)
                 except (OSError, ValueError, KeyError) as error:
                     receipt["terminal_transfer_error"] = str(error)
+                    receipt["completed"] = False
+            program_source = output / "program-launch.json"
+            program_terminal = transferred_terminal
+            if program_source.exists() and program_terminal is not None:
+                try:
+                    transferred_program = owner.transfer_program(program_terminal.child.identity, program_source)
+                except (OSError, ValueError, KeyError, RuntimeError) as error:
+                    receipt["program_transfer_error"] = str(error)
                     receipt["completed"] = False
             if capture is not None:
                 try:
@@ -2046,12 +2284,24 @@ def record(args):
                 except (OSError, subprocess.SubprocessError) as error:
                     receipt["capture_cleanup_error"] = str(error)
             receipt["cleanup"] = owner.cleanup()
-            if terminal is not None and (not args.profile or transferred_terminal is not None):
-                # Read the actual parent's exit result. Transferred observation
-                # deliberately cannot invent an exit code for the profiled UI.
-                receipt["terminal_exit"] = (transferred_terminal or terminal).receipt()
-                if not args.profile and receipt["terminal_exit"]["returncode"] != 0:
+            if transferred_program is not None:
+                try:
+                    receipt["ui_exit"] = transferred_program.receipt()
+                    transferred_program.require_successful_exit(receipt["ui_exit"])
+                except (OSError, ValueError, KeyError, RuntimeError) as error:
+                    receipt["ui_exit_error"] = str(error)
                     receipt["completed"] = False
+            else:
+                receipt["completed"] = False
+            if transferred_terminal is not None:
+                try:
+                    receipt["terminal_exit"] = transferred_terminal.receipt()
+                    transferred_terminal.require_successful_exit(receipt["terminal_exit"])
+                except (OSError, ValueError, KeyError, RuntimeError) as error:
+                    receipt["terminal_exit_error"] = str(error)
+                    receipt["completed"] = False
+            else:
+                receipt["completed"] = False
             try:
                 receipt["original_owner_after"] = target.observe()
             except (OSError, ValueError) as error:
@@ -2059,6 +2309,10 @@ def record(args):
                 receipt["completed"] = False
             if receipt["cleanup"]["remaining_owned_pids"] or receipt["cleanup"]["errors"]:
                 receipt["completed"] = False
+            stderr_path = output / "terminal.log"
+            if stderr_path.exists():
+                receipt["terminal_stderr"] = {"bytes": stderr_path.stat().st_size,
+                                              "sha256": digest(stderr_path)}
             (output / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
     if not receipt["completed"]:
         raise RuntimeError("Recorder cleanup incomplete; inspect receipt.json")
@@ -2207,6 +2461,10 @@ def main():
     if len(sys.argv) >= 3 and sys.argv[1] == "--profile-launch":
         profile_launch(sys.argv[2:])
         return
+    if len(sys.argv) >= 3 and sys.argv[1] == "--program-launch":
+        raise SystemExit(ProcessOwner.launch_program(sys.argv[2:]))
+    if len(sys.argv) >= 3 and sys.argv[1] == "--terminal-launch":
+        raise SystemExit(ProcessOwner.launch_terminal(sys.argv[2:]))
     parser = argparse.ArgumentParser(description=__doc__)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
     parser.add_argument("--output", type=Path, default=Path.home() / ".cache/agent-scratch/toad-video" / stamp)
