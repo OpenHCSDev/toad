@@ -170,3 +170,10 @@ Own whole334CURRENT440 restoration passed all1468 hashes/modes/readlinks,69 vers
 This closes the authored authentic AnnotationNode GUI acceptance gap at its actual installed strength. It does not qualify physical terminal pixels, historical ReferenceNode registeredApp read/search/export, retained9-to10 carry, empirical W7 thresholds or W8. Mendel663 carry was not granted or executed in this window. No remaining holder/native execution claim.
 
 Bohr independent lifecycle23599c/readbackd507 now WHOLECLOSED:223allUID/0 borrowers/gaps,1468actualfloor/69origins/287protected/16 rawkeepers exact, public defaults unchanged, matchingSch return bound. No current or future holder claim.
+
+
+## Remaining historical reader control prepared
+
+The historical App already shares the native non-toggle selection consumer accepted by continuation03. Source-read found its final label assertion still referenced an unbound `selected` local after that migration. It now reads the original ReferenceNode.label; native cursor/focus/intent checks and historical source provenance remain unchanged. No product/native/helper correction or acceptance repeat. Source compile/diffcheck only.
+
+`historical-native-label-successor-operands.json` names one future authored-only historical read/search/export App and separate localUSER/defaultOFF/schema10 check, original90sBoundedRun, matching retainedab640355/178b319 and immutable7a. No actualCodex/newinput/provider/fork/movie; no accepted authenticGUI repeat. No purpose/access/reservation: actual future holderfloor/disposition and new literalissued7a renewal are required. Mendel663 may share only a separately explicit targetREAD window on a new stopped authored9copy, without GUIdelay/extension or existingW6 corpus.

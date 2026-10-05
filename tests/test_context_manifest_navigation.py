@@ -313,7 +313,7 @@ def test_authored_import_registered_app_and_local_user_correction(tmp_path, monk
                     while not exported.exists():
                         await pilot.pause(.025)
                 assert instructions in exported.read_text()
-                assert "not current instructions" in selected.data.label
+                assert "not current instructions" in reference.label
                 assert app._exception is None
                 record("W6: original historical export completed; joining original App")
             assert app._exception is None
