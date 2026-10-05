@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "-B",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/session-initial-prompt-custody-20261005/style22-installed01/verify_installed-final.py"
+  ],
+  "cwd": "/home/ts/wt/toad-regression-widget-cost-20261001",
+  "script_sha256": "5a8c4c864c95a3c05b877f4518d5d2df6d3bd50127d530bc23d1025a1f545548",
+  "binding_sha256": "614c4a843b015cff852db5f5cbfba8225a0c0125430671f4efab57e7c49b145a",
+  "seconds": 1.980446023051627,
+  "exit_code": 1,
+  "synchronously_joined": true,
+  "App_native_EXEC": false
+}

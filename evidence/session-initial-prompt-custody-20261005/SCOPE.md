@@ -132,3 +132,52 @@ and origin/protected-record bindings explicitly unbound for Bohr's readback.
 The older CURRENT444 archive is not treated as current. No prefix was accessed
 or reserved. If that actual contract prevents the independent window, #461
 follows Heis's cold/frame whole closure.
+
+## First installed proof negative and source correction
+
+The actual issued `f191755c` CURRENT448 purpose staged the retained three wheels
+once. The final source proof exited 1 in 1.980446 seconds at its Diff inventory
+comparison, before the NoAgent App or native FullTrust job. No App, local UI
+submission, ACP, SDK/native process, provider call or model input ran.
+
+The helper assumed that a nearby historical inventory belonged to the digest
+in the original typed receipt. That association was not established. Its raw
+file digest differs. This proves a defect in the proof control; it does not
+prove a changed Diff body, product failure or native failure. The old receipt,
+inventory, failed helper and original terminal remain unchanged.
+
+The original four normal file wheels restored CURRENT448 once in 0.210386
+seconds. All 1477 captured records and 1883 unchanged other-distribution records
+match bytes/modes/links; 69 versions/origins and 626 protected originals plus
+five separate original wrapper records match. PREFIXactivation is unchanged.
+Two uv environment bootstrap files lie outside those capture lists. Their
+actual change times predate this purpose; both were preserved. The append-only
+coverage correction reports the missing preimage coverage to Bohr instead of
+deleting those files or claiming a captured hash comparison for them.
+
+`installed01-negative/whole-handback.json` binds all 21 original stage, failure,
+partial-inventory and restoration receipts. All synchronous children were
+waited; their individual birth identities were not retained. The App scratch
+was never created. Package/import/operator and matching native READ claims
+are returned; independent whole-floor/census closure belongs to Bohr. No retry
+or later purpose is inferred.
+
+`SOURCE-PROOF-CORRECTION.json` and `prepared-installed-source-proof.py` reuse the
+existing cold460 proof algorithm: authenticate the original cached Diff wheel,
+then put its three ZIP/installed members through the existing inventory loop.
+The original InstalledSource/VcsPackageDirectUrl owner validates its VCS origin;
+a reviewed cache wheel does not change the installed origin to a file URL.
+The new proof owns its newly emitted inventory digest. The historical digest
+and receipt are preserved. The corrected script parses/compiles and the cached
+wheel SHA/member relationship was read; it has not executed against a prefix.
+
+A future proof must bind a fresh literal issued grant, matching native READ
+receipt and own output. The existing 85fc NoAgent App control and retained
+47f8 union wheel are unchanged. The actual mounted initial-prompt custody
+acceptance remains unfinished; no product patch, build or repeated accepted
+renderer/GUI journey was introduced to repair this proof control.
+
+Bohr subsequently classified both uv bootstrap files through their original
+inodes and change times. `BOOTSTRAP-DISPOSITION.json` binds that independent
+receipt: broader extra package files are zero; the missing historical preimage
+hash coverage remains explicit. No file deletion or repeated restore occurred.
