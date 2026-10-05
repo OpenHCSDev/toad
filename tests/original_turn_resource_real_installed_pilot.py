@@ -102,12 +102,12 @@ async def main(*, readonly_acceptance=None, readonly_capture=None, app_type=Reso
     verify_native_package(package)
     project = stage / 'project'
     project.mkdir()
-    identity = await ForkSessionHelper.run(
-        ForkSessionRequest(str(package), str(original), str(project),
-                           directory=str(stage / 'native-forks')), cwd=project,
-        env=dict(retained.environment),
-    )
-    assert Path(identity.session_file).is_relative_to(stage / 'native-forks')
+    fork_request = ForkSessionRequest(str(package), str(original), str(project),
+                                      directory=str(stage / 'native-forks'))
+    identity = await ForkSessionHelper.run(fork_request, cwd=project,
+                                         env=dict(retained.environment))
+    forks = [identity]
+    assert identity.path.is_relative_to(Path(fork_request.directory))
     service = Comms(stage / 'wire')
     root_id = service.messaging.initialize_private_initial_protocol()
     service.owners.pin_private_nk_launch(service.root, root_id, package)
@@ -191,12 +191,10 @@ async def main(*, readonly_acceptance=None, readonly_capture=None, app_type=Reso
             # The physical callback owns the sole actual Toad process. The
             # existing SDK fork/root owner supplies a second saved agent, not
             # a second in-process Pilot/App or a competing fixture builder.
-            second = await ForkSessionHelper.run(
-                ForkSessionRequest(str(package), str(original), str(project),
-                                   directory=str(stage / 'native-forks')), cwd=project,
-                env=dict(environment),
-            )
-            assert Path(second.session_file).is_relative_to(stage / 'native-forks')
+            second = await ForkSessionHelper.run(fork_request, cwd=project,
+                                                 env=dict(environment))
+            forks.append(second)
+            assert second.path.is_relative_to(Path(fork_request.directory))
             service.registry.declare(Thread(
                 'resource236b', frozenset(), str(project), session_file=second.session_file,
                 model=source.model, thinking_level=source.thinking_level,
@@ -328,8 +326,8 @@ async def main(*, readonly_acceptance=None, readonly_capture=None, app_type=Reso
         (evidence / 'receipt.json').write_text(json.dumps(receipt, indent=2))
         if readonly_capture is not None:
             retention = await asyncio.to_thread(retain_fixture_journals,
-                (item['session_file'] for item in receipt.get('physical_sources', ())),
-                stage=stage, evidence=evidence)
+                (creation.path for creation in forks),
+                directory=Path(fork_request.directory), stage=stage, evidence=evidence)
             print('FIXTURE_JOURNAL_RETENTION', json.dumps(retention), flush=True)
     print('REAL_RESOURCE_CUSTODY_ACCEPTANCE', json.dumps(receipt), flush=True)
 

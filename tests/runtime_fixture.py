@@ -212,7 +212,7 @@ def request_target(app, command, subject):
         target=subject, declaration=command, arguments={})), subject)
 
 
-def retain_fixture_journals(paths, *, stage: Path, evidence: Path,
+def retain_fixture_journals(paths, *, directory: Path, stage: Path, evidence: Path,
                            cold_mount: Path = Path("/run/media/ts/hdd")) -> dict:
     """Cold-retain exact owned SDK copies after terminal keeper publication.
 
@@ -221,10 +221,6 @@ def retain_fixture_journals(paths, *, stage: Path, evidence: Path,
     moves; the caller and its ancestors are the already-closed fixture lease.
     """
     paths = tuple(Path(path).absolute() for path in paths)
-    for path in paths:
-        path.relative_to(stage / "native-forks" / "sessions")
-        if path.suffix != ".jsonl" or not stat.S_ISREG(path.lstat().st_mode):
-            raise ValueError(f"Not an original owned fixture journal: {path}")
     candidates = evidence / "journal-retention-candidates.json"
     candidates.write_text(json.dumps({"items": [{"path": str(p)} for p in paths]}, indent=2) + "\n")
     census = evidence / "journal-retention-borrowers.json"
@@ -232,6 +228,14 @@ def retain_fixture_journals(paths, *, stage: Path, evidence: Path,
     receipt = {"borrower_census": str(census), "files": []}
     retained = evidence / "journal-retention.json"
     try:
+        # The original SDK request owns the destination; SessionManager may
+        # return a direct leaf or a nested leaf. Neither layout is ours to infer.
+        directory = directory.absolute()
+        directory.relative_to(stage.absolute())
+        for path in paths:
+            path.relative_to(directory)
+            if path.suffix != ".jsonl" or not stat.S_ISREG(path.lstat().st_mode):
+                raise ValueError(f"Not an original owned fixture journal: {path}")
         if not cold_mount.is_mount():
             raise OSError(f"Cold storage is not mounted: {cold_mount}")
         cold_device = cold_mount.stat().st_dev
@@ -241,7 +245,7 @@ def retain_fixture_journals(paths, *, stage: Path, evidence: Path,
             raise FileNotFoundError(checker)
         subprocess.run(("sudo", "-n", sys.executable, str(checker), str(candidates), str(census)),
                        check=True, stdout=subprocess.DEVNULL)
-    except (OSError, subprocess.CalledProcessError) as error:
+    except (OSError, ValueError, subprocess.CalledProcessError) as error:
         receipt["retained_reason"] = str(error)
         retained.write_text(json.dumps(receipt, indent=2) + "\n")
         return receipt

@@ -1,0 +1,204 @@
+{
+  "packages": [
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "8981fde1e308393941cd7a31b0f65ec57cc3e3f5",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "src/toad/frame_presentation.py",
+          "line": 18,
+          "kind": "declaration",
+          "name": "FrameFlush"
+        },
+        {
+          "path": "src/toad/frame_presentation.py",
+          "line": 33,
+          "kind": "reference",
+          "site": "FrameFlush"
+        },
+        {
+          "path": "src/toad/frame_presentation.py",
+          "line": 25,
+          "kind": "reference",
+          "site": "FrameFlush"
+        },
+        {
+          "path": "src/toad/frame_presentation.py",
+          "line": 45,
+          "kind": "reference",
+          "site": "FrameFlush"
+        },
+        {
+          "path": "src/toad/frame_presentation.py",
+          "line": 88,
+          "kind": "reference",
+          "site": "FrameFlush"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "8981fde1e308393941cd7a31b0f65ec57cc3e3f5",
+      "root": "tests",
+      "modules": 399,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "tests/cold_context_installed_physical.py",
+          "line": 302,
+          "kind": "reference",
+          "site": "CurrentTypedCapture"
+        },
+        {
+          "path": "tests/history_edge_scheduling_pilot.py",
+          "line": 365,
+          "kind": "declaration",
+          "name": "record_retained"
+        },
+        {
+          "path": "tests/history_edge_scheduling_pilot.py",
+          "line": 417,
+          "kind": "declaration",
+          "name": "record_useful_paint"
+        },
+        {
+          "path": "tests/history_edge_scheduling_pilot.py",
+          "line": 423,
+          "kind": "reference",
+          "site": "record_retained"
+        },
+        {
+          "path": "tests/history_edge_scheduling_pilot.py",
+          "line": 443,
+          "kind": "reference",
+          "site": "record_useful_paint"
+        },
+        {
+          "path": "tests/native_session_retention_pilot.py",
+          "line": 58,
+          "kind": "reference",
+          "site": "FrameFlush"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 90,
+          "kind": "reference",
+          "site": "CurrentTypedCapture"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 1742,
+          "kind": "declaration",
+          "name": "frame_review"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 1776,
+          "kind": "reference",
+          "site": "analysis.useful_body_delivery"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 1863,
+          "kind": "reference",
+          "site": "frame_review"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 2237,
+          "kind": "reference",
+          "site": "frame_review"
+        },
+        {
+          "path": "tests/tools/record_installed_tui.py",
+          "line": 2153,
+          "kind": "reference",
+          "site": "frame_review"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "8981fde1e308393941cd7a31b0f65ec57cc3e3f5",
+      "root": "tools",
+      "modules": 41,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "tools/performance/analyze_trace.py",
+          "line": 74,
+          "kind": "declaration",
+          "name": "useful_body_delivery"
+        },
+        {
+          "path": "tools/performance/analyze_trace.py",
+          "line": 187,
+          "kind": "reference",
+          "site": "useful_body_delivery"
+        },
+        {
+          "path": "tools/performance/capture_state.py",
+          "line": 120,
+          "kind": "reference",
+          "site": "FrameFlush"
+        },
+        {
+          "path": "tools/performance/sidebar_validation_driver.py",
+          "line": 361,
+          "kind": "declaration",
+          "name": "painted_spans"
+        },
+        {
+          "path": "tools/performance/sidebar_validation_driver.py",
+          "line": 377,
+          "kind": "declaration",
+          "name": "observe_useful_output"
+        },
+        {
+          "path": "tools/performance/sidebar_validation_driver.py",
+          "line": 401,
+          "kind": "reference",
+          "site": "cls.painted_spans"
+        },
+        {
+          "path": "tools/performance/sidebar_validation_driver.py",
+          "line": 52,
+          "kind": "reference",
+          "site": "ValidationDriver.observe_useful_output"
+        },
+        {
+          "path": "tools/performance/sidebar_validation_driver.py",
+          "line": 433,
+          "kind": "reference",
+          "site": "FrameFlush"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "a2dd8a9a37825a828df0d8f651ca57d92db69e5f",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": [],
+      "sites": []
+    },
+    {
+      "repository": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "head": "7b68d630caa654d3e9884f45cbd6493718752a0c",
+      "root": "src/agent_comms",
+      "modules": 324,
+      "omissions": [],
+      "sites": []
+    }
+  ],
+  "compile_only": [
+    "tests/history_edge_scheduling_pilot.py",
+    "tests/tools/record_installed_tui.py",
+    "tools/performance/analyze_trace.py",
+    "tools/performance/sidebar_validation_driver.py"
+  ],
+  "limits": "Package AST ownership/caller evidence; no imports, App, useful-paint, latency or physical qualification."
+}

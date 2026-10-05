@@ -1,0 +1,441 @@
+{
+  "status": "PROPOSED changed observer entrypoint successor05; no current purpose/access/launch authority",
+  "source_head": "a0640f4b53996c0658154483a48c98fe19ef1458",
+  "normal_main461": "eb6eafa547778ba4394723b9e28cf5b6650d93d8",
+  "source_build_head": "8981fde1e308393941cd7a31b0f65ec57cc3e3f5",
+  "src_pyproject_uv_delta_vs_wheel_build": [],
+  "wheel": {
+    "head": "8981fde1e308393941cd7a31b0f65ec57cc3e3f5",
+    "actual_main461": "eb6eafa547778ba4394723b9e28cf5b6650d93d8",
+    "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/union461-filewheel/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "7f401a4c3319c73e6c3f423a315759f66e0018f2c14336f39702c7157f39921e",
+    "bytes": 2251148,
+    "assets": 319,
+    "Git_local_ZIP_equal": true,
+    "missing": [],
+    "extra": [],
+    "RECORD_rows": 324,
+    "RECORD_verified": true,
+    "metadata_sha256": "3fde2bfef1346f91a2bad2c6dfbca28a40710dc38ca987f66266a6064c3c43ee",
+    "inventory": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/union461-filewheel/toad-inventory.json",
+    "inventory_sha256": "44d885ccbb75d53528f2e932759afcf82a3d8ab155584cc1a0d6f9cebd43f58e",
+    "native_pin": "a2dd8a9a37825a828df0d8f651ca57d92db69e5f",
+    "build_inputs": {
+      "pyproject.toml": "31081151e3e8d6fd5d84e145a13276a0a6ddd1a1b661d57957b707889bc02b6c",
+      "uv.lock": "60249ac93de25c0142012fa74c1482c6e06a520236f6640fdcedbffb18d762f0",
+      "README.md": "11b3f5195acb00a19a73229749e2e71ba924314a8b1c650f05a2bf43f537d35d",
+      "LICENSE": "4df3c306dddaaf4baffdff5ca820cc679ac8cd6dc263c6a74517783e42fa7a3b"
+    },
+    "changed_vs_original_661_37b7": [
+      "src/toad/screens/main.py",
+      "src/toad/session_presentation.py",
+      "src/toad/widgets/conversation.py"
+    ],
+    "old_37b7_full_source_equal": false,
+    "stage": false,
+    "App": false
+  },
+  "textual": {
+    "source": "a2dd8a9a37825a828df0d8f651ca57d92db69e5f",
+    "wheel": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native70-71-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+    "sha256": "bc47c59ea7db78a9a443c5f5e3f10836660957f21bb998d2ffa3ae8e4a2ddbe3",
+    "assets": 266,
+    "inventory": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native70-71-filewheel-20261005/source-inventory.json",
+    "inventory_sha256": "252d92f0bc1cf3518c9cd8c3bd39844c34af2f8af61d180c74a20a3f1729d61b",
+    "rebuild": false
+  },
+  "core": {
+    "source": "7b68d630caa654d3e9884f45cbd6493718752a0c",
+    "wheel": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/c3-goal-selection675-wheel-20261005/agent_comms-0.1.0-py3-none-any.whl",
+    "sha256": "a685578e439aa2f7010219aa6032ae7e7307a68393e6d6adbb084563f39f43c5",
+    "assets": 355,
+    "rebuild": false
+  },
+  "unchanged_assets": {
+    "NRA8d": 10,
+    "TextDiff8fa": 3
+  },
+  "candidate_assets": 953,
+  "distributions": 69,
+  "controls_and_helpers": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/history_edge_scheduling_pilot.py",
+      "sha256": "6e398e8342e322ba5ec29465836a223451415ef88f23f058bc74519556a36425",
+      "bytes": 22349
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/original_turn_resource_real_installed_pilot.py",
+      "sha256": "6ddc46989485b6f794fd647dbf242a84f36fd6bf5ef8841f1863e1625efb5c39",
+      "bytes": 19515
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/runtime_fixture.py",
+      "sha256": "c34f37f450a02f09d344352466431744892a0c788953212da5ac434d912e3315",
+      "bytes": 18978
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/saved_state_user_journey_pilot.py",
+      "sha256": "0b52d2f68ce839074e77b29c04e9e65cb081c11a821897c4cd062b20091a3eee",
+      "bytes": 29371
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/viewport_recent_tabs_pilot.py",
+      "sha256": "16c040f9d91bc7d06bcd9e64fed04b0ef5d063c8d7179f4b91f777e2946df072",
+      "bytes": 14993
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/native_session_retention_pilot.py",
+      "sha256": "324ec8636de3a546d3f0e56e1ce3b898c5852522de86eaa1e47354c7f73c36d9",
+      "bytes": 15944
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/l0a_native_installed_pilot.py",
+      "sha256": "fd8b65c42fd5195efb1e2580301440c479927b40b587afbfbfd6a0246fa8b1b7",
+      "bytes": 31086
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/thread_navigation_installed_journey.py",
+      "sha256": "a17e26de602e8765f48ea22db169f42a9e48a1b46af68560807c03a807cbcc07",
+      "bytes": 10392
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/record_installed_tui.py",
+      "sha256": "e87e1558fb3d4b08a8acb7e19019c54dbdf21cd60a3ba923b048e87d98e74c40",
+      "bytes": 143483
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/scroll_observation.py",
+      "sha256": "0c70f4c0af55842c6dedf04378aec5dac203066ee549bd316c8df68980558829",
+      "bytes": 12907
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/run_observed_app.py",
+      "sha256": "58eb91775be167e338cc882e7eaec177a397f0099fc2fae3c72e472f3914f355",
+      "bytes": 249
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/sidebar_validation_driver.py",
+      "sha256": "391fe4cdd18a8b39949a21d0d127c4e712efaf619af25a2cf178ebb21446545c",
+      "bytes": 40719
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/analyze_trace.py",
+      "sha256": "d333fad936188c8ee6fad58f4cb9a580d022917a9e09a8db0fddc5b3a29a4d49",
+      "bytes": 16344
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/capture_state.py",
+      "sha256": "8b1d4bdb888d3f49f7514f85c01ed55a04dad17b1e6946504d6ff752373a0277",
+      "bytes": 33566
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/click_history.py",
+      "sha256": "9fdd1a319ae6d85c9ae2673984210f1023247d8f776b20ac926de8e3a85fee17",
+      "bytes": 13724
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/scroll_travel_observation.py",
+      "sha256": "577efe47adb6503f37f84446b56057ab368cc4fc5d7a4368be11ee9d2e031090",
+      "bytes": 11607
+    },
+    {
+      "path": "/home/ts/wt/comms-task-aware-native-bundle-20261002/tools/cutover/original_owner_capture.py",
+      "sha256": "d014a6828d518517e5bc93c3909bf227bd2197158f26fb75528c13c0d8934a80",
+      "bytes": 3049
+    },
+    {
+      "path": "/home/ts/wt/comms-task-aware-native-bundle-20261002/tools/cutover/owner_read_projection.py",
+      "sha256": "4ca5fb3d2714863ba6ddd7b01f23cd3ddccd790f612f4edd7086b4b7935876a0",
+      "bytes": 1110
+    },
+    {
+      "path": "/home/ts/wt/comms-task-aware-native-bundle-20261002/tools/cutover/read_original_owner.py",
+      "sha256": "3e61cfce03adfa059020d81c40ac5f3ef90bab1c09f602ebd614bc56c54ff053",
+      "bytes": 1519
+    },
+    {
+      "path": "/home/ts/wt/comms-task-aware-native-bundle-20261002/tools/cutover/thread_format_retirement.py",
+      "sha256": "ff4ddbc314afd01e9c069a4cec5df83b204bb6fab35bcf2f5e5055b5e148de35",
+      "bytes": 1105
+    }
+  ],
+  "app_count": 1,
+  "outer_argv": [
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+    "-B",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/history_edge_scheduling_pilot.py",
+    "--record-useful-paint"
+  ],
+  "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+  "environment": {
+    "unset": [
+      "PYTHONPATH",
+      "PYTHONHOME",
+      "VIRTUAL_ENV",
+      "AGENT_COMMS_THREAD",
+      "AGENT_COMMS_STARTUP_INPUT_KEY",
+      "PI_PROMPT",
+      "PI_AGENT_ID",
+      "TEXTUAL_DRIVER"
+    ],
+    "set": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONNOUSERSITE": "1",
+      "L0A_EVIDENCE": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-05/fixture",
+      "TMPDIR": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-05/scratch",
+      "USEFUL_PAINT_CANDIDATE": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor05-installed-purpose/candidate-activation.json",
+      "ORIGINAL_CAPTURE_HELPER_ROOT": "/home/ts/wt/comms-task-aware-native-bundle-20261002/tools/cutover",
+      "AC_REAL_READ_ONLY_CUSTODY": "1",
+      "AC_REAL_PROVIDER_AUTHORIZED": "Sol/high retained acceptance",
+      "AC_REAL_FIXTURE_STAGE": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-private-original-20261005-05",
+      "AC_REAL_CORE_HEAD": "7b68d630caa654d3e9884f45cbd6493718752a0c",
+      "AC_REAL_TOAD_HEAD": "a0640f4b53996c0658154483a48c98fe19ef1458",
+      "AC_REAL_SOURCE_ROOT": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "AC_REAL_SOURCE_OWNER": "nra-architecture",
+      "AC_REAL_ORIGINAL_PYTHON": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+      "AC_NATIVE_COPIED_PACKAGE": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent"
+    }
+  },
+  "output": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-05",
+  "capture": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-05/fixture/capture",
+  "package_outputs": {
+    "source-proof.json": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor05-installed-purpose/source-proof.json",
+    "candidate-activation.json": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor05-installed-purpose/candidate-activation.json",
+    "native-full-trust.json": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor05-installed-purpose/native-full-trust.json",
+    "package-boundary-proof.json": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor05-installed-purpose/package-boundary-proof.json"
+  },
+  "runner": {
+    "owner": "Original BoundedRun.session/AttachedChild installed owner",
+    "maximum_seconds": 150,
+    "template": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor04-installed-purpose/run_useful.py",
+      "sha256": "999343d02e9bf80dd22ea60cdfedb6b84b097d2e86be541d89e0ff53fe99f641",
+      "bytes": 5227
+    },
+    "new_literal": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor04-installed-purpose/run_useful.py",
+    "binding": "Only future actualsuccessor04 issued grant/lifecycle/SHA/output literal replacements of fb7 original controller; unchanged original150s BoundedRun/joins. Do not execute5171/oldtemplate."
+  },
+  "recorder": {
+    "source_entry": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/run_observed_app.py",
+    "app_argv": [
+      "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/run_observed_app.py",
+      "acp",
+      "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python -m agent_comms.acp",
+      "<original fixture-owned project>",
+      "--session",
+      "resource436"
+    ],
+    "journey": "wheel_warm",
+    "peer_thread": "resource236b",
+    "capture_target": "source",
+    "boundary": "Only persistent controls/helpers from WT; installed Core/Toad/Textual exact origins/source proof mandatory. SourceCapture labels source entrypoint custody, not installed readiness.",
+    "maximum_seconds": 150,
+    "startup_wait": 8,
+    "history_wait_seconds": 20,
+    "review_timing": "deferred",
+    "profile": false,
+    "ordinary_st": true,
+    "isolated_display": true,
+    "inputs": "Original unsent warm-scroll-draft + CtrlZ,36 native wheel up/down/reversal,End,8-column sidebar narrow/restore,unopenedB\u2192A actual tab return. ZERO submitted/native/provider input.",
+    "movie": "ONE genuinely changed ordinary motion recording, no accepted broad capture repeat"
+  },
+  "source_read": {
+    "public_python": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "argv": [
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+      "/home/ts/wt/comms-task-aware-native-bundle-20261002/tools/cutover/read_original_owner.py",
+      "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "nra-architecture",
+      "current_thread"
+    ],
+    "owner": "Original CurrentTypedCapture/RetainedOwnerLaunch revalidates actual identity/incarnation/settings/source hash at use; original public source witness ends after private fork capture, explicit READ return after terminal/join",
+    "publication_relation": "Parent PUBLIC465 style22 is excluded from package writes, signals, restarts and test App; exact decoder-only subprocess requires explicit binding in fresh purpose, no stale485 decoder/old authority inheritance",
+    "permission_note": "Original required fixture admission literal is not new provider/model/input authority. CurrentTypedCapture original identity/config/hash at use; AC_REAL_READ_ONLY_CUSTODY=1 and original readonly callbacks/readonly_inputs remain mandatory."
+  },
+  "native_custody": {
+    "package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+    "manifest": "7a2e4aabdbc5af49dd9af942190d92086df2eb3489903674a74af51cf831cd33",
+    "tree": "0d7ff54a04d4f0ff175fc889e936ca3cea8b1f98eb8b73ed6215c3373cbd984d",
+    "permission": "Fresh literal purpose plus NEW matching immutable READ and separate EXEC after actual finalproof/controller binding. Consumed ABE04 READ40391/EXEC683ea returned; no inheritance."
+  },
+  "measurements": [
+    "Original UIchild publication-before-release monotonic\u2192first nonwhite source-bound body output and readyviewport output/FrameFlush ack; includes subsequent CLIimports, excludes earlier guardian setup.",
+    "Appconstruction\u2192same outputs separately; selection\u2192body nextselection fence. Absent actual launchclock/body output remains unavailable.",
+    "Readyviewport originalvisible_bodies_ready predicate, NOT stable complete viewport. Source page intervals/session_file/visiblebody identities bind actual Layout/Chops strips; no extra render.",
+    "Native wheel-helper actualgesture bounds +same output/writer cadence; ordinarymotion review AFTERterminal. Writerack NOT monitor presentation/FPS/CPUgain.",
+    "Narrow/restore width,unopenedB coldselection,retained editor/Undo/reader/source lifetime checks."
+  ],
+  "unfinished": [
+    "Full configured paid continuous fork-before-answer/newreply/notification/queue/status workflow",
+    "HeldUp/Down/growingEnd/fullLOADED4/16/32/64 scaling",
+    "CPUgain/baseline/smoothness/monitor-present claims",
+    "Pathpopup installed scope not added to this measurement journey"
+  ],
+  "proposed_floor_only": {
+    "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+    "role": "NONLIVE actualCURRENT447 proposed ONLY, no reservation/access",
+    "last_independent_close": {
+      "status": "Owner exact whole return complete; Bohr independent ABE04 close required before any future issue; fresh actualfloor/origins/keepers/refs/disposition mandatory"
+    },
+    "members": 1468,
+    "distributions": 69,
+    "protected": 428,
+    "other_records": 1883,
+    "archive_sha256": "41b065384c8fa6854f813f02a4eebb9fa619a0f823b836a65d1430902fa5762e",
+    "rule": "Bohr fresh actual floor/origins/keepers/archive/refs/disposition before immutable successor issue. Restore actual issued floor, not a stale/public role.",
+    "last_owner_readback": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor04-installed-purpose/whole-handback.json",
+      "sha256": "88c77bb2a1590343f998d013a59628efc64b93e552f3ffd063a764c4b362b13b",
+      "bytes": 3608
+    }
+  },
+  "after_terminal": "Join actual App/st/controller/ACP/native/workers/socket/groups, publish primary and finalizer receipts separately, explicit public-source and NEWnative READ/EXEC returns. Whole actual issued floor normal4 --no-cache wheels/origins/modes/links/428+1883 plus fresh privileged handback and Bohr close. Stop first FAIL/UNKNOWN; no automatic retry.",
+  "fixture_retention": {
+    "request": "Original ForkSessionRequest.directory",
+    "leaves": "Original NativeForkCreation.path held through sole finalizer; no registry receipt/path-layout reconstruction",
+    "publication": "Terminal source receipt and joined process cleanup precede retention; unsupported metadata/cold target or foreign path returns retained_reason, leaving original journals untouched",
+    "evidence": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-05/fixture",
+    "held_previous": "Original02 and04 genuine SDK leaves/joined receipts/partial movies remain immutable at actual paths. Current cold private access refusal preserves original04 inodes and metadata; no new purpose may retire them implicitly."
+  },
+  "payload_lifetime": "Original ProcessOwner and fixture finalizer own terminal retirement; keep original journals if cold storage refuses, do not delete root after failed retention. Actual unresolved comparator movie held until disposition; concise current receipts retained.",
+  "no_current_access": true,
+  "supersedes_control_binding_only": "Only existing run_observed_app entrypoint now scopes original observer installation/CLI to __main__; same production/pins/319 wheel and other19 helpers. Fresh05 paths and current source-head attribution, same150s actual motion scope. No renderer backend/timeout/guard/input/model changes.",
+  "candidate_verification": "Original RuntimeSelection.verify_stage(candidate, originalProcessOwner, originalprivateenv, originalapplicationcommand) writes candidate-runtime.json before ONE record; original selected Python/probe/source/archive origins/full native relation; no nonexistent CLI option.",
+  "other_owner_controls": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/test_fixture_journal_retention.py",
+      "sha256": "e1991b2ab7ee504acc1bb35cca6f55862d8e8b022f23bcb636f704fe24fb9598",
+      "bytes": 13174
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/check_observer_dispatch.py",
+      "sha256": "963da2102d1163e2a6f8f8cfd8a67c1ccbb3d6691bf753cb051fc40d8c376248",
+      "bytes": 1175
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/run_isolated.py",
+      "sha256": "0da720ceaf54698b5539bd2a912404372c779749c43e3ad44012a805a6b4043d",
+      "bytes": 12694
+    }
+  ],
+  "previous_failures": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/useful-paint-observer-fork-custody-20261005/ORIGINAL-FAILURE-AND-CLOSE.json",
+    "sha256": "2e1a9741328778c98ba7b0bbf72d760066e266922f2eeccf687d52b8fd8a816d",
+    "bytes": 3727
+  },
+  "previous_consumed5171": {
+    "grant": {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Heis460-useful-cold-wheel-successor03-package-App-issued-grant.json",
+      "sha256": "5171d3553e051f8a627c4993d9a38f7a28cae149a6c7892e76544517bf4d9805",
+      "bytes": 1901910
+    },
+    "terminal": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor03-installed-purpose/useful-cold-terminal.json",
+      "sha256": "74983b1b8c82197b7292acadaa432bb06c01b199a5a983430343f7f6880cc890",
+      "bytes": 781
+    },
+    "controller_terminal": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor03-installed-purpose/controller-terminal.json",
+      "sha256": "934fd853822c71c0390c9e191e7a3bdca914f82996a1688badf516fe2c9311ee",
+      "bytes": 126
+    },
+    "stderr": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor03-installed-purpose/useful-cold.stderr.log",
+      "sha256": "54b70e30d2304c2c5d60245826b4d2fffb02dde645142d308fb62d67be1d36dd",
+      "bytes": 1379
+    },
+    "whole_handback": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor03-installed-purpose/whole-handback.json",
+      "sha256": "06ab5c01e1278bec46a5215abd3e8ffb056a9e8843afea9bf24e2ff3d2b85c71",
+      "bytes": 3305
+    },
+    "final_borrowers": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor03-installed-purpose/final-borrowers.json",
+      "sha256": "85054d9e52ed9390cdabc6013d953159e8f4909ddf3d8e75ed433c39831e04e9",
+      "bytes": 2272
+    },
+    "scope": "FAIL1 at firstfixture line82 before stage.mkdir/source capture/SDKfork/NoApp; originalREAD8ae7+EXECee062/sourceREAD returned unused; Bohr independent close pending at proposal."
+  },
+  "determining_control_head": "982a74e0f",
+  "changes_from_consumedABE04": {
+    "control_helper_changes": [
+      {
+        "before": {
+          "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/run_observed_app.py",
+          "sha256": "58eb91775be167e338cc882e7eaec177a397f0099fc2fae3c72e472f3914f355",
+          "bytes": 249
+        },
+        "after": {
+          "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/run_observed_app.py",
+          "sha256": "58eb91775be167e338cc882e7eaec177a397f0099fc2fae3c72e472f3914f355",
+          "bytes": 249
+        }
+      }
+    ],
+    "production_build_pin_changes": [],
+    "environment_changes": {
+      "AC_REAL_TOAD_HEAD": {
+        "before": "b072f4a2e6d899f1a8e5b57086ad3cbed189fdf9",
+        "after": "a0640f4b53996c0658154483a48c98fe19ef1458",
+        "reason": "current source attribution only; production equal retained wheel"
+      }
+    },
+    "output_paths": "Fresh -05 and successor05 ONLY; old outputs immutable",
+    "required_fixture_literal": "Sol/high retained acceptance",
+    "read_only_custody": "1",
+    "maximum_seconds": 150,
+    "scope": "ONE original usefulcold/wheel/width/reversal/End/unopenedB-Areturn; two privateSDKforks, zero newinput/provider/modelchange; original public465 decoder CurrentTypedCapture at use; whole actual issued floor restore"
+  },
+  "previous_consumedABE04": {
+    "useful-cold-terminal.json": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor04-installed-purpose/useful-cold-terminal.json",
+      "sha256": "52cad661b317a52647a6051a93ce595e0d550d1f84afeda582491de43d005c7b",
+      "bytes": 781
+    },
+    "controller-terminal.json": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor04-installed-purpose/controller-terminal.json",
+      "sha256": "ea463ced31cdeafcd0d7722a0c740e486bd688d3d116aff411d59c54e938c05f",
+      "bytes": 125
+    },
+    "whole-handback.json": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor04-installed-purpose/whole-handback.json",
+      "sha256": "88c77bb2a1590343f998d013a59628efc64b93e552f3ffd063a764c4b362b13b",
+      "bytes": 3608
+    },
+    "final-borrowers.json": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor04-installed-purpose/final-borrowers.json",
+      "sha256": "c52666b0684c96cfda333489c8c014f984395d20854038f9b320d413e61554c5",
+      "bytes": 2273
+    },
+    "final-borrowers-classification.json": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor04-installed-purpose/final-borrowers-classification.json",
+      "sha256": "fb31b8c6cf8b48d49a00084f31f5262d2f07d314a85e54013d86381f6313162f",
+      "bytes": 991
+    },
+    "restore-original-four-terminal.json": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor04-installed-purpose/restore-original-four-terminal.json",
+      "sha256": "1c931afb2d277cf1f051bdf0ffc30c5a974e74b2a97e7034d924f5be59f3b185",
+      "bytes": 1008
+    },
+    "raw_crashes": [
+      {
+        "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-04/fixture/ui-state/toad/logs/Terminal_crash_2026-10-05T16_13_30_137940.txt",
+        "sha256": "cea74ee03d96e059b8df5e7732e2eb362bfe79a977921c3febb722f009e1c6b2"
+      },
+      {
+        "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-04/fixture/ui-state/toad/logs/Terminal_crash_2026-10-05T16_13_30_194644.txt",
+        "sha256": "cea74ee03d96e059b8df5e7732e2eb362bfe79a977921c3febb722f009e1c6b2"
+      },
+      {
+        "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-04/fixture/ui-state/toad/logs/Terminal_crash_2026-10-05T16_13_31_527329.txt",
+        "sha256": "32e2cdf95bf5b85523f38fd0b0ef3ce45a959d1066679a749f81f7c0ac42a240"
+      }
+    ]
+  },
+  "source_correction": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/useful-paint-observer-fork-custody-20261005/SUCCESSOR04-SPAWN-ENTRY-SOURCE-CORRECTION.json",
+    "sha256": "254514928f428bd1dd34686997a6c28083a889754ec5e3abd50d23781ee01aa0",
+    "bytes": 2884
+  }
+}

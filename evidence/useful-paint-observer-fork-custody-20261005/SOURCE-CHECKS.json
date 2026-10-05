@@ -1,0 +1,117 @@
+{
+  "compiled_without_import": [
+    "tests/original_turn_resource_real_installed_pilot.py",
+    "tests/runtime_fixture.py",
+    "tests/test_fixture_journal_retention.py",
+    "tools/performance/check_observer_dispatch.py",
+    "tools/performance/run_isolated.py",
+    "tools/performance/sidebar_validation_driver.py"
+  ],
+  "navigation_hooks": [
+    {
+      "owner": "ToadApp",
+      "method": "_switch_mode_ready",
+      "source": "src/toad/app.py",
+      "line": 467,
+      "decorators": []
+    },
+    {
+      "owner": "SessionView",
+      "method": "prepare_navigation",
+      "source": "src/toad/screens/session_view.py",
+      "line": 50,
+      "decorators": []
+    },
+    {
+      "owner": "WorkspaceScreen",
+      "method": "prepare_navigation",
+      "source": "src/toad/screens/workspace.py",
+      "line": 247,
+      "decorators": []
+    },
+    {
+      "owner": "WorkspaceScreen",
+      "method": "layout_navigation",
+      "source": "src/toad/screens/workspace.py",
+      "line": 259,
+      "decorators": []
+    },
+    {
+      "owner": "ConversationCommsConsumer",
+      "method": "transcript_snapshot",
+      "source": "src/toad/widgets/conversation.py",
+      "line": 2231,
+      "decorators": [
+        "handles(TranscriptSnapshotUpdate)"
+      ]
+    },
+    {
+      "owner": "Conversation",
+      "method": "on_agent_ready",
+      "source": "src/toad/widgets/conversation.py",
+      "line": 987,
+      "decorators": [
+        "handles(AgentReady)"
+      ]
+    },
+    {
+      "owner": "WorkspaceSessions",
+      "method": "prepare",
+      "source": "src/toad/workspace_sessions.py",
+      "line": 123,
+      "decorators": []
+    },
+    {
+      "owner": "Conversation",
+      "method": "initialize_view",
+      "source": "src/toad/widgets/conversation.py",
+      "line": 1670,
+      "decorators": []
+    },
+    {
+      "owner": "SidebarObservation",
+      "method": "present_cached",
+      "source": "src/toad/sidebar_observation.py",
+      "line": 129,
+      "decorators": []
+    },
+    {
+      "owner": "SidebarProjection",
+      "method": "rebuild",
+      "source": "src/toad/sidebar_projection.py",
+      "line": 91,
+      "decorators": []
+    },
+    {
+      "owner": "SessionsTabs",
+      "method": "_sync_tabs",
+      "source": "src/toad/widgets/session_tabs.py",
+      "line": 268,
+      "decorators": []
+    },
+    {
+      "owner": "NavigationReader",
+      "method": "read",
+      "source": "src/toad/navigation_preparation.py",
+      "line": 209,
+      "decorators": []
+    }
+  ],
+  "dispatch": "MroDispatch.handlers_for reads replacement methods; update_wrapper preserves __handled_classes__; no Textual registry mutation/startup pseudo-probe",
+  "offline_retention": {
+    "command": [
+      "/usr/bin/python",
+      "-B",
+      "tests/test_fixture_journal_retention.py"
+    ],
+    "environment": {
+      "RETENTION_TEST_ROOT": "/home/ts/.cache/agent-scratch/heis460-observer-fork-source-check-20261005"
+    },
+    "exit": 0,
+    "tests": 13,
+    "seconds": 0.07,
+    "stdout": ".............\nRan 13 tests in 0.070s\nOK\n",
+    "scope": "Authored local filesystem/mount/device/census prerequisites; no actual HDD/SDK journal/App/prefix access"
+  },
+  "runtime_qualification": "UNRUN; consumed92e closed; fresh exact purpose required"
+}

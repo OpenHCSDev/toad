@@ -1,0 +1,22 @@
+{
+  "head": "8981fde1e308393941cd7a31b0f65ec57cc3e3f5",
+  "command": [
+    "/usr/bin/python",
+    "-B",
+    "-m",
+    "build",
+    "--wheel",
+    "--no-isolation",
+    "--outdir",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/union461-filewheel/wheel"
+  ],
+  "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+  "backend_readonly": "/home/ts/.cache/uv/archive-v0/RgcgNn7xR1Zs9HSF",
+  "seconds": 0.6581620110664517,
+  "exit_code": 0,
+  "authority": "Parent explicit final coherent Toad union build after normal461 join; no prefix/App authority",
+  "attempt": 1,
+  "new_environment": false,
+  "dependency_resolution": false,
+  "installed_writes": false
+}

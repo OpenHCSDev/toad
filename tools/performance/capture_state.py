@@ -461,7 +461,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                                 "dormant": sum(body.body_dormant for body in owners),
                                 "visible": sum(body in visible for body in owners),
                                 "visible_dormant": sum(body.body_dormant for body in owners if body in visible),
-                                "reconciling": manager._running,
+                                "reconciling": manager._worker is not None,
                                 "suspended": manager._suspended,
                                 "frame_admitted": manager.accepts_frame(),
                                 "owners": [{**node_identity(body), "ready": body.body_ready,

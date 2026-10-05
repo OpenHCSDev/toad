@@ -1,0 +1,353 @@
+{
+  "state": "INSTALLED SCOPED WORKING CHECKPOINT; restored-width physical repaint gap remains open; full performance/workflow not Ready",
+  "issued_sha256": "43b54ee0d15f76c6c42197d7b5133d8fdbce537811ce068822cf88ef14c3121c",
+  "determining_source_head": "7898cceb4f76c4642e8e16c81ef361c25e44088e",
+  "product_source": "25dae6d291612a3601fb35114a983d6eae379d83",
+  "wheel_sha256": "2ece83e34b795f09652e30e67bfa9bafcdc08d7a0812e9e6a122ce2a708cb217",
+  "candidate_installed_assets": 953,
+  "distributions": 69,
+  "actual_child_terminal": {
+    "returncode": 0,
+    "seconds": 143.89198731002398,
+    "timeout": false,
+    "groups": [],
+    "drain_errors": []
+  },
+  "controller_terminal_seconds": 145.00107031303924,
+  "actual_parent_outcomes": {
+    "ui_exit": {
+      "pid": 1909494,
+      "birth": 71486639,
+      "returncode": 0,
+      "signals": [],
+      "parent_error": null
+    },
+    "terminal_exit": {
+      "pid": 1909449,
+      "birth": 71486576,
+      "returncode": 0,
+      "signals": [],
+      "parent_error": null
+    }
+  },
+  "quit": {
+    "requested_monotonic": 714979.064281333,
+    "key": "ctrl+q",
+    "delivered_monotonic": 714979.195051239,
+    "program_exited_before_retirement": true
+  },
+  "original_scope_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "peer_selected": true,
+    "source_view_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_typed": true,
+    "draft_retained_on_return": true,
+    "undo_restored_original_draft": true,
+    "returned_saved_body_ready": true,
+    "end_saved_body_ready": true
+  },
+  "runtime_unchanged": true,
+  "after_terminal_review": {
+    "painted_wheel_motion": "Original 12 video frames over three seconds show changing original saved body after wheel input",
+    "images": [
+      "width-narrow",
+      "width-restored",
+      "wheel-before",
+      "wheel-reverse-done",
+      "End-done",
+      "B-open",
+      "A-return",
+      "Undo"
+    ],
+    "draft": "retained on A return; empty after native Undo",
+    "width_gap": "phase-wheel-width-restored.png AND phase-wheel-before.png have blank actual body; original state declares visible ready LiveBody, pending false, no reconcile, tail371/371. Later wheel and End repaint content. No stable complete width-return acceptance. Cause not yet established.",
+    "active_owner": "OriginalHeis DocumentViewport/body/frame integration; source trace next, no runtime replay"
+  },
+  "startup_output_metrics": [
+    {
+      "origin": "ui_child_release",
+      "body_output_ms": 11396.74948,
+      "body_writer_ms": 11421.492946,
+      "original_ready_predicate_output_ms": 11396.74948
+    },
+    {
+      "origin": "app_construct_begin",
+      "body_output_ms": 9242.912623,
+      "body_writer_ms": 9267.656089,
+      "original_ready_predicate_output_ms": 9242.912623
+    },
+    {
+      "origin": "source_selection_requested",
+      "body_output_ms": null,
+      "body_writer_ms": null,
+      "original_ready_predicate_output_ms": null
+    }
+  ],
+  "wheel_writer_metrics": [
+    {
+      "command": "--target history --state phase-wheel-before-state.pickle --wheel -36",
+      "original_body_outputs": 37,
+      "body_writer_intervals": {
+        "count": 36,
+        "median_ms": 99.06,
+        "p95_ms": 107.79,
+        "p99_ms": 118.68,
+        "max_ms": 182.71
+      },
+      "body_output_to_writer": {
+        "count": 37,
+        "median_ms": 1.76,
+        "p95_ms": 3.13,
+        "p99_ms": 3.85,
+        "max_ms": 19.02
+      },
+      "all_writer_intervals": {
+        "count": 36,
+        "median_ms": 99.08,
+        "p95_ms": 107.7,
+        "p99_ms": 108.89,
+        "max_ms": 182.19
+      }
+    },
+    {
+      "command": "--target history --state phase-wheel-up-done-state.pickle --wheel 36",
+      "original_body_outputs": 36,
+      "body_writer_intervals": {
+        "count": 35,
+        "median_ms": 100.22,
+        "p95_ms": 105.56,
+        "p99_ms": 121.06,
+        "max_ms": 121.09
+      },
+      "body_output_to_writer": {
+        "count": 36,
+        "median_ms": 1.81,
+        "p95_ms": 2.85,
+        "p99_ms": 3.38,
+        "max_ms": 14.04
+      },
+      "all_writer_intervals": {
+        "count": 35,
+        "median_ms": 100.21,
+        "p95_ms": 105.54,
+        "p99_ms": 119.84,
+        "max_ms": 121.02
+      }
+    },
+    {
+      "command": "--target history --state phase-wheel-down-done-state.pickle --wheel -36",
+      "original_body_outputs": 36,
+      "body_writer_intervals": {
+        "count": 35,
+        "median_ms": 99.65,
+        "p95_ms": 107.86,
+        "p99_ms": 109.0,
+        "max_ms": 135.48
+      },
+      "body_output_to_writer": {
+        "count": 36,
+        "median_ms": 1.5,
+        "p95_ms": 2.42,
+        "p99_ms": 2.58,
+        "max_ms": 7.74
+      },
+      "all_writer_intervals": {
+        "count": 35,
+        "median_ms": 99.65,
+        "p95_ms": 108.02,
+        "p99_ms": 108.61,
+        "max_ms": 134.68
+      }
+    }
+  ],
+  "measurement_limits": [
+    "Writer acknowledgement is not monitor presentation or displayed-pixel FPS",
+    "No explicit repeated-wheel delay in original helper; cadence includes external input acquisition/settle; no 10FPS claim",
+    "First original ready-viewport predicate is not stable complete viewport; restored-width pixels demonstrate the gap",
+    "No measured baseline speed gain, held continuous scroll, growing End, full loaded 4/16/32/64 or configured input acceptance"
+  ],
+  "floor_return": {
+    "normal_four_once_seconds": 0.23396851308643818,
+    "members": 1468,
+    "packages": 69,
+    "protected": 428,
+    "other66_members": 1883,
+    "recoveries": [],
+    "private_refs": 0,
+    "gaps": 0,
+    "raw_processes": 216,
+    "independent_Bohr_closure": "pending at publication; owner exact floor readback complete"
+  },
+  "retention": {
+    "files": [],
+    "reason": "Cold filesystem does not provide private fixture access",
+    "SDK_originals_movie_roots": "held unchanged; no deletion/chmod"
+  },
+  "authorities": "READ4b10 EXECfde190 and PUBLIC471 source returned; Sch matching authority closure8025 confirmed; Bohr independent lifecycle closure remains separate",
+  "prior_negatives": "02/04/05/06 preserved immutable; no retry or accepted case replay",
+  "original_refs": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor07-installed-purpose/useful-cold-terminal.json",
+      "sha256": "31e6f9765ab4ee20faf4773d70986d4f70a84032ce7ff9f45a33a61badac6a3f",
+      "bytes": 781
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor07-installed-purpose/controller-terminal.json",
+      "sha256": "007588268abad7eb5044d142b0a6cbcb9131e687bd924d25d248842507b3bb49",
+      "bytes": 691
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor07-installed-purpose/whole-handback.json",
+      "sha256": "e41bddf1630b59936a13ad7261f3e3a0533119b44ae70900a8c201ddbe344bd7",
+      "bytes": 3626
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor07-installed-purpose/final-borrowers.json",
+      "sha256": "cf356273293823b74305b79e322946f553134e5e7266b73d925b8165b78305eb",
+      "bytes": 2273
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor07-installed-purpose/restore-original-four-terminal.json",
+      "sha256": "2c73156a47c1508f64a12d143655147cb3127e5588e90a75cd1d5a11c0065368",
+      "bytes": 1140
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor07-installed-purpose/PUBLIC471-source-READ-handback.json",
+      "sha256": "826ff4c57c7f659bbcc8db1a58031e3a715cf6206338e75cca6364375a60fa26",
+      "bytes": 821
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor07-installed-purpose/offline-useful-body-analysis.json",
+      "sha256": "a77f71a21043c1a3d2c1b95192d4381861c9be3031f9aa9333682e7086c903ec",
+      "bytes": 361731
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor07-installed-purpose/offline-writer-cadence.json",
+      "sha256": "27cfb772bb8d82e9aa68213f4a82cd8c36c4b5188c55312e920dd3fd7047db36",
+      "bytes": 94969
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor07-installed-purpose/offline-original-analyzer-binding.json",
+      "sha256": "8770afeab4d7a4229e947d5016388ebf528e645b3a004634e882e0a069f6c69e",
+      "bytes": 3568
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor07-installed-purpose/offline-original-wheel-up-contact.png",
+      "sha256": "1587e96ab60f32bfa433f4dc697dc5c293e9d23d0bd7c20973137ff8ad18414e",
+      "bytes": 318607
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor07-installed-purpose/run_useful_PUBLIC471.py",
+      "sha256": "d15c19d8103d54d2a166aecd3397470f1b81220dc8f496135c5563de9f24af3d",
+      "bytes": 6458
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor07-installed-purpose/source-proof.json",
+      "sha256": "ceedd13958758e20daf692f4db748388097b794d679541d4ce2c3d2a804c8191",
+      "bytes": 9485
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor07-installed-purpose/candidate-activation.json",
+      "sha256": "c48e77524c56e03adc1d88d66460fc5eff90caf393ca52c1c9da5cfb7edff930",
+      "bytes": 2690
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor07-installed-purpose/native-full-trust.json",
+      "sha256": "bab9b976dff50210a02c9619d4c67662dc061b97eb37b2a41de6fe7a743be845",
+      "bytes": 636
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-07/fixture/capture/receipt.json",
+      "sha256": "d25bf1147d31c1cd5aa83276763c5377686b99b844fe8db3b69670946ae9aca6",
+      "bytes": 481033
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-07/fixture/receipt.json",
+      "sha256": "fd4ca759009155fd42215fbc4134255462e85dab510484558f36a25b396a7051",
+      "bytes": 3098
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-07/fixture/joint-cleanup.json",
+      "sha256": "bf6224adf1ac3aa3c61ea1099e619bc96b7bbd016bd431a1d35a978cc017948f",
+      "bytes": 526
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-07/fixture/source-capture.json",
+      "sha256": "bdc777ecc2f65a373c1d67f0b0660514c2651d43a7a3fd74788e976ca8568bd6",
+      "bytes": 2967
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-07/fixture/capture/driver.log",
+      "sha256": "af8611e5d2f293246e80d06142fdb20732adb4015e8408931659e092d40dd548",
+      "bytes": 177870
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-07/fixture/capture/after-state-frames.json",
+      "sha256": "f2a5c09fe7de888e45e23fe589fff8fdd7b46866bf9f28192751b61c2ceb201f",
+      "bytes": 1424281
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-07/fixture/capture/program-launch.json",
+      "sha256": "b1ad71e9f5f8621bfd4b3222874b666b2876b66835c26be41a0a910d438aa61f",
+      "bytes": 2739
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-07/fixture/capture/terminal.mp4",
+      "sha256": "26c31442d49a12f1fc2798288a2edb425f52c99742a353acb1a453862d009ed2",
+      "bytes": 5808531
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-07/fixture/capture/phase-wheel-width-narrow.png",
+      "sha256": "2eb9d6eca1883383fcbf38b216f1501cc91b1764a6e00254f0dee70d7c92d9f7",
+      "bytes": 47327
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-07/fixture/capture/phase-wheel-width-restored.png",
+      "sha256": "0c51d38260c4c4b84da9b6bc7e9f06461b9248e691437109bf2cfb7b3fe774bc",
+      "bytes": 50935
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-07/fixture/capture/phase-wheel-before.png",
+      "sha256": "0c51d38260c4c4b84da9b6bc7e9f06461b9248e691437109bf2cfb7b3fe774bc",
+      "bytes": 50935
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-07/fixture/capture/phase-wheel-reverse-done.png",
+      "sha256": "28dd7345233f7e362b23088bb22cdfbed42804064c6f302ec45a0ec105f909c3",
+      "bytes": 50808
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-07/fixture/capture/phase-wheel-end-done.png",
+      "sha256": "65d476499c0d8b6497ffab2684093702362ec5dba8797bb997b262f636bef05a",
+      "bytes": 49694
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-07/fixture/capture/phase-b-open.png",
+      "sha256": "f9d43a2387284f899f2f1c33166ba827013a72be6bbe83b887a07f0e4c973571",
+      "bytes": 45555
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-07/fixture/capture/phase-a-return.png",
+      "sha256": "cf9cead033248ada2054cd14b7ffd7e55daae1bec81e640dea40493bbd4f5a47",
+      "bytes": 50278
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-07/fixture/capture/phase-undo.png",
+      "sha256": "a7c95b5dc2a47b7a0b1104a2bf4e4c11717e4bd748316c1fd8c1583b12e9c5c5",
+      "bytes": 48905
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-07/fixture/capture/phase-wheel-width-restored-state.json",
+      "sha256": "3f4ef848d89a92419eb44373a38db9ef325d86a1b309e8b72b21d1e383b218fd",
+      "bytes": 568807
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-07/fixture/capture/phase-wheel-before-state.json",
+      "sha256": "8bab3e7c5c9443931dd2dc79217556d904b6af1f6f3fb4d5afd9c74fe6f2e980",
+      "bytes": 568806
+    }
+  ]
+}

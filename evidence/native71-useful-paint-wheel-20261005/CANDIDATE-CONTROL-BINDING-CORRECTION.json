@@ -1,0 +1,19 @@
+{
+  "head": "c9b99d0c7cfcf04b5c85f3be3eeb5ceb345f63cb",
+  "old_manifest": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/native71-useful-paint-wheel-20261005/FINAL-COLD-WHEEL-SOURCE-CONTROL-OPERANDS.json",
+    "sha256": "0de52c03ea8f658826ecec217b639d2edee9b65f7abb41c7dc21a14d7e91c5d3"
+  },
+  "effective_manifest": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/native71-useful-paint-wheel-20261005/EFFECTIVE-COLD-WHEEL-SOURCE-CONTROL-OPERANDS.json",
+    "sha256": "429723a9570cd2fca4e4e7c406ec9a32ac884cfe7f93ebf89013ed6c48eccb6d"
+  },
+  "control": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/history_edge_scheduling_pilot.py",
+    "sha256": "6e398e8342e322ba5ec29465836a223451415ef88f23f058bc74519556a36425"
+  },
+  "source_product_build_inputs_delta": [],
+  "compile_only_without_import": true,
+  "App_tests_build_stage_execution": false,
+  "old_published_source_and_manifest_preserved": true
+}

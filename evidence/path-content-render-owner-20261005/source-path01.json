@@ -1,0 +1,22 @@
+{
+  "argv": [
+    "/usr/bin/python",
+    "-B",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-p",
+    "test_path_content_render.py",
+    "-v"
+  ],
+  "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+  "PYTHONPATH": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src:/home/ts/wt/textual-native-subtree-strips-20261002/src",
+  "interpreter": "Original system Python/pytest dependency closure; no holder/env/package access",
+  "elapsed": 0.45724424498621374,
+  "returncode": 1,
+  "control_sha256": "6c62ac8bd4bcb83c70e3fd04ab84b8019349e735b0930c4a115aae063b6d1c4e",
+  "log_sha256": "32697135de9a235be38c22285cbc37ad5622d6906fbcba6556a506801448455e",
+  "source_scope": "Real native Widget.styles/RenderStyles producer plus PathContent render; no App or installed acceptance"
+}

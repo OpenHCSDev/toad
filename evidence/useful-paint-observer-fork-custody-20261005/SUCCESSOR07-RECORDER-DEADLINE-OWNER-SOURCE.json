@@ -1,0 +1,118 @@
+{
+  "state": "Published recorder correction normally adopted; SOURCE only; consumed06 wholeTIMEOUTFAIL unchanged; no current execution custody",
+  "source_head": "951242a60bf873d37c2e73fa6073ed72f9358b5f",
+  "normal_join": "4c479fd736f41ffd14d634c740f0902cae705118",
+  "before_head": "30412f1935aec5ee8226786cb587a0a37325c6dd",
+  "before_complete_family": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/useful-paint-observer-fork-custody-20261005/SUCCESSOR06-QUIT-OWNER-CHECKPOINT.json",
+    "sha256": "b056c506359bdafa78b366b6cd191c882620db2a3c46ac9bb3ba6238f4b6dbad",
+    "bytes": 20374
+  },
+  "contributor_family": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/recorder-original-program-wait-20261005/OWNER-CONSUMERS.json",
+    "sha256": "c58b83b26d0300d90f625ada0e0f581c655313e0509a8455c8ee5890e8dcbfc2",
+    "bytes": 8450
+  },
+  "contributor_semantics": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/recorder-original-program-wait-20261005/SOURCE-CHECKPOINT.md",
+    "sha256": "ee5971a4204af0cbbccfe9cf08d565bf701527089bbec3697ae3ce5609174134",
+    "bytes": 4398
+  },
+  "declarations_changed": [
+    "OwnedProcess.wait_for_exit",
+    "TransferredGroup.stop",
+    "record"
+  ],
+  "declarations_added": [
+    "TransferredGroup.wait_for_exit"
+  ],
+  "declarations_deleted": [],
+  "preserved_original_methods_AST_equal": [
+    "ProcessOwner.launch_program",
+    "ProcessOwner.launch_terminal",
+    "ProcessOwner.run",
+    "ProcessOwner.cleanup",
+    "TransferredGroup.receipt",
+    "TransferredGroup.require_successful_exit"
+  ],
+  "preserved_publish_program": "ProcessOwner.launch_program AST byte-equivalent shape to original30412, including pre-release launch_monotonic scalar; true parent wait/outcomes remain original owners",
+  "same_deadline_family": "OwnedProcess observes child within caller absolute deadline. TransferredGroup waits SAME original parent after child exit. record joins UI+program-parent, then terminal+guardian within SAME existing interaction deadline BEFORE either stop. Deadchild stop derives join from existing retirement grace. No independent graceful3s clock/new deadline.",
+  "static_wait_consumers": [
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 193,
+      "call": "super().wait_for_exit(deadline=deadline)"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 195,
+      "call": "self.parent.wait_for_exit(deadline=deadline)"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2232,
+      "call": "transferred_program.wait_for_exit(deadline=deadline)"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2233,
+      "call": "transferred_terminal.wait_for_exit(deadline=deadline)"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 205,
+      "call": "self.parent.wait_for_exit(deadline=time.monotonic() + grace_seconds)"
+    }
+  ],
+  "adjacent_other_wait_calls": [
+    {
+      "path": "src/toad/acp/terminal_controller.py",
+      "line": 79,
+      "call": "self.require(terminal_id).wait_for_exit()"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 42,
+      "call": "execution.wait_for_exit()"
+    }
+  ],
+  "source_compile": "PASS without imports/application/native/provider execution",
+  "product_and_build_inputs_delta": [],
+  "product_source": "25dae6d291612a3601fb35114a983d6eae379d83",
+  "reused_Toad_wheel": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/union466-filewheel/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "2ece83e34b795f09652e30e67bfa9bafcdc08d7a0812e9e6a122ce2a708cb217",
+    "bytes": 2251136
+  },
+  "previous_full319_ZIP_RECORD_proof": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/union466-filewheel/wheel-proof.json",
+    "sha256": "9fa7e6c15f7c4f16b8a1a26085c34c0db36a8fb75ccbecc2e54235cf014245ac",
+    "bytes": 1682
+  },
+  "new_recorder": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/record_installed_tui.py",
+    "sha256": "cd22359d0f1715104b40e16e79526c50e555ff03bcd5ed2735eb5c0041703d16",
+    "bytes": 144545
+  },
+  "control_changes_vs_frozen06": [
+    {
+      "before": {
+        "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/record_installed_tui.py",
+        "sha256": "307da0f244ceed038af1763ea9299d4ea964107a0478864801511ac9b361e469",
+        "bytes": 143840
+      },
+      "after": {
+        "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/record_installed_tui.py",
+        "sha256": "cd22359d0f1715104b40e16e79526c50e555ff03bcd5ed2735eb5c0041703d16",
+        "bytes": 144545
+      }
+    }
+  ],
+  "preserved_sidebar_disclosure": "Normal merge diff changes only wait family/quit calls; original nativeRightSidebarTarget disclosure, resize-within-right-sidebar, all wheel/width/reversal/End/B-A/draftUndo assertions preserved.",
+  "application_source_disposition": "Original priority QuitAction, ApplicationLifetime editor commit and preference save/exit, WorkspaceSessionShutdown source/native resource retirement, Agent runner/ChildProcess stop and PreparationRuntime/Renderer joins traced. Original06 export ends before CtrlQ; actual quit admission/save/close entry unobserved, no additional demonstrated application defect or speculative product change.",
+  "outer_inner_budget_limit": "Outer original BoundedRun150 starts before fixture/display/UI acquisition; record owns existing150 capture budget after acquisition and16 finalization reserve. Source correction alone does NOT certify whole timeout solved. Original outer150/innermax150/reserve16 unchanged.",
+  "consumed06_scope": "Actual width narrow/restore, nativewheel36up/down/reversal/End/B-open/A-return reached; capture_completed true/completed false; outer TIMEOUT150.143211631 child-15. First body11.600595123s from original child publication; writer11.635154536s. Writer cadence is not displayed FPS/smoothness/speed gain.",
+  "current_authority": "None; consumed8bda06 independently CLOSED315bc/ce1b and Sch92c3. No retry/restage/proof/native/PUBLICsource/App operation.",
+  "runtime_qualification": "UNRUN for recorder correction; no accepted OS/nativeWorker/ordinary18/renderer control replay",
+  "next": "Fresh full-scope successor07 operand proposal, current floor/origins/ref clearance and immutable issue by originalBohr; NEW SchREAD/EXEC and exact final proof binding before future single150s App."
+}

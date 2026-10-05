@@ -1,0 +1,127 @@
+{
+  "tool": "Original refactor-audit Package/Repository; borrowed parsed AST, no application/native imports",
+  "determining_source_head": "1fbe1f09b80dec9a809609edaeafc6ddb5a661a2",
+  "before_sha256": "681b8100692b5f8247ec534f2c7beeb06831d6b9510d7b4db564808449fc1400",
+  "coverage": [
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "1fbe1f09b80dec9a809609edaeafc6ddb5a661a2",
+      "root": "src/toad",
+      "modules": 288,
+      "parse_omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "1fbe1f09b80dec9a809609edaeafc6ddb5a661a2",
+      "root": "tests",
+      "modules": 397,
+      "parse_omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "1fbe1f09b80dec9a809609edaeafc6ddb5a661a2",
+      "root": "tools",
+      "modules": 41,
+      "parse_omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "head": "97d4a687e7307145cce48bc852d1ff2d6ad42fb7",
+      "root": "src/agent_comms",
+      "modules": 324,
+      "parse_omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "325a912635f55f6ec15b8365530a66c04edaf1ad",
+      "root": "src/textual",
+      "modules": 249,
+      "parse_omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "325a912635f55f6ec15b8365530a66c04edaf1ad",
+      "root": "tests",
+      "modules": 460,
+      "parse_omissions": []
+    }
+  ],
+  "complete_related_sites": [
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 125,
+      "declaration": "PreparedDiffLine",
+      "bases": [
+        "Content"
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/path_search.py",
+      "line": 45,
+      "declaration": "PathContent",
+      "bases": [
+        "Content"
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/path_search.py",
+      "line": 70,
+      "call": "Content.render_strips(line, width, height, style, replace(options, rules=options.rules | {'text_wrap': 'nowrap', 'text_overflow': 'clip', 'text_align': 'left', 'line_pad': 0}))"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/path_search.py",
+      "line": 414,
+      "call": "PathContent(content.plain, list(content.spans), cell_length=content.cell_length)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/path_search.py",
+      "line": 257,
+      "call": "PathContent(highlighted_path.plain, list(highlighted_path.spans), highlighted_path.cell_length)"
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "path": "src/toad/widgets/path_search.py",
+      "line": 409,
+      "call": "PathContent(content.plain, list(content.spans), cell_length=content.cell_length)"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/content.py",
+      "line": 736,
+      "call": "self._wrap_and_format(width, align=get_rule('text_align', 'left'), overflow=get_rule('text_overflow', 'fold'), no_wrap=get_rule('text_wrap', 'wrap') == 'nowrap', line_pad=get_rule('line_pad', 0), tab_size=8, selection=options.selection, selection_style=options.selection_style, post_style=options.post_style, get_style=options.get_style)"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/content.py",
+      "line": 1011,
+      "call": "self._wrap_and_format(width, align, overflow)"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "src/textual/content.py",
+      "line": 618,
+      "call": "self.without_spans._wrap_and_format(available, overflow=overflow, no_wrap=no_wrap)"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "tests/test_content_measurement_projection.py",
+      "line": 16,
+      "call": "content.without_spans._wrap_and_format(width, overflow=overflow, no_wrap=wrap == 'nowrap')"
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "path": "tests/test_content_measurement_projection.py",
+      "line": 25,
+      "call": "content.without_spans._wrap_and_format(width - padding * 2)"
+    }
+  ],
+  "Toad_private_formatter_consumers": [],
+  "closure": "PathContent delegates public native Content.render_strips; original PathContent callsites unchanged; PreparedDiffLine already inherits originalowner; native consumers unchanged",
+  "policy": "Path shortening/nowrap/clip/left/zero-pad belongs PathContent. Frozen RenderOptions replacement retains selection/selection_style/post_style/get_style references. Original native tab8/height contracts remain; formatting and Strip construction no longer copied.",
+  "runtime": "UNRUN, no installed/App/build/package/capture/provider/CPU claim"
+}

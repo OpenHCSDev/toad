@@ -160,8 +160,6 @@ Optional source-backed probes:
 - `TOAD_VALIDATION_OPEN_STAGES=1`: construction/mount and navigation-stage spans.
 - `TOAD_VALIDATION_LEGACY_MARKDOWN_MEASUREMENT=1`: explicit diagnostic control for
   the default Markdown virtual-size feedback policy.
-- `TOAD_VALIDATION_UNGATED_STARTUP=1`: after-refresh rather than actual-first-frame
-  startup control. This is not an exact historical-source checkout.
 - `benchmark_dom_storage.py`: bounded tracemalloc construction fixture; not FPS.
 - `benchmark_spinner.py --fps 60 --seconds 3`: native headless spinner/compositor
   timing with layout/CSS counters. This is component frame work, not terminal FPS

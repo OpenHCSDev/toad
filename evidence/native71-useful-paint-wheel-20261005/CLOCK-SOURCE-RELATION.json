@@ -1,0 +1,24 @@
+{
+  "full_Package_after": "AFTER.json",
+  "full_after_head": "8981fde1e308393941cd7a31b0f65ec57cc3e3f5",
+  "narrow_clock_source_head": "2d571f528832189fb10e809476fdfbb2f9c2373a",
+  "changes": "Only original ProcessOwner.launch_program.publish_program monotonic scalar plus existing frame_review/useful_body_delivery consume originalpublication; no timer/process/custody/event change. Parent authorized, originalMendel exactmethod sharedwriter cleared.",
+  "changed_controls": [
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "sha256": "e87e1558fb3d4b08a8acb7e19019c54dbdf21cd60a3ba923b048e87d98e74c40",
+      "parse_omissions": [],
+      "compile_without_import": true
+    },
+    {
+      "path": "tools/performance/analyze_trace.py",
+      "sha256": "d333fad936188c8ee6fad58f4cb9a580d022917a9e09a8db0fddc5b3a29a4d49",
+      "parse_omissions": [],
+      "compile_without_import": true
+    }
+  ],
+  "product_build_inputs_delta": [],
+  "runtime": "UNRUN; no UI/SDK/provider/native/prefix access",
+  "old37b7": "Earlierpre461 artifact, not fullunion equality; originalbuild/proof preserved.",
+  "final_wheel": "7f401a4c3319c73e6c3f423a315759f66e0018f2c14336f39702c7157f39921e"
+}

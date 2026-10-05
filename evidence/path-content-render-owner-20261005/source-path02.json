@@ -1,0 +1,21 @@
+{
+  "argv": [
+    "/usr/bin/python",
+    "-B",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-p",
+    "test_path_content_render.py",
+    "-v"
+  ],
+  "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+  "PYTHONPATH": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src:/home/ts/wt/textual-native-subtree-strips-20261002/src:/home/ts/wt/comms-goal-ledger-schema-carry-20261002/src",
+  "elapsed": 1.293723386945203,
+  "returncode": 0,
+  "control_sha256": "6c62ac8bd4bcb83c70e3fd04ab84b8019349e735b0930c4a115aae063b6d1c4e",
+  "log_sha256": "767cd1c2366b7cf4c491a5fec4000911ba57eb00d0c53bcf219b659337ff0f13",
+  "scope": "Source-only real RenderStyles/PathContent height/metadata checks, systemdeps and existingauditeddeclaredfamily source. Originalsource01 missingCoreimport preserved; no production or oracle change, prefix/App/installed claim."
+}

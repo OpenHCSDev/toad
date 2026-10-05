@@ -39,7 +39,7 @@ class JournalRetention(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.stage = self.root / "fixture"
-        self.source = self.stage / "native-forks" / "sessions" / "child.jsonl"
+        self.source = self.stage / "native-forks" / "child.jsonl"
         self.source.parent.mkdir(parents=True)
         self.source.write_bytes(b'{"authored_storage_control":true}\n')
         self.source.chmod(0o640)
@@ -97,7 +97,7 @@ class JournalRetention(unittest.TestCase):
         contexts.enter_context(patch.object(subprocess, "run", authored_census))
 
     def retain(self):
-        receipt = OWNER["retain_fixture_journals"]([self.source], stage=self.stage,
+        receipt = OWNER["retain_fixture_journals"]([self.source], directory=self.stage / "native-forks", stage=self.stage,
                                                   evidence=self.evidence, cold_mount=self.cold)
         self.assertEqual(receipt, json.loads((self.evidence / "journal-retention.json").read_text()))
         return receipt
@@ -137,6 +137,31 @@ class JournalRetention(unittest.TestCase):
     def assert_no_unpublished_copy(self):
         self.assertFalse(self.destination.with_name(self.destination.name + ".partial").exists())
         self.assertFalse(os.path.lexists(self.source.with_name(self.source.name + ".cold-link")))
+
+    def test_requested_directory_accepts_nested_sdk_leaf(self):
+        nested = self.source.parent / "sessions" / self.source.name
+        nested.parent.mkdir()
+        self.source.rename(nested)
+        self.source = nested
+        self.destination = (self.cold / "agent-comms-retained" / "history-sdk-fixture"
+                            / self.source.relative_to(self.source.anchor))
+        receipt = self.retain()
+        self.assertNotIn("retained_reason", receipt)
+        self.assertTrue(self.source.is_symlink())
+        self.assert_no_unpublished_copy()
+
+    def test_foreign_leaf_refuses_without_masking_primary_failure(self):
+        self.source.rename(self.stage / self.source.name)
+        self.source = self.stage / self.source.name
+        self.before = OWNER["_fixture_source_identity"](self.source.lstat())
+        with patch.object(subprocess, "run") as census, patch.object(shutil, "copyfileobj") as copy:
+            receipt = self.retain()
+        self.assertIn("retained_reason", receipt)
+        self.assertEqual(receipt["files"], [])
+        census.assert_not_called()
+        copy.assert_not_called()
+        self.assert_original()
+        self.assert_no_copy()
 
     def test_unsupported_directory_modes_refuse_before_any_private_copy(self):
         original_mkdir = Path.mkdir

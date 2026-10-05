@@ -1,0 +1,57 @@
+{
+  "before_head": "0eff5ba7885af4e5990cfb8ffe4116d120099950",
+  "after_source_tree": "75ba323e4a44ed6657d0a3e895c50704619f281c",
+  "package_AST": {
+    "src/toad": {
+      "before": 288,
+      "after": 288,
+      "omissions": []
+    },
+    "tests": {
+      "before": 399,
+      "after": 399,
+      "omissions": []
+    },
+    "tools": {
+      "before": 41,
+      "after": 41,
+      "omissions": []
+    }
+  },
+  "dependency": {
+    "path": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py",
+    "sha256": "ebf9fa40eb622384c37690d8c78e7208744df031155ab4ceedab0fc791a1669b",
+    "parse_omissions": 0
+  },
+  "changed_owner": "tools/performance/run_observed_app.py executable entrypoint",
+  "consumers": [
+    "tests/history_edge_scheduling_pilot.py::record_useful_paint",
+    "tools/performance/launch_live.sh",
+    "multiprocessing.spawn::_fixup_main_from_path"
+  ],
+  "original_observer_other_callers": [
+    "tests/navigation_terminal_fixture.py::main (guarded)",
+    "tools/performance/check_observer_dispatch.py (source declarations only)"
+  ],
+  "source_relation": "RenderProcessPool uses spawn. Spawn executes original script as __mp_main__; the old unguarded observer installation and CLI main ran another App while worker bootstrapping. Child mount attempted another executor submission, refused by _check_not_importing_main; original App reported BrokenProcessPool. Entrypoint now admits observer install and CLI only as __main__, in their original order. No renderer/runtime/source/native changes.",
+  "source_raws": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-04/fixture/ui-state/toad/logs/Terminal_crash_2026-10-05T16_13_30_137940.txt",
+      "sha256": "cea74ee03d96e059b8df5e7732e2eb362bfe79a977921c3febb722f009e1c6b2"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-04/fixture/ui-state/toad/logs/Terminal_crash_2026-10-05T16_13_30_194644.txt",
+      "sha256": "cea74ee03d96e059b8df5e7732e2eb362bfe79a977921c3febb722f009e1c6b2"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/heis460-useful-cold-wheel-20261005-04/fixture/ui-state/toad/logs/Terminal_crash_2026-10-05T16_13_31_527329.txt",
+      "sha256": "32e2cdf95bf5b85523f38fd0b0ef3ce45a959d1066679a749f81f7c0ac42a240"
+    }
+  ],
+  "script_sha256": "58eb91775be167e338cc882e7eaec177a397f0099fc2fae3c72e472f3914f355",
+  "compile_without_import": "PASS",
+  "product_pin_build_delta": "",
+  "runtime": "UNRUN corrected launcher; consumed04 FAIL preserved, no retry or inherited authority",
+  "performance": "UNQUALIFIED startup useful paint/wheel/frame/width/reversal/End",
+  "floor_return": "whole-handback.json SHA88c77bb2a1590343f998d013a59628efc64b93e552f3ffd063a764c4b362b13b; actual1468/69/428+1883 exact, normalfour restore once, native/publicsource returned"
+}

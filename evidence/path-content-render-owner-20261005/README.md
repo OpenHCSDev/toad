@@ -1,0 +1,52 @@
+# PathContent uses the native render owner
+
+Source continuation from frozen460 `22177726`. The installed7546 wheel,
+its original953/full74 proof, and the issued renderer/cold controls are separate.
+
+`PathContent` owns path shortening and its fixed nowrap/clip/left/zero-pad
+policy. Native `Content.render_strips` owns formatting, height projection and
+strip construction. The sole Toad private `_wrap_and_format` caller and its
+copied height slicing/strip loop are removed (IMPL-12).
+
+`dataclasses.replace` retains the original `RenderOptions` selection,
+selection style, post style and style resolver references. The native render
+owner consumes the four original fixed path policy rules directly.
+Path shortening, zero width and native tab8
+remain the original contracts. Positive, zero, negative and unbounded height
+follow the same native public projection. `PreparedDiffLine` already inherits
+that owner and needs no migration.
+
+Before: original refactor-audit Package/Repository parsed288 ToAd production,
+397 tests,41 tools,324 Core and249 Textual production/460 tests; zero omissions.
+All11 related declaration/call sites are in OWNER-BEFORE.json.
+After at determining `1fbe1f09`, the same complete roots parse with zero
+omissions. OWNER-AFTER.json records zero private formatter consumers anywhere
+in Toad production, tests or tools. Native consumers retain their existing owner.
+
+SOURCE-CHECK.json records syntax compilation and the original audit measure
+comparison. No positive structural counters. The first authored audit call
+omitted its required path argument; that negative is retained in the receipt.
+
+Native70 is a source dependency only. Source checks do not qualify an installed
+path picker, useful first paint, moving frames, CPU or speed. No App, package,
+wheel, prefix import, capture or provider operation belongs to this checkpoint.
+Final native public projection controls remain Kepler's native owner scope;
+the next changed installed frame cohort is separate from the frozen460 purpose.
+
+Kepler's source review found the initial rules-union counterexample:
+`Visual.to_strips` passes a Styles resource, not necessarily a dictionary.
+That original resource supports rule reads but not dictionary union. The final
+PathContent supplies its exact four authored rules without reading or copying
+foreign Styles. RULE-OWNER-CORRECTION.json preserves the initial negative source
+and final compile/measure evidence. The original before/check/after records stay
+historical; no runtime cause or acceptance is inferred from this source finding.
+
+The final focused source control uses the actual native `Widget.styles`
+RenderStyles producer, the unchanged real PathContent constructor, wide
+characters, selection, links and post style. Widths9/60 and heights0/1/3/-1/None
+preserve the complete render's original segments/cell metadata; zero width is
+empty. Source02 PASS (one unittest with ten subcases,1.294s controller/.005s test).
+Source01 failed before the test because the source command omitted Core's
+original declaration dependency. Both raw command/log receipts are retained;
+adding the already audited Core source path changed no product or assertion.
+System interpreter and existing dependencies only; no holder or App.
