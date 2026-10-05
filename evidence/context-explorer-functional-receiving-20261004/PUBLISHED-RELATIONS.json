@@ -1,0 +1,149 @@
+{
+  "state": "SOURCE PLAN ONLY; functional627/434/663 actually merged and retained wheels verified; separate449 Draft; no activation/grant/executable operands",
+  "public_baseline": {
+    "toad_main": "3dc801984c211d2739c4c96c5907e068cd25820c",
+    "core": "a38c06de24315fa868de45786e01fefadb0aaef1",
+    "native_manifest": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
+    "native_tree": "dbc88ed9231d1275da3ce218aa8919a247e41ce1f010ce765e7ac0960193f4ac",
+    "coordination_schema": 9,
+    "role": "PUBLIC334447; never a staging or rollback slot"
+  },
+  "provisional_published_sources": {
+    "core_docs": "e5f3811b5fd94d69cffe48ec76311afc687d8b08",
+    "core_product": "3aacd708fb9c699cc80c6b864e0ae8cf9ccff7f8",
+    "toad_docs": "75d5f0a06aa076e4784dfbfdc6d2a37850b6c4aa",
+    "toad_product": "76ec05358b0ef790d10746e49ee0f09c036e2baa",
+    "carry_docs": "1143be3954226c5b7a049f5153ec93bbe73feb77",
+    "status": "original frozen producer/acceptance sources retained; actual normal main relations bound below",
+    "normal_carry_union": "Actually merged663781b/Core6279c; selected actualCoremain0a package/buildinputs/runtime/tools equal qualified producer and carry",
+    "annotation_address_successor": {
+      "docs": "8473d4beeca3c0f15f2e599beb0c2c9be2602829",
+      "determining_product": "494d21d3e5bafadc9626e02f9d7b8dd8d9a14420",
+      "status": "separate Einstein successor; source nativeTree1.44s PASS; narrow installed-owner qualification and actual merge unbound",
+      "normal_main_join": "c160c05b193b13add79c881a2129e13747e40cd1",
+      "normal_main_join_relation": "src/tests/tools/pins ZERO vs8473; still Draft/unmerged/installed-owner pending"
+    }
+  },
+  "retained_feature_wheels": [
+    {
+      "source": "3aacd708fb9c699cc80c6b864e0ae8cf9ccff7f8",
+      "path": "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-historical-main3aac-source/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "0ed358e9a1d845f3fdceca138d0f2fa02824ac61161b3d8ba9a5e32b1cc3b6e3",
+      "package_members": 355
+    },
+    {
+      "source": "76ec05358b0ef790d10746e49ee0f09c036e2baa",
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-historical-main76ec-source/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "e414911627406bee6654171ee5796779a476358279770f1193d930131b0b6a4e",
+      "package_members": 319
+    }
+  ],
+  "raw_public_to_feature_package_delta": {
+    "Core": {
+      "old_members": 347,
+      "new_members": 355,
+      "added": 8,
+      "changed_existing": 23,
+      "removed": 0
+    },
+    "Toad": {
+      "old_members": 319,
+      "new_members": 319,
+      "added": 0,
+      "changed_existing": 4,
+      "removed": 0,
+      "changed": [
+        "acp/comms_updates.py",
+        "core/context_inspection.py",
+        "widgets/context_explorer.py",
+        "widgets/conversation.py"
+      ]
+    }
+  },
+  "native_target": {
+    "manifest": "7a2e4aabdbc5af49dd9af942190d92086df2eb3489903674a74af51cf831cd33",
+    "tree": "0d7ff54a04d4f0ff175fc889e936ca3cea8b1f98eb8b73ed6215c3373cbd984d",
+    "coordination_schema": 10,
+    "keeper": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+    "execution_authority": "closed; retention alone grants no new execution"
+  },
+  "distinct_accepted_scopes": {
+    "historical_current_tuple": "30.217576351948082s terminal0, original registered historical ReferenceNode read/search/export plus separate local USER/defaultOFF/schema10; zero inputs/providers; original handback4d895e7c",
+    "authentic_earlier_tuple": "23.123123663s terminal0, original sealed527f/two spans/AnnotationNode reader/GUI USER ACP/effective Obeys and Promised reread; original earlier source tuple remains determining; no receipt rebase or repeat",
+    "stopped_schema_carry": {
+      "head": "1143be3954226c5b7a049f5153ec93bbe73feb77",
+      "tools": "88e8d2f9983df69de876401abf0d3ec506235985",
+      "scope": "one genuine installed schema9 declaration child and authored stopped-copy carry; 4.738188295s PASS, five refusals, empty annotation members, original row identities/preimages/wire/config/proofs/journal absence preserved",
+      "receipt_sha256": "48236fe4fbb5d604662afa153bdb208a0e054e6db79e7f6b7a2b06ab964dfb65",
+      "source_and_target_READ": "returned; both carry-only purposes independently CLOSED, no next loan",
+      "merged_head": "781b20e4189efb47cd44ac6f11a74f580884c9af",
+      "public_cutover_qualified": false,
+      "independent_closure": {
+        "source_lifecycle_sha256": "6c3e975cda92a8b9ff60fe3b7299af1f73a47e85d5ae7920cfce013abbf2540c",
+        "target_lifecycle_sha256": "ea6545524a904c830ed34c1cc01477d04e6ffe6ee5ce732941f132b8db4b7ac5",
+        "readback_sha256": "f332324156ef3198876bc803689656c4653ac768a1c492664926c19ced63e59a",
+        "census_sha256": "aa93e9704455f08936f7bcd0435964cb39b000765eb2833a4bc0ecdaa7995c20",
+        "UID_count": 219,
+        "actual_refs": 0,
+        "permission_gaps": 0,
+        "restored_floor_members": 1469,
+        "restored_origins": 69,
+        "protected_originals": 519
+      }
+    }
+  },
+  "runtime_member_intent": "CarryNativeRuntimeInstallation using authentic current source NativeSchemaDeclaration and future merged target; PreserveOwnerRuntime; neither Reset nor schema-preserving runtime member",
+  "unbound": {
+    "eligible_holder": null,
+    "fresh_issued_grant": null,
+    "installed_source_proof": null,
+    "own_candidate_activation": null,
+    "exact_original_source_declaration": null,
+    "exact_target_declaration": null,
+    "checkpoint_relation": null,
+    "stopped_carry_candidate": null,
+    "publication_receipt": null,
+    "publication_preimages": null,
+    "execute_argv": null,
+    "readback_argv": null,
+    "merged_annotation_address_head": null
+  },
+  "no_authority_from_source_plan": [
+    "no package or prefix access",
+    "no operator copy",
+    "no public route/root read or guard",
+    "no artifact build/copy or SDK/App/provider/input",
+    "no holder reservation or lease",
+    "no unmerged source folded into ordinary delivery"
+  ],
+  "prospective_address_successor_wheel": {
+    "source": "486fb2134a69ebb4cb78831e35fb89a2a45ffac6",
+    "product": "494d21d3e5bafadc9626e02f9d7b8dd8d9a14420",
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/annotation-address-successor/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "1a8ad3507b6a567a203d16eac55e3ef53d5f04526b106b6aa41599f93cfd1b16",
+    "proof_sha256": "5570f891343fd6f6f026f72f026a41960cb9bc2e1e88c81191244e4afe67391a",
+    "package_members": 319,
+    "versus_accepted_e414": [
+      "core/context_inspection.py"
+    ],
+    "old_e414_role": "original historical acceptance, not successor equality",
+    "versus_public7e6": "same319/no additions or removals/same4 changed filenames; directly compared rawZIP",
+    "installed_acceptance": null
+  },
+  "merged_source_bindings": {
+    "core": "0a600a2b0287c5fbfef907e6e623652c587f66df",
+    "core_627_merge": "9c0888db3094be85223063af66d1108c4c100216",
+    "toad": "262875cbd6b54bf0b6f93edfe237a8d7facfc67b",
+    "carry": "781b20e4189efb47cd44ac6f11a74f580884c9af",
+    "retained_wheel_relation": {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/context-explorer-functional-receiving-20261004/MERGED-SOURCE-WHEEL-RELATION.json",
+      "sha256": "44e61830d538e395ef1d30c958723f4c6424f21c4032ffea74a82c10856ba8ae"
+    },
+    "canonical51_source_identity_manifest": {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/context-explorer-functional-receiving-20261004/MERGED-CANONICAL-SOURCE-MANIFEST.json",
+      "sha256": "3245b0da7ecfcd7f9a451b3be9d489906738a4cf4d8926fdbe1004b13f65c382"
+    },
+    "canonical_operator_copy": null,
+    "Toad_declared_Core_locator_preserved": "3aacd708fb9c699cc80c6b864e0ae8cf9ccff7f8"
+  }
+}

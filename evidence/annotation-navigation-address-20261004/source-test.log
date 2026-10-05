@@ -1,0 +1,11 @@
+SOURCE IMPORTS /home/ts/wt/comms-field-codec-closure-20260928/src/agent_comms/__init__.py /home/ts/wt/toad-regression-widget-cost-20261001/src/toad/__init__.py /home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native59-filewheel-20261004/textual-8.2.8-py3-none-any.whl/textual/__init__.py /home/ts/.cache/uv/archive-v0/mNatOBGB9uuf-bXB/acp/__init__.py
+F                                                                        [100%]
+=================================== FAILURES ===================================
+________ test_overlapping_annotation_addresses_restore_their_own_range _________
+tests/test_context_annotation_identity.py:24: in test_overlapping_annotation_addresses_restore_their_own_range
+    owner = Thread("authored-navigation", created_at=1.0)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: Thread.__init__() missing 2 required positional arguments: 'tags' and 'worktree'
+=========================== short test summary info ============================
+FAILED tests/test_context_annotation_identity.py::test_overlapping_annotation_addresses_restore_their_own_range
+1 failed in 1.22s

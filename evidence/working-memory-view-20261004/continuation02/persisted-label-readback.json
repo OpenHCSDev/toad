@@ -1,0 +1,118 @@
+{
+  "scope": "Read-only authored synthetic source/table ownership; system Python with owned Core source and retained NRA wheel only, no holder/runtime/native/App/codec alternative",
+  "request": "527f6dcf-963f-4a91-95a3-f0d6ca38aff8",
+  "incarnation": {
+    "name": "project",
+    "created_at": 1791153029.938912
+  },
+  "rows": [
+    {
+      "kind": "span_annotations",
+      "label": {
+        "kind": "model",
+        "span": {
+          "segment_sha256": "ce6b554c56bd069eba0e464a1e8d78623b58cf6feda8403d95836094d747c354",
+          "coordinates": {
+            "kind": "system_layer",
+            "provenance": [
+              {
+                "kind": "file",
+                "path": "/home/ts/wt/w6gui01/test_authentic_recorded_annota0/authored-system.txt",
+                "sha256": "d54d5f90cc6903d865fc3b78f6c8c4e4f5d904e15014d2c8bca0570dc28755a8"
+              }
+            ],
+            "offset": 0,
+            "length": 35,
+            "sha256": "01df73f0e750a1a10daae2baa8bceff89d536c36d40c5663e13480a0118b0ce4"
+          }
+        },
+        "question": {
+          "question": "kind",
+          "sha256": "e9cde65a3b92d49c8d6d40ad5d24da08197f5885d61f2a2393bd73dbe35d8fce"
+        },
+        "answer": "rule_span",
+        "classifier": {
+          "classifier": "jev",
+          "pin": "typesafe/jev-1.13"
+        },
+        "probabilities": [
+          {
+            "answer": "rule_span",
+            "probability": 0.7
+          },
+          {
+            "answer": "commitment_span",
+            "probability": 0.2
+          },
+          {
+            "answer": "other_span",
+            "probability": 0.1
+          }
+        ],
+        "confidence": 0.8,
+        "request_id": "authored-local-control-0",
+        "returned_model": "typesafe/jev-1.13"
+      },
+      "created_at_ms": 1791156976951,
+      "id": 1
+    },
+    {
+      "kind": "span_annotations",
+      "label": {
+        "kind": "model",
+        "span": {
+          "segment_sha256": "ce6b554c56bd069eba0e464a1e8d78623b58cf6feda8403d95836094d747c354",
+          "coordinates": {
+            "kind": "system_layer",
+            "provenance": [
+              {
+                "kind": "file",
+                "path": "/home/ts/wt/w6gui01/test_authentic_recorded_annota0/authored-system.txt",
+                "sha256": "d54d5f90cc6903d865fc3b78f6c8c4e4f5d904e15014d2c8bca0570dc28755a8"
+              }
+            ],
+            "offset": 36,
+            "length": 28,
+            "sha256": "28340c84794585e5bb0622cbe58308675c01ef180734cc4175f8a7405ad4d2d4"
+          }
+        },
+        "question": {
+          "question": "kind",
+          "sha256": "e9cde65a3b92d49c8d6d40ad5d24da08197f5885d61f2a2393bd73dbe35d8fce"
+        },
+        "answer": "rule_span",
+        "classifier": {
+          "classifier": "jev",
+          "pin": "typesafe/jev-1.13"
+        },
+        "probabilities": [
+          {
+            "answer": "rule_span",
+            "probability": 0.7
+          },
+          {
+            "answer": "commitment_span",
+            "probability": 0.2
+          },
+          {
+            "answer": "other_span",
+            "probability": 0.1
+          }
+        ],
+        "confidence": 0.8,
+        "request_id": "authored-local-control-1",
+        "returned_model": "typesafe/jev-1.13"
+      },
+      "created_at_ms": 1791156976957,
+      "id": 2
+    }
+  ],
+  "annotation_requests": 0,
+  "human_labels": 0,
+  "source_session_inputproof_unchanged": {
+    "source": true,
+    "native_session": true,
+    "input_proof": true
+  },
+  "next_consumer": "Existing GUI reads these original rows by WorkingMemoryAnnotations.labels at full span/question/classifier address. No empty-store assertion/recreation/deletion/reinsert."
+}

@@ -1,0 +1,97 @@
+{
+  "state": "SOURCE ONLY actual merged Git/retained original ZIP relation; no installed proof or grant",
+  "core_627_merge": "9c0888db3094be85223063af66d1108c4c100216",
+  "core_selected_actual_main": "0a600a2b0287c5fbfef907e6e623652c587f66df",
+  "core_663_merge": "781b20e4189efb47cd44ac6f11a74f580884c9af",
+  "toad_434_merge": "262875cbd6b54bf0b6f93edfe237a8d7facfc67b",
+  "core_627_to_selected_runtime_and_tools_delta": [],
+  "relations": [
+    {
+      "package": "Core",
+      "actual_merged_head": "0a600a2b0287c5fbfef907e6e623652c587f66df",
+      "producer_source": "3aacd708fb9c699cc80c6b864e0ae8cf9ccff7f8",
+      "producer_proof": "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-historical-main3aac-source/source-proof.json",
+      "producer_proof_sha256": "8d0205a430a006157f7616d7c88da838ee7f663256a49aa14e49eb71effd83e7",
+      "wheel": "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-historical-main3aac-source/agent_comms-0.1.0-py3-none-any.whl",
+      "wheel_sha256": "0ed358e9a1d845f3fdceca138d0f2fa02824ac61161b3d8ba9a5e32b1cc3b6e3",
+      "assets_verified_Git_ZIP_original_proof": 355,
+      "exact_package_members": true,
+      "build_inputs_diff": [],
+      "metadata_members": [
+        {
+          "path": "agent_comms-0.1.0.dist-info/METADATA",
+          "sha256": "9a02a0a276afadd2f609acae02a93606f53d85a904f40f0ef162f9ceafa1fc0c",
+          "bytes": 5673
+        },
+        {
+          "path": "agent_comms-0.1.0.dist-info/RECORD",
+          "sha256": "693f4c65cad654841708f6e9401050c64b63c92c9157ff1f8b3626908c20a188",
+          "bytes": 32173
+        },
+        {
+          "path": "agent_comms-0.1.0.dist-info/WHEEL",
+          "sha256": "58b82a17209f9bf2804afe161f2632d0fde933f9bb2792fd936b2474a2e2ac2f",
+          "bytes": 87
+        },
+        {
+          "path": "agent_comms-0.1.0.dist-info/entry_points.txt",
+          "sha256": "6e56bfd47c28174d7978791d6e7673645c69cb06141e3306961b4a88fac53a72",
+          "bytes": 292
+        },
+        {
+          "path": "agent_comms-0.1.0.dist-info/licenses/LICENSE",
+          "sha256": "1fe81c33f0cdfbcea8ce2fa4bf5cc98604be54a954ff7c59cea0ff02e3c15741",
+          "bytes": 1070
+        }
+      ],
+      "RECORD_rows_verified": 360,
+      "truthful_relation": "Retained normal file wheel and separate actual merged Git equality; no invented VCS origin",
+      "installed_prefix_read": false
+    },
+    {
+      "package": "Toad",
+      "actual_merged_head": "262875cbd6b54bf0b6f93edfe237a8d7facfc67b",
+      "producer_source": "76ec05358b0ef790d10746e49ee0f09c036e2baa",
+      "producer_proof": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-historical-main76ec-source/source-proof.json",
+      "producer_proof_sha256": "32467d21cc876a3a021f5f9da168fe07837fea04655f6bc90093d85b974b78b3",
+      "wheel": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-historical-main76ec-source/batrachian_toad-0.6.20-py3-none-any.whl",
+      "wheel_sha256": "e414911627406bee6654171ee5796779a476358279770f1193d930131b0b6a4e",
+      "assets_verified_Git_ZIP_original_proof": 319,
+      "exact_package_members": true,
+      "build_inputs_diff": [],
+      "metadata_members": [
+        {
+          "path": "batrachian_toad-0.6.20.dist-info/METADATA",
+          "sha256": "3fde2bfef1346f91a2bad2c6dfbca28a40710dc38ca987f66266a6064c3c43ee",
+          "bytes": 13336
+        },
+        {
+          "path": "batrachian_toad-0.6.20.dist-info/RECORD",
+          "sha256": "e2b70f8c9d41a5302d75f2e7a10a636fe1bdf20399b219aa84780b4f9e412fee",
+          "bytes": 26883
+        },
+        {
+          "path": "batrachian_toad-0.6.20.dist-info/WHEEL",
+          "sha256": "58b82a17209f9bf2804afe161f2632d0fde933f9bb2792fd936b2474a2e2ac2f",
+          "bytes": 87
+        },
+        {
+          "path": "batrachian_toad-0.6.20.dist-info/entry_points.txt",
+          "sha256": "12cacbee8134076f2a99542ab81f8682c88f39cbea62228e9c3b950d319d4528",
+          "bytes": 39
+        },
+        {
+          "path": "batrachian_toad-0.6.20.dist-info/licenses/LICENSE",
+          "sha256": "4df3c306dddaaf4baffdff5ca820cc679ac8cd6dc263c6a74517783e42fa7a3b",
+          "bytes": 34522
+        }
+      ],
+      "RECORD_rows_verified": 324,
+      "truthful_relation": "Retained normal file wheel and separate actual merged Git equality; no invented VCS origin",
+      "installed_prefix_read": false
+    }
+  ],
+  "Toad_declared_Core_locator": "3aacd708fb9c699cc80c6b864e0ae8cf9ccff7f8",
+  "build_metadata_preserved": true,
+  "annotation_449": "Separate unmerged candidate1a8; installed-owner qualification pending; not e414 equality"
+}

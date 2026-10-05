@@ -24,6 +24,7 @@ from typing import TYPE_CHECKING, Any, Callable, Literal
 
 from agent_comms import agent_events as comms_events
 from agent_comms.acp_extension import (
+    ContextAnnotatedUpdate,
     CompactionChangedUpdate,
     CompactionPublishedUpdate,
     CoordinationChangedUpdate,
@@ -2171,6 +2172,12 @@ class ConversationCommsConsumer(MroDispatch):
     def __init__(self, conversation, message):
         self.conversation = conversation
         self.message = message
+
+    @handles(ContextAnnotatedUpdate)
+    async def context_annotated(self, update):
+        # The existing route/revision observer already owns coordinator DB/WAL
+        # invalidation. Acquire its committed source, never copy event labels.
+        self.conversation.app.coordination_access.refresh()
 
     @handles(CoordinationChangedUpdate)
     async def coordination_changed(self, update: CoordinationChangedUpdate):

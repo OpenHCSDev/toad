@@ -1,0 +1,10 @@
+{
+  "identity": {
+    "pid": 2710715,
+    "start_time": 63587712
+  },
+  "start": 635877.121728055,
+  "stdout": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-authentic-gui-continuation03/stdout.log",
+  "stderr": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-authentic-gui-continuation03/stderr.log",
+  "owner": "originalBoundedRun/AttachedChild"
+}

@@ -1,0 +1,52 @@
+{
+  "state": "PREPARED SOURCE ONLY. No issued holder/native-input purpose or execution authority",
+  "source": "bee4062ee72f17ccd345f9ba508e72e0c2fc0b1d",
+  "control": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/test_context_manifest_navigation.py::test_authentic_recorded_annotation_gui_correction",
+  "control_sha256": "aaf668c31c0286b8f04207282eda6c1e3d6f55d198a181cea0a4ebdcf1847a9d",
+  "wheels": [
+    {
+      "source": "759c821e4cf937d2872a7f7b7a8613f5eb3119aa",
+      "wheel": "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-w6-attachment-successor-source/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "ab640f006531a4b45515d1c6319217c2ed010532e37c20d42ac7101b9017b072",
+      "bytes": 901520,
+      "assets": 355,
+      "inventory": "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-w6-attachment-successor-source/source-proof.json",
+      "inventory_sha256": "0f84f3ecef6c73336086502ae11aa70f2a94d3b648c39754f14048eb67818469"
+    },
+    {
+      "source": "bee4062ee72f17ccd345f9ba508e72e0c2fc0b1d",
+      "wheel": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-gui-prepared-sourcebee4/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "57bf33d9195f70314e4c0d5e20738a3559ba73ca9f737c2c05fb8bb3d00b3c94",
+      "bytes": 2249267,
+      "assets": 319,
+      "inventory": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-gui-prepared-sourcebee4/source-proof.json",
+      "inventory_sha256": "2494f885ab4945a9b2fccfba98bdad037038616ffb20ac301894fabbc4590d9f"
+    }
+  ],
+  "normal_main_union": "Toad b57d03e5 retained441; feature Core759c already contains main5c110, verified ancestor; Text pin180c unchanged",
+  "product_delta_from_old_69ccc": "Existing ContextNode/AnnotationSourceNode own addressed descendant path; ContextTree.reveal and intent.restore materialize original selection across section refinement. Annotation child view keys distinct per parent, original manifest/contributor reader borrowed. Two original production owners changed; old13e2 and intermediate6e4/70e2 wheels are not current-union source-equal",
+  "planned_fixture": "/home/ts/wt/w6gui01",
+  "planned_output": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-authentic-gui-installed01",
+  "planned_pytest_args": [
+    "-o",
+    "addopts=",
+    "--noconftest",
+    "--basetemp",
+    "/home/ts/wt/w6gui01",
+    "-s",
+    "-q",
+    "--tb=short",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/tests/test_context_manifest_navigation.py::test_authentic_recorded_annotation_gui_correction"
+  ],
+  "original_runner": "Original BoundedRun.session/AttachedChild, one90s supervised App, joined stdout/stderr/child groups; actual eligible prefix determined ONLY by future issued purpose",
+  "fixture_imports": "Original unchanged Core tests/native_backend_fixture.py, compaction_loopback.py and Toad tests/runtime_fixture.py. Append system pytest/owned helper test paths after installed application paths; no application source import overlay",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+  "native_manifest": "7a2e4aabdbc5af49dd9af942190d92086df2eb3489903674a74af51cf831cd33",
+  "native_tree": "0d7ff54a04d4f0ff175fc889e936ca3cea8b1f98eb8b73ed6215c3373cbd984d",
+  "requested_scope": "ONE future authored controlled-localhost ACP native input through original open_owner with --no-tools --system-prompt authored-system.txt (original isolation flags retained). Actual sealed request/assembly source spans/contains_span, two explicitly controlled stored uncalibrated labels, mounted original AnnotationNode GUI USER corrections to Obeys/Promised via ACP and effective HumanLabel refresh",
+  "proof_limits": "No historical ReferenceNode App PASS, no previous90s cause/native fault, no external classification/calibration, no W7/disclosure/defaultON qualification. Historical03/04/90s negatives immutable and historical read/search/export remain separate unfinished acceptance",
+  "grant_requirements": "Future Bohr specific eligible existing full69 PACKAGE/import/read/execution purpose expressly allowing ONE authored localhost native input, plus separate Sch7a READ/execution renewal. Heis442 exclusive until actual wholehandback; no reservation, public or prefix access assumed",
+  "closure": "Exact actually issued floor normal no-cache filewheel restore, including original NRA8f61 byte readback; joined App/ACP/native/socket/server/worker/groups and independent Bohr wholefloor/readback/borrower closure, explicit Sch7a execution return",
+  "source_validation": "Original Package Toad288 parsed0omissions, related owner+lexical consumers above; changed files syntax source-checked. No collection/App/native/SDK run; filewheel319 Git/local/ZIP exact",
+  "exclusions": "No actual Codex/saved-user/public source, UNKNOWN replay/carry/reset, external Jev/provider/model, fork/movie/newenv/nativecopy/build/SDKsixcase repeat or shared helper edits"
+}

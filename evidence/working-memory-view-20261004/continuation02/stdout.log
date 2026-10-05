@@ -1,0 +1,53 @@
+{"application_imports": ["/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/agent_comms/__init__.py", "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/__init__.py", "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/textual/__init__.py"], "test_runner": "/usr/lib/python3.14/site-packages/pytest/__init__.py"}
+W6 GUI: acquired preserved authentic request; ZERO new input
+F
+=================================== FAILURES ===================================
+_____________ test_authentic_recorded_annotation_gui_continuation ______________
+tests/test_context_manifest_navigation.py:621: in test_authentic_recorded_annotation_gui_continuation
+    asyncio.run(mounted())
+../../.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py:204: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../../.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py:127: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py:719: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_context_manifest_navigation.py:608: in mounted
+    await inspect_authentic_annotation_gui(controller, owned.name,
+tests/test_context_manifest_navigation.py:426: in inspect_authentic_annotation_gui
+    await select_context_source(pilot, tree, model.key)
+tests/test_context_manifest_navigation.py:48: in select_context_source
+    assert tree.cursor_node is node and pilot.app.focused is tree
+E   AssertionError: assert (TreeNode('Context', None) is TreeNode('Kind · Rule Span · typesafe/jev-1.13 · probability 0.700 · confidence 0.800', AnnotationNode(key='turn/23811...='authored-local-control-1', returned_model='typesafe/jev-1.13')), imported_sources=()), position=0, contributors=()))))
+E    +  where TreeNode('Context', None) = ContextTree(id='context-tree').cursor_node
+------------------------------ Captured log call -------------------------------
+ERROR    asyncio:base_events.py:1875 UnregisteredThreadError exception in shielded future
+future: <Task finished name='preparation-thread' coro=<to_thread() done, defined at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/threads.py:12> exception=UnregisteredThreadError("Thread '' is not registered.")>
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/agent_comms/registry_provenance.py", line 31, in require
+    return self.threads[canonical]
+           ~~~~~~~~~~~~^^^^^^^^^^^
+KeyError: ''
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/threads.py", line 25, in to_thread
+    return await loop.run_in_executor(None, func_call)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/target_commands.py", line 43, in available_actions
+    actions = CliCommand.target_catalog(self.comms, self.subject, self.channel, project=str(self.project))
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/agent_comms/cli_commands.py", line 284, in target_catalog
+    thread = snapshot.require(target)
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/agent_comms/registry_provenance.py", line 33, in require
+    raise UnregisteredThreadError(f"Thread {canonical!r} is not registered.") from error
+agent_comms.errors.UnregisteredThreadError: Thread '' is not registered.
+=========================== short test summary info ============================
+FAILED tests/test_context_manifest_navigation.py::test_authentic_recorded_annotation_gui_continuation
+1 failed in 15.73s

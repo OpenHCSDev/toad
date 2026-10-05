@@ -1,0 +1,10 @@
+{
+  "elapsed": 22.254975423100404,
+  "returncode": 1,
+  "timed_out": false,
+  "error": null,
+  "child_retired": true,
+  "owned_group_members": [],
+  "scope": "One changed authored historical App, not full W6",
+  "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-EinsteinW6-historical04-Core627-Toad434-issued-grant.json"
+}

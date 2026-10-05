@@ -1,0 +1,409 @@
+{
+  "source": "bee4062ee72f17ccd345f9ba508e72e0c2fc0b1d",
+  "collector": "Original audit.findings.Package / FunctionFacts; no new parser",
+  "coverage": [
+    {
+      "repo": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "root": "src/toad",
+      "head": "bee4062ee72f17ccd345f9ba508e72e0c2fc0b1d",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "23f8655e222a4447f63f101151678e2f5d655c1e",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/comms-field-codec-closure-20260928",
+      "head": "9fb7f6db368e90f62e13fd598836223231554800",
+      "root": "src/agent_comms",
+      "modules": 324,
+      "omissions": []
+    }
+  ],
+  "dependency_evidence": "Unchanged dependency coverage reused from before; not a repeated dynamic-resolution proof",
+  "members": [
+    {
+      "member": "src/toad/core/context_inspection.py::children",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/core/context_inspection.py::reader_path",
+      "lines": 10,
+      "calls": [
+        "children",
+        "reader_path",
+        "startswith"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/core/context_inspection.py::correct",
+      "lines": 2,
+      "calls": [
+        "ValueError"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/core/context_inspection.py::read",
+      "lines": 2,
+      "calls": [
+        "run_worker"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/core/context_inspection.py::read",
+      "lines": 3,
+      "calls": [
+        "read_source"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/core/context_inspection.py::children",
+      "lines": 7,
+      "calls": [
+        "ManifestNode",
+        "ReferenceNode",
+        "enumerate"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/core/context_inspection.py::children",
+      "lines": 4,
+      "calls": [
+        "RecordedSegmentNode",
+        "len",
+        "range",
+        "tuple"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/core/context_inspection.py::children",
+      "lines": 11,
+      "calls": [
+        "RecordedSegmentNode",
+        "ReferenceNode",
+        "enumerate",
+        "len",
+        "partial",
+        "range"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/core/context_inspection.py::source_text",
+      "lines": 3,
+      "calls": [
+        "recorded_segment"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/core/context_inspection.py::read",
+      "lines": 3,
+      "calls": [
+        "source_text"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/core/context_inspection.py::children",
+      "lines": 5,
+      "calls": [
+        "replace"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/core/context_inspection.py::read",
+      "lines": 3,
+      "calls": [
+        "describe_original",
+        "source_text"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/core/context_inspection.py::correct",
+      "lines": 3,
+      "calls": [
+        "correct_annotation"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/core/context_inspection.py::children",
+      "lines": 2,
+      "calls": [],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/core/context_inspection.py::reader_path",
+      "lines": 8,
+      "calls": [
+        "reader_path",
+        "super"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/core/context_inspection.py::children",
+      "lines": 7,
+      "calls": [
+        "ManifestNode",
+        "ReferenceNode",
+        "contributor_manifests",
+        "enumerate"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/core/context_inspection.py::children",
+      "lines": 5,
+      "calls": [
+        "NativeMessageRange",
+        "children",
+        "len",
+        "min",
+        "range",
+        "super"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/core/context_inspection.py::children",
+      "lines": 5,
+      "calls": [
+        "NativeMessageNode",
+        "from_wire",
+        "range",
+        "tuple"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/core/context_inspection.py::read",
+      "lines": 7,
+      "calls": [
+        "cls",
+        "context_manifests",
+        "for_context",
+        "observe",
+        "require",
+        "sources_for_owner",
+        "version"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/core/context_inspection.py::working_memory",
+      "lines": 25,
+      "calls": [
+        "AnnotationNode",
+        "AnnotationSourceNode",
+        "append",
+        "children",
+        "contains_span",
+        "items",
+        "original_segments",
+        "recorded",
+        "setdefault",
+        "tuple",
+        "values"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/core/context_inspection.py::correct_annotation",
+      "lines": 7,
+      "calls": [
+        "_request",
+        "decode",
+        "encode",
+        "require_request_id",
+        "str"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/core/context_inspection.py::read",
+      "lines": 2,
+      "calls": [
+        "_find_public",
+        "islice",
+        "tuple"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/widgets/context_explorer.py::restore",
+      "lines": 9,
+      "calls": [
+        "resolve",
+        "restore_node"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/widgets/context_explorer.py::restore_reader",
+      "lines": 11,
+      "calls": [
+        "_expand",
+        "expand",
+        "extend",
+        "list",
+        "pop",
+        "prevent",
+        "restore",
+        "show_placeholder",
+        "values"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/widgets/context_explorer.py::reveal",
+      "lines": 22,
+      "calls": [
+        "_expand",
+        "expand",
+        "get",
+        "prevent",
+        "reader_path",
+        "tuple",
+        "values"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/widgets/context_explorer.py::_reveal_restored",
+      "lines": 4,
+      "calls": [
+        "call_after_refresh"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/widgets/context_explorer.py::_restore_cursor",
+      "lines": 6,
+      "calls": [
+        "get",
+        "move_cursor",
+        "owns_node",
+        "prevent",
+        "show_detail"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/widgets/context_explorer.py::_correct_annotation",
+      "lines": 13,
+      "calls": [
+        "_read",
+        "_selected",
+        "correct",
+        "notify",
+        "query_ancestor",
+        "work"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/widgets/context_explorer.py::_present",
+      "lines": 6,
+      "calls": [
+        "_search",
+        "cancel_group",
+        "groups",
+        "present",
+        "query_one"
+      ],
+      "literal_keys": {}
+    },
+    {
+      "member": "src/toad/widgets/context_explorer.py::node_highlighted",
+      "lines": 7,
+      "calls": [
+        "_show_detail",
+        "cancel_group",
+        "on",
+        "owns_node",
+        "query_one",
+        "stop"
+      ],
+      "literal_keys": {}
+    }
+  ],
+  "lexical_consumers": [
+    {
+      "member": "src/toad/core/context_inspection.py::reader_path",
+      "calls": [
+        "reader_path"
+      ]
+    },
+    {
+      "member": "src/toad/core/context_inspection.py::correct",
+      "calls": [
+        "correct_annotation"
+      ]
+    },
+    {
+      "member": "src/toad/core/context_inspection.py::reader_path",
+      "calls": [
+        "reader_path"
+      ]
+    },
+    {
+      "member": "src/toad/core/context_inspection.py::groups",
+      "calls": [
+        "working_memory"
+      ]
+    },
+    {
+      "member": "src/toad/screens/comms.py::action_show_sidebar",
+      "calls": [
+        "reveal"
+      ]
+    },
+    {
+      "member": "src/toad/screens/main.py::action_show_sidebar",
+      "calls": [
+        "reveal"
+      ]
+    },
+    {
+      "member": "src/toad/session_navigation.py::reveal",
+      "calls": [
+        "reveal"
+      ]
+    },
+    {
+      "member": "src/toad/widgets/context_explorer.py::present",
+      "calls": [
+        "restore_reader"
+      ]
+    },
+    {
+      "member": "src/toad/widgets/context_explorer.py::search_results",
+      "calls": [
+        "restore_reader"
+      ]
+    },
+    {
+      "member": "src/toad/widgets/context_explorer.py::reveal",
+      "calls": [
+        "reader_path"
+      ]
+    }
+  ],
+  "ambiguity": "FunctionFacts collects lexical method names. Dynamic receivers and native event dispatch are read semantically; these rows do not prove runtime resolution. AnnotationNode navigation projections preserve original manifest/inspection/position/contributors reader fields."
+}

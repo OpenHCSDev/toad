@@ -1,0 +1,28 @@
+{
+  "state": "Owner WHOLE handback; independent fresh privileged verification requested",
+  "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-EinsteinW6-attachment-Core627-Toad434-issued-grant.json",
+  "grant_sha256": "0588855f729c5b36f41d77f85bd41285447a3d26458d8343d47095fc4996551c",
+  "terminal": {
+    "elapsed": 22.963988172006793,
+    "returncode": 1,
+    "timed_out": false,
+    "error": null,
+    "child_retired": true,
+    "owned_group_members": [],
+    "scope": "One changed authored historical App, not full W6",
+    "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-EinsteinW6-attachment-Core627-Toad434-issued-grant.json"
+  },
+  "restore": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-attachment-installed03/restore-receipt.json",
+  "archive_member_restoration": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-attachment-installed03/original-floor-member-restoration.json",
+  "private_readback": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/working-memory-w6-attachment-installed03/private-fixture-readback.json",
+  "diagnostics": "/home/ts/wt/w6e03/test_authored_import_registere0/owner-debug.log",
+  "actual_result": "ACP settlement/root/incarnation/Appmount/reference acquisition reached; focus mismatch beforeEnter; no read/search/export/fullW6PASS",
+  "original90s_cause": "UNKNOWN",
+  "package_import_read_execution_claim": "RETURNED; no further prefix access planned",
+  "native7a_read_execution_claim": "RETURNED; keeper held unchanged",
+  "private_sockets": [],
+  "owned_group_members": [],
+  "controller_join": "original debug log records shutdown joined; original runner identity284141/birth62288635 retired",
+  "source_followup": "Original native focus/FramePresentation/sidebar/Tree/Correct Button lifetimes; no automatic rerun/grant/productguard",
+  "fullW6_remaining": "AnnotationNode Obeys/Promised/exactspan/GUIcorrection refresh still unfinished"
+}

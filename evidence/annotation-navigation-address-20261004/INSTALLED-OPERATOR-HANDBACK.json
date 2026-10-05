@@ -1,0 +1,103 @@
+{
+  "state": "SCOPED PASS; Einstein READ/operator custody RETURNED to Sch/Bohr",
+  "grant_sha256": "679abc6536af1cf1f1046f04d75dfb6cc24f2b19666b0e687c4407536195df3f",
+  "release_lifecycle_sha256": "384d4ac1412be20da15b3a6ecd7877371fb8f0d6e1f377861b039052c28732bd",
+  "control_sha256": "5f131482047d1ec75f56ad69ae46dbc4c30f93128de38d691670b37af2c430d8",
+  "terminal": {
+    "elapsed": 5.404749809997156,
+    "returncode": 0,
+    "timed_out": false,
+    "error": null,
+    "child_retired": true,
+    "owned_group_members": [],
+    "scope": "Installed mounted annotation-address Tree only; no registered ACP/runtime/native journey",
+    "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-SchEinstein449-448-combined-owner-check-receiving-issued-grant.json"
+  },
+  "controller": {
+    "pid": 60294,
+    "birth": 64447377,
+    "exit_code": 0,
+    "elapsed": 6.869642774923705,
+    "proc_absent": true
+  },
+  "child_identity": {
+    "pid": 60296,
+    "start_time": 64447490
+  },
+  "original_App_scope": "Real mounted ContextTree distinct same-offset/different-length annotation keys; HumanLabel section move and remove/remount retain exact short-span selection while longer span remains separately owned. app._exception is None asserted by original test.",
+  "not_claimed": [
+    "registered ACP/runtime/native journey",
+    "physical UI",
+    "new authentic GUI/history acceptance",
+    "provider/input",
+    "full working-memory W7/W8"
+  ],
+  "package_writes": false,
+  "native_artifact_execution": false,
+  "App_workers_joined": "original app.run_test exited and asyncio.run returned in pytest; AttachedChild.stop joins child/group",
+  "owned_groups": [],
+  "owned_controller_and_child_absent": true,
+  "authored_model_removed": true,
+  "removed_generated_files": [
+    "test_overlapping_annotation_ad0/unused-wire/.registry.json.lock"
+  ],
+  "prefix_restoration_owner": "Original Sch ONLY; no Einstein package/floor restoration",
+  "candidate_source_proof_and_DTO_unchanged": true,
+  "receipts": [
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/annotation-address-successor/installed-owner-check/command.json",
+      "sha256": "004257089e6d83af25a4b640eaa260c612a92309d9712cb66e9fccdc64bbced3",
+      "bytes": 1256
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/annotation-address-successor/installed-owner-check/handle.json",
+      "sha256": "191f5f9f5b98465dcbe5629b2f54a22b7b3f84f890496c7061ed416b2dcebaa9",
+      "bytes": 432
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/annotation-address-successor/installed-owner-check/terminal.json",
+      "sha256": "ced9c8b957c1fc248fcb616895d2933f86c932131c55b60d9e5c8723e03423f0",
+      "bytes": 398
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/annotation-address-successor/installed-owner-check/stdout.log",
+      "sha256": "a383f98a8242fe65e48bfc3fe186de718ce4923cdc527d94fc57cd6c251a31bc",
+      "bytes": 570
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/annotation-address-successor/installed-owner-check/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/annotation-address-successor/owner-check-launch.py",
+      "sha256": "40c4d60fd4c99205d349f72e87204d311a3f01b7bfe1f4621f38f79f5a8b9263",
+      "bytes": 3047
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/annotation-address-successor/owner-check-controller-handle.json",
+      "sha256": "c8fc0c2fa2d1b113f1ca005f17dd03c459ae1de0769051a2cf25dea647d8bb46",
+      "bytes": 642
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/annotation-address-successor/owner-check-controller-terminal.json",
+      "sha256": "ca15ee7f9985dc657b3c9846afbfeb13322a344df1905006f8ea4c1d51ca1e80",
+      "bytes": 113
+    },
+    {
+      "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/annotation-address-successor/owner-check-controller.log",
+      "sha256": "60b4534fd9a0d0bf298add06801550b7e02ecc35690ed145f9ef6d58f56ad20a",
+      "bytes": 556
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context-explorer-functional-receiving-20261004/source-proof.json",
+      "sha256": "8a8fd8201d4357e648d55979340bce16ab2d7e89d6db1fbe8f312de1e1cbc578",
+      "bytes": 9930
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/context-explorer-functional-receiving-20261004/candidate-activation.json",
+      "sha256": "113a6293414c95ed040b6b1021cc2f70f66291a3722c755baa5ccb276392f64f",
+      "bytes": 2566
+    }
+  ]
+}

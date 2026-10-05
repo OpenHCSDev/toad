@@ -1,0 +1,29 @@
+{
+  "state": "Scoped installed authentic AnnotationNode GUI PASS; whole floor restored, independent Bohr closure pending",
+  "elapsed_seconds": 23.12312366301194,
+  "pytest": "1 passed in 20.18s",
+  "request": "527f6dcf-963f-4a91-95a3-f0d6ca38aff8",
+  "gui": [
+    "original contained sentence spans read",
+    "painted native node/line/non-toggle cell selection",
+    "GUI declared answers -> ACP/runtime -> original USER HumanLabel",
+    "effective refinement visible and reread under Obeys and Promised"
+  ],
+  "additional_inputs": 0,
+  "providers": 0,
+  "external_annotations": 0,
+  "original_stored_input_proofs": 1,
+  "controlled_labels": "two original persisted uncalibrated ModelLabels, no insertion/reinsertion/deletion",
+  "source_session_inputproof_unchanged": true,
+  "default_OFF": true,
+  "remaining": [
+    "historical ReferenceNode registered App read/search/export",
+    "retained schema9->10 stopped carry installed qualification (Mendel663)",
+    "W7 empirical calibration and W8 external study not executed"
+  ],
+  "no_physical_pixel_or_full_working_memory_claim": true,
+  "carry_target_read_not_granted_or_executed": true,
+  "native_execution_returned": true,
+  "owned_process_retired": true,
+  "owned_groups": []
+}
