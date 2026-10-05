@@ -40,7 +40,7 @@ def response_geometry(conversation):
 async def settled(pilot, view):
     window = view.window
     await until(pilot, lambda: (
-        not window.document_viewport._running
+        window.document_viewport._worker is None
         and window.document_viewport.visible_bodies_ready
         and all(history.state.accepts_source_work
                 for history in window.histories)

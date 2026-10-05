@@ -40,7 +40,7 @@ async def main():
             manager = window.document_viewport
             lookahead = manager.lookahead
             async with asyncio.timeout(10):
-                while any(not body.body_ready for body in docs) or manager._running:
+                while any(not body.body_ready for body in docs) or manager._worker is not None:
                     await pilot.pause(.02)
             window.focus(scroll_visible=False)
             await pilot.press("end")
@@ -81,7 +81,7 @@ async def main():
                 for body in reversed(cohort):
                     body.lock.release()
             async with asyncio.timeout(8):
-                while manager._running or not manager.visible_bodies_ready:
+                while manager._worker is not None or not manager.visible_bodies_ready:
                     await pilot.pause(.01)
             assert all(body.body_ready for body in cohort)
             assert not window.history_lock.locked()

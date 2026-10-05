@@ -41,7 +41,7 @@ async def main():
                 paginate=False) for i in range(24)]
             await view.contents.mount(*docs)
             async with asyncio.timeout(15):
-                while any(not body.body_ready for body in docs) or manager._running:
+                while any(not body.body_ready for body in docs) or manager._worker is not None:
                     await pilot.pause(.02)
             # Freeze the existing resource worker, not the widget trees. Trim
             # has no await between counting and eviction; this is its real DOM.

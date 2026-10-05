@@ -880,7 +880,6 @@ class DocumentViewport:
         self.admitted_bodies = set()
         self.body_evictions = 0
         self._pending = False
-        self._running = False
         self._worker = None
         self._suspended = False
         window.watch(window, "scroll_y", self.scroll_changed, init=False)
@@ -984,8 +983,7 @@ class DocumentViewport:
         if not self.accepts_frame() or not self.window.is_attached or self.window._closing:
             return
         self._pending = True
-        if not self._running:
-            self._running = True
+        if self._worker is None:
             self._worker = self.window.run_worker(partial(self._reconcile), group="viewport-bodies")
 
     def scroll_changed(self, *_args) -> None:
@@ -1164,7 +1162,8 @@ class DocumentViewport:
                     if restored:
                         admitted = self._trim_warm(required=required, ahead=ahead_owners)
         finally:
-            self._running = False
+            if self._worker is get_current_worker():
+                self._worker = None
 
     async def _restore_bodies(
         self, owners: tuple[ViewportBody, ...], anchor: Widget, demand: PreparationDemand,

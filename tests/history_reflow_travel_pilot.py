@@ -46,7 +46,7 @@ async def main():
             await pilot.pause()
             viewport = window.document_viewport
             async with asyncio.timeout(10):
-                while viewport._running or not viewport.visible_bodies_ready:
+                while viewport._worker is not None or not viewport.visible_bodies_ready:
                     await pilot.pause(.02)
             marker = histories[-1]
             window.release_anchor()
