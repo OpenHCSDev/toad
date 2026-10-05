@@ -1,0 +1,37 @@
+{
+  "scope": "Source-only control operand correction; no product, caller, package, runtime, native or second App change.",
+  "preserved_control": {
+    "git": "2d4efb64fceaa9ce2c57dead7ec0477b4b065011:tests/markdown_return_reuse_pilot.py",
+    "sha256": "7f0b3e78ed253e6aec8b8a836908b9fd6dae1b0e6d38ab96e53d498e3b66bd4d"
+  },
+  "original_failure": {
+    "owner": "Heis457 original first App",
+    "reported_seconds": 9.248196679,
+    "reported_strength": "Original27/worker6/session restoration passed; ABABA mounted render cache/file links and async page8..16/filter/copies/cache passed. First get_widget_at before first wheel raised TypeError on float center; no wheel/reversal/End or latency PASS. Project/configured UNRUN; no oldcause/native/product inference. Original raw evidence retained by its owner."
+  },
+  "native_contract": {
+    "source": "textual.geometry.Region.center -> tuple[float,float], explicitly not Offset; Region.offset -> Offset with integer fields; Offset addition preserves integer cell coordinates. Screen.get_widget_at and Pilot mouse offsets consume int cells.",
+    "reviewed_paths": [
+      "src/textual/geometry.py",
+      "src/textual/pilot.py",
+      "src/textual/screen.py",
+      "src/textual/_compositor.py"
+    ],
+    "change": "Borrow original scrollable Region.offset plus integer half-width/half-height at both acquisition sites. The same native Offset reaches get_widget_at, wheel and End-click. No center float, coercion, new adapter, timer, guard or retry."
+  },
+  "corrected_control": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/markdown_return_reuse_pilot.py",
+    "sha256": "42dc83bc83b6c0887f7ad62ea9dfadb993b58880c8bc1f01e9df7a35fecd485f",
+    "consumers": [
+      "app.screen.get_widget_at(*offset)",
+      "pilot._post_mouse_events([event_type],offset=offset)",
+      "pilot.click(offset=offset)"
+    ]
+  },
+  "source_checks": {
+    "control_ast_compile": "PASS",
+    "runtime_checks": "UNRUN",
+    "original_App_rerun": "NOT AUTHORIZED"
+  },
+  "unchanged_scope": "acceptance(app,pilot,*,page_and_wheel=True), standalone entrypoint, native pointer/focus/reader/editor/cache oracles, async pages, caller original27 and wholeclose contract remain. Existing published handoff/proposals remain historical unchanged; Heis alone binds corrected leaf in its next published caller source tuple."
+}

@@ -133,3 +133,19 @@ teardown. `JOINT-APP-ACCEPTANCE-HANDOFF.json` gives the exact call, source hash,
 inputs, custody and phase order. Heis alone integrates his original stationary
 control; no fourth App or new harness is requested. The earlier standalone
 proposal is preserved as historical source preparation.
+
+## First joint App and cell operand correction
+
+Heis reports the first joint 457 App failed in 9.248 seconds before its first
+wheel input: this leaf passed floating `Region.center` coordinates to the
+native integer-cell `get_widget_at` contract. Its original 27 assertions,
+worker/session restoration, mounted ABABA/cache/file links and async
+page/filter/isolated-delivery checks had passed. Wheel/reversal/End and later
+project/configured jobs remained unrun. This is a control operand defect, not
+a product or latency diagnosis; original raw evidence and 7f0b control remain.
+
+`CONTROL-CELL-OPERAND-CORRECTION.json` records the complete three-consumer
+correction. Both acquisitions now use the native Region offset plus integer
+half extents; hit lookup, wheel and End-click receive that same integer
+Offset. No product, caller, timing or oracle changes. The corrected control
+parses/compiles; no App or runtime rerun has occurred or is inferred.
