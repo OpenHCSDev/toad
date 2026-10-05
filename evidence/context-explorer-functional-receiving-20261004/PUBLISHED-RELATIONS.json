@@ -1,5 +1,5 @@
 {
-  "state": "SOURCE PLAN ONLY; functional627/434 frozen Ready, address successor449 Draft; not an activation, review plan, grant or executable operand",
+  "state": "SOURCE PLAN ONLY; functional627/434/663 actually merged and retained wheels verified; separate449 Draft; no activation/grant/executable operands",
   "public_baseline": {
     "toad_main": "3dc801984c211d2739c4c96c5907e068cd25820c",
     "core": "a38c06de24315fa868de45786e01fefadb0aaef1",
@@ -14,12 +14,14 @@
     "toad_docs": "75d5f0a06aa076e4784dfbfdc6d2a37850b6c4aa",
     "toad_product": "76ec05358b0ef790d10746e49ee0f09c036e2baa",
     "carry_docs": "1143be3954226c5b7a049f5153ec93bbe73feb77",
-    "status": "not merged; final merge readiness remains original owners and Parent",
-    "normal_carry_union": "Core627 e5f normally joined qualified663; all three tools equal final1143, package/native/pins/lock roots ZERO vs3aac/0ed; still not MAIN/canonical",
+    "status": "original frozen producer/acceptance sources retained; actual normal main relations bound below",
+    "normal_carry_union": "Actually merged663781b/Core6279c; selected actualCoremain0a package/buildinputs/runtime/tools equal qualified producer and carry",
     "annotation_address_successor": {
       "docs": "8473d4beeca3c0f15f2e599beb0c2c9be2602829",
       "determining_product": "494d21d3e5bafadc9626e02f9d7b8dd8d9a14420",
-      "status": "separate Einstein successor; source nativeTree1.44s PASS; narrow installed-owner qualification and actual merge unbound"
+      "status": "separate Einstein successor; source nativeTree1.44s PASS; narrow installed-owner qualification and actual merge unbound",
+      "normal_main_join": "c160c05b193b13add79c881a2129e13747e40cd1",
+      "normal_main_join_relation": "src/tests/tools/pins ZERO vs8473; still Draft/unmerged/installed-owner pending"
     }
   },
   "retained_feature_wheels": [
@@ -74,7 +76,7 @@
       "scope": "one genuine installed schema9 declaration child and authored stopped-copy carry; 4.738188295s PASS, five refusals, empty annotation members, original row identities/preimages/wire/config/proofs/journal absence preserved",
       "receipt_sha256": "48236fe4fbb5d604662afa153bdb208a0e054e6db79e7f6b7a2b06ab964dfb65",
       "source_and_target_READ": "returned; both carry-only purposes independently CLOSED, no next loan",
-      "merged_head": null,
+      "merged_head": "781b20e4189efb47cd44ac6f11a74f580884c9af",
       "public_cutover_qualified": false,
       "independent_closure": {
         "source_lifecycle_sha256": "6c3e975cda92a8b9ff60fe3b7299af1f73a47e85d5ae7920cfce013abbf2540c",
@@ -92,10 +94,6 @@
   },
   "runtime_member_intent": "CarryNativeRuntimeInstallation using authentic current source NativeSchemaDeclaration and future merged target; PreserveOwnerRuntime; neither Reset nor schema-preserving runtime member",
   "unbound": {
-    "merged_core_head": null,
-    "merged_toad_head": null,
-    "merged_carry_head": null,
-    "canonical51_manifest": null,
     "eligible_holder": null,
     "fresh_issued_grant": null,
     "installed_source_proof": null,
@@ -131,5 +129,21 @@
     "old_e414_role": "original historical acceptance, not successor equality",
     "versus_public7e6": "same319/no additions or removals/same4 changed filenames; directly compared rawZIP",
     "installed_acceptance": null
+  },
+  "merged_source_bindings": {
+    "core": "0a600a2b0287c5fbfef907e6e623652c587f66df",
+    "core_627_merge": "9c0888db3094be85223063af66d1108c4c100216",
+    "toad": "262875cbd6b54bf0b6f93edfe237a8d7facfc67b",
+    "carry": "781b20e4189efb47cd44ac6f11a74f580884c9af",
+    "retained_wheel_relation": {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/context-explorer-functional-receiving-20261004/MERGED-SOURCE-WHEEL-RELATION.json",
+      "sha256": "44e61830d538e395ef1d30c958723f4c6424f21c4032ffea74a82c10856ba8ae"
+    },
+    "canonical51_source_identity_manifest": {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/context-explorer-functional-receiving-20261004/MERGED-CANONICAL-SOURCE-MANIFEST.json",
+      "sha256": "3245b0da7ecfcd7f9a451b3be9d489906738a4cf4d8926fdbe1004b13f65c382"
+    },
+    "canonical_operator_copy": null,
+    "Toad_declared_Core_locator_preserved": "3aacd708fb9c699cc80c6b864e0ae8cf9ccff7f8"
   }
 }

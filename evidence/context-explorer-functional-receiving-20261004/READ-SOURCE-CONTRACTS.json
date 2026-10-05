@@ -1,6 +1,25 @@
 {
   "state": "source reading evidence, not a manifest or executable publication gate",
-  "read": [
+  "carry_owner": "Actual merged663781b, qualified1143 original three tools retained in actualCore0a; no peer edits",
+  "Core627_normal_union_relation": {
+    "head": "e5f3811b5fd94d69cffe48ec76311afc687d8b08",
+    "retained_package_source": "3aacd708fb9c699cc80c6b864e0ae8cf9ccff7f8",
+    "diff_src_stack_forced_pyproject_uv": "ZERO",
+    "carry_tools_vs_frozen1143": "ZERO",
+    "canonical_merged_head": "0a600a2b0287c5fbfef907e6e623652c587f66df"
+  },
+  "annotation_address_successor_read": {
+    "head": "8473d4beeca3c0f15f2e599beb0c2c9be2602829",
+    "read": [
+      "PR449 current head/body",
+      "normalGit diff76ec->8473 src/metadata",
+      "original PROPOSED-INSTALLED-OPERANDS.json and source-proof.json",
+      "raw wheel1a8 and proof5570 SHA, raw public7e6->1a8 package comparison"
+    ],
+    "existing_owner": "WorkingMemoryAnnotations.address/FieldCodec -> ContextInspection.working_memory; no competing Sch source claim",
+    "installed_qualification": "pending separate owner purpose after actual446handback; no current reservation"
+  },
+  "historical_source_read": [
     {
       "git": "69346035",
       "path": "tools/cutover/publish_retained_summary.py",
@@ -38,23 +57,42 @@
       "relation": "read source only; no canonical copy"
     }
   ],
-  "carry_owner": "PR663 final1143be installed qualification FINAL.json and current GH head/body read; original88e8 tools unchanged; no peer edits",
-  "Core627_normal_union_relation": {
-    "head": "e5f3811b5fd94d69cffe48ec76311afc687d8b08",
-    "retained_package_source": "3aacd708fb9c699cc80c6b864e0ae8cf9ccff7f8",
-    "diff_src_stack_forced_pyproject_uv": "ZERO",
-    "carry_tools_vs_frozen1143": "ZERO",
-    "canonical_merged_head": null
-  },
-  "annotation_address_successor_read": {
-    "head": "8473d4beeca3c0f15f2e599beb0c2c9be2602829",
-    "read": [
-      "PR449 current head/body",
-      "normalGit diff76ec->8473 src/metadata",
-      "original PROPOSED-INSTALLED-OPERANDS.json and source-proof.json",
-      "raw wheel1a8 and proof5570 SHA, raw public7e6->1a8 package comparison"
-    ],
-    "existing_owner": "WorkingMemoryAnnotations.address/FieldCodec -> ContextInspection.working_memory; no competing Sch source claim",
-    "installed_qualification": "pending separate owner purpose after actual446handback; no current reservation"
-  }
+  "read": [
+    {
+      "git": "0a600a2b0287c5fbfef907e6e623652c587f66df",
+      "path": "tools/cutover/publish_retained_summary.py",
+      "sha256": "025babf120563228d99920617d34f2e4142307d38e049405d4af49b2ecd7a960",
+      "relation": "actual merged source read only; no canonical copy"
+    },
+    {
+      "git": "0a600a2b0287c5fbfef907e6e623652c587f66df",
+      "path": "tools/cutover/runtime_installation.py",
+      "sha256": "77841672b6d9d99e3cb4c724706ffdad7eefd604aab583743f2e4b341156224c",
+      "relation": "actual merged source read only; no canonical copy"
+    },
+    {
+      "git": "0a600a2b0287c5fbfef907e6e623652c587f66df",
+      "path": "tools/cutover/native_schema_carry.py",
+      "sha256": "08d5b673910f96634ad017eb7e8224cb440e5b5cfea7c07d597b3ddf0f209c2b",
+      "relation": "actual merged source read only; no canonical copy"
+    },
+    {
+      "git": "0a600a2b0287c5fbfef907e6e623652c587f66df",
+      "path": "tools/cutover/execute_retained_summary_foundation.py",
+      "sha256": "49c9a05298b68ccfd91dc75c9de8980e2a0a72e6b670e45d581ccac3ae6e3a19",
+      "relation": "actual merged source read only; no canonical copy"
+    },
+    {
+      "git": "0a600a2b0287c5fbfef907e6e623652c587f66df",
+      "path": "src/agent_comms/native_package.py",
+      "sha256": "f6832d49ee594855a1ad570bf5fb01ed1445c95c74c33f817bf3723c8fcc5c68",
+      "relation": "actual merged source read only; no canonical copy"
+    },
+    {
+      "git": "0a600a2b0287c5fbfef907e6e623652c587f66df",
+      "path": "src/agent_comms/coordination_tables/metadata.py",
+      "sha256": "1a8ae630b7f760b7b413b465ea40b71ab726a964547e17914fa0fb2af6701d6f",
+      "relation": "actual merged source read only; no canonical copy"
+    }
+  ]
 }
