@@ -123,6 +123,7 @@ async def main(*, readonly_acceptance=None, readonly_capture=None, app_type=Reso
         AGENT_COMMS_DEBUG_LOG=str(stage / 'acp-debug'),
         XDG_CONFIG_HOME=str(stage / 'config'), XDG_STATE_HOME=str(stage / 'state'),
         XDG_DATA_HOME=str(stage / 'data'), TOAD_TEST_ATTEMPT=stage.name,
+        L0A_EVIDENCE=str(evidence),
         AC_REAL_READ_ONLY_CUSTODY=os.environ.get('AC_REAL_READ_ONLY_CUSTODY', ''),
         AC_REAL_SOURCE_ROOT=os.environ['AC_REAL_SOURCE_ROOT'],
     )

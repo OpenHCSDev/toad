@@ -1,0 +1,10 @@
+{
+  "owner": "original_turn_resource_real_installed_pilot.main",
+  "source_fact": "evidence Path captured from original L0A_EVIDENCE before os.environ.clear; bind that same output in existing retained environment",
+  "consumer": "ReaderCheckpoint.record_failed_reader uses L0A_EVIDENCE for original geometry/native body failure files; private_original_warm already binds its READONLY_READER_EVIDENCE",
+  "before": "9a75f8bcee4ecaf1161c05fb18d4acfb8798eaad",
+  "control_sha256": "809ec9a16cfc8fcff3374a3f4033f548a683e34bd15cb252dcbc69b698bb4031",
+  "original_assertions": 29,
+  "assertion_AST_equal": true,
+  "scope": "Source relation and parsing only. No injected failure, App, provider, capture or journal run. No auth/model/source changes."
+}
