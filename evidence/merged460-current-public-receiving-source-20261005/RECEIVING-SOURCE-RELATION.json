@@ -1,0 +1,74 @@
+{
+  "scope": "SOURCE ONLY; no build, package, installed prefix, native artifact operation or publication",
+  "determining_main": "5fc73b1bae18589ecece92568f4b4d58fe8fe8f2",
+  "previous_qualified_product": "25dae6d291612a3601fb35114a983d6eae379d83",
+  "Toad_product_assets": 319,
+  "all319_equal_merged460_and_original07": true,
+  "pin_owner": "pyproject.toml tool.uv.sources; uv.lock agent-comms source and root requires-dist",
+  "Core_selected": "3931f16feb8bcb2dbcc3041446ca342dea665024",
+  "Core_wheel": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/same-owner-native-fork676-corrected-wheel-20261005/agent_comms-0.1.0-py3-none-any.whl",
+  "Core_wheel_sha256": "3fe14077293b691000394831ed7458ecae92afd9b667af4501be2945ab86051d",
+  "Core_assets": 355,
+  "Core_dependency_metadata_unchanged_vs_original07": true,
+  "preserved_current_public_676_owner_family": [
+    "NativeForkCreation.require_recorded_selection",
+    "RegistryOwner.require_idle_source_snapshot",
+    "RegistryDocument.prepare_idle_native_source",
+    "Registration.selected_native_fork/restore_native_fork/_idle_fork_edit",
+    "TurnRunner.idle_backend/prepare_selected_session",
+    "SessionLifecycle.selected_native_fork/_retire_native_fork/_restore_native_fork",
+    "PersistentPiSession.close_owned",
+    "NativeCustody.retire_owned/ PiSessionChild.require_source_owner"
+  ],
+  "later_Core681_not_selected": true,
+  "Text_selected": "a2dd8a9a37825a828df0d8f651ca57d92db69e5f",
+  "Text_wheel": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native70-71-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+  "Text_wheel_sha256": "bc47c59ea7db78a9a443c5f5e3f10836660957f21bb998d2ffa3ae8e4a2ddbe3",
+  "Text_assets": 266,
+  "Diff_selected": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "NRA": "retained8d,10 original assets",
+  "expected_sources": 953,
+  "expected_packages": 69,
+  "existing_receiver_relation": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/MERGED-SOURCE-WHEEL-RELATION.json",
+    "sha256": "55f3421778ce748f45147e4aea9c4db1746ac80cef2dcf686e78bc9df1d0fca9"
+  },
+  "artifact_search": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/merged460-current-public-receiving-source-20261005/retained-artifact-comparison.json",
+    "sha256": "2128ae899063120339293fbb6db6a5f5df34dbb63a650f447e5587272517bda6",
+    "retained_wheels_compared": 81,
+    "scope": "Owned retained artifacts and original Sch/Einstein contributor artifacts; no global cache or installed-prefix scan",
+    "full_payload_matches": 1,
+    "matching_payload_wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/union466-filewheel/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "matching_payload_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/union466-filewheel/wheel-proof.json",
+    "proof_sha256": "9fa7e6c15f7c4f16b8a1a26085c34c0db36a8fb75ccbecc2e54235cf014245ac",
+    "current_root_inputs": {
+      "pyproject.toml": "bd8ffc54903d895903260c67614a2c876d1a59b3ebea03460a2db421ba658cfa",
+      "uv.lock": "2374d074eef0d436acd483473de7aa57b6219f2e87055a0fb2d1eea352f4a9a9",
+      "README.md": "11b3f5195acb00a19a73229749e2e71ba924314a8b1c650f05a2bf43f537d35d",
+      "LICENSE": "4df3c306dddaaf4baffdff5ca820cc679ac8cd6dc263c6a74517783e42fa7a3b"
+    },
+    "original_root_inputs": {
+      "pyproject.toml": "31081151e3e8d6fd5d84e145a13276a0a6ddd1a1b661d57957b707889bc02b6c",
+      "uv.lock": "60249ac93de25c0142012fa74c1482c6e06a520236f6640fdcedbffb18d762f0",
+      "README.md": "11b3f5195acb00a19a73229749e2e71ba924314a8b1c650f05a2bf43f537d35d",
+      "LICENSE": "4df3c306dddaaf4baffdff5ca820cc679ac8cd6dc263c6a74517783e42fa7a3b"
+    },
+    "root_input_differences": [
+      "pyproject.toml",
+      "uv.lock"
+    ],
+    "matching_full_source_and_build_input_artifact_found": false,
+    "metadata_caution": "Wheel Requires-Dist has unpinned agent-comms[acp] and textual[syntax]; uv source revisions are proved by Git/local root build inputs, never inferred from METADATA."
+  },
+  "build_disposition": "A single normal cached-Hatch Toad wheel is proposed only after authorization; no Core/Text/native build or dependency resolve is needed. Old2ece remains truthful to25dae/7b68 and is not relabeled after root pin change.",
+  "receiving_owner": "OriginalSch existing receiver/cohort/pin proof/NativeSchemaDeclaration and PreserveRuntimeInstallation/NativeSchemaCarryPlan owners; OriginalHeis sole Toad source integration",
+  "runtime_remaining": "Fresh eligible actual floor/origins/keepers and specific grant, exact source proof/native custody and affected current-Core/native71 receiving qualification precede installation/publication. Public471 retained APIs/features remain required.",
+  "remaining_independent_work": [
+    "startup/frame/CPU useful-paint measurement and real-input/video correlation; no FPS/baseline gain established",
+    "loaded446 genuine warm histories versus two-loaded/blank mixed4/16/32/64",
+    "continuous468 saved startup/unopened/channel/tab/fork-before-answer/native first input/notification/reply/handling/queue/status/history with draft/Undo/reader identity",
+    "configured genuine40MB readonly fork and full connected journey remain distinct from authoredlocalhost controls"
+  ],
+  "original07": "Functional full motion/gracefulquit accepted and wholeclosed. Blank-body interpretation retracted; no unsupported width paint repair. Raw wheels/receipts/journals/movie preserved."
+}
