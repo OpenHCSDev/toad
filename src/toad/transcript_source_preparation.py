@@ -237,7 +237,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
 
     def lookahead_workers(self):
         """Borrow current custody from the original native worker manager."""
-        return (worker for worker in self.workers
+        return (worker for worker in reversed(self.workers)
                 if worker.node is self and worker.group == self.LOOKAHEAD_GROUP
                 and worker.is_running)
 

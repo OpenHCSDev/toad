@@ -56,6 +56,9 @@ negative against a deletion in another file.
 Native Worker._start sets RUNNING synchronously before scheduling work. This
 source always starts workers immediately. Worker.is_running therefore owns
 active group membership, including the admitted task before its first await;
-finished/cancelled entries awaiting manager callback are not current waiters.
+finished entries awaiting manager callback are not running waiters. A cancelled
+task remains original native custody until its finisher runs; manager ordering
+returns the most recently admitted replacement first without copying that
+worker into a nullable source field.
 The original property supplies that fact. The intermediate negative probe
 against is_finished is preserved in WORKER-MEMBERSHIP-NEGATIVE.json.
