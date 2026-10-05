@@ -1,0 +1,29 @@
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import sys,runpy; sys.path[:0]=['/home/ts/wt/toad-regression-widget-cost-20261001/src', '/home/ts/wt/toad-regression-widget-cost-20261001/tests', '/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-historical-main3aac-source/agent_comms-0.1.0-py3-none-any.whl', '/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native66-filewheel-20261005/textual-8.2.8-py3-none-any.whl', '/home/ts/.cache/uv/archive-v0/-NU2kxipCBjt_Fj1', '/home/ts/.cache/uv/archive-v0/jUH5yYHRflCjOYpG', '/home/ts/.cache/uv/archive-v0/JppO5vdKQt7V2hsS', '/home/ts/.cache/uv/archive-v0/mNatOBGB9uuf-bXB']; runpy.run_path(sys.argv[1],run_name="__main__")
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen runpy>", line 294, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/work_preparation_pilot.py", line 9, in <module>
+    from agent_comms.transcript_events import AssistantTranscript
+  File "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-historical-main3aac-source/agent_comms-0.1.0-py3-none-any.whl/agent_comms/__init__.py", line 5, in <module>
+    from .exporting import (
+    ...<6 lines>...
+    )
+  File "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-historical-main3aac-source/agent_comms-0.1.0-py3-none-any.whl/agent_comms/exporting.py", line 18, in <module>
+    from .bus_publication import reject_private_wire_fields
+  File "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-historical-main3aac-source/agent_comms-0.1.0-py3-none-any.whl/agent_comms/bus_publication.py", line 13, in <module>
+    from .wire_record import MessageWireRecord
+  File "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-historical-main3aac-source/agent_comms-0.1.0-py3-none-any.whl/agent_comms/wire_record.py", line 180, in <module>
+    from .turn_context import ContextManifest
+  File "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-historical-main3aac-source/agent_comms-0.1.0-py3-none-any.whl/agent_comms/turn_context.py", line 17, in <module>
+    from .native_session_reopen import NativeSessionIdentity
+  File "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-historical-main3aac-source/agent_comms-0.1.0-py3-none-any.whl/agent_comms/native_session_reopen.py", line 12, in <module>
+    from .native_package import verify_native_package
+  File "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-historical-main3aac-source/agent_comms-0.1.0-py3-none-any.whl/agent_comms/native_package.py", line 41, in <module>
+    MANIFEST = _resource_root() / "pi-native.sha256"
+               ~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-historical-main3aac-source/agent_comms-0.1.0-py3-none-any.whl/agent_comms/native_package.py", line 38, in _resource_root
+    raise NativePackageError("Installed native package resources are unavailable")
+agent_comms.native_package.NativePackageError: Installed native package resources are unavailable

@@ -1,0 +1,68 @@
+{
+  "product": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+  "source_head": "8f6a5fc021cba571913f9796be38e975530a9326",
+  "scope": "One serial original source policy batch; Backend double, no installed App, runtime prefix, native/SDK/provider/input or latency acceptance",
+  "sys_path": [
+    "/home/ts/wt/toad-regression-widget-cost-20261001/src",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/tests",
+    "/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-historical-main3aac-source/agent_comms-0.1.0-py3-none-any.whl",
+    "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native66-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+    "/home/ts/.cache/uv/archive-v0/-NU2kxipCBjt_Fj1",
+    "/home/ts/.cache/uv/archive-v0/jUH5yYHRflCjOYpG",
+    "/home/ts/.cache/uv/archive-v0/JppO5vdKQt7V2hsS",
+    "/home/ts/.cache/uv/archive-v0/mNatOBGB9uuf-bXB"
+  ],
+  "controls": [
+    {
+      "control": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/work_preparation_pilot.py",
+      "control_sha256": "72c5fb48afd506d13d51b88767734a410535b243f67246f9bf82bef64a3afc34",
+      "argv": [
+        "/usr/bin/python",
+        "-B",
+        "-c",
+        "import sys,runpy; sys.path[:0]=['/home/ts/wt/toad-regression-widget-cost-20261001/src', '/home/ts/wt/toad-regression-widget-cost-20261001/tests', '/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-historical-main3aac-source/agent_comms-0.1.0-py3-none-any.whl', '/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native66-filewheel-20261005/textual-8.2.8-py3-none-any.whl', '/home/ts/.cache/uv/archive-v0/-NU2kxipCBjt_Fj1', '/home/ts/.cache/uv/archive-v0/jUH5yYHRflCjOYpG', '/home/ts/.cache/uv/archive-v0/JppO5vdKQt7V2hsS', '/home/ts/.cache/uv/archive-v0/mNatOBGB9uuf-bXB']; runpy.run_path(sys.argv[1],run_name=\"__main__\")",
+        "/home/ts/wt/toad-regression-widget-cost-20261001/tests/work_preparation_pilot.py"
+      ],
+      "cwd": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "exit_code": 1,
+      "elapsed_seconds": 0.2244324489729479,
+      "stdout": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/preparation-worker-completion-20261005/source-sanity01/work_preparation_pilot.py.stdout.log",
+      "stderr": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/preparation-worker-completion-20261005/source-sanity01/work_preparation_pilot.py.stderr.log",
+      "joined": true
+    },
+    {
+      "control": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/work_preparation_delivery_pilot.py",
+      "control_sha256": "9a2a5b3784e22efe6d8f8396475e114f15bf0d1d5161a78b05980f2e8e585948",
+      "argv": [
+        "/usr/bin/python",
+        "-B",
+        "-c",
+        "import sys,runpy; sys.path[:0]=['/home/ts/wt/toad-regression-widget-cost-20261001/src', '/home/ts/wt/toad-regression-widget-cost-20261001/tests', '/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-historical-main3aac-source/agent_comms-0.1.0-py3-none-any.whl', '/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native66-filewheel-20261005/textual-8.2.8-py3-none-any.whl', '/home/ts/.cache/uv/archive-v0/-NU2kxipCBjt_Fj1', '/home/ts/.cache/uv/archive-v0/jUH5yYHRflCjOYpG', '/home/ts/.cache/uv/archive-v0/JppO5vdKQt7V2hsS', '/home/ts/.cache/uv/archive-v0/mNatOBGB9uuf-bXB']; runpy.run_path(sys.argv[1],run_name=\"__main__\")",
+        "/home/ts/wt/toad-regression-widget-cost-20261001/tests/work_preparation_delivery_pilot.py"
+      ],
+      "cwd": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "exit_code": 1,
+      "elapsed_seconds": 0.22369299898855388,
+      "stdout": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/preparation-worker-completion-20261005/source-sanity01/work_preparation_delivery_pilot.py.stdout.log",
+      "stderr": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/preparation-worker-completion-20261005/source-sanity01/work_preparation_delivery_pilot.py.stderr.log",
+      "joined": true
+    },
+    {
+      "control": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/serialized_preparation_pilot.py",
+      "control_sha256": "8ab18cfdea2891dc44650b0cf696f290e109dbd97fa29d1ea64d6a0b4112667a",
+      "argv": [
+        "/usr/bin/python",
+        "-B",
+        "-c",
+        "import sys,runpy; sys.path[:0]=['/home/ts/wt/toad-regression-widget-cost-20261001/src', '/home/ts/wt/toad-regression-widget-cost-20261001/tests', '/home/ts/wt/comms-field-codec-closure-20260928/.artifacts/working-memory-historical-main3aac-source/agent_comms-0.1.0-py3-none-any.whl', '/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native66-filewheel-20261005/textual-8.2.8-py3-none-any.whl', '/home/ts/.cache/uv/archive-v0/-NU2kxipCBjt_Fj1', '/home/ts/.cache/uv/archive-v0/jUH5yYHRflCjOYpG', '/home/ts/.cache/uv/archive-v0/JppO5vdKQt7V2hsS', '/home/ts/.cache/uv/archive-v0/mNatOBGB9uuf-bXB']; runpy.run_path(sys.argv[1],run_name=\"__main__\")",
+        "/home/ts/wt/toad-regression-widget-cost-20261001/tests/serialized_preparation_pilot.py"
+      ],
+      "cwd": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "exit_code": 1,
+      "elapsed_seconds": 0.23703751503489912,
+      "stdout": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/preparation-worker-completion-20261005/source-sanity01/serialized_preparation_pilot.py.stdout.log",
+      "stderr": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/preparation-worker-completion-20261005/source-sanity01/serialized_preparation_pilot.py.stderr.log",
+      "joined": true
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "status": "Published source-only async leaf; integrated mounted App execution UNRUN",
+  "product": "ec10e2eba883b3035d589e04023fdbfba5d90e35",
+  "historical_standalone_proposal": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/preparation-worker-completion-20261005/PROPOSED-PAGE-BODY-WHEEL-OPERANDS.json",
+    "sha256": "1509b825a9905fbaf59655a2e7132f7d047ad6ce1ae5ffd91275980fc12a5fd3",
+    "note": "Preserved unchanged; its old control hash is historical. It does not authorize a fourth App or execution."
+  },
+  "control": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/markdown_return_reuse_pilot.py",
+    "sha256": "7f0b3e78ed253e6aec8b8a836908b9fd6dae1b0e6d38ab96e53d498e3b66bd4d",
+    "export": "async acceptance(app,pilot,*,page_and_wheel=True)",
+    "call": "receipt[\"preparation_completion\"] = await acceptance(app,pilot)",
+    "return": "dict: mounted cold/return syntax hit/miss/byte bounds, actual compositor paint observations, page_wheel source/data/cache/fragment/reader/editor/retirement evidence"
+  },
+  "caller_owner": "Heis sole existing history_stationary_local_runway_pilot.py / corrected NoAgentApp, after its original 27 assertions and held-observation resources settle. Einstein owns only this async leaf and standalone entrypoint.",
+  "caller_phase": [
+    "Normal joint source includes this same-file export; no sibling-source injection or application source overlay.",
+    "Finish original ExitStack/operation and restore TranscriptBodyPreparation.prepare_fragments; preserve all 27 original assertions.",
+    "Caller retires/removes its own authored fixture history through its original owner; resume its original DocumentViewport before entering the leaf.",
+    "Keep the same private App/pilot/root and already authored editor draft/Document/undo. No root/environment rebind, new App, Agent or provider.",
+    "Call this async acceptance leaf once; serialize its return inside caller existing receipt. No new timeout/wait harness.",
+    "Caller owns whole App/renderer/thread/worker/controller shutdown and original BoundedRun terminal/census/holder restoration. Stop on failure; no retry."
+  ],
+  "leaf_custody": {
+    "input": "Mounted private current NoAgent App/pilot, ready Conversation/HistoryWindow/native viewport, existing nonempty authored editor draft. Original file-0.py/file-1.py must initially be absent in its new authored project.",
+    "writes": "Only own temporary file-0.py/file-1.py via original fresh-file-link fixture, own AgentResponse mounts/removals and own typed TranscriptHistory through original post/retire/remove owners. No editor/root/runtime state overwrite.",
+    "async_consumers": "CategoryProjection->TranscriptFilterWork/ThreadWork; original Markdown/fragment RenderPreparation->RendererWork; TranscriptHistory-created buffer->TranscriptPageWork.execute completion/delivery.",
+    "oracles": "Original cold mounted paragraphs/compositor text, ABABA cache identity+freshfilelinks, async source interval 8..16+independent deliveries+same retained value, fragment-preserving filter, byte bound, native wheel/reversal/End and original OffsetReaderPosition admissions, same draft/Document/undo, retired original reader scope.",
+    "limits": "Authored typed-page NoAgent App, not saved-native I/O, physical film, configured busy Agent, native SDK or speed proof."
+  },
+  "standalone_argv_preserved": [
+    "ELIGIBLE_ACTUAL_PREFIX/bin/python",
+    "-B",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/tests/markdown_return_reuse_pilot.py",
+    "--installed-only",
+    "--page-wheel",
+    "--output",
+    "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/preparation-worker-completion-20261005/installed-page-body01/app"
+  ],
+  "joint_argv_output_binding": "Heis must publish actual successor joint history_stationary argv/cwd/env/output and cohort/wheel relation; original 455 cohort is not changed by this source handoff. No extra App or control job.",
+  "source_checks": {
+    "control_parse_compile": "PASS",
+    "diff_check": "PASS",
+    "joint_App": "UNRUN",
+    "source_policies": "Original3 controls PASS once in corrected source-sanity02; original3 ZIP import failures retained."
+  },
+  "authority": "No current package/prefix/native/SDK/provider/input/film permission; eligible future purpose must bind actual joint source/installed proof/operators before execution."
+}
