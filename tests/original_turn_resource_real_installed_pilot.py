@@ -85,7 +85,7 @@ async def main(*, readonly_acceptance=None, readonly_capture=None, app_type=Reso
     core_head = os.environ['AC_REAL_CORE_HEAD']
     toad_head = os.environ['AC_REAL_TOAD_HEAD']
     assert stage.is_relative_to('/home/ts/wt')
-    stage.mkdir(parents=True, exist_ok=False)
+    stage.mkdir(mode=0o700, parents=True, exist_ok=False)
     evidence.mkdir(parents=True, exist_ok=True)
     capture = CurrentTypedCapture(
         root=Path(os.environ['AC_REAL_SOURCE_ROOT']),
@@ -103,10 +103,11 @@ async def main(*, readonly_acceptance=None, readonly_capture=None, app_type=Reso
     project = stage / 'project'
     project.mkdir()
     identity = await ForkSessionHelper.run(
-        ForkSessionRequest(str(package), str(original), str(project)), cwd=project,
-        env=dict(retained.environment, PI_CODING_AGENT_DIR=str(stage / 'native-forks')),
+        ForkSessionRequest(str(package), str(original), str(project),
+                           directory=str(stage / 'native-forks')), cwd=project,
+        env=dict(retained.environment),
     )
-    assert Path(identity.session_file).is_relative_to(stage)
+    assert Path(identity.session_file).is_relative_to(stage / 'native-forks')
     service = Comms(stage / 'wire')
     root_id = service.messaging.initialize_private_initial_protocol()
     service.owners.pin_private_nk_launch(service.root, root_id, package)
@@ -191,10 +192,11 @@ async def main(*, readonly_acceptance=None, readonly_capture=None, app_type=Reso
             # existing SDK fork/root owner supplies a second saved agent, not
             # a second in-process Pilot/App or a competing fixture builder.
             second = await ForkSessionHelper.run(
-                ForkSessionRequest(str(package), str(original), str(project)), cwd=project,
-                env=dict(environment, PI_CODING_AGENT_DIR=str(stage / 'native-forks')),
+                ForkSessionRequest(str(package), str(original), str(project),
+                                   directory=str(stage / 'native-forks')), cwd=project,
+                env=dict(environment),
             )
-            assert Path(second.session_file).is_relative_to(stage)
+            assert Path(second.session_file).is_relative_to(stage / 'native-forks')
             service.registry.declare(Thread(
                 'resource236b', frozenset(), str(project), session_file=second.session_file,
                 model=source.model, thinking_level=source.thinking_level,
