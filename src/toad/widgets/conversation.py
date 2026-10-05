@@ -270,8 +270,6 @@ class CategorizedMount:
 
 class Contents(CategorizedMount, containers.VerticalGroup, can_focus=False):
     BLANK = True
-    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
-
 
     @height_dependency(INDEPENDENT_HEIGHT)
     def process_layout(
@@ -282,7 +280,6 @@ class Contents(CategorizedMount, containers.VerticalGroup, can_focus=False):
 
 class ContentsGrid(containers.Grid):
     BLANK = True
-    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
 
     @height_dependency(INDEPENDENT_HEIGHT)
     def pre_layout(self, layout) -> None:

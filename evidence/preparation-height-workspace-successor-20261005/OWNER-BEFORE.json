@@ -1,0 +1,157 @@
+{
+  "source_merge": "665001ca83110b6cab3d1880005272d951e4d8a4",
+  "roots": [
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "rev": "665001ca83110b6cab3d1880005272d951e4d8a4",
+      "root": "src/toad",
+      "modules": 288,
+      "parse_omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "rev": "665001ca83110b6cab3d1880005272d951e4d8a4",
+      "root": "tests",
+      "modules": 397,
+      "parse_omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "rev": "665001ca83110b6cab3d1880005272d951e4d8a4",
+      "root": "tools",
+      "modules": 41,
+      "parse_omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "rev": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78",
+      "root": "src/textual",
+      "modules": 249,
+      "parse_omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "rev": "7b68d630caa654d3e9884f45cbd6493718752a0c",
+      "root": "src/agent_comms",
+      "modules": 324,
+      "parse_omissions": []
+    }
+  ],
+  "retired_flag_sites": [
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 273,
+      "kind": "Store",
+      "name": "CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 285,
+      "kind": "Store",
+      "name": "CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 54,
+      "kind": "Store",
+      "name": "CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 57,
+      "kind": "Store",
+      "name": "CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 16,
+      "kind": "Store",
+      "name": "CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 20,
+      "kind": "Store",
+      "name": "CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 39,
+      "kind": "Store",
+      "name": "CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 202,
+      "kind": "Store",
+      "name": "CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_viewport.py",
+      "line": 9,
+      "kind": "Store",
+      "name": "CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 267,
+      "kind": "Store",
+      "name": "CACHE_HEIGHT_INDEPENDENT_BOX"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 268,
+      "kind": "Store",
+      "name": "CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 432,
+      "kind": "Store",
+      "name": "CACHE_HEIGHT_INDEPENDENT_BOX"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 433,
+      "kind": "Store",
+      "name": "CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 488,
+      "kind": "Store",
+      "name": "CACHE_HEIGHT_INDEPENDENT_BOX"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 489,
+      "kind": "Store",
+      "name": "CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT"
+    }
+  ],
+  "flag_only_types": [
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 15,
+      "name": "SidebarMembers",
+      "bases": [
+        "VerticalGroup"
+      ],
+      "body": [
+        "CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 19,
+      "name": "ScrollingSidebarMembers",
+      "bases": [
+        "VerticalScroll"
+      ],
+      "body": [
+        "CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True"
+      ]
+    }
+  ],
+  "consumer_read": "All src/tests/tools CSS and typed consumer references: SidebarGroup sole native container chooser; no other SidebarMembers/ScrollingSidebarMembers readers. SideBarCollapsible.Contents only retired flag; native inherited Contents owns the same declaration. SidebarHeader has real on_mount/align_header and stays. Unknown external dynamicmonkeypatch policy unproved; no runtimeclaim."
+}

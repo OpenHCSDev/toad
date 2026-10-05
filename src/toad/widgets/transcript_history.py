@@ -264,8 +264,6 @@ class TranscriptPageAdmission:
 
 
 class TranscriptPageView(VerticalGroup):
-    CACHE_HEIGHT_INDEPENDENT_BOX = True
-    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
     BATCH = 4
 
     def __init__(self, page: TranscriptPage, *, newest: bool = True,
@@ -429,8 +427,6 @@ class TranscriptPageView(VerticalGroup):
 
 
 class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, CommittedHistory, CategorizedBlock, VerticalGroup):
-    CACHE_HEIGHT_INDEPENDENT_BOX = True
-    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
     MAX_FRAGMENTS = 24
 
     @property
