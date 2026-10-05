@@ -395,6 +395,9 @@ class RuntimeSelection:
             source = next(source for source in proof.sources if source.module == module)
             source.require_package(module, Path(package["origin"]).parent,
                                    package["direct_url"], proof.archive_artifacts)
+        launch = observed["observed"].get("native_launch")
+        if launch is not None and Path(launch["native_package"]).resolve() != activation.native_package.resolve():
+            raise ValueError("Candidate activation and actual ACP native launch must match")
         observed["verified_candidate"] = {
             "path": str(Path(staging_receipt).resolve()),
             "sha256": digest(Path(staging_receipt)),
@@ -430,10 +433,8 @@ class RuntimeSelection:
                            "--runtime-probe"], env, stdout=subprocess.PIPE, text=True, timeout=15)
         result["observed"] = json.loads(probe.stdout)
         launch = result["observed"].get("native_launch")
-        if launch is not None:
-            native = result.get("activation", {}).get("native_package")
-            if not native or Path(native).resolve() != Path(launch["native_package"]):
-                raise ValueError("Candidate activation and actual ACP native launch must match")
+        if launch is not None and launch != result["observed"]["route"]:
+            raise ValueError("Actual ACP native launch and selected route must match")
         return result
 
 
