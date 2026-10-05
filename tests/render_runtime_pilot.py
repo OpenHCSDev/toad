@@ -3,7 +3,7 @@
 import asyncio
 from pathlib import Path
 from threading import Event, get_ident
-from typing import TypeVar
+from typing import ClassVar, TypeVar
 import unittest
 from unittest.mock import patch
 
@@ -57,12 +57,22 @@ class DeliveryPool(ControlledPool):
         return HeldValue(await super().capture(task), self.entered, self.release)
 
 
+class ValidationObservedPatchRenderTask(PatchRenderTask):
+    validation_threads: ClassVar[list[int]] = []
+
+    def accept_result(self, result):
+        self.validation_threads.append(get_ident())
+        return super().accept_result(result)
+
+
 class RuntimeTests(unittest.IsolatedAsyncioTestCase):
     async def test_cancelled_delivery_is_joined_before_backend_close(self):
         entered, release = Event(), Event()
+        main_thread = get_ident()
+        ValidationObservedPatchRenderTask.validation_threads.clear()
         pool = DeliveryPool(RendererEndpoint(Path("/unused-render-test"), "test"),
                             RenderServiceConfig(), entered, release)
-        waiting = asyncio.create_task(pool.submit(PatchRenderTask("patch", False, True)))
+        waiting = asyncio.create_task(pool.submit(ValidationObservedPatchRenderTask("patch", False, True)))
         try:
             self.assertTrue(await asyncio.to_thread(entered.wait, 2))
             waiting.cancel()
@@ -76,6 +86,8 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             await closing
             self.assertTrue(pool.drained.is_set())
             self.assertFalse(pool._submissions)
+            self.assertEqual(ValidationObservedPatchRenderTask.validation_threads[0], main_thread)
+            self.assertNotEqual(ValidationObservedPatchRenderTask.validation_threads[-1], main_thread)
         finally:
             release.set()
             await pool.aclose()
