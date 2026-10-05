@@ -1,0 +1,36 @@
+{
+  "state": "Scoped471 package/source/fullcohort/canonical preparation PASS FROZEN HELDParent; publicdelivery unexecuted",
+  "source_head": "4a4906e018e6fbeed4581d4bdda61f0599024169",
+  "installed_assets": 953,
+  "normal_distributions": 69,
+  "protected_originals": 266,
+  "unchanged_other67": 2157,
+  "bootstrap": 2,
+  "canonical51_source": "3931f16feb8bcb2dbcc3041446ca342dea665024",
+  "source_pins": {
+    "agent_comms": "3931f16feb8bcb2dbcc3041446ca342dea665024",
+    "toad": "289f1c6cd7667abf985ddba265d6469a95e3ea48",
+    "textual": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78",
+    "refactor_audit": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10"
+  },
+  "filewheel_origins_truthful_Gitrelation_separate": true,
+  "distinct_journey_gates": 189,
+  "frozen_manifest": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/frozen-manifest.json",
+    "sha256": "6d829f849cc69558911e9eecb9fe012e19d5c17cbf9073719a053c9e61f8f1aa",
+    "count": 107
+  },
+  "native_transition": {
+    "manifest": "7a2e4aabdbc5af49dd9af942190d92086df2eb3489903674a74af51cf831cd33",
+    "tree": "0d7ff54a04d4f0ff175fc889e936ca3cea8b1f98eb8b73ed6215c3373cbd984d",
+    "source_target_schema": 10,
+    "declarations_checkpoint_equal": true,
+    "runtime_member": "PreserveRuntimeInstallation",
+    "owner_runtime": "PreserveOwnerRuntime",
+    "executed": false
+  },
+  "accepted_scopes": "Original466 SessionView03 mounted worker PASS6.138 plus original public465 functional qualifications, no repeated/rebasedcontrol/physical/performance claim",
+  "nativeEXEC_App_SDK_provider_input_guard_publisher_signals": false,
+  "receipt_preimages_present": false,
+  "next_owner": "Parent source/candidate review, originalfreshclientadmission and oncepublication; Bohr sole existinglifecycleclosure"
+}

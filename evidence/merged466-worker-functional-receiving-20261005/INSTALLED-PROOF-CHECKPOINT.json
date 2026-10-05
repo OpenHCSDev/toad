@@ -1,0 +1,47 @@
+{
+  "state": "Actual issued471 stage/proof PASS once; canonical/cohort/source-declarationREAD held awaiting soleBohr actual bound proof/DTO release; preparation only",
+  "issued_sha256": "5c99babc3004e4959a247548c60a937d6813fde069ad6ec54cae747a2e5b5e30",
+  "sourceproof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/source-proof.json",
+    "sha256": "8f501b8b60e556a40609ef533f7bb1b509a0a712db052822b5653f41931c22d4"
+  },
+  "candidate_activation": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/candidate-activation.json",
+    "sha256": "03e1db2ef13e47d6a59dfc340200e0e107cab348e2e9790a5fd72cde4224de1f"
+  },
+  "native_FullTrust": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/native-full-trust.json",
+    "sha256": "1d8fdcde0f7bdd4abc5781be24c4550b0cac30ce2448bdd367f08b79103b9c87"
+  },
+  "terminal": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/proof-terminal.json",
+    "sha256": "e75b47f5fec892af2431da21a5a50a2c1bb28b579f619402b8fbd7d5e6504c42"
+  },
+  "boundary": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/package-boundary-proof.json",
+    "sha256": "036f1af6db1fb5cafc3e1a458ada689e2456b10b87d851e2c35640088ac32e8e"
+  },
+  "keepers": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/unchanged-keepers-after.json",
+    "sha256": "59b49b043aff13ae84b4179ee24c8306ec95fdcc5681be1fdfc2b5be5e841d66"
+  },
+  "stage": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/stage-terminal.json",
+    "sha256": "367d63974eacbd73a32dbab7e39c8caf3ed68d1b7f4d58c9843964852e40be04"
+  },
+  "READ": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper471-merged466-worker-functional-READ-issued-20261005.json",
+    "sha256": "ce8186c48f8b70aedd1aed3a4ca1e32e878919a6b5b79d51ff724895b374e164"
+  },
+  "proof_binding": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/proof-source-binding.json",
+    "sha256": "afa53796fd320ccc44d88660cf6dda3679f597351e6d12bc44706d2feac7a78c"
+  },
+  "953_full69": true,
+  "canon_cohort_publicread_unrun": true,
+  "receipt_preimages_absent": true,
+  "native_EXEC_App_SDK_provider_input": 0,
+  "actual_stage_proof_consumed_once_each": true,
+  "selected_Core_not_latest_MAIN681": "3931/retained3fe",
+  "source_prefix_public465_untouched": true
+}

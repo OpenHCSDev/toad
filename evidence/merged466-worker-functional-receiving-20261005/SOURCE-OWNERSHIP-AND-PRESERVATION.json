@@ -1,0 +1,33 @@
+{
+  "state": "SOURCE preparation only; no product/test/tool/pin edits, installed imports or holder/public operations",
+  "branch": "receiving/merged466-worker-functional-20261005",
+  "actual_normal_Toad_MAIN": "289f1c6cd7667abf985ddba265d6469a95e3ea48",
+  "actual_accepted466_merge": "0bc37f7ad810d3d0c71213f0e798a1474dd78c0a",
+  "actual_selected_Core_MAIN": "3931f16feb8bcb2dbcc3041446ca342dea665024",
+  "source_collision": "Parent assigned Sch receiving; Heis owns independent full-motion/native71 union and334, Arendt540; no overlapping product edits",
+  "frozen465_original_members_SHA_bytes_modes_unchanged": 111,
+  "historical_own_evidence_restored_exact_published_git": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/HISTORICAL-EVIDENCE-PRESERVATION.json",
+    "sha256": "a1326708eed49fc108e7fc7b3bbde091e48271d0cf5e7a7c53f7e54b4ca1e9fd"
+  },
+  "restored_member_count": 20,
+  "future_output_absent": true,
+  "prefix_access": false,
+  "current_holder_or_native_EXEC_claim": false,
+  "fresh_grant": null,
+  "actual_floor": null,
+  "actual_declarations": null,
+  "candidate_proof": null,
+  "publication_receipt": null,
+  "preimages": null,
+  "command_plan": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/PROPOSED-RECEIVING-COMMAND-PLAN.json",
+    "sha256": "11590b39079f648f485d084d66b1c97113a28f67831224880a52bab0ca6dce66"
+  },
+  "qualification": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/PROPOSED-QUALIFICATION-INPUT.json",
+    "sha256": "5bc8ea8bb596bed96f0ef1809c413066f9e2c24d1a95be138a4010cd9d57aef3"
+  },
+  "all_original_qualification_gate_paths_hashmatched": 189,
+  "builds_tests_Apps_native_provider_inputs": 0
+}

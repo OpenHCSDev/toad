@@ -1,0 +1,86 @@
+{
+  "state": "Actual471 stage/proof/canonical/qualification/cohort/readback PREPARATION PASS FROZEN HELDParent; whole immediate claim returned, Bohr independent lifecycle closure requested",
+  "issued": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Sch471-merged466-worker-functional-preparation-only-issued-grant.json",
+    "sha256": "5c99babc3004e4959a247548c60a937d6813fde069ad6ec54cae747a2e5b5e30"
+  },
+  "actual_preparation_release_sha256": "8e0e54b02cbfed8780949911b0a7cd70abe865b554fd61921e3ef3d5d119d637",
+  "candidate_full_assets": 953,
+  "normal_distributions": 69,
+  "original_protected": 266,
+  "unchanged_other67": 2157,
+  "bootstrap": 2,
+  "frozen_files": 107,
+  "qualification_gates": 189,
+  "canonical_members": 51,
+  "selected_Core": "3931f16feb8bcb2dbcc3041446ca342dea665024",
+  "selected_Toad": "289f1c6cd7667abf985ddba265d6469a95e3ea48",
+  "source_not_latest_MAIN_681_470_equality": true,
+  "source_target_declarations_checkpoint_equal": true,
+  "runtime_member": "PreserveRuntimeInstallation",
+  "owner_runtime": "PreserveOwnerRuntime",
+  "schema_relation": "10 -> 10",
+  "actual_preparation_terminals": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/canonical_prepare_readback-terminal.json",
+      "sha256": "de88bd0d3cbe28175c4527326d535927c28d911fe1bd086b481af5801ab526f7"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/qualification_input_prepare-terminal.json",
+      "sha256": "d77d51e63344e11eaf1d2b1fb0a18de4d9ab028dec9bf6903287624e74c82a52"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/cohort_prepare-terminal.json",
+      "sha256": "74831daab87b48b307e32fc617c5f2057c8cd75f5e27627fee747597e28070c6"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/readback_prepare-terminal.json",
+      "sha256": "7ab7f0a9b14cc9a0dda7df08e75ad92cdccb9570b2905aa6f91b6248309e7215"
+    }
+  ],
+  "original953_sourceproof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/source-proof.json",
+    "sha256": "8f501b8b60e556a40609ef533f7bb1b509a0a712db052822b5653f41931c22d4"
+  },
+  "candidate_DTO": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/candidate-activation.json",
+    "sha256": "03e1db2ef13e47d6a59dfc340200e0e107cab348e2e9790a5fd72cde4224de1f"
+  },
+  "native_READ_FullTrust": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/native-full-trust.json",
+    "sha256": "1d8fdcde0f7bdd4abc5781be24c4550b0cac30ce2448bdd367f08b79103b9c87"
+  },
+  "frozen_manifest": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/frozen-manifest.json",
+    "sha256": "6d829f849cc69558911e9eecb9fe012e19d5c17cbf9073719a053c9e61f8f1aa"
+  },
+  "READY": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/READY.json",
+    "sha256": "cac81096e013ca9922acb70966adaf2aa06af8919054bfe84a754ef93efe4b46"
+  },
+  "once_operands_PREPARED_ONLY": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/once-operands.json",
+    "sha256": "5d3f2402eee6e2846fa66cbd32f525198216274e8ebccdd615f485ba146bdfd9"
+  },
+  "whole_immediate_handback": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/whole-immediate-handback.json",
+    "sha256": "3a6b5cbdb52a41f706edcaf003e5c8535f5ded4a2397e3b1773600a9356af0a8"
+  },
+  "READ_closure": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper471-merged466-worker-functional-READ-handback-20261005.json",
+    "sha256": "8e0dff1325ef0e56add668b4af7c8be277c6034cfa45c2adaf0ce49160cd1f74"
+  },
+  "fresh_privileged_borrowers": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/final-borrowers.json",
+    "sha256": "52b4d74492ac53bc72b4d36e749e00b848a8fcad20f490f1a1178e356ff6da07"
+  },
+  "fresh_reference_classification": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/final-reference-classification.json",
+    "sha256": "2957c61dd8e5462043909f09cfb7ba8e1ae12f6051ec54cbe1506d4e73b36f0c"
+  },
+  "process_custody": "Stage/proof/four preparation controllers retained birth, joined and absent. Nested synchronous source decoder birth not separately captured; no invented identity. Fresh237UID census holder/output refs0/gaps0; PUBLIC465 shared19 samebirth/argv/root/native/underscore and five aliases preserved.",
+  "candidate_disposition": "Positive471 samecandidate FROZEN HELDParent. Original459 recovery archive1563/preimage97c retained; no positive automaticrestore or nextloan.",
+  "receipt_preimages_absent": true,
+  "nativeEXEC_App_SDK_provider_input_runtimecarry_publisher_guard_signals": false,
+  "next_owner": "Bohr independent candidate readback/census/private lifecycle close, then Parent sole fresh public admission and once publication with NEW matching keeper authority."
+}

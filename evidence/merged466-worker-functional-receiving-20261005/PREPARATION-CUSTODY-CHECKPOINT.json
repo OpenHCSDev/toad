@@ -1,0 +1,35 @@
+{
+  "state": "Actual471 purpose OPEN; stageconsumedoncePASS; READ-only authority issued; proof helper prepared/unrun awaiting soleBohr exact lifecycle binding/release; no runtime/cohort/public action",
+  "issued": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Sch471-merged466-worker-functional-preparation-only-issued-grant.json",
+    "sha256": "5c99babc3004e4959a247548c60a937d6813fde069ad6ec54cae747a2e5b5e30"
+  },
+  "personally_read_initial_lifecycle_sha256": "ae2cfb43b79c1719af5b9cb6a6e4216e4cd5cadc06952b5aa1154e52fc8b0490",
+  "stage_terminal": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/stage-terminal.json",
+    "sha256": "367d63974eacbd73a32dbab7e39c8caf3ed68d1b7f4d58c9843964852e40be04"
+  },
+  "owned_output_preparation": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/owned-output-preparation.json",
+    "sha256": "ed6a9194741d1afe634da2955202bafb67385afdcc921dafa76b3cc6834f4225"
+  },
+  "native_READ": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper471-merged466-worker-functional-READ-issued-20261005.json",
+    "sha256": "ce8186c48f8b70aedd1aed3a4ca1e32e878919a6b5b79d51ff724895b374e164"
+  },
+  "prepared_helper": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/prove-installed.py",
+    "sha256": "eddb071778dd03bfa7defa4b51881080d603c92b18cd0065808cdd85f1153dcc"
+  },
+  "proof_binding": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/proof-source-binding.json",
+    "sha256": "afa53796fd320ccc44d88660cf6dda3679f597351e6d12bc44706d2feac7a78c"
+  },
+  "stage_attempts_consumed": 1,
+  "proof_attempts_consumed": 0,
+  "canonical_cohort_source_declaration_READ_held": true,
+  "native_EXEC": false,
+  "App_SDK_provider_input": 0,
+  "positive_freeze_and_whole_handback_required": true,
+  "candidate_proof_DTO_nativeFullTrust_absent": true
+}
