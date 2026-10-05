@@ -71,6 +71,71 @@ def frame_delivery(trace, actions, *, origin_ns, end_ns, window_seconds=1):
             "rolling": rolling, "gaps": gaps}
 
 
+def useful_body_delivery(trace, actions):
+    """Join original source-bound body strips to their actual flush callbacks."""
+    written = {event["display_begin_ns"]: event for event in trace
+               if event["event"] == "body_output_written"}
+    frames = []
+    for event in trace:
+        if event["event"] != "body_output" or event["headless"]:
+            continue
+        receipt = written.get(event["begin_ns"])
+        if (receipt is None or receipt["mode"] != receipt["current_mode"]
+                or not event["sources"]
+                or not any(body["nonwhite_characters"] for body in event["bodies"])):
+            continue
+        frames.append(dict(mode=event["mode"], sources=event["sources"],
+                           begin_ns=event["begin_ns"], displayed_ns=event["displayed_ns"],
+                           written_ns=receipt["ns"], width=event["width"],
+                           scroll_y=event["scroll_y"], maximum=event["maximum"],
+                           bodies=event["bodies"], viewport_ready=event["viewport_ready"],
+                           display_cpu_ns=event["display_cpu_ns"]))
+    frames.sort(key=lambda frame: frame["written_ns"])
+    starts = sorted((event for event in trace if event["event"] in {
+        "app_construct_begin", "source_selection_requested"}), key=lambda event: event["ns"])
+    selections = []
+    for index, start in enumerate(starts):
+        # Construction survives initial selection; each selection ends only
+        # at the next selection. Both borrow the original timestamps.
+        end = next((event["ns"] for event in starts[index + 1:]
+                    if event["event"] == start["event"]), float("inf"))
+        candidates = [frame for frame in frames
+                      if start["ns"] <= frame["begin_ns"] < end
+                      and (start["event"] == "app_construct_begin"
+                           or frame["mode"] == start["mode"])]
+        result = dict(request=start, interval_end_ns=end if math.isfinite(end) else None)
+        for label, first in (
+            ("body", next(iter(candidates), None)),
+            ("ready_viewport", next((frame for frame in candidates
+                                     if frame["viewport_ready"]), None)),
+        ):
+            result["first_" + label + "_output"] = first
+            result[label + "_output_ms"] = ((first["displayed_ns"] - start["ns"]) / 1e6
+                                           if first is not None else None)
+            result[label + "_writer_ms"] = ((first["written_ns"] - start["ns"]) / 1e6
+                                           if first is not None else None)
+        selections.append(result)
+    phases = []
+    for action in actions:
+        within = [frame for frame in frames
+                  if action["start_ns"] <= frame["written_ns"] < action["end_ns"]]
+        gaps = [(later["written_ns"] - earlier["written_ns"]) / 1e6
+                for earlier, later in zip(within, within[1:])]
+        phases.append(dict(action=action["action"], body_outputs=len(within),
+                           ready_viewport_outputs=sum(frame["viewport_ready"] for frame in within),
+                           useful_writer_intervals=stats(gaps),
+                           output_to_writer=stats([
+                               (frame["written_ns"] - frame["displayed_ns"]) / 1e6
+                               for frame in within]),
+                           frames=within))
+    return dict(selections=selections, phases=phases, frames=frames,
+                scope="First nonwhite source-bound body output and ready-viewport output are separate. "
+                      "Readiness is the original visible-body predicate, not a stable complete viewport. "
+                      "Terminal writer completion is an acknowledgement. "
+                      "No extra rasterization. Not monitor presentation, smoothness, baseline gain "
+                      "or continuous scrolling when no body output was required.")
+
+
 def write_frame_timeline(output, delivery):
     """Write a readable delivery-rate/gap chart alongside its original trace."""
     output = Path(output)
@@ -118,6 +183,8 @@ def main():
                                   end_ns=actions[-1]["end_ns"],
                                   window_seconds=args.frame_window_seconds)
         write_frame_timeline(Path(str(args.prefix) + "-frame-delivery.json"), delivery)
+        Path(str(args.prefix) + "-useful-body-delivery.json").write_text(
+            json.dumps(useful_body_delivery(trace, actions), indent=2) + "\n")
 
     selected = [event for event in trace if any(overlaps(event, action) for action in actions)]
     groups = defaultdict(list)

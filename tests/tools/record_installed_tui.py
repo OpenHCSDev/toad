@@ -887,7 +887,15 @@ class WheelCadenceJourney(ScrollJourney):
         # The existing terminal-stress owner uses 36 wheel events for a deep
         # history gesture. This selects that original input, not a new scroll
         # sensitivity or an application frame-rate limit.
-        commands = [marker + "wheel-before"]
+        handle = dict(target="widget", name="SidebarResizeHandle#sidebar-resize-handle",
+                      within="SessionThreadSidebar")
+        commands = [*cls.opening_commands(args), marker + "wheel-width-before",
+                    native_click_command("phase-wheel-width-before-state.pickle", **handle,
+                                         drag_columns=8),
+                    settle, marker + "wheel-width-narrow",
+                    native_click_command("phase-wheel-width-narrow-state.pickle", **handle,
+                                         drag_columns=-8),
+                    settle, marker + "wheel-width-restored", marker + "wheel-before"]
         state = "phase-wheel-before-state.pickle"
         for label, wheel in (("wheel-up", -36), ("wheel-down", 36), ("wheel-reverse", -36)):
             commands.extend((marker + label, native_click_command(state, wheel=wheel),
@@ -1742,7 +1750,8 @@ def frame_review(output, receipt, *, args):
         return {"available": False, "reason": "This capture has no original driver frame trace"}
     source = max(traces, key=lambda path: path.stat().st_mtime_ns)
     trace = json.loads(source.read_text())
-    if not any(event["event"] == "frame_enqueued" for event in trace):
+    has_body_output = any(event["event"] == "body_output" for event in trace)
+    if not has_body_output and not any(event["event"] == "frame_enqueued" for event in trace):
         return {"available": False, "trace": source.name,
                 "reason": "No original driver enqueue events; exports do not establish frame observation"}
     origin = round(receipt["capture_launch_monotonic"] * 1e9)
@@ -1764,9 +1773,15 @@ def frame_review(output, receipt, *, args):
     delivery["trace_limit_reached"] = len(trace) == 100000
     delivery["first_observed_ns"] = trace[0]["ns"] if trace else None
     analysis.write_frame_timeline(output / "frame-delivery.json", delivery)
+    body_delivery = analysis.useful_body_delivery(trace, actions)
+    body_delivery["trace_source"] = source.name
+    body_delivery["trace_limit_reached"] = len(trace) == 100000
+    (output / "useful-body-delivery.json").write_text(json.dumps(body_delivery, indent=2) + "\n")
     return {"available": True, "trace": source.name,
-            "artifacts": ["frame-delivery.json", "frame-delivery.svg"],
-            "intervals": delivery["intervals"], "scope": delivery["scope"]}
+            "artifacts": ["frame-delivery.json", "frame-delivery.svg", "useful-body-delivery.json"],
+            "intervals": delivery["intervals"], "scope": delivery["scope"],
+            "body_output": {"selections": body_delivery["selections"],
+                            "phases": body_delivery["phases"], "scope": body_delivery["scope"]}}
 
 
 def live_review(output, args, env, owner, label, *, identity, origin_ns, reviewed):
