@@ -1,0 +1,24 @@
+{
+  "state": "Final scoped body receiving source normaljoined actual merged458 main; installed product/build/control equality retained.",
+  "normal_main": "6d0de99cd2d2929107a731b00b63605ed43f7bbb",
+  "joined_head": "6dacb496882092350cfbc138d6317ae45ffeb126",
+  "product": "1ae124fcbc730479a8472c8fbe70f74a32afc5ef",
+  "package_tree": "e81dc2a9f4250e0534e4838a66ed195e3c34ec77",
+  "source_assets": 319,
+  "source_and_build_metadata_zero_delta": [
+    "src",
+    "pyproject.toml",
+    "uv.lock",
+    "README.md",
+    "LICENSE"
+  ],
+  "control_sha256": "af1ee4ede20f015bd7b7c554aafa284963edce6463cfc5a2f724d6b5281192d2",
+  "Toad_wheel_sha256": "7546bd15d78f2c06a11a2bb4e5564050017360c222e8e064abea2b560a180432",
+  "Ready_sha256": "0e52ed32d356e2929c2f8a95bf0b09376ba4bfab750c48145c7ff14b9b92e1c5",
+  "production_delta_against_main": [
+    "src/toad/widgets/viewport_body.py"
+  ],
+  "Path463_Native70_not_in_receiving_or_installed_cohort": true,
+  "repeat_App_build_package_operation": false,
+  "CI": "Deferred by Parent; no local/source control repeated after exact source-equal normal join."
+}
