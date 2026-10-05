@@ -1,0 +1,8 @@
+{
+  "issued": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Heis460-Einstein458-joint-render-extra-package-two-controls-issued-grant.json",
+  "issued_sha256": "262ae8f4e638bf76c7d8bd0b47651ef50a7f64551332394cc66c8d0f8d93dde7",
+  "lifecycle": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Heis460-Einstein458-joint-render-extra-package-two-controls-lifecycle.json",
+  "lifecycle_sha256_at_launch": "53e4473fc11ea83c2be86d31646302a25d1e4587d2d684a2da9bb999bba8e4f9",
+  "renderer_only": true,
+  "native_execution": false
+}
