@@ -1,0 +1,135 @@
+{
+  "original_published_source": "cd84e3bab",
+  "normal474_join_removed_historical_documents": true,
+  "restored_original_files": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/SELECTED-SOURCE-DISPOSITION.json",
+      "sha256": "289092b2cc6ed75179dc331b1169a6cc0f2f4ad97525da9ed976a4683c7adf8f",
+      "bytes": 1156
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/WHOLE-IMMEDIATE-HANDBACK.json",
+      "sha256": "3a6b5cbdb52a41f706edcaf003e5c8535f5ded4a2397e3b1773600a9356af0a8",
+      "bytes": 4483
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/HISTORICAL-EVIDENCE-PRESERVATION.json",
+      "sha256": "a1326708eed49fc108e7fc7b3bbde091e48271d0cf5e7a7c53f7e54b4ca1e9fd",
+      "bytes": 8996
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/PROPOSED-QUALIFICATION-INPUT.json",
+      "sha256": "5bc8ea8bb596bed96f0ef1809c413066f9e2c24d1a95be138a4010cd9d57aef3",
+      "bytes": 49007
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/FROZEN-MANIFEST.json",
+      "sha256": "6d829f849cc69558911e9eecb9fe012e19d5c17cbf9073719a053c9e61f8f1aa",
+      "bytes": 81020
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/RETAINED-TEXT-NRA-SOURCE-RELATIONS.json",
+      "sha256": "304ed56a358715ad60d4f346c0161630d4d1d87305f80e227a4a2fe2f92e1b13",
+      "bytes": 92120
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/CHECKPOINT-RELATION.json",
+      "sha256": "a67856f3741e0330566cc7105397c74c603d045636cd25c392cda137f65136d0",
+      "bytes": 211
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/MERGED-CANONICAL-SOURCE-MANIFEST.json",
+      "sha256": "d1bce92a5ae27f0de2731563562ec8a0c2c67a2e4ab509192827ecbd401520b0",
+      "bytes": 14169
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/SOURCE-PLAN.md",
+      "sha256": "9b2376d51fd34dc0bfc7a8f4e78e65af0d2c122a7fbc5933dd54b9090aae249f",
+      "bytes": 4470
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/PREPARATION-CUSTODY-CHECKPOINT.json",
+      "sha256": "f307a3fc3036bbde7080ca907a494c3aefc835a107d35bbac256f8d3ae3a0da7",
+      "bytes": 2110
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/CORE-WHEEL-SOURCE-RELATION.json",
+      "sha256": "a22f8ceb3d52562590cefe33646d8007e1cb9e1e54e9f37f66688d21b02b135d",
+      "bytes": 114488
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/PROPOSED-RECEIVING-COMMAND-PLAN.json",
+      "sha256": "11590b39079f648f485d084d66b1c97113a28f67831224880a52bab0ca6dce66",
+      "bytes": 19803
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/MERGED-SOURCE-WHEEL-RELATION.json",
+      "sha256": "55f3421778ce748f45147e4aea9c4db1746ac80cef2dcf686e78bc9df1d0fca9",
+      "bytes": 335368
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/ONCE-OPERANDS.json",
+      "sha256": "5d3f2402eee6e2846fa66cbd32f525198216274e8ebccdd615f485ba146bdfd9",
+      "bytes": 4264
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/FROZEN-PREPARATION-CHECKPOINT.json",
+      "sha256": "5acbad1e677d4c1081430e40ce52dfee2b37c46997b7be4ce00f97431f857449",
+      "bytes": 5524
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/READY.json",
+      "sha256": "cac81096e013ca9922acb70966adaf2aa06af8919054bfe84a754ef93efe4b46",
+      "bytes": 1827
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/TOAD-WHEEL-SOURCE-RELATION.json",
+      "sha256": "41b757626bea2665ff55506e50b4e3d58cfcb74c24409155a0c88b0e82f27e3d",
+      "bytes": 99370
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/COHORT-PREPARATION-TERMINAL.json",
+      "sha256": "74831daab87b48b307e32fc617c5f2057c8cd75f5e27627fee747597e28070c6",
+      "bytes": 191
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/INSTALLED-PROOF-CHECKPOINT.json",
+      "sha256": "6f20c282966b2514008a7464df9750ef7ced274a4e12ee1db67380242e84301f",
+      "bytes": 2773
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/NATIVE-READ-HANDBACK.json",
+      "sha256": "8e0dff1325ef0e56add668b4af7c8be277c6034cfa45c2adaf0ce49160cd1f74",
+      "bytes": 2438
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/RETAINED-DIFF-SOURCE-RELATION.json",
+      "sha256": "45572f7cb71acc8d809feb5c637d4f66c0067e58532017471c6ea8108c96d63d",
+      "bytes": 1492
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/SOURCE-OWNERSHIP-AND-PRESERVATION.json",
+      "sha256": "21410e95c589f27b2b9201b7e2c8fd5c135fcde2ffe3529a215263ac068f3776",
+      "bytes": 1842
+    }
+  ],
+  "frozen_artifacts_mutated": false,
+  "newOWNOUT_created": false,
+  "restored_earlier_gate_source_documents": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged457-goal675-native67-receiving-20261005/MERGED-CANONICAL-SOURCE-MANIFEST.json",
+      "sha256": "979d7175282aed795637c006ceca0f30390720fa7a14751d5fe440b109919128",
+      "bytes": 14017
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged457-goal675-native67-receiving-20261005/MERGED-SOURCE-WHEEL-RELATION.json",
+      "sha256": "c43c86fd59e48598e41aecebf842e4668420be9e10533e72d87bb0df561d0b4c",
+      "bytes": 238595
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged457-goal675-native67-receiving-20261005/QUALIFIED-OWNER-KEEPERS.json",
+      "sha256": "5a41de8bf2440c51ccdfc96472398c9bc706dcfccd0f9d8a2cd22931cd79667e",
+      "bytes": 1585
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "state": "Two post-preparation bookkeeping errors preserved; four issued preparation commands already terminal0, no proof/cohort/publication failure or repeat",
+  "classification_error": {
+    "source": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/classify-final-references.py",
+    "sha256": "bcb2766856ce4a16549369acc47b7740f7e4b898b6e69d47daadd0780cc5b29c",
+    "observed_exception": "AssertionError at line22 roots==[b'/home/ts/.agent-comms']",
+    "cause": "Authored classifier assumed cwd was original root. Actual original publication receipt owns /var/tmp/agent-comms-live-20260927-wzjtqhza root and wire identity.",
+    "source_protected": true
+  },
+  "finalizer_error": {
+    "source": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/finalize-preparation.py",
+    "sha256": "082046ce8797659a68bec28aaa34d922643a0f003b081378da082e82efa9ea37",
+    "observed_exception": "FileNotFoundError final-reference-classification.json while constructing whole-immediate-handback",
+    "outputs_already_written": [
+      "terminal-candidate-readback.json",
+      "once-operands.json",
+      "frozen-manifest.json",
+      "READY.json"
+    ],
+    "whole_immediate_handback_was_not_created": true
+  },
+  "redirected_raw_error_files_exist": false,
+  "error_reporting": "Original tool stderr remains retained; this record is observed exception summary, not fabricated raw capture",
+  "issued_phases_repeated": false,
+  "finalizer_repeated": false,
+  "frozen112_members_unchanged": true,
+  "correction": "Append-only classification acquires actual root/wire from original publication receipt; complete only missing handback after existing freeze verification."
+}

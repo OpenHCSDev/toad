@@ -1,0 +1,138 @@
+{
+  "state": "Whole immediate package/import/proof/canonical/cohort preparation +matching7a READ RETURNED; positive candidate FROZEN HELDParent",
+  "issued_grant": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch475-merged460-native71-functional-preparation-only-issued-grant.json",
+    "sha256": "687a5c6ea16ab0e053030cf3b9824e9040f42a75d7251900ddf742b8ca8f56ae"
+  },
+  "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "positive_floor_disposition": "Prepared475 held. Actualformerstyle22CURRENT465 archive375/preimagecb0 remains recovery. No automatic positive floorrestore or newloan.",
+  "READY": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/READY.json",
+    "sha256": "57031b594ed38f754482e33673af823e7e311fa7c6e44d9e3f5d72c2fd7bdf8d"
+  },
+  "frozen_manifest": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/frozen-manifest.json",
+    "sha256": "e87cde35dcce88cf9268f0e8f683d82bb77ddfcf982b98b3f396b35234e52c4b",
+    "count": 112
+  },
+  "all112_frozen_hash_bytes_modes_verified": true,
+  "sourceproof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/source-proof.json",
+    "sha256": "7ee4abb8e6ba8358ee8d89d12d41701c66f235fb8a6f52a100848264c45f03ec"
+  },
+  "candidate_DTO": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/candidate-activation.json",
+    "sha256": "692943e5aac55a7ce453ebc59793e1c40e48f8e578fd11407080880032c07941"
+  },
+  "candidate_readback": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/terminal-candidate-readback.json",
+    "sha256": "b596ff1fe6d81fe6d1bf87a6d6c24111717dc6c882c1cffe36e8fa3a756b8a29"
+  },
+  "once_operands": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/once-operands.json",
+    "sha256": "11b65d36d82be7b2834424a39f80802e6976ef8e5deddfb70c2b58dc677eff5e"
+  },
+  "once_readback_executable_path_review": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/once-readback-executable-path-review.json",
+    "sha256": "1f683c8d9afb0b2209f03ce0d36ad0d18034ae402c3e7d2345e022b3450952b4"
+  },
+  "once_path_review_result": "Actual byte-exact11b sys.argv[0] already OUT/readback_publication.py; canonicaldirectory only sys.path. No corrective command delta or repeat.",
+  "preparation_terminals": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/stage-terminal.json",
+      "sha256": "6b627f96a8bde4b91099a2748593732b12426193e2c584a1dc087afdb79c8f12"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/proof-terminal.json",
+      "sha256": "05cbfa6efc09c81d9d004af7e8235a1487ee4d0ad68116d6c28f2ac2315ad5cf"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/qualification_input_prepare-terminal.json",
+      "sha256": "8b00dd62bbf884206dec6c024a6a3d4b0273303abc49c591a6a966d50c5276ea"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/canonical_prepare_readback-terminal.json",
+      "sha256": "fe7924c4ffd89d951e160e430f5d2c55604c769f7d0d01f2683ec6c42dbdd7a4"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/readback_prepare-terminal.json",
+      "sha256": "4159a0ce8a861ebe8ebe99971932119ac51d79b05ca4d2d789beba3d80b64678"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/cohort_prepare-terminal.json",
+      "sha256": "15ba7804ec74c4d7ccda78ba324297bddcfe938e16549b40290d9adc227e49c8"
+    }
+  ],
+  "observed_joined_identities_absent": [
+    {
+      "pid": 2187285,
+      "birth": 71893289
+    },
+    {
+      "pid": 2187271,
+      "birth": 71893278
+    },
+    {
+      "pid": 2213485,
+      "birth": 71951619
+    },
+    {
+      "pid": 2213467,
+      "birth": 71951612
+    },
+    {
+      "pid": 2224886,
+      "birth": 71977877
+    },
+    {
+      "pid": 2224506,
+      "birth": 71976520
+    },
+    {
+      "pid": 2224897,
+      "birth": 71977895
+    },
+    {
+      "pid": 2224908,
+      "birth": 71977911
+    }
+  ],
+  "owned_open_operations": [],
+  "original_controller_births_retained_joined_absent": true,
+  "source_decoder_birth_limit": "Original synchronous source-declaration check_output joined; exact nested decoder birth not separately retained. Preparation outer capture wrapper births not retained. No invented PID; Bohr fresh independent census required.",
+  "native7a_READ_returned": true,
+  "source_PUBLIC471_declaration_checkpoint_READ_returned_after_synchronous_cohort_join": true,
+  "nativeEXEC_never_granted_used": true,
+  "keeper7a_086_4b_immutable_held": true,
+  "PUBLIC471_Heis334_Arendt540_protected": true,
+  "original_privateauth_history_input_UNKNOWN_preserved": true,
+  "no_future_prefix_import_read_write_exec_claim": true,
+  "receipt_preimages_absent": true,
+  "fresh_privileged_borrowers": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/final-borrowers.json",
+    "sha256": "5584fe5a8c291aba4de72539ea0b7f2b7289399e410a354e527d783d567ba0bb"
+  },
+  "fresh_reference_classification": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/final-reference-classification.json",
+    "sha256": "5b1536ac06f1f64a0cf116aa605f8f2b1698caf7ee62025eee75b82307bf79fa"
+  },
+  "public_default_links": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/public-default-links-readback.json",
+    "sha256": "5fb0157d5af8620684c07a8a20ec463f9840f7c68c690cdb05dcae770b375b9c"
+  },
+  "post_preparation_bookkeeping_errors_preserved": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/post-preparation-bookkeeping-negative.json",
+    "sha256": "c41793cdd56499d921488425d1f172d52dcd3d329cb6e7e42e0dfb4396a2b03e"
+  },
+  "completed_missing_classification_source": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/classify-final-references-original-root.py",
+    "sha256": "4f83c5e3657a3aea4e95f31abc37cc433400c6400eeea5c54ee9ec1b62de9b67"
+  },
+  "all_four_original_preparation_operations_once_PASS": true,
+  "original_source_target_schema_checkpoint_equal": true,
+  "runtime_member": "PreserveRuntimeInstallation",
+  "owner_runtime": "PreserveOwnerRuntime",
+  "203_unique_original_gates_verified_ownproof_DTO_separate": true,
+  "no_finalizer_or_issued_phase_repeat": true,
+  "fresh_independent_holder_census_lifecycle_owner": "OriginalBohr ONLY"
+}
