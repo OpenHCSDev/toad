@@ -1,0 +1,105 @@
+{
+  "coverage": [
+    {
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "modules": 403,
+      "omissions": []
+    },
+    {
+      "root": "tools",
+      "modules": 40,
+      "omissions": []
+    }
+  ],
+  "relations": [
+    {
+      "path": "tests/declared_target_actions_installed_pilot.py",
+      "sites": [
+        {
+          "line": 30,
+          "import": "from saved_state_user_journey_pilot import reveal_thread_row"
+        },
+        {
+          "line": 281,
+          "reference": "reveal_thread_row"
+        },
+        {
+          "line": 283,
+          "reference": "reveal_thread_row"
+        },
+        {
+          "line": 197,
+          "reference": "reveal_thread_row"
+        },
+        {
+          "line": 443,
+          "reference": "reveal_thread_row"
+        },
+        {
+          "line": 629,
+          "reference": "reveal_thread_row"
+        },
+        {
+          "line": 748,
+          "reference": "reveal_thread_row"
+        }
+      ]
+    },
+    {
+      "path": "tests/external_cli_native_installed_pilot.py",
+      "sites": [
+        {
+          "line": 29,
+          "import": "from saved_state_user_journey_pilot import reveal_thread_row, submit_editor, click_tab, screen_paint"
+        },
+        {
+          "line": 148,
+          "reference": "reveal_thread_row"
+        },
+        {
+          "line": 181,
+          "reference": "reveal_thread_row"
+        },
+        {
+          "line": 191,
+          "reference": "reveal_thread_row"
+        },
+        {
+          "line": 226,
+          "reference": "reveal_thread_row"
+        }
+      ]
+    },
+    {
+      "path": "tests/first_fork_native_installed_pilot.py",
+      "sites": [
+        {
+          "line": 81,
+          "import": "from saved_state_user_journey_pilot import reveal_thread_row"
+        },
+        {
+          "line": 85,
+          "reference": "reveal_thread_row"
+        }
+      ]
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "sites": [
+        {
+          "line": 256,
+          "declaration": "reveal_thread_row"
+        },
+        {
+          "line": 275,
+          "reference": "reveal_thread_row"
+        }
+      ]
+    }
+  ]
+}

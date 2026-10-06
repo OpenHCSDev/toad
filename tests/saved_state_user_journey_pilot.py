@@ -259,6 +259,8 @@ async def reveal_thread_row(app, pilot, name, channel_name="#team"):
     group = next(group for group in sidebar.query(ChannelGroup)
                  if group.row.target_name == channel_name)
     if group.expanded is False:
+        group.disclosure.scroll_visible(animate=False, immediate=True)
+        await pilot.pause()
         assert await pilot.click(group.disclosure)
         await pilot.pause()
     await until(pilot, lambda: any(row.target_name == name for row in group.member_container.children))
