@@ -1,0 +1,199 @@
+{
+  "coverage": [
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "revision": "c39aec52f6b245abae1a69224eb260c90733eace",
+      "root": "src/toad",
+      "parsed": 288,
+      "unparsed": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "revision": "c39aec52f6b245abae1a69224eb260c90733eace",
+      "root": "tests",
+      "parsed": 403,
+      "unparsed": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "revision": "c39aec52f6b245abae1a69224eb260c90733eace",
+      "root": "tools",
+      "parsed": 40,
+      "unparsed": []
+    },
+    {
+      "repo": "/home/ts/wt/comms-cleanup-live-integration-20260929",
+      "revision": "26ba8eb2d6d4949e72c7230d9e109afc47d040f9",
+      "root": "src/agent_comms",
+      "parsed": 324,
+      "unparsed": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "revision": "8814c5410ffa981a89a34cd18403ba0b54c867f1",
+      "root": "src/textual",
+      "parsed": 249,
+      "unparsed": []
+    }
+  ],
+  "declaration_sites": [
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/navigation_preparation.py",
+      "line": 170,
+      "declaration": "key"
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/settings.py",
+      "line": 155,
+      "declaration": "key"
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/sidebar_navigation.py",
+      "line": 90,
+      "declaration": "selection_for"
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/sidebar_navigation.py",
+      "line": 104,
+      "declaration": "pointer_select"
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 129,
+      "declaration": "thread_row_inputs"
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 76,
+      "declaration": "thread_row_inputs"
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 142,
+      "declaration": "reconcile_rows"
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 132,
+      "declaration": "thread_row_inputs"
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "tests/declared_target_actions_installed_pilot.py",
+      "line": 140,
+      "declaration": "select_rows"
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "tests/declared_target_actions_installed_pilot.py",
+      "line": 160,
+      "declaration": "selected_target_actions"
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "tests/e2e_pty.py",
+      "line": 223,
+      "declaration": "key"
+    },
+    {
+      "repo": "/home/ts/wt/comms-cleanup-live-integration-20260929",
+      "path": "src/agent_comms/display_order.py",
+      "line": 38,
+      "declaration": "key"
+    },
+    {
+      "repo": "/home/ts/wt/comms-cleanup-live-integration-20260929",
+      "path": "src/agent_comms/display_order.py",
+      "line": 55,
+      "declaration": "key"
+    },
+    {
+      "repo": "/home/ts/wt/comms-cleanup-live-integration-20260929",
+      "path": "src/agent_comms/historical_views.py",
+      "line": 153,
+      "declaration": "key"
+    },
+    {
+      "repo": "/home/ts/wt/comms-cleanup-live-integration-20260929",
+      "path": "src/agent_comms/presentation.py",
+      "line": 431,
+      "declaration": "roster"
+    },
+    {
+      "repo": "/home/ts/wt/comms-cleanup-live-integration-20260929",
+      "path": "src/agent_comms/presentation.py",
+      "line": 536,
+      "declaration": "roster"
+    },
+    {
+      "repo": "/home/ts/wt/comms-cleanup-live-integration-20260929",
+      "path": "src/agent_comms/queued_input.py",
+      "line": 80,
+      "declaration": "key"
+    },
+    {
+      "repo": "/home/ts/wt/comms-cleanup-live-integration-20260929",
+      "path": "src/agent_comms/relationships.py",
+      "line": 613,
+      "declaration": "key"
+    }
+  ],
+  "actual_failure_state": {
+    "sidebar_state": {
+      "expanded": {
+        "#batch": true
+      },
+      "panels_collapsed": {
+        "Channels": false
+      },
+      "selected": {
+        "channel": "#batch",
+        "target": "batch-a"
+      },
+      "selected_targets": [
+        {
+          "channel": "#batch",
+          "target": "batch-c"
+        },
+        {
+          "channel": "#batch",
+          "target": "batch-b"
+        },
+        {
+          "channel": "#batch",
+          "target": "batch-a"
+        }
+      ],
+      "channel_scroll_y": 0,
+      "panel_scroll_y": 0
+    },
+    "cohort": [
+      "batch-a",
+      "batch-b",
+      "batch-c"
+    ],
+    "row_visibility": {
+      "batch-a": true,
+      "batch-b": true,
+      "batch-c": true
+    }
+  },
+  "owners": [
+    "ThreadSort.key",
+    "ChannelView.roster",
+    "ChannelGroup.thread_row_inputs",
+    "SidebarTree.reconcile_rows",
+    "SidebarProjection.rows",
+    "SidebarNavigation.pointer_select"
+  ],
+  "conclusion": "Raw selected three exact intended members in canonical newest-first order; consumer expected declaration order. No lost member evidenced at first assertion.",
+  "runtime_rerun": false
+}

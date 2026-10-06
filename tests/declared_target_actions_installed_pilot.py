@@ -172,18 +172,23 @@ async def selected_target_actions(app, pilot, comms, project, base, checks):
     comms.threads.restore_stopped(comms.registry.snapshot(), cohort)
     sidebar = await wait_channel_roster(app, pilot, '#batch')
     rows = [await reveal_thread_row(app, pilot, name, '#batch') for name in cohort]
+    # Native Shift follows the admitted projection, not fixture declaration order.
+    ordered_cohort = tuple(row.target_name for row in sidebar.projection.rows if row in rows)
+    assert len(ordered_cohort) == len(cohort)
     original_mode = app.selected_mode
     await select_rows(app, pilot, rows[:1])
     assert await pilot.click(rows[2], shift=True)
     (base / 'initial-selection-state.json').write_text(json.dumps({
         'sidebar_state': FieldCodec.encode(app.sidebar_state),
         'cohort': cohort,
+        'expected_targets': ordered_cohort,
         'row_visibility': {row.target_name: row.is_on_screen for row in rows},
     }, indent=2))
-    assert tuple(item.target for item in app.sidebar_state.selected_targets) == cohort
+    assert tuple(item.target for item in app.sidebar_state.selected_targets) == ordered_cohort
     assert app.selected_mode == original_mode
     assert await pilot.click(rows[1], control=True)
-    assert tuple(item.target for item in app.sidebar_state.selected_targets) == ('batch-a', 'batch-c')
+    assert tuple(item.target for item in app.sidebar_state.selected_targets) == tuple(
+        name for name in ordered_cohort if name != 'batch-b')
     checks.append('native-control-toggle-shift-range-without-opening-thread')
 
     viewer = comms.messaging.user_identity(str(project)).name
@@ -254,14 +259,18 @@ async def selected_target_actions(app, pilot, comms, project, base, checks):
     await select_rows(app, pilot, (anchor,))
     endpoint = await reveal_thread_row(app, pilot, range_names[-1], '#range')
     assert not anchor.is_on_screen and endpoint.is_on_screen
+    ordered_range = tuple(row.target_name for row in sidebar.projection.rows
+                          if sidebar.navigation.selection_for(row).channel == '#range'
+                          and row.target_name in range_names)
+    assert len(ordered_range) == len(range_names) and set(ordered_range) == set(range_names)
     assert await pilot.click(endpoint, shift=True)
     (base / 'scrolled-range-selection-state.json').write_text(json.dumps({
         'sidebar_state': FieldCodec.encode(app.sidebar_state),
-        'expected_targets': range_names,
+        'expected_targets': ordered_range,
         'anchor_visible': anchor.is_on_screen,
         'endpoint_visible': endpoint.is_on_screen,
     }, indent=2))
-    assert tuple(item.target for item in app.sidebar_state.selected_targets) == range_names
+    assert tuple(item.target for item in app.sidebar_state.selected_targets) == ordered_range
     assert app.selected_mode == original_mode
     checks.append('native-shift-range-retains-offscreen-anchor-across60-admitted-rows')
     assert app._exception is None
