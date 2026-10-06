@@ -52,7 +52,21 @@ async def open_menu(app, pilot, row):
     await row.query_ancestor(CommsSidebar).observation.sync()
     row.scroll_visible(animate=False, immediate=True)
     await pilot.pause()
-    assert await pilot.click(row, button=3)
+    # Native visibility admits a clipped region, not necessarily the widget's
+    # top-left cell. Acquire the pointer from that original published geometry.
+    screen = app.screen
+    geometry = screen._compositor.visible_widgets.get(row)
+    assert geometry is not None, ("Menu row has no published geometry", row.target_name)
+    bounds, clip = geometry
+    exposed = bounds.intersection(clip).intersection(screen.size.region)
+    assert exposed, ("Menu row has no exposed cells", row.target_name, bounds, clip)
+    cell = exposed.offset
+    hit, _ = screen.get_widget_at(*cell)
+    assert hit is row, ("Menu cell belongs to another native widget", row.target_name, cell, hit)
+    clicked = await pilot.click(row, button=3,
+        offset=(cell.x - row.region.x, cell.y - row.region.y))
+    assert clicked, ("Native menu click missed", row.target_name, bounds, clip, cell,
+                     row.is_attached, screen._compositor.visible_widgets.get(row))
     await until(pilot, lambda: isinstance(app.screen, ContextMenu) and app.screen.is_mounted)
     return {item.action: item for item in app.screen.query(ContextMenuItem)}
 
