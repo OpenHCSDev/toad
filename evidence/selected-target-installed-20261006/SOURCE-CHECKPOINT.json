@@ -1,0 +1,547 @@
+{
+  "coverage": [
+    {
+      "repository": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "head": "9cde4833c9fc186149dcb50ce8c8d1f09536673c",
+      "root": "src",
+      "modules": 288,
+      "parse_omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "head": "9cde4833c9fc186149dcb50ce8c8d1f09536673c",
+      "root": "tests",
+      "modules": 403,
+      "parse_omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "head": "9cde4833c9fc186149dcb50ce8c8d1f09536673c",
+      "root": "tools",
+      "modules": 40,
+      "parse_omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "head": "7227262c65b91a1e0ad65a514ab95e38825c7bd8",
+      "root": "src",
+      "modules": 324,
+      "parse_omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "head": "7227262c65b91a1e0ad65a514ab95e38825c7bd8",
+      "root": "tests",
+      "modules": 378,
+      "parse_omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "head": "7227262c65b91a1e0ad65a514ab95e38825c7bd8",
+      "root": "tools",
+      "modules": 53,
+      "parse_omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/textual-sidebar-context-source-20261006",
+      "head": "3e73a51ab881d8d9cddfc6f60a57ee4453854dfc",
+      "root": "src",
+      "modules": 249,
+      "parse_omissions": []
+    }
+  ],
+  "original_owner_consumer_sites": [
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/src/toad/core/context_inspection.py",
+      "line": 550,
+      "call": "owner.require_process"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/src/toad/navigation_target.py",
+      "line": 49,
+      "declaration": "menu_context"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/src/toad/navigation_target.py",
+      "line": 110,
+      "declaration": "menu_context"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/src/toad/navigation_target.py",
+      "line": 55,
+      "call": "self.menu_context"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/src/toad/sidebar_navigation.py",
+      "line": 104,
+      "declaration": "pointer_select"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/src/toad/sidebar_navigation.py",
+      "line": 128,
+      "declaration": "menu_context"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/src/toad/sidebar_navigation.py",
+      "line": 130,
+      "call": "row.target.menu_context"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/src/toad/target_commands.py",
+      "line": 52,
+      "call": "CliCommand.target_catalog"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/src/toad/thread_actions.py",
+      "line": 90,
+      "declaration": "ThreadAction"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/src/toad/thread_actions.py",
+      "line": 122,
+      "call": "TargetEdit"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/src/toad/widgets/comms_sidebar.py",
+      "line": 216,
+      "call": "sidebar.navigation.pointer_select"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/src/toad/widgets/comms_sidebar.py",
+      "line": 217,
+      "call": "sidebar.navigation.menu_context"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/src/toad/widgets/comms_sidebar.py",
+      "line": 312,
+      "call": "sidebar.navigation.pointer_select"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/tests/admission_scope_installed_pilot.py",
+      "line": 38,
+      "call": "owner.require_process"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/tests/admission_scope_installed_pilot.py",
+      "line": 34,
+      "call": "owner.require_process"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/tests/admission_scope_installed_pilot.py",
+      "line": 59,
+      "call": "owner.require_process"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/tests/channel_unread_follow_pilot.py",
+      "line": 48,
+      "call": "comms.views.mark_user_view_read"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/tests/cold_context_installed_physical.py",
+      "line": 381,
+      "call": "declared.require_process"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/tests/cold_context_installed_physical.py",
+      "line": 301,
+      "call": "previous.require_process"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/tests/declared_target_actions_installed_pilot.py",
+      "line": 137,
+      "declaration": "started_target_connections"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/tests/declared_target_actions_installed_pilot.py",
+      "line": 489,
+      "call": "started_target_connections"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/tests/divider_unread_paint_pilot.py",
+      "line": 32,
+      "call": "comms.views.mark_user_view_read"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/tests/f4_declared_family_installed_pilot.py",
+      "line": 82,
+      "call": "declared.require_process"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/tests/f4_declared_family_installed_pilot.py",
+      "line": 47,
+      "call": "previous.require_process"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/tests/first_fork_native_installed_pilot.py",
+      "line": 38,
+      "call": "ForkCliCommand.target_catalog"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/tests/owner_replacement_recovery_installed_pilot.py",
+      "line": 95,
+      "call": "comms.registry.require('beta').require_process"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/tests/owner_replacement_recovery_installed_pilot.py",
+      "line": 136,
+      "call": "comms.registry.require('beta').require_process"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/tests/owner_replacement_recovery_installed_pilot.py",
+      "line": 154,
+      "call": "snapshot.require_active('beta').require_process"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/tests/runtime_fixture.py",
+      "line": 211,
+      "call": "ThreadAction"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/tests/runtime_fixture.py",
+      "line": 211,
+      "call": "TargetEdit"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/tests/runtime_fixture.py",
+      "line": 208,
+      "call": "CliCommand.target_catalog"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/tests/sidebar_selected_targets_pilot.py",
+      "line": 89,
+      "call": "sidebar.navigation.pointer_select"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/tests/sidebar_selected_targets_pilot.py",
+      "line": 90,
+      "call": "sidebar.navigation.pointer_select"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/tests/sidebar_selected_targets_pilot.py",
+      "line": 91,
+      "call": "sidebar.navigation.menu_context"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/tests/sidebar_selected_targets_pilot.py",
+      "line": 99,
+      "call": "sidebar.navigation.pointer_select"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/tests/sidebar_selected_targets_pilot.py",
+      "line": 100,
+      "call": "sidebar.navigation.pointer_select"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/tests/tools/record_installed_tui.py",
+      "line": 1460,
+      "call": "thread.require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/src/agent_comms/cli_commands.py",
+      "line": 166,
+      "declaration": "TargetAction"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/src/agent_comms/cli_commands.py",
+      "line": 250,
+      "declaration": "TargetEdit"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/src/agent_comms/cli_commands.py",
+      "line": 360,
+      "declaration": "target_catalog"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/src/agent_comms/cli_commands.py",
+      "line": 438,
+      "declaration": "execute_target"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/src/agent_comms/cli_commands.py",
+      "line": 260,
+      "call": "self.declaration.execute_target"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/src/agent_comms/cli_commands.py",
+      "line": 388,
+      "call": "TargetAction"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/src/agent_comms/cli_commands.py",
+      "line": 1290,
+      "call": "CliCommand.target_catalog"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/src/agent_comms/cli_commands.py",
+      "line": 1308,
+      "call": "CliCommand.decode(self.operation).execute_target"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/src/agent_comms/cli_commands.py",
+      "line": 1516,
+      "call": "ctx.views.mark_user_view_read"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/src/agent_comms/cli_commands.py",
+      "line": 381,
+      "call": "TargetAction"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/src/agent_comms/cli_commands.py",
+      "line": 1493,
+      "call": "TargetEdit"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/src/agent_comms/cli_commands.py",
+      "line": 1243,
+      "call": "owner.require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/src/agent_comms/history_views.py",
+      "line": 408,
+      "declaration": "mark_user_view_read"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/src/agent_comms/owner_launch.py",
+      "line": 149,
+      "call": "thread.require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/src/agent_comms/owner_lifecycle.py",
+      "line": 113,
+      "call": "self.thread.require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/src/agent_comms/owner_lifecycle.py",
+      "line": 286,
+      "call": "thread.require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/src/agent_comms/owner_lifecycle.py",
+      "line": 46,
+      "call": "owner.require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/src/agent_comms/registry_document.py",
+      "line": 477,
+      "call": "expected.require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/src/agent_comms/runtime.py",
+      "line": 332,
+      "call": "snapshot.require_active(self.session_id).require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/src/agent_comms/runtime_requests.py",
+      "line": 104,
+      "call": "thread.require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/src/agent_comms/session_lifecycle.py",
+      "line": 303,
+      "call": "thread.require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/src/agent_comms/thread_execution.py",
+      "line": 85,
+      "call": "thread.require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/src/agent_comms/threads.py",
+      "line": 177,
+      "declaration": "require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/native_context_reader_journey.py",
+      "line": 69,
+      "call": "thread.require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_channels.py",
+      "line": 126,
+      "call": "CliCommand.target_catalog"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_cli.py",
+      "line": 242,
+      "call": "CliCommand.target_catalog"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_cli.py",
+      "line": 376,
+      "call": "CliCommand.target_catalog"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_cli.py",
+      "line": 301,
+      "call": "TargetEdit"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_cli.py",
+      "line": 307,
+      "call": "StopCliCommand.execute_target"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_cli.py",
+      "line": 333,
+      "call": "TargetEdit"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_cli.py",
+      "line": 362,
+      "call": "TargetEdit"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_cli.py",
+      "line": 378,
+      "call": "TargetEdit"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_cli.py",
+      "line": 383,
+      "call": "TargetEdit"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_dm_scoped_ack.py",
+      "line": 61,
+      "call": "comms.views.mark_user_view_read"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_dm_scoped_ack.py",
+      "line": 156,
+      "call": "comms.views.mark_user_view_read"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_native_context_inspection.py",
+      "line": 143,
+      "call": "thread.require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_native_context_inspection.py",
+      "line": 299,
+      "call": "thread.require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_owner_partial_retirement.py",
+      "line": 43,
+      "call": "t.require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_owner_partial_retirement.py",
+      "line": 72,
+      "call": "thread.require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_owner_partial_retirement.py",
+      "line": 136,
+      "call": "lifecycle.originals[1].require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_owner_partial_retirement.py",
+      "line": 144,
+      "call": "lifecycle.originals[1].require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_owner_partial_retirement.py",
+      "line": 88,
+      "call": "t.require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_owner_partial_retirement.py",
+      "line": 143,
+      "call": "lifecycle.originals[0].require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_owner_restart_handoff.py",
+      "line": 34,
+      "call": "thread.require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_owner_restart_handoff.py",
+      "line": 63,
+      "call": "thread.require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_owner_restart_handoff.py",
+      "line": 82,
+      "call": "thread.require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_owner_restart_handoff.py",
+      "line": 93,
+      "call": "thread.require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_runtime_cold_attachment.py",
+      "line": 99,
+      "call": "child.require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_selected_summary_exchange.py",
+      "line": 590,
+      "call": "owner.require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_selected_summary_exchange.py",
+      "line": 78,
+      "call": "owner.require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_user_view_mark_read.py",
+      "line": 37,
+      "call": "comms.views.mark_user_view_read"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_user_view_mark_read.py",
+      "line": 43,
+      "call": "comms.views.mark_user_view_read"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_user_view_mark_read.py",
+      "line": 49,
+      "call": "comms.views.mark_user_view_read"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_user_view_mark_read.py",
+      "line": 56,
+      "call": "comms.views.mark_user_view_read"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/test_user_view_mark_read.py",
+      "line": 62,
+      "call": "comms.views.mark_user_view_read"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/turn_context_installed_journey.py",
+      "line": 103,
+      "call": "thread.require_process"
+    },
+    {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/tests/turn_context_installed_journey.py",
+      "line": 203,
+      "call": "source.require_process"
+    }
+  ],
+  "changed_original_declarations": [
+    "choose",
+    "started_target_connections",
+    "journey"
+  ],
+  "added_control_declarations": [
+    "batch_started_target_actions",
+    "select_rows",
+    "selected_target_actions"
+  ],
+  "changed_file": "tests/declared_target_actions_installed_pilot.py",
+  "changed_file_sha256": "94ed238acebc1523907ab54fefb54b28ee795e13c4feec25ad10ccf1f7412436",
+  "compile_without_product_imports": "PASS",
+  "production_pins_wheels_unchanged": true,
+  "behavioral_execution": "UNRUN",
+  "remaining_checks": [
+    "selected-only installed native menus/private-store outcomes",
+    "batch-native-only original SDK/ACP start-stop/dedup/reconnect/active tag survivors",
+    "real run_async pointer task fix and affected physical recording",
+    "actual public installation after reviewed accepted pair"
+  ],
+  "private_test_cleanup_owner": "Existing runtime_fixture.ToadApp delegates to the original product App, then owns test workers/children; no new cleanup manager"
+}

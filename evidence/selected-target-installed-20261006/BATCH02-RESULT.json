@@ -1,0 +1,73 @@
+{
+  "whole_handback": {
+    "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch02-installed-purpose/whole-handback.json",
+    "sha256": "8d5edecd79b341ca39df5ff27d5ad4456a69e5de0e73e9c2dcb89963f02c5d2b",
+    "bytes": 27117
+  },
+  "closed_lifecycle": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Parent-selected-target-batch02-package-App-lifecycle.json",
+    "sha256": "a5057c653d8c8e861b98c59449619066b901ddc5cd720e7a8e7703ea35ae8373",
+    "bytes": 27649
+  },
+  "terminal": {
+    "elapsed": 23.534156876965426,
+    "returncode": 1,
+    "timed_out": false,
+    "error": null,
+    "drain_errors": [],
+    "outcome": {
+      "kind": "exited",
+      "code": 1
+    },
+    "child_retired": true,
+    "owned_group_members": [],
+    "controller": {
+      "pid": 74951,
+      "start_time": 77072868
+    },
+    "child": {
+      "pid": 74952,
+      "start_time": 77072957
+    },
+    "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Parent-selected-target-batch02-package-App-issued-grant.json",
+    "input_and_qualification_claim": "Original selected-target assertions, native owner receipts, zero provider requests/input dispositions and joined App/SDK fixture cleanup must establish affected acceptance; no public source or performance claim"
+  },
+  "restore": {
+    "elapsed_seconds": 0.23362027492839843,
+    "returncode": 0,
+    "error": null,
+    "drain_errors": [],
+    "parent_wait_outcome": {
+      "kind": "exited",
+      "code": 0
+    },
+    "controller": {
+      "pid": 75768,
+      "start_time": 77077160
+    },
+    "child": {
+      "pid": 75786,
+      "start_time": 77077254
+    },
+    "child_retired": true,
+    "owned_group_members": []
+  },
+  "first_failure": "initial Shift exact tuple ordering, helper183",
+  "selected_targets": [
+    "batch-c",
+    "batch-b",
+    "batch-a"
+  ],
+  "fixture_declared_cohort": [
+    "batch-a",
+    "batch-b",
+    "batch-c"
+  ],
+  "intended_members_all_selected": true,
+  "later60row_and_native_batch_checks_unreached": true,
+  "full_acceptance": false,
+  "provider_requests": 0,
+  "public_source_capture": false,
+  "source_correction": "existing consumer derives exact order from SidebarProjection.rows; original ThreadSort/ChannelView controls displayed order",
+  "source_only_no_rerun": true
+}

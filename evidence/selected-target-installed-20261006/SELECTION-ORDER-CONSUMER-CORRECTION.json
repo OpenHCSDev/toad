@@ -1,0 +1,21 @@
+{
+  "before_SHA": "d6150b43550e74f0da1fb2d100e5aab27acd81182d69ba44b7242b9d0e30609a",
+  "after_SHA": "7174ddc4f592a23d63bfd71bc042f5cb0e03ac2393df624c01ebf0feb2c0f744",
+  "changed_functions": [
+    "selected_target_actions"
+  ],
+  "prior_assertions": 122,
+  "current_assertions": 124,
+  "unchanged_assertions": 119,
+  "changed_exact_order_assertions": [
+    "Assert(test=Compare(left=Call(func=Name(id='tuple', ctx=Load()), args=[GeneratorExp(elt=Attribute(value=Name(id='item', ctx=Load()), attr='target', ctx=Load()), generators=[comprehension(target=Name(id='item', ctx=Store()), iter=Attribute(value=Attribute(value=Name(id='app', ctx=Load()), attr='sidebar_state', ctx=Load()), attr='selected_targets', ctx=Load()), is_async=0)])]), ops=[Eq()], comparators=[Name(id='cohort', ctx=Load())]))",
+    "Assert(test=Compare(left=Call(func=Name(id='tuple', ctx=Load()), args=[GeneratorExp(elt=Attribute(value=Name(id='item', ctx=Load()), attr='target', ctx=Load()), generators=[comprehension(target=Name(id='item', ctx=Store()), iter=Attribute(value=Attribute(value=Name(id='app', ctx=Load()), attr='sidebar_state', ctx=Load()), attr='selected_targets', ctx=Load()), is_async=0)])]), ops=[Eq()], comparators=[Tuple(elts=[Constant(value='batch-a'), Constant(value='batch-c')], ctx=Load())]))",
+    "Assert(test=Compare(left=Call(func=Name(id='tuple', ctx=Load()), args=[GeneratorExp(elt=Attribute(value=Name(id='item', ctx=Load()), attr='target', ctx=Load()), generators=[comprehension(target=Name(id='item', ctx=Store()), iter=Attribute(value=Attribute(value=Name(id='app', ctx=Load()), attr='sidebar_state', ctx=Load()), attr='selected_targets', ctx=Load()), is_async=0)])]), ops=[Eq()], comparators=[Name(id='range_names', ctx=Load())]))"
+  ],
+  "new_membership_checks": 2,
+  "production_changed": false,
+  "wheels_changed": false,
+  "compile_without_import": true,
+  "runtime_run": false,
+  "canonical_expected_owner": "SidebarProjection.rows derived from ChannelView.roster/ThreadSort.key"
+}

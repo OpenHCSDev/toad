@@ -1,0 +1,1013 @@
+{
+  "coverage": [
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "rev": "b1f1caf55c4b54cc55f9211a4d49e92a80e20b25",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "rev": "b1f1caf55c4b54cc55f9211a4d49e92a80e20b25",
+      "root": "tests",
+      "modules": 403,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "rev": "b1f1caf55c4b54cc55f9211a4d49e92a80e20b25",
+      "root": "tools",
+      "modules": 40,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "rev": "d8467b730cf87d45931fcc44e8ecb409277f86ed",
+      "root": "src",
+      "modules": 324,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "rev": "d8467b730cf87d45931fcc44e8ecb409277f86ed",
+      "root": "tests",
+      "modules": 378,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "rev": "d8467b730cf87d45931fcc44e8ecb409277f86ed",
+      "root": "tools",
+      "modules": 53,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "rev": "8814c5410ffa981a89a34cd18403ba0b54c867f1",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": []
+    }
+  ],
+  "relations": [
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/navigation_target.py",
+      "sha256": "ce9130880e327f3a0c9414155276676b2b544d16cb16d380b12e8b974cad060b",
+      "sites": [
+        {
+          "line": 49,
+          "declaration": "menu_context"
+        },
+        {
+          "line": 110,
+          "declaration": "menu_context"
+        },
+        {
+          "line": 55,
+          "subject": "self.menu_context",
+          "kind": "Load"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/project_path_owner.py",
+      "sha256": "2f0c4de34edb18dc028c0c0a1cf5da402c387e25cbb6624d2ce04ab58dfade7b",
+      "sites": [
+        {
+          "line": 19,
+          "subject": "widget.is_on_screen",
+          "kind": "Load"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/screens/store.py",
+      "sha256": "33ad452b4430430f8ca227c79036ab463edca789bb20580a324d9bb2f245eec1",
+      "sites": [
+        {
+          "line": 91,
+          "declaration": "on_click"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/sidebar_navigation.py",
+      "sha256": "6c9eed9f87cebf29cc1b56de6cb34b1c93821e7bfe2938137609f45e42893c75",
+      "sites": [
+        {
+          "line": 90,
+          "declaration": "selection_for"
+        },
+        {
+          "line": 104,
+          "declaration": "pointer_select"
+        },
+        {
+          "line": 128,
+          "declaration": "menu_context"
+        },
+        {
+          "line": 109,
+          "subject": "self.state.selected_targets",
+          "kind": "Load"
+        },
+        {
+          "line": 133,
+          "subject": "self.state.selected_targets",
+          "kind": "Load"
+        },
+        {
+          "line": 163,
+          "subject": "self.state.selected_targets",
+          "kind": "Load"
+        },
+        {
+          "line": 101,
+          "subject": "self.state.selected_targets",
+          "kind": "Store"
+        },
+        {
+          "line": 108,
+          "subject": "self.selection_for",
+          "kind": "Load"
+        },
+        {
+          "line": 117,
+          "subject": "self.state.selected_targets",
+          "kind": "Store"
+        },
+        {
+          "line": 130,
+          "subject": "row.target.menu_context",
+          "kind": "Load"
+        },
+        {
+          "line": 100,
+          "subject": "self.selection_for",
+          "kind": "Load"
+        },
+        {
+          "line": 112,
+          "subject": "item.is_on_screen",
+          "kind": "Load"
+        },
+        {
+          "line": 119,
+          "subject": "self.state.selected_targets",
+          "kind": "Store"
+        },
+        {
+          "line": 124,
+          "subject": "self.state.selected_targets",
+          "kind": "Store"
+        },
+        {
+          "line": 144,
+          "subject": "self.state.selected_targets",
+          "kind": "Load"
+        },
+        {
+          "line": 157,
+          "subject": "self.selection_for",
+          "kind": "Load"
+        },
+        {
+          "line": 113,
+          "subject": "self.selection_for",
+          "kind": "Load"
+        },
+        {
+          "line": 158,
+          "subject": "self.state.selected_targets",
+          "kind": "Load"
+        },
+        {
+          "line": 132,
+          "subject": "self.selection_for",
+          "kind": "Load"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/target_commands.py",
+      "sha256": "3e46fb84949dcb430da58bff033008ae6ff30495096110d411548d9a0c6552dc",
+      "sites": [
+        {
+          "line": 36,
+          "declaration": "selected_targets"
+        },
+        {
+          "line": 41,
+          "subject": "self.selected_targets",
+          "kind": "Load"
+        },
+        {
+          "line": 160,
+          "subject": "ctx.selected_targets",
+          "kind": "Load"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/comms_menu.py",
+      "sha256": "e7e82864deba737a4bb76f78494083e09e8e1840063dec25162bb2636df5839b",
+      "sites": [
+        {
+          "line": 169,
+          "declaration": "on_click"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "sha256": "1d01ae480cc694d0ed4de1ed91e3e47fcdaadacf9a2008ab269616132586fc5f",
+      "sites": [
+        {
+          "line": 61,
+          "declaration": "on_click"
+        },
+        {
+          "line": 241,
+          "declaration": "focus_on_click"
+        },
+        {
+          "line": 298,
+          "declaration": "on_focus"
+        },
+        {
+          "line": 306,
+          "declaration": "on_click"
+        },
+        {
+          "line": 374,
+          "declaration": "on_focus"
+        },
+        {
+          "line": 529,
+          "declaration": "on_click"
+        },
+        {
+          "line": 216,
+          "subject": "sidebar.navigation.pointer_select",
+          "kind": "Load"
+        },
+        {
+          "line": 260,
+          "subject": "sidebar.navigation.state.selected_targets",
+          "kind": "Load"
+        },
+        {
+          "line": 217,
+          "subject": "sidebar.navigation.menu_context",
+          "kind": "Load"
+        },
+        {
+          "line": 260,
+          "subject": "sidebar.navigation.selection_for",
+          "kind": "Load"
+        },
+        {
+          "line": 304,
+          "subject": "sidebar.focus_row",
+          "kind": "Load"
+        },
+        {
+          "line": 312,
+          "subject": "sidebar.navigation.pointer_select",
+          "kind": "Load"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/conversation.py",
+      "sha256": "e75aad2f3169c0b42ee6ca15fc1a5d68755b13779c7799ed41c86d6ee2d198eb",
+      "sites": [
+        {
+          "line": 1827,
+          "declaration": "on_click"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/goal_bar.py",
+      "sha256": "5695e444fc73d04472c0d433b56d4af0bed7fc020eae0c8038cad9c243cde635",
+      "sites": [
+        {
+          "line": 31,
+          "declaration": "on_click"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/grid_select.py",
+      "sha256": "ef385c9fad738d55a36138155b23cd50f3076c758254da4d7c9504acdd4aa2e4",
+      "sites": [
+        {
+          "line": 85,
+          "declaration": "on_focus"
+        },
+        {
+          "line": 173,
+          "declaration": "on_click"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/input_delivery.py",
+      "sha256": "c9831f8818c2e6ccc962221c534ba6dbf40f98d6122faf69226b224c980881e4",
+      "sites": [
+        {
+          "line": 43,
+          "declaration": "on_click"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/irc_message.py",
+      "sha256": "8932f30c99fd85e8733f14f30609e6c15633759cec30ef0e430314c178d8e738",
+      "sites": [
+        {
+          "line": 43,
+          "declaration": "on_click"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/model_switcher.py",
+      "sha256": "1e1bcb7dd0a8beefef62d7d0aa5450e9e184b6c62a87ad1010f17d699eba42b9",
+      "sites": [
+        {
+          "line": 36,
+          "declaration": "on_click"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/path_search.py",
+      "sha256": "ecdc0d0420dbba5ebb20785fcaa8e15245db77e04ca3c2e86d071c5521a9f579",
+      "sites": [
+        {
+          "line": 288,
+          "subject": "self.is_on_screen",
+          "kind": "Load"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/project_directory_tree.py",
+      "sha256": "f5da1c5564678c2aa06d65ecba56452ffaf4bbaf702bc75d721cd18cf9ffc6d4",
+      "sites": [
+        {
+          "line": 111,
+          "subject": "self.is_on_screen",
+          "kind": "Load"
+        },
+        {
+          "line": 116,
+          "subject": "self.is_on_screen",
+          "kind": "Load"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/project_panel.py",
+      "sha256": "8bce2b8c6c60aad41fadaaf705f580cca0e4cc9c37d05bdc37dd157fc5690031",
+      "sites": [
+        {
+          "line": 45,
+          "declaration": "on_click"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/prompt.py",
+      "sha256": "94e43e31a291f3a1892c4df6fa4680a56d27517e2035681bbe3d1f5704b4cb8f",
+      "sites": [
+        {
+          "line": 74,
+          "declaration": "on_click"
+        },
+        {
+          "line": 102,
+          "declaration": "on_click"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/question.py",
+      "sha256": "2b714836430044467ac9bd518800b1cb05aff641705a3596c77521f3be698748",
+      "sites": [
+        {
+          "line": 107,
+          "declaration": "on_click"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/recovery_view.py",
+      "sha256": "d47aba18ca5efb1c6af91d0ccdc311f6f9130146f813fbab802cd79e20572e77",
+      "sites": [
+        {
+          "line": 101,
+          "declaration": "on_click"
+        },
+        {
+          "line": 56,
+          "subject": "self.is_on_screen",
+          "kind": "Load"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/route_header.py",
+      "sha256": "c47869494d2b9cfb238673233c50f58f9aea0101a530d21ba966f410db4e89e3",
+      "sites": [
+        {
+          "line": 63,
+          "declaration": "on_click"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/session_sort.py",
+      "sha256": "044cec20f338654833a390203ff39533d6251ef74d2fedd303c901dd7d8bf42d",
+      "sites": [
+        {
+          "line": 102,
+          "declaration": "on_click"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/session_tabs.py",
+      "sha256": "5e82142bf227cf2e69a96849e8e32a5d4b48deeb10946bc7abd73588d441778e",
+      "sites": [
+        {
+          "line": 33,
+          "declaration": "on_click"
+        },
+        {
+          "line": 72,
+          "declaration": "on_click"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/side_bar.py",
+      "sha256": "9ac173775c12c7f648f138c5f7cbc627bb2c7e55b0880e1abda19dc365f66da5",
+      "sites": [
+        {
+          "line": 193,
+          "declaration": "focus_on_click"
+        },
+        {
+          "line": 199,
+          "declaration": "on_click"
+        },
+        {
+          "line": 264,
+          "declaration": "on_click"
+        },
+        {
+          "line": 307,
+          "declaration": "on_click"
+        },
+        {
+          "line": 502,
+          "declaration": "on_click"
+        },
+        {
+          "line": 928,
+          "declaration": "on_click"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "sha256": "0e5c96882ce969141d96f492a7ad529663bf07fcc96f13c34254f14083cc40ee",
+      "sites": [
+        {
+          "line": 21,
+          "declaration": "on_click"
+        },
+        {
+          "line": 197,
+          "declaration": "focus_row"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/terminal.py",
+      "sha256": "e55a2ab052b2c5d7d52f26f72547d0e8a5492fdd5219160302c7846e760149a8",
+      "sites": [
+        {
+          "line": 266,
+          "declaration": "on_click"
+        },
+        {
+          "line": 276,
+          "declaration": "on_focus"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/thread_comms.py",
+      "sha256": "be2faae2ecf25b77bc6f10cb9c2b5d4a04e18a7babef363a5991ebd1860f7baa",
+      "sites": [
+        {
+          "line": 98,
+          "declaration": "on_click"
+        },
+        {
+          "line": 103,
+          "subject": "super().on_click",
+          "kind": "Load"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/transcript_history.py",
+      "sha256": "19084c8b27809ead6debb03998f138928d5b28a460a73a7905b141d0ecf8901f",
+      "sites": [
+        {
+          "line": 158,
+          "declaration": "on_click"
+        },
+        {
+          "line": 174,
+          "declaration": "on_click"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "tests/declared_target_actions_installed_pilot.py",
+      "sha256": "4bba6d53fb921264db6b3e8688afbedc8d934cb7015b85cb8335db2e5ec59701",
+      "sites": [
+        {
+          "line": 140,
+          "declaration": "select_rows"
+        },
+        {
+          "line": 203,
+          "subject": "app.sidebar_state.selected_targets",
+          "kind": "Load"
+        },
+        {
+          "line": 146,
+          "subject": "app.sidebar_state.selected_targets",
+          "kind": "Load"
+        },
+        {
+          "line": 205,
+          "subject": "app.sidebar_state.selected_targets",
+          "kind": "Load"
+        },
+        {
+          "line": 261,
+          "subject": "endpoint.is_on_screen",
+          "kind": "Load"
+        },
+        {
+          "line": 261,
+          "subject": "anchor.is_on_screen",
+          "kind": "Load"
+        },
+        {
+          "line": 147,
+          "subject": "sidebar.navigation.selection_for",
+          "kind": "Load"
+        },
+        {
+          "line": 270,
+          "subject": "anchor.is_on_screen",
+          "kind": "Load"
+        },
+        {
+          "line": 271,
+          "subject": "endpoint.is_on_screen",
+          "kind": "Load"
+        },
+        {
+          "line": 157,
+          "subject": "app.sidebar_state.selected_targets",
+          "kind": "Load"
+        },
+        {
+          "line": 185,
+          "subject": "row.is_on_screen",
+          "kind": "Load"
+        },
+        {
+          "line": 187,
+          "subject": "app.sidebar_state.selected_targets",
+          "kind": "Load"
+        },
+        {
+          "line": 190,
+          "subject": "app.sidebar_state.selected_targets",
+          "kind": "Load"
+        },
+        {
+          "line": 273,
+          "subject": "app.sidebar_state.selected_targets",
+          "kind": "Load"
+        },
+        {
+          "line": 149,
+          "subject": "sidebar.navigation.selection_for",
+          "kind": "Load"
+        },
+        {
+          "line": 263,
+          "subject": "sidebar.navigation.selection_for",
+          "kind": "Load"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "tests/markdown_return_reuse_pilot.py",
+      "sha256": "42dc83bc83b6c0887f7ad62ea9dfadb993b58880c8bc1f01e9df7a35fecd485f",
+      "sites": [
+        {
+          "line": 99,
+          "subject": "pilot._post_mouse_events",
+          "kind": "Load"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "tests/scroll_select_latency_pilot.py",
+      "sha256": "387157561e6e0a7d1f19f696c47a190fbd6e50bef7613483ad9c0514caad54c1",
+      "sites": [
+        {
+          "line": 65,
+          "subject": "screen._forward_event",
+          "kind": "Load"
+        },
+        {
+          "line": 209,
+          "subject": "app.screen._forward_event",
+          "kind": "Load"
+        },
+        {
+          "line": 317,
+          "subject": "app.screen._forward_event",
+          "kind": "Load"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "tests/selection_hover_pilot.py",
+      "sha256": "469d03cd99f0ad0989adcde603825d6cedd236d697d5adf9deea346c0d81e5cf",
+      "sites": [
+        {
+          "line": 32,
+          "subject": "screen._forward_event",
+          "kind": "Load"
+        },
+        {
+          "line": 39,
+          "subject": "screen._forward_event",
+          "kind": "Load"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "tests/sidebar_selected_targets_pilot.py",
+      "sha256": "b73fa071406119620d59491f0ea4893ad3f7f7dd88d0810e86f11e5a7fda6e1d",
+      "sites": [
+        {
+          "line": 49,
+          "subject": "app.sidebar_state.selected_targets",
+          "kind": "Load"
+        },
+        {
+          "line": 54,
+          "subject": "app.sidebar_state.selected_targets",
+          "kind": "Load"
+        },
+        {
+          "line": 89,
+          "subject": "sidebar.navigation.pointer_select",
+          "kind": "Load"
+        },
+        {
+          "line": 90,
+          "subject": "sidebar.navigation.pointer_select",
+          "kind": "Load"
+        },
+        {
+          "line": 91,
+          "subject": "sidebar.navigation.menu_context",
+          "kind": "Load"
+        },
+        {
+          "line": 99,
+          "subject": "sidebar.navigation.pointer_select",
+          "kind": "Load"
+        },
+        {
+          "line": 100,
+          "subject": "sidebar.navigation.pointer_select",
+          "kind": "Load"
+        },
+        {
+          "line": 44,
+          "subject": "app.sidebar_state.selected_targets",
+          "kind": "Load"
+        },
+        {
+          "line": 48,
+          "subject": "app.sidebar_state.selected_targets",
+          "kind": "Load"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "tests/stale_selection_pilot.py",
+      "sha256": "b621398d4395f91d986987b2b307a118924fd3d9db5ae17ab13f147f3a8132dc",
+      "sites": [
+        {
+          "line": 35,
+          "subject": "app.screen._forward_event",
+          "kind": "Load"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "tests/viewport_selection_diff_pilot.py",
+      "sha256": "eb6401bff7949083177556dee7d43824613905accf9a8fc20336a9be5a410399",
+      "sites": [
+        {
+          "line": 50,
+          "subject": "screen._forward_event",
+          "kind": "Load"
+        },
+        {
+          "line": 51,
+          "subject": "screen._forward_event",
+          "kind": "Load"
+        },
+        {
+          "line": 79,
+          "subject": "screen._forward_event",
+          "kind": "Load"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "path": "src/agent_comms/cli_commands.py",
+      "sha256": "dc4a45c1289f44576e29f5327c5cd8b501df714eaa2f2d900eaa1fa25e5880d4",
+      "sites": [
+        {
+          "line": 319,
+          "declaration": "selected_targets"
+        },
+        {
+          "line": 363,
+          "subject": "cls.selected_targets",
+          "kind": "Load"
+        },
+        {
+          "line": 441,
+          "subject": "cls.selected_targets",
+          "kind": "Load"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "path": "tests/attached_history_installed_pilot.py",
+      "sha256": "746fcceedc7b40f7050118b25369fd05f3ff119507d5af5c216a13ccb80bb3b8",
+      "sites": [
+        {
+          "line": 156,
+          "subject": "button.is_on_screen",
+          "kind": "Load"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/app.py",
+      "sha256": "b564156af50ddbeaf25a222ba4104553ecb2142079aab233c1f62a6387c4b44e",
+      "sites": [
+        {
+          "line": 4127,
+          "subject": "self.screen._forward_event",
+          "kind": "Load"
+        },
+        {
+          "line": 4185,
+          "subject": "self.screen._forward_event",
+          "kind": "Load"
+        },
+        {
+          "line": 4189,
+          "subject": "self.focused._forward_event",
+          "kind": "Load"
+        },
+        {
+          "line": 4191,
+          "subject": "self.screen._forward_event",
+          "kind": "Load"
+        },
+        {
+          "line": 4183,
+          "subject": "forward_target._forward_event",
+          "kind": "Load"
+        },
+        {
+          "line": 4162,
+          "subject": "self.screen._forward_event",
+          "kind": "Load"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/demo/home.py",
+      "sha256": "ddf1494385c8c3ef229481c9565afe640eb970043cf9a6fea3a2187e37abfaf1",
+      "sites": [
+        {
+          "line": 218,
+          "declaration": "on_click"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/demo/widgets.py",
+      "sha256": "c4be4f6e842ebfd96c365e70284c307fdecb215800c3bb1b34071906aa4ce845",
+      "sites": [
+        {
+          "line": 614,
+          "declaration": "on_click"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/dom.py",
+      "sha256": "090fb793bb3de926d8dd1bea3d848b01e9660ac8907099cf117b2bbf61bf43f9",
+      "sites": [
+        {
+          "line": 622,
+          "declaration": "is_on_screen"
+        },
+        {
+          "line": 634,
+          "subject": "self.is_on_screen",
+          "kind": "Load"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/pilot.py",
+      "sha256": "f5d06cf12d5a9924c441f133363911f2516b41197a650ecbd3f8fbdccafdfeb6",
+      "sites": [
+        {
+          "line": 383,
+          "declaration": "_post_mouse_events"
+        },
+        {
+          "line": 135,
+          "subject": "self._post_mouse_events",
+          "kind": "Load"
+        },
+        {
+          "line": 180,
+          "subject": "self._post_mouse_events",
+          "kind": "Load"
+        },
+        {
+          "line": 238,
+          "subject": "self._post_mouse_events",
+          "kind": "Load"
+        },
+        {
+          "line": 379,
+          "subject": "self._post_mouse_events",
+          "kind": "Load"
+        },
+        {
+          "line": 468,
+          "subject": "screen._forward_event",
+          "kind": "Load"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/screen.py",
+      "sha256": "aab6bd81d55f7d269657666c3a8d612f53706b2a6531971a8fe3887a37f16d87",
+      "sites": [
+        {
+          "line": 2004,
+          "declaration": "_forward_event"
+        },
+        {
+          "line": 1836,
+          "subject": "widget._forward_event",
+          "kind": "Load"
+        },
+        {
+          "line": 2133,
+          "subject": "widget._forward_event",
+          "kind": "Load"
+        },
+        {
+          "line": 2123,
+          "subject": "focusable_widget.focus_on_click",
+          "kind": "Load"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widget.py",
+      "sha256": "a732710048169e4c6f05d2db5bf3689b4a6a5dde0afd054e0a296cf6c3a43a26",
+      "sites": [
+        {
+          "line": 790,
+          "declaration": "focus_on_click"
+        },
+        {
+          "line": 2661,
+          "declaration": "is_on_screen"
+        },
+        {
+          "line": 4550,
+          "declaration": "_forward_event"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widgets/_header.py",
+      "sha256": "ac4c654dc0f9e93617cccd5669564cf63b39e639e66550018de7b7298828ba41",
+      "sites": [
+        {
+          "line": 43,
+          "declaration": "on_click"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widgets/_link.py",
+      "sha256": "05d2e42df924de65c8bee40aeb70a0dded1d44fdc84c6b30e5c2a9c95ff5b6cf",
+      "sites": [
+        {
+          "line": 66,
+          "declaration": "on_click"
+        }
+      ]
+    }
+  ],
+  "recorded_failure": "select_rows157 exact target tuple; final tuple unrecorded",
+  "source_facts": [
+    "Shift derives admitted projection order",
+    "Ctrl toggles existing tuple or appends click identity",
+    "menu preserves existing selected row cohort",
+    "only SidebarNavigation writes selected_targets"
+  ],
+  "no_sole_runtime_cause_claim": true
+}

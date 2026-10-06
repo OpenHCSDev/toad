@@ -1,0 +1,12 @@
+{
+  "all_prior_assertions_retained_ASTequal": true,
+  "prior_assertions": 118,
+  "after_assertions": 122,
+  "only_function_changed": [
+    "selected_target_actions"
+  ],
+  "new_range_control": "60 original stopped rows in same SDK/ACP App; anchor clipped before native Shift click",
+  "diagnostics": "original SidebarState FieldCodec and row visibility at both boundaries",
+  "compiled_without_product_import": true,
+  "App_UNRUN": true
+}
