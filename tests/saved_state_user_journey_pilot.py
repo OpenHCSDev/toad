@@ -282,6 +282,35 @@ async def click_thread(app, pilot, name, channel_name="#team"):
     return app.selected_session
 
 
+async def click_participant(app, pilot, participants, name):
+    """Click the participant's original action in the published native cells."""
+    names = participants.names
+
+    def action_cell():
+        geometry = app.screen._compositor.visible_widgets.get(names)
+        if geometry is None:
+            return None
+        bounds, clip = geometry
+        exposed = bounds.intersection(clip).intersection(app.screen.size.region)
+        for y in range(exposed.y, exposed.bottom):
+            for x in range(exposed.x, exposed.right):
+                if (app.screen.get_style_at(x, y).meta.get("@click")
+                        == ("open_thread", (name,))):
+                    return x, y
+        return None
+
+    await until(pilot, lambda: action_cell() is not None)
+    cell = action_cell()
+    assert cell is not None, ("Participant action left the native frame", name)
+    assert app.screen.get_widget_at(*cell)[0] is names
+    print("PARTICIPANT_NATIVE_ACTION_CELL", name, cell,
+          app.screen.get_style_at(*cell).meta.get("@click"), flush=True)
+    assert await pilot.click(names, offset=(cell[0] - names.region.x,
+                                          cell[1] - names.region.y)), (
+        "Participant link not physically clickable", name, cell,
+    )
+
+
 async def unopened_participant(app, pilot, comms, channel, entered, release, hold_next, requests):
     gamma = await click_thread(app, pilot, "gamma")
     print("UNOPENED_THREAD_PHYSICAL_CLICK_ACTUAL_ATTACHMENT", flush=True)
@@ -296,10 +325,7 @@ async def unopened_participant(app, pilot, comms, channel, entered, release, hol
     assert comms.registry.require("gamma").executing
     await click_tab(app, pilot, channel.id)
     participants = channel.query_one(ChannelParticipants)
-    await until(pilot, lambda: "gamma" in participants.names.render().plain)
-    names = participants.names
-    offset = names.render().plain.index("gamma") + 1
-    assert await pilot.click(names, offset=(offset, 0)), "Participant link not physically clickable"
+    await click_participant(app, pilot, participants, "gamma")
     await until(pilot, lambda: app.selected_session is gamma)
     print("CHANNEL_ACTIVE_PARTICIPANT_CLICK_SAME_NATIVE_TAB", flush=True)
     app.observe_stream(gamma.conversation)
@@ -670,9 +696,7 @@ async def configured_acceptance(app, pilot, agent, comms, receipt, subscriber):
     require_current_activity(peer)
     await click_tab(app, pilot, channel.id)
     participants = channel.query_one(ChannelParticipants)
-    await until(pilot, lambda: 'peer529' in participants.names.render().plain)
-    names = participants.names
-    assert await pilot.click(names, offset=(names.render().plain.index('peer529') + 1, 0))
+    await click_participant(app, pilot, participants, 'peer529')
     await until(pilot, lambda: app.selected_session is peer)
     await until(pilot, lambda: not comms.registry.require('peer529').executing)
     await until(pilot, lambda: response_painted(app, peer.conversation, 'CONFIGURED_PEER_FIRST'))
