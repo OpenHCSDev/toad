@@ -12,6 +12,6 @@ The corrected original sidebar App check joined with empty stderr, but right-sid
 
 ## Remaining work
 
-This draft requires Arendt's matching native iterable-root/layout/publication hook implementation. There is no bool compatibility fallback. Translucent modal checks must migrate from whole-frame refusal to actual blocked-body publication evidence. Matched source App and isolated physical UI checks, pins and installed delivery remain outstanding. No smooth-scrolling or live-readiness claim.
+This draft requires Arendt's matching native iterable-root/layout/publication hook implementation. There is no bool compatibility fallback. Translucent modal checks now inspect actual cut-cell publication against held body geometry and require retained damage; they compile but have not run with the matching producer. Matched source App and isolated physical UI checks, pins and installed delivery remain outstanding. No smooth-scrolling or live-readiness claim.
 
 Source/consumer checkpoint: evidence/sidebar-responsiveness-20261006/SOURCE-CHECKPOINT.md.

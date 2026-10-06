@@ -15,7 +15,8 @@ from toad.acp.status import ToolCallStatus
 from toad.widgets.comms_chat import session_thread_name
 from textual.content import Content
 from textual import events
-from textual.geometry import Offset, Size
+from textual._compositor import ChopsUpdate
+from textual.geometry import Offset, Region, Size
 from textual.screen import ModalScreen
 from textual.widgets import Static
 from textual.selection import SELECT_ALL, Selection
@@ -46,7 +47,15 @@ class PublicationApp(ToadApp):
         body = self.observed_body
         if renderable is not None and body is not None:
             visible = body in body.screen._compositor.visible_widgets
-            assert not visible or body.body_ready, "unready registered body reached native display"
+            if visible and not body.body_ready:
+                assert isinstance(renderable, ChopsUpdate), "held body requires partial native publication"
+                held = body.screen._compositor.deferred_regions((body,))
+                assert held, "visible held body needs original committed bounds"
+                assert not any(
+                    Region(x1, y, x2 - x1, 1).overlaps(region)
+                    for y, x1, x2 in ChopsUpdate._span_cuts(renderable.spans, renderable.cuts, 0)
+                    for region in held
+                ), "unready registered body reached native display"
             self.displays.append({"time": monotonic(), "screen": type(screen).__name__,
                                   "body_visible": visible, "body_ready": body.body_ready})
         super()._display(screen, renderable)
@@ -139,12 +148,16 @@ async def publication_lifetime(app, pilot, tool):
         async with asyncio.timeout(5):
             await pumped.wait()
         assert not body.body_ready and body in body.screen._compositor.visible_widgets
-        before = len(app.displays)
-        # The real terminal-admission method owns refusal before damage/render.
+        # The real native admission holds body spans without vetoing chrome.
+        held_regions = body.screen._compositor.deferred_regions((body,))
+        assert held_regions
         modal._compositor_refresh()
-        assert len(app.displays) == before and modal._repaint_required
+        assert any(damage.overlaps(region)
+                   for damage in modal._compositor._dirty_regions for region in held_regions), (
+            "Native publication consumed the held body's pending damage"
+        )
         assert body in body.screen._prepare_compositor_refresh()
-        app.checks.append("translucent modal refuses width/style-invalidated captured body before native display/damage")
+        app.checks.append("translucent modal retains invalidated body damage and excludes its native publication spans")
     finally:
         held.release.set()
     await first
