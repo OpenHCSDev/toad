@@ -108,6 +108,29 @@ def main():
                     f"_module.capture(expected_pid={args.pid}, output_prefix={output!r}{options})",
                 ))
                 receipts.append(output)
+            # remote_exec acknowledges scheduling, not execution. Record entry
+            # before loading observers or exporters so a missing DTO doesn't
+            # imply that the application accepted the diagnostic request.
+            execution_receipt = str(prefix) + "-remote-entered.json"
+            lines = [
+                "import os as _capture_os, json as _capture_json, time as _capture_time, traceback as _capture_traceback",
+                f"with _capture_os.fdopen(_capture_os.open({execution_receipt!r}, _capture_os.O_WRONLY | _capture_os.O_CREAT | _capture_os.O_EXCL, 0o600), 'w') as _capture_output:",
+                "    _capture_json.dump({'pid': _capture_os.getpid(), 'entered_ns': _capture_time.time_ns()}, _capture_output)",
+                "try:",
+                *["    " + line for line in lines],
+                "except BaseException:",
+                "    _capture_error = {'error': _capture_traceback.format_exc()}",
+                f"    for _capture_path in {receipts!r}:",
+                "        if _capture_os.path.exists(_capture_path + '.json'):",
+                "            continue",
+                "        try:",
+                "            _capture_fd = _capture_os.open(_capture_path + '-error.json', _capture_os.O_WRONLY | _capture_os.O_CREAT | _capture_os.O_EXCL, 0o600)",
+                "        except FileExistsError:",
+                "            continue",
+                "        with _capture_os.fdopen(_capture_fd, 'w') as _capture_output:",
+                "            _capture_json.dump(_capture_error, _capture_output)",
+                "    raise",
+            ]
             fd = os.open(script, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
             with os.fdopen(fd, "w") as output:
                 output.write("\n".join(lines) + "\n")
@@ -119,6 +142,10 @@ def main():
                 time.sleep(.1)
             manifest["receipts"] = {path: ("complete" if Path(path + ".json").exists() else
                 "error" if Path(path + "-error.json").exists() else "pending") for path in receipts}
+            manifest["execution_receipt"] = {
+                "path": execution_receipt,
+                "status": "entered" if Path(execution_receipt).exists() else "unacknowledged",
+            }
     finally:
         manifest["finished_ns"] = time.time_ns()
         fd = os.open(manifest_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
