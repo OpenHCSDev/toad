@@ -1,0 +1,390 @@
+{
+  "state": "OriginalHeis warm02 whole package/operator/immutable READ+EXEC HAND BACK; actual FAIL retained, independent Bohr closure pending",
+  "holder_grant": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis476-current471-warm02-package-App-issued-grant.json",
+    "sha256": "4bfd394a6a4860670301a74bbd9a02fd56e85463b89d243c918ac7910c2f091e",
+    "bytes": 1798214
+  },
+  "terminal": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/warm-terminal.json",
+    "sha256": "6b3a262b22dca70b2389447230b190d2fa2e986d6268c2258fcbfe1dfa98a301",
+    "bytes": 682
+  },
+  "controller_terminal": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/controller-terminal.json",
+    "sha256": "3e0038ef615d8f4864f701b6d326eff948bc4ce4a70a32f51dc1d64dcad5fcc7",
+    "bytes": 837
+  },
+  "first_failure": {
+    "path": "/home/ts/.cache/agent-scratch/hwb/w2/acceptance-failure.txt",
+    "sha256": "8ad5b35db01b9f7f43b23469fc4d0f6240c7e61fcc2f363703077a5452ed8bc0",
+    "bytes": 592
+  },
+  "mounted_strength": {
+    "completed": false,
+    "branches_verified": {
+      "warm_identity_raw_read_returns": 0,
+      "eviction_editor_reader_returns": 0,
+      "selected_without_departure": 0
+    },
+    "localhost_requests": 2,
+    "provider_errors": [],
+    "genuine_journals": 2,
+    "full_loaded_configured_performance_qualification": false
+  },
+  "fixture_retention": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/failed-fixture-retained.json",
+    "sha256": "869bcb4b73e07ab3f2833d60efca5b5c4e57b9d4de37f976a4ffae1efdf4759c",
+    "bytes": 17248
+  },
+  "root_disposition": "HELD original failed authored journals/logs/auth/config/root; no deletion, chmod or replay",
+  "native_owners_returned": [
+    {
+      "name": "beta",
+      "identity": {
+        "pid": 2613217,
+        "start_time": 72626074
+      },
+      "release_record": {
+        "path": "/home/ts/.cache/agent-scratch/hwb/w2/native-fixture-lqtqc_vz/private-root/wire/owner_release_receipts.json",
+        "sha256": "af8acd4122e5b70975d16612d2e4254c4ca5ff42a35b9b846cbcb96fae8bfe4d",
+        "bytes": 1716
+      },
+      "proc_absent": true
+    },
+    {
+      "name": "alpha",
+      "identity": {
+        "pid": 2612237,
+        "start_time": 72625507
+      },
+      "release_record": {
+        "path": "/home/ts/.cache/agent-scratch/hwb/w2/native-fixture-lqtqc_vz/private-root/wire/owner_release_receipts.json",
+        "sha256": "af8acd4122e5b70975d16612d2e4254c4ca5ff42a35b9b846cbcb96fae8bfe4d",
+        "bytes": 1716
+      },
+      "proc_absent": true
+    }
+  ],
+  "owned_controller_child_group_joined": true,
+  "fresh_privileged_census": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/final-borrowers.json",
+    "sha256": "99f1b9f25b9afca320b34ac2d20e27da8b71fb423c25f571709ac2d793014256",
+    "bytes": 2258
+  },
+  "reference_classification": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/final-reference-classification.json",
+    "sha256": "5a288328479eb7d3bc0336dffc76f5db95ee57f9a3dc6669162a6c9ec2370057",
+    "bytes": 13185
+  },
+  "actual_private_refs": {
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001": [],
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose": [],
+    "/home/ts/.cache/agent-scratch/hwb/w2": []
+  },
+  "permission_gaps": [],
+  "floor_readback": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/whole-floor-readback.json",
+    "sha256": "42d48812e9a799eaad23b7adef7ec2e9649fd2cd6f4e7f3dac50b85a59dd95c2",
+    "bytes": 985096
+  },
+  "restore_terminal": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/restore-terminal.json",
+    "sha256": "4d6163bcc0c20f493aa2f65da1260e0c24048b20dca9a70405a74f80eed7490b",
+    "bytes": 1043
+  },
+  "normal_restore_attempts": 1,
+  "actual_floor": {
+    "nodes": 1467,
+    "assets": 953,
+    "packages": 69,
+    "RAWorigins_equal": true,
+    "other67": 2253,
+    "protected": 266,
+    "bootstrap": 2,
+    "PREFIXactivation_equal": true,
+    "extras": []
+  },
+  "authority_returns": {
+    "READ": {
+      "authority": {
+        "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper476-current471-warm02-READ-issued-20261005.json",
+        "sha256": "b7923eaa0398f0af4338943b36f9df9edfaeecc107674a87a034faef8c35052a",
+        "bytes": 18869
+      },
+      "explicitly_returned": true
+    },
+    "EXEC": {
+      "authority": {
+        "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper476-current471-warm02-EXEC-issued-20261005.json",
+        "sha256": "b1d5e9dea5ff90ebab3b5b594fc9e312c9db471f64e9e6874d66612fd9732d9f",
+        "bytes": 22841
+      },
+      "explicitly_returned": true
+    },
+    "public_source_READ": "NOT granted or used"
+  },
+  "raw_refs": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/App-proof-binding.json",
+      "sha256": "1ae5b371b2d2b689e3923aa66b7bd62653e6225e93334ee1b8251e81270ce50f",
+      "bytes": 1210
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/agent_comms-installed-inventory.json",
+      "sha256": "152143399b0df3f2fdb4edc60357725105c6d90c8ef90e1381f9d4b416e58185",
+      "bytes": 60496
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/candidate-activation.json",
+      "sha256": "350555d1e09b8ce0f42f568e58780b2260f88f61e5b7026637b9f3c8ef49ed9e",
+      "bytes": 2684
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/controller-launch-command.json",
+      "sha256": "83eeda0a34733e792c67eaa65d9b9a99259df2bf8a6ccecae4d73cb0aec35236",
+      "bytes": 1895
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/controller-launch.json",
+      "sha256": "a8a1a58e82f12bcd2721225ce66b8134ad0a53d35e657d81c28f63fae3a59f13",
+      "bytes": 645
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/controller-source-binding.json",
+      "sha256": "96c66457e96347c9b9aa8ff7979b8c9b8bef9ac864c17fb6608e362d5b52f314",
+      "bytes": 4013
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/controller-terminal.json",
+      "sha256": "3e0038ef615d8f4864f701b6d326eff948bc4ce4a70a32f51dc1d64dcad5fcc7",
+      "bytes": 837
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/controller.stderr.log",
+      "sha256": "fed17e713b7eae0676f8e4e84e12e3a88d8d87f3c44f5fb74e2f12f50015da45",
+      "bytes": 340
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/controller.stdout.log",
+      "sha256": "579dfed4c3b76a1a46f197c8b577e8e2b0277f6ac30926d484c51483d634f2d4",
+      "bytes": 1077
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/failed-fixture-retained.json",
+      "sha256": "869bcb4b73e07ab3f2833d60efca5b5c4e57b9d4de37f976a4ffae1efdf4759c",
+      "bytes": 17248
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/final-App-handoff.json",
+      "sha256": "1b71c560b294bdb7e61c71d6623479f82a8899a1e83c0b4574f3e5ae157e8bbf",
+      "bytes": 12118
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/final-borrowers.json",
+      "sha256": "99f1b9f25b9afca320b34ac2d20e27da8b71fb423c25f571709ac2d793014256",
+      "bytes": 2258
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/final-reference-classification.json",
+      "sha256": "5a288328479eb7d3bc0336dffc76f5db95ee57f9a3dc6669162a6c9ec2370057",
+      "bytes": 13185
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/native-full-trust.json",
+      "sha256": "0c3bbe7533ce620926933bb5e38dadf05ac6a438922fd6ec16360585fba099ae",
+      "bytes": 624
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/package-boundary-proof.json",
+      "sha256": "06647b01a076885efe98682d99bd6c988fb9b547024d569848dda59ea1cffe26",
+      "bytes": 1922
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/post-terminal-borrowers.json",
+      "sha256": "ce36cfeb137f98813ca46541f2412bee1f26c26dcb7a931723e786ba97de95a9",
+      "bytes": 2258
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/post-terminal-census-candidates.json",
+      "sha256": "c48805b8b477551763483062c03d43b88deb2fd6260c90c58c351189acef9d7c",
+      "bytes": 553
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/proof-command.json",
+      "sha256": "55c9a254bd3bf6946d1a7267006ab1330ecaeab2b21c8bc4f9f14a20f4473c43",
+      "bytes": 1756
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/proof-handle.json",
+      "sha256": "e3a17188b742059d8a34c4f9f485b626589c64cdc79ee51bcba6f3ad180ac425",
+      "bytes": 529
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/proof-source-binding.json",
+      "sha256": "a1af7a83618f2fc60b323fed229022db75fec70f6db16a5307c4d7c11b1ba76e",
+      "bytes": 12641
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/proof-terminal.json",
+      "sha256": "72c23a56e6454f0a4ee55b5958ec9baf4db174cf2a3333edf59b60cb6d32773d",
+      "bytes": 813
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/proof.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/proof.stdout.log",
+      "sha256": "897b1d4397311e7ba75d4ad68b585b9250138c29f57c10a3f9ae9a6572559cf5",
+      "bytes": 500
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/refactor_audit-installed-inventory.json",
+      "sha256": "eb84572d9ffe6753f201ae941f47b869ad3e643f4b5dccb175786fff7bcf9c91",
+      "bytes": 1981
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/restore-command.json",
+      "sha256": "3a9b43334c4a780e37e47ce0139ec8a3d9489e1d565d810885d6ed75c6d99f5d",
+      "bytes": 1618
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/restore-handle.json",
+      "sha256": "79c2944e75a9514006a9049f134d3e0e1be0a550c6b6902ac853311d3c71fcee",
+      "bytes": 767
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/restore-terminal.json",
+      "sha256": "4d6163bcc0c20f493aa2f65da1260e0c24048b20dca9a70405a74f80eed7490b",
+      "bytes": 1043
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/restore.stderr.log",
+      "sha256": "839cd2062607bd2647b74d6164a6364003708a0af2168146e7688ea8963db562",
+      "bytes": 947
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/restore.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/run_warm.py",
+      "sha256": "58ad029b27117633aae6e8821f4be179b16739927fc44e31cf834ec756dd285f",
+      "bytes": 5501
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/source-proof.json",
+      "sha256": "a73b1423b84cbd59af46bc50d8e948111ce5f3e1ed13f1d7687b9dd6fd3bf3d5",
+      "bytes": 9513
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/stage-command.json",
+      "sha256": "b3fa7e0af1dd2346bad159dabda36bb41a2302d56ab6c403c04c495daff109ff",
+      "bytes": 1778
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/stage-handle.json",
+      "sha256": "dbeeb8da142ef020592a06e32acceb4beb04b5bb136edf4d1e48532e6555058c",
+      "bytes": 801
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/stage-terminal.json",
+      "sha256": "a2df086b1ae016dc13404214213d06db9c89dfbbc48eb227798be2992f0de8ce",
+      "bytes": 1087
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/stage.stderr",
+      "sha256": "2278ebaba026a9d04be0e4ff6805d896f26473861229ab7817ec032f119bbf91",
+      "bytes": 947
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/stage.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/textual-installed-inventory.json",
+      "sha256": "4ba9e7a6a9c298a94ecde723af9a04176459ffb5463bf042246ed21ed476ae15",
+      "bytes": 43358
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/textual_diff_view-installed-inventory.json",
+      "sha256": "3109f836f3a9056cd6ddb7535f1beebc16717576ad4ab1d2ba4d9059521cd0c8",
+      "bytes": 800
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/toad-installed-inventory.json",
+      "sha256": "798ce4375a8255b8139978ddfca05952af0d34e985ae3bd704a16eebb6dea7a2",
+      "bytes": 52315
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/verify_installed.py",
+      "sha256": "cf3aea3045c598e6c9931f58e27b0bfaed3cb3824b662fc1df9a6586194030be",
+      "bytes": 10383
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/warm-command.json",
+      "sha256": "8cc2c75f593b95ba261fbb51c4ece05c15090a5927112334abab4a4716a78ddb",
+      "bytes": 1962
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/warm-effective-release.json",
+      "sha256": "97886e40c5b3e297252b727ce0bbb34be1412758e4699c68c209adc0c77508d1",
+      "bytes": 16379
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/warm-handle.json",
+      "sha256": "96fd46d9a50e78e56cce16591776a876c411e85d02eeb1bfba037af50d0dfc23",
+      "bytes": 483
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/warm-terminal.json",
+      "sha256": "6b3a262b22dca70b2389447230b190d2fa2e986d6268c2258fcbfe1dfa98a301",
+      "bytes": 682
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/warm.stderr.log",
+      "sha256": "406b3e94ca7852b7ca2f79e895d330bb034341b8aa5de3b76f5b0557499837bd",
+      "bytes": 1775
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/warm.stdout.log",
+      "sha256": "8495cc6679791d39f46360d766eff77ba9fffa2006d3acade95f67707fb4404d",
+      "bytes": 83
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/whole-floor-readback.json",
+      "sha256": "42d48812e9a799eaad23b7adef7ec2e9649fd2cd6f4e7f3dac50b85a59dd95c2",
+      "bytes": 985096
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/hwb/w2/acceptance-failure.txt",
+      "sha256": "8ad5b35db01b9f7f43b23469fc4d0f6240c7e61fcc2f363703077a5452ed8bc0",
+      "bytes": 592
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/hwb/w2/warm-admission.json",
+      "sha256": "c42d3248a1e716f6a0426da972a014b52f59b1c571a52e973bd299f4dff96cc4",
+      "bytes": 519
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/hwb/w2/provider-failures.json",
+      "sha256": "4609ba9e007313ece77ef3ea2403c1f12e7f16a32bf334c52f76a49569bb1cb2",
+      "bytes": 238
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/hwb/w2/fixture-stage.json",
+      "sha256": "2b01b70f850be82db9cfe8505b5093d3315df016477717f2a65a840fef91b8a8",
+      "bytes": 439
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/hwb/w2/native-fixture-lqtqc_vz/private-root/wire/owner_release_receipts.json",
+      "sha256": "af8acd4122e5b70975d16612d2e4254c4ca5ff42a35b9b846cbcb96fae8bfe4d",
+      "bytes": 1716
+    }
+  ],
+  "runtime_unknowns": "No successful warm/eviction qualification; same strict assertion failed after source gate returned, precise source/lifecycle reason not established. No general live workflow or performance inference. Worker/service birth custody beyond original handles not invented."
+}
