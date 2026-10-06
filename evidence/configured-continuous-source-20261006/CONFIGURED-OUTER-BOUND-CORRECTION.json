@@ -1,0 +1,158 @@
+{
+  "historical_proposal": {
+    "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/evidence/configured-continuous-source-20261006/HISTORICAL-B4BF-CONFIGURED-READER-PAIR-OPERANDS.json",
+    "sha256": "a99f7863b15422b93dccf3170272094fd58e326e4453abe277f54d546e293801",
+    "bytes": 48595
+  },
+  "historical_commit": "b4bf23556",
+  "reason": "150 was copied from a short warm controller and had no full configured-journey basis. No purpose was issued or runtime performed. Resolve the full configured scope before issue.",
+  "effective_fields": {
+    "outer_seconds": 2100,
+    "control_timeout_seconds": 2100
+  },
+  "owner": "OriginalHeis selects one whole-operation deadline; existing BoundedRun consumes the immutable grant field. No per-phase timer, provider cap, inner timeout or model change.",
+  "phase_source_basis": [
+    {
+      "phase": "saved startup, native page/status independence, channel open and return",
+      "until20_invocations": 7,
+      "roster8_invocations": 1,
+      "other_existing_seconds": 3.2,
+      "source": "configured_acceptance638-657; settled43/53; independent_source_publication234; click_tab174",
+      "existing_wait_envelope_seconds": 151.2
+    },
+    {
+      "phase": "unopened peer first input, participant return, return to source",
+      "until20_invocations": 10,
+      "roster8_invocations": 1,
+      "other_existing_seconds": 0,
+      "source": "click_thread274-280/reveal_thread_row255-271; configured_acceptance663-684",
+      "existing_wait_envelope_seconds": 208
+    },
+    {
+      "phase": "first source input, busy queue identity/status, queued response paint",
+      "until20_invocations": 6,
+      "roster8_invocations": 0,
+      "other_existing_seconds": 0,
+      "source": "configured_acceptance688-702; two click_tab calls",
+      "existing_wait_envelope_seconds": 120
+    },
+    {
+      "phase": "native CLI fork dialog, immediate attachment, first native answer",
+      "until20_invocations": 8,
+      "roster8_invocations": 2,
+      "other_existing_seconds": 20,
+      "source": "prepare_fork_dialog459-479; wait_fork_dialog159-174; click_thread; configured_acceptance714-736",
+      "existing_wait_envelope_seconds": 196
+    },
+    {
+      "phase": "two genuinely loaded sources, three exact warm returns and Undo",
+      "until20_invocations": 28,
+      "roster8_invocations": 0,
+      "other_existing_seconds": 0,
+      "source": "clicked_reader_editor_return334-377:8 tab waits+2extent waits+9settled calls, each settled has2waits; capture/verify preserve resources",
+      "existing_wait_envelope_seconds": 560
+    },
+    {
+      "phase": "slow/fast/reversal/End, four tail checks and idle preparation",
+      "until20_invocations": 14,
+      "roster8_invocations": 0,
+      "other_existing_seconds": 2,
+      "source": "adaptive_reader_journey379-443:4direct untils+5settled calls; original explicit pauses total2seconds",
+      "existing_wait_envelope_seconds": 282
+    },
+    {
+      "phase": "channel question/reference, live state, hidden settlement, reply/handling",
+      "until20_invocations": 13,
+      "roster8_invocations": 0,
+      "other_existing_seconds": 0,
+      "source": "channel_reply_feedback544-625 configured args entered=None,requests=None,release=None:8untils+5tab waits",
+      "existing_wait_envelope_seconds": 260
+    },
+    {
+      "phase": "DM working notification, hidden settlement, same admission, cold reopen",
+      "until20_invocations": 7,
+      "roster8_invocations": 0,
+      "other_existing_seconds": 0,
+      "source": "direct_reply_feedback85-168 configured entered=None:7untils; original navigation/content attachment separately allowed below",
+      "existing_wait_envelope_seconds": 140
+    }
+  ],
+  "direct_configured_readiness_sites": [
+    638,
+    639,
+    653,
+    656,
+    666,
+    671,
+    674,
+    675,
+    676,
+    688,
+    691,
+    698,
+    702,
+    717,
+    719,
+    734,
+    736
+  ],
+  "expanded_original_until20_invocations": 93,
+  "four_original_roster8_waits": 32,
+  "UI_existing_wait_envelope_seconds": 1917.2,
+  "original_two_SDK_fork_helper_ceiling_seconds": 20,
+  "native_helper_owner": "PiHelper.timeout_seconds=10; initial configured_saved_agent private fork plus native CLI fork. CLI registration waits overlap its helper; counting its10seconds again is conservative, not a new timeout.",
+  "existing_wait_plus_helper_envelope_seconds": 1937.2,
+  "remaining_acquisition_attachment_Pilot_close_allowance_seconds": 162.8,
+  "allowance_basis": "Explicit planning allowance for selected-source Git/installed checks, authentic public capture/currentness and source hashes/coverage, actual App/ACP content attachment, native Pilot actions without a new timer, and original joined App/preparation/agent close. These durations are unmeasured; this budget is not a runtime prediction or proof every unbounded operation finishes.",
+  "failure_semantics": "A20second readiness failure still fails immediately; first failure/UNKNOWN stops with original owned cleanup and normalfloor return. No waiting until2100 just to consume budget. No original input replay, native effect absence or successful provider processing inferred.",
+  "provider_relation": "Six authored UI inputs is not total requests. Existing automatic triage/reply processing remains within its actual producer/notification waits; no new count cap or model/provider selection.",
+  "controller_template_unchanged": {
+    "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/evidence/configured-continuous-source-20261006/run_configured.template.py",
+    "sha256": "112a0ceb4779515152f0d8b20d3db25f3333084ce75ed670253179c20cd7acf0",
+    "bytes": 5528
+  },
+  "controller_source_binding_historical_unchanged": {
+    "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/evidence/configured-continuous-source-20261006/CONFIGURED-CONTROLLER-SOURCE-BINDING.json",
+    "sha256": "4195f53aca4616aa1f9d10e22718d38885526d99aa7f5e69a925e50916b7e822",
+    "bytes": 6839
+  },
+  "source_files": [
+    {
+      "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/tests/saved_state_user_journey_pilot.py",
+      "sha256": "7e6d769953fd8ae18ae3527d590a06d246891765d8a61a0ffc6a63722d8a2dbe",
+      "bytes": 46843
+    },
+    {
+      "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/tests/l0a_native_installed_pilot.py",
+      "sha256": "af0fb2d285ce9dddf728650809ab206b706000ed1d003e520d382b483b04e61a",
+      "bytes": 37666
+    },
+    {
+      "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/tests/viewport_recent_tabs_pilot.py",
+      "sha256": "2ea128c76d469c15e8e4633922110ccfaf200f86e2131eeb0d942129284ce030",
+      "bytes": 18068
+    },
+    {
+      "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/tests/runtime_fixture.py",
+      "sha256": "c34f37f450a02f09d344352466431744892a0c788953212da5ac434d912e3315",
+      "bytes": 18978
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/src/agent_comms/pi_helper.py",
+      "sha256": "7067f76257c51c180b59fe034ade709c257ded2d4a3e8c97de5b4440b9c109fc",
+      "bytes": 2734
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/src/agent_comms/native_fork.py",
+      "sha256": "c0a8f207dcf4e6a743a5fadef8ab34166b68b35836594413c6f3cb41e62536cd",
+      "bytes": 1373
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/src/agent_comms/acp.py",
+      "sha256": "a82a3cf5685889e6adbd9a2cced3c5403dc5bff258cc0c2f889f9ba4d59afd51",
+      "bytes": 25599
+    }
+  ],
+  "source_parse_omissions": 0,
+  "operations": "Source AST/read only; no import, test, build, package, source capture, SDK, provider, native or App run"
+}

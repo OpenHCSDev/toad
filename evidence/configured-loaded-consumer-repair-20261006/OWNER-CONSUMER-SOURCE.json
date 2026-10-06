@@ -1,0 +1,1015 @@
+{
+  "before": {
+    "parsed_python_modules": 728,
+    "parse_omissions": [],
+    "sites": [
+      {
+        "path": "src/toad/app.py",
+        "line": 557,
+        "expression": "conversation.transcript.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 501,
+        "declaration": "TranscriptPresentation"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 509,
+        "expression": "self.displayed_cursor",
+        "access": "Store"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 573,
+        "expression": "self.displayed_cursor",
+        "access": "Store"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 573,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 626,
+        "expression": "self.displayed_cursor",
+        "access": "Store"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 156,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 534,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 615,
+        "expression": "self.displayed_cursor",
+        "access": "Store"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 157,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 51,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 52,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "src/toad/transcript_state.py",
+        "line": 122,
+        "expression": "self.source.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "src/toad/widgets/committed_presentation.py",
+        "line": 145,
+        "declaration": "CommittedHistory"
+      },
+      {
+        "path": "src/toad/widgets/committed_presentation.py",
+        "line": 153,
+        "declaration": "committed_cursor"
+      },
+      {
+        "path": "src/toad/widgets/committed_presentation.py",
+        "line": 161,
+        "expression": "self.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "src/toad/widgets/session_history_details.py",
+        "line": 20,
+        "expression": "self.transcript.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 429,
+        "declaration": "TranscriptHistory"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 628,
+        "declaration": "committed_cursor"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 480,
+        "expression": "self._source_state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 517,
+        "expression": "self._source_state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 619,
+        "expression": "self._source_state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 621,
+        "expression": "self.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/canonical_wire_conversation_installed_pilot.py",
+        "line": 180,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/canonical_wire_conversation_installed_pilot.py",
+        "line": 171,
+        "expression": "parent.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/checkpoint_source_pivot_pilot.py",
+        "line": 101,
+        "expression": "replacement.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+        "line": 239,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+        "line": 240,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+        "line": 227,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+        "line": 258,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+        "line": 226,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+        "line": 257,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/core_events_native_installed_pilot.py",
+        "line": 53,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/first_fork_native_installed_pilot.py",
+        "line": 294,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/first_fork_native_installed_pilot.py",
+        "line": 295,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/guards/test_transcript_publication.py",
+        "line": 202,
+        "expression": "view.transcript.histories[0].committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/history_availability_installed_pilot.py",
+        "line": 59,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Store"
+      },
+      {
+        "path": "tests/history_availability_installed_pilot.py",
+        "line": 93,
+        "expression": "source.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/l0a_native_installed_pilot.py",
+        "line": 578,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/late_native_application_pilot.py",
+        "line": 115,
+        "expression": "item.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/message_categories_pilot.py",
+        "line": 134,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Store"
+      },
+      {
+        "path": "tests/native_loaded_return_cache_pilot.py",
+        "line": 229,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/native_loaded_return_cache_pilot.py",
+        "line": 236,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/native_session_retention_pilot.py",
+        "line": 157,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/native_session_retention_pilot.py",
+        "line": 215,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/native_session_retention_pilot.py",
+        "line": 154,
+        "expression": "view.transcript.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/native_session_retention_pilot.py",
+        "line": 207,
+        "expression": "view.transcript.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/native_session_retention_pilot.py",
+        "line": 154,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/native_session_retention_pilot.py",
+        "line": 207,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/native_session_retention_pilot.py",
+        "line": 361,
+        "expression": "history.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/native_session_retention_pilot.py",
+        "line": 422,
+        "expression": "history.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/off_tail_checkpoint_pilot.py",
+        "line": 98,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Store"
+      },
+      {
+        "path": "tests/off_tail_checkpoint_pilot.py",
+        "line": 263,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/off_tail_checkpoint_pilot.py",
+        "line": 115,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/reconnect_source_native_installed_pilot.py",
+        "line": 58,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/reconnect_source_native_installed_pilot.py",
+        "line": 59,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/reconnect_source_native_installed_pilot.py",
+        "line": 42,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/reconnect_source_native_installed_pilot.py",
+        "line": 43,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/response_source_custody_pilot.py",
+        "line": 109,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/response_source_custody_pilot.py",
+        "line": 110,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/response_source_custody_pilot.py",
+        "line": 165,
+        "expression": "next(iter(view.window.histories)).committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/response_source_custody_pilot.py",
+        "line": 103,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/response_source_custody_pilot.py",
+        "line": 135,
+        "expression": "settled_history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/retained_history_projection_pilot.py",
+        "line": 68,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/retained_history_projection_pilot.py",
+        "line": 59,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/retained_history_projection_pilot.py",
+        "line": 85,
+        "expression": "view.transcript.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/retained_history_projection_pilot.py",
+        "line": 51,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/retained_history_projection_pilot.py",
+        "line": 58,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/retained_history_projection_pilot.py",
+        "line": 64,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/saved_state_user_journey_pilot.py",
+        "line": 640,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/saved_state_user_journey_pilot.py",
+        "line": 640,
+        "expression": "history.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/snapshot_cancellation_custody_pilot.py",
+        "line": 42,
+        "expression": "old.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/snapshot_cancellation_custody_pilot.py",
+        "line": 27,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/snapshot_cancellation_custody_pilot.py",
+        "line": 92,
+        "expression": "accepted.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/snapshot_cancellation_custody_pilot.py",
+        "line": 28,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/snapshot_cancellation_custody_pilot.py",
+        "line": 64,
+        "expression": "provisional.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/transcript_lifecycle_pilot.py",
+        "line": 44,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/transcript_lifecycle_pilot.py",
+        "line": 58,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/transcript_lifecycle_pilot.py",
+        "line": 75,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/viewport_body_order_pilot.py",
+        "line": 267,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/viewport_body_order_pilot.py",
+        "line": 247,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/viewport_recent_tabs_pilot.py",
+        "line": 85,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      }
+    ]
+  },
+  "after": {
+    "parsed_python_modules": 728,
+    "parse_omissions": [],
+    "sites": [
+      {
+        "path": "src/toad/app.py",
+        "line": 557,
+        "expression": "conversation.transcript.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 501,
+        "declaration": "TranscriptPresentation"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 509,
+        "expression": "self.displayed_cursor",
+        "access": "Store"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 573,
+        "expression": "self.displayed_cursor",
+        "access": "Store"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 573,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 626,
+        "expression": "self.displayed_cursor",
+        "access": "Store"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 156,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 534,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 615,
+        "expression": "self.displayed_cursor",
+        "access": "Store"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 157,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 51,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 52,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "src/toad/transcript_state.py",
+        "line": 122,
+        "expression": "self.source.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "src/toad/widgets/committed_presentation.py",
+        "line": 145,
+        "declaration": "CommittedHistory"
+      },
+      {
+        "path": "src/toad/widgets/committed_presentation.py",
+        "line": 153,
+        "declaration": "committed_cursor"
+      },
+      {
+        "path": "src/toad/widgets/committed_presentation.py",
+        "line": 161,
+        "expression": "self.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "src/toad/widgets/session_history_details.py",
+        "line": 20,
+        "expression": "self.transcript.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 429,
+        "declaration": "TranscriptHistory"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 628,
+        "declaration": "committed_cursor"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 480,
+        "expression": "self._source_state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 517,
+        "expression": "self._source_state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 619,
+        "expression": "self._source_state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 621,
+        "expression": "self.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/canonical_wire_conversation_installed_pilot.py",
+        "line": 180,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/canonical_wire_conversation_installed_pilot.py",
+        "line": 171,
+        "expression": "parent.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/checkpoint_source_pivot_pilot.py",
+        "line": 101,
+        "expression": "replacement.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+        "line": 239,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+        "line": 240,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+        "line": 227,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+        "line": 258,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+        "line": 226,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+        "line": 257,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/core_events_native_installed_pilot.py",
+        "line": 53,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/first_fork_native_installed_pilot.py",
+        "line": 294,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/first_fork_native_installed_pilot.py",
+        "line": 295,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/guards/test_transcript_publication.py",
+        "line": 202,
+        "expression": "view.transcript.histories[0].committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/history_availability_installed_pilot.py",
+        "line": 59,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Store"
+      },
+      {
+        "path": "tests/history_availability_installed_pilot.py",
+        "line": 93,
+        "expression": "source.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/l0a_native_installed_pilot.py",
+        "line": 578,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/late_native_application_pilot.py",
+        "line": 115,
+        "expression": "item.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/message_categories_pilot.py",
+        "line": 134,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Store"
+      },
+      {
+        "path": "tests/native_loaded_return_cache_pilot.py",
+        "line": 229,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/native_loaded_return_cache_pilot.py",
+        "line": 236,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/native_session_retention_pilot.py",
+        "line": 157,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/native_session_retention_pilot.py",
+        "line": 215,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/native_session_retention_pilot.py",
+        "line": 154,
+        "expression": "view.transcript.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/native_session_retention_pilot.py",
+        "line": 207,
+        "expression": "view.transcript.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/native_session_retention_pilot.py",
+        "line": 361,
+        "expression": "loaded.conversation.transcript.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/native_session_retention_pilot.py",
+        "line": 154,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/native_session_retention_pilot.py",
+        "line": 207,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/native_session_retention_pilot.py",
+        "line": 422,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/off_tail_checkpoint_pilot.py",
+        "line": 98,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Store"
+      },
+      {
+        "path": "tests/off_tail_checkpoint_pilot.py",
+        "line": 263,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/off_tail_checkpoint_pilot.py",
+        "line": 115,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/reconnect_source_native_installed_pilot.py",
+        "line": 58,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/reconnect_source_native_installed_pilot.py",
+        "line": 59,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/reconnect_source_native_installed_pilot.py",
+        "line": 42,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/reconnect_source_native_installed_pilot.py",
+        "line": 43,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/response_source_custody_pilot.py",
+        "line": 109,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/response_source_custody_pilot.py",
+        "line": 110,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/response_source_custody_pilot.py",
+        "line": 165,
+        "expression": "next(iter(view.window.histories)).committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/response_source_custody_pilot.py",
+        "line": 103,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/response_source_custody_pilot.py",
+        "line": 135,
+        "expression": "settled_history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/retained_history_projection_pilot.py",
+        "line": 68,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/retained_history_projection_pilot.py",
+        "line": 59,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/retained_history_projection_pilot.py",
+        "line": 85,
+        "expression": "view.transcript.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/retained_history_projection_pilot.py",
+        "line": 51,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/retained_history_projection_pilot.py",
+        "line": 58,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/retained_history_projection_pilot.py",
+        "line": 64,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/saved_state_user_journey_pilot.py",
+        "line": 640,
+        "expression": "view.transcript.displayed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/saved_state_user_journey_pilot.py",
+        "line": 642,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/snapshot_cancellation_custody_pilot.py",
+        "line": 42,
+        "expression": "old.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/snapshot_cancellation_custody_pilot.py",
+        "line": 27,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/snapshot_cancellation_custody_pilot.py",
+        "line": 92,
+        "expression": "accepted.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/snapshot_cancellation_custody_pilot.py",
+        "line": 28,
+        "expression": "history.committed_cursor",
+        "access": "Load"
+      },
+      {
+        "path": "tests/snapshot_cancellation_custody_pilot.py",
+        "line": 64,
+        "expression": "provisional.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/transcript_lifecycle_pilot.py",
+        "line": 44,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/transcript_lifecycle_pilot.py",
+        "line": 58,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/transcript_lifecycle_pilot.py",
+        "line": 75,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/viewport_body_order_pilot.py",
+        "line": 267,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/viewport_body_order_pilot.py",
+        "line": 247,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      },
+      {
+        "path": "tests/viewport_recent_tabs_pilot.py",
+        "line": 85,
+        "expression": "history.state.reports_coverage",
+        "access": "Load"
+      }
+    ]
+  },
+  "selected_core": {
+    "parsed_python_modules": 755,
+    "parse_omissions": [],
+    "sites": [
+      {
+        "path": "tools/cutover/publish_retained_summary.py",
+        "line": 133,
+        "declaration": "InstalledSource"
+      },
+      {
+        "path": "tools/cutover/publish_retained_summary.py",
+        "line": 179,
+        "declaration": "InstalledSourceProof"
+      },
+      {
+        "path": "tools/cutover/publish_retained_summary.py",
+        "line": 144,
+        "declaration": "command_arguments"
+      }
+    ]
+  },
+  "semantic_relation": [
+    "TranscriptPresentation.displayed_cursor is published at call_after_refresh; TranscriptHistory.committed_cursor is the source frontier, not a display field.",
+    "Both loaded sites preserve nonempty window histories and pages; configured keeps every pager coverage check and the actual native paint assertion.",
+    "The two proof classes are distinct declarations. Future --installed-source selects FieldCodec.encode of agent_comms member after original complete proof.require_activation and source.require_package validation."
+  ],
+  "runtime": "UNRUN; no source/runtime cause claim beyond original consumer failures"
+}

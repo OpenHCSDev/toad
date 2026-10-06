@@ -1,0 +1,16 @@
+{
+  "source_checkpoint": "187fac249a6e13f3560d23de17a77bb546e4e13e",
+  "index_tree": "3dc3f170fec09264dc2a76b9b0ee79917bfa3f43",
+  "hashes": {
+    "src/toad/session_presentation.py": "355e11576540dd9d60102c8b90ff79d43e91a2702f769749a56a23b3b20a4873",
+    "src/toad/widgets/viewport_body.py": "aa8c9d1acd462275be96f5f56b0e0d0b43283456e52624c43d1bc5c9121e8228",
+    "tests/native_session_retention_pilot.py": "7b4a178f5ebc6fa255c66ac1049e2f4cdc524583f03ab9a487b479a790c03d1d",
+    "tests/thread_navigation_installed_journey.py": "a23fbcb8578986949712cacc8d7b1af01b97808de225c9dbdf970177c4a6f4d2"
+  },
+  "compile": "PASS without application imports",
+  "runtime": "UNRUN",
+  "warm_mode_AST_unchanged": true,
+  "mixed_consumer": "Original optional presentation.state now used according to actual retained/evicted lifetime. Fixed one-Conversation assertion removed: actual Conversation membership equals existing retained presentations, selected widget remains actual selected conversation.",
+  "unchanged": "All original mixed warm page/fragment/render identities, zero raw reads, native owner/ACP/queue/draft/Undo assertions remain.",
+  "limits": "No native/App run, measurement credit or new loaded cohort; default remains two loaded histories and blank remainder."
+}

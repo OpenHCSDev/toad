@@ -1,0 +1,25 @@
+{
+  "effective_method_comparison": [
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "changed_declarations": [
+        "ReaderPosition.capture"
+      ],
+      "added_declarations": [],
+      "removed_declarations": [],
+      "sha256": "9cb92f5eebf3e78373ffaf0a55eb52dc5c2320c9ab18892ae856568456091cb2"
+    },
+    {
+      "path": "tests/native_session_retention_pilot.py",
+      "changed_declarations": [
+        "warm_admission_acceptance"
+      ],
+      "added_declarations": [],
+      "removed_declarations": [],
+      "sha256": "9ba5a7000274c2de74e03f8400180cb526b4cf1963ed6cac5a7ebcc4e31b0ef5"
+    }
+  ],
+  "correction": "First source receipt keyed methods only by short name, so a later HistoryAnchor.capture masked ReaderPosition.capture. This qualified declaration comparison supersedes only that incorrect empty changed_methods entry; original source/evidence bytes retained.",
+  "compile_without_imports": "PASS",
+  "runtime": "UNRUN"
+}

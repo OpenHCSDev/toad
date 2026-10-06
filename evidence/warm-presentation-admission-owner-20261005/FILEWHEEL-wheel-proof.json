@@ -1,0 +1,62 @@
+{
+  "head": "2ae78aac63db588e1a33d1da1c903139746d55aa",
+  "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/filewheel/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+  "sha256": "61bf637992b00953a85249423e568e1958a0521b58b230b00c4f46023322aef2",
+  "bytes": 2251251,
+  "assets": 319,
+  "Git_local_ZIP_equal": true,
+  "missing": [],
+  "extra": [],
+  "mismatches": [],
+  "RECORD_rows": 324,
+  "RECORD_verified": true,
+  "RECORD_proof": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/filewheel/record-proof.json",
+    "sha256": "921bc825039ce65c8c31fe2de66143fc2c62b47482ce2ced2edf93eece102b16"
+  },
+  "inventory": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/filewheel/toad-inventory.json",
+    "sha256": "8a3c9e6dfc87fce2a70e380271199de6b6318f1bb25d093a5e88023c349a5c57"
+  },
+  "metadata_sha256": "3fde2bfef1346f91a2bad2c6dfbca28a40710dc38ca987f66266a6064c3c43ee",
+  "dist_info_sha256": {
+    "batrachian_toad-0.6.20.dist-info/METADATA": "3fde2bfef1346f91a2bad2c6dfbca28a40710dc38ca987f66266a6064c3c43ee",
+    "batrachian_toad-0.6.20.dist-info/WHEEL": "58b82a17209f9bf2804afe161f2632d0fde933f9bb2792fd936b2474a2e2ac2f",
+    "batrachian_toad-0.6.20.dist-info/entry_points.txt": "12cacbee8134076f2a99542ab81f8682c88f39cbea62228e9c3b950d319d4528",
+    "batrachian_toad-0.6.20.dist-info/licenses/LICENSE": "4df3c306dddaaf4baffdff5ca820cc679ac8cd6dc263c6a74517783e42fa7a3b",
+    "batrachian_toad-0.6.20.dist-info/RECORD": "42bcc4b7ebc4f5d308487891a89358bcd18885c93cedea0ed9abd3f04d498b34"
+  },
+  "build_inputs": {
+    "pyproject.toml": "bd8ffc54903d895903260c67614a2c876d1a59b3ebea03460a2db421ba658cfa",
+    "uv.lock": "2374d074eef0d436acd483473de7aa57b6219f2e87055a0fb2d1eea352f4a9a9",
+    "README.md": "11b3f5195acb00a19a73229749e2e71ba924314a8b1c650f05a2bf43f537d35d",
+    "LICENSE": "4df3c306dddaaf4baffdff5ca820cc679ac8cd6dc263c6a74517783e42fa7a3b"
+  },
+  "Git_local_root_before_after_equal": true,
+  "Core_pin": "3931f16feb8bcb2dbcc3041446ca342dea665024",
+  "Core_selected_retained_wheel_sha256": "3fe14077293b691000394831ed7458ecae92afd9b667af4501be2945ab86051d",
+  "native_pin": "a2dd8a9a37825a828df0d8f651ca57d92db69e5f",
+  "native_selected_retained_wheel_sha256": "bc47c59ea7db78a9a443c5f5e3f10836660957f21bb998d2ffa3ae8e4a2ddbe3",
+  "Diff_pin": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "build_receipt": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/filewheel/build-receipt.json",
+    "sha256": "be267615b4b3b06fc7e55a24ebb60f4352fe310ffcbed934ee849d041a5fbb65"
+  },
+  "build_attempts": 1,
+  "historical474": {
+    "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/merged460-current-public-receiving-source-20261005/filewheel/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "2ece83e34b795f09652e30e67bfa9bafcdc08d7a0812e9e6a122ce2a708cb217",
+    "sourceequal476": false,
+    "changed_production_assets": [
+      "src/toad/session_presentation.py",
+      "src/toad/widgets/viewport_body.py"
+    ]
+  },
+  "new_env": false,
+  "dependency_resolution": false,
+  "Core_Text_native_build": false,
+  "stage": false,
+  "App": false,
+  "publication": false,
+  "qualification": "Git/local/ZIP/RECORD/root proof only; mounted control UNRUN; no installed/fullworkflow/performance credit"
+}

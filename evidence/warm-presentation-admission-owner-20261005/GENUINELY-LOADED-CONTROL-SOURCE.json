@@ -1,0 +1,43 @@
+{
+  "determining_before": "46256a3e7ca176f444182064de04123ac9e0c8fd",
+  "source_index_tree": "9d0086766f5915a36300ed897848e4d163507669",
+  "changed_files": {
+    "tests/native_session_retention_pilot.py": "d69706b445652d8ec849c1be9cec5502b6dd61b5d41c347bd4fe2f67ee354235",
+    "tests/viewport_recent_tabs_pilot.py": "1750ffcfb3335b707f3fb4920ad7e0ef69efa241242009e8105269d03a065bfe"
+  },
+  "package_tests": 399,
+  "parse_omissions": 0,
+  "existing_checkpoint_import_consumers": [
+    {
+      "path": "tests/native_session_retention_pilot.py",
+      "line": 123,
+      "import": "from viewport_recent_tabs_pilot import ReaderCheckpoint, settled"
+    },
+    {
+      "path": "tests/native_session_retention_pilot.py",
+      "line": 280,
+      "import": "from viewport_recent_tabs_pilot import ReaderCheckpoint, settled"
+    },
+    {
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 25,
+      "import": "from viewport_recent_tabs_pilot import ReaderCheckpoint"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 20,
+      "import": "from viewport_recent_tabs_pilot import ReaderCheckpoint, settled"
+    }
+  ],
+  "same_owner": "Existing native_session_retention acceptance, MainScreen.spawn, SessionAdmissions.new, native fixture/ACP source attachment, original ReaderCheckpoint; no new harness/renderer/producer/native turns for added tabs.",
+  "admission": "Every additional tab attaches to one of TWO original real private journals through original factory; actual connected/source incarnation/history.pages/displayed_cursor/nonwhite saved body required before loaded membership. Added tabs receive real separate Document/Undo/non-tail checkpoint; no blank loaded credit.",
+  "scope": "4/16/32/64 genuinely loaded logical history views from TWO distinct native journals. No claim of64 distinct histories/native turns or64 simultaneously retained native trees. Original warm resource budget can retire native trees.",
+  "warm": "Weak original native-view witness added to existing ReaderCheckpoint. Original verify assertion AST unchanged. Retained ORIGINAL incarnation requires exact page/fragment/view/Markdown/rendercache identity and rawread0. After real eviction, original Document/Undo/non-tail facts still required; restored tree/retained rebuilt tree separately reported, no original graph/rawread0 credit and no after-return baseline recreation.",
+  "lifetime": "Clear checkpoint dictionary and loop locals before new input/resource counts; original editor witness now weak, same actual identity assertion. Previous resource sets cleared before next cohort. Source/paint/widget costs still original476 producer.",
+  "inputs": "No input during tab/history admission. Each existing cohort retains original HELD+QUEUED native localhost phases; default seed2+fourcohorts2each=10 actual authored localhost requests, not64 native turns. No configured input credit.",
+  "receipt": "Actual loaded logical count/distinct journal count/native owners/connected ACP/current retained trees/blank count, exact warm/cold return branch entries, raw deltas/native input count. New loaded mode writes completedfalse plus reached cohorts/last visit phase on failure. Default mixed list receipt preserved.",
+  "compile": "PASS without application imports",
+  "runtime": "UNRUN",
+  "wheel_relation": "Production/root BYTEZERO frozen2ae built61bf; test-only changes need no rebuild. Warm-only leaf assertion AST unchanged; module/helper hashes intentionally new and must be bound before any future issue.",
+  "configured_remaining": "Original retained CurrentTypedCapture/privateSDKfork/source-native InputDispositions must supply full configured saved/unopened/channel/tab/fork-before-answer/firstmessage/DM/notification/handling/queue/history/draftUndo/reader callback. Existing complete saved acceptance currently still localhost; no configured runtime qualification claimed."
+}

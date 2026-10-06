@@ -147,6 +147,21 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         self.sources = OperationalSessionSources()
         self.widget: Conversation | None = None
 
+    @property
+    def retained_widget_count(self) -> int:
+        """Native custody includes the complete tree, even while parked."""
+        return 1 + self.widget.descendant_count if self.widget is not None else 0
+
+    @property
+    def retained_source_bytes(self) -> int:
+        return (self.widget.window.document_viewport.retained_source_bytes
+                if self.widget is not None else 0)
+
+    @property
+    def retained_paint_bytes(self) -> int:
+        return (self.widget.window.document_viewport.retained_paint_bytes
+                if self.widget is not None else 0)
+
     def compose_content(self, screen: "MainScreen") -> Widget:
         return SessionSurfaceSlot()
 
@@ -253,30 +268,23 @@ class NativeSessionSurface:
     async def _trim_retained(self, selected: Conversation) -> None:
         """Bound inactive native trees using the existing viewport resource policy.
 
-        The selected viewport has its ordinary protected/visible admission. Tab
-        order owns recency; the logical session registry owns all retained trees.
-        There is no second presentation lookup or model store.
+        The selected presentation is required; its costs participate in the
+        same admission as inactive trees. Tab order owns recency and the logical
+        session registry owns native membership. Eviction preserves source and
+        editor/reader state through the presentation's existing lifetime.
         """
         app = self._app()
         budget = selected.window.document_viewport.budget
-        candidates = {screen.id: (screen, owner) for screen, owner in self._presentations()
-                      if screen is not self.view}
-        widgets = source_bytes = 0
-        for identity in app.tab_order.recent:
-            if identity not in candidates:
-                continue
-            screen, owner = candidates[identity]
-            widget = owner.widget
-            viewport = widget.window.document_viewport
-            count = 1 + widget.descendant_count
-            size = sum(body.retained_source_bytes for key in viewport._warm.values()
-                       if (body := key()) is not None)
-            if (widgets + count > budget.widget_limit(app.size.height)
-                    or source_bytes + size > app.preparation.max_bytes):
+        candidates = {screen.id: owner for screen, owner in self._presentations()}
+        required = self.view.presentation
+        ordered = dict.fromkeys((required, *(candidates[identity]
+            for identity in app.tab_order.recent if identity in candidates)))
+        admitted = budget.admit(
+            ordered, (required,), app.size.height, app.preparation.max_bytes,
+        )
+        for owner in ordered:
+            if owner not in admitted:
                 await owner.evict()
-            else:
-                widgets += count
-                source_bytes += size
 
     async def dispose(self, screen: "MainScreen") -> None:
         """Finalize a live tree before pruning; a closed tab retains no editor."""

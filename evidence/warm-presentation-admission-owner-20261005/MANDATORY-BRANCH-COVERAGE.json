@@ -1,0 +1,12 @@
+{
+  "determining_preview": "a52b56214c6deadc799511b3272689a1eb415445",
+  "control": "tests/native_session_retention_pilot.py",
+  "sha256": "74a882ef2809760f06bed8af87625d6f1e9277a3746d716366ed2f699c833816",
+  "production_and_root_delta": "ZERO",
+  "control_compile": "PASS without application imports",
+  "runtime": "UNRUN",
+  "warm": "Actual departure/retained return mandatory; selected snapshots are reported separately. Original witness identity and raw read delta0 must pass.",
+  "eviction": "After warm verification, use original inactive presentation.evict if needed; require missing original native widget and actual retained SessionViewState before remount. Original Document/Undo/non-tail reader restoration mandatory. Explicit owner retirement is distinguished from natural missing native tree, not credited as a pressure-induced eviction.",
+  "failure_receipt": "finally clears identity/resource witnesses then writes completedfalse plus actual entered/verified branch counters and rows; no skipped branch credit.",
+  "remaining": "No budget increase, renderer/state substitution, new timer, App/runtime/input/stage operation or accepted lifetime replay. Full configured/genuine-loaded source remains active."
+}

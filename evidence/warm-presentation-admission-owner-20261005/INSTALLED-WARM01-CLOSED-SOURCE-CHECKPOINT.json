@@ -1,0 +1,67 @@
+{
+  "state": "Installed warm01 FAIL; source-only stronger canonical acquisition successor UNRUN",
+  "closed_holder": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis476-current471-warm-package-App-lifecycle.json",
+    "sha256": "969c6e4ad67b48032332cce53ef873796382ff56962f05df54c8ae50b717a667"
+  },
+  "whole_handback": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/whole-handback.json",
+    "sha256": "455372439cce50f0a94ade0d2ba4a7513461a8823d950d3a12f153a93f1c36b4",
+    "bytes": 20421
+  },
+  "independent_floor": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis476-warm-independent-final-floor-readback.json",
+    "sha256": "755bebcef9d34f70de82062b31423b62f65731bcdaf796a10edf397783723751",
+    "bytes": 3245
+  },
+  "Sch_matching_READ_EXEC_closure": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper476-current471-warm-READ-EXEC-handback-20261005.json",
+    "sha256": "855804b24fb0bc6af7c33c8b73866e74ba3a6d18b66c9ff81c5376cc60368202",
+    "bytes": 39518
+  },
+  "raw_copies": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/warm-presentation-admission-owner-20261005/installed-warm01/controller-terminal.json",
+      "sha256": "bbab1d84439f4552c7422315eb6819d219ec9b8cde866867ee5f6c0cc61bde83",
+      "bytes": 364
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/warm-presentation-admission-owner-20261005/installed-warm01/warm-admission.json",
+      "sha256": "c42d3248a1e716f6a0426da972a014b52f59b1c571a52e973bd299f4dff96cc4",
+      "bytes": 519
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/warm-presentation-admission-owner-20261005/installed-warm01/acceptance-failure.txt",
+      "sha256": "8f23c3cceb52f8c92364866980759d12383ae57fb3dda3a92c2fedb328f433ca",
+      "bytes": 592
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/warm-presentation-admission-owner-20261005/installed-warm01/warm-terminal.json",
+      "sha256": "364b6da8f2655d6e5ac56f1d5e4022e66d065a04a3e9e71ca5d40241c572c3b6",
+      "bytes": 679
+    }
+  ],
+  "original_fixture_files_HELD": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/failed-fixture-retained.json",
+    "sha256": "28e12a320ab7e937286802845f31b27ebce9a1ecda600b746cf3eda64a04afbf",
+    "bytes": 17721
+  },
+  "source_trace": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/AFTER-SOURCE-READINESS-TRACE.json",
+    "sha256": "db78eae02242e035c4e00b0919d2fd0e9468e9b67bc341ec32ff6eb8c607c97a",
+    "bytes": 10579
+  },
+  "control_correction": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/warm-presentation-admission-owner-20261005/WARM-CANONICAL-ACQUISITION-CONTROL-CORRECTION.json",
+    "sha256": "3fc8121cd568d03fc97fd7cad78178663ab915b96eb43bd5f21441e4268c0fc1",
+    "bytes": 4728
+  },
+  "future_operands": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/warm-presentation-admission-owner-20261005/FUTURE-WARM02-CANONICAL-ACQUISITION-OPERANDS.json",
+    "sha256": "f5f1d948070539a6a2c6ead06bb1f3d5b074b8637211c82169a5973c18659582",
+    "bytes": 10599
+  },
+  "source_supported_gap_not_proved_runtime_cause": true,
+  "mandatory_warm_eviction_runtime": "UNQUALIFIED",
+  "full_configured_loaded_CPU_performance": "ACTIVE unfinished; this failed warm slice does not replace source adaptation/continuous journey"
+}

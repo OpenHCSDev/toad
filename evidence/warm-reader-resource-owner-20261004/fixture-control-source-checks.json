@@ -1,0 +1,18 @@
+{
+  "checks": {
+    "tests/l0a_native_installed_pilot.py": {
+      "syntax_parsed": true,
+      "assertion_AST_equal_to_failed_original": 57
+    },
+    "tests/saved_state_user_journey_pilot.py": {
+      "syntax_parsed": true,
+      "assertion_AST_equal_to_failed_original": 65
+    },
+    "tests/canonical_wire_conversation_installed_pilot.py": {
+      "syntax_parsed": true,
+      "assertion_AST_equal_to_failed_original": 34
+    }
+  },
+  "runtime": "UNRUN corrected source; no holder purpose or rerun authorization",
+  "frozen_negative_source": "fcea342b2eea0103d95acd863b864879d055961d"
+}
