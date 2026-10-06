@@ -104,7 +104,10 @@ class ContextTree(Tree[ContextNode]):
                 self._add(parent, model, before=index)
                 continue
             original = node.data
-            if original != model:
+            # The original coordinate already selected the native node above.
+            # Bind the newly acquired reader instead of recursively comparing
+            # its complete inspection and all recorded requests on the UI loop.
+            if original is not model:
                 node.data = model
                 self.intent.rebind(original, model, self.show_detail)
             if node.label.plain != model.label:
@@ -126,13 +129,16 @@ class ContextTree(Tree[ContextNode]):
 
     def restore_reader(self, placeholder):
         with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
-            pending = list(self.context_nodes.values())
+            # Traverse the original native tree once. The lookup contains
+            # descendants too; seeding from it and adding children revisited
+            # expanded subtrees once for every ancestor.
+            pending = list(self.root.children)
             while pending:
                 node = pending.pop()
-                if node.data.key in self.intent.expanded:
+                if self.owns_node(node) and node.data.key in self.intent.expanded:
                     self._expand(node)
                     node.expand()
-                    pending.extend(node.children)
+                pending.extend(node.children)
         if not self.intent.restore(self.reveal, self._reveal_restored):
             self.show_placeholder(placeholder)
 

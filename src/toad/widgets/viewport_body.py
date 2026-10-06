@@ -808,32 +808,37 @@ class ViewportPresentation:
                             yield ancestor, body
                         break
 
-    def has_pending_mutations(self, windows) -> bool:
-        return any(window.history_mutating() for window in windows)
+    def mutation_roots(self) -> tuple[Widget, ...]:
+        """Original native tree locks delimit the pending publication."""
+        return tuple(window for window in dict.fromkeys((*self.frame_windows(), *self.anchors))
+                     if window.is_attached and window.document_viewport.membership.displayed()
+                     and window.history_mutating())
 
-    def prepare(self) -> bool:
+    def prepare(self) -> tuple[Widget, ...]:
         screen = self.screen
         if not screen.is_current:
-            return True
+            return ()
         # This synchronous admission consumes one cohort from the original
         # membership owner. Mutation, body readiness and follow checks don't
         # independently select the same windows again within the same frame.
         windows = tuple(self.frame_windows())
-        if self.has_pending_mutations(windows):
-            return False
-        # Visible source bodies must be ready on every frame, including rapid
-        # PageDown/End frames outside a session activation.
+        deferred = dict.fromkeys(self.mutation_roots())
+        pending_windows = set(deferred)
+        # Each source owns its pending paint. Native publication derives the
+        # blocked geometry; this owner neither masks regions nor stops chrome.
         for window, body in self.visible_bodies(windows):
+            if window in deferred:
+                continue
             if not body.body_ready:
                 window.document_viewport.request()
-                return False
-        changed = False
+                deferred[body] = None
+                pending_windows.add(window)
         for window in windows:
-            changed |= window.check_follow()
-        if changed:
-            # Native UpdateScroll owns reflow; do not reenter layout or paint stale geometry.
-            return False
-        return True
+            if window not in pending_windows and window.check_follow():
+                # Native UpdateScroll owns reflow. Hold this source's old
+                # coordinates until that update, without holding other roots.
+                deferred[window] = None
+        return tuple(deferred)
 
 
 class WindowMembership:

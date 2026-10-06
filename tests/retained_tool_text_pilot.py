@@ -143,7 +143,7 @@ async def publication_lifetime(app, pilot, tool):
         # The real terminal-admission method owns refusal before damage/render.
         modal._compositor_refresh()
         assert len(app.displays) == before and modal._repaint_required
-        assert not body.screen._prepare_compositor_refresh()
+        assert body in body.screen._prepare_compositor_refresh()
         app.checks.append("translucent modal refuses width/style-invalidated captured body before native display/damage")
     finally:
         held.release.set()
