@@ -1,0 +1,18 @@
+{
+  "original_once_operands": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/once-operands.json",
+    "sha256": "11b65d36d82be7b2834424a39f80802e6976ef8e5deddfb70c2b58dc677eff5e"
+  },
+  "actual_readback_sys_argv_0": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/readback_publication.py",
+  "actual_prepared_helper_sha256": "fe0b26437b42eba253b3c2ebe7f7f75bb32cea0062846d5a0621617246c31025",
+  "canonical_import_directory": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/canonical-source-3931f16f/tools/cutover",
+  "canonical_readback_member_exists": false,
+  "readback_script_is_external_to_canonical51": true,
+  "execute_sys_argv_0": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/canonical-source-3931f16f/tools/cutover/execute_retained_summary_foundation.py",
+  "both_scripts_exist_at_actual_executable_operands": true,
+  "compile_without_execution": true,
+  "source_correction_required": false,
+  "original_once_and_frozen_bytes_unchanged": true,
+  "receipt_preimages_absent": true,
+  "new_commands_executed": false
+}

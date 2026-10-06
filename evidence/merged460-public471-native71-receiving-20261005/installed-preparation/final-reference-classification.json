@@ -1,0 +1,261 @@
+{
+  "time": 1791244384.210397,
+  "census": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/final-borrowers.json",
+    "sha256": "5584fe5a8c291aba4de72539ea0b7f2b7289399e410a354e527d783d567ba0bb"
+  },
+  "allUID_processes": 209,
+  "holder_output_refs": 0,
+  "permission_gaps": [],
+  "matching7a_refs_RAW": 19,
+  "actualPUBLIC47119_samebirth_argv_root_native_preserved": [
+    {
+      "pid": 1848820,
+      "birth": 71373416,
+      "actualPUBLIC471_cmdline_sha256": "97ead2feca68a1f39b21c06eeebdd9b93a19d9c1b92de129e72082d878333df4",
+      "root_equal": true,
+      "native_environment_refs": [
+        {
+          "key": "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
+          "value_sha256": "7c975cb504f536f3107d41398e8510b95ead2adf40f080c591799199fd2efddb"
+        }
+      ],
+      "scope": "shared original PUBLIC471 env references preserved; not private-purpose borrower/client admission"
+    },
+    {
+      "pid": 1848825,
+      "birth": 71373571,
+      "actualPUBLIC471_cmdline_sha256": "97ead2feca68a1f39b21c06eeebdd9b93a19d9c1b92de129e72082d878333df4",
+      "root_equal": true,
+      "native_environment_refs": [
+        {
+          "key": "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
+          "value_sha256": "7c975cb504f536f3107d41398e8510b95ead2adf40f080c591799199fd2efddb"
+        }
+      ],
+      "scope": "shared original PUBLIC471 env references preserved; not private-purpose borrower/client admission"
+    },
+    {
+      "pid": 1848863,
+      "birth": 71373782,
+      "actualPUBLIC471_cmdline_sha256": "97ead2feca68a1f39b21c06eeebdd9b93a19d9c1b92de129e72082d878333df4",
+      "root_equal": true,
+      "native_environment_refs": [
+        {
+          "key": "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
+          "value_sha256": "7c975cb504f536f3107d41398e8510b95ead2adf40f080c591799199fd2efddb"
+        }
+      ],
+      "scope": "shared original PUBLIC471 env references preserved; not private-purpose borrower/client admission"
+    },
+    {
+      "pid": 1848890,
+      "birth": 71374007,
+      "actualPUBLIC471_cmdline_sha256": "97ead2feca68a1f39b21c06eeebdd9b93a19d9c1b92de129e72082d878333df4",
+      "root_equal": true,
+      "native_environment_refs": [
+        {
+          "key": "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
+          "value_sha256": "7c975cb504f536f3107d41398e8510b95ead2adf40f080c591799199fd2efddb"
+        }
+      ],
+      "scope": "shared original PUBLIC471 env references preserved; not private-purpose borrower/client admission"
+    },
+    {
+      "pid": 1848896,
+      "birth": 71374212,
+      "actualPUBLIC471_cmdline_sha256": "97ead2feca68a1f39b21c06eeebdd9b93a19d9c1b92de129e72082d878333df4",
+      "root_equal": true,
+      "native_environment_refs": [
+        {
+          "key": "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
+          "value_sha256": "7c975cb504f536f3107d41398e8510b95ead2adf40f080c591799199fd2efddb"
+        }
+      ],
+      "scope": "shared original PUBLIC471 env references preserved; not private-purpose borrower/client admission"
+    },
+    {
+      "pid": 1848907,
+      "birth": 71374358,
+      "actualPUBLIC471_cmdline_sha256": "97ead2feca68a1f39b21c06eeebdd9b93a19d9c1b92de129e72082d878333df4",
+      "root_equal": true,
+      "native_environment_refs": [
+        {
+          "key": "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
+          "value_sha256": "7c975cb504f536f3107d41398e8510b95ead2adf40f080c591799199fd2efddb"
+        }
+      ],
+      "scope": "shared original PUBLIC471 env references preserved; not private-purpose borrower/client admission"
+    },
+    {
+      "pid": 1849134,
+      "birth": 71374503,
+      "actualPUBLIC471_cmdline_sha256": "97ead2feca68a1f39b21c06eeebdd9b93a19d9c1b92de129e72082d878333df4",
+      "root_equal": true,
+      "native_environment_refs": [
+        {
+          "key": "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
+          "value_sha256": "7c975cb504f536f3107d41398e8510b95ead2adf40f080c591799199fd2efddb"
+        }
+      ],
+      "scope": "shared original PUBLIC471 env references preserved; not private-purpose borrower/client admission"
+    },
+    {
+      "pid": 1849137,
+      "birth": 71374687,
+      "actualPUBLIC471_cmdline_sha256": "97ead2feca68a1f39b21c06eeebdd9b93a19d9c1b92de129e72082d878333df4",
+      "root_equal": true,
+      "native_environment_refs": [
+        {
+          "key": "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
+          "value_sha256": "7c975cb504f536f3107d41398e8510b95ead2adf40f080c591799199fd2efddb"
+        }
+      ],
+      "scope": "shared original PUBLIC471 env references preserved; not private-purpose borrower/client admission"
+    },
+    {
+      "pid": 1849149,
+      "birth": 71374831,
+      "actualPUBLIC471_cmdline_sha256": "97ead2feca68a1f39b21c06eeebdd9b93a19d9c1b92de129e72082d878333df4",
+      "root_equal": true,
+      "native_environment_refs": [
+        {
+          "key": "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
+          "value_sha256": "7c975cb504f536f3107d41398e8510b95ead2adf40f080c591799199fd2efddb"
+        }
+      ],
+      "scope": "shared original PUBLIC471 env references preserved; not private-purpose borrower/client admission"
+    },
+    {
+      "pid": 1849164,
+      "birth": 71374981,
+      "actualPUBLIC471_cmdline_sha256": "97ead2feca68a1f39b21c06eeebdd9b93a19d9c1b92de129e72082d878333df4",
+      "root_equal": true,
+      "native_environment_refs": [
+        {
+          "key": "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
+          "value_sha256": "7c975cb504f536f3107d41398e8510b95ead2adf40f080c591799199fd2efddb"
+        }
+      ],
+      "scope": "shared original PUBLIC471 env references preserved; not private-purpose borrower/client admission"
+    },
+    {
+      "pid": 1849166,
+      "birth": 71375122,
+      "actualPUBLIC471_cmdline_sha256": "97ead2feca68a1f39b21c06eeebdd9b93a19d9c1b92de129e72082d878333df4",
+      "root_equal": true,
+      "native_environment_refs": [
+        {
+          "key": "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
+          "value_sha256": "7c975cb504f536f3107d41398e8510b95ead2adf40f080c591799199fd2efddb"
+        }
+      ],
+      "scope": "shared original PUBLIC471 env references preserved; not private-purpose borrower/client admission"
+    },
+    {
+      "pid": 1849180,
+      "birth": 71375267,
+      "actualPUBLIC471_cmdline_sha256": "97ead2feca68a1f39b21c06eeebdd9b93a19d9c1b92de129e72082d878333df4",
+      "root_equal": true,
+      "native_environment_refs": [
+        {
+          "key": "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
+          "value_sha256": "7c975cb504f536f3107d41398e8510b95ead2adf40f080c591799199fd2efddb"
+        }
+      ],
+      "scope": "shared original PUBLIC471 env references preserved; not private-purpose borrower/client admission"
+    },
+    {
+      "pid": 1849338,
+      "birth": 71375411,
+      "actualPUBLIC471_cmdline_sha256": "97ead2feca68a1f39b21c06eeebdd9b93a19d9c1b92de129e72082d878333df4",
+      "root_equal": true,
+      "native_environment_refs": [
+        {
+          "key": "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
+          "value_sha256": "7c975cb504f536f3107d41398e8510b95ead2adf40f080c591799199fd2efddb"
+        }
+      ],
+      "scope": "shared original PUBLIC471 env references preserved; not private-purpose borrower/client admission"
+    },
+    {
+      "pid": 1849342,
+      "birth": 71375556,
+      "actualPUBLIC471_cmdline_sha256": "97ead2feca68a1f39b21c06eeebdd9b93a19d9c1b92de129e72082d878333df4",
+      "root_equal": true,
+      "native_environment_refs": [
+        {
+          "key": "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
+          "value_sha256": "7c975cb504f536f3107d41398e8510b95ead2adf40f080c591799199fd2efddb"
+        }
+      ],
+      "scope": "shared original PUBLIC471 env references preserved; not private-purpose borrower/client admission"
+    },
+    {
+      "pid": 1849358,
+      "birth": 71375704,
+      "actualPUBLIC471_cmdline_sha256": "97ead2feca68a1f39b21c06eeebdd9b93a19d9c1b92de129e72082d878333df4",
+      "root_equal": true,
+      "native_environment_refs": [
+        {
+          "key": "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
+          "value_sha256": "7c975cb504f536f3107d41398e8510b95ead2adf40f080c591799199fd2efddb"
+        }
+      ],
+      "scope": "shared original PUBLIC471 env references preserved; not private-purpose borrower/client admission"
+    },
+    {
+      "pid": 1849410,
+      "birth": 71375851,
+      "actualPUBLIC471_cmdline_sha256": "97ead2feca68a1f39b21c06eeebdd9b93a19d9c1b92de129e72082d878333df4",
+      "root_equal": true,
+      "native_environment_refs": [
+        {
+          "key": "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
+          "value_sha256": "7c975cb504f536f3107d41398e8510b95ead2adf40f080c591799199fd2efddb"
+        }
+      ],
+      "scope": "shared original PUBLIC471 env references preserved; not private-purpose borrower/client admission"
+    },
+    {
+      "pid": 1849434,
+      "birth": 71375999,
+      "actualPUBLIC471_cmdline_sha256": "97ead2feca68a1f39b21c06eeebdd9b93a19d9c1b92de129e72082d878333df4",
+      "root_equal": true,
+      "native_environment_refs": [
+        {
+          "key": "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
+          "value_sha256": "7c975cb504f536f3107d41398e8510b95ead2adf40f080c591799199fd2efddb"
+        }
+      ],
+      "scope": "shared original PUBLIC471 env references preserved; not private-purpose borrower/client admission"
+    },
+    {
+      "pid": 1849437,
+      "birth": 71376145,
+      "actualPUBLIC471_cmdline_sha256": "97ead2feca68a1f39b21c06eeebdd9b93a19d9c1b92de129e72082d878333df4",
+      "root_equal": true,
+      "native_environment_refs": [
+        {
+          "key": "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
+          "value_sha256": "7c975cb504f536f3107d41398e8510b95ead2adf40f080c591799199fd2efddb"
+        }
+      ],
+      "scope": "shared original PUBLIC471 env references preserved; not private-purpose borrower/client admission"
+    },
+    {
+      "pid": 1849439,
+      "birth": 71376292,
+      "actualPUBLIC471_cmdline_sha256": "97ead2feca68a1f39b21c06eeebdd9b93a19d9c1b92de129e72082d878333df4",
+      "root_equal": true,
+      "native_environment_refs": [
+        {
+          "key": "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
+          "value_sha256": "7c975cb504f536f3107d41398e8510b95ead2adf40f080c591799199fd2efddb"
+        }
+      ],
+      "scope": "shared original PUBLIC471 env references preserved; not private-purpose borrower/client admission"
+    }
+  ],
+  "no_publicclientadmission_or_exclusivekeeper_claim": true
+}

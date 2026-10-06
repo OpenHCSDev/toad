@@ -1,0 +1,182 @@
+{
+  "state": "Scoped475 preparation Ready; independent private purpose CLOSED; future Parent fresh-admitted once publication unexecuted",
+  "selected_product": "Core3931/3fe + Toad474b687/newnormal2ece + Text71a2dd/bc47 + NRA10 + genuineDiff3 =953/full69",
+  "canonical_source": "3931f16feb8bcb2dbcc3041446ca342dea665024",
+  "canonical51": true,
+  "all112frozen_hash_bytes_modes_verified": true,
+  "qualification_gates203": true,
+  "native_transition": "schema10->10 equality selects original PreserveRuntimeInstallation + PreserveOwnerRuntime",
+  "immediate_claims_returned": true,
+  "READ_only1f0e_returned_no_nativeEXEC": true,
+  "private_lifecycle_closed": "3e600c849b41a618c06c6c5fdf0a553db60acae84ef5b41e8b8333e6acaced93",
+  "positive_candidate": "FROZEN HELDParent; originalCURRENT465 archive375/preimagecb0 recovery preserved; noautomaticpositivefloorrestore",
+  "once_readback_path": "Actual sys.argv[0] already outputroot readback_publication.py; false reported counterexample withdrawn. once11b/freezee87/READY5703 unchanged.",
+  "bookkeeping_negatives": "Authored classifier assumed cwd was root; original finalizer stopped after READY/freeze because classification missing. Both errors preserved; only original-root classification and missing handback were completed. No phase/finalizer repeat.",
+  "publication_receipt_preimages_absent": true,
+  "public_native_App_SDK_provider_input_operation_by_Sch": false,
+  "source_product_tests_tools_pins_build_unchanged": "fdca/b687 accepted474 relation; no476/685fold",
+  "original_artifact_receipts_retained": [
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/READY.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/READY.json",
+      "sha256": "57031b594ed38f754482e33673af823e7e311fa7c6e44d9e3f5d72c2fd7bdf8d",
+      "bytes": 1840
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/frozen-manifest.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/frozen-manifest.json",
+      "sha256": "e87cde35dcce88cf9268f0e8f683d82bb77ddfcf982b98b3f396b35234e52c4b",
+      "bytes": 86187
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/once-operands.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/once-operands.json",
+      "sha256": "11b65d36d82be7b2834424a39f80802e6976ef8e5deddfb70c2b58dc677eff5e",
+      "bytes": 4289
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/whole-immediate-handback.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/whole-immediate-handback.json",
+      "sha256": "cc025996e578b11302470bc03cd236287f7d4236d3061444de7c40a19359d8ae",
+      "bytes": 7339
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/source-proof.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/source-proof.json",
+      "sha256": "7ee4abb8e6ba8358ee8d89d12d41701c66f235fb8a6f52a100848264c45f03ec",
+      "bytes": 9580
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/candidate-activation.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/candidate-activation.json",
+      "sha256": "692943e5aac55a7ce453ebc59793e1c40e48f8e578fd11407080880032c07941",
+      "bytes": 2826
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/native-full-trust.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/native-full-trust.json",
+      "sha256": "fac160ebeec34d680578058f47f98bdd27975135c605c7afda7f122f01ce24d0",
+      "bytes": 806
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/proof-terminal.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/proof-terminal.json",
+      "sha256": "05cbfa6efc09c81d9d004af7e8235a1487ee4d0ad68116d6c28f2ac2315ad5cf",
+      "bytes": 1058
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/stage-terminal.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/stage-terminal.json",
+      "sha256": "6b627f96a8bde4b91099a2748593732b12426193e2c584a1dc087afdb79c8f12",
+      "bytes": 1021
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/terminal-candidate-readback.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/terminal-candidate-readback.json",
+      "sha256": "b596ff1fe6d81fe6d1bf87a6d6c24111717dc6c882c1cffe36e8fa3a756b8a29",
+      "bytes": 1127
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/original-declaration.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/original-declaration.json",
+      "sha256": "67e90c96d95e63b2f33a05d969a3801581279841d4c99af42a8a7918e4307bec",
+      "bytes": 79443
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/target-declaration.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/target-declaration.json",
+      "sha256": "67e90c96d95e63b2f33a05d969a3801581279841d4c99af42a8a7918e4307bec",
+      "bytes": 79443
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/checkpoint-relation.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/checkpoint-relation.json",
+      "sha256": "a67856f3741e0330566cc7105397c74c603d045636cd25c392cda137f65136d0",
+      "bytes": 211
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/runtime-installation.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/runtime-installation.json",
+      "sha256": "717ca469bd2330bcf868ceaf572e8b128795ef3dd54885497f8e16c4680aabae",
+      "bytes": 2918
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/cohort_prepare-terminal.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/cohort_prepare-terminal.json",
+      "sha256": "15ba7804ec74c4d7ccda78ba324297bddcfe938e16549b40290d9adc227e49c8",
+      "bytes": 190
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/canonical_prepare_readback-terminal.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/canonical_prepare_readback-terminal.json",
+      "sha256": "fe7924c4ffd89d951e160e430f5d2c55604c769f7d0d01f2683ec6c42dbdd7a4",
+      "bytes": 191
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/qualification_input_prepare-terminal.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/qualification_input_prepare-terminal.json",
+      "sha256": "8b00dd62bbf884206dec6c024a6a3d4b0273303abc49c591a6a966d50c5276ea",
+      "bytes": 191
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/readback_prepare-terminal.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/readback_prepare-terminal.json",
+      "sha256": "4159a0ce8a861ebe8ebe99971932119ac51d79b05ca4d2d789beba3d80b64678",
+      "bytes": 193
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/final-borrowers.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/final-borrowers.json",
+      "sha256": "5584fe5a8c291aba4de72539ea0b7f2b7289399e410a354e527d783d567ba0bb",
+      "bytes": 4729
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/final-reference-classification.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/final-reference-classification.json",
+      "sha256": "5b1536ac06f1f64a0cf116aa605f8f2b1698caf7ee62025eee75b82307bf79fa",
+      "bytes": 10464
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/once-readback-executable-path-review.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/once-readback-executable-path-review.json",
+      "sha256": "1f683c8d9afb0b2209f03ce0d36ad0d18034ae402c3e7d2345e022b3450952b4",
+      "bytes": 1273
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/post-preparation-bookkeeping-negative.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/post-preparation-bookkeeping-negative.json",
+      "sha256": "c41793cdd56499d921488425d1f172d52dcd3d329cb6e7e42e0dfb4396a2b03e",
+      "bytes": 1777
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper475-merged460-native71-functional-READ-handback-20261005.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/native-keeper475-merged460-native71-functional-READ-handback-20261005.json",
+      "sha256": "36523a7b666d6e0930fa2575a25184ce2d84631f38a84accfe15eabf67fd5667",
+      "bytes": 2468
+    },
+    {
+      "original": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch475-merged460-native71-functional-preparation-only-lifecycle.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/style22-Sch475-merged460-native71-functional-preparation-only-lifecycle.json",
+      "sha256": "3e600c849b41a618c06c6c5fdf0a553db60acae84ef5b41e8b8333e6acaced93",
+      "bytes": 32127
+    },
+    {
+      "original": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch475-independent-positive-candidate-readback.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/style22-Sch475-independent-positive-candidate-readback.json",
+      "sha256": "4cbfea92270c37c79d725b2a3d09e7bd3c45c3599350d776881be7cfa55eb3f0",
+      "bytes": 4168
+    },
+    {
+      "original": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch475-independent-final-borrowers.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/style22-Sch475-independent-final-borrowers.json",
+      "sha256": "395152ff1eb4c507dac94d9343c8b96dcbfb9d72aebf324e8c2ae198d55309c0",
+      "bytes": 2167
+    },
+    {
+      "original": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch475-independent-final-reference-classification.json",
+      "published_copy": "evidence/merged460-public471-native71-receiving-20261005/installed-preparation/style22-Sch475-independent-final-reference-classification.json",
+      "sha256": "0ae2059602cfcac8c4bb31b9b644d56498bb0119ce6116c18f601a1ce49c8496",
+      "bytes": 10494
+    }
+  ]
+}
