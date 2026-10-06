@@ -1,0 +1,25 @@
+{
+  "core_pin": "ddcdc422c7fe01453edb2469bcfa8303d771db67",
+  "producer_sha256": "b086d7a5e5a3792e0b3ff19088b6b88cb9286dd76c9323d764d2dbb82920d0cf",
+  "consumer_checks": [
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "sha256": "af0fb2d285ce9dddf728650809ab206b706000ed1d003e520d382b483b04e61a",
+      "bytes": 37666,
+      "owner_head": "8dc69db10d6b370779bbe8538e1104f15f79ec1c",
+      "byte_equal": true,
+      "compiled_without_import": true
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "sha256": "7e6d769953fd8ae18ae3527d590a06d246891765d8a61a0ffc6a63722d8a2dbe",
+      "bytes": 46843,
+      "owner_head": "8dc69db10d6b370779bbe8538e1104f15f79ec1c",
+      "byte_equal": true,
+      "compiled_without_import": true
+    }
+  ],
+  "worst_pid_socket_utf8_bytes": 65,
+  "resolver_or_install": false,
+  "runtime_acceptance": "UNRUN; future source/floor/grants/bounds remain unbound"
+}
