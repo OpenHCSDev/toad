@@ -49,14 +49,14 @@ async def main():
             selected = app.sidebar_state.selected_targets
             assert await pilot.click(first, button=3)
             async with asyncio.timeout(10):
-                while not isinstance(app.screen, ContextMenu):
+                while not (isinstance(app.screen, ContextMenu) and app.screen.is_mounted):
                     await pilot.pause()
             assert app.sidebar_state.selected_targets == selected
             menu = app.screen
             item = next(item for item in menu.query(ContextMenuItem) if item.action == 'read-target')
             assert await pilot.click(item)
             async with asyncio.timeout(10):
-                while not isinstance(app.screen, CommandDialog):
+                while not (isinstance(app.screen, CommandDialog) and app.screen.is_mounted):
                     await pilot.pause()
             dialog = app.screen
             assert dialog.definition.targets == (first.target_name, third.target_name)
@@ -69,7 +69,7 @@ async def main():
                     await pilot.pause()
             assert await pilot.click(first, button=3)
             async with asyncio.timeout(10):
-                while not isinstance(app.screen, ContextMenu):
+                while not (isinstance(app.screen, ContextMenu) and app.screen.is_mounted):
                     await pilot.pause()
             item = next(item for item in app.screen.query(ContextMenuItem) if item.action == 'archive')
             assert await pilot.click(item)
@@ -100,7 +100,7 @@ async def main():
             sidebar.navigation.pointer_select(fourth, control=True)
             assert await pilot.click(survivor, button=3)
             async with asyncio.timeout(10):
-                while not isinstance(app.screen, ContextMenu):
+                while not (isinstance(app.screen, ContextMenu) and app.screen.is_mounted):
                     await pilot.pause()
             comms.registry.declare(comms.registry.require(fourth.target_name), RunningThreadStatus())
             app.clear_notifications()
@@ -134,7 +134,7 @@ async def main():
             await pilot.pause()
             assert await pilot.click(anchor, button=3)
             async with asyncio.timeout(10):
-                while not isinstance(app.screen, ContextMenu):
+                while not (isinstance(app.screen, ContextMenu) and app.screen.is_mounted):
                     await pilot.pause()
             await pilot.press('escape')
             endpoint.scroll_visible(animate=False, immediate=True)
