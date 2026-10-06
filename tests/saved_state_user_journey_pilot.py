@@ -1,18 +1,22 @@
 """Continuous saved-state journey on installed App/ACP/Pi, using actual clicks."""
 
 import asyncio
+import hashlib
 import json
 import os
+import shlex
+import sys
+import traceback
 from pathlib import Path
 from weakref import ref
 
-from acp.schema import TextContentBlock
+from acp.schema import SessionNotification, TextContentBlock
 from agent_comms.acp import CommsClient
 from agent_comms.acp_extension import RequestFailedUpdate, decode_updates
 from agent_comms.threads import Thread
 from l0a_native_installed_pilot import main as native_fixture
 from l0a_native_installed_pilot import (
-    selected_triage_reply, until, message_feedback, direct_reply_feedback,
+    selected_triage_reply, until, message_feedback, direct_reply_feedback, response_painted,
 )
 from native_session_retention_pilot import InstalledApp, conversation_paint
 from runtime_fixture import wait_channel_roster, wait_fork_dialog
@@ -117,7 +121,10 @@ class SavedStateSubscriber:
         assert not self.failures, "\n".join(failure.feedback for failure in self.failures)
 
     async def session_update(self, **kwargs):
-        for fact in decode_updates(kwargs["update"].get("_meta")):
+        notification = SessionNotification.model_validate({
+            "sessionId": kwargs["session_id"], "update": kwargs["update"],
+        }, strict=True)
+        for fact in decode_updates(notification.update.field_meta):
             if isinstance(fact, RequestFailedUpdate):
                 self.failures.append(fact.failure)
 
@@ -369,8 +376,11 @@ async def clicked_reader_editor_return(app, pilot, first):
         checkpoints.clear()
 
 
-async def adaptive_reader_journey(app, pilot, requests):
+async def adaptive_reader_journey(app, pilot, requests, *,
+                                  tail_text="NATIVE_RESPONSE_2", input_count=None):
     """Drive the real selected viewport; observe its existing adaptive owner."""
+    if input_count is None:
+        input_count = lambda: len(requests)
     view = app.selected_session.conversation
     window = view.window
     lookahead = window.document_viewport.lookahead
@@ -405,19 +415,19 @@ async def adaptive_reader_journey(app, pilot, requests):
     assert lookahead.preparation_count(window.size.height) <= app.preparation.max_entries
     await pilot.press("end")
     await until(pilot, lambda: window.follows_tail)
-    await until(pilot, lambda: "NATIVE_RESPONSE_2" in conversation_paint(app.screen))
+    await until(pilot, lambda: tail_text in conversation_paint(app.screen))
     await settled(pilot, view)
     for _ in range(4):
         await pilot.press("pagedown")
         await settled(pilot, view)
         assert window.scroll_y <= window.max_scroll_y
-        assert "NATIVE_RESPONSE_2" in conversation_paint(app.screen), (
+        assert tail_text in conversation_paint(app.screen), (
             "Scrolling past the saved tail exposed empty history", window.scroll_y,
             window.max_scroll_y, conversation_paint(app.screen),
         )
     await until(pilot, lambda: isinstance(lookahead.demand, StationaryPreparation))
     await until(pilot, lambda: len(app.preparation._pending) == 0)
-    before = app.preparation.misses, len(requests)
+    before = app.preparation.misses, input_count()
     import sys
     idle_work = {}
     def trace_idle_work(frame, event, arg):
@@ -431,7 +441,7 @@ async def adaptive_reader_journey(app, pilot, requests):
         await pilot.pause(1.2)
     finally:
         sys.setprofile(previous_profile)
-    after = app.preparation.misses, len(requests)
+    after = app.preparation.misses, input_count()
     print("ACTUAL_IDLE_PREPARATION_CENSUS", {"before": before, "after": after,
           "work": list(idle_work.values()), "pending": len(app.preparation._pending)}, flush=True)
     assert after == before, ("Idle reader kept preparing or replaying", before, after, idle_work)
@@ -446,12 +456,11 @@ async def adaptive_reader_journey(app, pilot, requests):
     }, flush=True)
 
 
-async def fork_and_first_input(app, pilot, comms, first, entered, release, hold_next, requests):
-    parent_path = Path(comms.registry.require("beta").session_file)
-    original = parent_path.read_bytes()
-    before = len(requests)
-    sidebar = await wait_channel_roster(app, pilot, "#team")
-    row = next(row for row in sidebar.query(CommsRow) if row.target_name == "beta")
+async def prepare_fork_dialog(app, pilot, comms, parent_name, channel_name,
+                              child_name, task, tags):
+    """Acquire the original native CLI dialog through the actual sidebar row."""
+    sidebar = await wait_channel_roster(app, pilot, channel_name)
+    row = next(row for row in sidebar.query(CommsRow) if row.target_name == parent_name)
     row.scroll_visible(animate=False, immediate=True)
     await pilot.pause()
     assert await pilot.click(row, button=3)
@@ -462,11 +471,22 @@ async def fork_and_first_input(app, pilot, comms, first, entered, release, hold_
     dialog = await wait_fork_dialog(app, pilot)
     entry = dialog.query_one("#command-field-name", Input)
     assert await pilot.click(entry)
-    entry.value = "journey-child"
-    assert app.screen.query_one("#command-field-tags", Input).value == "team"
+    entry.value = child_name
+    supplied_tags = ForkCliCommand.editor_arguments({
+        "tags": app.screen.query_one("#command-field-tags", Input).value,
+    })['tags']
+    assert frozenset(supplied_tags) == comms.registry.require(parent_name).tags
     from textual.widgets import TextArea
-    dialog.query_one("#command-field-task", TextArea).text = "JOURNEY_FORK_INPUT"
-    app.screen.query_one("#command-field-tags", Input).value = "refactor"
+    dialog.query_one("#command-field-task", TextArea).text = task
+    app.screen.query_one("#command-field-tags", Input).value = tags
+
+
+async def fork_and_first_input(app, pilot, comms, first, entered, release, hold_next, requests):
+    parent_path = Path(comms.registry.require("beta").session_file)
+    original = parent_path.read_bytes()
+    before = len(requests)
+    await prepare_fork_dialog(app, pilot, comms, "beta", "#team",
+                              "journey-child", "JOURNEY_FORK_INPUT", "refactor")
     entered.clear()
     release.clear()
     hold_next.set()
@@ -521,26 +541,31 @@ async def fork_and_first_input(app, pilot, comms, first, entered, release, hold_
     await click_tab(app, pilot, first.id)
 
 
-async def channel_reply_feedback(app, pilot, comms, channel, first, entered, release,
-                                 hold_next, requests, gamma):
+async def channel_reply_feedback(app, pilot, comms, channel, first, entered=None, release=None,
+                                 hold_next=None, requests=None, gamma=None, *,
+                                 recipient_name="gamma",
+                                 body="@gamma JOURNEY_CHANNEL_QUESTION"):
+    assert gamma is not None
     from manual_live_turn_status import require_current_activity
     await click_tab(app, pilot, channel.id)
     chat = channel.query_one(CommsChatView)
-    before = len(requests)
-    entered.clear()
-    release.clear()
-    hold_next.set()
-    await submit_editor(pilot, chat.prompt.prompt_text_area, "@gamma JOURNEY_CHANNEL_QUESTION")
-    await until(pilot, entered.is_set)
-    await until(pilot, lambda: any(message.body == "@gamma JOURNEY_CHANNEL_QUESTION"
+    before = len(requests) if requests is not None else None
+    if entered is not None:
+        entered.clear()
+        release.clear()
+        hold_next.set()
+    await submit_editor(pilot, chat.prompt.prompt_text_area, body)
+    if entered is not None:
+        await until(pilot, entered.is_set)
+    await until(pilot, lambda: any(message.body == body
                                   for message, _ in chat.message_history.rows))
     originals = [message for message, _ in chat.message_history.rows
-                 if message.body == "@gamma JOURNEY_CHANNEL_QUESTION"]
+                 if message.body == body]
     assert len(originals) == 1
     original = originals[0]
     participants = chat.query_one(ChannelParticipants)
-    await until(pilot, lambda: "gamma" in participants.names.render().plain)
-    assert comms.registry.require("gamma").executing
+    await until(pilot, lambda: recipient_name in participants.names.render().plain)
+    assert comms.registry.require(recipient_name).executing
     await click_tab(app, pilot, gamma.id)
     await until(pilot, lambda: gamma.conversation.agent.current_turn.busy)
     require_current_activity(gamma)
@@ -549,36 +574,268 @@ async def channel_reply_feedback(app, pilot, comms, channel, first, entered, rel
     assert "Responding" in screen_paint(app)
     print("CHANNEL_NOTIFICATION_ACTUAL_NATIVE_WORKING_STATUS", flush=True)
     await click_tab(app, pilot, gamma.id)
-    release.set()
+    if release is not None:
+        release.set()
     await until(pilot, lambda: not gamma.conversation.agent.current_turn.busy)
     require_current_activity(gamma)
-    assert not comms.registry.require("gamma").executing
+    assert not comms.registry.require(recipient_name).executing
     assert app.selected_session is gamma
     print("CHANNEL_ORIGINAL_SETTLED_WHILE_HIDDEN", original.reference, flush=True)
     await click_tab(app, pilot, channel.id)
-    await until(pilot, lambda: f"NATIVE_RESPONSE_{before + 1}" in screen_paint(app))
+    if requests is not None:
+        await until(pilot, lambda: f"NATIVE_RESPONSE_{before + 1}" in screen_paint(app))
+    else:
+        await until(pilot, lambda: any(
+            message.sender == recipient_name and message.target == chat.target
+            and message.seq > original.seq
+            for message, _ in chat.message_history.rows))
+        from agent_comms.input_disposition import InputDispositions
+        from agent_comms.input_origin import WireInputOrigin
+        recipient = comms.registry.require(recipient_name)
+        native_input = InputDispositions(comms.root / InputDispositions.filename).read().lookup(
+            InputDispositions.bus_key(original, recipient))
+        assert native_input.has_started and native_input.matches_owner(recipient.incarnation)
+        assert isinstance(native_input.origin, WireInputOrigin)
+        assert native_input.origin.reference == original.reference
     await until(pilot, lambda: "Responded" in str(message_feedback(chat, original).title))
     outcomes = await asyncio.to_thread(comms.views.message_notifications, (original,))
-    assert any(item.recipient == "gamma" and item.state == "Responded"
+    assert any(item.recipient == recipient_name and item.state == "Responded"
                for item in outcomes[original.seq, original.message_id])
     feedback = message_feedback(chat, original)
     title = feedback.query_one("CollapsibleTitle")
     title.scroll_visible(animate=False, immediate=True)
     await pilot.pause()
     assert await pilot.click(title), "Notification disclosure was not physically clickable"
-    await until(pilot, lambda: "gamma: Responded" in screen_paint(app))
+    await until(pilot, lambda: f"{recipient_name}: Responded" in screen_paint(app))
     print("CHANNEL_RESPONDED_NOTIFICATION_DISCLOSURE_ACTUAL_PAINT", flush=True)
-    await until(pilot, lambda: len(requests) == before + 2)
-    await until(pilot, lambda: comms.registry.require("beta").executing is False)
-    await until(pilot, lambda: comms.registry.require("gamma").executing is False)
-    assert "JOURNEY_CHANNEL_QUESTION" in str(requests[before]["messages"])
-    assert f"NATIVE_RESPONSE_{before + 1}" in str(requests[-1]["messages"])
+    if requests is not None:
+        await until(pilot, lambda: len(requests) == before + 2)
+        await until(pilot, lambda: comms.registry.require("beta").executing is False)
+        await until(pilot, lambda: comms.registry.require(recipient_name).executing is False)
+        assert "JOURNEY_CHANNEL_QUESTION" in str(requests[before]["messages"])
+        assert f"NATIVE_RESPONSE_{before + 1}" in str(requests[-1]["messages"])
+        await click_tab(app, pilot, first.id)
+        await click_tab(app, pilot, channel.id)
+        await until(pilot, lambda: f"NATIVE_RESPONSE_{before + 1}" in screen_paint(app))
+        await pilot.pause(1.2)
+        assert len(requests) == before + 2, "Reply caused replay or unbounded ping-pong"
+    print("CHANNEL_REPLY_SAVED_HISTORY_AUTOMATIC_AUTHOR_NATIVE_OBSERVATION_NO_REPLAY"
+          if requests is not None else "CHANNEL_ORIGINAL_REPLY_HANDLING_HIDDEN_RETURN",
+          original.reference, flush=True)
+
+
+async def configured_acceptance(app, pilot, agent, comms, receipt, subscriber):
+    """The same native UI consumers with canonical configured input witnesses."""
+    from agent_comms.input_disposition import InputDispositions
+    from agent_comms.transcript_events import AssistantTranscript, UserTranscript
+    from manual_live_turn_status import require_current_activity
+    from toad.widgets.prompt import QueueSummary
+
+    inputs = InputDispositions(comms.root / InputDispositions.filename)
+    first = app.selected_session
+    await first.wait_content_ready()
+    view = first.conversation
+    await until(pilot, lambda: view.agent_ready)
+    await until(pilot, lambda: bool(view.window.histories) and all(
+        history.state.reports_coverage and history.displayed_cursor is not None
+        for history in view.window.histories))
+    await settled(pilot, view)
+    assert ReaderCheckpoint.native_render_resources(first, app)
+    assert inputs.read().rows == {}, "Attachment or history read sent a native input"
+    receipt['completed_phases'].append('configured_saved_source_actual_paint')
+    await independent_source_publication(view.agent, comms)
+
+    sidebar = await wait_channel_roster(app, pilot, '#source529')
+    row = next(row for row in sidebar.query(CommsRow) if row.target_name == '#source529')
+    row.scroll_visible(animate=False, immediate=True)
+    await pilot.pause()
+    assert await pilot.click(row)
+    await until(pilot, lambda: isinstance(app.selected_session, CommsScreen))
+    channel = app.selected_session
+    await channel.wait_content_ready()
+    await until(pilot, lambda: 'CONFIGURED_SAVED_CHANNEL' in screen_paint(app))
     await click_tab(app, pilot, first.id)
+    assert inputs.read().rows == {}
+    receipt['completed_phases'].append('saved_channel_physical_open_return_no_input')
+
+    # This peer is genuinely admitted by the original producer but has no saved
+    # source yet. Its initial blank view receives no loaded-history credit.
+    peer = await click_thread(app, pilot, 'peer529', '#source529')
+    peer_text = 'New isolated acceptance input. Do not resume inherited work or use tools. Reply exactly CONFIGURED_PEER_FIRST.'
+    await submit_editor(pilot, peer.conversation.prompt.prompt_text_area, peer_text)
+    await until(pilot, lambda: comms.registry.require('peer529').executing
+                and peer.conversation.agent.current_turn.busy)
+    require_current_activity(peer)
     await click_tab(app, pilot, channel.id)
-    await until(pilot, lambda: f"NATIVE_RESPONSE_{before + 1}" in screen_paint(app))
-    await pilot.pause(1.2)
-    assert len(requests) == before + 2, "Reply caused replay or unbounded ping-pong"
-    print("CHANNEL_REPLY_SAVED_HISTORY_AUTOMATIC_AUTHOR_NATIVE_OBSERVATION_NO_REPLAY", flush=True)
+    participants = channel.query_one(ChannelParticipants)
+    await until(pilot, lambda: 'peer529' in participants.names.render().plain)
+    names = participants.names
+    assert await pilot.click(names, offset=(names.render().plain.index('peer529') + 1, 0))
+    await until(pilot, lambda: app.selected_session is peer)
+    await until(pilot, lambda: not comms.registry.require('peer529').executing)
+    await until(pilot, lambda: response_painted(app, peer.conversation, 'CONFIGURED_PEER_FIRST'))
+    peer_originals = [row for row in inputs.read().rows.values()
+                      if row.matches_owner(comms.registry.require('peer529').incarnation)
+                      and row.source_text == peer_text]
+    assert len(peer_originals) == 1 and peer_originals[0].has_started
+    subscriber.require_success()
+    receipt['completed_phases'].append('unopened_peer_first_input_participant_return')
+
+    await click_tab(app, pilot, first.id)
+    primary = 'New isolated acceptance input. Do not resume inherited work or use tools. Reply exactly CONFIGURED_FIRST_REPLY.'
+    queued_text = 'Distinct isolated acceptance input. No tools. Reply exactly CONFIGURED_QUEUED_REPLY.'
+    await submit_editor(pilot, view.prompt.prompt_text_area, primary)
+    await until(pilot, lambda: view.agent.current_turn.busy)
+    require_current_activity(first)
+    await submit_editor(pilot, view.prompt.prompt_text_area, queued_text)
+    await until(pilot, lambda: bool(view.queue_projection.items))
+    queued = tuple(view.queue_projection.items)
+    assert len(queued) == 1 and queued[0].text == queued_text
+    assert queued_text in view.query_one(QueueSummary).render().plain
+    await click_tab(app, pilot, channel.id)
+    await click_tab(app, pilot, first.id)
+    assert view.queue_projection.items and view.queue_projection.items[0].input_id == queued[0].input_id
+    await until(pilot, lambda: not comms.registry.require('source529').executing
+                and view.agent.presentation.prompt_in_flight == 0
+                and not view.queue_projection.items)
+    await pilot.press('end')
+    await until(pilot, lambda: response_painted(app, view, 'CONFIGURED_QUEUED_REPLY'))
+    started_queue = inputs.read().lookup('acp:' + queued[0].input_id)
+    assert started_queue.has_started and started_queue.source_text == queued_text
+    assert started_queue.matches_owner(comms.registry.require('source529').incarnation)
+    subscriber.require_success()
+    receipt['completed_phases'].append('configured_first_reply_busy_queue_status_history')
+
+    # Fork through the original CLI dialog, then physically attach before its
+    # actual first answer. No controlled provider gate is borrowed here.
+    parent = Path(comms.registry.require('source529').session_file)
+    parent_sha = hashlib.sha256(parent.read_bytes()).hexdigest()
+    fork_text = 'New isolated acceptance input. Do not resume inherited work or use tools. Reply exactly CONFIGURED_FORK_FIRST.'
+    await prepare_fork_dialog(app, pilot, comms, 'source529', '#source529',
+                              'configured-child', fork_text, 'source529')
+    await pilot.press('enter')
+    await until(pilot, lambda: 'configured-child' in comms.registry.all_threads())
+    child = await click_thread(app, pilot, 'configured-child', '#source529')
+    await until(pilot, lambda: comms.registry.require('configured-child').executing)
+    child_owner = comms.registry.require('configured-child')
+    child_inputs = [row for row in inputs.read().rows.values()
+                    if row.matches_owner(child_owner.incarnation) and row.source_text == fork_text]
+    assert len(child_inputs) == 1 and child_inputs[0].has_started
+    page = await child.conversation.agent.get_transcript_page()
+    positions = [index for index, event in enumerate(page.events)
+                 if isinstance(event, UserTranscript)
+                 and event.native_id == child_inputs[0].native_id]
+    assert len(positions) == 1
+    assert not any(isinstance(event, AssistantTranscript)
+                   for event in page.events[positions[0] + 1:])
+    assert not response_painted(app, child.conversation, 'CONFIGURED_FORK_FIRST')
+    assert hashlib.sha256(parent.read_bytes()).hexdigest() == parent_sha
+    receipt['completed_phases'].append('native_fork_immediate_attachment_before_first_answer')
+    await until(pilot, lambda: not comms.registry.require('configured-child').executing)
+    await pilot.press('end')
+    await until(pilot, lambda: response_painted(app, child.conversation, 'CONFIGURED_FORK_FIRST'))
+    child_owner = comms.registry.require('configured-child')
+    child_inputs = [row for row in inputs.read().rows.values()
+                    if row.matches_owner(child_owner.incarnation) and row.source_text == fork_text]
+    assert len(child_inputs) == 1 and child_inputs[0].has_started
+    assert Path(child_owner.session_file).stat().st_size >= 40_000_000
+    assert hashlib.sha256(parent.read_bytes()).hexdigest() == parent_sha
+    subscriber.require_success()
+    receipt['completed_phases'].append('fork_first_native_answer_parent_unchanged')
+
+    # A and the real SDK/CLI fork both have genuinely loaded large sources.
+    # The initially blank peer is deliberately excluded from this warm check.
+    await clicked_reader_editor_return(app, pilot, first)
+    await adaptive_reader_journey(app, pilot, None, tail_text='CONFIGURED_QUEUED_REPLY',
+                                  input_count=lambda: len(inputs.read().rows))
+    receipt['completed_phases'].append('large_saved_ABA_exact_warm_reader_draft_undo_reverse_End')
+    await channel_reply_feedback(app, pilot, comms, channel, first, gamma=peer,
+        recipient_name='peer529', body='@peer529 New isolated acceptance question. No tools. Reply exactly CONFIGURED_CHANNEL_REPLY.')
+    subscriber.require_success()
+    receipt['completed_phases'].append('configured_channel_reference_reply_handling_hidden_return')
+    await direct_reply_feedback(pilot, app, comms, first.id, app.project_dir,
+        target_name='source529', response_prefix=None,
+        body='New isolated acceptance DM. No tools. Reply exactly CONFIGURED_DM_REPLY.')
+    subscriber.require_success()
+    receipt['completed_phases'].append('configured_DM_reference_reply_handling_hidden_cold_reopen')
+    assert not any(row.unresolved for row in inputs.read().rows.values())
+    from agent_comms.field_codec import FieldCodec
+    receipt['native_inputs'] = FieldCodec.encode(inputs.read())
+
+
+async def configured_main(*, core_source, core_artifacts=(), headless=True):
+    """Borrow the original Core producer and its joined native runtime lifetime."""
+    from compaction_source_successor_installed_journey import configured_saved_agent
+    from original_owner_capture import CurrentTypedCapture
+    from toad.agent_schema import AgentDefinition
+
+    assert os.environ['AC_REAL_PROVIDER_AUTHORIZED'] == 'Sol/high retained acceptance'
+    stage = Path(os.environ['AC_REAL_FIXTURE_STAGE'])
+    evidence = Path(os.environ['L0A_EVIDENCE'])
+    evidence.mkdir(mode=0o700, parents=True, exist_ok=False)
+    capture = CurrentTypedCapture(Path(os.environ['AC_REAL_SOURCE_ROOT']),
+                                 Path(os.environ['AC_REAL_ORIGINAL_PYTHON'])).read(
+                                     os.environ['AC_REAL_SOURCE_OWNER'])
+    original = Path(capture.source.session_file)
+    assert original.stat().st_size >= 40_000_000
+    original_sha = hashlib.sha256(original.read_bytes()).hexdigest()
+    package = Path(os.environ['AC_NATIVE_COPIED_PACKAGE'])
+    project = stage / 'project'
+    subscriber = SavedStateSubscriber()
+    receipt = {'complete': False, 'completed_phases': [], 'public_inputs': 0,
+               'original_inputs_replayed': 0, 'source_file': str(original),
+               'original_source_sha256': original_sha,
+               'scope': 'configured continuous saved-source App/ACP/native journey; no loaded-cohort or performance qualification'}
+
+    def current_source():
+        capture.require_current()
+        return capture.source, capture.retained
+
+    def private_application(environment):
+        # Keep the captured provider/model/auth and original native launch. Only
+        # the private application directories and attempt witness are selected.
+        environment.update(XDG_CONFIG_HOME=str(stage / 'config'),
+            XDG_STATE_HOME=str(stage / 'state'), XDG_DATA_HOME=str(stage / 'data'),
+            TOAD_TEST_ATTEMPT=stage.name, L0A_EVIDENCE=str(evidence),
+            AGENT_COMMS_ACP_LAUNCHER=str(Path(sys.executable).with_name('agent-comms-acp')),
+            AGENT_COMMS_AGENT_ARGS=shlex.join(capture.retained.arguments or ()))
+
+    async with configured_saved_agent(stage, package, original, subscriber, receipt,
+            core_source=core_source, core_artifacts=core_artifacts,
+            capture_source=current_source, observe_launch=private_application,
+            worktree=project, auto_wake=True) as (agent, owner, fork):
+        service = agent._comms
+        from agent_comms.field_codec import FieldCodec
+        receipt['private_fork'] = FieldCodec.encode(fork)
+        receipt['private_root'] = str(service.root)
+        receipt['private_worktree'] = owner.worktree
+        capture.require_current()
+        assert hashlib.sha256(original.read_bytes()).hexdigest() == original_sha
+        receipt['original_process_witness_released'] = True
+        receipt['source_custody_unchanged_at_release'] = True
+        print('PUBLIC_WITNESS_RELEASED', flush=True)
+        # Canonical producer admission and bind_owned own these participants and
+        # RuntimeServer. There is no copied registry or external server fixture.
+        assert agent._runtime.server is not None
+        service.messaging.send_message('peer529', '#source529',
+                                       'CONFIGURED_SAVED_CHANNEL', notice=True)
+        definition = AgentDefinition.decode({'name': 'Configured continuous native',
+            'identity': 'configured-continuous', 'short_name': 'configured', 'protocol': 'acp',
+            'run_command': {'*': shlex.join([sys.executable, '-m', 'agent_comms.acp'])}})
+        app = InstalledApp(agent_data=definition, project_dir=str(project),
+                           agent_session_id=owner.name)
+        try:
+            async with app.run_test(headless=headless, size=(160, 44)) as pilot:
+                await configured_acceptance(app, pilot, agent, service, receipt, subscriber)
+                assert app._exception is None
+            assert app.preparation._closed
+            receipt['app_complete'] = True
+        except BaseException:
+            (evidence / 'acceptance-failure.txt').write_text(traceback.format_exc())
+            raise
+    assert receipt['native_children_closed'] and receipt['original_source_unchanged']
+    receipt['complete'] = True
+    (evidence / 'configured-journey.json').write_text(json.dumps(receipt, indent=2) + '\n')
 
 
 if __name__ == "__main__":
@@ -588,9 +845,28 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--warm-only", action="store_true",
                         help="Stop after the original saved warm A/B/A and Undo checks")
-    args = parser.parse_args()
-    asyncio.run(native_fixture(
-        app_type=StreamJourneyApp, prepare_state=prepare_saved_state,
-        acceptance=partial(acceptance, warm_only=args.warm_only),
-        provider_reply=streamed_reply, provider_chunk_characters=40,
-    ))
+    parser.add_argument("--configured-saved", action="store_true",
+                        help="Acquire the original configured >=40MB source through Core's joined producer")
+    parser.add_argument("--core-checkout", type=Path,
+                        help="Exact reviewed Core fixture/cutover helper checkout, not a production overlay")
+    parser.add_argument("--headful", action="store_true")
+    args, remaining = parser.parse_known_args()
+    if args.configured_saved:
+        assert not args.warm_only and args.core_checkout is not None
+        # Only original outside-package fixture helpers are added. Production
+        # agent_comms/toad/textual continue to resolve from the issued prefix.
+        sys.path[:0] = [str(args.core_checkout / 'tests'),
+                       str(args.core_checkout / 'tools' / 'cutover')]
+        from publish_retained_summary import InstalledSource
+        core_source, archives, remaining = InstalledSource.command_arguments(remaining)
+        assert not remaining, remaining
+        asyncio.run(configured_main(core_source=core_source, core_artifacts=archives,
+                                    headless=not args.headful))
+    else:
+        assert not remaining and args.core_checkout is None
+        asyncio.run(native_fixture(
+            app_type=StreamJourneyApp, prepare_state=prepare_saved_state,
+            acceptance=partial(acceptance, warm_only=args.warm_only),
+            provider_reply=streamed_reply, provider_chunk_characters=40,
+            headless=not args.headful,
+        ))

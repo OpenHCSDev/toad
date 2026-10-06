@@ -1,0 +1,231 @@
+{
+  "revision": "d0dcde2714bee906a33fa7261a5cb7103f0e5311",
+  "parser": "refactor-audit Package",
+  "strength": "source only",
+  "roots": [
+    {
+      "root": "src/toad",
+      "modules": 288,
+      "unparsed": [],
+      "sites": [
+        {
+          "path": "src/toad/app.py",
+          "line": 295,
+          "kind": "call",
+          "expression": "SessionAdmissions(self, agent_session_id)"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 25,
+          "kind": "declaration",
+          "name": "SessionAdmissions"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 99,
+          "kind": "call",
+          "expression": "NativeSessionAdmission(details, factory, original)"
+        }
+      ]
+    },
+    {
+      "root": "tests",
+      "modules": 399,
+      "unparsed": [],
+      "sites": [
+        {
+          "path": "tests/cold_context_installed_physical.py",
+          "line": 302,
+          "kind": "call",
+          "expression": "CurrentTypedCapture(options.public_root, options.original_python)"
+        },
+        {
+          "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+          "line": 72,
+          "kind": "call",
+          "expression": "SavedStateSubscriber()"
+        },
+        {
+          "path": "tests/context_compaction_native_installed_pilot.py",
+          "line": 106,
+          "kind": "call",
+          "expression": "SavedStateSubscriber()"
+        },
+        {
+          "path": "tests/goal_pause_owner_pilot.py",
+          "line": 35,
+          "kind": "call",
+          "expression": "SavedStateSubscriber()"
+        },
+        {
+          "path": "tests/goal_state_installed_journey.py",
+          "line": 34,
+          "kind": "call",
+          "expression": "prepare_saved_state(*args)"
+        },
+        {
+          "path": "tests/independent_native_writer_pilot.py",
+          "line": 70,
+          "kind": "call",
+          "expression": "SavedStateSubscriber()"
+        },
+        {
+          "path": "tests/l0a_archive_history_pilot.py",
+          "line": 30,
+          "kind": "declaration",
+          "name": "main"
+        },
+        {
+          "path": "tests/l0a_callers_guard.py",
+          "line": 7,
+          "kind": "declaration",
+          "name": "main"
+        },
+        {
+          "path": "tests/l0a_native_installed_pilot.py",
+          "line": 67,
+          "kind": "declaration",
+          "name": "direct_reply_feedback"
+        },
+        {
+          "path": "tests/l0a_native_installed_pilot.py",
+          "line": 218,
+          "kind": "declaration",
+          "name": "main"
+        },
+        {
+          "path": "tests/l0a_native_installed_pilot.py",
+          "line": 600,
+          "kind": "call",
+          "expression": "direct_reply_feedback(pilot, app, comms, owner_mode, project, entered, release, hold_next)"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 90,
+          "kind": "call",
+          "expression": "CurrentTypedCapture(root=Path(os.environ['AC_REAL_SOURCE_ROOT']), original_python=Path(os.environ['AC_REAL_ORIGINAL_PYTHON']))"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 110,
+          "kind": "declaration",
+          "name": "SavedStateSubscriber"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 125,
+          "kind": "declaration",
+          "name": "prepare_saved_state"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 170,
+          "kind": "declaration",
+          "name": "acceptance"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 278,
+          "kind": "declaration",
+          "name": "unopened_participant"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 449,
+          "kind": "declaration",
+          "name": "fork_and_first_input"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 524,
+          "kind": "declaration",
+          "name": "channel_reply_feedback"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 132,
+          "kind": "call",
+          "expression": "SavedStateSubscriber()"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 195,
+          "kind": "call",
+          "expression": "unopened_participant(app, pilot, comms, channel, entered, release, hold_next, requests)"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 210,
+          "kind": "call",
+          "expression": "fork_and_first_input(app, pilot, comms, first, entered, release, hold_next, requests)"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 211,
+          "kind": "call",
+          "expression": "channel_reply_feedback(app, pilot, comms, channel, first, entered, release, hold_next, requests, gamma)"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 213,
+          "kind": "call",
+          "expression": "direct_reply_feedback(pilot, app, comms, first.id, app.project_dir, entered, release, hold_next)"
+        },
+        {
+          "path": "tests/sidebar_custody_installed_journey.py",
+          "line": 71,
+          "kind": "call",
+          "expression": "unopened_participant(app, pilot, comms, channel, entered, release, hold_next, requests)"
+        },
+        {
+          "path": "tests/sidebar_custody_installed_journey.py",
+          "line": 74,
+          "kind": "call",
+          "expression": "fork_and_first_input(app, pilot, comms, first, entered, release, hold_next, requests)"
+        },
+        {
+          "path": "tests/sidebar_custody_installed_journey.py",
+          "line": 75,
+          "kind": "call",
+          "expression": "channel_reply_feedback(app, pilot, comms, channel, first, entered, release, hold_next, requests, gamma)"
+        },
+        {
+          "path": "tests/sidebar_custody_installed_journey.py",
+          "line": 76,
+          "kind": "call",
+          "expression": "direct_reply_feedback(pilot, app, comms, first.id, app.project_dir, entered, release, hold_next)"
+        },
+        {
+          "path": "tests/terminal_attention_installed_journey.py",
+          "line": 124,
+          "kind": "call",
+          "expression": "SavedStateSubscriber()"
+        },
+        {
+          "path": "tests/thread_navigation_installed_journey.py",
+          "line": 47,
+          "kind": "call",
+          "expression": "SavedStateSubscriber()"
+        },
+        {
+          "path": "tests/thread_spawn_bind_owner_installed_pilot.py",
+          "line": 13,
+          "kind": "call",
+          "expression": "fork_and_first_input(app, pilot, comms, first, entered, release, hold_next, requests)"
+        },
+        {
+          "path": "tests/transcript_filter_installed_journey.py",
+          "line": 39,
+          "kind": "call",
+          "expression": "SavedStateSubscriber()"
+        }
+      ]
+    },
+    {
+      "root": "tools",
+      "modules": 40,
+      "unparsed": [],
+      "sites": []
+    }
+  ]
+}
