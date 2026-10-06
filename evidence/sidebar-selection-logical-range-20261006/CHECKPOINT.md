@@ -28,3 +28,7 @@ prefix mutation or replay follows from this source checkpoint.
 ## Range-control modal acquisition
 
 All four ContextMenu acquisitions and the CommandDialog acquisition in the original range control now require native Widget.is_mounted before child enumeration/input. Native App.push_screen stacks its Screen before AwaitMount completes Compose/Mount; class identity alone does not establish child readiness. This matches merged491 without a wrapper, timer or product guard. All original assertion predicate ASTs are identical; original10s waits, click inputs and60-row range remain unchanged. Compilation without imports passed. The affected control remains unrun; Arendt owns the active native Pilot correction. Closed batch operator roots/raw remain immutable. The evidence append initially refused because its folder was excluded by this checkout sparse definition; the original tracked folder was then materialized. No runtime operation repeated.
+
+## Matched native input checkpoint
+
+Native77 merged at cb95661e; selected exact qualified source is2d45091584a7f9b386baa2a8edf8fb3a3ba8a3d6. Toad pin and lock source now agree. Native pyproject dependency declarations are byteequal to the prior8814 source, so only the source identity changes in the lock. Parent read all changed owners, verified all qualified source/log hashes and actual final App/capture/Screen checks. Earlier fixture negatives and Batch05 remain preserved; source qualification is not installed Toad acceptance or latency. Core remains retained d846 without rebuild.
