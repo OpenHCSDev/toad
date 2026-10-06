@@ -12,8 +12,7 @@ from agent_comms.coordination_errors import StaleRevision
 from agent_comms.mro_dispatch import handles
 from toad.core.source_events import MessageHandlingRequested
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
-from agent_comms import HistoricalMessage, HistoricalThread
-from agent_comms.presentation import MessageNotification
+from agent_comms import HistoricalThread
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalGroup
@@ -161,21 +160,7 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
             return
 
         def read():
-            item.source.validate()
-            # Source-only Comms reads admit no protocol initialization, claim
-            # or historical execution; the original frozen registry owns joins.
-            original = Comms(Path(item.source.root), private_initial_writes=False,
-                             private_claim_writes=False)
-            order = self.comms.bus.history.sources().index(item.source)
-            messages = tuple(HistoricalMessage.project(message, item.source, order,
-                                                       item.source.provenance)
-                             for message in original.bus.log.messages_for_references(references))
-            results = {}
-            for start in range(0, len(messages), MessageNotification.window_limit):
-                results.update(original.views.message_notifications(
-                    messages[start:start + MessageNotification.window_limit]))
-            item.source.validate()
-            return results
+            return item.source.notification_references(self.comms.bus.history, references)
 
         try:
             results = await asyncio.to_thread(read)
