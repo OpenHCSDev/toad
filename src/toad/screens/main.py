@@ -202,7 +202,12 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
         await self.presentation.retire(self)
 
     def retained_native_presentations(self):
-        return ((self, self.presentation),) if self.presentation.widget is not None else ()
+        from toad.widgets.session_thread_sidebar import SessionThreadSidebar
+
+        resources = [(self, self.presentation)] if self.presentation.widget is not None else []
+        if (sidebar := self.query_one_optional(SessionThreadSidebar)) is not None and sidebar._panels_loaded:
+            resources.append((self, sidebar))
+        return tuple(resources)
 
     def watch_title(self, title: str) -> None:
         self.app.terminal_attention.update()
@@ -258,6 +263,10 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
             raise self._content_error
 
     async def close_presentation(self) -> None:
+        from toad.widgets.session_thread_sidebar import SessionThreadSidebar
+
+        if sidebar := self.query_one_optional(SessionThreadSidebar):
+            await sidebar.evict()
         self._content_ready.set()
         await self.presentation.close(self)
 

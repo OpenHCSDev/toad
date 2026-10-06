@@ -223,7 +223,8 @@ async def warm_admission_acceptance(app, pilot, agent, comms, entered, release, 
             await viewport.suspend_source()
             try:
                 required = source.presentation
-                presentations = {session.id: owner for session, owner in native._presentations()}
+                presentations = {session.id: owner for session, owner in native._presentations()
+                                 if owner is session.presentation}
                 ordered = dict.fromkeys((required, *(presentations[identity]
                     for identity in app.tab_order.recent if identity in presentations)))
                 costs = {}

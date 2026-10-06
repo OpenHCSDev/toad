@@ -33,6 +33,11 @@ class ProjectTreeIntent:
     async def restore(self, tree: "ProjectDirectoryTree") -> None:
         if Path(tree.path) != self.path:
             return
+        # The original async path watcher resets/reloads its tree after mount.
+        # Reader restoration must follow that owned operation, not race its reset.
+        await tree.wait_path_ready()
+        if Path(tree.path) != self.path:
+            return
         # Mount completion precedes the first native viewport layout.
         laid_out = asyncio.Event()
         tree.call_after_refresh(laid_out.set)
@@ -63,8 +68,10 @@ class ProjectTreeIntent:
             # Its queued refresh callback must retire with that continuation.
             if committed.cancelled():
                 return
+            # Restoring an owned reader is independent of a scrollbar that
+            # has not yet been shown; native geometry still clamps the target.
             tree.scroll_to(self.scroll.x, self.scroll.y, animate=False,
-                           immediate=True)
+                           immediate=True, force=True)
             committed.set_result(None)
 
         tree.call_after_refresh(restore_viewport)

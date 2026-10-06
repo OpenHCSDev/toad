@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 class SessionThreadSidebar(RetiringSidebar):
-    """Panel declarations survive retirement; widgets and subscriptions do not."""
+    """Warm panels survive parking; actual eviction releases their widget graph."""
 
     def __init__(self, screen: "MainScreen") -> None:
         self._owner = ref(screen)
@@ -21,9 +21,9 @@ class SessionThreadSidebar(RetiringSidebar):
         self.plan = next(owner for owner in self._panel_owners if isinstance(owner, PlanSessionPanel))
         super().__init__(id="thread-sidebar", right=True, hide=True,
                          navigation=screen._thread_sidebar_state,
-                         defer_mount=True, on_hydrated=self._sync_hydrated)
+                         defer_mount=True)
 
-    def _sync_hydrated(self) -> None:
+    async def panels_hydrated(self) -> None:
         screen = self._owner()
         if screen is not None:
             screen._sync_thread_sidebar()
@@ -31,6 +31,8 @@ class SessionThreadSidebar(RetiringSidebar):
         viewport = self.query_one("#sidebar-panels", SidebarViewport)
         self.call_after_refresh(viewport.scroll_to, y=self.navigation.panel_scroll_y,
                                 animate=False, immediate=True)
+        if screen is not None:
+            await screen.app.workspace_chrome.native.reconcile(screen)
 
     def update_plan(self, entries: list[PlanItem]) -> None:
         """Absent panels consume the latest source value, never a replay buffer."""
