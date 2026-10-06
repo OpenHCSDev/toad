@@ -611,17 +611,22 @@ class RuntimeSelection:
     launcher: Path
     bin_directory: Path
     selection: str
+    backend_bin_directory: Path
 
     @classmethod
     def from_environment(cls, command, env):
         launcher = Path(shutil.which(command[0]) or command[0]).resolve()
         runtime = env.get("AGENT_COMMS_RUNTIME_ROOT")
         if runtime:
-            return cls(launcher, Path(runtime).expanduser().absolute(), "AGENT_COMMS_RUNTIME_ROOT")
+            directory = Path(runtime).expanduser().absolute()
+            return cls(launcher, directory, "AGENT_COMMS_RUNTIME_ROOT", directory)
         acp = env.get("AGENT_COMMS_ACP_LAUNCHER") or shutil.which("agent-comms-acp")
         acp = acp or str(Path.home() / ".local/bin/agent-comms-acp")
-        return cls(launcher, Path(acp).resolve().parent,
-                   "AGENT_COMMS_ACP_LAUNCHER" if env.get("AGENT_COMMS_ACP_LAUNCHER") else "PATH agent-comms-acp")
+        toad = shutil.which("toad")
+        if toad is None:
+            raise ValueError("Published Toad entrypoint is missing")
+        return cls(launcher, Path(toad).resolve().parent, "PATH toad",
+                   Path(acp).resolve().parent)
 
     def apply_environment(self, env):
         # An explicit candidate is pinned. Default-entrypoint acceptance must
@@ -664,9 +669,11 @@ class RuntimeSelection:
     def receipt(self, owner, env, command):
         observed = self.from_environment(command, env)
         if (observed.launcher != self.launcher
-                or observed.bin_directory.resolve() != self.bin_directory.resolve()):
+                or observed.bin_directory.resolve() != self.bin_directory.resolve()
+                or observed.backend_bin_directory.resolve() != self.backend_bin_directory.resolve()):
             raise ValueError("Installed launcher selection changed during capture")
         result = {"selection": self.selection, "bin_directory": str(self.bin_directory.resolve()),
+                  "backend_bin_directory": str(self.backend_bin_directory.resolve()),
                   "launcher": str(self.launcher), "launcher_sha256": digest(self.launcher)}
         paths = {
             "command": shutil.which(command[0]) or command[0],
@@ -677,9 +684,10 @@ class RuntimeSelection:
                                           "resolved_path": str(Path(path).resolve()),
                                           "sha256": digest(Path(path))}
                                     for name, path in paths.items()}
-        result["entrypoints"] = {name: {"path": str((self.bin_directory / name).resolve()),
-                                       "sha256": digest(self.bin_directory / name)}
-                                 for name in ("toad", "agent-comms-acp")}
+        result["entrypoints"] = {name: {"path": str((directory / name).resolve()),
+                                       "sha256": digest(directory / name)}
+                                 for name, directory in (("toad", self.bin_directory),
+                                                        ("agent-comms-acp", self.backend_bin_directory))}
         activation = self.bin_directory.parent / "activation.json"
         if activation.is_file():
             result["activation_path"] = str(activation.resolve())
@@ -688,6 +696,11 @@ class RuntimeSelection:
         probe = owner.run([str(self.bin_directory / "python"), str(Path(__file__).resolve()),
                            "--runtime-probe"], env, stdout=subprocess.PIPE, text=True, timeout=15)
         result["observed"] = json.loads(probe.stdout)
+        if self.backend_bin_directory.resolve() != self.bin_directory.resolve():
+            backend_probe = owner.run([str(self.backend_bin_directory / "python"),
+                str(Path(__file__).resolve()), "--runtime-probe"], env,
+                stdout=subprocess.PIPE, text=True, timeout=15)
+            result["backend_observed"] = json.loads(backend_probe.stdout)
         launch = result["observed"].get("native_launch")
         if launch is not None and launch != result["observed"]["route"]:
             raise ValueError("Actual ACP native launch and selected route must match")
