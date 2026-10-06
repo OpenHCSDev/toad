@@ -16,13 +16,14 @@ from l0a_native_installed_pilot import main as native_fixture, until
 from native_session_retention_pilot import InstalledApp, conversation_paint
 from toad.screens.main import MainScreen
 from textual.widget import Widget
+from textual.geometry import Region
 from textual.widgets._markdown import MarkdownBlock
 from toad.widgets.prepared_markdown import PreparedConversationMarkdown
 from toad.widgets.transcript_history import TranscriptFragmentView
 from agent_comms.transcript_events import TextTranscript, UserTranscript, MarkdownTranscript
-from toad.widgets.viewport_body import MeasuredViewportBody, RenderedBody
+from toad.widgets.viewport_body import LiveBody, MeasuredViewportBody, RenderedBody
 from toad.widgets.agent_response import AgentResponse
-from toad.widgets.transcript_fragments import TranscriptRenderTask
+from toad.widgets.transcript_fragments import TranscriptFragment, TranscriptRenderTask
 from toad.work_preparation import RenderPreparation
 
 
@@ -53,6 +54,57 @@ async def settled(pilot, view):
     await until(pilot, painted.is_set)
 
 
+@dataclass(frozen=True)
+class NativePaintWitness:
+    """Exact identity of one original visible native paint resource."""
+
+    body: ReferenceType[Widget]
+    content: object
+
+    def require_identity(self, resources):
+        body = self.body()
+        assert body in resources, (
+            "Native tab return replaced or hid a previously rendered source body", body,
+        )
+        assert resources[body] is self.content, (
+            "Warm return replaced an unchanged native paint resource", body,
+            type(self.content).__name__,
+        )
+
+    def require_return(self, resources):
+        self.require_identity(resources)
+        return 0
+
+
+@dataclass(frozen=True)
+class FragmentPaintWitness(NativePaintWitness):
+    """A live leaf whose original fragment owns native retirement.
+
+    A retirement preserves the source-owned fragment and captured native rows,
+    but replaces the leaf cache. It must never count as exact warm paint
+    identity. No vanished leaf or merely ready extent supplies this proof.
+    """
+
+    owner: ReferenceType[TranscriptFragmentView]
+    fragment: TranscriptFragment
+    crop: Region
+    visible_text: tuple[str, ...]
+
+    def require_return(self, resources):
+        if self.body() in resources:
+            return super().require_return(resources)
+        owner = self.owner()
+        assert owner in resources, "Retired leaf needs its original visible fragment paint"
+        assert owner.fragment is self.fragment, "Native retirement changed the source fragment"
+        measurement = owner._body_measurement
+        assert isinstance(measurement, RenderedBody) and owner.body_ready
+        assert resources[owner] is measurement.content
+        visible_text = tuple(line.text for line in measurement.content.render_lines(self.crop))
+        assert any(line.strip() for line in visible_text)
+        assert visible_text == self.visible_text, "Native retirement changed the witnessed source crop"
+        return 1
+
+
 @dataclass
 class ReaderCheckpoint:
     source: object
@@ -66,8 +118,7 @@ class ReaderCheckpoint:
     fragments: tuple[tuple[object, ...], ...]
     fragment_views: tuple[tuple[Widget, ...], ...]
     painted: str
-    rendered_bodies: tuple[ReferenceType[Widget], ...]
-    rendered_content: tuple[object, ...]
+    paint_witnesses: tuple[NativePaintWitness, ...]
 
     @staticmethod
     def native_render_resources(source, app):
@@ -87,6 +138,13 @@ class ReaderCheckpoint:
         for markdown in view.query(PreparedConversationMarkdown):
             for block in markdown.query(MarkdownBlock):
                 if block not in visible:
+                    continue
+                # Captured native paint owns this subtree through child prune.
+                # A descendant's old geometry/cache is not another paint owner.
+                if any(isinstance(parent, MeasuredViewportBody)
+                       and isinstance(parent._body_measurement, RenderedBody)
+                       and parent._body_measurement.paint_ready(parent)
+                       for parent in block.ancestors):
                     continue
                 bounds, clip = visible[block]
                 exposed = bounds.intersection(clip).intersection(region)
@@ -160,19 +218,42 @@ class ReaderCheckpoint:
             cls.record_failed_reader(source, app)
         assert resources, "Checkpoint needs actual visible native source text paint"
         pages = tuple((history, tuple(history.pages)) for history in view.window.histories)
+        committed = {body for history, _pages in pages if history.state.reports_coverage
+                     for body in history.fragment_views}
+        visible = app.screen._compositor.visible_widgets
+        frame = app.screen._compositor.render_strips()
+        witnesses = []
+        for body, content in resources.items():
+            owner = next((parent for parent in body.ancestors
+                          if isinstance(parent, TranscriptFragmentView)), None)
+            if (isinstance(body, MarkdownBlock) and owner in committed
+                    and owner in view.window.document_viewport.owners
+                    and isinstance(owner._body_measurement, LiveBody)):
+                assert owner in visible, "Live fragment needs original published native geometry"
+                bounds, clip = visible[body]
+                exposed = bounds.intersection(clip).intersection(view.window.scrollable_content_region)
+                owner_bounds, _clip = visible[owner]
+                crop = exposed - owner_bounds.offset
+                visible_text = tuple(line.crop(exposed.x, exposed.right).text
+                               for line in frame[exposed.y:exposed.bottom])
+                assert any(line.strip() for line in visible_text)
+                witnesses.append(FragmentPaintWitness(ref(body), content, ref(owner),
+                                                       owner.fragment, crop, visible_text))
+            else:
+                witnesses.append(NativePaintWitness(ref(body), content))
         return cls(source, ref(view), editor.document, editor.history, editor.text,
                    view.window.scroll_y, view.window.follows_tail, pages,
                    tuple(page.fragments for _, cohort in pages for page in cohort),
                    tuple(page.fragment_views for _, cohort in pages for page in cohort),
-                   conversation_paint(app.screen), tuple(ref(body) for body in resources),
-                   tuple(resources.values()))
+                   conversation_paint(app.screen), tuple(witnesses))
 
     async def page_reads(self):
         agent = self.source.presentation.sources.agent
         async with agent.controller.transcripts.bind(agent.coordination.wire_root) as reader:
             return reader.transcripts.page_reads
 
-    async def verify(self, app, pilot):
+    async def verify_source(self, app, pilot):
+        """Verify the same source, editor, reader, committed pages and native text."""
         view = self.source.conversation
         await settled(pilot, view)
         editor = view.prompt.prompt_text_area
@@ -196,19 +277,28 @@ class ReaderCheckpoint:
                 "Warm return replaced unchanged committed native fragment views", self.source.id
             )
         assert conversation_paint(app.screen) == self.painted
-        current_resources = self.native_render_resources(self.source, app)
-        for body, rendered in zip(self.rendered_bodies, self.rendered_content):
-            assert body() in current_resources, (
-                "Native tab return replaced or hid a previously rendered source body",
-                self.source.id, body(),
-            )
-            assert current_resources[body()] is rendered, (
-                "Warm return replaced an unchanged native paint resource",
-                self.source.id, body(), type(rendered).__name__,
-            )
+        return self.native_render_resources(self.source, app)
+
+    async def verify(self, app, pilot):
+        """Exact warm paint identity; retirement is not equivalent credit."""
+        resources = await self.verify_source(app, pilot)
+        for witness in self.paint_witnesses:
+            witness.require_identity(resources)
         print("CLICKED_RETURN_ACTUAL_RENDERED_BODY_IDENTITY", self.source.id,
-              len(self.rendered_bodies),
-              [type(resource).__name__ for resource in self.rendered_content], flush=True)
+              len(self.paint_witnesses),
+              [type(witness.content).__name__ for witness in self.paint_witnesses], flush=True)
+
+    async def verify_loaded_return(self, app, pilot):
+        """Loaded returns may use the original fragment's captured native paint.
+
+        Report that actual resource transition separately from exact warm
+        identity. Both contracts require the original committed source and
+        visible native rows; callers still require zero additional raw reads.
+        """
+        resources = await self.verify_source(app, pilot)
+        retired = sum(witness.require_return(resources) for witness in self.paint_witnesses)
+        print("LOADED_RETURN_NATIVE_RETIREMENTS", self.source.id, retired, flush=True)
+        return retired
 
 
 async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
