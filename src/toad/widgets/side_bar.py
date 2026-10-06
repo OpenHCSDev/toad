@@ -967,18 +967,6 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
                 title.focus()
             else:
                 self.schedule_hydration()
-        if not focus and self.is_mounted and self.screen.is_current:
-            parent = self.parent
-            if isinstance(parent, Widget):
-                cast("ToadApp", self.app).workspace_chrome.layout_sidebars(self.screen)
-                for child in parent.children:
-                    if isinstance(child, SideBar):
-                        for node in child.walk_children(Widget, with_self=True):
-                            node._check_refresh()
-                    else:
-                        child._check_refresh()
-                parent._check_refresh()
-                self.screen.call_later(self.screen._on_timer_update)
 
     def reveal(self) -> None:
         if self._navigation is None:
