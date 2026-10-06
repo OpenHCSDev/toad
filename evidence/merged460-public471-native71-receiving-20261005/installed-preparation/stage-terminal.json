@@ -1,0 +1,36 @@
+{
+  "returncode": 0,
+  "elapsed_seconds": 0.3567797160940245,
+  "handle": {
+    "pid": 2187285,
+    "birth": 71893289,
+    "controller": {
+      "pid": 2187271,
+      "birth": 71893278
+    }
+  },
+  "joined": true,
+  "proc_absent": true,
+  "attempt": 1,
+  "argv": [
+    "uv",
+    "pip",
+    "install",
+    "--python",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "--no-deps",
+    "--no-cache",
+    "--no-index",
+    "--link-mode",
+    "copy",
+    "--reinstall",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/merged460-current-public-receiving-source-20261005/filewheel/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native70-71-filewheel-20261005/textual-8.2.8-py3-none-any.whl"
+  ],
+  "cwd": "/home/ts/wt/toad-prompt-action-owner-20261002",
+  "installed_packages": [
+    "batrachian-toad",
+    "textual"
+  ],
+  "native_App_provider_inputs": 0
+}

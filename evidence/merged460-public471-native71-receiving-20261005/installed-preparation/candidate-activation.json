@@ -1,0 +1,26 @@
+{
+  "stage": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "pins": {
+    "agent_comms": "3931f16feb8bcb2dbcc3041446ca342dea665024",
+    "toad": "b687d6e3829735b75ed62294c271f514b4df5da8",
+    "textual": "a2dd8a9a37825a828df0d8f651ca57d92db69e5f",
+    "refactor_audit": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10"
+  },
+  "sdk": "0.12.1",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+  "state": "Own475 preparedcandidate NONLIVEformerstyle22 actualCURRENT4651477/69/631protected/other67_RECORD2253-total2282/bootstrap2; actualPUBLIC471485 protected",
+  "staging_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/source-proof.json",
+  "bins": {
+    "python": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "toad": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/toad",
+    "agent-comms": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/agent-comms-agent",
+    "pi-comms-native": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/pi-comms-native"
+  },
+  "native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+  "native_manifest": "7a2e4aabdbc5af49dd9af942190d92086df2eb3489903674a74af51cf831cd33",
+  "native_tree": "0d7ff54a04d4f0ff175fc889e936ca3cea8b1f98eb8b73ed6215c3373cbd984d",
+  "native_configuration_note": "Actualfresh687a475 purpose: NONLIVEformerstyle22 CURRENT4651477/69/protected631/other67_RECORD2253-total2282/bootstrap2, original375archive/cb0preimage. Stage ONLY Toad474b687/newnormal2ece +Text71a2dd/bc47 once; Core3931/3fe,NRA8d,DiffVCS unchanged. New98867 rootproof not relabeled historical25dae2ece. Not latestMAIN681/685/476 equality. Matching7a READ-only, noEXEC. ActualPUBLIC471485 root/settings/history/auth/UNKNOWN/sharedkeeper protected. Actual source-target declaration/checkpoint comparison only INSIDE separately released cohort using sourcePUBLIC485 RetainedOwnerLaunch atuse; equality selects originalPreserve, differenceSTOP originalCarry owner."
+}

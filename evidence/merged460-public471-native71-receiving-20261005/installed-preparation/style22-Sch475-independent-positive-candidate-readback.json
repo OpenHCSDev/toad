@@ -1,0 +1,70 @@
+{
+  "time": 1791244719.9547002,
+  "issued": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch475-merged460-native71-functional-preparation-only-issued-grant.json",
+    "sha256": "687a5c6ea16ab0e053030cf3b9824e9040f42a75d7251900ddf742b8ca8f56ae"
+  },
+  "owner_whole_handback": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/whole-immediate-handback.json",
+    "sha256": "cc025996e578b11302470bc03cd236287f7d4236d3061444de7c40a19359d8ae"
+  },
+  "positive_candidate": "FROZEN HELDParent; NO CURRENT465restore/newloan",
+  "READY": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/READY.json",
+    "sha256": "57031b594ed38f754482e33673af823e7e311fa7c6e44d9e3f5d72c2fd7bdf8d"
+  },
+  "frozen_manifest": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/frozen-manifest.json",
+    "sha256": "e87cde35dcce88cf9268f0e8f683d82bb77ddfcf982b98b3f396b35234e52c4b",
+    "count": 112
+  },
+  "all112hash_bytes_modes_equal": true,
+  "installed953inventorybytes_equal_noextras": true,
+  "normal69versions_truthful_changed2_and_unchanged67_RAWorigins_equal": true,
+  "other67_2282_byte_mode_link_equal": true,
+  "protected631_equal": true,
+  "bootstrap2_equal": true,
+  "PREFIXactivation_equal": true,
+  "canonical51_actualCore3931_Gitbytes_mode_equal": true,
+  "distinct203qualification_paths_SHA_equal": true,
+  "sourceproof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/source-proof.json",
+    "sha256": "7ee4abb8e6ba8358ee8d89d12d41701c66f235fb8a6f52a100848264c45f03ec"
+  },
+  "candidate_DTO": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/candidate-activation.json",
+    "sha256": "692943e5aac55a7ce453ebc59793e1c40e48f8e578fd11407080880032c07941"
+  },
+  "source_target_declaration_schema10_checkpoint_equal": true,
+  "runtime_installation": "PreserveRuntimeInstallation",
+  "owner_runtime": "PreserveOwnerRuntime",
+  "once_operands": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/once-operands.json",
+    "sha256": "11b65d36d82be7b2834424a39f80802e6976ef8e5deddfb70c2b58dc677eff5e"
+  },
+  "publication_receipt_preimages_absent": true,
+  "all6_original_stage_proof_preparation_controllers_joined_absent": true,
+  "source_decoder_birth_limit": "Original synchronous source-declaration check_output joined; exact nested decoder birth not separately retained. Preparation outer capture wrapper births not retained. No invented PID; Bohr fresh independent census required.",
+  "fresh_final_borrowers": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch475-independent-final-borrowers.json",
+    "sha256": "395152ff1eb4c507dac94d9343c8b96dcbfb9d72aebf324e8c2ae198d55309c0"
+  },
+  "fresh_final_reference_classification": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch475-independent-final-reference-classification.json",
+    "sha256": "0ae2059602cfcac8c4bb31b9b644d56498bb0119ce6116c18f601a1ce49c8496"
+  },
+  "native7a_READ_return_closure": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper475-merged460-native71-functional-READ-handback-20261005.json",
+    "sha256": "36523a7b666d6e0930fa2575a25184ce2d84631f38a84accfe15eabf67fd5667"
+  },
+  "nativeEXEC_never_granted_used": true,
+  "originalCURRENT465recovery_archive_retained": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/style22-current465-after471-before-Mendel472682typed/original-current465-1477.tar.gz",
+    "sha256": "375505dd3d761f8aba5870551b870f9ab95d510915a7558dffc9ef57b9ca290c",
+    "bytes": 4051812
+  },
+  "PUBLIC471_334_THIN540_protected": true,
+  "selected3931_3fe_not_latestMAIN681_470_equality": true,
+  "no_Bohr_prefix_import_App_native_public_action": true,
+  "no_nextloan": true
+}

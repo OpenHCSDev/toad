@@ -1,0 +1,56 @@
+{
+  "state": "NEW once operation PREPARED ONLY; Parent originalfreshadmission/disposition remains required",
+  "execute_argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "-I",
+    "-B",
+    "-c",
+    "import sys,runpy;sys.path.insert(0,'/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/canonical-source-3931f16f/tools/cutover');sys.argv=['/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/canonical-source-3931f16f/tools/cutover/execute_retained_summary_foundation.py', '--review-plan', '/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/review-plan.json', '--receipt', '/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/publication-receipt.json', '--runtime-installation', '/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/runtime-installation.json', '--execute'];runpy.run_path(sys.argv[0],run_name='__main__')"
+  ],
+  "readback_argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "-I",
+    "-B",
+    "-c",
+    "import sys,runpy;sys.path.insert(0,'/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/canonical-source-3931f16f/tools/cutover');sys.argv=['/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/readback_publication.py'];runpy.run_path(sys.argv[0],run_name='__main__')"
+  ],
+  "cwd": "/home/ts/wt/toad-prompt-action-owner-20261002",
+  "environment": {
+    "PYTHONPATH": "ABSENT",
+    "PYTHONHOME": "ABSENT",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "publication_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/publication-receipt.json",
+  "preimages": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/publication-receipt.originals",
+  "receipt_present": false,
+  "preimages_present": false,
+  "source_prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "target_prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "canonical_directory": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/canonical-source-3931f16f/tools/cutover",
+  "canonical_manifest": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/MERGED-CANONICAL-SOURCE-MANIFEST.json",
+    "sha256": "d1bce92a5ae27f0de2731563562ec8a0c2c67a2e4ab509192827ecbd401520b0"
+  },
+  "original_Core_canonical_source": "3931f16feb8bcb2dbcc3041446ca342dea665024",
+  "runtime_member": "PreserveRuntimeInstallation",
+  "owner_runtime": "PreserveOwnerRuntime",
+  "native_manifest_source_target": "7a2e4aabdbc5af49dd9af942190d92086df2eb3489903674a74af51cf831cd33",
+  "native_tree_source_target": "0d7ff54a04d4f0ff175fc889e936ca3cea8b1f98eb8b73ed6215c3373cbd984d",
+  "source_target_schema": 10,
+  "trusted_directory_explicitly_admitted": true,
+  "bytecode_disabled": true,
+  "new_commands_executed": false,
+  "old_consumed_ops_reused": false,
+  "readback_owner_prepared": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/readback_publication.py",
+    "sha256": "fe0b26437b42eba253b3c2ebe7f7f75bb32cea0062846d5a0621617246c31025"
+  },
+  "cohort_prepare": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/cohort_prepare-terminal.json",
+    "sha256": "15ba7804ec74c4d7ccda78ba324297bddcfe938e16549b40290d9adc227e49c8"
+  },
+  "checkpoint_relation": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/checkpoint-relation.json",
+    "sha256": "a67856f3741e0330566cc7105397c74c603d045636cd25c392cda137f65136d0"
+  }
+}

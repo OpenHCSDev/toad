@@ -1,0 +1,43 @@
+{
+  "state": "CLOSED matching4757a READ-only authority after whole immediate preparation handback; keeper immutable/shared PUBLIC471 held",
+  "time": 1791244451.4756057,
+  "READ_authority": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper475-merged460-native71-functional-READ-issued-20261005.json",
+    "sha256": "1f0e5fa664310cd6f497ad6deb4061a5d37cc002a2844611a5fa8a9716aad406"
+  },
+  "holder_grant": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch475-merged460-native71-functional-preparation-only-issued-grant.json",
+    "sha256": "687a5c6ea16ab0e053030cf3b9824e9040f42a75d7251900ddf742b8ca8f56ae"
+  },
+  "whole_immediate_handback": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/whole-immediate-handback.json",
+    "sha256": "cc025996e578b11302470bc03cd236287f7d4236d3061444de7c40a19359d8ae"
+  },
+  "READY": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/READY.json",
+    "sha256": "57031b594ed38f754482e33673af823e7e311fa7c6e44d9e3f5d72c2fd7bdf8d"
+  },
+  "frozen_manifest": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/frozen-manifest.json",
+    "sha256": "e87cde35dcce88cf9268f0e8f683d82bb77ddfcf982b98b3f396b35234e52c4b"
+  },
+  "fresh_privileged_borrowers": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/final-borrowers.json",
+    "sha256": "5584fe5a8c291aba4de72539ea0b7f2b7289399e410a354e527d783d567ba0bb"
+  },
+  "fresh_reference_classification": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/final-reference-classification.json",
+    "sha256": "5b1536ac06f1f64a0cf116aa605f8f2b1698caf7ee62025eee75b82307bf79fa"
+  },
+  "native_READ_returned": true,
+  "source_PUBLIC471_declaration_checkpoint_READ_returned_after_synchronous_cohort_join": true,
+  "native_EXEC_never_granted_used": true,
+  "shared_PUBLIC47119_refs_preserved": true,
+  "immutable_keeper_held": true,
+  "positivecandidate_FROZEN_HELDParent": true,
+  "future_once_PREPARED_ONLY": true,
+  "receipt_preimages_absent": true,
+  "no_future_import_read_write_exec_claim": true,
+  "no_nextloan_or_reopen": true,
+  "Bohr_only_package_lifecycle_writer": true
+}

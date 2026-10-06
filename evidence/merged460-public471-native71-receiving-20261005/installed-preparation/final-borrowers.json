@@ -1,0 +1,279 @@
+{
+  "time": 1791244199.0894613,
+  "processes": 209,
+  "gaps": [],
+  "refs": {
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002": [],
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005": [],
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001": [
+      {
+        "pid": 1848820,
+        "kinds": [
+          "cmdline",
+          "environ",
+          "maps"
+        ]
+      },
+      {
+        "pid": 1848825,
+        "kinds": [
+          "cmdline",
+          "environ",
+          "maps"
+        ]
+      },
+      {
+        "pid": 1848863,
+        "kinds": [
+          "cmdline",
+          "environ",
+          "maps"
+        ]
+      },
+      {
+        "pid": 1848890,
+        "kinds": [
+          "cmdline",
+          "environ",
+          "maps"
+        ]
+      },
+      {
+        "pid": 1848896,
+        "kinds": [
+          "cmdline",
+          "environ",
+          "maps"
+        ]
+      },
+      {
+        "pid": 1848907,
+        "kinds": [
+          "cmdline",
+          "environ",
+          "maps"
+        ]
+      },
+      {
+        "pid": 1849134,
+        "kinds": [
+          "cmdline",
+          "environ",
+          "maps"
+        ]
+      },
+      {
+        "pid": 1849137,
+        "kinds": [
+          "cmdline",
+          "environ",
+          "maps"
+        ]
+      },
+      {
+        "pid": 1849149,
+        "kinds": [
+          "cmdline",
+          "environ",
+          "maps"
+        ]
+      },
+      {
+        "pid": 1849164,
+        "kinds": [
+          "cmdline",
+          "environ",
+          "maps"
+        ]
+      },
+      {
+        "pid": 1849166,
+        "kinds": [
+          "cmdline",
+          "environ",
+          "maps"
+        ]
+      },
+      {
+        "pid": 1849180,
+        "kinds": [
+          "cmdline",
+          "environ",
+          "maps"
+        ]
+      },
+      {
+        "pid": 1849338,
+        "kinds": [
+          "cmdline",
+          "environ",
+          "maps"
+        ]
+      },
+      {
+        "pid": 1849342,
+        "kinds": [
+          "cmdline",
+          "environ",
+          "maps"
+        ]
+      },
+      {
+        "pid": 1849358,
+        "kinds": [
+          "cmdline",
+          "environ",
+          "maps"
+        ]
+      },
+      {
+        "pid": 1849410,
+        "kinds": [
+          "cmdline",
+          "environ",
+          "maps"
+        ]
+      },
+      {
+        "pid": 1849434,
+        "kinds": [
+          "cmdline",
+          "environ",
+          "maps"
+        ]
+      },
+      {
+        "pid": 1849437,
+        "kinds": [
+          "cmdline",
+          "environ",
+          "maps"
+        ]
+      },
+      {
+        "pid": 1849439,
+        "kinds": [
+          "cmdline",
+          "environ",
+          "maps"
+        ]
+      }
+    ],
+    "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent": [
+      {
+        "pid": 1848820,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 1848825,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 1848863,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 1848890,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 1848896,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 1848907,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 1849134,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 1849137,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 1849149,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 1849164,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 1849166,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 1849180,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 1849338,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 1849342,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 1849358,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 1849410,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 1849434,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 1849437,
+        "kinds": [
+          "environ"
+        ]
+      },
+      {
+        "pid": 1849439,
+        "kinds": [
+          "environ"
+        ]
+      }
+    ]
+  }
+}
