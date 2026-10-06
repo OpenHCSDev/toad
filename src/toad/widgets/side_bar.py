@@ -874,7 +874,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
         return changed
 
     def watch_collapsed(self, collapsed: bool) -> None:
-        if self._navigation is None and self.is_mounted and not self.screen.is_current:
+        if self.is_mounted and not self.presentation_visible:
             # Keep shared intent current without resizing every hidden transcript.
             # Activation applies the latest value inside its render transaction;
             # an open/close round trip can therefore keep unchanged geometry.
@@ -967,18 +967,6 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
                 title.focus()
             else:
                 self.schedule_hydration()
-        if not focus and self.is_mounted and self.screen.is_current:
-            parent = self.parent
-            if isinstance(parent, Widget):
-                cast("ToadApp", self.app).workspace_chrome.layout_sidebars(self.screen)
-                for child in parent.children:
-                    if isinstance(child, SideBar):
-                        for node in child.walk_children(Widget, with_self=True):
-                            node._check_refresh()
-                    else:
-                        child._check_refresh()
-                parent._check_refresh()
-                self.screen.call_later(self.screen._on_timer_update)
 
     def reveal(self) -> None:
         if self._navigation is None:

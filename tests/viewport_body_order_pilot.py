@@ -198,7 +198,7 @@ async def main():
                 assert body in owning_history.fragment_views
                 assert body not in viewport.owners
                 assert window.history_lock.locked() and window.history_mutating()
-                assert not view.screen.viewport_presentation.prepare()
+                assert window in view.screen.viewport_presentation.prepare()
                 registration_boundary.append(dict(
                     native_child=id(body), parent=id(body.parent),
                     source=id(owning_history), reader_publication_fenced=True,
@@ -235,7 +235,7 @@ async def main():
             async def held_registration(body):
                 assert body in history.fragment_views and body not in viewport.owners
                 assert window.history_lock.locked() and window.history_mutating()
-                assert not view.screen.viewport_presentation.prepare()
+                assert window in view.screen.viewport_presentation.prepare()
                 entered.set()
                 await release.wait()
                 original_mount(body)

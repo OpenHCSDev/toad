@@ -73,11 +73,17 @@ class ReaderPosition(WindowRestoration):
 
     @classmethod
     def capture(cls, window: "HistoryWindow") -> "ReaderPosition":
+        from toad.widgets.transcript_history import TranscriptHistory
+
         # Follow intent enters from Textual's native scroll boundary once.
         if window.follows_tail:
             return TailReaderPosition()
+        # Parked pagers revoke source work and leave window.histories while
+        # their original admitted pages remain in the native tree. Capture
+        # those page ranges before eviction, including the parked resource.
         return OffsetReaderPosition(window.scroll_y, tuple(
-            admission for history in window.histories
+            admission for history in window.query(TranscriptHistory)
+            if history.window is window
             for admission in history.capture_reader_admissions()
         ))
 

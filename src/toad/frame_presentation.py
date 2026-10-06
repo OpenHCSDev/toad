@@ -9,7 +9,6 @@ from functools import partial
 from weakref import ref
 
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.mro_dispatch import MroDispatch, handles
 from textual.driver import Driver
 from textual.widget import Widget
 from toad.screens.workspace import WorkspaceScreen
@@ -60,11 +59,18 @@ if sys.platform != "win32":
 class FrameState(DeclaredFamily, affix="Frame"):
     ready = False
 
-    def displayed(self, frame):
-        pass
+    @property
+    def scene(self):
+        return self
+
+    def displayed(self, frame, deferred):
+        receipt = WritingFrame(self.scene, deferred)
+        frame.state = receipt
+        FrameFlush.for_driver(frame.screen.app._driver).submit(partial(frame.written, receipt))
 
     def defer(self, frame, owner, callback):
         frame.callbacks[owner, callback] = None
+        owner.call_after_refresh(frame.flush_owner, owner, callback)
 
     def begin(self, frame):
         frame.state = PendingFrame()
@@ -82,19 +88,26 @@ class FrameState(DeclaredFamily, affix="Frame"):
 
 
 class PendingFrame(FrameState):
-    def displayed(self, frame):
-        receipt = WritingFrame()
-        frame.state = receipt
-        FrameFlush.for_driver(frame.screen.app._driver).submit(partial(frame.written, receipt))
+    pass
 
 
 class WritingFrame(FrameState):
-    pass
+    def __init__(self, scene: PendingFrame, deferred: tuple[Widget, ...]):
+        self._scene = scene
+        self.deferred = deferred
+
+    @property
+    def scene(self):
+        return self._scene
 
 
 class SuspendedFrame(FrameState):
     def __init__(self, previous: FrameState):
         self.previous = previous
+
+    @property
+    def scene(self):
+        return self.previous.scene
 
     def resume(self, frame):
         self.previous.restore(frame)
@@ -102,19 +115,31 @@ class SuspendedFrame(FrameState):
     def suspend(self, frame):
         pass
 
+    def displayed(self, frame, deferred):
+        pass
+
 
 class PresentedFrame(FrameState):
     ready = True
 
+    def __init__(self, scene: PendingFrame):
+        self._scene = scene
+
+    @property
+    def scene(self):
+        return self._scene
+
     def restore(self, frame):
         frame.present()
 
-    def defer(self, frame, owner, callback):
-        super().defer(frame, owner, callback)
-        owner.call_after_refresh(frame.release, owner, callback)
+    def displayed(self, frame, deferred):
+        pass
 
 
 class ClosedFrame(FrameState):
+    def displayed(self, frame, deferred):
+        pass
+
     def defer(self, frame, owner, callback):
         pass
 
@@ -150,35 +175,43 @@ class FramePresentation:
         if (owner, callback) not in self.callbacks:
             self.state.defer(self, owner, callback)
 
-    def release(self, owner: Widget, callback: Callable[[], object]) -> None:
-        """Release one owned operation only from a presented scene.
+    def flush_owner(self, owner: Widget, callback: Callable[[], object]) -> None:
+        """Native sender admission precedes the original terminal writer join."""
+        if (owner, callback) in self.callbacks:
+            FrameFlush.for_driver(self.screen.app._driver).submit(
+                partial(self.release, owner, callback, self.state.scene))
 
-        An earlier after-refresh callback may arrive after this scene began
-        another publication. Keep its work for that publication's writer
-        receipt; closing removes the resource before either callback arrives.
-        """
+    def release(self, owner: Widget, callback: Callable[[], object], scene: PendingFrame) -> None:
+        """Release the admitted owner after its publication's writer join."""
         key = owner, callback
-        if not self.ready or key not in self.callbacks:
+        if key not in self.callbacks:
             return
         if owner.is_attached:
+            if scene is not self.state.scene:
+                owner.call_after_refresh(self.flush_owner, owner, callback)
+                return
             if not self.screen.release_frame_callback(owner, callback):
                 return
         del self.callbacks[key]
 
-    def displayed(self):
-        self.state.displayed(self)
+    def displayed(self, deferred: tuple[Widget, ...]):
+        self.state.displayed(self, deferred)
 
     def written(self, receipt: WritingFrame) -> None:
         if receipt is not self.state:
+            return
+        if receipt.deferred:
+            self.state = receipt.scene
             return
         self.present()
 
     def present(self) -> None:
         """A written or restored scene releases its same deferred source work."""
-        self.state = PresentedFrame()
+        self.state = PresentedFrame(self.state.scene)
         self.presented.set()
         for owner, callback in tuple(self.callbacks):
-            self.release(owner, callback)
+            if owner.is_attached:
+                owner.call_after_refresh(self.flush_owner, owner, callback)
 
     def suspend(self):
         self.state.suspend(self)
@@ -196,9 +229,3 @@ class FramePresentation:
         await self.presented.wait()
         screen = self.screen
         return self.ready and screen.is_attached and screen.is_current
-
-
-class FrameDisplay(MroDispatch):
-    @handles(WorkspaceScreen)
-    def workspace(self, screen):
-        screen.frame_presentation.displayed()

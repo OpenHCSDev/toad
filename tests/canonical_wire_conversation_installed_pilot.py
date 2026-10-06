@@ -26,7 +26,8 @@ from agent_comms.native_runtime_input import NativeRuntimeInput
 from agent_comms.transcript_events import WireTextTranscript, UserTranscript
 from agent_comms.coordination_tables.assignments import WakeAssignment
 from agent_comms.coordination_tables.responses import ResponseObligation
-from l0a_native_installed_pilot import main, until as native_until, response_painted
+from l0a_native_installed_pilot import main, until as native_until, response_painted, selected_triage_reply
+from agent_comms.selected_triage import FullSelectedTriage, IgnoreSelectedTriage
 from runtime_fixture import ToadApp as FixtureApp
 from toad.app import ToadApp
 from toad.navigation_target import NavigationContext, channel_target, ThreadTarget
@@ -121,10 +122,10 @@ async def prepare(comms, project, requests, entered, release, hold_next):
 
 def reply(request, number):
     messages = request['messages']
-    if any('IGNORE' in str(message.get('content')) and 'FULL' in str(message.get('content'))
-           for message in messages):
-        decision = 'FULL' if 'HOT_ORIGINAL_WIRE_BODY' in str(messages[-1]['content']) else 'IGNORE'
-        return {'role': 'assistant', 'content': json.dumps({'decision': decision})}, 'stop'
+    decision = (FullSelectedTriage() if 'HOT_ORIGINAL_WIRE_BODY' in str(messages[-1]['content'])
+                else IgnoreSelectedTriage())
+    if (triage := selected_triage_reply(request, decision)) is not None:
+        return triage, 'stop'
     last = messages[-1]
     if last['role'] == 'user' and 'CONTROLLED_RETURN_' in str(last['content']):
         text = str(last['content'])

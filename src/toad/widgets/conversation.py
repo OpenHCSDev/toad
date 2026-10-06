@@ -9,7 +9,7 @@ from toad.goal_interaction import GoalSession
 from toad.widgets.message_filter import OtherCategory
 
 from toad.core.preference_events import PreferenceChanged
-from toad.preferences import SidebarSettings, ShellSettings
+from toad.preferences import ShellSettings
 
 import asyncio
 from abc import abstractmethod
@@ -326,11 +326,9 @@ class CursorContainer(containers.Vertical):
 
 
 class ConversationWindowSettings(CoreEventReceiver):
-    """Apply conversation preferences and subscribe tool hydration to layout."""
+    """Subscribe original tool hydration to its native window layout."""
 
     def on_mount(self) -> None:
-        self.observe_core(self.app.settings.events)
-        self._apply_sidebar_padding()
         self.watch(self, "scroll_y", self.hydrate_visible_tools, init=False)
         self.screen.screen_layout_refresh_signal.subscribe(self, self.on_screen_layout_refresh)
 
@@ -343,16 +341,6 @@ class ConversationWindowSettings(CoreEventReceiver):
         destination.screen_layout_refresh_signal.subscribe(self, self.on_screen_layout_refresh)
         if viewport := self.__dict__.get("document_viewport"):
             viewport.membership.bind(destination.viewport_presentation)
-
-    @handles(PreferenceChanged)
-    async def _settings_changed(self, message: CoreEventMessage) -> None:
-        if message.event.field is SidebarSettings.hide:
-            self._apply_sidebar_padding()
-
-    def _apply_sidebar_padding(self) -> None:
-        top, right, bottom, _ = self.styles.padding
-        self.styles.padding = (top, right, bottom, int(self.app.settings.sidebar.hide))
-
 
 class Window(ConversationWindowSettings, HistoryWindow):
     HELP = """\

@@ -1,7 +1,6 @@
 """Hydration and painted selection of the existing shared channel hierarchy."""
 from __future__ import annotations
 import asyncio
-from textual.widget import Widget
 from toad.session_tracker import SidebarSelection, SidebarState
 from toad.constants import ALL_COMMS_TARGET
 from toad.widgets.comms_sidebar import CommsRow, ChannelGroup
@@ -79,23 +78,13 @@ class SidebarNavigation:
             return
         if (self.sidebar.display and self.sidebar.projection.has_snapshot()
                 and not self.ready.is_set()):
-            # A refresh callback may precede the resize messages from newly
-            # mounted rows. Commit their geometry before scroll_to can clamp
-            # the saved offset against the retired, empty shell's extent.
-            with self.sidebar.app.batch_update():
-                for node in self.sidebar.walk_children(Widget, with_self=True):
-                    node._check_refresh()
-                for ancestor in self.sidebar.ancestors:
-                    if isinstance(ancestor, Widget):
-                        ancestor._check_refresh()
-                # Host activation already committed a complete native layout.
-                # Reflow only if source reconciliation mounted/changed geometry
-                # afterward; source readiness is not another host reflow request.
-                if self.sidebar.screen._layout_required or self.sidebar.screen._layout_widgets:
-                    self.sidebar.screen._refresh_layout(self.sidebar.app.size)
-                if self.restore_scroll():
-                    self.sidebar.screen._refresh_layout(self.sidebar.app.size, scroll=True)
-                self.ready.set()
+            # The native sender barrier owns committed row geometry. Restore
+            # this reader through its original scroll owner; a changed position
+            # needs that owner's next publication before navigation is ready.
+            if self.restore_scroll():
+                self.sidebar.call_after_refresh(self.finish, revision)
+                return
+            self.ready.set()
 
     def selection_for(self, row: CommsRow) -> SidebarSelection:
         channel = row.query_ancestor(ChannelGroup).row.target_name

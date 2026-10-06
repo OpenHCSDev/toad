@@ -16,12 +16,14 @@ from l0a_native_installed_pilot import main as native_fixture, until
 from native_session_retention_pilot import InstalledApp, conversation_paint
 from toad.screens.main import MainScreen
 from textual.widget import Widget
+from textual.geometry import Region
 from textual.widgets._markdown import MarkdownBlock
 from toad.widgets.prepared_markdown import PreparedConversationMarkdown
 from toad.widgets.transcript_history import TranscriptFragmentView
-from agent_comms.transcript_events import TextTranscript
+from agent_comms.transcript_events import TextTranscript, UserTranscript, MarkdownTranscript
+from toad.widgets.viewport_body import LiveBody, MeasuredViewportBody, RenderedBody
 from toad.widgets.agent_response import AgentResponse
-from toad.widgets.transcript_fragments import TranscriptRenderTask
+from toad.widgets.transcript_fragments import TranscriptFragment, TranscriptRenderTask
 from toad.work_preparation import RenderPreparation
 
 
@@ -52,9 +54,61 @@ async def settled(pilot, view):
     await until(pilot, painted.is_set)
 
 
+@dataclass(frozen=True)
+class NativePaintWitness:
+    """Exact identity of one original visible native paint resource."""
+
+    body: ReferenceType[Widget]
+    content: object
+
+    def require_identity(self, resources):
+        body = self.body()
+        assert body in resources, (
+            "Native tab return replaced or hid a previously rendered source body", body,
+        )
+        assert resources[body] is self.content, (
+            "Warm return replaced an unchanged native paint resource", body,
+            type(self.content).__name__,
+        )
+
+    def require_return(self, resources):
+        self.require_identity(resources)
+        return 0
+
+
+@dataclass(frozen=True)
+class FragmentPaintWitness(NativePaintWitness):
+    """A live leaf whose original fragment owns native retirement.
+
+    A retirement preserves the source-owned fragment and captured native rows,
+    but replaces the leaf cache. It must never count as exact warm paint
+    identity. No vanished leaf or merely ready extent supplies this proof.
+    """
+
+    owner: ReferenceType[TranscriptFragmentView]
+    fragment: TranscriptFragment
+    crop: Region
+    visible_text: tuple[str, ...]
+
+    def require_return(self, resources):
+        if self.body() in resources:
+            return super().require_return(resources)
+        owner = self.owner()
+        assert owner in resources, "Retired leaf needs its original visible fragment paint"
+        assert owner.fragment is self.fragment, "Native retirement changed the source fragment"
+        measurement = owner._body_measurement
+        assert isinstance(measurement, RenderedBody) and owner.body_ready
+        assert resources[owner] is measurement.content
+        visible_text = tuple(line.text for line in measurement.content.render_lines(self.crop))
+        assert any(line.strip() for line in visible_text)
+        assert visible_text == self.visible_text, "Native retirement changed the witnessed source crop"
+        return 1
+
+
 @dataclass
 class ReaderCheckpoint:
     source: object
+    view: ReferenceType[Widget]
     document: object
     history: object
     text: str
@@ -64,8 +118,62 @@ class ReaderCheckpoint:
     fragments: tuple[tuple[object, ...], ...]
     fragment_views: tuple[tuple[Widget, ...], ...]
     painted: str
-    rendered_bodies: tuple[ReferenceType[MarkdownBlock], ...]
-    rendered_content: tuple[object, ...]
+    paint_witnesses: tuple[NativePaintWitness, ...]
+
+    @staticmethod
+    def native_render_resources(source, app):
+        """Original visible paint resources, including retired native subtrees.
+
+        A rendered fragment paints its captured Layout/Chops strips itself;
+        its reconstructible Markdown descendants need not still exist.
+        Measurement, readiness and a border alone are never a text witness.
+        """
+        view = source.conversation
+        region = view.window.scrollable_content_region
+        visible = app.screen._compositor.visible_widgets
+        resources = {}
+        committed_fragments = {body for history in view.window.histories
+                               if history.state.reports_coverage
+                               for body in history.fragment_views}
+        for markdown in view.query(PreparedConversationMarkdown):
+            for block in markdown.query(MarkdownBlock):
+                if block not in visible:
+                    continue
+                # Captured native paint owns this subtree through child prune.
+                # A descendant's old geometry/cache is not another paint owner.
+                if any(isinstance(parent, MeasuredViewportBody)
+                       and isinstance(parent._body_measurement, RenderedBody)
+                       and parent._body_measurement.paint_ready(parent)
+                       for parent in block.ancestors):
+                    continue
+                bounds, clip = visible[block]
+                exposed = bounds.intersection(clip).intersection(region)
+                if not exposed:
+                    continue
+                crop = exposed - bounds.offset
+                lines = block._render_cache.lines[crop.y:crop.bottom]
+                if any(line.crop(crop.x, crop.right).text.strip() for line in lines):
+                    resources[block] = block._render_cache
+        for _window, body in app.screen.viewport_presentation.visible_bodies((view.window,)):
+            if not isinstance(body, TranscriptFragmentView):
+                continue
+            if (body not in committed_fragments
+                    or body not in view.window.document_viewport.owners):
+                continue
+            measurement = body._body_measurement
+            if not isinstance(measurement, RenderedBody) or not body.body_ready:
+                continue
+            if not any(isinstance(event, (UserTranscript, MarkdownTranscript))
+                       for event in body.fragment.events):
+                continue
+            bounds, clip = visible[body]
+            exposed = bounds.intersection(clip).intersection(region)
+            if not exposed:
+                continue
+            crop = exposed - bounds.offset
+            if any(line.text.strip() for line in measurement.content.render_lines(crop)):
+                resources[body] = measurement.content
+        return resources
 
     @staticmethod
     def record_failed_reader(source, app):
@@ -83,6 +191,17 @@ class ReaderCheckpoint:
                 "display": body.display, "ready": body.body_ready,
                 "children": len(body.children), "parent": type(body.parent).__name__,
             } for body in view.query(PreparedConversationMarkdown)],
+            "native_bodies": [{
+                "type": type(body).__name__, "region": str(body.region),
+                "measurement": type(body._body_measurement).__name__,
+                "ready": body.body_ready, "dormant": body.body_dormant,
+                "visible": body in app.screen._compositor.visible_widgets,
+                "children": len(body.children),
+            } for body in view.query(MeasuredViewportBody)],
+            "visible_text_resources": [{"type": type(body).__name__,
+                                        "resource": type(resource).__name__}
+                                       for body, resource in
+                                       ReaderCheckpoint.native_render_resources(source, app).items()],
         }
         (evidence / "body-return-geometry.json").write_text(json.dumps(diagnostic, indent=2))
         (evidence / "body-return-reader.txt").write_text(conversation_paint(app.screen))
@@ -94,26 +213,47 @@ class ReaderCheckpoint:
         view = source.conversation
         await settled(pilot, view)
         editor = view.prompt.prompt_text_area
-        region = view.window.scrollable_content_region
-        bodies = tuple(block for markdown in view.query(PreparedConversationMarkdown)
-                       for block in markdown.query(MarkdownBlock)
-                       if block in app.screen._compositor.visible_widgets
-                       if block.region.overlaps(region))
-        assert len(bodies) > 0, "Checkpoint needs actually rendered native Markdown bodies"
+        resources = cls.native_render_resources(source, app)
+        if not resources:
+            cls.record_failed_reader(source, app)
+        assert resources, "Checkpoint needs actual visible native source text paint"
         pages = tuple((history, tuple(history.pages)) for history in view.window.histories)
-        return cls(source, editor.document, editor.history, editor.text,
+        committed = {body for history, _pages in pages if history.state.reports_coverage
+                     for body in history.fragment_views}
+        visible = app.screen._compositor.visible_widgets
+        frame = app.screen._compositor.render_strips()
+        witnesses = []
+        for body, content in resources.items():
+            owner = next((parent for parent in body.ancestors
+                          if isinstance(parent, TranscriptFragmentView)), None)
+            if (isinstance(body, MarkdownBlock) and owner in committed
+                    and owner in view.window.document_viewport.owners
+                    and isinstance(owner._body_measurement, LiveBody)):
+                assert owner in visible, "Live fragment needs original published native geometry"
+                bounds, clip = visible[body]
+                exposed = bounds.intersection(clip).intersection(view.window.scrollable_content_region)
+                owner_bounds, _clip = visible[owner]
+                crop = exposed - owner_bounds.offset
+                visible_text = tuple(line.crop(exposed.x, exposed.right).text
+                               for line in frame[exposed.y:exposed.bottom])
+                assert any(line.strip() for line in visible_text)
+                witnesses.append(FragmentPaintWitness(ref(body), content, ref(owner),
+                                                       owner.fragment, crop, visible_text))
+            else:
+                witnesses.append(NativePaintWitness(ref(body), content))
+        return cls(source, ref(view), editor.document, editor.history, editor.text,
                    view.window.scroll_y, view.window.follows_tail, pages,
                    tuple(page.fragments for _, cohort in pages for page in cohort),
                    tuple(page.fragment_views for _, cohort in pages for page in cohort),
-                   conversation_paint(app.screen), tuple(ref(block) for block in bodies),
-                   tuple(block._render_cache for block in bodies))
+                   conversation_paint(app.screen), tuple(witnesses))
 
     async def page_reads(self):
         agent = self.source.presentation.sources.agent
         async with agent.controller.transcripts.bind(agent.coordination.wire_root) as reader:
             return reader.transcripts.page_reads
 
-    async def verify(self, app, pilot):
+    async def verify_source(self, app, pilot):
+        """Verify the same source, editor, reader, committed pages and native text."""
         view = self.source.conversation
         await settled(pilot, view)
         editor = view.prompt.prompt_text_area
@@ -137,19 +277,28 @@ class ReaderCheckpoint:
                 "Warm return replaced unchanged committed native fragment views", self.source.id
             )
         assert conversation_paint(app.screen) == self.painted
-        current_bodies = {block for block in view.query(MarkdownBlock)
-                          if block in app.screen._compositor.visible_widgets}
-        for body, rendered in zip(self.rendered_bodies, self.rendered_content):
-            assert body() in current_bodies, (
-                "Native tab return replaced a previously rendered Markdown body",
-                self.source.id, body(),
-            )
-            assert body()._render_cache is rendered, (
-                "Warm return rendered an unchanged Markdown body again",
-                self.source.id, body(), rendered.size, body()._render_cache.size,
-            )
+        return self.native_render_resources(self.source, app)
+
+    async def verify(self, app, pilot):
+        """Exact warm paint identity; retirement is not equivalent credit."""
+        resources = await self.verify_source(app, pilot)
+        for witness in self.paint_witnesses:
+            witness.require_identity(resources)
         print("CLICKED_RETURN_ACTUAL_RENDERED_BODY_IDENTITY", self.source.id,
-              len(self.rendered_bodies), flush=True)
+              len(self.paint_witnesses),
+              [type(witness.content).__name__ for witness in self.paint_witnesses], flush=True)
+
+    async def verify_loaded_return(self, app, pilot):
+        """Loaded returns may use the original fragment's captured native paint.
+
+        Report that actual resource transition separately from exact warm
+        identity. Both contracts require the original committed source and
+        visible native rows; callers still require zero additional raw reads.
+        """
+        resources = await self.verify_source(app, pilot)
+        retired = sum(witness.require_return(resources) for witness in self.paint_witnesses)
+        print("LOADED_RETURN_NATIVE_RETIREMENTS", self.source.id, retired, flush=True)
+        return retired
 
 
 async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
