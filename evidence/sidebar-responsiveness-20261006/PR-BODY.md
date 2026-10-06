@@ -12,8 +12,8 @@ The corrected original sidebar App check joined with empty stderr, but right-sid
 
 ## Remaining work
 
-This draft requires Arendt's matching native iterable-root/layout/publication hook implementation. There is no bool compatibility fallback. Translucent modal checks now inspect actual cut-cell publication against held body geometry and require retained damage; they compile but have not run with the matching producer. Matched source App and isolated physical UI checks, pins and installed delivery remain outstanding. No smooth-scrolling or live-readiness claim.
+This draft selects Arendt's corrected native iterable-root/layout/publication producer e15d066a6. There is no bool compatibility fallback. Translucent modal checks now inspect actual cut-cell publication against held body geometry and require retained damage; they compile but have not run with the matching producer. Matched source App and isolated physical UI checks, pins and installed delivery remain outstanding. No smooth-scrolling or live-readiness claim.
 
 Source/consumer checkpoint: evidence/sidebar-responsiveness-20261006/SOURCE-CHECKPOINT.md.
 
-First matched native225c App check failed to finish: high CPU in held-callback idle admission. Original check/children are terminal and absent; raw preserved. Native queue owner is repairing this concrete regression. Candidate pins match225c, but no live installation changed.
+First matched native225c App check failed to finish: high CPU in held-callback idle admission. Original check/children are terminal and absent; raw preserved. Corrected native e15 is now selected; its pointer App completes cleanly, but right p95 remains424ms. No live installation changed. The remaining delay is being traced through publication/preparation owners. Held-body publication is unqualified: its fixture stopped at the first TextContent query before the publication assertions. Raw failures and original profiler output are preserved.

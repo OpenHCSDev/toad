@@ -45,3 +45,11 @@ Changed owner compiles; source diff checks pass. The original default real App s
 ## Frame writer currentness
 
 Original PendingFrame now supplies the canonical scene identity carried by WritingFrame, PresentedFrame and SuspendedFrame. Partial publication returns to that same pending owner; completing a frame preserves it. Starting navigation creates a new original PendingFrame. Native-admitted owner callbacks capture that identity before joining the original writer. A late writer completion for an earlier scene resubmits the retained owner callback to native admission rather than releasing source work into a new scene. The callback map remains the single work owner; no epoch counter, copied source status or alternate queue is introduced. All constructor/release/display callers remain in this existing family, and the module compiles without imports. Real source App/writer acceptance still requires the native correction.
+
+## Corrected native producer matched App
+
+Candidate manifest and lock select Textual e15d066a62ac9a1a028b3a023a9b070c74b04501. Original pointer sidebar App completes with empty stderr: left median53.8/p95 75ms; right median299.9/p95 424ms. The earlier225c callback hang remains a retained negative. This verifies completed headless native display only, not physical terminal, saved-source performance or installed readiness.
+
+One original profiler run for that remaining latency completed cleanly. Profiled right toggle took424ms, with approximately20ms timer work,11ms compositor work and3ms render-update work; substantial time is recorded in waits. This does not establish which lifecycle delays the frame. Profiles and raw are retained in parent-sidebar-source-20261006/e15-sidebar-*.pstats and collapse-e15-profile.*. No timer threshold or readiness waiver was added.
+
+Held-body source App has not passed. First launch stopped before App initialization because its explicit native package fixture operand was absent. The bound invocation then stopped at its first TextContent query, before the mutation/translucent publication assertions. Original ToolContent sync and measured-resource retirement need tracing; no guard was weakened and no publication acceptance is claimed. Both invocations joined; raw tool-e15.* and tool-e15-bound.* retained. No installed mutation, SDK/provider operation or public input occurred.
