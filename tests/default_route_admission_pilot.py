@@ -1,4 +1,3 @@
-from runtime_fixture import request_target
 """Mounted cooperative default-root write admission, without a provider or live route.
 
 Run with Toad src/tests and the paired PR116 source on PYTHONPATH. The
@@ -7,6 +6,7 @@ HOME, legacy wire and UI state remain disposable /dev/shm data.
 """
 
 from __future__ import annotations
+from runtime_fixture import request_target
 from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import channel_target
