@@ -1,0 +1,114 @@
+{
+  "state": "SOURCE-only contributor handoff; OriginalMendel operator preparation, no purpose/holder/runtime authority",
+  "control": {
+    "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/tests/native_session_retention_pilot.py",
+    "sha256": "9ba5a7000274c2de74e03f8400180cb526b4cf1963ed6cac5a7ebcc4e31b0ef5",
+    "bytes": 34560
+  },
+  "argv": [
+    "UNBOUND actual newly eligible334/bin/python",
+    "-B",
+    "/home/ts/wt/toad-configured-continuous-owner-20261006/tests/native_session_retention_pilot.py",
+    "--loaded-histories-only"
+  ],
+  "cwd": "/home/ts/wt/toad-configured-continuous-owner-20261006",
+  "loaded_acceptance_AST_equal_frozen_c2b_pair": true,
+  "source_helpers": {
+    "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/evidence/configured-continuous-source-20261006/STABLE-CONFIGURED-HELPERS.json",
+    "sha256": "3bbdf0ad72db6480540e537becf19afb7933950ecaab564857890517feb836d3",
+    "bytes": 17918
+  },
+  "selected_artifacts": [
+    {
+      "artifact": {
+        "path": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/current-paired-core-20261006/wheel/agent_comms-0.1.0-py3-none-any.whl",
+        "sha256": "6b426d7ea31f4a6e30db2c2fdbd4eaa4d1be6dcea9aba3c6e599f7c063987b6b",
+        "bytes": 910730
+      },
+      "source_relation": {
+        "path": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/current-paired-core-20261006/wheel-source-relation.json",
+        "sha256": "ef146377965f6c2e2ede6a446990745366dfe63e24ae111958fa0111e29069ba",
+        "bytes": 562
+      },
+      "build_receipt": {
+        "path": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/current-paired-core-20261006/build-receipt.json",
+        "sha256": "840fddeefc4237f085324ee7ce03106f586c01b5527c1a5f5d3aa0308061eac3",
+        "bytes": 1293
+      },
+      "source_head": "ddcdc422c7fe01453edb2469bcfa8303d771db67"
+    },
+    {
+      "artifact": {
+        "path": "/home/ts/wt/toad-current-installed-integration-20261006/.artifacts/current-paired-toad-reader-20261006/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+        "sha256": "410c3ab0eee04e628d16fbbd11c591d7d7676f5c714ce82b273cfb0ad89acd8c",
+        "bytes": 2251240
+      },
+      "source_relation": {
+        "path": "/home/ts/wt/toad-current-installed-integration-20261006/.artifacts/current-paired-toad-reader-20261006/wheel-source-relation.json",
+        "sha256": "74fcebdd6b08499904796422f95f3fe772e09c1dee1006f32e3a236546ce6863",
+        "bytes": 709
+      },
+      "build_receipt": {
+        "path": "/home/ts/wt/toad-current-installed-integration-20261006/.artifacts/current-paired-toad-reader-20261006/build-receipt.json",
+        "sha256": "1947216b86a84ccdf29ea1b42595e59edbcf7f596bf413301751da62abce9ea9",
+        "bytes": 1139
+      },
+      "source_head": "afae409d1cdf34e0a0fa06c8fb02dfba740ad229"
+    },
+    {
+      "module": "textual",
+      "package": "textual",
+      "artifact": {
+        "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native70-71-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+        "sha256": "bc47c59ea7db78a9a443c5f5e3f10836660957f21bb998d2ffa3ae8e4a2ddbe3",
+        "bytes": 768804
+      },
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "assets": 266,
+      "RECORD_files": 270
+    }
+  ],
+  "historical_counts_descriptor": {
+    "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/evidence/warm-presentation-admission-owner-20261005/FUTURE-GENUINELY-LOADED-INPUT-COUNTS-EFFECTIVE.json",
+    "sha256": "d72f986434e10875c802351a53865854ae991512ef733c040d195a1ce77fb4f5",
+    "bytes": 3596
+  },
+  "cohorts": [
+    4,
+    16,
+    32,
+    64
+  ],
+  "WORKSPACE_COHORTS": "4,16,32,64",
+  "inputs": {
+    "seed": 2,
+    "each_cohort": 2,
+    "total_localhost_model_requests": 10,
+    "replayed_public_inputs": 0,
+    "configured_provider_requests": 0,
+    "private_journals": 2
+  },
+  "scope": "Genuine native admitted ACP logical views/nonempty rendered source from TWO authored journals. Neither64 independent native journals nor configured>=40MB or physical terminal FPS. Warm and evicted returns retain strict current ReaderCheckpoint/DocumentUndo/input/queue/nativebody assertions. Default blank/body32 journey is not run.",
+  "bounds": {
+    "outer": "Historical loaded descriptor UNBOUND; actual new specific purpose must bind its own original BoundedRun outer seconds before invocation. No warm/configured purpose or deadline inheritance.",
+    "seed_each_prompt_seconds": 20,
+    "until_readiness_seconds": 20,
+    "queued_prompt_seconds": 10,
+    "released_active_prompt_seconds": 25,
+    "consumer_timers_unchanged": true
+  },
+  "short_original_paths": {
+    "L0A_EVIDENCE": "/home/ts/.cache/agent-scratch/h476/lh",
+    "TMPDIR": "/home/ts/.cache/agent-scratch/h476/lh/tmp",
+    "NATIVE_RETENTION_RECEIPT": "/home/ts/.cache/agent-scratch/h476/lh/loaded-histories.json",
+    "fixture_stage": "Original l0a main mkdtemp(prefix=native-fixture-, dir=L0A_EVIDENCE); do not precreate its private fixture or add a path algorithm",
+    "socket_formula": "L0A_EVIDENCE/native-fixture-{8char suffix}/private-root/wire/runtime/{pid}.sock",
+    "largest_pid_example": "/home/ts/.cache/agent-scratch/h476/lh/native-fixture-12345678/private-root/wire/runtime/2147483647.sock",
+    "utf8_bytes": 103,
+    "linux_limit": 107
+  },
+  "native_relation": "SelectedCoreddcdc/6b426 forces native4b; future fresh matching4b READ/EXEC. Historical descriptor7a/61bf helpers are not a current cohort binding.",
+  "ownership": "Heis retains controls/production. These fixed helper paths are read-only to Mendel and remain byte-held through both handbacks. New source edits coordinate first; no peer checkout or replacement implementation.",
+  "remaining_binding": "Fresh actual334 disposition/floor/proof/source tuple after independently closed693, resource refresh and own specific grant; no slot reservation/concurrency cap/owner queue",
+  "preparation_note": "An initial comparison against older2ae loaded implementation did not match. Actual unchanged loaded acceptance comparison is against frozen configured c2b before Reader480; no control edit/run followed."
+}

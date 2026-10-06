@@ -1,0 +1,122 @@
+{
+  "historical_template": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/controller-preparation/verify_installed.template.py",
+    "sha256": "c22c0ec70bc8d64cf15c0192346f008abdd051483e7356d1430b2d26762bd569",
+    "bytes": 10167
+  },
+  "prepared_template": {
+    "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/evidence/configured-continuous-source-20261006/verify_configured.template.py",
+    "sha256": "32376cbfc2922df2e558b69f4eb34f6c5a853daec595fde001c74d62fc476b14",
+    "bytes": 10355
+  },
+  "ordered_changes": [
+    {
+      "before_literal": "UNISSUED476 original installed source/FullTrust proof template; do not execute.",
+      "after_literal": "UNISSUED configured reader-pair installed source/FullTrust proof; do not execute.",
+      "occurrences": 1,
+      "before_sha256": "c22c0ec70bc8d64cf15c0192346f008abdd051483e7356d1430b2d26762bd569",
+      "after_sha256": "729d8f5f1dea2f20562bffa32ab89833e45348653dead2ce1f451f16f2f880ed"
+    },
+    {
+      "before_literal": "UNBOUND_476_ACTUAL_ISSUED_GRANT_PATH",
+      "after_literal": "UNBOUND_CONFIGURED_ACTUAL_ISSUED_GRANT_PATH",
+      "occurrences": 1,
+      "before_sha256": "729d8f5f1dea2f20562bffa32ab89833e45348653dead2ce1f451f16f2f880ed",
+      "after_sha256": "2e37117dd6a5a957e8d2e985f59887c0aeecefc30d1e0517728a2850985254d2"
+    },
+    {
+      "before_literal": "UNBOUND_476_ACTUAL_ISSUED_GRANT_SHA256",
+      "after_literal": "UNBOUND_CONFIGURED_ACTUAL_ISSUED_GRANT_SHA256",
+      "occurrences": 1,
+      "before_sha256": "2e37117dd6a5a957e8d2e985f59887c0aeecefc30d1e0517728a2850985254d2",
+      "after_sha256": "20fca59d72f28ad11a557d3388cb47009d6e7bbc948613a09bf25a5fbdf68da3"
+    },
+    {
+      "before_literal": "UNBOUND_476_ACTUAL_NATIVE_READ_PATH",
+      "after_literal": "UNBOUND_CONFIGURED_ACTUAL_NATIVE_READ_PATH",
+      "occurrences": 1,
+      "before_sha256": "20fca59d72f28ad11a557d3388cb47009d6e7bbc948613a09bf25a5fbdf68da3",
+      "after_sha256": "ddc868b9e987fa211c2d810abb95871ed0a748f7302459440cc1e4e3185ddaf2"
+    },
+    {
+      "before_literal": "UNBOUND_476_ACTUAL_NATIVE_READ_SHA256",
+      "after_literal": "UNBOUND_CONFIGURED_ACTUAL_NATIVE_READ_SHA256",
+      "occurrences": 1,
+      "before_sha256": "ddc868b9e987fa211c2d810abb95871ed0a748f7302459440cc1e4e3185ddaf2",
+      "after_sha256": "1cda3591e4e3cb632ee438350f4f38dfb03c0b05814c1058b6a8c2564ef08c7f"
+    },
+    {
+      "before_literal": "unchanged_other67_unique_records",
+      "after_literal": "unchanged_other66_unique_records",
+      "occurrences": 1,
+      "before_sha256": "1cda3591e4e3cb632ee438350f4f38dfb03c0b05814c1058b6a8c2564ef08c7f",
+      "after_sha256": "c5545669d9799c355bf443e64c167eb975f795f1a362095ee84a197c28e6d55b"
+    },
+    {
+      "before_literal": "if name in ('batrachian-toad', 'textual'):",
+      "after_literal": "if name in ('agent-comms', 'batrachian-toad', 'textual'):",
+      "occurrences": 1,
+      "before_sha256": "c5545669d9799c355bf443e64c167eb975f795f1a362095ee84a197c28e6d55b",
+      "after_sha256": "1505d24bc0316e0473cfbcc01fecdf67daeeb2e8b38c1d1d837ab3c70dbbb21b"
+    },
+    {
+      "before_literal": "if module_name not in ('toad', 'textual'):",
+      "after_literal": "if module_name not in ('agent_comms', 'toad', 'textual'):",
+      "occurrences": 1,
+      "before_sha256": "1505d24bc0316e0473cfbcc01fecdf67daeeb2e8b38c1d1d837ab3c70dbbb21b",
+      "after_sha256": "d231e5bd0bda5c0903b3941e9f17aa851f7efa63d91b008b833c20aa37388b5a"
+    },
+    {
+      "before_literal": "/home/ts/wt/comms-task-aware-native-bundle-20261002/tools/cutover",
+      "after_literal": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover",
+      "occurrences": 1,
+      "before_sha256": "d231e5bd0bda5c0903b3941e9f17aa851f7efa63d91b008b833c20aa37388b5a",
+      "after_sha256": "6a5e46f09d45bd18901d7f247a4cbe78d33ae7fd6ce0e5b7d81fce11c938bfd3"
+    },
+    {
+      "before_literal": "HELD warm476 installed source/immutable READ proof; App unrun",
+      "after_literal": "HELD configured repaired pair installed source/immutable READ proof; App unrun",
+      "occurrences": 1,
+      "before_sha256": "6a5e46f09d45bd18901d7f247a4cbe78d33ae7fd6ce0e5b7d81fce11c938bfd3",
+      "after_sha256": "8aec9b8147afcf4ee755a2682d26857814f97c6372dc202d2f6d3ae46efb8ea9"
+    },
+    {
+      "before_literal": "Original Heis warm-admission-only TWO authored localhost inputs after actual new matching EXEC and Bohr release; no public decoder or loaded/configured mode",
+      "after_literal": "Original Heis configured saved continuous journey only after fresh source READ, matching private4b EXEC and Bohr release; six authored UI inputs plus native automatic handling",
+      "occurrences": 1,
+      "before_sha256": "8aec9b8147afcf4ee755a2682d26857814f97c6372dc202d2f6d3ae46efb8ea9",
+      "after_sha256": "c76a87c3804fb2fec463cc0da8e79e2a68e283422030eefc7c26b3c9d58c2a93"
+    },
+    {
+      "before_literal": "953 original packaged assets, full69 versions and truthful origins;2253other67+266keepers/bootstrap2/PREFIX unchanged. Core3931/3fe retained. No App/render controller/nativeSDK/ACP/provider/input executed.",
+      "after_literal": "953 original packaged assets, full69 versions and truthful origins;1883other66+266keepers/bootstrap2/PREFIX unchanged. Coreddcdc6b426, repaired Toad afae410c and Text71bc47 staged normally. No App/render controller/nativeSDK/ACP/provider/input executed.",
+      "occurrences": 1,
+      "before_sha256": "c76a87c3804fb2fec463cc0da8e79e2a68e283422030eefc7c26b3c9d58c2a93",
+      "after_sha256": "09262afb23269335f3853eb5c0ffd7fcd2d046034b6c018057c4c4d69c6a9be5"
+    },
+    {
+      "before_literal": "HELD original warm476 actualNONLIVE former485 CURRENT471 purpose; App unrun",
+      "after_literal": "HELD configured repaired pair actualNONLIVE former485 CURRENT471 purpose; App unrun",
+      "occurrences": 1,
+      "before_sha256": "09262afb23269335f3853eb5c0ffd7fcd2d046034b6c018057c4c4d69c6a9be5",
+      "after_sha256": "2cbc609e0a1c5e8b4e3ec234930dfd65c07915543f3a98491d4bdba8862b4592"
+    },
+    {
+      "before_literal": "Actual NONLIVE former485 CURRENT471 fresh1467 preimage authoritative; historical1563 archive is CURRENT459 only. Full69 original origins,266 protected/bootstrap2/PREFIX+2253 other67 unchanged. Core3931/3fe retained; only normal ToAd47661bf and nativeText71bc47 candidate stage. Candidate953 original source assets. TWO authored localhost native seed inputs in later warm-only App; no public decoder/configured original fork. Actual CURRENT471 Toadb2e+Text16c9 normal restore after terminal; PUBLIC475 style22 protected. NEW matching7a READ for proof only; App HELD separate newEXEC/release.",
+      "after_literal": "Actual NONLIVE former485 CURRENT471 fresh1467 preimage authoritative; historical1563 archive is CURRENT459 only. Full69 original origins,266 protected/bootstrap2/PREFIX+1883 other66 unchanged. Three normal candidates Coreddcdc6b426, repaired Toadafae410c and nativeText71bc47. Candidate953 original source assets. Future configured journey has six authored UI inputs plus native automatic handling; original PUBLIC475 source read only at actual released acquisition. Actual CURRENT471 Core3fe+Toadb2e+Text16c9 normal restore after terminal. NEW matching4b READ for proof only; App HELD separate newEXEC and Bohr release.",
+      "occurrences": 1,
+      "before_sha256": "2cbc609e0a1c5e8b4e3ec234930dfd65c07915543f3a98491d4bdba8862b4592",
+      "after_sha256": "b9a7b734cdfb871c3de88bda2bcf16ae7ff4b9a47016f2aaec6bde4da8b4a524"
+    },
+    {
+      "before_literal": "'other67_unchanged':2253",
+      "after_literal": "'other66_unchanged':1883",
+      "occurrences": 1,
+      "before_sha256": "b9a7b734cdfb871c3de88bda2bcf16ae7ff4b9a47016f2aaec6bde4da8b4a524",
+      "after_sha256": "32376cbfc2922df2e558b69f4eb34f6c5a853daec595fde001c74d62fc476b14"
+    }
+  ],
+  "native_package_verification_and_inventory_algorithm": "Original c22 unchanged; three changed distributions and actual CURRENT471 other66 relation replace two changed distributions/other67 assumptions",
+  "materialization": "After actual fresh issue and matching READ only four actual grantpath/SHA and READpath/SHA replacements; output from own configured issued directory; exact helper binding before one proof",
+  "runtime": "UNRUN; source compile only"
+}
