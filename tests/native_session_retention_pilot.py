@@ -179,10 +179,19 @@ async def warm_admission_acceptance(app, pilot, agent, comms, entered, release, 
                     "No actual retained return exercised warm identity/raw-read custody", rows,
                 )
                 assert source is not app.selected_session
+                witness = checkpoints[source.id]
+                admitted_pages = tuple(page.capture_admission()
+                                       for _history, pages in witness.pages
+                                       for page in pages)
+                assert admitted_pages, "Eviction must retain original admitted source ranges"
                 if source.presentation.widget is not None:
                     await source.presentation.evict()
                     explicit_evictions += 1
                 assert source.presentation.widget is None and source.presentation.state is not None
+                assert all(admission in source.presentation.state.reader_position.admissions
+                           for admission in admitted_pages), (
+                    "Parked eviction lost the original reader page admissions", admitted_pages,
+                )
             departed = source is not app.selected_session
             retained = source.presentation.widget is not None
             branch = ("warm_identity_raw_read_returns" if retained else

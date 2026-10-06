@@ -1,0 +1,57 @@
+{
+  "determining_source": "c2b4c3e828322b9e4803a8d29f38ad6ddc27065a",
+  "before_scan": "/home/ts/wt/toad-configured-continuous-owner-20261006/evidence/parked-reader-admission-20261006/BEFORE-CONSUMERS.json",
+  "source_packages": [
+    {
+      "root": "src/toad",
+      "modules": 288,
+      "unparsed": []
+    },
+    {
+      "root": "tests",
+      "modules": 400,
+      "unparsed": []
+    },
+    {
+      "root": "tools",
+      "modules": 40,
+      "unparsed": []
+    },
+    {
+      "root": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual@a2dd",
+      "modules": 249,
+      "unparsed": []
+    },
+    {
+      "root": "/home/ts/wt/comms-cleanup-live-integration-20260929/src/agent_comms@ddcdc",
+      "modules": 324,
+      "unparsed": []
+    }
+  ],
+  "changes": [
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "before_sha256": "51c34e44ed62a80d40eded15dcc8f2025682fd87295587e333c207527e929bc5",
+      "after_sha256": "9cb92f5eebf3e78373ffaf0a55eb52dc5c2320c9ab18892ae856568456091cb2",
+      "changed_methods": []
+    },
+    {
+      "path": "tests/native_session_retention_pilot.py",
+      "before_sha256": "2e2c707ce97ba51b7619302e51ad0dd39b13fed9cbe79e5745cf5ddf0118259a",
+      "after_sha256": "9ba5a7000274c2de74e03f8400180cb526b4cf1963ed6cac5a7ebcc4e31b0ef5",
+      "changed_methods": [
+        "warm_admission_acceptance"
+      ]
+    }
+  ],
+  "compile_without_application_imports": "PASS",
+  "runtime": "UNRUN, no fresh purpose",
+  "owner": "ReaderPosition captures native TranscriptHistory page admissions for this HistoryWindow; parked source-work revocation remains TranscriptSourcePreparation",
+  "consumer_closure": [
+    "SessionViewState.capture -> ReaderPosition.capture -> OffsetReaderPosition.prepare_history -> TranscriptHistory.restore_reader_admissions -> TranscriptPageView.restore_admission -> native preparation/mount -> original reader offset restore",
+    "Conversation category switching uses the same ReaderPosition capture and original revision/currentness checks",
+    "Original authored Markdown page/wheel consumer uses the same capture; geometry control direct Offset/Tail restore unchanged"
+  ],
+  "deletions": "Active-source window.histories enumeration removed from durable reader capture. All status/preparation/admission/frame callers retain original live-work membership semantics.",
+  "limits": "Warm04 proves two warm returns and failed eviction scroll equality. Source proves parked capture loses admissions; no claim it alone explains the runtime assertion. No build, test, App, provider, SDK or package operation."
+}

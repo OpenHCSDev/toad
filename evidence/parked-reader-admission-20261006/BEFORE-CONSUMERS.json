@@ -1,0 +1,434 @@
+{
+  "head": "c2b4c3e828322b9e4803a8d29f38ad6ddc27065a",
+  "packages": [
+    {
+      "root": "src/toad",
+      "modules": 288,
+      "unparsed": []
+    },
+    {
+      "root": "tests",
+      "modules": 400,
+      "unparsed": []
+    },
+    {
+      "root": "tools",
+      "modules": 40,
+      "unparsed": []
+    },
+    {
+      "root": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual@a2dd",
+      "modules": 249,
+      "unparsed": []
+    }
+  ],
+  "sites": [
+    {
+      "path": "src/toad/session_presentation.py",
+      "declaration": "SessionViewState",
+      "line": 36,
+      "expression": "reader_position",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "declaration": "OperationalSessionPresentation",
+      "line": 219,
+      "expression": "SessionViewState.capture",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "declaration": "NativeSessionSurface",
+      "line": 253,
+      "expression": "conversation.window.histories",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "declaration": "capture",
+      "line": 46,
+      "expression": "ReaderPosition.capture",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "declaration": "restore",
+      "line": 57,
+      "expression": "conversation.transcript.reader_position",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "declaration": "evict",
+      "line": 219,
+      "expression": "SessionViewState.capture",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "declaration": "retire",
+      "line": 253,
+      "expression": "conversation.window.histories",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "declaration": "_trim_retained",
+      "line": 287,
+      "expression": "owner.evict",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "declaration": "TranscriptPublication",
+      "line": 50,
+      "expression": "self.owner.histories",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "declaration": "SnapshotPublication",
+      "line": 186,
+      "expression": "self.owner.histories",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "declaration": "SourcePublicationRequests",
+      "line": 324,
+      "expression": "self.owner.capture",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "declaration": "CheckpointPublication",
+      "line": 456,
+      "expression": "self.owner.histories",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "declaration": "TranscriptPresentation",
+      "line": 511,
+      "expression": "self.reader_position",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "declaration": "source_bound",
+      "line": 50,
+      "expression": "self.owner.histories",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "declaration": "admitted",
+      "line": 156,
+      "expression": "self.owner.histories",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "declaration": "publish_page",
+      "line": 186,
+      "expression": "self.owner.histories",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "declaration": "request",
+      "line": 324,
+      "expression": "self.owner.capture",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "declaration": "publish_source_page",
+      "line": 456,
+      "expression": "self.owner.histories",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "declaration": "__init__",
+      "line": 511,
+      "expression": "self.reader_position",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "declaration": "reports_coverage",
+      "line": 534,
+      "expression": "self.histories",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "declaration": "prepare_reader",
+      "line": 541,
+      "expression": "self.reader_position",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "declaration": "restore_native",
+      "line": 552,
+      "expression": "self.capture",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "declaration": "reveal_retained",
+      "line": 574,
+      "expression": "self.reader_position",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "declaration": "publish",
+      "line": 592,
+      "expression": "self.capture",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "declaration": "painted",
+      "line": 617,
+      "expression": "self.reader_position",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "declaration": "source_changed",
+      "line": 627,
+      "expression": "self.reader_position",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "declaration": "retry",
+      "line": 664,
+      "expression": "self.capture",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "declaration": "source_work_finished",
+      "line": 669,
+      "expression": "self.histories",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "declaration": "record",
+      "line": 617,
+      "expression": "self.reader_position",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "declaration": "TranscriptSourcePreparation",
+      "line": 85,
+      "expression": "self.window.histories",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "declaration": "observe_source",
+      "line": 85,
+      "expression": "self.window.histories",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "declaration": "on_unmount",
+      "line": 95,
+      "expression": "self.window.histories",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "declaration": "retire_source",
+      "line": 192,
+      "expression": "self.window.histories",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "declaration": "resume_source",
+      "line": 203,
+      "expression": "self.window.histories",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_state.py",
+      "declaration": "ParkedSourceTranscript",
+      "line": 306,
+      "expression": "owner.resume_source",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_state.py",
+      "declaration": "resume_if_parked",
+      "line": 306,
+      "expression": "owner.resume_source",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_state.py",
+      "declaration": "validate_snapshot",
+      "line": 312,
+      "expression": "owner.resume_source",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "declaration": "Conversation",
+      "line": 689,
+      "expression": "ReaderPosition.capture",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "declaration": "watch_visible_categories",
+      "line": 689,
+      "expression": "ReaderPosition.capture",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "declaration": "ReaderPosition",
+      "line": 79,
+      "expression": "OffsetReaderPosition",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "declaration": "TailReaderPosition",
+      "line": 89,
+      "expression": "ReaderPosition",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "declaration": "OffsetReaderPosition",
+      "line": 95,
+      "expression": "ReaderPosition",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "declaration": "HistoryWindow",
+      "line": 123,
+      "expression": "self.histories",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "declaration": "HistoryAnchor",
+      "line": 334,
+      "expression": "self.capture",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "declaration": "capture",
+      "line": 79,
+      "expression": "OffsetReaderPosition",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "declaration": "prepare_history",
+      "line": 100,
+      "expression": "history.restore_reader_admissions",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "declaration": "jump_to_latest",
+      "line": 123,
+      "expression": "self.histories",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "declaration": "restore_history_layout",
+      "line": 143,
+      "expression": "HistoryAnchor.capture",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "declaration": "watch_scroll_y",
+      "line": 209,
+      "expression": "self.histories",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "declaration": "preserve_reader",
+      "line": 288,
+      "expression": "HistoryAnchor.capture",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "declaration": "before_layout",
+      "line": 334,
+      "expression": "self.capture",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "declaration": "TranscriptHistory",
+      "line": 477,
+      "expression": "self.capture_reader_admissions",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "declaration": "paging_window",
+      "line": 477,
+      "expression": "self.capture_reader_admissions",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "declaration": "restore_reader_admissions",
+      "line": 490,
+      "expression": "page.restore_admission",
+      "context": "Load"
+    },
+    {
+      "path": "tests/history_anchor_geometry_pilot.py",
+      "declaration": "exercise",
+      "line": 68,
+      "expression": "HistoryAnchor.capture",
+      "context": "Load"
+    },
+    {
+      "path": "tests/markdown_return_reuse_pilot.py",
+      "declaration": "page_wheel",
+      "line": 104,
+      "expression": "ReaderPosition.capture",
+      "context": "Load"
+    },
+    {
+      "path": "tests/native_session_retention_pilot.py",
+      "declaration": "warm_admission_acceptance",
+      "line": 157,
+      "expression": "view.window.histories",
+      "context": "Load"
+    },
+    {
+      "path": "tests/native_session_retention_pilot.py",
+      "declaration": "acceptance",
+      "line": 351,
+      "expression": "loaded.conversation.window.histories",
+      "context": "Load"
+    }
+  ],
+  "dynamic_resolution": "TranscriptHistory.window derives closest HistoryWindow native ancestor; source subclasses inherit this relation. AST sites identify candidates, source semantics read separately."
+}
