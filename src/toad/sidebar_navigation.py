@@ -109,7 +109,7 @@ class SidebarNavigation:
         current = self.state.selected_targets
         if menu and selected in current:
             return
-        rows = [item for item in self.sidebar.projection.rows if item.is_on_screen]
+        rows = self.sidebar.projection.rows
         identities = tuple(self.selection_for(item) for item in rows)
         if shift and self.state.selected in identities and selected in identities:
             start, end = sorted((identities.index(self.state.selected), identities.index(selected)))
