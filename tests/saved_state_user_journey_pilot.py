@@ -636,9 +636,11 @@ async def configured_acceptance(app, pilot, agent, comms, receipt, subscriber):
     await first.wait_content_ready()
     view = first.conversation
     await until(pilot, lambda: view.agent_ready)
-    await until(pilot, lambda: bool(view.window.histories) and all(
-        history.state.reports_coverage and history.displayed_cursor is not None
-        for history in view.window.histories))
+    await until(pilot, lambda: (
+        view.transcript.displayed_cursor is not None
+        and bool(view.window.histories)
+        and all(history.state.reports_coverage for history in view.window.histories)
+    ))
     await settled(pilot, view)
     assert ReaderCheckpoint.native_render_resources(first, app)
     assert inputs.read().rows == {}, "Attachment or history read sent a native input"
