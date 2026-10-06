@@ -1,0 +1,191 @@
+{
+  "head": "540fe87cc4e2bb45f20f276c95c6a2e7b97b7a35",
+  "coverage": {
+    "src/toad": 288,
+    "tests": 403,
+    "tools": 40
+  },
+  "parse_omissions": [],
+  "sites": [
+    {
+      "path": "src/toad/acp/transcript_reader.py",
+      "line": 24,
+      "source": "ThreadWork"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 78,
+      "source": "prepare_thread_presentation"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 17,
+      "source": "from toad.render_tasks import ThreadRowsRenderTask"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 84,
+      "source": "RendererWork"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 88,
+      "source": "ThreadRowsWork"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 118,
+      "source": "from toad.render_tasks import ThreadRowsRenderTask"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 117,
+      "source": "ThreadRowsRenderTask"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 145,
+      "source": "ThreadWork"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 120,
+      "source": "ThreadRowsRenderTask"
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 95,
+      "source": "ThreadRowsWork"
+    },
+    {
+      "path": "src/toad/transcript_preparation.py",
+      "line": 60,
+      "source": "ThreadWork"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 108,
+      "source": "ThreadRowsWork"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 115,
+      "source": "ThreadRowsWork"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 135,
+      "source": "ThreadRowsWork"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 404,
+      "source": "ThreadRowsWork"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 198,
+      "source": "RendererWork"
+    },
+    {
+      "path": "tests/bar_projection_reuse_pilot.py",
+      "line": 65,
+      "source": "prepare_thread_presentation"
+    },
+    {
+      "path": "tests/bar_projection_reuse_pilot.py",
+      "line": 63,
+      "source": "ThreadRowsWork"
+    },
+    {
+      "path": "tests/bar_projection_reuse_pilot.py",
+      "line": 64,
+      "source": "ThreadRowsWork"
+    },
+    {
+      "path": "tests/bar_projection_reuse_pilot.py",
+      "line": 48,
+      "source": "ThreadRowsWork"
+    },
+    {
+      "path": "tests/channel_disclosure_publication_pilot.py",
+      "line": 59,
+      "source": "ThreadRowsWork"
+    },
+    {
+      "path": "tests/channel_disclosure_publication_pilot.py",
+      "line": 129,
+      "source": "ThreadRowsWork"
+    },
+    {
+      "path": "tests/channel_disclosure_publication_pilot.py",
+      "line": 156,
+      "source": "ThreadRowsWork"
+    },
+    {
+      "path": "tests/channel_disclosure_publication_pilot.py",
+      "line": 260,
+      "source": "ThreadRowsWork"
+    },
+    {
+      "path": "tests/channel_disclosure_publication_pilot.py",
+      "line": 181,
+      "source": "ThreadRowsWork"
+    },
+    {
+      "path": "tests/channel_disclosure_publication_pilot.py",
+      "line": 196,
+      "source": "ThreadRowsWork"
+    },
+    {
+      "path": "tests/channel_disclosure_publication_pilot.py",
+      "line": 265,
+      "source": "ThreadRowsWork"
+    },
+    {
+      "path": "tests/prepared_bars_pilot.py",
+      "line": 16,
+      "source": "from toad.render_tasks import ThreadRowsRenderTask"
+    },
+    {
+      "path": "tests/prepared_bars_pilot.py",
+      "line": 36,
+      "source": "ThreadRowsRenderTask"
+    },
+    {
+      "path": "tests/prepared_bars_pilot.py",
+      "line": 49,
+      "source": "ThreadRowsWork"
+    },
+    {
+      "path": "tests/prepared_bars_pilot.py",
+      "line": 42,
+      "source": "ThreadRowsWork"
+    },
+    {
+      "path": "tests/right_comms_pilot.py",
+      "line": 117,
+      "source": "prepare_thread_presentation"
+    },
+    {
+      "path": "tests/serialized_preparation_pilot.py",
+      "line": 23,
+      "source": "ThreadWork"
+    },
+    {
+      "path": "tests/serialized_preparation_pilot.py",
+      "line": 35,
+      "source": "ThreadWork"
+    },
+    {
+      "path": "tests/work_preparation_delivery_pilot.py",
+      "line": 16,
+      "source": "ThreadWork"
+    },
+    {
+      "path": "tests/work_preparation_pilot.py",
+      "line": 19,
+      "source": "ThreadWork"
+    }
+  ]
+}
