@@ -1253,14 +1253,22 @@ class SidebarWheelJourney(SidebarMotion, WheelWarmJourney):
     """Both native sidebars and transcript wheels in one saved-history App."""
 
     motion_phases = (*WheelWarmJourney.motion_phases, "sidebar-scroll-down", "sidebar-scroll-up",
-                     "context-scroll-down", "context-scroll-up", "right-sidebar-hide",
+                     "right-panels-scroll-down", "context-scroll-down", "context-scroll-up",
+                     "right-sidebar-hide",
                      "right-sidebar-return")
 
     @classmethod
     def history_commands(cls, args):
         marker = marker_command()
         settle = f"sleep {args.navigation_settle_seconds:g}"
-        return (*super().history_commands(args), marker + "context-before",
+        # ContextSessionPanel is last in the original sidebar declaration.
+        # Scroll its enclosing native viewport before targeting the clipped tree.
+        return (*super().history_commands(args), marker + "right-panels-before",
+                marker + "right-panels-scroll-down",
+                native_click_command("phase-right-panels-before-state.pickle", target="widget",
+                                     name="SidebarViewport#sidebar-panels",
+                                     within="SessionThreadSidebar", wheel=6),
+                settle, marker + "context-before",
                 marker + "context-scroll-down",
                 native_click_command("phase-context-before-state.pickle", target="context_tree", wheel=6),
                 settle, marker + "context-down-done", marker + "context-scroll-up",
