@@ -86,8 +86,14 @@ async def main():
             await pilot.pause()
             channel = sidebar.projection.channels['#alpha']
             survivor = next(row for row in sidebar.projection.thread_rows if row.target_name == second.target_name)
-            sidebar.navigation.pointer_select(channel)
-            sidebar.navigation.pointer_select(survivor, control=True)
+            scroll = tuple(panel.scroll_y for panel in sidebar.navigation.scroll_containers)
+            assert await pilot.click(channel, button=3)
+            async with asyncio.timeout(10):
+                while not (isinstance(app.screen, ContextMenu) and app.screen.is_mounted):
+                    await pilot.pause()
+            assert tuple(panel.scroll_y for panel in sidebar.navigation.scroll_containers) == scroll
+            await pilot.press('escape')
+            assert await pilot.click(survivor, control=True)
             context = sidebar.navigation.menu_context(channel)
             assert context.targets == ('#alpha', second.target_name)
             actions = await app.preparation.run_thread(context.available_actions)
@@ -96,8 +102,12 @@ async def main():
             # admission refuses this member while retaining the other success.
             fourth = next(row for row in sidebar.projection.thread_rows
                           if row.target_name == rows[3].target_name)
-            sidebar.navigation.pointer_select(survivor)
-            sidebar.navigation.pointer_select(fourth, control=True)
+            # Right-click preserves this mixed selection. Remove its channel
+            # through the same Ctrl-toggle before acquiring a two-thread menu.
+            assert await pilot.click(channel, control=True)
+            assert tuple(item.target for item in app.sidebar_state.selected_targets) == (survivor.target_name,)
+            assert await pilot.click(fourth, control=True)
+            assert tuple(item.target for item in app.sidebar_state.selected_targets) == (survivor.target_name, fourth.target_name)
             assert await pilot.click(survivor, button=3)
             async with asyncio.timeout(10):
                 while not (isinstance(app.screen, ContextMenu) and app.screen.is_mounted):
@@ -139,13 +149,33 @@ async def main():
             await pilot.press('escape')
             endpoint.scroll_visible(animate=False, immediate=True)
             await pilot.pause()
-            assert not anchor.is_on_screen and endpoint.is_on_screen
+            visible = app.screen._compositor.visible_widgets
+            assert anchor not in visible and endpoint in visible
             assert await pilot.click(endpoint, shift=True)
             assert tuple(item.target for item in app.sidebar_state.selected_targets) == tuple(row.target_name for row in range_rows)
+            # Channel endpoints use the same admitted hierarchy. Expanded
+            # member rows between them legitimately belong to a Shift range.
+            channel = sidebar.projection.channels['#alpha']
+            channel.scroll_visible(animate=False, immediate=True)
+            await pilot.pause()
+            assert await pilot.click(channel, button=3)
+            async with asyncio.timeout(10):
+                while not (isinstance(app.screen, ContextMenu) and app.screen.is_mounted):
+                    await pilot.pause()
+            await pilot.press('escape')
+            endpoint = sidebar.projection.channels['#range']
+            endpoint.scroll_visible(animate=False, immediate=True)
+            await pilot.pause()
+            admitted = sidebar.projection.rows
+            start, end = sorted((admitted.index(channel), admitted.index(endpoint)))
+            expected = tuple(row.target_name for row in admitted[start:end + 1])
+            assert await pilot.click(endpoint, shift=True)
+            assert tuple(item.target for item in app.sidebar_state.selected_targets) == expected
+            assert channel.has_class('-selected') and endpoint.has_class('-selected')
             assert app.selected_mode == original_mode
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
-    print('PASS: Ctrl toggle, Shift range, preserved right-click selection, real dialog/archive, mixed channel/thread catalog and honest partial-failure notification')
+    print('PASS: native thread/channel Ctrl toggle and Shift range, preserved right-click selection/scroll, real dialog/archive, mixed catalog and honest partial-failure notification')
 
 
 if __name__ == '__main__':
