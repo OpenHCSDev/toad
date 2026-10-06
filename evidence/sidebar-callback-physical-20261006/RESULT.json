@@ -1,0 +1,102 @@
+{
+  "state": "completed private installed physical journey; explicitly returned, independent closure separate",
+  "controller": {
+    "elapsed": 204.56875654903706,
+    "returncode": 0,
+    "timed_out": false,
+    "error": null,
+    "drain_errors": [],
+    "outcome": {
+      "kind": "exited",
+      "code": 0
+    },
+    "child_retired": true,
+    "owned_group_members": [],
+    "controller": {
+      "pid": 4144094,
+      "start_time": 76409123
+    },
+    "child": {
+      "pid": 4144095,
+      "start_time": 76409208
+    },
+    "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Parent-callbacks-physical05-saved-history-package-App-issued-grant.json",
+    "input_and_qualification_claim": "Original read-only fixture and native InputDispositions must prove saved source preservation, zero submitted inputs and joined close; physical footage still needs review"
+  },
+  "operator": {
+    "elapsed_seconds": 205.56171191402245,
+    "operator": {
+      "pid": 4144084,
+      "start_time": 76409035
+    },
+    "controller": {
+      "pid": 4144094,
+      "start_time": 76409123
+    },
+    "parent_wait_outcome": {
+      "kind": "exited",
+      "code": 0
+    },
+    "returncode": 0,
+    "original_parent_wait": true
+  },
+  "native_journey_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "peer_selected": true,
+    "source_view_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_typed": true,
+    "draft_retained_on_return": true,
+    "undo_restored_original_draft": true,
+    "returned_saved_body_ready": true,
+    "end_saved_body_ready": true
+  },
+  "capture_completed": true,
+  "actual_installed_module_paths": {
+    "toad": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/toad/__init__.py",
+    "textual": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/textual/__init__.py",
+    "agent_comms": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/agent_comms/__init__.py"
+  },
+  "legacy_capture_target_source_label_is_not_import_location": true,
+  "whole": {
+    "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/sidebar-latency-physical05-20261006/485-installed-purpose/whole-handback.json",
+    "sha256": "f3feeec53c1842aa61f60c00acd119edfce8850a3a4e2e2d0dbb8d3f8879801d",
+    "bytes": 130921
+  },
+  "restore": {
+    "elapsed_seconds": 0.24331083800643682,
+    "returncode": 0,
+    "error": null,
+    "drain_errors": [],
+    "parent_wait_outcome": {
+      "kind": "exited",
+      "code": 0
+    },
+    "controller": {
+      "pid": 4149152,
+      "start_time": 76434092
+    },
+    "child": {
+      "pid": 4149171,
+      "start_time": 76434153
+    },
+    "child_retired": true,
+    "owned_group_members": []
+  },
+  "raw_files": 523,
+  "authored_files": 36,
+  "two_journals_preserved": true,
+  "owned_recorded_identities_absent": 119,
+  "actual_source_bytes": 42701205,
+  "source_return": {
+    "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/sidebar-latency-physical05-20261006/485-installed-purpose/PUBLIC475-source-READ-handback.json",
+    "sha256": "09258542974574a0a3dfd57a171dd27cb75f52c75c3156e7e9e308740f8fc560",
+    "bytes": 1283
+  },
+  "submitted_inputs": 0,
+  "performance_review_pending": true,
+  "no_smoothness_or_scroll_delivery_claim": true,
+  "public_installation_unchanged": true
+}
