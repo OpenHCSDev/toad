@@ -265,6 +265,12 @@ class NativeSessionSurface:
                 self.view = screen
             await self._trim_retained(conversation)
 
+    async def reconcile(self, screen: "MainScreen") -> None:
+        """Completed rich-panel hydration changes the same native working set."""
+        async with self._lock:
+            if self.view is screen and self.widget is not None:
+                await self._trim_retained(self.widget)
+
     async def _trim_retained(self, selected: Conversation) -> None:
         """Bound inactive native trees using the existing viewport resource policy.
 
@@ -275,12 +281,17 @@ class NativeSessionSurface:
         """
         app = self._app()
         budget = selected.window.document_viewport.budget
-        candidates = {screen.id: owner for screen, owner in self._presentations()}
-        required = self.view.presentation
-        ordered = dict.fromkeys((required, *(candidates[identity]
-            for identity in app.tab_order.recent if identity in candidates)))
+        candidates = {}
+        for screen, owner in self._presentations():
+            candidates.setdefault(screen.id, []).append(owner)
+        required = (self.view.presentation, *(
+            owner for owner in candidates.get(self.view.id, ())
+            if owner is not self.view.presentation))
+        ordered = dict.fromkeys((*required, *(
+            owner for identity in app.tab_order.recent
+            for owner in candidates.get(identity, ()))))
         admitted = budget.admit(
-            ordered, (required,), app.size.height, app.preparation.max_bytes,
+            ordered, required, app.size.height, app.preparation.max_bytes,
         )
         for owner in ordered:
             if owner not in admitted:

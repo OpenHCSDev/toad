@@ -6,7 +6,6 @@ from contextlib import AsyncExitStack
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical, VerticalGroup, VerticalScroll
-from textual.message import Message
 from textual.widgets import Static
 
 from toad.widgets.sidebar_viewport import SidebarHeader
@@ -36,11 +35,6 @@ class SidebarGroup(VerticalGroup):
     SidebarGroup > VerticalScroll.group-members { max-height: 12; overflow-x: hidden; }
     """
 
-    class Toggled(Message):
-        def __init__(self, group):
-            self.group = group
-            super().__init__()
-
     def __init__(self, row, *, expanded: bool, controls=(), scrollable=False,
                  disclosure_type=SidebarDisclosure, **kwargs):
         super().__init__(**kwargs)
@@ -63,7 +57,6 @@ class SidebarGroup(VerticalGroup):
     def toggle_members(self) -> None:
         self.expanded = not self.expanded
         self.disclosure.update("▾" if self.expanded else "▸", layout=False)
-        self.post_message(self.Toggled(self))
         self.call_later(self._sync_and_select)
 
     async def _sync_and_select(self) -> None:

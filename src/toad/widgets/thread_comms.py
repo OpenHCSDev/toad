@@ -118,6 +118,10 @@ class RelationshipRows(SidebarGroup):
         super().__init__(Static(model.title), expanded=expanded, scrollable=False,
                          id=f"relationships-{model.key}")
 
+    def toggle_members(self) -> None:
+        super().toggle_members()
+        self.query_ancestor(ThreadCommsSidebar).view_state.expanded[self.model.key] = self.expanded
+
     def thread_people(self):
         return {entry.person.thread.name: entry.person for entry in self.model.entries
                 if entry.person is not None}.values()
@@ -266,7 +270,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         if self._spinner_timer is None:
             return
         sidebar = self.query_ancestor(SideBar)
-        if (self.screen.is_active and not sidebar.collapsed
+        if (sidebar.presentation_visible and not sidebar.collapsed
                 and any(row.busy for group in self.groups.values() for row in group.rows.values())):
             self._spinner_timer.resume()
         else:
@@ -276,7 +280,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         self._sync_spinner()
 
     def _animate_busy(self) -> None:
-        if not self.screen.is_active:
+        if not self.query_ancestor(SideBar).presentation_visible:
             self._sync_spinner()
             return
         self._spinner_phase = (self._spinner_phase + 1) % len(FRAMES)
@@ -325,6 +329,9 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
     @handles(core_events.OpenTabsChanged, core_events.SessionSelected, core_events.ThreadActionsChanged, core_events.CoordinationObserved)
     async def _observed(self, event: CoreEventMessage) -> None:
         if not self.is_attached or self.screen is not self.app.screen:
+            return
+        if not self.query_ancestor(SideBar).presentation_visible:
+            self._sync_spinner()
             return
         if self._live:
             self._bind_screen_identity()
@@ -459,12 +466,6 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 context = self.query_one(".relationship-context", Static)
                 _update_content(context, Content("Comms unavailable"))
                 context.tooltip = str(error)
-
-    @on(SidebarGroup.Toggled)
-    def group_toggled(self, event):
-        if isinstance(event.group, RelationshipRows):
-            event.stop()
-            self.view_state.expanded[event.group.model.key] = event.group.expanded
 
     def _ordered_rows(self):
         return [row for group in self.groups.values() if group.expanded and group.display

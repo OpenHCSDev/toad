@@ -57,6 +57,7 @@ This shows the files in your project directory.
         classes: str | None = None,
         disabled: bool = False,
     ) -> None:
+        self._path_ready = asyncio.Event()
         self.path_filter: PathFilter | None = None
         self._directory_dirty = False
         self._refresh_scheduled = False
@@ -69,6 +70,7 @@ This shows the files in your project directory.
         If the path is changed the directory tree will be repopulated using
         the new value as the root.
         """
+        self._path_ready.clear()
         path = Path(self.path).absolute()
         path_filter = await asyncio.to_thread(PathFilter.from_git_root, path)
         if path != Path(self.path).absolute():
@@ -79,7 +81,13 @@ This shows the files in your project directory.
         await self.reload()
         if has_cursor:
             self.cursor_line = 0
-        self.scroll_to(0, 0, animate=False)
+        self.scroll_to(0, 0, animate=False, immediate=True)
+        if path == Path(self.path).absolute():
+            self._path_ready.set()
+
+    async def wait_path_ready(self) -> None:
+        """The original path watcher owns completion of reset/filter/reload."""
+        await self._path_ready.wait()
 
     def invalidate(self) -> None:
         self._directory_dirty = True

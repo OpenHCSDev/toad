@@ -12,8 +12,9 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from weakref import ref
 
-from agent_comms.comms import wire
+from agent_comms.comms import Comms
 from agent_comms.threads import Thread
+from agent_comms.relationships import AddRelationshipEdit
 from runtime_fixture import ToadApp
 from toad.plan import PlanItem, PendingPlanStatus, InProgressPlanStatus
 from toad.widgets.plan import Plan
@@ -93,6 +94,11 @@ async def exercise(screen, pilot, root):
     saved = [ref(panel.widget) for panel in sidebar.panels]
     tree_ref = ref(tree)
     await sidebar.retire_presentation()
+    assert all(widget() is panel.widget for widget, panel in zip(saved, sidebar.panels, strict=True))
+    assert tree_ref() is sidebar.query_one(ProjectDirectoryTree)
+    await sidebar.prepare_presentation()
+    assert tree_ref() is sidebar.query_one(ProjectDirectoryTree)
+    await sidebar.evict()
     assert not sidebar.panels and not sidebar._panels_loaded
     assert screen._project_panel is None
     assert not tuple(viewport.children)
@@ -116,12 +122,12 @@ async def exercise(screen, pilot, root):
     assert not relationships.groups["collaborating"].expanded
     tree = await prepare_project(sidebar, pilot)
     await until(pilot, lambda: tree.cursor_node is not None and tree.cursor_node.data.path == root / "folder/deep/item-38.txt")
-    await pilot.pause(.05)
+    await until(pilot, lambda: screen._project_panel._intent is None)
     assert tree.scroll_y == tree_scroll, (tree.scroll_y, tree_scroll, tree.size, tree.virtual_size)
     assert viewport.scroll_y == panel_scroll, (viewport.scroll_y, panel_scroll)
     assert all(word in viewport_text(sidebar) for word in ("Latest", "while", "absent"))
     tree.scroll_visible(animate=False, immediate=True)
-    tree.scroll_to(y=tree.max_scroll_y, animate=False, immediate=True)
+    tree.scroll_to(y=tree.max_scroll_y, animate=False, immediate=True, force=True)
     await pilot.pause(.02)
     assert "item-38.txt" in viewport_text(tree), ("Restored filename was not actually painted", viewport_text(tree))
     print(json.dumps({"restored_selection": str(tree.cursor_node.data.path), "tree_scroll": tree_scroll,
@@ -137,10 +143,11 @@ async def main():
             (project / "folder/deep" / f"item-{index:02}.txt").write_text(str(index))
         os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
-        comms = wire(root / "wire")
+        comms = Comms(root / "wire", private_initial_writes=True)
         for name in ("owner", "peer"):
             comms.registry.declare(Thread(name, frozenset(), str(project)))
-        comms.relationships.edit("owner", "add", "peer", "Actual relationship")
+        comms.messaging.initialize_private_initial_protocol()
+        comms.relationships.edit("owner", AddRelationshipEdit, "peer", "Actual relationship")
         app = InstalledApp(project_dir=str(project))
         async with app.run_test(size=(130, 44)) as pilot:
             await pilot.pause(.02)
@@ -150,16 +157,16 @@ async def main():
             for _ in range(3):
                 await exercise(screen, pilot, project)
             sidebar = screen.query_one(SessionThreadSidebar)
-            await sidebar.retire_presentation()
+            await sidebar.evict()
             sidebar.reveal()
             sidebar.collapsed = True
             await pilot.pause(.05)
             assert not sidebar.panels
             sidebar.reveal()
             await sidebar.wait_content_ready()
-            assert len(sidebar.panels) == 5
+            assert len(sidebar.panels) == len(sidebar._panel_owners)
             # Change the source project while the optional presentation is gone.
-            await sidebar.retire_presentation()
+            await sidebar.evict()
             replacement = root / "replacement-project"
             replacement.mkdir()
             (replacement / "new-source.txt").write_text("Current filesystem")
@@ -175,7 +182,7 @@ async def main():
             del tree
             # Enter the real hydration worker, then switch through the normal
             # production caller before its mount finishes. No gated/mock mount.
-            await sidebar.retire_presentation()
+            await sidebar.evict()
             sidebar._start_hydration()
             assert sidebar._panels_loading
             workers = tuple(worker for worker in sidebar.workers
@@ -187,7 +194,7 @@ async def main():
             assert all(worker.is_finished for worker in workers)
             await app.select_session(screen.id)
             await sidebar.wait_content_ready()
-            assert len(sidebar.panels) == 5
+            assert len(sidebar.panels) == len(sidebar._panel_owners)
             assert app._exception is None
     print("PASS: installed sidebar public lifetime, repeated real state restoration and rich graph collection", flush=True)
 
