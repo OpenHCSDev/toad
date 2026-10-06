@@ -16,7 +16,7 @@ import threading
 
 from agent_comms.channels import SavedView, ViewKind, ViewPredicate, AnyOfMatch
 from agent_comms.cli_commands import CliCommand
-from agent_comms.channel_management import ArchiveThreadsTagDisposition, DeleteThreadsTagDisposition
+from agent_comms.channel_management import ArchiveThreadsTagDisposition, DeleteThreadsTagDisposition, DeleteExclusiveInactiveThreadsTagDisposition
 from agent_comms.field_codec import FieldCodec
 from agent_comms.thread_status import StoppedThreadStatus
 from agent_comms.threads import Thread
@@ -58,7 +58,11 @@ async def choose(app, pilot, row, operation, fields, evidence):
     menu = await open_menu(app, pilot, row)
     assert operation in menu, tuple(menu)
     assert await pilot.click(menu[operation])
-    await until(pilot, lambda: isinstance(app.screen, CommandDialog))
+    await until(pilot, lambda: not isinstance(app.screen, ContextMenu)
+                and (isinstance(app.screen, CommandDialog) or not app.thread_actions.pending))
+    if not isinstance(app.screen, CommandDialog):
+        assert not fields, (operation, fields)
+        return
     dialog = app.screen
     for key, value in fields.items():
         editor = dialog.query_one('#command-field-' + key.replace('_', '-'))
@@ -134,7 +138,112 @@ async def mounted_layers(app, pilot):
     assert child.layers == before
 
 
-async def started_target_connections(base):
+async def select_rows(app, pilot, rows):
+    """Use original pointer admission, preserving the row's channel context."""
+    await open_menu(app, pilot, rows[0])
+    await pilot.press('escape')
+    from toad.widgets.comms_sidebar import CommsSidebar
+    sidebar = rows[0].query_ancestor(CommsSidebar)
+    for identity in tuple(app.sidebar_state.selected_targets):
+        if identity != sidebar.navigation.selection_for(rows[0]):
+            previous = next(row for row in sidebar.projection.rows
+                            if sidebar.navigation.selection_for(row) == identity)
+            previous.scroll_visible(animate=False, immediate=True)
+            await pilot.pause()
+            assert await pilot.click(previous, control=True)
+    for row in rows[1:]:
+        row.scroll_visible(animate=False, immediate=True)
+        await pilot.pause()
+        assert await pilot.click(row, control=True)
+    assert tuple(item.target for item in app.sidebar_state.selected_targets) == tuple(row.target_name for row in rows)
+
+
+async def selected_target_actions(app, pilot, comms, project, base, checks):
+    """Real native menus and original private storage, without native launches."""
+    from agent_comms.thread_status import ArchivedThreadStatus
+
+    cohort = ('batch-a', 'batch-b', 'batch-c')
+    source = base / 'batch-a.jsonl'
+    source.write_text(json.dumps({'type': 'message', 'message': {
+        'role': 'assistant', 'content': [{'type': 'text', 'text': 'Private saved batch reply'}],
+    }}) + '\n')
+    for name in cohort:
+        comms.registry.declare(Thread(name, frozenset({'batch'}), str(project),
+            session_file=str(source) if name == 'batch-a' else None), StoppedThreadStatus())
+    comms.threads.restore_stopped(comms.registry.snapshot(), cohort)
+    sidebar = await wait_channel_roster(app, pilot, '#batch')
+    rows = [await reveal_thread_row(app, pilot, name, '#batch') for name in cohort]
+    original_mode = app.selected_mode
+    await select_rows(app, pilot, rows[:1])
+    assert await pilot.click(rows[2], shift=True)
+    assert tuple(item.target for item in app.sidebar_state.selected_targets) == cohort
+    assert app.selected_mode == original_mode
+    assert await pilot.click(rows[1], control=True)
+    assert tuple(item.target for item in app.sidebar_state.selected_targets) == ('batch-a', 'batch-c')
+    checks.append('native-control-toggle-shift-range-without-opening-thread')
+
+    viewer = comms.messaging.user_identity(str(project)).name
+    comms.messaging.send('batch-a', 'batch-b', 'Private executor-only batch receipt')
+    comms.messaging.send('batch-a', viewer, 'Private human batch receipt')
+    comms.messaging.send('batch-a', '#batch', 'Private channel batch receipt')
+    executor_before = (comms.bus.pending_count('batch-b', 'batch-a'),
+                       comms.bus.pending_count('batch-b', '#batch'))
+    assert all(executor_before)
+    channel = sidebar.projection.channels['#batch']
+    await select_rows(app, pilot, (rows[0], channel))
+    selected = app.sidebar_state.selected_targets
+    await choose(app, pilot, rows[0], 'read-target', {'worktree': str(project)}, base)
+    assert app.sidebar_state.selected_targets == selected
+    human = comms.views.viewer_snapshot(str(project))
+    assert human.thread_unread['batch-a'] == human.unread.get('batch-a', 0) == 0
+    assert human.channel_unread['#batch'] == 0
+    assert (comms.bus.pending_count('batch-b', 'batch-a'),
+            comms.bus.pending_count('batch-b', '#batch')) == executor_before
+    checks.append('mixed-thread-channel-human-read-leaves-executor-delivery-pending')
+
+    await select_rows(app, pilot, (rows[0], rows[1], channel))
+    await choose(app, pilot, rows[0], 'pin-thread', {}, base)
+    catalog = comms.channels.catalog.read()
+    assert catalog.resolve('#batch').pinned
+    assert catalog.pinned_threads('#batch') == {'batch-a', 'batch-b'}
+    checks.append('mixed-channel-and-thread-pins-through-original-row-context')
+
+    # Change availability through the real command between menu and execution.
+    # No fabricated active status or replaced command implementation is used.
+    await select_rows(app, pilot, rows[:2])
+    menu = await open_menu(app, pilot, rows[0])
+    await command(comms.root, 'archive', '--name', 'batch-b')
+    app.clear_notifications()
+    assert await pilot.click(menu['archive'])
+    await until(pilot, lambda: not app.thread_actions.pending)
+    snapshot = comms.registry.snapshot()
+    assert isinstance(snapshot.status('batch-a'), ArchivedThreadStatus)
+    assert isinstance(snapshot.status('batch-b'), ArchivedThreadStatus)
+    assert isinstance(snapshot.status('batch-c'), StoppedThreadStatus)
+    notifications = tuple(app._notifications)
+    assert len(notifications) == 1 and notifications[0].severity == 'error'
+    assert '1/2 completed' in notifications[0].message and 'batch-b' in notifications[0].message
+    checks.append('acquired-batch-menu-rebinds-and-reports-real-partial-failure')
+
+    for name, tags in (('exclusive-inactive', {'remove-only'}),
+                       ('multiple-inactive', {'remove-only', 'keep-other'})):
+        comms.registry.declare(Thread(name, frozenset(tags), str(project)), StoppedThreadStatus())
+    comms.threads.restore_stopped(comms.registry.snapshot(), ('exclusive-inactive', 'multiple-inactive'))
+    survivor = comms.registry.require('multiple-inactive')
+    sidebar = await wait_channel_roster(app, pilot, '#remove-only')
+    await select_rows(app, pilot, (sidebar.projection.channels['#remove-only'],))
+    await choose(app, pilot, sidebar.projection.channels['#remove-only'], 'delete-tag',
+        {'disposition': DeleteExclusiveInactiveThreadsTagDisposition.declared_name}, base)
+    assert 'exclusive-inactive' not in comms.registry
+    retained = comms.registry.require('multiple-inactive')
+    assert retained.incarnation == survivor.incarnation and retained.tags == {'keep-other'}
+    assert retained.session_file == survivor.session_file and retained.process_identity == survivor.process_identity
+    await until(pilot, lambda: '#remove-only' not in sidebar.projection.channels)
+    checks.append('native-editor-exclusive-inactive-delete-retains-multitag-incarnation')
+    assert app._exception is None
+
+
+async def started_target_connections(base, *, batch=False):
     """Use the original SDK/ACP fixture, with no native prompt or model call."""
     from l0a_native_installed_pilot import main as native_journey
     from toad.acp.agent_session import AgentSession
@@ -182,6 +291,10 @@ async def started_target_connections(base):
             from toad.thread_actions import ThreadAction
             ThreadAction.collect(context, definition)
             await app.thread_actions.close()
+
+        if batch:
+            await batch_started_target_actions(app, pilot, actor, comms, project, evidence, requests, calls, observe)
+            return
 
         threading.setprofile_all_threads(observe)
         try:
@@ -233,6 +346,114 @@ async def started_target_connections(base):
 
     await native_journey(acceptance=acceptance, provider_request_budget=0,
                          fixture_stage=base / 'start-fixture', app_type=ToadApp)
+    if batch:
+        receipt = json.loads((evidence / 'receipt.json').read_text())
+        receipt.update(result='PASS', whole_app_shutdown_completed=True,
+                       original_sdk_fixture_cleanup_completed=True)
+        (evidence / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
+
+
+
+async def batch_started_target_actions(app, pilot, actor, comms, project, evidence, requests, reconnects, observe_reconnect):
+    """Original SDK/ACP fixture: two real owners, overlapping selection once."""
+    from agent_comms.owner_lifecycle import OwnerLifecycle
+
+    original_actor = actor.process.process
+    actor_session = actor.session
+    actor_source = app.selected_session
+    actor_contents = actor_source.conversation.contents
+    actor_mode = app.selected_mode
+    original = comms.registry.require('beta')
+    comms.channels.update_tags('peer', add=frozenset({'batch-native'}))
+    comms.channels.update_tags('peer', remove=frozenset({'team'}))
+    comms.registry.declare(Thread('peer-two', frozenset({'batch-native'}), str(project),
+        model=original.model, thinking_level=original.thinking_level), StoppedThreadStatus())
+    comms.threads.restore_stopped(comms.registry.snapshot(), ('peer-two',))
+    app.settings.sidebar.show_stopped = True
+    calls = {'start': [], 'stop': []}
+    codes = {OwnerLifecycle.start.__code__: calls['start'], OwnerLifecycle.stop.__code__: calls['stop']}
+    def observed(frame, event, argument):
+        observe_reconnect(frame, event, argument)
+        if event == 'call' and frame.f_code in codes:
+            codes[frame.f_code].append(frame.f_locals['name'])
+
+    async def selected(operation):
+        sidebar = await wait_channel_roster(app, pilot, '#batch-native')
+        row = await reveal_thread_row(app, pilot, 'peer', '#batch-native')
+        channel = sidebar.projection.channels['#batch-native']
+        await select_rows(app, pilot, (channel, row))
+        await choose(app, pilot, channel, operation, {}, evidence)
+
+    identities = []
+    inputs = comms.root / 'input_dispositions.json'
+    before_inputs = inputs.read_bytes() if inputs.exists() else None
+    threading.setprofile_all_threads(observed)
+    try:
+        await selected('start')
+        assert calls['start'] == ['peer', 'peer-two']
+        assert reconnects == []
+        assert all(comms.registry.require(name).process_alive for name in ('peer', 'peer-two'))
+        identities.extend(comms.registry.require(name).require_process() for name in ('peer', 'peer-two'))
+        mode = await app.thread_navigation.open(owner_mode=actor_mode, project_path=project, target='peer')
+        source = app.session_navigation.source(mode)
+        await until(pilot, lambda: source.conversation.agent is not None)
+        peer = source.conversation.agent
+        await until(pilot, peer.session.settled.is_set)
+        assert peer.session.connected
+        # Retire this fixture's original ACP connection before stopping its
+        # native owners, exactly as the existing single-start control does.
+        await peer.stop()
+        await selected('stop')
+        assert calls['stop'] == ['peer', 'peer-two']
+        assert all(comms.registry.status(name).stopped and not comms.registry.require(name).process_alive
+                   for name in ('peer', 'peer-two'))
+        assert all(not Path('/proc', str(identity.pid)).exists() for identity in identities)
+        await selected('start')
+        assert calls['start'] == ['peer', 'peer-two', 'peer', 'peer-two']
+        assert reconnects == [peer] and peer.session.connected
+        assert app.session_navigation.source(mode) is source
+        identities.extend(comms.registry.require(name).require_process() for name in ('peer', 'peer-two'))
+        assert actor.process.process is original_actor and original_actor.returncode is None
+        assert actor.session is actor_session and actor.session.connected
+        assert actor_source.conversation.contents is actor_contents
+        assert requests == []
+
+        # Real active original owners must survive the granular tag operation.
+        for name in ('peer', 'peer-two'):
+            comms.channels.update_tags(name, add=frozenset({'remove-native'}))
+        comms.registry.declare(Thread('remove-stopped', frozenset({'remove-native'}), str(project)), StoppedThreadStatus())
+        comms.threads.restore_stopped(comms.registry.snapshot(), ('remove-stopped',))
+        before = {name: comms.registry.require(name) for name in ('peer', 'peer-two')}
+        sidebar = await wait_channel_roster(app, pilot, '#remove-native')
+        channel = sidebar.projection.channels['#remove-native']
+        await select_rows(app, pilot, (channel,))
+        await choose(app, pilot, channel, 'delete-tag',
+            {'disposition': DeleteExclusiveInactiveThreadsTagDisposition.declared_name}, evidence)
+        assert 'remove-stopped' not in comms.registry
+        for name, captured in before.items():
+            retained = comms.registry.require(name)
+            assert retained.incarnation == captured.incarnation
+            assert retained.process_identity == captured.process_identity and retained.process_alive
+            assert retained.tags == {'batch-native'} and retained.session_file == captured.session_file
+        await until(pilot, lambda: '#remove-native' not in sidebar.projection.channels)
+        await peer.stop()
+        await selected('stop')
+        assert calls['stop'] == ['peer', 'peer-two', 'peer', 'peer-two']
+        assert all(not Path('/proc', str(identity.pid)).exists() for identity in identities)
+        assert (inputs.read_bytes() if inputs.exists() else None) == before_inputs
+        assert requests == [] and app._exception is None
+        (evidence / 'receipt.json').write_text(json.dumps({
+            'result': 'ASSERTIONS_PASS_SHUTDOWN_PENDING',
+            'native_owner_start_calls': calls['start'], 'native_owner_stop_calls': calls['stop'],
+            'overlapping_channel_thread_deduplicated': True,
+            'only_original_open_peer_reconnected': len(reconnects),
+            'actor_connection_and_reader_unchanged': True,
+            'active_tag_survivors_preserved': True,
+            'provider_calls': 0, 'native_inputs': 0,
+            'original_process_identities': [FieldCodec.encode(identity) for identity in identities],
+        }, indent=2) + '\n')
+    finally:
+        threading.setprofile_all_threads(None)
 
 
 async def deleted_native_connections(base):
@@ -330,137 +551,141 @@ async def journey(args):
     threading.setprofile_all_threads(observe)
     app = ToadApp(project_dir=str(project))
     async with app.run_test(size=(125, 48), headless=not args.physical) as pilot:
-        owner = app.session_navigation.get(app.selected_mode)
-        sidebar = await wait_channel_roster(app, pilot, '#first', '#all')
-        await mounted_layers(app, pilot)
-        checks.append('corrected-mounted-layer-owner-custom-duplicates-empty-restoration')
-        row = await reveal_thread_row(app, pilot, 'tagged', '#first')
-        await choose(app, pilot, row, 'thread-tags', {'tags': 'first,second'}, base)
-        assert comms.registry.require('tagged').tags == frozenset({'first','second'})
-        checks.append('native-right-click-thread-tags-original-membership')
-        await until(pilot, lambda: '#second' in sidebar.projection.channels)
-        channel = sidebar.projection.channels['#second']
-        await choose(app, pilot, channel, 'rename-tag', {'new_name': 'renamed'}, base)
-        assert comms.registry.require('tagged').tags == frozenset({'first','renamed'})
-        await until(pilot, lambda: '#renamed' in sidebar.projection.channels and '#second' not in sidebar.projection.channels)
-        checks.append('native-right-click-rename-observed-current-sidebar')
-        app.save_screenshot(str(base / 'renamed-sidebar.svg'))
-        builtin = sidebar.projection.channels['#all']
-        menu = await open_menu(app, pilot, builtin)
-        assert not {'rename-tag','delete-tag','delete-view'} & menu.keys()
-        await pilot.press('escape')
-        checks.append('builtin-applicability-owned-by-backend')
-        channel = sidebar.projection.channels['#renamed']
-        await choose(app, pilot, channel, 'delete-tag', {}, base)
-        assert comms.registry.require('tagged').tags == frozenset({'first'})
-        await until(pilot, lambda: '#renamed' not in sidebar.projection.channels)
-        checks.append('native-reviewable-delete-original-tags-updated')
-        view = sidebar.projection.channels['#projection']
-        await choose(app, pilot, view, 'delete-view', {}, base)
-        assert 'projection' not in comms.channels.catalog.read().saved_views
-        checks.append('native-saved-view-delete-original-catalog')
-        chat = await open_channel(app, pilot, '#first')
-        await until(pilot, lambda: any(item.command == '/pin-channel'
-                                      for item in chat.prompt.slash_commands))
-        before_reads = len(catalog_reads)
-        catalog = await chat.read_command_catalog()
-        assert len(catalog_reads) == before_reads + 1
-        assert any(item.command == '/pin-channel' for item in catalog.commands)
-        # Both existing native consumers execute a freshly acquired projection;
-        # the actual prompt/Enter drives the channel submission consumer here.
-        await slash(chat, pilot, '/pin-channel')
-        await until(pilot, lambda: comms.channels.catalog.read().resolve('#first').pinned)
-        await until(pilot, lambda: not app.thread_actions.pending)
-        checks.append('slash-single-acquisition-refresh-and-native-enter-execution')
-        # CLI uses the same original typed operation; already-mounted UI derives
-        # the new canonical revision without a local tag/status assignment.
-        response = await command(comms.root, 'thread-tags', '--name', 'tagged', '--tags', 'first,cli-tag')
-        assert response['tags'] == ['cli-tag','first']
-        await until(pilot, lambda: '#cli-tag' in sidebar.projection.channels)
-        checks.append('same-private-bus-cli-change-visible-in-open-native-app')
-        original_view = app.selected_session
-        await open_channel(app, pilot, '#all')
-        await command(comms.root, 'thread-tags', '--name', 'tagged', '--tags', 'first,cli-tag,hidden-tag')
-        sidebar = await wait_channel_roster(app, pilot, '#hidden-tag')
-        label = next(label for label in app.screen.query(SessionLabel)
-                     if label.id == original_view.id)
-        label.scroll_visible(animate=False, immediate=True)
-        await pilot.pause()
-        assert await pilot.click(label)
-        await until(pilot, lambda: app.selected_session is original_view)
-        returned = original_view.query_one(CommsChatView)
-        assert returned is chat
-        await until(pilot, lambda: any(item.command == '/pin-channel'
-                                      for item in returned.prompt.slash_commands))
-        await slash(returned, pilot, '/pin-channel')
-        await until(pilot, lambda: not comms.channels.catalog.read().resolve('#first').pinned)
-        await until(pilot, lambda: not app.thread_actions.pending)
-        app.save_screenshot(str(base / 'slash-hidden-return.svg'))
-        checks.append('hidden-backend-change-original-tab-return-fresh-slash-execution')
-        assert comms.registry.require('tagged').incarnation == original
-        # Channel visibility is a reversible catalog preference, independently
-        # of the three tagged-thread outcomes. Hidden admitted channels close
-        # through the same original workspace resource as selected channels.
-        channel_modes = tuple(entry.mode for entry in app.session_navigation.members
-                              if entry.original_channels() == ((str(comms.root), '#first'),))
-        original_registry = comms.registry.snapshot()
-        await command(comms.root, 'archive-channel', '--name', '#first')
-        await until(pilot, lambda: all(app.session_navigation.get(mode) is None for mode in channel_modes))
-        assert comms.registry.snapshot() == original_registry
-        assert comms.channels.catalog.read().resolve('#first').archived
-        await command(comms.root, 'restore-channel', '--name', '#first')
-        await wait_channel_roster(app, pilot, '#first')
-        assert not comms.channels.catalog.read().resolve('#first').archived
-        assert comms.registry.snapshot() == original_registry
-        checks.append('archive-restore-channel-only-preference-no-thread-tag-history-mutation')
+        if args.selected_only:
+            await selected_target_actions(app, pilot, comms, project, base, checks)
+        else:
+            owner = app.session_navigation.get(app.selected_mode)
+            sidebar = await wait_channel_roster(app, pilot, '#first', '#all')
+            await mounted_layers(app, pilot)
+            checks.append('corrected-mounted-layer-owner-custom-duplicates-empty-restoration')
+            row = await reveal_thread_row(app, pilot, 'tagged', '#first')
+            await choose(app, pilot, row, 'thread-tags', {'tags': 'first,second'}, base)
+            assert comms.registry.require('tagged').tags == frozenset({'first','second'})
+            checks.append('native-right-click-thread-tags-original-membership')
+            await until(pilot, lambda: '#second' in sidebar.projection.channels)
+            channel = sidebar.projection.channels['#second']
+            await choose(app, pilot, channel, 'rename-tag', {'new_name': 'renamed'}, base)
+            assert comms.registry.require('tagged').tags == frozenset({'first','renamed'})
+            await until(pilot, lambda: '#renamed' in sidebar.projection.channels and '#second' not in sidebar.projection.channels)
+            checks.append('native-right-click-rename-observed-current-sidebar')
+            app.save_screenshot(str(base / 'renamed-sidebar.svg'))
+            builtin = sidebar.projection.channels['#all']
+            menu = await open_menu(app, pilot, builtin)
+            assert not {'rename-tag','delete-tag','delete-view'} & menu.keys()
+            await pilot.press('escape')
+            checks.append('builtin-applicability-owned-by-backend')
+            channel = sidebar.projection.channels['#renamed']
+            await choose(app, pilot, channel, 'delete-tag', {}, base)
+            assert comms.registry.require('tagged').tags == frozenset({'first'})
+            await until(pilot, lambda: '#renamed' not in sidebar.projection.channels)
+            checks.append('native-reviewable-delete-original-tags-updated')
+            view = sidebar.projection.channels['#projection']
+            await choose(app, pilot, view, 'delete-view', {}, base)
+            assert 'projection' not in comms.channels.catalog.read().saved_views
+            checks.append('native-saved-view-delete-original-catalog')
+            chat = await open_channel(app, pilot, '#first')
+            await until(pilot, lambda: any(item.command == '/pin-channel'
+                                          for item in chat.prompt.slash_commands))
+            before_reads = len(catalog_reads)
+            catalog = await chat.read_command_catalog()
+            assert len(catalog_reads) == before_reads + 1
+            assert any(item.command == '/pin-channel' for item in catalog.commands)
+            # Both existing native consumers execute a freshly acquired projection;
+            # the actual prompt/Enter drives the channel submission consumer here.
+            await slash(chat, pilot, '/pin-channel')
+            await until(pilot, lambda: comms.channels.catalog.read().resolve('#first').pinned)
+            await until(pilot, lambda: not app.thread_actions.pending)
+            checks.append('slash-single-acquisition-refresh-and-native-enter-execution')
+            # CLI uses the same original typed operation; already-mounted UI derives
+            # the new canonical revision without a local tag/status assignment.
+            response = await command(comms.root, 'thread-tags', '--name', 'tagged', '--tags', 'first,cli-tag')
+            assert response['tags'] == ['cli-tag','first']
+            await until(pilot, lambda: '#cli-tag' in sidebar.projection.channels)
+            checks.append('same-private-bus-cli-change-visible-in-open-native-app')
+            original_view = app.selected_session
+            await open_channel(app, pilot, '#all')
+            await command(comms.root, 'thread-tags', '--name', 'tagged', '--tags', 'first,cli-tag,hidden-tag')
+            sidebar = await wait_channel_roster(app, pilot, '#hidden-tag')
+            label = next(label for label in app.screen.query(SessionLabel)
+                         if label.id == original_view.id)
+            label.scroll_visible(animate=False, immediate=True)
+            await pilot.pause()
+            assert await pilot.click(label)
+            await until(pilot, lambda: app.selected_session is original_view)
+            returned = original_view.query_one(CommsChatView)
+            assert returned is chat
+            await until(pilot, lambda: any(item.command == '/pin-channel'
+                                          for item in returned.prompt.slash_commands))
+            await slash(returned, pilot, '/pin-channel')
+            await until(pilot, lambda: not comms.channels.catalog.read().resolve('#first').pinned)
+            await until(pilot, lambda: not app.thread_actions.pending)
+            app.save_screenshot(str(base / 'slash-hidden-return.svg'))
+            checks.append('hidden-backend-change-original-tab-return-fresh-slash-execution')
+            assert comms.registry.require('tagged').incarnation == original
+            # Channel visibility is a reversible catalog preference, independently
+            # of the three tagged-thread outcomes. Hidden admitted channels close
+            # through the same original workspace resource as selected channels.
+            channel_modes = tuple(entry.mode for entry in app.session_navigation.members
+                                  if entry.original_channels() == ((str(comms.root), '#first'),))
+            original_registry = comms.registry.snapshot()
+            await command(comms.root, 'archive-channel', '--name', '#first')
+            await until(pilot, lambda: all(app.session_navigation.get(mode) is None for mode in channel_modes))
+            assert comms.registry.snapshot() == original_registry
+            assert comms.channels.catalog.read().resolve('#first').archived
+            await command(comms.root, 'restore-channel', '--name', '#first')
+            await wait_channel_roster(app, pilot, '#first')
+            assert not comms.channels.catalog.read().resolve('#first').archived
+            assert comms.registry.snapshot() == original_registry
+            checks.append('archive-restore-channel-only-preference-no-thread-tag-history-mutation')
 
-        for name, tag in (('archive-a', 'archive-cohort'), ('delete-a', 'delete-cohort'),
-                          ('delete-b', 'delete-cohort')):
-            comms.registry.declare(Thread(name, frozenset({tag}), str(project)), StoppedThreadStatus())
-        comms.threads.restore_stopped(comms.registry.snapshot(), ('archive-a', 'delete-a', 'delete-b'))
-        await wait_channel_roster(app, pilot, '#archive-cohort', '#delete-cohort')
-        sidebar = await wait_channel_roster(app, pilot, '#archive-cohort')
-        await choose(app, pilot, sidebar.projection.channels['#archive-cohort'], 'delete-tag',
-                     {'disposition': ArchiveThreadsTagDisposition.declared_name}, base)
-        assert comms.registry.status('archive-a').declared_name == 'archived'
-        assert comms.registry.require('archive-a').tags == {'archive-cohort'}
-        assert '#archive-cohort' in comms.channels.channels()
-        checks.append('native-form-archive-tagged-threads-preserves-tag-channel-and-history')
+            for name, tag in (('archive-a', 'archive-cohort'), ('delete-a', 'delete-cohort'),
+                              ('delete-b', 'delete-cohort')):
+                comms.registry.declare(Thread(name, frozenset({tag}), str(project)), StoppedThreadStatus())
+            comms.threads.restore_stopped(comms.registry.snapshot(), ('archive-a', 'delete-a', 'delete-b'))
+            await wait_channel_roster(app, pilot, '#archive-cohort', '#delete-cohort')
+            sidebar = await wait_channel_roster(app, pilot, '#archive-cohort')
+            await choose(app, pilot, sidebar.projection.channels['#archive-cohort'], 'delete-tag',
+                         {'disposition': ArchiveThreadsTagDisposition.declared_name}, base)
+            assert comms.registry.status('archive-a').declared_name == 'archived'
+            assert comms.registry.require('archive-a').tags == {'archive-cohort'}
+            assert '#archive-cohort' in comms.channels.channels()
+            checks.append('native-form-archive-tagged-threads-preserves-tag-channel-and-history')
 
-        from toad.conversation_kind import DmConversation
-        removed_modes = []
-        for peer in ('delete-a', 'delete-b'):
-            removed_modes.append(await app.session_navigation.history(
-                owner_mode=owner.mode, project_path=project, me='viewer', target=peer, kind=DmConversation))
-        assert app.selected_mode == removed_modes[-1]
-        assert all(mode in app.workspace_sessions.views for mode in removed_modes)
-        inputs = comms.root / 'input_dispositions.json'
-        input_bytes = inputs.read_bytes() if inputs.exists() else None
-        response = await command(comms.root, 'delete-tag', '--name', 'delete-cohort',
-                                 '--disposition', DeleteThreadsTagDisposition.declared_name, '--confirmed')
-        assert {row['name'] for row in response['removed_threads']} == {'delete-a', 'delete-b'}
-        await until(pilot, lambda: all(mode not in app.workspace_sessions.views
-                                      and app.session_navigation.get(mode) is None for mode in removed_modes))
-        assert all(peer not in comms.registry for peer in ('delete-a', 'delete-b'))
-        assert (inputs.read_bytes() if inputs.exists() else None) == input_bytes
-        reopened_mode = await app.session_navigation.history(owner_mode=owner.mode,
-            project_path=project, me='viewer', target='delete-a', kind=DmConversation)
-        assert reopened_mode not in removed_modes
-        assert all(app.session_navigation.get(mode) is None for mode in removed_modes)
-        checks.append('cli-delete-actual-backend-cohort-closes-current-hidden-views-refuses-reopen')
-        assert app._exception is None
-    reopened = ToadApp(project_dir=str(project))
-    async with reopened.run_test(size=(125,48), headless=not args.physical) as pilot:
-        sidebar = await wait_channel_roster(reopened, pilot, '#first', '#cli-tag', '#hidden-tag')
-        row = await reveal_thread_row(reopened, pilot, 'tagged', '#cli-tag')
-        menu = await open_menu(reopened, pilot, row)
-        assert await pilot.click(menu['thread-tags'])
-        await until(pilot, lambda: isinstance(reopened.screen, CommandDialog))
-        assert reopened.screen.query_one('#command-field-tags', Input).value == 'cli-tag, first, hidden-tag'
-        reopened.save_screenshot(str(base / 'saved-reopen-tags.svg'))
-        await pilot.press('escape')
-        assert reopened._exception is None
-    checks.append('save-reopen-original-registry-tags-no-frontend-copy')
+            from toad.conversation_kind import DmConversation
+            removed_modes = []
+            for peer in ('delete-a', 'delete-b'):
+                removed_modes.append(await app.session_navigation.history(
+                    owner_mode=owner.mode, project_path=project, me='viewer', target=peer, kind=DmConversation))
+            assert app.selected_mode == removed_modes[-1]
+            assert all(mode in app.workspace_sessions.views for mode in removed_modes)
+            inputs = comms.root / 'input_dispositions.json'
+            input_bytes = inputs.read_bytes() if inputs.exists() else None
+            response = await command(comms.root, 'delete-tag', '--name', 'delete-cohort',
+                                     '--disposition', DeleteThreadsTagDisposition.declared_name, '--confirmed')
+            assert {row['name'] for row in response['removed_threads']} == {'delete-a', 'delete-b'}
+            await until(pilot, lambda: all(mode not in app.workspace_sessions.views
+                                          and app.session_navigation.get(mode) is None for mode in removed_modes))
+            assert all(peer not in comms.registry for peer in ('delete-a', 'delete-b'))
+            assert (inputs.read_bytes() if inputs.exists() else None) == input_bytes
+            reopened_mode = await app.session_navigation.history(owner_mode=owner.mode,
+                project_path=project, me='viewer', target='delete-a', kind=DmConversation)
+            assert reopened_mode not in removed_modes
+            assert all(app.session_navigation.get(mode) is None for mode in removed_modes)
+            checks.append('cli-delete-actual-backend-cohort-closes-current-hidden-views-refuses-reopen')
+            assert app._exception is None
+    if not args.selected_only:
+        reopened = ToadApp(project_dir=str(project))
+        async with reopened.run_test(size=(125,48), headless=not args.physical) as pilot:
+            sidebar = await wait_channel_roster(reopened, pilot, '#first', '#cli-tag', '#hidden-tag')
+            row = await reveal_thread_row(reopened, pilot, 'tagged', '#cli-tag')
+            menu = await open_menu(reopened, pilot, row)
+            assert await pilot.click(menu['thread-tags'])
+            await until(pilot, lambda: isinstance(reopened.screen, CommandDialog))
+            assert reopened.screen.query_one('#command-field-tags', Input).value == 'cli-tag, first, hidden-tag'
+            reopened.save_screenshot(str(base / 'saved-reopen-tags.svg'))
+            await pilot.press('escape')
+            assert reopened._exception is None
+        checks.append('save-reopen-original-registry-tags-no-frontend-copy')
     assert catalog_reads and all(read['thread'] != ui_thread for read in catalog_reads)
     checks.append('all-observed-catalog-reads-off-ui-loop')
     threading.setprofile_all_threads(None)
@@ -481,10 +706,15 @@ if __name__ == '__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--physical',action='store_true')
+    parser.add_argument('--selected-only', action='store_true', help='Affected selected-target menus and private-store outcomes; no old ordinary journey replay')
+    parser.add_argument('--batch-native-only', action='store_true', help='Selected channel/member start-stop deduplication and original ACP reconnect; zero provider prompts')
     parser.add_argument('--start-only', action='store_true', help='Original SDK/ACP Start-target resource control')
     parser.add_argument('--delete-native-only', action='store_true', help='Current history and hidden native view retirement')
     args = parser.parse_args()
-    if args.start_only:
+    if args.batch_native_only:
+        args.output.mkdir(parents=True, exist_ok=False)
+        asyncio.run(started_target_connections(args.output.resolve(), batch=True))
+    elif args.start_only:
         args.output.mkdir(parents=True, exist_ok=False)
         asyncio.run(started_target_connections(args.output.resolve()))
     elif args.delete_native_only:
