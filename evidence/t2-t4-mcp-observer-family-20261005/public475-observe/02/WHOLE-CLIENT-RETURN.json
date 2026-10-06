@@ -1,0 +1,397 @@
+{
+  "status": "PASS scoped PUBLIC475 stationaryattachment",
+  "operator_duration_seconds": 24.688835697015747,
+  "recorder_duration_seconds": 11.791218186030164,
+  "completed": true,
+  "capture_completed": true,
+  "runtime_unchanged": true,
+  "UI_parent_exit": 0,
+  "st_parent_exit": 0,
+  "quit_before_retirement": true,
+  "client_source_READ_claim": "WHOLE RETURNED",
+  "joined_count": 18,
+  "groups_sockets": [],
+  "original_owner_settings_source_unchanged": true,
+  "provider_inputs": 0,
+  "native_inputs": 0,
+  "movie": false,
+  "predecessor01": "ImmutableFAIL/UNQUALIFIED; not relabeled",
+  "refs": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/AFTER-TERMINAL-PHYSICAL-REVIEW.json",
+      "sha256": "a3bbacd01dda8557eda01325e875b304edf35b7051c96742ec5def99c46a4f79",
+      "bytes": 450,
+      "mode": 33188,
+      "mtime_ns": 1791245900095974750,
+      "inode": 2926188
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/SAVED-SOURCE-BEFORE.json",
+      "sha256": "97f54dc35dbc796f0ebfc1db735933f1a433d4c42bdd3d42efeafa93342f6cdf",
+      "bytes": 337,
+      "mode": 33188,
+      "mtime_ns": 1791245819798124195,
+      "inode": 2925687
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/UI-STATE-COPY.json",
+      "sha256": "e8d2f495a8d4ac9126a0ac02ba70762b71669a053fe6f5db849c84470b98b43b",
+      "bytes": 839,
+      "mode": 33188,
+      "mtime_ns": 1791245819812932633,
+      "inode": 2925691
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/COMMAND.json",
+      "sha256": "524a36a2145751882ca9d8bf2d2ece187e1ca0931837cb66681452fcb20d7d56",
+      "bytes": 4657,
+      "mode": 33188,
+      "mtime_ns": 1791245819813072748,
+      "inode": 2925692
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/AT-RETURN-ADMISSION.json",
+      "sha256": "48b4324862b048189165dda6f5c3ab91f9d38dd287f116d2830493d5b115a62e",
+      "bytes": 355,
+      "mode": 33188,
+      "mtime_ns": 1791245900095795870,
+      "inode": 2926187
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/stdout.log",
+      "sha256": "fbbc2fe912a9334e04ae3e04d26df550c14840d1f0925bf46ceec46167030cd0",
+      "bytes": 186,
+      "mode": 33188,
+      "mtime_ns": 1791245844212152385,
+      "inode": 2925693
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/JOINED-IDENTITIES.json",
+      "sha256": "73ad270c21b51843a3bfd7f2116fc70b59f658ec5fed303daeee1af40a58e51e",
+      "bytes": 2633,
+      "mode": 33188,
+      "mtime_ns": 1791245899780666334,
+      "inode": 2926186
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/RESOURCE-ADMISSION.json",
+      "sha256": "fd1113edeea486bd39d118bd8bba132543a584edaead36865865a0a682c3d8ac",
+      "bytes": 460,
+      "mode": 33188,
+      "mtime_ns": 1791245819493429740,
+      "inode": 2925685
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/AT-USE-ADMISSION.json",
+      "sha256": "dd0f81f5059eaf856284360f55eb49c14118de5fada035ff5cc830114f50af20",
+      "bytes": 2961,
+      "mode": 33188,
+      "mtime_ns": 1791245819650091546,
+      "inode": 2925686
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/TERMINAL.json",
+      "sha256": "b151d92f08b209d60f404729088d6b284e74a07d8cd24062cb9833ae3e4da697",
+      "bytes": 347,
+      "mode": 33188,
+      "mtime_ns": 1791245844502214726,
+      "inode": 2926185
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/LAUNCH.json",
+      "sha256": "8e1af1cbf59ac038f7d1f057343d958113d3a8933a4616da1361879f4282003e",
+      "bytes": 182,
+      "mode": 33188,
+      "mtime_ns": 1791245819814445702,
+      "inode": 2925694
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/after-screen.svg",
+      "sha256": "0e503ee74aee457422ab4e3fe7eafd39fb93c660815b10ddc7b560e5240612fc",
+      "bytes": 58908,
+      "mode": 33152,
+      "mtime_ns": 1791245837538984969,
+      "inode": 2926176
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/after.png",
+      "sha256": "4ca7455458f60f30cd91f718e17faa51e9442b52ebe7352cbcf6d0b2a45373d6",
+      "bytes": 108744,
+      "mode": 33188,
+      "mtime_ns": 1791245837209978080,
+      "inode": 2926171
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/before.png",
+      "sha256": "3b30245eea5c34c3807062b03d01f6b236b1eeb279183d97a736f6a56e85ca62",
+      "bytes": 113793,
+      "mode": 33188,
+      "mtime_ns": 1791245834261916348,
+      "inode": 2926156
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/before-state.json",
+      "sha256": "192963d023aee720a3debb6aa57d98b4bf0d00d66d2f008bd075224455e4d27e",
+      "bytes": 949699,
+      "mode": 33152,
+      "mtime_ns": 1791245834670924912,
+      "inode": 2926164
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/before-state.pickle",
+      "sha256": "896691cdc68921b82b45b0b5d34a9ba1a2f469abdad8aa1ac010a5dede5f4d45",
+      "bytes": 370744,
+      "mode": 33152,
+      "mtime_ns": 1791245834617923803,
+      "inode": 2926163
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/observers-capture.log",
+      "sha256": "628c1ead9f4a24a84f8be7e9165ac56a7884923e134684646a261b9d0590944b",
+      "bytes": 100,
+      "mode": 33188,
+      "mtime_ns": 1791245834912402334,
+      "inode": 2926166
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/before-screen.svg",
+      "sha256": "33c6f5e221064c5e2a06eb4aa84dd9c968f280c4b526c805d4d0299550fbba16",
+      "bytes": 61529,
+      "mode": 33152,
+      "mtime_ns": 1791245834591923258,
+      "inode": 2926161
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/after-state-metadata.json",
+      "sha256": "a428eb8cd37368776fc0b4113f5a9bb9fa81bc021cee8599b30f9a4e8bf7a2ce",
+      "bytes": 949216,
+      "mode": 33152,
+      "mtime_ns": 1791245837541985032,
+      "inode": 2926175
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/after-remote.py",
+      "sha256": "2428eca98f7addc383afe556f07586f4b81e4ba1ad4e71bd1b85b4d17b52e520",
+      "bytes": 1400,
+      "mode": 33152,
+      "mtime_ns": 1791245837417982435,
+      "inode": 2926173
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/receipt.json",
+      "sha256": "7591ab5a2bcb793603ed0965887ca35dcaf872dce6946763abf8b50628d09861",
+      "bytes": 37309,
+      "mode": 33188,
+      "mtime_ns": 1791245844212152385,
+      "inode": 2926184
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/after-manifest.json",
+      "sha256": "a41b05cf9359fc3ad1dbe21caebeb75250a83aad95c51ec8da86d0b8396a850c",
+      "bytes": 547,
+      "mode": 33152,
+      "mtime_ns": 1791245837651725962,
+      "inode": 2926180
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/terminal.log",
+      "sha256": "578cd7249ee237923e96875cb8a79b16214a805ea596c88ad3af3f65a59aa461",
+      "bytes": 174,
+      "mode": 33188,
+      "mtime_ns": 1791245839904034493,
+      "inode": 2926151
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/after-state-frames.json",
+      "sha256": "c9cbee6a3c6dce8010ab582fb0aac8736c8f0118fb4bc5351ff9b31972b07fda",
+      "bytes": 1945,
+      "mode": 33152,
+      "mtime_ns": 1791245837477983692,
+      "inode": 2926174
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/after-capture.log",
+      "sha256": "24b9af0f73b27b375135258c10dfa91d60f5e449421032da95bc649b7c8db64f",
+      "bytes": 96,
+      "mode": 33188,
+      "mtime_ns": 1791245837651725962,
+      "inode": 2926172
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/before-remote.py",
+      "sha256": "1fdd31baf9025d91f6f4f221d96eae8af77b2ad4e274286e22cb56bcded1881a",
+      "bytes": 1402,
+      "mode": 33152,
+      "mtime_ns": 1791245834475094978,
+      "inode": 2926158
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/before-state-metadata.json",
+      "sha256": "1e52693f9743942dfc67e9bbbcacce8997c5c3a4b45d8407db596e6c1fe651b1",
+      "bytes": 949672,
+      "mode": 33152,
+      "mtime_ns": 1791245834600923447,
+      "inode": 2926160
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/after-state.json",
+      "sha256": "883e5729d04923ff09f7da2de5346505967475d29dec80fbfdb57cd441a37cb0",
+      "bytes": 949243,
+      "mode": 33152,
+      "mtime_ns": 1791245837580985849,
+      "inode": 2926179
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/frame-delivery.svg",
+      "sha256": "2eeb61bc23a687d13a9c9b38492bbb3856094712ec7b36659a9e869de9ac4fc4",
+      "bytes": 1183,
+      "mode": 33188,
+      "mtime_ns": 1791245842868000757,
+      "inode": 2926182
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/observers-remote.py",
+      "sha256": "f822c01c35d9385fe9398cd9ed2930e1d25a0db01f21b341cb341380e5278254",
+      "bytes": 1010,
+      "mode": 33152,
+      "mtime_ns": 1791245834848103727,
+      "inode": 2926167
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/before-state-frames.json",
+      "sha256": "b1f66cf7573f74dcee994a4efde680f1ef61f015cd47bd2a72202d7cc5235e55",
+      "bytes": 118,
+      "mode": 33152,
+      "mtime_ns": 1791245834535922085,
+      "inode": 2926159
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/after-state.pickle",
+      "sha256": "84bd3c35b7443399d3f98af3b614ac34c68aec648b2d13d4266b4b139bae61f9",
+      "bytes": 371152,
+      "mode": 33152,
+      "mtime_ns": 1791245837545985116,
+      "inode": 2926178
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/observers-state.json",
+      "sha256": "a0145211702b12975e3cfa07822c120400263078717074ff5ca77fabc9c95912",
+      "bytes": 58,
+      "mode": 33152,
+      "mtime_ns": 1791245834878929268,
+      "inode": 2926169
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/before-manifest.json",
+      "sha256": "3d6c174de5773fd4518dc32de8311a0d832a237d9f19a14293bd864a2a40d9ae",
+      "bytes": 549,
+      "mode": 33152,
+      "mtime_ns": 1791245834639864512,
+      "inode": 2926165
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/terminal-launch.json",
+      "sha256": "1c5eeedc6a950509e301969adaca9dcae79208a8bf8cb0f7b552ee0d7bf270dc",
+      "bytes": 1283,
+      "mode": 33188,
+      "mtime_ns": 1791245842312614818,
+      "inode": 2926153
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/observers-manifest.json",
+      "sha256": "0f7a2975ab30cf97bf4d19a2e869bc7e4ad4b3f9cfbeab75313cd6241ccc60e1",
+      "bytes": 443,
+      "mode": 33152,
+      "mtime_ns": 1791245834912402334,
+      "inode": 2926170
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/useful-body-delivery.json",
+      "sha256": "1e518845158aa24b11eed45301c91dfad2d00797c1c6f0686d4af1923527d247",
+      "bytes": 1210,
+      "mode": 33188,
+      "mtime_ns": 1791245842868122818,
+      "inode": 2926183
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/program-launch.json",
+      "sha256": "e2607f3f6d56a042a9ba9512f2f04c81ce72a790b58a87bc8a13afaf9783b150",
+      "bytes": 1710,
+      "mode": 33188,
+      "mtime_ns": 1791245841910440651,
+      "inode": 2926181
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/before-screen.json",
+      "sha256": "9d890b0816243c5f7291cb4304ead571a8e03be3e8deaf23421f179cc03cca27",
+      "bytes": 165,
+      "mode": 33152,
+      "mtime_ns": 1791245834602923488,
+      "inode": 2926162
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/observers-state-frames.json",
+      "sha256": "a63cfbb65ac18f395795308d671ba0634797454bbac87688be98115f4bb0f8fa",
+      "bytes": 338,
+      "mode": 33152,
+      "mtime_ns": 1791245834878911491,
+      "inode": 2926168
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/xvfb.log",
+      "sha256": "ee3c08f7e6b04799eb02a81297e0de66e99fee84c3dd27c9b7625972ac4a687f",
+      "bytes": 1634,
+      "mode": 33188,
+      "mtime_ns": 1791245842161757331,
+      "inode": 2925699
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/frame-delivery.json",
+      "sha256": "831d2404ef9a8424274c28a609cbdb20d5be3b284887d6e210cd0eb4654cfcae",
+      "bytes": 3177,
+      "mode": 33188,
+      "mtime_ns": 1791245842867904925,
+      "inode": 2926152
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/after-screen.json",
+      "sha256": "ea49b3fd52cef68affef3c16575c60b7448cd48ea0eef9ab96100956e534d7c2",
+      "bytes": 164,
+      "mode": 33152,
+      "mtime_ns": 1791245837542985053,
+      "inode": 2926177
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/before-capture.log",
+      "sha256": "b8ba5729f6af8219608a8aeaa6b484aaf573ca5513d70dd2e40ae1964ffad708",
+      "bytes": 97,
+      "mode": 33188,
+      "mtime_ns": 1791245834639864512,
+      "inode": 2926157
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/state/toad/toad.db",
+      "sha256": "340093fa9220b3a8a34f2475f97b5a1dce1539185675fa9dd2b9ef7f5fe46403",
+      "bytes": 81920,
+      "mode": 33188,
+      "mtime_ns": 1791245819809613713,
+      "inode": 2925690
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/state/toad/logs/Agent_Comms_2026-10-05T20_17_10_990089.txt",
+      "sha256": "91b847cb22fd04932bb11620ffb9b3f06a57e770a39c3a1907e6b98d6b6f2503",
+      "bytes": 43067,
+      "mode": 33188,
+      "mtime_ns": 1791245833368897648,
+      "inode": 2926155
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/ui-config/toad/toad.json",
+      "sha256": "dc7757bf1a59dc9df0b20a575d6453def6b0283742bced0aa3d910edec2b79a2",
+      "bytes": 176,
+      "mode": 33152,
+      "mtime_ns": 1790914597027065580,
+      "inode": 2925698
+    }
+  ]
+}
