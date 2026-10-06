@@ -15,8 +15,9 @@ from pathlib import Path
 
 from agent_comms.comms import Comms
 from agent_comms.field_codec import FieldCodec
+from agent_comms.mro_dispatch import handles
+from toad.core import events as core_events
 from toad.message_viewport import NotificationViewport
-from toad.constants import COMMS_REFRESH_INTERVAL
 from agent_comms.messages import Message as WireMessage
 from agent_comms.comms import wire
 from textual import containers, work
@@ -163,11 +164,21 @@ class CommsChatView(DeliveryFailureView, Conversation):
         self.agent_ready = True
         self.prepare_prompt()
         self.window.anchor()
-        self.set_interval(COMMS_REFRESH_INTERVAL, self._refresh)
         # CommsScreen has already presented its route before mounting this
         # view. Start its asynchronous page read now, overlapping it with the
         # remaining control mounts rather than waiting for another empty
         # history frame. The original pager admits its asynchronous source read.
+        await self._refresh()
+
+    @handles(core_events.CoordinationObserved)
+    async def _command_source_changed(self, event) -> None:
+        """One canonical observation invalidates commands and the mounted source."""
+        await super()._command_source_changed(event)
+        await self._refresh()
+
+    @handles(core_events.SessionSelected)
+    async def _selected_source_changed(self, event) -> None:
+        """A retained view reads current source after its original tab admission."""
         await self._refresh()
 
     def prepare_prompt(self) -> None:
