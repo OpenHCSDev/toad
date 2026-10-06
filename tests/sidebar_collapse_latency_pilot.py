@@ -40,6 +40,9 @@ async def main():
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(root / "state"),
                           XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "wire"))
         comms = wire(root / "wire")
+        # The actual project target must exist before the App's action catalog
+        # reads it. A display label is not a registry declaration.
+        comms.registry.declare(Thread(root.name, frozenset(), str(root)))
         tags = frozenset(f"team-{index}" for index in range(5))
         for index in range(24):
             comms.registry.declare(Thread(f"worker-{index:02}", tags, str(root)))
