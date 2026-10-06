@@ -59,8 +59,12 @@ if sys.platform != "win32":
 class FrameState(DeclaredFamily, affix="Frame"):
     ready = False
 
+    @property
+    def scene(self):
+        return self
+
     def displayed(self, frame, deferred):
-        receipt = WritingFrame(deferred)
+        receipt = WritingFrame(self.scene, deferred)
         frame.state = receipt
         FrameFlush.for_driver(frame.screen.app._driver).submit(partial(frame.written, receipt))
 
@@ -88,13 +92,22 @@ class PendingFrame(FrameState):
 
 
 class WritingFrame(FrameState):
-    def __init__(self, deferred: tuple[Widget, ...]):
+    def __init__(self, scene: PendingFrame, deferred: tuple[Widget, ...]):
+        self._scene = scene
         self.deferred = deferred
+
+    @property
+    def scene(self):
+        return self._scene
 
 
 class SuspendedFrame(FrameState):
     def __init__(self, previous: FrameState):
         self.previous = previous
+
+    @property
+    def scene(self):
+        return self.previous.scene
 
     def resume(self, frame):
         self.previous.restore(frame)
@@ -108,6 +121,13 @@ class SuspendedFrame(FrameState):
 
 class PresentedFrame(FrameState):
     ready = True
+
+    def __init__(self, scene: PendingFrame):
+        self._scene = scene
+
+    @property
+    def scene(self):
+        return self._scene
 
     def restore(self, frame):
         frame.present()
@@ -158,14 +178,18 @@ class FramePresentation:
     def flush_owner(self, owner: Widget, callback: Callable[[], object]) -> None:
         """Native sender admission precedes the original terminal writer join."""
         if (owner, callback) in self.callbacks:
-            FrameFlush.for_driver(self.screen.app._driver).submit(partial(self.release, owner, callback))
+            FrameFlush.for_driver(self.screen.app._driver).submit(
+                partial(self.release, owner, callback, self.state.scene))
 
-    def release(self, owner: Widget, callback: Callable[[], object]) -> None:
+    def release(self, owner: Widget, callback: Callable[[], object], scene: PendingFrame) -> None:
         """Release the admitted owner after its publication's writer join."""
         key = owner, callback
         if key not in self.callbacks:
             return
         if owner.is_attached:
+            if scene is not self.state.scene:
+                owner.call_after_refresh(self.flush_owner, owner, callback)
+                return
             if not self.screen.release_frame_callback(owner, callback):
                 return
         del self.callbacks[key]
@@ -177,13 +201,13 @@ class FramePresentation:
         if receipt is not self.state:
             return
         if receipt.deferred:
-            self.state = PendingFrame()
+            self.state = receipt.scene
             return
         self.present()
 
     def present(self) -> None:
         """A written or restored scene releases its same deferred source work."""
-        self.state = PresentedFrame()
+        self.state = PresentedFrame(self.state.scene)
         self.presented.set()
         for owner, callback in tuple(self.callbacks):
             if owner.is_attached:
