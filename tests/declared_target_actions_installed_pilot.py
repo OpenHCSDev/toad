@@ -21,13 +21,12 @@ from agent_comms.field_codec import FieldCodec
 from agent_comms.thread_status import StoppedThreadStatus
 from agent_comms.threads import Thread
 from textual.widgets import Checkbox, Input, Select, TextArea
-from toad.app import ToadApp
 from toad.screens.comms import CommsScreen
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.session_tabs import SessionLabel
 from toad.widgets.comms_menu import ContextMenu, ContextMenuItem
 from toad.widgets.comms_command_dialog import CommandDialog
-from runtime_fixture import private_native_wire, wait_channel_roster
+from runtime_fixture import ToadApp, private_native_wire, wait_channel_roster
 from saved_state_user_journey_pilot import reveal_thread_row
 
 
