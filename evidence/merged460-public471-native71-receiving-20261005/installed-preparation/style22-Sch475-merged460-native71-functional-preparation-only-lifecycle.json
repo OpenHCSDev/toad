@@ -1,0 +1,382 @@
+{
+  "issued_at": 1791243162.651368,
+  "state": "CLOSED sole475 immediatepreparation claims returned; POSITIVE953candidate FROZEN HELDParent; NO CURRENT465restore/newloan",
+  "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "issued_grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch475-merged460-native71-functional-preparation-only-issued-grant.json",
+  "issued_sha256": "687a5c6ea16ab0e053030cf3b9824e9040f42a75d7251900ddf742b8ca8f56ae",
+  "issued_bytes_immutable": true,
+  "recipient": "01a0ef00-6563-7ec0-9c64-564ece67a6eb",
+  "package_authorized": false,
+  "build_authorized": false,
+  "stage_authorized": false,
+  "stage_attempts_consumed": 1,
+  "owned_output_prepare_authorized": false,
+  "proof_execution_authorized": false,
+  "proof_attempts_consumed": 1,
+  "execution_authorized": false,
+  "native_READ_authorized": false,
+  "native_EXEC_authorized": false,
+  "source_declaration_READ_authorized": false,
+  "canonical_preparation_authorized": false,
+  "cohort_preparation_authorized": false,
+  "App_SDK_provider_input_forbidden": true,
+  "stage_argv": [
+    "uv",
+    "pip",
+    "install",
+    "--python",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "--no-deps",
+    "--no-cache",
+    "--no-index",
+    "--link-mode",
+    "copy",
+    "--reinstall",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/merged460-current-public-receiving-source-20261005/filewheel/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native70-71-filewheel-20261005/textual-8.2.8-py3-none-any.whl"
+  ],
+  "source_receipt_head": "56a2ddb4e608a8da32f25ab6297f97d5a430280e",
+  "proposal": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged460-public471-native71-receiving-20261005/PROPOSED-RECEIVING-COMMAND-PLAN.json",
+    "sha256": "fa833a62bd716afe234fc58771466f554adc8b87e5302e1f119d27ac9f87f954"
+  },
+  "candidate_sourceproof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/source-proof.json",
+    "sha256": "7ee4abb8e6ba8358ee8d89d12d41701c66f235fb8a6f52a100848264c45f03ec",
+    "bytes": 9580
+  },
+  "candidate_activation": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/candidate-activation.json",
+    "sha256": "692943e5aac55a7ce453ebc59793e1c40e48f8e578fd11407080880032c07941",
+    "bytes": 2826
+  },
+  "native_FullTrust_receipt": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/native-full-trust.json",
+    "sha256": "fac160ebeec34d680578058f47f98bdd27975135c605c7afda7f122f01ce24d0",
+    "bytes": 806
+  },
+  "owned_output": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005",
+  "cwd": "/home/ts/wt/toad-prompt-action-owner-20261002",
+  "environment": {
+    "PYTHONPATH": "ABSENT",
+    "PYTHONHOME": "ABSENT",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "positivecandidate_HELDParent_required": true,
+  "fresh_floor_source_readback": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch475-at-grant-floor-source-readback.json",
+    "sha256": "81172086858a5cd9e5bae7d25c06a0c07e61063ac9705256e8c268eb7583f951"
+  },
+  "fresh_borrowers": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch475-at-grant-borrowers.json",
+    "sha256": "4970b1164be2a998280113442eb3de207dff71ddb74dafd16809e6ceddfd4511"
+  },
+  "fresh_disposition_readback": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch475-at-grant-disposition-readback.json",
+    "sha256": "fe7f2bd2d74b0cb839ac37e7f45a4ca5046f766a5c1f9b66111e7571d938ac94"
+  },
+  "shared_lifecycle_writer": "OriginalBohrONLY",
+  "actualPUBLIC485471_protected": true,
+  "no_retry_nextloan": true,
+  "stage_terminal": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/stage-terminal.json",
+    "sha256": "6b627f96a8bde4b91099a2748593732b12426193e2c584a1dc087afdb79c8f12",
+    "bytes": 1021
+  },
+  "stage_joined_identities_now_absent": [
+    {
+      "pid": 2187271,
+      "birth": 71893278
+    },
+    {
+      "pid": 2187285,
+      "birth": 71893289
+    }
+  ],
+  "native_READ_authority": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper475-merged460-native71-functional-READ-issued-20261005.json",
+    "sha256": "1f0e5fa664310cd6f497ad6deb4061a5d37cc002a2844611a5fa8a9716aad406",
+    "bytes": 3643
+  },
+  "proof_attempt_limit": 1,
+  "proof_unrun_predecessor_binding": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/proof-source-binding.json",
+    "sha256": "e0139584f28a8b6e6d2720dc2c1057f6476832281251317ba35019fa2fe6e379",
+    "bytes": 8250
+  },
+  "proof_unrun_predecessor_helper": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/prove-installed.py",
+    "sha256": "cecea52ce00ad8f6fef144252044552ef2a014e71cfbeb679ae297c6e586f4f0",
+    "bytes": 12231
+  },
+  "concrete_pre_execution_source_correction": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch475-stage-READ-binding-proof-symlink-correction.json",
+    "sha256": "5eb09c39c985fc18b60bf2044a3a63bb46bfddfbf496acc4192d0f2446129bc2",
+    "bytes": 4695
+  },
+  "stage_READ_binding": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch475-stage-READ-binding-proof-symlink-correction.json",
+    "sha256": "5eb09c39c985fc18b60bf2044a3a63bb46bfddfbf496acc4192d0f2446129bc2",
+    "bytes": 4695
+  },
+  "previous_lifecycle": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch475-pre-stage-consumption-lifecycle.json",
+    "sha256": "a80f6f11c03b3afcc4a8769edfe19998de1d2489d71156c479f3754ec5fe9f9f",
+    "bytes": 3767
+  },
+  "proof_argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "-B",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/prove-installed.py",
+    "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch475-merged460-native71-functional-preparation-only-issued-grant.json",
+    "687a5c6ea16ab0e053030cf3b9824e9040f42a75d7251900ddf742b8ca8f56ae",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper475-merged460-native71-functional-READ-issued-20261005.json",
+    "1f0e5fa664310cd6f497ad6deb4061a5d37cc002a2844611a5fa8a9716aad406"
+  ],
+  "proof_cwd": "/home/ts/wt/toad-prompt-action-owner-20261002",
+  "proof_environment": {
+    "unset": [
+      "PYTHONPATH",
+      "PYTHONHOME"
+    ],
+    "set": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONNOUSERSITE": "1"
+    }
+  },
+  "proof_helper": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/prove-installed.py",
+    "sha256": "602b961d531f78567c806c8750ba390906ca7817a42cb5df2791b280c5da33bd",
+    "bytes": 12230
+  },
+  "proof_binding": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/proof-source-binding-symlink-corrected.json",
+    "sha256": "c1cf5cc33cff8413eb770682e934021b04f02dcf11f57c54bb458750c2432300",
+    "bytes": 13756
+  },
+  "proof_owned_outputs": [
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/source-proof.json",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/candidate-activation.json",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/native-full-trust.json",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/agent_comms-inventory.json",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/toad-inventory.json",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/textual-inventory.json",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/textual_diff_view-inventory.json",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/refactor_audit-inventory.json",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/forced-native-assets.json",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/wheel-installed-readback.json",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/unchanged-keepers-after.json",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/retained-wheel-install.txt",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/metadata-origin-readback.json",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/package-boundary-proof.json"
+  ],
+  "corrected_proof_release_binding": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch475-corrected-one-proof-release-binding.json",
+    "sha256": "49b73476be151d01ccdb3353b5a78afb22e5e063b6320d1d6c56e2d32fffb380",
+    "bytes": 4856
+  },
+  "pre_corrected_proof_release_lifecycle": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch475-pre-corrected-proof-release-lifecycle.json",
+    "sha256": "396103823df17812768ddfcfd7549838ad8d06d30a34f589b3400af67f60d926",
+    "bytes": 5910
+  },
+  "concrete_pre_execution_source_correction_resolved": true,
+  "proof_terminal": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/proof-terminal.json",
+    "sha256": "05cbfa6efc09c81d9d004af7e8235a1487ee4d0ad68116d6c28f2ac2315ad5cf",
+    "bytes": 1058
+  },
+  "final_installed_proof_handoff": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/final-installed-proof-handoff.json",
+    "sha256": "9cff95eb2ca0b4ac12aca7afcd1bef7b2e389b93429661875c99ee04c749c79c",
+    "bytes": 8603
+  },
+  "proof_joined_identities_now_absent": [
+    {
+      "pid": 2213467,
+      "birth": 71951612
+    },
+    {
+      "pid": 2213485,
+      "birth": 71951619
+    },
+    {
+      "pid": 2187271,
+      "birth": 71893278
+    },
+    {
+      "pid": 2187285,
+      "birth": 71893289
+    }
+  ],
+  "preparation_execution_authorized": false,
+  "qualification_preparation_authorized": false,
+  "readback_preparation_authorized": false,
+  "source_declaration_READ_scope": "ONLY actual PUBLIC471485 source-declaration/checkpoint READ subprocess INSIDE future releasedcohort via original RetainedOwnerLaunch ATUSE; no standalone/session/current-input/publicwrite/signal.",
+  "source_prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "preparation_commands": {
+    "canonical_prepare_readback_argv": [
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+      "-I",
+      "-B",
+      "-c",
+      "import sys,json,hashlib,subprocess,os\nfrom pathlib import Path\nmanifest=json.loads(Path(sys.argv[1]).read_text());destination=Path(sys.argv[2]);repository=sys.argv[3]\nassert len(manifest['members'])==51 and manifest['original_core_git']=='3931f16feb8bcb2dbcc3041446ca342dea665024'\ndestination.mkdir(mode=0o700,parents=True,exist_ok=False)\nfor row in manifest['members']:\n data=subprocess.check_output(['git','-C',repository,'show',manifest['original_core_git']+':'+row['source']])\n assert hashlib.sha256(data).hexdigest()==row['sha256'] and len(data)==row['bytes']\n path=destination/Path(row['source']).name\n with path.open('xb') as opened:opened.write(data)\n os.chmod(path,int(row['git_mode'][-3:],8))\n assert hashlib.sha256(path.read_bytes()).hexdigest()==row['sha256'] and (path.stat().st_mode&0o777)==int(row['git_mode'][-3:],8)\nassert len(list(destination.iterdir()))==51\nprint('Original actual merged Core3931 canonical51 copy/readback PASS; no public write')\n",
+      "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/MERGED-CANONICAL-SOURCE-MANIFEST.json",
+      "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/canonical-source-3931f16f/tools/cutover",
+      "/home/ts/wt/comms-goal-ledger-schema-carry-20261002"
+    ],
+    "qualification_input_prepare_argv": [
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+      "-I",
+      "-B",
+      "-c",
+      "import sys,json,hashlib,os\nfrom pathlib import Path\nsource=Path(sys.argv[1]);target=Path(sys.argv[2]);data=source.read_bytes()\nassert hashlib.sha256(data).hexdigest()==sys.argv[3]\npacket=json.loads(data);assert packet['current_prefix']==sys.argv[4]\nassert len({row['path'] for row in packet['actual_gates']})==len(packet['actual_gates'])\nfor row in packet['actual_gates']:\n assert hashlib.sha256(Path(row['path']).read_bytes()).hexdigest()==row['sha256']\nwith target.open('xb') as stream:stream.write(data)\nos.chmod(target,0o644)\nassert target.read_bytes()==data\nprint('Original reviewed qualification inputs prepared; no public read/write')\n",
+      "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged460-public471-native71-receiving-20261005/PROPOSED-QUALIFICATION-INPUT.json",
+      "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/qualification-input.json",
+      "331f4a4d8094a622b552e3a4f626e91b252b33287f240380960b51f6209d8094",
+      "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001"
+    ],
+    "cohort_prepare_argv": [
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+      "-I",
+      "-B",
+      "-c",
+      "import sys, json, subprocess, os, hashlib\nfrom pathlib import Path\nsys.path.insert(0, sys.argv[1])\nfrom agent_comms.field_codec import FieldCodec\nfrom agent_comms.comms import Comms\nfrom agent_comms.owner_launch import RetainedOwnerLaunch\nfrom agent_comms.owner_restart import OwnerRestartRequest\nfrom agent_comms.active_route import read_active_route\nfrom publish_retained_summary import ROOT, ReviewedArtifact, ReviewedRetainedSummaryCohort, InstalledSourceProof, CohortActivation\nfrom native_schema_carry import NativeSchemaDeclaration\nfrom checkpoint_schema import declared_schema_digest\nfrom runtime_installation import PreserveRuntimeInstallation\nbase = Path(sys.argv[2])\ninputs = json.loads((base / 'qualification-input.json').read_text())\nassert not (base / 'publication-receipt.json').exists() and (not (base / 'publication-receipt.originals').exists())\nproof_path = base / 'source-proof.json'\nactivation_path = base / 'candidate-activation.json'\nproof = FieldCodec.decode(InstalledSourceProof, json.loads(proof_path.read_text()))\nactivation = FieldCodec.decode(CohortActivation, json.loads(activation_path.read_text()))\nproof.require_activation(activation)\nassert sys.executable == str(proof.prefix / 'bin/python')\nservice = Comms(ROOT, private_initial_writes=False, private_claim_writes=False)\nsnapshot = service.registry.snapshot()\nlaunches = tuple((RetainedOwnerLaunch.capture(t, snapshot) for t in OwnerRestartRequest().threads(snapshot)))\nassert len(launches) == 19\ninterpreters = {x.interpreter for x in launches}\nassert len(interpreters) == 1\nsource_python = Path(next(iter(interpreters)))\nassert source_python == Path(inputs['current_prefix']) / 'bin/python'\nchild = \"import sys,json;sys.path.insert(0,sys.argv[1]);from agent_comms.field_codec import FieldCodec;from native_schema_carry import NativeSchemaDeclaration;from checkpoint_schema import declared_schema_digest;print(json.dumps({'native':FieldCodec.encode(NativeSchemaDeclaration.observe()),'checkpoint':declared_schema_digest()}))\"\nenv = dict(os.environ)\nenv.pop('PYTHONPATH', None)\nenv.pop('PYTHONHOME', None)\npacket = json.loads(subprocess.check_output([str(source_python), '-I', '-B', '-c', child, sys.argv[1]], env=env, text=True))\noriginal = FieldCodec.decode(NativeSchemaDeclaration, packet['native'])\ntarget = NativeSchemaDeclaration.observe()\noriginal.require_carry_target(target)\nassert original == target and packet['checkpoint'] == declared_schema_digest(), 'Actual declaration/checkpoint differs: return source/target to original NativeSchemaCarryPlan owner; no inferred reset/carry'\nartifact = lambda p: ReviewedArtifact(p, hashlib.sha256(p.read_bytes()).hexdigest())\ngates = tuple((FieldCodec.decode(ReviewedArtifact, r) for r in inputs['actual_gates']))\ncohort = ReviewedRetainedSummaryCohort(proof.prefix, Path(inputs['current_prefix']), read_active_route(), proof.native_package, artifact(activation_path), artifact(proof_path), gates)\ncohort.require_original()\nruntime = PreserveRuntimeInstallation(original.goal)\nvalues = [('original-declaration.json', FieldCodec.encode(original)), ('target-declaration.json', FieldCodec.encode(target)), ('checkpoint-relation.json', {'source': packet['checkpoint'], 'target': declared_schema_digest(), 'source_python_owner': 'RetainedOwnerLaunch'}), ('review-plan.json', FieldCodec.encode(cohort)), ('runtime-installation.json', FieldCodec.encode(runtime))]\nfor name, value in values:\n    with (base / name).open('x') as f:\n        json.dump(value, f, indent=2)\n        f.write('\\n')\nprint('Original typed whole cohort and PreserveRuntimeInstallation prepared; public writes0')",
+      "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/canonical-source-3931f16f/tools/cutover",
+      "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005"
+    ],
+    "readback_prepare_argv": [
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+      "-I",
+      "-B",
+      "-c",
+      "import sys,hashlib,os;from pathlib import Path;s=Path(sys.argv[1]);d=s.read_bytes();assert hashlib.sha256(d).hexdigest()==sys.argv[3];p=Path(sys.argv[2]);f=p.open('xb');f.write(d);f.close();os.chmod(p,0o644);assert p.read_bytes()==d",
+      "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged457-goal675-native67-receiving-20261005/readback_publication.py",
+      "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/readback_publication.py",
+      "fe0b26437b42eba253b3c2ebe7f7f75bb32cea0062846d5a0621617246c31025"
+    ]
+  },
+  "preparation_cwd": "/home/ts/wt/toad-prompt-action-owner-20261002",
+  "preparation_environment": {
+    "PYTHONPATH": "ABSENT",
+    "PYTHONHOME": "ABSENT",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "preparation_phase_attempt_limits": {
+    "canonical_prepare_readback_argv": 1,
+    "qualification_input_prepare_argv": 1,
+    "cohort_prepare_argv": 1,
+    "readback_prepare_argv": 1
+  },
+  "preparation_phase_attempts_consumed": {
+    "canonical_prepare_readback_argv": 1,
+    "qualification_input_prepare_argv": 1,
+    "cohort_prepare_argv": 1,
+    "readback_prepare_argv": 1
+  },
+  "canonical_prepare_readback_argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "-I",
+    "-B",
+    "-c",
+    "import sys,json,hashlib,subprocess,os\nfrom pathlib import Path\nmanifest=json.loads(Path(sys.argv[1]).read_text());destination=Path(sys.argv[2]);repository=sys.argv[3]\nassert len(manifest['members'])==51 and manifest['original_core_git']=='3931f16feb8bcb2dbcc3041446ca342dea665024'\ndestination.mkdir(mode=0o700,parents=True,exist_ok=False)\nfor row in manifest['members']:\n data=subprocess.check_output(['git','-C',repository,'show',manifest['original_core_git']+':'+row['source']])\n assert hashlib.sha256(data).hexdigest()==row['sha256'] and len(data)==row['bytes']\n path=destination/Path(row['source']).name\n with path.open('xb') as opened:opened.write(data)\n os.chmod(path,int(row['git_mode'][-3:],8))\n assert hashlib.sha256(path.read_bytes()).hexdigest()==row['sha256'] and (path.stat().st_mode&0o777)==int(row['git_mode'][-3:],8)\nassert len(list(destination.iterdir()))==51\nprint('Original actual merged Core3931 canonical51 copy/readback PASS; no public write')\n",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged466-worker-functional-receiving-20261005/MERGED-CANONICAL-SOURCE-MANIFEST.json",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/canonical-source-3931f16f/tools/cutover",
+    "/home/ts/wt/comms-goal-ledger-schema-carry-20261002"
+  ],
+  "qualification_input_prepare_argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "-I",
+    "-B",
+    "-c",
+    "import sys,json,hashlib,os\nfrom pathlib import Path\nsource=Path(sys.argv[1]);target=Path(sys.argv[2]);data=source.read_bytes()\nassert hashlib.sha256(data).hexdigest()==sys.argv[3]\npacket=json.loads(data);assert packet['current_prefix']==sys.argv[4]\nassert len({row['path'] for row in packet['actual_gates']})==len(packet['actual_gates'])\nfor row in packet['actual_gates']:\n assert hashlib.sha256(Path(row['path']).read_bytes()).hexdigest()==row['sha256']\nwith target.open('xb') as stream:stream.write(data)\nos.chmod(target,0o644)\nassert target.read_bytes()==data\nprint('Original reviewed qualification inputs prepared; no public read/write')\n",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/merged460-public471-native71-receiving-20261005/PROPOSED-QUALIFICATION-INPUT.json",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/qualification-input.json",
+    "331f4a4d8094a622b552e3a4f626e91b252b33287f240380960b51f6209d8094",
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001"
+  ],
+  "cohort_prepare_argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "-I",
+    "-B",
+    "-c",
+    "import sys, json, subprocess, os, hashlib\nfrom pathlib import Path\nsys.path.insert(0, sys.argv[1])\nfrom agent_comms.field_codec import FieldCodec\nfrom agent_comms.comms import Comms\nfrom agent_comms.owner_launch import RetainedOwnerLaunch\nfrom agent_comms.owner_restart import OwnerRestartRequest\nfrom agent_comms.active_route import read_active_route\nfrom publish_retained_summary import ROOT, ReviewedArtifact, ReviewedRetainedSummaryCohort, InstalledSourceProof, CohortActivation\nfrom native_schema_carry import NativeSchemaDeclaration\nfrom checkpoint_schema import declared_schema_digest\nfrom runtime_installation import PreserveRuntimeInstallation\nbase = Path(sys.argv[2])\ninputs = json.loads((base / 'qualification-input.json').read_text())\nassert not (base / 'publication-receipt.json').exists() and (not (base / 'publication-receipt.originals').exists())\nproof_path = base / 'source-proof.json'\nactivation_path = base / 'candidate-activation.json'\nproof = FieldCodec.decode(InstalledSourceProof, json.loads(proof_path.read_text()))\nactivation = FieldCodec.decode(CohortActivation, json.loads(activation_path.read_text()))\nproof.require_activation(activation)\nassert sys.executable == str(proof.prefix / 'bin/python')\nservice = Comms(ROOT, private_initial_writes=False, private_claim_writes=False)\nsnapshot = service.registry.snapshot()\nlaunches = tuple((RetainedOwnerLaunch.capture(t, snapshot) for t in OwnerRestartRequest().threads(snapshot)))\nassert len(launches) == 19\ninterpreters = {x.interpreter for x in launches}\nassert len(interpreters) == 1\nsource_python = Path(next(iter(interpreters)))\nassert source_python == Path(inputs['current_prefix']) / 'bin/python'\nchild = \"import sys,json;sys.path.insert(0,sys.argv[1]);from agent_comms.field_codec import FieldCodec;from native_schema_carry import NativeSchemaDeclaration;from checkpoint_schema import declared_schema_digest;print(json.dumps({'native':FieldCodec.encode(NativeSchemaDeclaration.observe()),'checkpoint':declared_schema_digest()}))\"\nenv = dict(os.environ)\nenv.pop('PYTHONPATH', None)\nenv.pop('PYTHONHOME', None)\npacket = json.loads(subprocess.check_output([str(source_python), '-I', '-B', '-c', child, sys.argv[1]], env=env, text=True))\noriginal = FieldCodec.decode(NativeSchemaDeclaration, packet['native'])\ntarget = NativeSchemaDeclaration.observe()\noriginal.require_carry_target(target)\nassert original == target and packet['checkpoint'] == declared_schema_digest(), 'Actual declaration/checkpoint differs: return source/target to original NativeSchemaCarryPlan owner; no inferred reset/carry'\nartifact = lambda p: ReviewedArtifact(p, hashlib.sha256(p.read_bytes()).hexdigest())\ngates = tuple((FieldCodec.decode(ReviewedArtifact, r) for r in inputs['actual_gates']))\ncohort = ReviewedRetainedSummaryCohort(proof.prefix, Path(inputs['current_prefix']), read_active_route(), proof.native_package, artifact(activation_path), artifact(proof_path), gates)\ncohort.require_original()\nruntime = PreserveRuntimeInstallation(original.goal)\nvalues = [('original-declaration.json', FieldCodec.encode(original)), ('target-declaration.json', FieldCodec.encode(target)), ('checkpoint-relation.json', {'source': packet['checkpoint'], 'target': declared_schema_digest(), 'source_python_owner': 'RetainedOwnerLaunch'}), ('review-plan.json', FieldCodec.encode(cohort)), ('runtime-installation.json', FieldCodec.encode(runtime))]\nfor name, value in values:\n    with (base / name).open('x') as f:\n        json.dump(value, f, indent=2)\n        f.write('\\n')\nprint('Original typed whole cohort and PreserveRuntimeInstallation prepared; public writes0')",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/canonical-source-3931f16f/tools/cutover",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005"
+  ],
+  "readback_prepare_argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "-I",
+    "-B",
+    "-c",
+    "import sys,hashlib,os;from pathlib import Path;s=Path(sys.argv[1]);d=s.read_bytes();assert hashlib.sha256(d).hexdigest()==sys.argv[3];p=Path(sys.argv[2]);f=p.open('xb');f.write(d);f.close();os.chmod(p,0o644);assert p.read_bytes()==d",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged457-goal675-native67-receiving-20261005/readback_publication.py",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/readback_publication.py",
+    "fe0b26437b42eba253b3c2ebe7f7f75bb32cea0062846d5a0621617246c31025"
+  ],
+  "final_four_preparation_release_binding": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch475-final-proof-four-preparation-release-binding.json",
+    "sha256": "13566f4252301456c7fcccc895ea269441eb96ce327c5d209281f96a6ed39a95",
+    "bytes": 21845
+  },
+  "pre_four_preparation_release_lifecycle": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch475-pre-four-preparation-release-lifecycle.json",
+    "sha256": "b8124efc33d1890de7e41ebd02ec4f9a8de10ed20b457d4d21488327ec528620",
+    "bytes": 10036
+  },
+  "publisher_authorized": false,
+  "once_execute_authorized": false,
+  "required_handback": "Positive frozen953/full69 candidate HELDParent+wholeimmediatepkg/import/READ/preparation claimRETURN+freshprivilegedholder/outputcensus+independentfullproof/canonical/cohort/frozenreadback; NOautomaticoldfloorrestore. Negativeexactissuedfloorrestore/join/wholehandback. Explicitmatching7aREAD and scopedPUBLIC471sourceREADreturn/keeperheld/no nextloan.",
+  "source_PUBLIC471_declaration_checkpoint_READ_returned": true,
+  "false_once_readback_path_finding_withdrawn_actual_owned_script_equal": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/once-readback-executable-path-review.json",
+    "sha256": "1f683c8d9afb0b2209f03ce0d36ad0d18034ae402c3e7d2345e022b3450952b4"
+  },
+  "once_commands_executed": false,
+  "previous_lifecycle_sha256": "818e78a65c70f6090bb208717cd8c5ed988cca114bad70ac0a856eaa4946f857",
+  "closed_at": 1791244719.9595804,
+  "qualification_input_preparation_authorized": false,
+  "canonical_preparation_attempts_consumed": 1,
+  "qualification_input_preparation_attempts_consumed": 1,
+  "cohort_preparation_attempts_consumed": 1,
+  "readback_preparation_attempts_consumed": 1,
+  "owner_whole_immediate_handback": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/whole-immediate-handback.json",
+    "sha256": "cc025996e578b11302470bc03cd236287f7d4236d3061444de7c40a19359d8ae"
+  },
+  "explicit_native7a_READ_return": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper475-merged460-native71-functional-READ-handback-20261005.json",
+    "sha256": "36523a7b666d6e0930fa2575a25184ce2d84631f38a84accfe15eabf67fd5667"
+  },
+  "scoped_PUBLIC465_declaration_checkpoint_READ_returned": true,
+  "native_EXEC_never_granted_used": true,
+  "READY": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/READY.json",
+    "sha256": "57031b594ed38f754482e33673af823e7e311fa7c6e44d9e3f5d72c2fd7bdf8d"
+  },
+  "frozen_manifest": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/frozen-manifest.json",
+    "sha256": "e87cde35dcce88cf9268f0e8f683d82bb77ddfcf982b98b3f396b35234e52c4b",
+    "count": 112
+  },
+  "once_operands_PREPARED_ONLY": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/once-operands.json",
+    "sha256": "11b65d36d82be7b2834424a39f80802e6976ef8e5deddfb70c2b58dc677eff5e"
+  },
+  "independent_positive_candidate_readback": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch475-independent-positive-candidate-readback.json",
+    "sha256": "4cbfea92270c37c79d725b2a3d09e7bd3c45c3599350d776881be7cfa55eb3f0"
+  },
+  "fresh_final_borrowers": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch475-independent-final-borrowers.json",
+    "sha256": "395152ff1eb4c507dac94d9343c8b96dcbfb9d72aebf324e8c2ae198d55309c0"
+  },
+  "fresh_final_reference_classification": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch475-independent-final-reference-classification.json",
+    "sha256": "0ae2059602cfcac8c4bb31b9b644d56498bb0119ce6116c18f601a1ce49c8496"
+  },
+  "candidate_disposition": "POSITIVE953 selectedCore3931/3fe +Toad474b687/2ece +Text71/bc47 FROZEN HELDParent; retained, NOT CURRENT465restored/not eligibleforloan",
+  "Parent_only_future_fresh_admission_once_publication_new_keeper_authority": true,
+  "PUBLICstyle22CURRENT465_protected": true,
+  "no_newloan_inferred": true
+}

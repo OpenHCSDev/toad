@@ -1,0 +1,26 @@
+{
+  "returncode": 0,
+  "elapsed_seconds": 6.696278826915659,
+  "handle": {
+    "pid": 2213485,
+    "birth": 71951619,
+    "controller": {
+      "pid": 2213467,
+      "birth": 71951612
+    }
+  },
+  "joined": true,
+  "proc_absent": true,
+  "attempt": 1,
+  "argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "-B",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/prove-installed.py",
+    "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/style22-Sch475-merged460-native71-functional-preparation-only-issued-grant.json",
+    "687a5c6ea16ab0e053030cf3b9824e9040f42a75d7251900ddf742b8ca8f56ae",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper475-merged460-native71-functional-READ-issued-20261005.json",
+    "1f0e5fa664310cd6f497ad6deb4061a5d37cc002a2844611a5fa8a9716aad406"
+  ],
+  "cwd": "/home/ts/wt/toad-prompt-action-owner-20261002",
+  "native_EXEC_App_SDK_provider_inputs": 0
+}
