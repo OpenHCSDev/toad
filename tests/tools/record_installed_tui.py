@@ -1436,10 +1436,10 @@ class PrivateCapture(CaptureTarget):
 
     @staticmethod
     def require_acp_command(command, selection):
-        expected_acp = shlex.join([str(selection.bin_directory / "python"), "-m", "agent_comms.acp"])
+        expected_acp = shlex.join([str(selection.backend_bin_directory / "python"), "-m", "agent_comms.acp"])
         if (len(command) < 4 or command[1:3] != ["acp", expected_acp]
                 or Path(command[0]).resolve() != (selection.bin_directory / "toad").resolve()):
-            raise ValueError("Capture requires selected installed toad acp and its paired Python ACP command")
+            raise ValueError("Capture requires the selected frontend and backend Python ACP command")
 
     def observe(self):
         return {"root": str(self.root), "mode": self.declared_name}
