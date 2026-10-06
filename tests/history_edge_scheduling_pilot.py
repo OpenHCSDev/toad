@@ -431,7 +431,7 @@ async def record_useful_paint(service, project, evidence, environment, *, candid
     await record_retained(
         service, project, evidence,
         dict(environment, TOAD_VALIDATION_USEFUL_PAINT='1'),
-        recording_args=['--review-timing', 'deferred', '--max-duration', str(recording_seconds),
+        recording_args=['--fit-window', '--review-timing', 'deferred', '--max-duration', str(recording_seconds),
                         '--startup-wait', '8', '--history-wait-seconds', '20'],
         recording_timeout=recording_seconds, recording_output=evidence / 'capture',
         retained_channel_source=None, journey=journey,
