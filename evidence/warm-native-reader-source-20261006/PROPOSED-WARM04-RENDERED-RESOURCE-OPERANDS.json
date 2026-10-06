@@ -1,0 +1,593 @@
+{
+  "state": "SOURCE warm04 prepared; fresh eligible floor, issued purpose, READ, proof and EXEC UNBOUND. No prefix access or reservation.",
+  "source_head": "a216ede75f15fad0a7224e452fcfa8a62c5ee541",
+  "source_product": "2ae78aac63db588e1a33d1da1c903139746d55aa",
+  "root_build_relation": "Determining a216 src and pyproject/uv are BYTE equal historical2ae/61bf. Joined bd3e and Parent478 source/pins are a distinct current union and NOT full61bf equal. This mounted proposal selects historical a216 product/root only.",
+  "prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "application_python": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+  "cwd": "/home/ts/wt/toad-warm-rendered-reader-20261006",
+  "owned_output": "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose",
+  "OWNOUT_preimage": "ABSENT record only; no mkdir before actualissued",
+  "floor_contract": {
+    "state": "UNBOUND pending original Bohr fresh eligible assessment; historical warm03 record gives no current access"
+  },
+  "floor_preimage": {
+    "state": "UNBOUND pending original Bohr fresh eligible assessment; historical warm03 record gives no current access"
+  },
+  "fresh_refs": {
+    "state": "UNBOUND pending original Bohr fresh eligible assessment; historical warm03 record gives no current access"
+  },
+  "PUBLIC475_disposition": {
+    "state": "UNBOUND pending original Bohr fresh eligible assessment; historical warm03 record gives no current access"
+  },
+  "floor": {
+    "name": "ActualCURRENT471 nothistoricalCURRENT459",
+    "nodes": 1467,
+    "source_assets": 953,
+    "distributions": 69,
+    "unchanged_other67_records": 2253,
+    "protected_originals": 266,
+    "bootstrap_records": 2,
+    "PREFIXactivation": {
+      "path": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/activation.json",
+      "sha256": "273d1ae8cbd9b38adfeb17e379419beea26c5a52fa2394aff16de6661c6eec11"
+    },
+    "archive_relation": "Historical CURRENT459 only; current changed Core/Toad normal-wheel bytes and fresh CURRENT471 preimage are authoritative. No false wholearchive/current471 equality."
+  },
+  "source_filewheels": [
+    {
+      "module": "agent_comms",
+      "distribution": "agent-comms",
+      "head": "3931f16feb8bcb2dbcc3041446ca342dea665024",
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/same-owner-native-fork676-corrected-wheel-20261005/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "3fe14077293b691000394831ed7458ecae92afd9b667af4501be2945ab86051d",
+      "bytes": 904487,
+      "assets": 355
+    },
+    {
+      "module": "toad",
+      "distribution": "batrachian-toad",
+      "head": "2ae78aac63db588e1a33d1da1c903139746d55aa",
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/filewheel/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "61bf637992b00953a85249423e568e1958a0521b58b230b00c4f46023322aef2",
+      "bytes": 2251251,
+      "assets": 319
+    },
+    {
+      "module": "textual",
+      "distribution": "textual",
+      "head": "a2dd8a9a37825a828df0d8f651ca57d92db69e5f",
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native70-71-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+      "sha256": "bc47c59ea7db78a9a443c5f5e3f10836660957f21bb998d2ffa3ae8e4a2ddbe3",
+      "bytes": 768804,
+      "assets": 266
+    },
+    {
+      "module": "textual_diff_view",
+      "distribution": "textual-diff-view",
+      "head": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "path": "/home/ts/.cache/uv/sdists-v9/git/6a8a377ce2150d3f/8fa7d4d0db993ea3/textual_diff_view-0.1.5-py3-none-any.whl",
+      "sha256": "be7089c8f282e07e893b0254a0859e0f1b243a7ba591749f2053fa1fb775ad36",
+      "bytes": 25753,
+      "assets": 3
+    },
+    {
+      "module": "refactor_audit",
+      "distribution": "nominal-refactor-audit",
+      "head": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10",
+      "path": "/home/ts/wt/nra-skill-publish-20261002/.artifacts/family-flattened-collector-20261004/wheels/nominal_refactor_audit-0.1.0-py3-none-any.whl",
+      "sha256": "8d489731728ebf9f7e0f90ef2b14e7e3b5d2f90ed82bd8b1482d735f82869886",
+      "bytes": 23532,
+      "assets": 10
+    }
+  ],
+  "candidate_filewheels": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/filewheel/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "61bf637992b00953a85249423e568e1958a0521b58b230b00c4f46023322aef2",
+      "bytes": 2251251
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native70-71-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+      "sha256": "bc47c59ea7db78a9a443c5f5e3f10836660957f21bb998d2ffa3ae8e4a2ddbe3",
+      "bytes": 768804
+    }
+  ],
+  "stage_argv": [
+    "uv",
+    "pip",
+    "install",
+    "--python",
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+    "--no-deps",
+    "--no-cache",
+    "--no-index",
+    "--link-mode",
+    "copy",
+    "--reinstall",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/filewheel/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native70-71-filewheel-20261005/textual-8.2.8-py3-none-any.whl"
+  ],
+  "stage_environment": {
+    "unset": [
+      "PYTHONPATH",
+      "PYTHONHOME",
+      "VIRTUAL_ENV",
+      "AGENT_COMMS_THREAD",
+      "AGENT_COMMS_STARTUP_INPUT_KEY",
+      "PI_PROMPT",
+      "PI_PARENT_ID",
+      "PI_AGENT_ID",
+      "PI_TASK",
+      "TEXTUAL_DRIVER",
+      "AC_REAL_ORIGINAL_PYTHON",
+      "AC_REAL_SOURCE_OWNER",
+      "AC_REAL_SOURCE_ROOT",
+      "AC_REAL_SOURCE_FILE",
+      "AC_REAL_PROVIDER_AUTHORIZED",
+      "AC_REAL_READ_ONLY_CUSTODY",
+      "WORKSPACE_COHORTS"
+    ],
+    "set": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONNOUSERSITE": "1"
+    }
+  },
+  "stage_outputs": [
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/stage-command.json",
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/stage-handle.json",
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/stage.stdout.log",
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/stage.stderr.log",
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/stage-terminal.json"
+  ],
+  "stage_attemptlimit": 1,
+  "proof": {
+    "historical_template": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor07-installed-purpose/verify_installed.py",
+      "sha256": "6a09793a806478a4d4cd0813adce2a89c0a2fd3c0bc7990546847b0a37d65741",
+      "bytes": 11006
+    },
+    "prepared_template": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/controller-preparation/verify_installed.template.py",
+      "sha256": "c22c0ec70bc8d64cf15c0192346f008abdd051483e7356d1430b2d26762bd569",
+      "bytes": 10167
+    },
+    "source_relation": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/warm-presentation-admission-owner-20261005/CURRENT471-ORIGINAL-PROOF-TEMPLATE-RELATION.json",
+      "sha256": "b9140eada05438ab7c1fa3d24a986e685b6d3d653d1c19b16cdf527c627c665c",
+      "bytes": 9313
+    },
+    "argv": [
+      "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+      "-B",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/verify_installed.py"
+    ],
+    "cwd": "/home/ts/wt/toad-warm-rendered-reader-20261006",
+    "environment": {
+      "unset": [
+        "PYTHONPATH",
+        "PYTHONHOME",
+        "VIRTUAL_ENV",
+        "AGENT_COMMS_THREAD",
+        "AGENT_COMMS_STARTUP_INPUT_KEY",
+        "PI_PROMPT",
+        "PI_PARENT_ID",
+        "PI_AGENT_ID",
+        "PI_TASK",
+        "TEXTUAL_DRIVER",
+        "AC_REAL_ORIGINAL_PYTHON",
+        "AC_REAL_SOURCE_OWNER",
+        "AC_REAL_SOURCE_ROOT",
+        "AC_REAL_SOURCE_FILE",
+        "AC_REAL_PROVIDER_AUTHORIZED",
+        "AC_REAL_READ_ONLY_CUSTODY",
+        "WORKSPACE_COHORTS"
+      ],
+      "set": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1"
+      }
+    },
+    "exclusive_destinations": [
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/agent_comms-installed-inventory.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/toad-installed-inventory.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/textual-installed-inventory.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/textual_diff_view-installed-inventory.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/refactor_audit-installed-inventory.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/native-full-trust.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/source-proof.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/candidate-activation.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/package-boundary-proof.json"
+    ],
+    "outputs": [
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/proof-source-binding.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/proof-command.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/proof-handle.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/proof.stdout.log",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/proof.stderr.log",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/proof-terminal.json"
+    ],
+    "materialization": "Only after literalactualissuedgrant/newmatchingSchREAD; four actual grant/READ path+SHA substitutions in preparedc22 template, OUT ownissuedpath. No template invocation. ExacthelperSHA+argv/outputs binding and originalBohr proofrelease before ONE execution. Actual freshfloor/literal953/69/2253/266/bootstrap/PREFIX declared from issued owner records.",
+    "attemptlimit": 1,
+    "ordered_issue_substitutions": [
+      {
+        "placeholder": "UNBOUND_476_ACTUAL_ISSUED_GRANT_PATH",
+        "value": "UNBOUND"
+      },
+      {
+        "placeholder": "UNBOUND_476_ACTUAL_ISSUED_GRANT_SHA256",
+        "value": "UNBOUND"
+      },
+      {
+        "placeholder": "UNBOUND_476_ACTUAL_NATIVE_READ_PATH",
+        "value": "UNBOUND"
+      },
+      {
+        "placeholder": "UNBOUND_476_ACTUAL_NATIVE_READ_SHA256",
+        "value": "UNBOUND"
+      }
+    ],
+    "materialized_helper": "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/verify_installed.py"
+  },
+  "controller": {
+    "template": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/controller-preparation/run_warm.template.py",
+      "sha256": "7b5340d0900b5d30cd4a91956624fbda3769d5d6f1656e29c1e0aad8517bcfe6",
+      "bytes": 5313
+    },
+    "argv": [
+      "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+      "-B",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/run_warm.py"
+    ],
+    "materialization": "After actualgrant/lifecycle/hash literal replacements ONLY into original7b534template; newexclusive controller SHA+proof-binding/handoff/nativeEXEC personallyread and bound byBohr before sole invocation.",
+    "outputs": [
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/run_warm.py",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/controller-source-binding.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/App-proof-binding.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/final-App-handoff.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/warm-effective-release.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/warm-command.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/warm-handle.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/warm.stdout.log",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/warm.stderr.log",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/warm-terminal.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/controller-terminal.json"
+    ],
+    "ordered_issue_substitutions": [
+      {
+        "placeholder": "UNBOUND_476_ACTUAL_ISSUED_GRANT_PATH",
+        "value": "UNBOUND"
+      },
+      {
+        "placeholder": "UNBOUND_476_ACTUAL_LIFECYCLE_PATH",
+        "value": "UNBOUND"
+      },
+      {
+        "placeholder": "UNBOUND_476_ACTUAL_ISSUED_GRANT_SHA256",
+        "value": "UNBOUND"
+      }
+    ]
+  },
+  "exact_control": {
+    "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/native_session_retention_pilot.py",
+    "sha256": "2e2c707ce97ba51b7619302e51ad0dd39b13fed9cbe79e5745cf5ddf0118259a",
+    "bytes": 33949
+  },
+  "outer_argv": [
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+    "-B",
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/native_session_retention_pilot.py",
+    "--warm-admission-only"
+  ],
+  "environment": {
+    "unset": [
+      "PYTHONPATH",
+      "PYTHONHOME",
+      "VIRTUAL_ENV",
+      "AGENT_COMMS_THREAD",
+      "AGENT_COMMS_STARTUP_INPUT_KEY",
+      "PI_PROMPT",
+      "PI_PARENT_ID",
+      "PI_AGENT_ID",
+      "PI_TASK",
+      "TEXTUAL_DRIVER",
+      "AC_REAL_ORIGINAL_PYTHON",
+      "AC_REAL_SOURCE_OWNER",
+      "AC_REAL_SOURCE_ROOT",
+      "AC_REAL_SOURCE_FILE",
+      "AC_REAL_PROVIDER_AUTHORIZED",
+      "AC_REAL_READ_ONLY_CUSTODY",
+      "WORKSPACE_COHORTS"
+    ],
+    "set": {
+      "L0A_EVIDENCE": "/home/ts/.cache/agent-scratch/hwb/w4",
+      "TMPDIR": "/home/ts/.cache/agent-scratch/hwb/w4/tmp",
+      "NATIVE_RETENTION_RECEIPT": "/home/ts/.cache/agent-scratch/hwb/w4/warm-admission.json",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONNOUSERSITE": "1",
+      "AC_NATIVE_COPIED_PACKAGE": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent"
+    }
+  },
+  "controls_and_helpers": [
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/native_session_retention_pilot.py",
+      "sha256": "2e2c707ce97ba51b7619302e51ad0dd39b13fed9cbe79e5745cf5ddf0118259a",
+      "bytes": 33949
+    },
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/viewport_recent_tabs_pilot.py",
+      "sha256": "2ea128c76d469c15e8e4633922110ccfaf200f86e2131eeb0d942129284ce030",
+      "bytes": 18068
+    },
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/thread_navigation_installed_journey.py",
+      "sha256": "a23fbcb8578986949712cacc8d7b1af01b97808de225c9dbdf970177c4a6f4d2",
+      "bytes": 10668
+    },
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/l0a_native_installed_pilot.py",
+      "sha256": "ac942dd20defe4d8074ffa3a38c1b7428a3b1475ff60ba9a094b41a2c6521a93",
+      "bytes": 35830
+    },
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/runtime_fixture.py",
+      "sha256": "c34f37f450a02f09d344352466431744892a0c788953212da5ac434d912e3315",
+      "bytes": 18978
+    },
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/saved_state_user_journey_pilot.py",
+      "sha256": "4f0948b8fb5fcab6cab12802cf8b5b3cb6498188ce3b67af8a88b787b3865dca",
+      "bytes": 30003
+    },
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/manual_live_turn_status.py",
+      "sha256": "f333da956fcc9e367f993853aa3daabbaea8d4278feed24eaa644d51c74e48fa",
+      "bytes": 7122
+    },
+    {
+      "path": "/home/ts/wt/comms-task-aware-native-bundle-20261002/tools/cutover/publish_retained_summary.py",
+      "sha256": "c146d510f445fddab2bfa4489bd7fad5530e7f9e77e73ad96c108b7647115830",
+      "bytes": 23103
+    }
+  ],
+  "control_hashes": {
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/native_session_retention_pilot.py": "2e2c707ce97ba51b7619302e51ad0dd39b13fed9cbe79e5745cf5ddf0118259a",
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/viewport_recent_tabs_pilot.py": "2ea128c76d469c15e8e4633922110ccfaf200f86e2131eeb0d942129284ce030",
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/thread_navigation_installed_journey.py": "a23fbcb8578986949712cacc8d7b1af01b97808de225c9dbdf970177c4a6f4d2",
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/l0a_native_installed_pilot.py": "ac942dd20defe4d8074ffa3a38c1b7428a3b1475ff60ba9a094b41a2c6521a93",
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/runtime_fixture.py": "c34f37f450a02f09d344352466431744892a0c788953212da5ac434d912e3315",
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/saved_state_user_journey_pilot.py": "4f0948b8fb5fcab6cab12802cf8b5b3cb6498188ce3b67af8a88b787b3865dca",
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/manual_live_turn_status.py": "f333da956fcc9e367f993853aa3daabbaea8d4278feed24eaa644d51c74e48fa",
+    "/home/ts/wt/comms-task-aware-native-bundle-20261002/tools/cutover/publish_retained_summary.py": "c146d510f445fddab2bfa4489bd7fad5530e7f9e77e73ad96c108b7647115830"
+  },
+  "production_hashes": {
+    "src/toad/session_presentation.py": "355e11576540dd9d60102c8b90ff79d43e91a2702f769749a56a23b3b20a4873",
+    "src/toad/widgets/viewport_body.py": "aa8c9d1acd462275be96f5f56b0e0d0b43283456e52624c43d1bc5c9121e8228"
+  },
+  "build_proofs": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/filewheel/build-receipt.json",
+      "sha256": "be267615b4b3b06fc7e55a24ebb60f4352fe310ffcbed934ee849d041a5fbb65",
+      "bytes": 1095
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/filewheel/toad-inventory.json",
+      "sha256": "8a3c9e6dfc87fce2a70e380271199de6b6318f1bb25d093a5e88023c349a5c57",
+      "bytes": 73987
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/filewheel/wheel-proof.json",
+      "sha256": "ee36987df2a61646b5c43370eafe1321438e54633e1e50d8952d48a8f80004b1",
+      "bytes": 3552
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/filewheel/record-proof.json",
+      "sha256": "921bc825039ce65c8c31fe2de66143fc2c62b47482ce2ced2edf93eece102b16",
+      "bytes": 62500
+    }
+  ],
+  "matching_native_reference": {
+    "package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+    "manifest": "7a2e4aabdbc5af49dd9af942190d92086df2eb3489903674a74af51cf831cd33",
+    "tree": "0d7ff54a04d4f0ff175fc889e936ca3cea8b1f98eb8b73ed6215c3373cbd984d",
+    "permission": "UNISSUED; originalSch NEWmatchingREAD after actualgrant for proof; separate matchingEXEC after finalproof and Bohr release. No artifact copy/build/mutation/exclusivity."
+  },
+  "control_timeout_seconds": 150,
+  "operation_bound_seconds": 150,
+  "bound_provenance": {
+    "historical_controller": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor07-installed-purpose/run_useful_PUBLIC471.py",
+      "sha256": "d15c19d8103d54d2a166aecd3397470f1b81220dc8f496135c5563de9f24af3d",
+      "bytes": 6458
+    },
+    "historical_grant": {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Heis460-useful-cold-wheel-successor07-package-App-issued-grant.json",
+      "sha256": "43b54ee0d15f76c6c42197d7b5133d8fdbce537811ce068822cf88ef14c3121c",
+      "bytes": 1909961
+    },
+    "relation": "Original bounded controller and original150s operation ceiling reused; this warm App has no inner recorder/150s capture or16s finalize reserve. No deadline increase/cap/newclock. Stage/proof/restore original serialphase receipts; cease firstFAIL/UNKNOWN."
+  },
+  "scope": "ONE original mountedwarm App; exactly TWO authored localhost native seed inputs/2originalprivatejournals; mandatory actualretainedwarm identity/rawreads0 return ANDgenuineoriginal-owner eviction/editorDocumentUndo/non-tailrestoration; actualnative/source/paint projections/sharedbudget. No loaded4/16/32/64/configuredoriginalfork/provider/publicdecoder/physical/accepted07/466repeat.",
+  "input_count": {
+    "localhost_model_requests": 2,
+    "native_seed_inputs": 2,
+    "warm_mode_added_inputs": 0,
+    "public_original_inputs_replayed": 0
+  },
+  "public_decoder": "NONE; source_publicdecoder_READ_authorized mustfalse. PUBLIC475style22 protected.",
+  "return": {
+    "argv": [
+      "uv",
+      "pip",
+      "install",
+      "--python",
+      "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+      "--no-deps",
+      "--no-cache",
+      "--no-index",
+      "--link-mode",
+      "copy",
+      "--reinstall",
+      "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native67-filewheel-20261005/textual-8.2.8-py3-none-any.whl"
+    ],
+    "cwd": "/home/ts/wt/toad-warm-rendered-reader-20261006",
+    "environment": {
+      "unset": [
+        "PYTHONPATH",
+        "PYTHONHOME",
+        "VIRTUAL_ENV",
+        "AGENT_COMMS_THREAD",
+        "AGENT_COMMS_STARTUP_INPUT_KEY",
+        "PI_PROMPT",
+        "PI_PARENT_ID",
+        "PI_AGENT_ID",
+        "PI_TASK",
+        "TEXTUAL_DRIVER",
+        "AC_REAL_ORIGINAL_PYTHON",
+        "AC_REAL_SOURCE_OWNER",
+        "AC_REAL_SOURCE_ROOT",
+        "AC_REAL_SOURCE_FILE",
+        "AC_REAL_PROVIDER_AUTHORIZED",
+        "AC_REAL_READ_ONLY_CUSTODY",
+        "WORKSPACE_COHORTS"
+      ],
+      "set": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1"
+      }
+    },
+    "attemptlimit": 1,
+    "scope": "NormalCURRENT471 Toadb2e+Text16c9 restore only ONCE; Core3931/3fe unchanged. Compare actual1467nodes/69versions+RAWorigins/2253other67/266protected/bootstrap2/PREFIX/noextras against actualfreshissuedpreimage, noarchive/current471 equality. JoinoriginalApp/renderer/nativeACP/worker/controller/groups/sockets, preserve input journals/rawFAIL/UNKNOWN before verified own scratch retirement; privileged freshcensus/wholehandback +explicitmatching7aREAD/EXECreturn. No publicsignals or oldpurpose restore replay.",
+    "outputs": [
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/restore-command.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/restore-handle.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/restore.stdout.log",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/restore.stderr.log",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/restore-terminal.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/whole-floor-readback.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/final-borrowers.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/final-reference-classification.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/failed-fixture-retained.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose/whole-handback.json"
+    ]
+  },
+  "after_first_failure": "STOP preserve originalhandle/raw/privatejournals; join and mandatoryoriginalfloorreturn; no retry/stage-proofApp replay or newpurpose inferred.",
+  "readiness": "Rendered-resource checkpoint consumer source correction only; mounted behavior UNRUN. Warm01/02/03 failures and zero verified branches preserved. Configured continuous and genuinely loaded acceptance remain independently active.",
+  "append_only_historical_warm02_proposal": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/warm-presentation-admission-owner-20261005/FUTURE-WARM02-CANONICAL-ACQUISITION-OPERANDS.json",
+    "sha256": "f5f1d948070539a6a2c6ead06bb1f3d5b074b8637211c82169a5973c18659582",
+    "bytes": 10599
+  },
+  "historical_warm01_final_manifest": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/warm-presentation-admission-owner-20261005/PROPOSED-485-CURRENT471-WARM-FINAL-OPERANDS.json",
+    "sha256": "acad201122e17cbf4070fd2d423f97093abb71437ef685aeaf5eb2d401208fb4",
+    "bytes": 26063
+  },
+  "fresh_floor_readback": {
+    "state": "UNBOUND pending original Bohr fresh eligible assessment; historical warm03 record gives no current access"
+  },
+  "previous89e_CLOSED": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis476-current471-warm-package-App-lifecycle.json",
+    "sha256": "969c6e4ad67b48032332cce53ef873796382ff56962f05df54c8ae50b717a667",
+    "bytes": 22542
+  },
+  "previous_warm01_raw": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/whole-handback.json",
+    "sha256": "455372439cce50f0a94ade0d2ba4a7513461a8823d950d3a12f153a93f1c36b4",
+    "bytes": 20421
+  },
+  "stage_cwd": "/home/ts/wt/toad-warm-rendered-reader-20261006",
+  "original_readiness_until_seconds": 20,
+  "source_supported_gap_not_sole_runtime_cause_or_promise": true,
+  "UNBOUND_issue_fields": {
+    "issued_grant_path": "UNBOUND",
+    "issued_grant_sha256": "UNBOUND",
+    "lifecycle_path": "UNBOUND",
+    "native_READ_path": "UNBOUND",
+    "native_READ_sha256": "UNBOUND",
+    "materialized_proof_helper_sha256": "UNBOUND",
+    "materialized_controller_sha256": "UNBOUND",
+    "native_EXEC_path": "UNBOUND",
+    "native_EXEC_sha256": "UNBOUND"
+  },
+  "owned_output_prepare_argv": [
+    "/usr/bin/python",
+    "-B",
+    "-c",
+    "from pathlib import Path; import sys; Path(sys.argv[1]).mkdir(mode=0o700, parents=True, exist_ok=False)",
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/warm-presentation-admission-source-20261006/485-current471-warm04-installed-purpose"
+  ],
+  "owned_output_prepare_authorized_now": false,
+  "runtime_output_descriptor": {
+    "evidence": "/home/ts/.cache/agent-scratch/hwb/w4",
+    "TMPDIR": "/home/ts/.cache/agent-scratch/hwb/w4/tmp",
+    "mounted_receipt": "/home/ts/.cache/agent-scratch/hwb/w4/warm-admission.json",
+    "socket_formula": {
+      "stage_suffix_bytes": 8,
+      "pid_example": "9999999",
+      "path": "/home/ts/.cache/agent-scratch/hwb/w4/native-fixture-abcdefgh/private-root/wire/runtime/9999999.sock",
+      "bytes": 99,
+      "linux_limit": 107
+    }
+  },
+  "authority_now": {
+    "build": false,
+    "stage": false,
+    "proof": false,
+    "native_READ": false,
+    "native_EXEC": false,
+    "App": false,
+    "public_decoder": false
+  },
+  "previous4bfd_CLOSED": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis476-current471-warm02-package-App-lifecycle.json",
+    "sha256": "f1b7552444aba0893f0d4ac2c10dc06f84eb951ca4a9736bbdfe9ff4466cda2c",
+    "bytes": 20911
+  },
+  "previous_warm02_raw": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/whole-handback.json",
+    "sha256": "02082b479b9de8122276fb9ae63b756584dcd7a47d60bc58578093fbb9853d7b",
+    "bytes": 21582
+  },
+  "append_only_historical_warm02_final_proposal": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/warm-presentation-admission-owner-20261005/PROPOSED-485-CURRENT471-WARM02-FINAL-OPERANDS.json",
+    "sha256": "e66c628059eafc4d1d1b92ff7db0e7f052a7de425c9d525eb878ad3fc507353e",
+    "bytes": 32510
+  },
+  "mandatory_acceptance": [
+    "actual departure and retained return with exact warm page/fragment/render identities and raw reads delta zero",
+    "genuine original-owner eviction and restoration of editor Document/Undo/native CtrlZ/direct redo/non-tail reader position",
+    "both branches entered and verified; no skipped branch receives qualification"
+  ],
+  "input_scope": {
+    "authored_localhost_requests": 2,
+    "genuine_native_journals": 2,
+    "loaded_4_16_32_64_mode": false,
+    "configured_original_forks": false,
+    "public_decoder": false,
+    "paid_provider_input": false
+  },
+  "specific_grant_lifecycle_READ_EXEC_unbound": true,
+  "held_negative_disposition": "All warm01/02/03 original raw roots/journals immutable HELD; no replay, deletion, chmod or authority inheritance.",
+  "source_correction": {
+    "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/evidence/warm-native-reader-source-20261006/AFTER-SOURCE.json",
+    "sha256": "dca93bcc2c33a80e5d01b2f61838b3fbc9eac1055173455a19626befb0e9c12d"
+  },
+  "previous3d9a_CLOSED": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis476-current471-warm03-package-App-lifecycle.json",
+    "sha256": "063b72a52f871488bf4e31a1f528a75346ac8c2235a84c3115d090f35fec8fb6",
+    "bytes": 19977
+  },
+  "previous_warm03_raw": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm03-installed-purpose/whole-handback.json",
+    "sha256": "ba3832a3314acfdef93a5fe3aefa5fb53d9d3cf34d017dcbc524bef1c3e16ac6",
+    "bytes": 22022
+  },
+  "append_only_historical_warm03_final_proposal": {
+    "git_revision": "d0dcde2714bee906a33fa7261a5cb7103f0e5311",
+    "path": "evidence/warm-presentation-admission-owner-20261005/PROPOSED-485-CURRENT471-WARM03-FINAL-OPERANDS.json",
+    "sha256": "699dd44f6ecc538dd4b5276cd90bd927bfd73a80957b27e980bd7ae784d7868f"
+  }
+}
