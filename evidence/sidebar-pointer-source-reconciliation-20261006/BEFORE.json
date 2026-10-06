@@ -1,0 +1,704 @@
+{
+  "coverage": [
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "head": "d8c1a5ea31058fdf404bf105945e6710d7622a81",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "head": "d8c1a5ea31058fdf404bf105945e6710d7622a81",
+      "root": "tests",
+      "modules": 403,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "head": "d8c1a5ea31058fdf404bf105945e6710d7622a81",
+      "root": "tools",
+      "modules": 40,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "head": "2d45091584a7f9b386baa2a8edf8fb3a3ba8a3d6",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": []
+    }
+  ],
+  "consumer_sites": [
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "src/toad/sidebar_navigation.py",
+      "sites": [
+        {
+          "line": 199,
+          "source": "self.sidebar.observation.sync()"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "src/toad/sidebar_projection.py",
+      "sites": [
+        {
+          "line": 85,
+          "source": "self.rebuild(snapshot)"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "src/toad/tool_output.py",
+      "sites": [
+        {
+          "line": 411,
+          "source": "body.sync()"
+        },
+        {
+          "line": 462,
+          "source": "self.sync()"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "src/toad/widgets/comms_menu.py",
+      "sites": [
+        {
+          "line": 169,
+          "source": "self.get_widget_at(event.screen_x, event.screen_y)"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "sites": [
+        {
+          "line": 534,
+          "source": "self.screen.get_widget_at(event.screen_x, event.screen_y)"
+        },
+        {
+          "line": 174,
+          "source": "self.reconcile_rows(prepared_rows if self.expanded else (), self._members, create, update)"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "src/toad/widgets/conversation.py",
+      "sites": [
+        {
+          "line": 237,
+          "source": "self.sync()"
+        },
+        {
+          "line": 771,
+          "source": "activity.sync()"
+        },
+        {
+          "line": 1288,
+          "source": "throbber.sync()"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "src/toad/widgets/thread_comms.py",
+      "sites": [
+        {
+          "line": 198,
+          "source": "self.reconcile_rows(entries, self.rows, create, update)"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "src/toad/widgets/tool_call.py",
+      "sites": [
+        {
+          "line": 191,
+          "source": "self.output.sync()"
+        },
+        {
+          "line": 259,
+          "source": "self.output.sync()"
+        },
+        {
+          "line": 374,
+          "source": "self.output.sync()"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/activity_spinners_pilot.py",
+      "sites": [
+        {
+          "line": 76,
+          "source": "sidebar.observation.sync()"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/async_thread_open_pilot.py",
+      "sites": [
+        {
+          "line": 87,
+          "source": "sidebar.observation.sync()"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/channel_unread_follow_pilot.py",
+      "sites": [
+        {
+          "line": 76,
+          "source": "sidebar.observation.sync()"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/channel_views_pilot.py",
+      "sites": [
+        {
+          "line": 167,
+          "source": "app.screen.query_one(CommsSidebar).observation.sync()"
+        },
+        {
+          "line": 185,
+          "source": "app.screen.query_one(CommsSidebar).observation.sync()"
+        },
+        {
+          "line": 201,
+          "source": "sidebar.observation.sync()"
+        },
+        {
+          "line": 212,
+          "source": "sidebar.observation.sync()"
+        },
+        {
+          "line": 223,
+          "source": "sidebar.observation.sync()"
+        },
+        {
+          "line": 236,
+          "source": "sidebar.observation.sync()"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/channel_visibility_pilot.py",
+      "sites": [
+        {
+          "line": 20,
+          "source": "sidebar.observation.sync()"
+        },
+        {
+          "line": 56,
+          "source": "sync(app, pilot)"
+        },
+        {
+          "line": 66,
+          "source": "sync(app, pilot)"
+        },
+        {
+          "line": 69,
+          "source": "sync(app, pilot)"
+        },
+        {
+          "line": 75,
+          "source": "sync(app, pilot)"
+        },
+        {
+          "line": 78,
+          "source": "sync(app, pilot)"
+        },
+        {
+          "line": 93,
+          "source": "sync(fresh, pilot)"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/comms_pilot.py",
+      "sites": [
+        {
+          "line": 904,
+          "source": "app.screen.get_widget_at(x, y)"
+        },
+        {
+          "line": 893,
+          "source": "app.screen.get_widget_at(x, y)"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/declared_target_actions_installed_pilot.py",
+      "sites": [
+        {
+          "line": 57,
+          "source": "open_menu(app, pilot, row)"
+        },
+        {
+          "line": 161,
+          "source": "open_menu(app, pilot, rows[0])"
+        },
+        {
+          "line": 202,
+          "source": "select_rows(app, pilot, rows[:1], base)"
+        },
+        {
+          "line": 225,
+          "source": "select_rows(app, pilot, (rows[0], channel), base)"
+        },
+        {
+          "line": 236,
+          "source": "select_rows(app, pilot, (rows[0], rows[1], channel), base)"
+        },
+        {
+          "line": 245,
+          "source": "select_rows(app, pilot, rows[:2], base)"
+        },
+        {
+          "line": 246,
+          "source": "open_menu(app, pilot, rows[0])"
+        },
+        {
+          "line": 266,
+          "source": "select_rows(app, pilot, (sidebar.projection.channels['#remove-only'],), base)"
+        },
+        {
+          "line": 282,
+          "source": "select_rows(app, pilot, (anchor,), base)"
+        },
+        {
+          "line": 445,
+          "source": "select_rows(app, pilot, (channel, row), evidence)"
+        },
+        {
+          "line": 492,
+          "source": "select_rows(app, pilot, (channel,), evidence)"
+        },
+        {
+          "line": 641,
+          "source": "open_menu(app, pilot, builtin)"
+        },
+        {
+          "line": 749,
+          "source": "open_menu(reopened, pilot, row)"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/existing_thread_tab_title_pilot.py",
+      "sites": [
+        {
+          "line": 94,
+          "source": "sidebar.observation.sync()"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/first_fork_native_installed_pilot.py",
+      "sites": [
+        {
+          "line": 88,
+          "source": "app.screen.get_widget_at(*point)"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/fresh_fork_pilot.py",
+      "sites": [
+        {
+          "line": 86,
+          "source": "sidebar.observation.sync()"
+        },
+        {
+          "line": 91,
+          "source": "sidebar.observation.sync()"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/human_mark_read_pilot.py",
+      "sites": [
+        {
+          "line": 53,
+          "source": "sidebar.observation.sync()"
+        },
+        {
+          "line": 66,
+          "source": "sidebar.observation.sync()"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/input_visibility_native_installed_pilot.py",
+      "sites": [
+        {
+          "line": 230,
+          "source": "app.screen.get_widget_at(*control.region.offset)"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/markdown_return_reuse_pilot.py",
+      "sites": [
+        {
+          "line": 97,
+          "source": "app.screen.get_widget_at(*offset)"
+        },
+        {
+          "line": 99,
+          "source": "pilot._post_mouse_events([event_type], offset=offset)"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/nominal_tool_menu_pilot.py",
+      "sites": [
+        {
+          "line": 35,
+          "source": "sidebar.observation.sync()"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/pending_unread_pilot.py",
+      "sites": [
+        {
+          "line": 48,
+          "source": "sidebar.observation.sync()"
+        },
+        {
+          "line": 59,
+          "source": "sidebar.observation.sync()"
+        },
+        {
+          "line": 67,
+          "source": "sidebar.observation.sync()"
+        },
+        {
+          "line": 57,
+          "source": "sidebar.observation.sync()"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "sites": [
+        {
+          "line": 422,
+          "source": "app.get_widget_at(*point)"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/retained_tool_text_pilot.py",
+      "sites": [
+        {
+          "line": 176,
+          "source": "tool.output.sync()"
+        },
+        {
+          "line": 179,
+          "source": "tool.output.sync()"
+        },
+        {
+          "line": 201,
+          "source": "tool.output.sync()"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/runtime_fixture.py",
+      "sites": [
+        {
+          "line": 173,
+          "source": "dialog.get_widget_at(*entry.region.offset)"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "sites": [
+        {
+          "line": 271,
+          "source": "app.screen.get_widget_at(*row.region.offset)"
+        },
+        {
+          "line": 307,
+          "source": "app.screen.get_widget_at(*cell)"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/sidebar_context_menu_scroll_pilot.py",
+      "sites": [
+        {
+          "line": 35,
+          "source": "sidebar.observation.sync()"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/sidebar_latency_pilot.py",
+      "sites": [
+        {
+          "line": 85,
+          "source": "sidebar.observation.sync()"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/sidebar_navigation_pilot.py",
+      "sites": [
+        {
+          "line": 270,
+          "source": "app.get_widget_at(member.region.x, member.region.y)"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/sidebar_nonvirtual_scroll_pilot.py",
+      "sites": [
+        {
+          "line": 36,
+          "source": "app.screen.query_one(CommsSidebar).observation.sync()"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/sidebar_selected_targets_pilot.py",
+      "sites": [
+        {
+          "line": 33,
+          "source": "sidebar.observation.sync()"
+        },
+        {
+          "line": 85,
+          "source": "sidebar.observation.sync()"
+        },
+        {
+          "line": 126,
+          "source": "sidebar.observation.sync()"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/sidebar_sort_viewport_pilot.py",
+      "sites": [
+        {
+          "line": 40,
+          "source": "app.screen.query_one(CommsSidebar).observation.sync()"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/stop_responsiveness_pilot.py",
+      "sites": [
+        {
+          "line": 63,
+          "source": "sidebar.observation.sync()"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/tab_scrollbar_top_pilot.py",
+      "sites": [
+        {
+          "line": 62,
+          "source": "app.screen.get_widget_at(label.region.x + 1, underline.region.y)"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/test_context_manifest_navigation.py",
+      "sites": [
+        {
+          "line": 57,
+          "source": "pilot.app.screen.get_widget_at(point.x, point.y)"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/ui_sidebar_geometry_pilot.py",
+      "sites": [
+        {
+          "line": 41,
+          "source": "app.screen.query_one(CommsSidebar).observation.sync()"
+        },
+        {
+          "line": 146,
+          "source": "app.get_widget_at(button.region.x, button.region.y)"
+        },
+        {
+          "line": 111,
+          "source": "app.get_widget_at(edge.region.x, edge.region.y + 3)"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tests/unread_paint_only_pilot.py",
+      "sites": [
+        {
+          "line": 45,
+          "source": "sidebar.observation.sync()"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+      "path": "tools/performance/capture_state.py",
+      "sites": [
+        {
+          "line": 206,
+          "source": "app.screen.get_widget_at(*cell)"
+        },
+        {
+          "line": 404,
+          "source": "native_screen.get_widget_at(*cell)"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/_compositor.py",
+      "sites": [
+        {
+          "line": 1323,
+          "source": "self.get_widget_at(x, y)"
+        },
+        {
+          "line": 1359,
+          "source": "self.get_widget_at(x, y)"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/app.py",
+      "sites": [
+        {
+          "line": 3946,
+          "source": "self.screen.get_widget_at(x, y)"
+        },
+        {
+          "line": 4116,
+          "source": "self.get_widget_at(event.x, event.y)"
+        },
+        {
+          "line": 4118,
+          "source": "self.get_widget_at(event.x, event.y)"
+        },
+        {
+          "line": 4143,
+          "source": "self.get_widget_at(*screen_offset)"
+        },
+        {
+          "line": 4117,
+          "source": "input_owner.prepare_input(event)"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/command.py",
+      "sites": [
+        {
+          "line": 813,
+          "source": "self.get_widget_at(event.screen_x, event.screen_y)"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/pilot.py",
+      "sites": [
+        {
+          "line": 135,
+          "source": "self._post_mouse_events([MouseMove, MouseDown], widget=widget, offset=offset, button=button, shift=shift, meta=meta, control=control)"
+        },
+        {
+          "line": 180,
+          "source": "self._post_mouse_events([MouseMove, MouseUp], widget=widget, offset=offset, button=1, shift=shift, meta=meta, control=control)"
+        },
+        {
+          "line": 236,
+          "source": "self._post_mouse_events([MouseDown, MouseUp, Click], widget=widget, offset=offset, button=button, shift=shift, meta=meta, control=control, times=times)"
+        },
+        {
+          "line": 373,
+          "source": "self._post_mouse_events([MouseMove], widget, offset, button=0)"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/screen.py",
+      "sites": [
+        {
+          "line": 660,
+          "source": "self._compositor.get_widget_at(x, y)"
+        },
+        {
+          "line": 715,
+          "source": "self.get_widget_at(x, y)"
+        },
+        {
+          "line": 1771,
+          "source": "self.get_widget_at(*self.app.mouse_position)"
+        },
+        {
+          "line": 2120,
+          "source": "self.get_widget_at(event.x, event.y)"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widget.py",
+      "sites": [
+        {
+          "line": 4536,
+          "source": "self.screen.get_widget_at(*screen_offset)"
+        }
+      ]
+    }
+  ]
+}

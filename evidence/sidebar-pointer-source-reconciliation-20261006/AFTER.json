@@ -1,0 +1,9 @@
+{
+  "changed_declarations": [
+    "open_menu",
+    "select_rows"
+  ],
+  "all_other_declarations_equal": true,
+  "assertions_equal": 124,
+  "compile_without_import": true
+}

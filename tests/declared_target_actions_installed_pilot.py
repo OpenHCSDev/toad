@@ -46,6 +46,10 @@ async def command(root, *arguments):
 
 
 async def open_menu(app, pilot, row):
+    from toad.widgets.comms_sidebar import CommsSidebar
+    # A completed backend action may still have a pending roster publication.
+    # Reconcile it through the original observer before acquiring pointer geometry.
+    await row.query_ancestor(CommsSidebar).observation.sync()
     row.scroll_visible(animate=False, immediate=True)
     await pilot.pause()
     assert await pilot.click(row, button=3)
@@ -160,6 +164,8 @@ async def select_rows(app, pilot, rows, evidence):
     record('before-menu', rows[0])
     await open_menu(app, pilot, rows[0])
     await pilot.press('escape')
+    await sidebar.observation.sync()
+    await pilot.pause()
     record('after-menu-dismiss', rows[0])
     for identity in tuple(app.sidebar_state.selected_targets):
         if identity != sidebar.navigation.selection_for(rows[0]):
