@@ -1,0 +1,170 @@
+{
+  "coverage": [
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "head": "31e82ffaae17dae7c25087cd3fccb1bd4a56a07b",
+      "root": "src/toad",
+      "parsed": 288,
+      "unparsed": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "head": "31e82ffaae17dae7c25087cd3fccb1bd4a56a07b",
+      "root": "tests",
+      "parsed": 403,
+      "unparsed": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "head": "31e82ffaae17dae7c25087cd3fccb1bd4a56a07b",
+      "root": "tools",
+      "parsed": 40,
+      "unparsed": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "head": "8814c5410ffa981a89a34cd18403ba0b54c867f1",
+      "root": "src/textual",
+      "parsed": 249,
+      "unparsed": []
+    }
+  ],
+  "declaration_sites": [
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/navigation_target.py",
+      "line": 54,
+      "declaration": "show_menu"
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/target_commands.py",
+      "line": 57,
+      "declaration": "show_menu"
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 179,
+      "declaration": "show_target_menu"
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 215,
+      "declaration": "show_menu"
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "src/toad/widgets/session_sort.py",
+      "line": 60,
+      "declaration": "choose"
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "tests/block_interaction_pilot.py",
+      "line": 73,
+      "declaration": "choose"
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 91,
+      "declaration": "choose"
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "tests/channel_visibility_pilot.py",
+      "line": 29,
+      "declaration": "choose"
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "tests/declared_target_actions_installed_pilot.py",
+      "line": 48,
+      "declaration": "open_menu"
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "tests/declared_target_actions_installed_pilot.py",
+      "line": 56,
+      "declaration": "choose"
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "tests/session_sort_pilot.py",
+      "line": 158,
+      "declaration": "choose"
+    },
+    {
+      "repo": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+      "path": "tests/transcript_filter_installed_journey.py",
+      "line": 56,
+      "declaration": "choose"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/app.py",
+      "line": 2807,
+      "declaration": "_get_screen"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/app.py",
+      "line": 2905,
+      "declaration": "push_screen"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/app.py",
+      "line": 3540,
+      "declaration": "_pre_process"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/app.py",
+      "line": 2886,
+      "declaration": "push_screen"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/app.py",
+      "line": 2896,
+      "declaration": "push_screen"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/message_pump.py",
+      "line": 650,
+      "declaration": "_pre_process"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/screen.py",
+      "line": 1620,
+      "declaration": "_compose"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widget.py",
+      "line": 4998,
+      "declaration": "_compose"
+    }
+  ],
+  "before_sha256": "7174ddc4f592a23d63bfd71bc042f5cb0e03ac2393df624c01ebf0feb2c0f744",
+  "after_sha256": "4bba6d53fb921264db6b3e8688afbedc8d934cb7015b85cb8335db2e5ec59701",
+  "changed_functions": [
+    "open_menu",
+    "choose",
+    "journey"
+  ],
+  "all124_assertion_ASTs_identical": true,
+  "existing_until15_and_native20_and_outer600_unchanged": true,
+  "production_pins_wheels_unchanged": true,
+  "owner": "Native MessagePump preprocessing/Widget.is_mounted after Compose/Mount; App.push_screen stack assignment precedes it",
+  "recorded_mount_flag_at_failure": null,
+  "not_sole_runtime_cause_claim": true,
+  "compile_without_imports": true,
+  "runtime_run": false,
+  "initial_preflight_refused_before_source_write": "reopened acquisition is original journey, not main; actual function declaration resolved"
+}

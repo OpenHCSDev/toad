@@ -1,0 +1,32 @@
+{
+  "raw": "/home/ts/.cache/agent-scratch/pslp03/evidence/capture/phase-wheel-width-before-state-frames.json",
+  "scope": "partial physical03 capture; original writer completion is not emulator paint or pointer readiness",
+  "native_durations_ms": {
+    "_refresh_layout": {
+      "count": 41,
+      "median": 8.35,
+      "p95": 19.99,
+      "max": 37.31
+    },
+    "_compositor_refresh": {
+      "count": 230,
+      "median": 2.08,
+      "p95": 3.29,
+      "max": 27.03
+    },
+    "arrange_root": {
+      "count": 36,
+      "median": 5.85,
+      "p95": 11.23,
+      "max": 17.33
+    }
+  },
+  "writer_completion_latency_ms": {
+    "count": 118,
+    "median": 0.92,
+    "p95": 2.88,
+    "max": 5.43
+  },
+  "physical_qualification": "FAIL missing right-sidebar resize target; later scopes unreached",
+  "fps_claim": null
+}

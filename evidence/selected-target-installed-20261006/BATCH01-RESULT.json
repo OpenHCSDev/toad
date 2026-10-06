@@ -1,0 +1,22 @@
+{
+  "whole_return": {
+    "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch01-installed-purpose/whole-handback.json",
+    "sha256": "1415b8e9e3df59ec1e35eed99750f7acaa90bb476f1fb6aa16db6892ee41f030",
+    "bytes": 28037
+  },
+  "one_App": true,
+  "returncode": 1,
+  "elapsed_seconds": 22.57110946800094,
+  "first_assertion": "declared_target_actions_installed_pilot.py178 selected_targets != cohort after native Shift click",
+  "later_batch_qualification": false,
+  "cause_beyond_assertion_unproved": true,
+  "provider_requests": 0,
+  "public_source_acquired": false,
+  "restore_once_pass": true,
+  "restored_original_nodes": 1467,
+  "restored_ZIP_assets": 953,
+  "raw_refs": 93,
+  "held_fixture_files": 44,
+  "recorded_processes_absent": 10,
+  "no_retry": true
+}

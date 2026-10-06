@@ -1,0 +1,38 @@
+{
+  "whole": {
+    "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch04-installed-purpose/whole-handback.json",
+    "sha256": "c2b28452a3f0fb948dab7e63a026035ae9ebf6cc5ae58e36a4dd25126938feaf",
+    "bytes": 26166
+  },
+  "control_terminal": {
+    "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch04-installed-purpose/control-terminal.json",
+    "sha256": "7e92310a48b152632c054a44da9ee48e29c523d6d3d558f8c163072d0cc0cbfc",
+    "bytes": 743
+  },
+  "operator_terminal": {
+    "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch04-installed-purpose/native-operator-terminal.json",
+    "sha256": "45dc84344720e5fe2fe22221d8159f364e4d5f77d20aa3917993669c7bdf1b6b",
+    "bytes": 297
+  },
+  "restore": {
+    "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch04-installed-purpose/restore-terminal.json",
+    "sha256": "1b3da3d9d40d3f60fdf4d541257f2dca4b1010d050e07621c10ba0ef807b42ae",
+    "bytes": 356
+  },
+  "floor": {
+    "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch04-installed-purpose/whole-floor-readback.json",
+    "sha256": "66fe8ad861d70fead4b425e6f4364cf685c6f485ab1df2db84c0d444b1edb431",
+    "bytes": 730155
+  },
+  "actual_App_exit": 1,
+  "seconds": 35.04771229997277,
+  "menu_read_pin_phases_reached": true,
+  "later_selection_assertion_failed": true,
+  "final_selection_tuple_unrecorded": true,
+  "no_canonical_order_or_missing_member_cause_claim": true,
+  "clipped60_and_nativebatch_unqualified": true,
+  "whole_explicitly_returned": true,
+  "held_raw": 85,
+  "held_fixtures": 50,
+  "no_rerun": true
+}
