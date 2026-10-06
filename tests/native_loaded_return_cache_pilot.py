@@ -204,7 +204,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                 await until(pilot, agents[-1].session.settled.is_set)
             agent = agents[-1]
             view = app.selected_session.conversation
-            await until(pilot, lambda: view.agent_ready and view.queue_projection.status == "available")
+            await until(pilot, lambda: view.agent_ready and view.submissions.queue_projection.status == "available")
             for index in range(prompt_count):
                 prompt = f"CACHE_{name.upper()}_{index}\n\n" + "\n\n".join(
                     f"{name} saved reader paragraph {row}: **canonical loaded source**."
