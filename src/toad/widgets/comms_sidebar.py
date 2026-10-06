@@ -213,8 +213,6 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
         return self.target.name
 
     def show_menu(self, sidebar, offset) -> None:
-        if self.mode_name is None:
-            self.focus()
         self.target.show_menu(sidebar, offset, mode_name=self.mode_name, channel=self.query_ancestor(ChannelGroup).row.target_name)
 
 
