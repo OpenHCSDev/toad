@@ -266,7 +266,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         if self._spinner_timer is None:
             return
         sidebar = self.query_ancestor(SideBar)
-        if (self.screen.is_active and not sidebar.collapsed
+        if (sidebar.presentation_visible and not sidebar.collapsed
                 and any(row.busy for group in self.groups.values() for row in group.rows.values())):
             self._spinner_timer.resume()
         else:
@@ -276,7 +276,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         self._sync_spinner()
 
     def _animate_busy(self) -> None:
-        if not self.screen.is_active:
+        if not self.query_ancestor(SideBar).presentation_visible:
             self._sync_spinner()
             return
         self._spinner_phase = (self._spinner_phase + 1) % len(FRAMES)
@@ -325,6 +325,9 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
     @handles(core_events.OpenTabsChanged, core_events.SessionSelected, core_events.ThreadActionsChanged, core_events.CoordinationObserved)
     async def _observed(self, event: CoreEventMessage) -> None:
         if not self.is_attached or self.screen is not self.app.screen:
+            return
+        if not self.query_ancestor(SideBar).presentation_visible:
+            self._sync_spinner()
             return
         if self._live:
             self._bind_screen_identity()

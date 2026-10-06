@@ -14,8 +14,9 @@ import time
 from weakref import ref
 
 import psutil
-from agent_comms.comms import wire
+from agent_comms.comms import Comms
 from agent_comms.threads import Thread
+from agent_comms.relationships import AddRelationshipEdit
 from sidebar_retirement_pilot import InstalledApp, until, reveal, prepare_project, viewport_text
 from toad.screens.main import MainScreen
 from toad.plan import PlanItem, PendingPlanStatus, InProgressPlanStatus
@@ -42,11 +43,12 @@ async def main():
             (project / "folder/deep" / f"item-{index:02}.txt").write_text(str(index))
         os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
-        comms = wire(root / "wire")
+        comms = Comms(root / "wire", private_initial_writes=True)
         tabs = int(os.environ.get("TOAD_SIDEBAR_TABS", "64"))
         for name in ["peer"] + [f"owner-{index}" for index in range(tabs)]:
             comms.registry.declare(Thread(name, frozenset(), str(project)))
-        comms.relationships.edit("owner-0", "add", "peer", "Persist actual relationship state")
+        comms.messaging.initialize_private_initial_protocol()
+        comms.relationships.edit("owner-0", AddRelationshipEdit, "peer", "Persist actual relationship state")
         app = InstalledApp(project_dir=str(project))
         measurements, timings, screens, references = [], [], [], []
         async with app.run_test(size=(130, 44)) as pilot:
@@ -69,8 +71,12 @@ async def main():
             await pilot.pause(.02)
             tree_scroll = tree.scroll_y
             relationships = first_bar.query_one(ThreadCommsSidebar)
+            relationships.scroll_visible(animate=False, immediate=True)
             await until(pilot, lambda: len(relationships.groups) == 5)
             group = relationships.groups["collaborating"]
+            if not group.expanded:
+                group.toggle_members()
+            await until(pilot, lambda: bool(group.rows))
             row = next(iter(group.rows.values()))
             relationships.remember_row(row)
             group.toggle_members()
@@ -91,8 +97,15 @@ async def main():
                 await pilot.pause(.02)
                 bar = await reveal(screen, pilot)
                 bar.update_plan([PlanItem(f"Plan {index}", "high", PendingPlanStatus)])
-                assert len(bar.panels) == 5
-                assert rich_count(screens) == 5, f"Retained rich panels after {len(screens)} tabs"
+                assert len(bar.panels) == len(bar._panel_owners)
+                native = app.workspace_chrome.native
+                await native.reconcile(screen)
+                required = tuple(owner for _, owner in screen.retained_native_presentations())
+                owners = tuple(owner for _, owner in native._presentations())
+                budget = screen.conversation.window.document_viewport.budget
+                total_widgets = sum(owner.retained_widget_count for owner in owners)
+                assert total_widgets <= max(budget.widget_limit(app.size.height), sum(owner.retained_widget_count for owner in required))
+
                 references.extend(ref(panel.widget) for panel in bar.panels)
                 if len(screens) in {4, 16, 32, 64}:
                     gc.collect()
@@ -114,7 +127,7 @@ async def main():
                     assert bar.query_one(Plan).entries is latest
                     tree = await prepare_project(bar, pilot)
                     await until(pilot, lambda: tree.cursor_node is not None and tree.cursor_node.data.path == project / "folder/deep/item-38.txt")
-                    await pilot.pause(.02)
+                    await until(pilot, lambda: screen._project_panel._intent is None)
                     assert tree.scroll_y == tree_scroll, (tree.scroll_y, tree_scroll,
                         tree.size, tree.virtual_size, tree.max_scroll_y, tree.cursor_line)
                     relationships = bar.query_one(ThreadCommsSidebar)
@@ -122,7 +135,7 @@ async def main():
                     assert state.selected == ("collaborating", "peer")
                     assert "Source" in viewport_text(bar) and "inactive" in viewport_text(bar)
                     tree.scroll_visible(animate=False, immediate=True)
-                    tree.scroll_to(y=tree.max_scroll_y, animate=False, immediate=True)
+                    tree.scroll_to(y=tree.max_scroll_y, animate=False, immediate=True, force=True)
                     await pilot.pause(.02)
                     assert "item-38.txt" in viewport_text(tree), "Restored selected filename not painted"
                     relationships.scroll_visible(animate=False, immediate=True)
@@ -144,7 +157,13 @@ async def main():
                     await pilot.pause(.02)
             await pilot.pause(.05)
             gc.collect()
-            assert all(widget() is None for widget in references), "A retired graph remains reachable"
+            for view in screens:
+                if view is not app.selected_session:
+                    await view.presentation.evict()
+                    await view.query_one(SessionThreadSidebar).evict()
+            gc.collect()
+            retained = set(app.selected_session.query_one(SessionThreadSidebar).walk_children())
+            assert all(widget() is None or widget() in retained for widget in references), "An evicted graph remains reachable"
             assert app._exception is None
         receipt = {"cohorts": measurements, "returns": len(timings),
                    "settled_return_median_ms": median(timings), "settled_return_max_ms": max(timings),

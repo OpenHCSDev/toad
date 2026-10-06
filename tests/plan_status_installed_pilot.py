@@ -95,7 +95,7 @@ async def main():
                 await until(pilot, lambda: painted(plan, "ACP_pending_ITEM"))
                 print("ACP_CONTINUOUS_UPDATE_COMPLETION_ANIMATED_STABLE_COMPLETION_RESIZED_AND_PAINTED", flush=True)
 
-                await sidebar.retire_presentation()
+                await sidebar.evict()
                 assert not sidebar.panels
                 (root / "plan-advance-1").touch()
                 await until(pilot, lambda: not plan.entries and not plan.all_complete)

@@ -5,7 +5,7 @@ from toad.core.preference_events import PreferenceChanged
 from toad.preferences import SidebarSettings
 from dataclasses import dataclass
 import asyncio
-from typing import TYPE_CHECKING, Callable, ClassVar, cast
+from typing import TYPE_CHECKING, ClassVar, cast
 
 from textual import containers, events, on, widgets
 from textual.app import ComposeResult
@@ -658,7 +658,6 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
         right: bool = False,
         navigation: SidebarState | None = None,
         defer_mount: bool = False,
-        on_hydrated: Callable[[], None] | None = None,
     ) -> None:
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.panels: list[SideBar.Panel] = [*panels]
@@ -666,7 +665,6 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
         self.right = right
         self._navigation = navigation
         self._panels_loaded = not defer_mount
-        self._on_hydrated = on_hydrated
         self._panels_loading = False
         self._panels_ready = asyncio.Event()
         self._presented_collapsed: bool | None = None
@@ -728,11 +726,13 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
             if self.is_attached and not self._closing and self.presentation_visible:
                 self._panels_loaded = True
                 self._presented_layout = None
-                if self._on_hydrated is not None:
-                    self._on_hydrated()
+                await self.panels_hydrated()
                 self.restore_navigation()
         finally:
             self._panels_ready.set()
+
+    async def panels_hydrated(self) -> None:
+        """The sidebar declaration completes its admitted panel preparation."""
 
     async def wait_content_ready(self) -> None:
         await self._panels_ready.wait()

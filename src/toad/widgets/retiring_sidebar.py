@@ -1,12 +1,26 @@
 """Optional sidebar content uses the workspace's existing admission lifetime."""
 from textual.worker import WorkerCancelled
 from toad.widgets.side_bar import CommsSideBar
-from toad.widgets.side_bar import SideBarCollapsible
+from toad.widgets.side_bar import SideBarCollapsible, SidebarVisibilityObserver
 from toad.widgets.sidebar_viewport import SidebarViewport
 
 
 class RetiringSidebar(CommsSideBar):
-    """Retain reader intent, never an inactive panel widget graph."""
+    """Park admitted panel resources; eviction retains only reader intent."""
+
+    @property
+    def retained_widget_count(self) -> int:
+        return 1 + self.descendant_count if self._panels_loaded else 0
+
+    @property
+    def retained_source_bytes(self) -> int:
+        # This panel graph holds no transcript page/source asset.
+        return 0
+
+    @property
+    def retained_paint_bytes(self) -> int:
+        # Panel paint stays widget-owned and participates through widget cost.
+        return 0
 
     def schedule_hydration(self) -> None:
         if not self.collapsed:
@@ -26,6 +40,21 @@ class RetiringSidebar(CommsSideBar):
         self.schedule_hydration()
 
     async def retire_presentation(self) -> None:
+        for worker in self.workers.cancel_group(self, "sidebar-panels"):
+            try:
+                await worker.wait()
+            except WorkerCancelled:
+                pass
+        if not self._panels_loaded:
+            # A cancelled partial mount was never a complete admitted panel set.
+            await self.evict()
+        else:
+            for panel in self.panels:
+                if isinstance(panel.widget, SidebarVisibilityObserver):
+                    panel.widget.sidebar_visibility_changed()
+
+    async def evict(self) -> None:
+        """The session resource owner releases panels at actual eviction/close."""
         for worker in self.workers.cancel_group(self, "sidebar-panels"):
             try:
                 await worker.wait()
