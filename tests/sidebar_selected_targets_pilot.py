@@ -118,6 +118,31 @@ async def main():
             assert notifications[0].severity == 'error'
             assert '1/2 completed' in notifications[0].message
             assert fourth.target_name in notifications[0].message
+            # A range belongs to the displayed hierarchy, including admitted
+            # rows scrolled outside the viewport. Exercise native pointer input
+            # after the anchor has actually left the clipped panel.
+            for index in range(60):
+                comms.registry.declare(Thread(f'range-{index:02}', frozenset({'range'}), str(root)), StoppedThreadStatus())
+            await sidebar.observation.sync()
+            await pilot.pause()
+            group = sidebar.projection.channels['#range'].query_ancestor(ChannelGroup)
+            await group.reveal_members()
+            await pilot.pause()
+            range_rows = tuple(group.member_container.children)
+            anchor, endpoint = range_rows[0], range_rows[-1]
+            anchor.scroll_visible(animate=False, immediate=True)
+            await pilot.pause()
+            assert await pilot.click(anchor, button=3)
+            async with asyncio.timeout(10):
+                while not isinstance(app.screen, ContextMenu):
+                    await pilot.pause()
+            await pilot.press('escape')
+            endpoint.scroll_visible(animate=False, immediate=True)
+            await pilot.pause()
+            assert not anchor.is_on_screen and endpoint.is_on_screen
+            assert await pilot.click(endpoint, shift=True)
+            assert tuple(item.target for item in app.sidebar_state.selected_targets) == tuple(row.target_name for row in range_rows)
+            assert app.selected_mode == original_mode
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
     print('PASS: Ctrl toggle, Shift range, preserved right-click selection, real dialog/archive, mixed channel/thread catalog and honest partial-failure notification')
