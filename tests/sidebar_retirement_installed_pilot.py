@@ -115,14 +115,20 @@ async def main():
             assert not first_bar.panels
             latest = [PlanItem("Source update while inactive", "high", InProgressPlanStatus)]
             first_bar.update_plan(latest)
+            warm_returns = 0
             for screen in reversed(screens):
+                previous_widgets = tuple(id(panel.widget) for panel in screen.query_one(SessionThreadSidebar).panels)
+                switching = app.selected_session is not screen
                 started = time.perf_counter()
                 await app.select_session(screen.id)
                 await pilot.pause(.02)
                 bar = screen.query_one(SessionThreadSidebar)
                 await bar.wait_content_ready()
                 timings.append((time.perf_counter() - started) * 1000)
-                assert len(bar.panels) == rich_count(screens) == 5
+                assert len(bar.panels) == len(bar._panel_owners)
+                if previous_widgets:
+                    assert previous_widgets == tuple(id(panel.widget) for panel in bar.panels)
+                    warm_returns += switching
                 if screen is first:
                     assert bar.query_one(Plan).entries is latest
                     tree = await prepare_project(bar, pilot)
@@ -143,11 +149,19 @@ async def main():
                     await until(pilot, lambda: len(relationships.groups) == 5)
                     assert not relationships.groups["collaborating"].expanded
                     relationships.groups["collaborating"].toggle_members()
-                    await until(pilot, lambda: bool(relationships.groups["collaborating"].rows))
+                    try:
+                        await until(pilot, lambda: bool(relationships.groups["collaborating"].rows))
+                    except TimeoutError:
+                        group = relationships.groups["collaborating"]
+                        print({"owner": relationships.owner, "visible": relationships._visible(),
+                               "generation": relationships._generation, "expanded": group.expanded,
+                               "stored_expanded": state.expanded, "entries": tuple((e.target, e.available) for e in group.model.entries),
+                               "attached": group.is_attached, "refresh_done": relationships._refresh_task.done() if relationships._refresh_task else None}, flush=True)
+                        raise
                     await pilot.pause(.02)
                     assert "peer" in viewport_text(relationships), "Restored relationship not painted"
                     assert next(iter(relationships.groups["collaborating"].rows.values())).has_class("-selected")
-                    app.save_screenshot("sidebar-return.svg", path="evidence/sidebar-retirement")
+                    app.save_screenshot("sidebar-return.svg", path=os.environ["TMPDIR"])
                     del tree, relationships
                 else:
                     assert bar.query_one(Plan).entries[0].content == f"Plan {screens.index(screen)}"
@@ -155,6 +169,7 @@ async def main():
                 if screen is screens[tabs // 2]:
                     await pilot.resize_terminal(106, 37)
                     await pilot.pause(.02)
+            assert warm_returns > 0, "No actual parked sidebar returned warm"
             await pilot.pause(.05)
             gc.collect()
             for view in screens:
@@ -165,10 +180,10 @@ async def main():
             retained = set(app.selected_session.query_one(SessionThreadSidebar).walk_children())
             assert all(widget() is None or widget() in retained for widget in references), "An evicted graph remains reachable"
             assert app._exception is None
-        receipt = {"cohorts": measurements, "returns": len(timings),
+        receipt = {"cohorts": measurements, "returns": len(timings), "warm_returns": warm_returns,
                    "settled_return_median_ms": median(timings), "settled_return_max_ms": max(timings),
                    "collected_retired_widgets": len(references),
-                   "boundary": "actual installed MainScreen/App selection hooks, filesystem and relationship service; no ACP provider claimed"}
+                   "boundary": "current source MainScreen/App selection hooks, filesystem and relationship service; no installed package or ACP provider claimed"}
         target = Path(os.environ.get("TOAD_SIDEBAR_RECEIPT", Path.cwd() / "evidence/sidebar-retirement/scale-receipt.json"))
         target.write_text(json.dumps(receipt, indent=2))
         print(json.dumps(receipt), flush=True)
