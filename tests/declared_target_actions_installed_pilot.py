@@ -137,23 +137,46 @@ async def mounted_layers(app, pilot):
     assert child.layers == before
 
 
-async def select_rows(app, pilot, rows):
+async def select_rows(app, pilot, rows, evidence):
     """Use original pointer admission, preserving the row's channel context."""
-    await open_menu(app, pilot, rows[0])
-    await pilot.press('escape')
     from toad.widgets.comms_sidebar import CommsSidebar
     sidebar = rows[0].query_ancestor(CommsSidebar)
+
+    def record(step, row):
+        # Witness original admission and selection; this never sets UI state.
+        with (evidence / 'selection-transitions.log').open('a') as stream:
+            stream.write(json.dumps({
+                'step': step,
+                'input': FieldCodec.encode(sidebar.navigation.selection_for(row)),
+                'expected': FieldCodec.encode(tuple(sidebar.navigation.selection_for(item) for item in rows)),
+                'state': FieldCodec.encode(app.sidebar_state),
+                'projection': FieldCodec.encode(tuple(sidebar.navigation.selection_for(item) for item in sidebar.projection.rows)),
+                'navigation_restoring': sidebar.navigation.restoring,
+                'observation_pending': sidebar.observation.pending,
+                'input_attached': row.is_attached,
+                'input_visible': row.is_on_screen,
+            }) + '\n')
+
+    record('before-menu', rows[0])
+    await open_menu(app, pilot, rows[0])
+    await pilot.press('escape')
+    record('after-menu-dismiss', rows[0])
     for identity in tuple(app.sidebar_state.selected_targets):
         if identity != sidebar.navigation.selection_for(rows[0]):
             previous = next(row for row in sidebar.projection.rows
                             if sidebar.navigation.selection_for(row) == identity)
             previous.scroll_visible(animate=False, immediate=True)
             await pilot.pause()
+            record('before-remove', previous)
             assert await pilot.click(previous, control=True)
+            record('after-remove', previous)
     for row in rows[1:]:
         row.scroll_visible(animate=False, immediate=True)
         await pilot.pause()
+        record('before-add', row)
         assert await pilot.click(row, control=True)
+        record('after-add', row)
+    record('before-exact-assertion', rows[0])
     assert tuple(item.target for item in app.sidebar_state.selected_targets) == tuple(row.target_name for row in rows)
 
 
@@ -176,7 +199,7 @@ async def selected_target_actions(app, pilot, comms, project, base, checks):
     ordered_cohort = tuple(row.target_name for row in sidebar.projection.rows if row in rows)
     assert len(ordered_cohort) == len(cohort)
     original_mode = app.selected_mode
-    await select_rows(app, pilot, rows[:1])
+    await select_rows(app, pilot, rows[:1], base)
     assert await pilot.click(rows[2], shift=True)
     (base / 'initial-selection-state.json').write_text(json.dumps({
         'sidebar_state': FieldCodec.encode(app.sidebar_state),
@@ -199,7 +222,7 @@ async def selected_target_actions(app, pilot, comms, project, base, checks):
                        comms.bus.pending_count('batch-b', '#batch'))
     assert all(executor_before)
     channel = sidebar.projection.channels['#batch']
-    await select_rows(app, pilot, (rows[0], channel))
+    await select_rows(app, pilot, (rows[0], channel), base)
     selected = app.sidebar_state.selected_targets
     await choose(app, pilot, rows[0], 'read-target', {'worktree': str(project)}, base)
     assert app.sidebar_state.selected_targets == selected
@@ -210,7 +233,7 @@ async def selected_target_actions(app, pilot, comms, project, base, checks):
             comms.bus.pending_count('batch-b', '#batch')) == executor_before
     checks.append('mixed-thread-channel-human-read-leaves-executor-delivery-pending')
 
-    await select_rows(app, pilot, (rows[0], rows[1], channel))
+    await select_rows(app, pilot, (rows[0], rows[1], channel), base)
     await choose(app, pilot, rows[0], 'pin-thread', {}, base)
     catalog = comms.channels.catalog.read()
     assert catalog.resolve('#batch').pinned
@@ -219,7 +242,7 @@ async def selected_target_actions(app, pilot, comms, project, base, checks):
 
     # Change availability through the real command between menu and execution.
     # No fabricated active status or replaced command implementation is used.
-    await select_rows(app, pilot, rows[:2])
+    await select_rows(app, pilot, rows[:2], base)
     menu = await open_menu(app, pilot, rows[0])
     await command(comms.root, 'archive', '--name', 'batch-b')
     app.clear_notifications()
@@ -240,7 +263,7 @@ async def selected_target_actions(app, pilot, comms, project, base, checks):
     comms.threads.restore_stopped(comms.registry.snapshot(), ('exclusive-inactive', 'multiple-inactive'))
     survivor = comms.registry.require('multiple-inactive')
     sidebar = await wait_channel_roster(app, pilot, '#remove-only')
-    await select_rows(app, pilot, (sidebar.projection.channels['#remove-only'],))
+    await select_rows(app, pilot, (sidebar.projection.channels['#remove-only'],), base)
     await choose(app, pilot, sidebar.projection.channels['#remove-only'], 'delete-tag',
         {'disposition': DeleteExclusiveInactiveThreadsTagDisposition.declared_name}, base)
     assert 'exclusive-inactive' not in comms.registry
@@ -256,7 +279,7 @@ async def selected_target_actions(app, pilot, comms, project, base, checks):
         comms.registry.declare(Thread(name, frozenset({'range'}), str(project)), StoppedThreadStatus())
     comms.threads.restore_stopped(comms.registry.snapshot(), range_names)
     anchor = await reveal_thread_row(app, pilot, range_names[0], '#range')
-    await select_rows(app, pilot, (anchor,))
+    await select_rows(app, pilot, (anchor,), base)
     endpoint = await reveal_thread_row(app, pilot, range_names[-1], '#range')
     assert not anchor.is_on_screen and endpoint.is_on_screen
     ordered_range = tuple(row.target_name for row in sidebar.projection.rows
@@ -419,7 +442,7 @@ async def batch_started_target_actions(app, pilot, actor, comms, project, eviden
         sidebar = await wait_channel_roster(app, pilot, '#batch-native')
         row = await reveal_thread_row(app, pilot, 'peer', '#batch-native')
         channel = sidebar.projection.channels['#batch-native']
-        await select_rows(app, pilot, (channel, row))
+        await select_rows(app, pilot, (channel, row), evidence)
         await choose(app, pilot, channel, operation, {}, evidence)
 
     identities = []
@@ -466,7 +489,7 @@ async def batch_started_target_actions(app, pilot, actor, comms, project, eviden
         before = {name: comms.registry.require(name) for name in ('peer', 'peer-two')}
         sidebar = await wait_channel_roster(app, pilot, '#remove-native')
         channel = sidebar.projection.channels['#remove-native']
-        await select_rows(app, pilot, (channel,))
+        await select_rows(app, pilot, (channel,), evidence)
         await choose(app, pilot, channel, 'delete-tag',
             {'disposition': DeleteExclusiveInactiveThreadsTagDisposition.declared_name}, evidence)
         assert 'remove-stopped' not in comms.registry
