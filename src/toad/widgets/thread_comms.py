@@ -397,7 +397,9 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             if revision == self._revision:
                 return
             snapshot = await asyncio.to_thread(service.snapshot, owner)
-            if generation != self._generation or not self._visible():
+            # Visibility admits new reads; parking does not revoke work already
+            # owned by this retained panel. Identity changes and unmount do.
+            if generation != self._generation or not self.is_attached:
                 return
             if snapshot.owner != owner or Path(snapshot.root).resolve() != Path(self.wire_root).resolve():
                 raise ValueError("Relationship snapshot does not match this thread and wire")
@@ -408,7 +410,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                     for entry in model.entries if entry.person is not None
                 }.values()),
             )
-            if generation != self._generation or not self._visible():
+            if generation != self._generation or not self.is_attached:
                 return
             # Each group owns its prepared rows and native member fence.
             # Waiting for those workers/mounts must not freeze unrelated paint.

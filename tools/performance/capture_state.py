@@ -2,7 +2,7 @@
 
 def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interval=.1,
             wait_history_thread=None, frame_trace=False, install_frame_trace=False,
-            frames_only=False, scroll_travel_output=None):
+            frames_only=False, scroll_travel_output=None, native_process_output=None):
     import asyncio
     from collections import Counter
     from dataclasses import asdict
@@ -66,7 +66,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                     capture(expected_pid=expected_pid, output_prefix=output_prefix,
                             wait_history_seconds=wait_history_seconds, wait_interval=wait_interval,
                             wait_history_thread=wait_history_thread, frame_trace=frame_trace,
-                            frames_only=frames_only)
+                            frames_only=frames_only, native_process_output=native_process_output)
                 except Exception:
                     write_json(prefix + "-error.json", {"error": traceback.format_exc()})
 
@@ -128,7 +128,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                                         "visible_saved_history_written": True,
                                     })
                                     capture(expected_pid=expected_pid, output_prefix=output_prefix,
-                                            frame_trace=frame_trace)
+                                            frame_trace=frame_trace, native_process_output=native_process_output)
                                     return
                             # One bounded diagnostic task observes native owners;
                             # no repeated attachment, exported snapshots or model reads.
@@ -138,7 +138,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                     # Preserve the original resource/scene census at failure.
                     # The error still fails the marker; no predicate is relaxed.
                     capture(expected_pid=expected_pid, output_prefix=prefix + "-failure",
-                            frame_trace=frame_trace)
+                            frame_trace=frame_trace, native_process_output=native_process_output)
 
             asyncio.create_task(wait_and_capture(), name="toad-authorized-visible-history-wait")
             return
@@ -204,6 +204,35 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                 "name": None if thread is None else thread.name,
                 "stack": chain,
             })
+        metadata["acp_startup"] = []
+        native_processes = {}
+        # Take tasks and identities from the existing AgentProcess owner. No
+        # command matching, environment export, pipe read or new process owner.
+        for conversation in (node for view in app.workspace_sessions.views.values()
+                             for node in view.query(Conversation)):
+            if conversation.agent is None:
+                continue
+            agent = conversation.agent
+            owner = agent.process
+            child = owner.process
+            startup = {"agent_object_id": id(agent), "session_id": agent.session_id,
+                       "connected": agent.session.connected,
+                       "settled": agent.session.settled.is_set(),
+                       "runner": task_state(owner.runner) if owner.runner is not None else None,
+                       "session_task": task_state(owner.session_task) if owner.session_task is not None else None,
+                       "process": None}
+            if child is not None:
+                startup["process"] = {"identity": asdict(child.identity), "returncode": child.returncode}
+                if native_process_output is not None and child.returncode is None and child.alive():
+                    for member in child.platform.group_members(child.identity):
+                        native_processes[member.pid] = {"identity": asdict(member),
+                                                       "group_owner": asdict(child.identity)}
+            metadata["acp_startup"].append(startup)
+        if native_process_output is not None:
+            # Finish this small descriptor before the marker stops the exporter.
+            # The larger view export keeps its existing asynchronous lifetime.
+            write_json(str(native_process_output), {"app_pid": os.getpid(),
+                       "capture_prefix": prefix, "processes": list(native_processes.values())})
         metadata["retained_presentations"] = [
             {"mode": view.id, "owner": type(owner).__name__,
              "object_id": id(owner), "selected": view is app.selected_session,

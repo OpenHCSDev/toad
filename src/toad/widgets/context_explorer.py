@@ -410,7 +410,11 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         # recorded segments and annotation relationships is preparation, not
         # a native Tree operation; keep it off the application's input loop.
         groups = await Coordination.run_worker(captured.groups)
-        if self.state is captured and self.presentation_visible():
+        # Parking retains this tree and its workers. Publish valid preparation
+        # into that original tree even while hidden; unmount/identity changes
+        # and new source/native resources still revoke the captured content.
+        if (self._reading(captured) and self.state.presentation_current(captured)
+                and not self.intent.query):
             self.query_one(ContextTree).present(groups)
 
     @on(Input.Changed, "#context-search")
@@ -441,7 +445,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         status.update(f"{len(matches)} matching sources · first 100 shown · {description}")
 
     def _searching(self, captured, query, selected):
-        return (self._reading(captured) and self.state.search_current(captured)
+        return (self._reading(captured) and self.state.presentation_current(captured)
                 and self.intent.search_current(query, selected))
 
     @on(Button.Pressed, "#context-read-full")

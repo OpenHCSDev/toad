@@ -652,7 +652,7 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
     def prepare_native(self, consumer) -> None:
         """An owner without an inspection cannot admit native context work."""
 
-    def search_current(self, captured) -> bool:
+    def presentation_current(self, captured) -> bool:
         return False
 
     def contains_native(self, matches) -> bool:
@@ -745,8 +745,11 @@ class HoldingInspection(InspectionState):
     def native_matches(self, current):
         return not current.contains_native(bool)
 
-    def search_current(self, captured) -> bool:
-        return self.same_source(captured.inspection) and captured.native_matches(self)
+    def presentation_current(self, captured) -> bool:
+        """Prepared content survives observations, not source/resource changes."""
+        return (self.bound_to(captured.name, captured.root)
+                and not self.inspection_differs(captured.inspection)
+                and captured.native_matches(self))
 
     @property
     def status(self):
