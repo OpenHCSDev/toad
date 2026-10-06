@@ -14,7 +14,8 @@ from typing import Any, AsyncIterator
 
 from mcp_observation_fixture import AGENT_DATA, exercise_boundaries, notes
 from toad.acp.agent import Agent
-from agent_comms.acp_extension import McpClientReceiptUpdate, TurnSettledUpdate, decode_updates
+from toad.agent_schema import AgentDefinition
+from agent_comms.acp_extension import McpClientReceiptUpdate, TurnChangedUpdate, decode_updates
 from toad.screens.main import MainScreen
 from toad.widgets.question import Question
 
@@ -22,42 +23,54 @@ SESSION_ID = "project"
 
 
 class Observer:
-    def __init__(self, case, app, pilot, agent, view, root):
+    def __init__(self, case, app, pilot, agent, session, root):
         self.case, self.app, self.pilot = case, app, pilot
-        self.agent, self.view, self.root = agent, view, root
+        self.agent, self.session, self.root = agent, session, root
         self.receipts: list[list[str]] = []
         self.permissions = 0
         self.permission_presented = asyncio.Event()
         self.disconnected_seen = False
         self.permission_tasks: set[asyncio.Task] = set()
 
+    @property
+    def view(self):
+        return self.session.conversation
+
     async def session_update(self, session_id: str, update: dict[str, Any]) -> None:
         with (self.root / "toad-updates.jsonl").open("a") as log:
             log.write(json.dumps({"session": session_id, "update": update}) + "\n")
-        self.agent.updates.accept(session_id, update)
+        result = await self.agent.server.call({
+            "jsonrpc": "2.0", "method": "session/update", "params": {
+                "sessionId": session_id, "update": update,
+            },
+        })
+        assert result is None, result
         await self.pilot.pause()
         with (self.root / "toad-states.jsonl").open("a") as log:
-            log.write(json.dumps({"agent": self.agent._active_turn_id,
+            log.write(json.dumps({"agent": self.agent.current_turn.managed_id,
                                  "view": self.view.turns.managed_id,
-                                 "live": self.view._mcp_live_turn,
                                  "notes": notes(self.view)}) + "\n")
         assert self.agent.session_id == SESSION_ID
         for fact in decode_updates(update.get("_meta")):
             if isinstance(fact, McpClientReceiptUpdate):
                 rendered = notes(self.view)
                 assert len(rendered) == 1 and "fixture[project] ready calls=confirm tools=1" in rendered[0]
-                assert self.agent._active_turn_id == self.view.turns.managed_id == fact.turn_id
+                assert self.agent.current_turn.managed_id == self.view.turns.managed_id == fact.turn_id
                 self.receipts.append(rendered)
                 self.app.save_screenshot(str(self.root / "toad-live.svg"))
-            if isinstance(fact, TurnSettledUpdate):
-                assert self.agent._active_turn_id is self.view.turns.managed_id is None
-                assert self.view._mcp_live_turn is None and not notes(self.view)
+            if isinstance(fact, TurnChangedUpdate) and not self.agent.current_turn.busy:
+                assert self.agent.current_turn.managed_id is self.view.turns.managed_id is None
+                assert not notes(self.view)
 
     async def request_permission(self, *, session_id, tool_call, options, **kwargs):
         self.permissions += 1
-        task = asyncio.create_task(self.agent.permissions.request_permission(
-            sessionId=session_id, toolCall=tool_call, options=options,
-        ))
+        # The external callback supplies JSON. The existing exposed SDK method
+        # owns its decoding and result encoding, exactly as on a real ACP pipe.
+        task = asyncio.create_task(self.agent.server.call({
+            "jsonrpc": "2.0", "id": "mcp-permission", "method": "session/request_permission",
+            "params": {"sessionId": session_id, "toolCall": tool_call,
+                       "options": options, **kwargs},
+        }))
         self.permission_tasks.add(task)
         try:
             await self.pilot.pause()
@@ -65,7 +78,9 @@ class Observer:
             # the exact Ask before simulated selection (not merely received RPC).
             ask = self.view.prompt._ask
             if self.disconnected_seen:
-                return await task
+                response = await task
+                assert "error" not in response, response
+                return response["result"]
             assert ask is not None and self.view.prompt.is_mounted
             frame="\n".join(strip.text for strip in self.app.screen._compositor.render_strips())
             assert any(option.text in frame for option in ask.options), "Native permission options must actually paint"
@@ -81,18 +96,18 @@ class Observer:
             self.app.save_screenshot(str(self.root / "toad-permission.svg"))
             self.permission_presented.set()
             if os.environ.get("AC_MCP_RETIRE_SURFACE") == "1" and self.case != "disconnect":
-                from toad.widgets.conversation import Conversation
                 request, = self.agent.permissions.pending
                 previous = self.view
-                parent = previous.parent
-                self.agent.detach_surface(previous)
-                await previous.remove()
+                presentation = self.session.presentation
+                await presentation.retire(self.session)
+                await presentation.evict()
                 assert request.pending and not self.agent.controller.surface.owns(previous)
-                replacement = Conversation(self.agent.project_root_path)
-                await parent.mount(replacement)
-                replacement.agent = self.agent
-                self.view = replacement
+                assert not previous.is_mounted and presentation.sources.agent is self.agent
+                await presentation.prepare(self.session)
                 await self.pilot.pause()
+                replacement = self.view
+                assert replacement is presentation.widget and replacement is not previous
+                assert self.agent.controller.surface.owns(replacement)
                 ask = replacement.prompt._ask
                 assert ask is not None and request.pending
                 assert replacement.prompt.query_one(ACPToolCallContent).query_one(MarkdownContent).source == markdown.source
@@ -102,21 +117,26 @@ class Observer:
                                      if (a.kind or "").startswith(os.environ.get("AC_MCP_PERMISSION_ANSWER", "allow")))
                 self.view.prompt.on_question_answer(Question.Answer(index, answer, ask))
                 await self.pilot.pause()
-            result = await task
-            if os.environ.get("AC_MCP_RETIRE_SURFACE") == "1":
+            response = await task
+            assert "error" not in response, response
+            result = response["result"]
+            if os.environ.get("AC_MCP_RETIRE_SURFACE") == "1" and self.case != "disconnect":
                 assert result["outcome"]["outcome"] == "selected"
                 assert result["outcome"]["optionId"] == answer.id
                 (self.root / "permission-answer.json").write_text(json.dumps(result))
             return result
         finally:
+            if not task.done():
+                task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
             self.permission_tasks.discard(task)
 
     async def disconnected(self):
         self.disconnected_seen = True
         await self.agent.stop()
         await self.pilot.pause()
-        assert self.agent._active_turn_id is None
-        assert self.view._mcp_live_turn is None and not notes(self.view)
+        assert self.agent.current_turn.managed_id is None
+        assert not notes(self.view)
         assert self.view.prompt._ask is None
         self.app.save_screenshot(str(self.root / "toad-disconnected.svg"))
 
@@ -126,6 +146,8 @@ async def open_observer(case: str, artifact_dir: Path) -> AsyncIterator[Observer
     from runtime_fixture import ToadApp
 
     root = Path(artifact_dir).resolve()
+    root.mkdir(parents=True, exist_ok=True)
+    (root / "project").mkdir(exist_ok=True)
     env = {"XDG_CONFIG_HOME": str(root / "config"), "XDG_DATA_HOME": str(root / "data"),
            "XDG_STATE_HOME": str(root / "state"), "AGENT_COMMS_ROOT": str(root / "wire")}
     previous = {key: os.environ.get(key) for key in env}
@@ -133,21 +155,21 @@ async def open_observer(case: str, artifact_dir: Path) -> AsyncIterator[Observer
     try:
         app = ToadApp(project_dir=str(root / "project"))
         async with app.run_test(size=(120, 40)) as pilot:
-            await app.screen.wait_content_ready()
+            session = app.selected_session
+            assert isinstance(session, MainScreen)
+            await session.wait_content_ready()
             await pilot.pause()
-            assert isinstance(app.screen, MainScreen)
-            view = app.selected_session.conversation
-            agent = Agent(root / "project", AGENT_DATA, SESSION_ID)
-            view.bind_agent(agent)
-            view.agent = agent
-            await exercise_boundaries(agent, view, pilot)
-            observer = Observer(case, app, pilot, agent, view, root)
+            view = session.conversation
+            agent = Agent(root / "project", AgentDefinition.decode(AGENT_DATA), SESSION_ID)
+            observer = Observer(case, app, pilot, agent, session, root)
             try:
+                view.agent = agent
+                await exercise_boundaries(agent, view, pilot)
                 yield observer
                 assert len(observer.receipts) == 1
                 assert observer.permissions == (0 if case == "no_controller" else 1)
                 assert observer.disconnected_seen == (case == "disconnect")
-                assert not notes(observer.view) and observer.view._mcp_live_turn is None
+                assert not notes(observer.view)
                 assert app._exception is None
                 (root / "toad-evidence.json").write_text(json.dumps({
                     "case": case, "session": observer.agent.session_id,
