@@ -1,0 +1,74 @@
+{
+  "source_readback": {
+    "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/menu-click-selection-pair-20261006/WHEEL-READBACK.json",
+    "sha256": "7652728378f8771bc4e8245b5e606547ea36e254e2bf9ecb3c2d4bc5ccd141f8",
+    "bytes": 1812
+  },
+  "wheels": [
+    {
+      "package": "textual",
+      "repository": "/home/ts/wt/textual-frame-publication-20261006",
+      "commit": "2d45091584a7f9b386baa2a8edf8fb3a3ba8a3d6",
+      "wheel": "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/native77-selection-pair-20261006/textual-wheel/textual-8.2.8-py3-none-any.whl",
+      "sha256": "a59a71198f54a78ca56b29d639647058aca54f05404e0bff84df12c0ae4bfa4f",
+      "bytes": 772806,
+      "package_assets": 266,
+      "RECORD_rows": 270,
+      "Git_archive_ZIP_equal": true,
+      "no_package_extras": true,
+      "complete_RECORD": true,
+      "installed": false,
+      "reused_without_rebuild": true,
+      "source_tree_assets": 266,
+      "declared_force_include": {},
+      "full_declared_Git_ZIP_equal": true,
+      "RECORD_verified": 270,
+      "root_pyproject_sha256": "2abec10ced2e6e55d6634f6ec9d755289e70a71c909f6ebf29b4f0b2a6c6cf49"
+    },
+    {
+      "package": "core",
+      "repository": "/home/ts/wt/comms-cleanup-live-integration-20260929",
+      "commit": "d8467b730cf87d45931fcc44e8ecb409277f86ed",
+      "wheel": "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/sidebar-latency-pair-20261006/core-wheel/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "b55c17dc1acf22af7b03a2233cbd60e04c6a173d615aa0b1f38a58b3f51e7362",
+      "bytes": 912589,
+      "package_assets": 355,
+      "RECORD_rows": 360,
+      "Git_archive_ZIP_equal": true,
+      "no_package_extras": true,
+      "complete_RECORD": true,
+      "installed": false,
+      "reused_without_rebuild": true,
+      "source_tree_assets": 352,
+      "declared_force_include": {
+        ".pi/APPEND_SYSTEM.md": "agent_comms/_native/APPEND_SYSTEM.md",
+        "stack/pi-native.sha256": "agent_comms/_native/pi-native.sha256",
+        "stack/native-compaction-commit-child.mjs": "agent_comms/_native/native-compaction-commit-child.mjs"
+      },
+      "full_declared_Git_ZIP_equal": true,
+      "RECORD_verified": 360,
+      "root_pyproject_sha256": "000139ce7da800c73574db2cd2e99af5afb63795f94f38d532e03af4b1423ad7"
+    },
+    {
+      "package": "toad",
+      "repository": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "commit": "ef600e4b38c9da949de083437512f4c64d861f03",
+      "wheel": "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/menu-click-selection-pair-20261006/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "713113749b96cba774c91c29a4fd32d828f64467fa98dcec4c0dda42b130af5d",
+      "bytes": 2252755,
+      "package_assets": 319,
+      "RECORD_rows": 324,
+      "Git_archive_ZIP_equal": true,
+      "no_package_extras": true,
+      "complete_RECORD": true,
+      "installed": false,
+      "source_tree_assets": 319,
+      "declared_force_include": {},
+      "full_declared_Git_ZIP_equal": true,
+      "RECORD_verified": 324,
+      "root_pyproject_sha256": "92bea3bf06d650e4fcced16bcd53aebca74ba1e623f35d044b109862b6817c4a"
+    }
+  ],
+  "negative": "Initial check compared all packaged Core members to src only; the original Hatch force-include declaration supplies three native resources. No wheel or source correction occurred.",
+  "operations": "File/Git/ZIP reads only; no prefix import/install/build"
+}

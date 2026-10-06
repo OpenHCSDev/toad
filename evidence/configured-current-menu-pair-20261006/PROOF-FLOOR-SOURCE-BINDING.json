@@ -1,0 +1,61 @@
+{
+  "historical_template": {
+    "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/evidence/configured-loaded-consumer-repair-20261006/verify_configured_source_member.template.py",
+    "sha256": "647980f579bb77ac9e1a6b3db7c7dab12b1af153f31ecbe1b3bd8b9da9e80113",
+    "bytes": 10546
+  },
+  "effective_template": {
+    "path": "/home/ts/wt/toad-configured-participant-cells-20261006/evidence/configured-current-menu-pair-20261006/verify_configured_334.template.py",
+    "sha256": "438ea275923c3cfdf3c2504e220734b13150bfa9fadaa1d386181987a34ea137",
+    "bytes": 10686
+  },
+  "ordered_source_changes": [
+    {
+      "before": "assert digest(path)==record['sha256'] and stat.S_IMODE(path.stat().st_mode)==record['mode'], path",
+      "after": "assert stat.S_IMODE(path.lstat().st_mode)==record['mode'], path\n    if record['kind'] == 'symlink':\n        assert os.readlink(path)==record['target'], path\n    else:\n        assert digest(path)==record['sha256'], path",
+      "predecessor_sha256": "647980f579bb77ac9e1a6b3db7c7dab12b1af153f31ecbe1b3bd8b9da9e80113",
+      "result_sha256": "2dbca3658638dcba31995e22b39291b84758b80582b4ecaf2b4f36d3117bc5c8"
+    },
+    {
+      "before": "'protected_old_prefix_files':266",
+      "after": "'protected_old_prefix_files':len(grant['protected_originals'])",
+      "predecessor_sha256": "2dbca3658638dcba31995e22b39291b84758b80582b4ecaf2b4f36d3117bc5c8",
+      "result_sha256": "6fd03375c1c80bbfe4a1b7ffcd30177b14328cde431f6b4dcf865b3d2d46a26b"
+    },
+    {
+      "before": "'journey_assessment':'953 original packaged assets, full69 versions and truthful origins;1883other66+266keepers/bootstrap2/PREFIX unchanged. Coreddcdc6b426, repaired Toad afae410c and Text71bc47 staged normally. No App/render controller/nativeSDK/ACP/provider/input executed.'",
+      "after": "'journey_assessment':'Actual readonly334 original1468-node floor/945 assets; candidate953/full69 truthful origins. Grant-owned1883 other66/428 keepers/five environment nodes/PREFIX unchanged. Coreb55/d846, Toad713113/ef600, Texta59/2d450 staged normally. No App/provider/input executed by proof.'",
+      "predecessor_sha256": "6fd03375c1c80bbfe4a1b7ffcd30177b14328cde431f6b4dcf865b3d2d46a26b",
+      "result_sha256": "fbbd3206204eb0563d37729c966a2b4f9eeb5da6247edaa204834e902d2fbddf"
+    },
+    {
+      "before": "'state':'HELD configured repaired pair actualNONLIVE former485 CURRENT471 purpose; App unrun'",
+      "after": "'state':'HELD configured current menu pair actualNONLIVE returned334 CURRENT447 purpose; App unrun'",
+      "predecessor_sha256": "fbbd3206204eb0563d37729c966a2b4f9eeb5da6247edaa204834e902d2fbddf",
+      "result_sha256": "760147ff3e4c2e8a855f027599c9dcb3a5fd9ec464a9847c565d8e32014e435d"
+    },
+    {
+      "before": "'native_configuration_note':'Actual NONLIVE former485 CURRENT471 fresh1467 preimage authoritative; historical1563 archive is CURRENT459 only. Full69 original origins,266 protected/bootstrap2/PREFIX+1883 other66 unchanged. Three normal candidates Coreddcdc6b426, repaired Toadafae410c and nativeText71bc47. Candidate953 original source assets. Future configured journey has six authored UI inputs plus native automatic handling; original PUBLIC475 source read only at actual released acquisition. Actual CURRENT471 Core3fe+Toadb2e+Text16c9 normal restore after terminal. NEW matching4b READ for proof only; App HELD separate newEXEC and Bohr release.'",
+      "after": "'native_configuration_note':'Actual returned334 CURRENT447 fresh1468 preimage is authoritative. Full69 RAW origins,428 protected/five environment nodes/PREFIX+1883 other66 unchanged. Three candidates Coreb55/d846, Toad713113/ef600, Texta59/2d450; candidate953 assets. Original FOUR-wheel Core5f166/Toad7e6d/Text73d4/NRA8d489 restoration after terminal. Six authored configured UI inputs plus automatic processing require separate matching4b EXEC, original PUBLIC475 source READ and Bohr release. No current capture/App authority from proof.'",
+      "predecessor_sha256": "760147ff3e4c2e8a855f027599c9dcb3a5fd9ec464a9847c565d8e32014e435d",
+      "result_sha256": "9c72519a506eb7db2a900835097a91b742c5c03c069df7950457bced8ed2f1aa"
+    },
+    {
+      "before": "'other66_unchanged':1883, 'protected_originals_unchanged':266",
+      "after": "'other66_unchanged':len(grant['unchanged_other66_unique_records']), 'protected_originals_unchanged':len(grant['protected_originals'])",
+      "predecessor_sha256": "9c72519a506eb7db2a900835097a91b742c5c03c069df7950457bced8ed2f1aa",
+      "result_sha256": "438ea275923c3cfdf3c2504e220734b13150bfa9fadaa1d386181987a34ea137"
+    }
+  ],
+  "reason": "Original334 has five environment nodes including one symlink,428 keepers and a four-wheel return. Reuse original hash/mode/readlink checks; correct proof metadata to actual selected files. Package inventory/ZIP/noextras/full69/direct URL/FullTrust/FieldCodec/Core member algorithms unchanged.",
+  "future_materialization": "Only four actual new grantpath/SHA and matching READpath/SHA replacements; helper invocation requires Bohr exact proof release",
+  "grant_projection": {
+    "normal_distributions": "fresh_preimage.normal_distributions",
+    "original69_origins": "fresh_preimage.original69_origins",
+    "original69_RAW_origins": "fresh_preimage.original69_RAW_origins",
+    "unchanged_other66_unique_records": "fresh_preimage.unchanged_other66_unique_records",
+    "protected_originals": "fresh_preimage.protected_originals",
+    "original_environment_bootstrap_records": "fresh_preimage.additional_original_environment_nodes (all five, including the lib64 symlink)",
+    "actual_PREFIXactivation": "fresh_preimage.actual_PREFIXactivation"
+  }
+}
