@@ -101,14 +101,14 @@ async def main():
                             await replacing
                             await pilot.pause()
                             assert agent.session_id == "new-session"
-                            assert view.queue_projection.status == "available"
+                            assert view.submissions.queue_projection.status == "available"
                         else:
                             await agent.stop()
                             await pilot.pause()
                         before = (
                             agent.session_id,
                             agent._queue_sequence,
-                            view.queue_projection,
+                            view.submissions.queue_projection,
                         )
                         first.result.set_result(response("old-session"))
                         await pending
@@ -116,7 +116,7 @@ async def main():
                         assert (
                             agent.session_id,
                             agent._queue_sequence,
-                            view.queue_projection,
+                            view.submissions.queue_projection,
                         ) == before
                         assert view.prompt.text == "untouched local draft"
                         if successor == "new":
@@ -124,7 +124,7 @@ async def main():
                             assert row in app.screen._compositor.visible_widgets
                             assert "Queued (2)" in row.render().plain
                         else:
-                            assert view.queue_projection.status != "available"
+                            assert view.submissions.queue_projection.status != "available"
                     await agent.stop()
             # A failed, retired local request cannot roll back a successor's
             # composer, even with identical text or the same receiving Agent.
@@ -174,12 +174,12 @@ async def main():
                         )
                     await pilot.pause()
                     view.prompt.text = "successor draft"
-                    projection = view.queue_projection
+                    projection = view.submissions.queue_projection
                     release.set()
                     await worker.wait()
                     await pilot.pause()
                     assert view.prompt.text == "successor draft"
-                    assert view.queue_projection == projection
+                    assert view.submissions.queue_projection == projection
             print(
                 "PASS: queue new/new, load/new, new/stop, load/stop and retired Agent/owner/unavailable draft rollback fences"
             )

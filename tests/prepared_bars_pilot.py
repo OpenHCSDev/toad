@@ -13,7 +13,6 @@ from runtime_fixture import ToadApp
 from toad.session_tracker import ExactUnread
 from toad.sidebar_preparation import TabRosterWork, ThreadRowInput, ThreadRowsWork
 from toad.render_choices import LocalRenderer
-from toad.render_tasks import ThreadRowsRenderTask
 from toad.widgets.session_tabs import SessionLabel, SessionsTabs
 
 
@@ -23,6 +22,7 @@ async def main():
         os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         comms = wire(root / "wire")
+        comms.messaging.initialize_private_initial_protocol()
         comms.registry.declare(Thread("worker", frozenset({"shared"}), str(root)))
         person = comms.views.viewer_snapshot(str(root), show_stopped=True).threads[0]
         backend = LocalRenderer.start()
@@ -33,8 +33,7 @@ async def main():
             original = backend.submit
 
             async def counted(task):
-                if isinstance(task, ThreadRowsRenderTask):
-                    calls.append(task)
+                calls.append(task)
                 return await original(task)
 
             with patch.object(backend, "submit", counted):
@@ -42,12 +41,10 @@ async def main():
                     app.preparation.submit(await ThreadRowsWork.capture(app.preparation, (ThreadRowInput(person, unread=ExactUnread(17)),)))
                     for _ in range(2)
                 ])
-                assert len(calls) == 1
-                assert backend._executor is not None
-                assert all(pid != os.getpid() for pid in backend._executor._processes)
+                assert not calls, "Sidebar labels acquired the transcript renderer"
                 assert left is not right and left[0].frames[0].plain == right[0].frames[0].plain
                 changed = await app.preparation.submit(await ThreadRowsWork.capture(app.preparation, (ThreadRowInput(person, unread=ExactUnread(18)),)))
-                assert len(calls) == 2 and changed[0].frames[0].plain.startswith("(18)")
+                assert not calls and changed[0].frames[0].plain.startswith("(18)")
 
             tabs = app.screen.query_one(SessionsTabs)
             entered, release = asyncio.Event(), asyncio.Event()

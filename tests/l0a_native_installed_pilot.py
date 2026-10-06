@@ -549,8 +549,8 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                     assert agent.queue_attachment is original_queue
                     assert agent.process.process is process and process.returncode is None
                     print("RETIRED_SURFACE_NATIVE_QUEUE_REBOUND", flush=True)
-                await until(pilot, lambda: bool(view.queue_projection.items))
-                queued_ids = [row.input_id for row in view.queue_projection.items]
+                await until(pilot, lambda: bool(view.submissions.queue_projection.items))
+                queued_ids = [row.input_id for row in view.submissions.queue_projection.items]
                 assert len(queued_ids) == 1
                 assert (
                     "QUEUED_NATIVE_INPUT" in view.query_one(QueueSummary).render().plain
@@ -561,7 +561,7 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 await until(pilot, lambda: not comms.registry.require("beta").executing)
                 await pilot.pause()
                 assert len(requests) >= 2, "Queued native input never reached provider"
-                assert not view.queue_projection.items
+                assert not view.submissions.queue_projection.items
                 assert view.prompt.text == "unsent local draft"
                 await until(pilot, lambda: response_painted(app, view, "NATIVE_RESPONSE_2"))
                 print("ACTUAL_LIVE_AND_SAVED_RESPONSE_PAINT_CONFIRMED", flush=True)
@@ -578,7 +578,7 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 assert view.transcript.displayed_cursor is not None
                 print("ACTUAL_NATIVE_CHECKPOINT_SOURCE_AND_PAINT_CONFIRMED", flush=True)
                 print("NATIVE_QUEUE_DONE", len(requests), flush=True)
-                print("QUEUE_PROJECTION", view.queue_projection, flush=True)
+                print("QUEUE_PROJECTION", view.submissions.queue_projection, flush=True)
                 print(
                     "INPUT_DELIVERY",
                     json.dumps(view.input_delivery, default=str),
@@ -621,8 +621,8 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 )
                 assert comms.registry.require("beta").process_identity == old_process
                 assert len(requests) == native_count
-                await until(pilot, lambda: view.queue_projection.status == "available")
-                assert not view.queue_projection.items
+                await until(pilot, lambda: view.submissions.queue_projection.status == "available")
+                assert not view.submissions.queue_projection.items
                 await pilot.pause()
                 assert view._directory_watcher is original_watcher
                 print("COLD_REATTACH_CONFIRMED", flush=True)

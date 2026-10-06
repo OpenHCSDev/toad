@@ -34,6 +34,11 @@ class WorkspaceSource(DeclaredFamily, affix="WorkspaceSource"):
     @abstractmethod
     def sidebar_focus_target(self): ...
 
+    @abstractmethod
+    def sidebars(self):
+        """Native sidebar membership belongs to this logical source."""
+        ...
+
 
 class DetachedWorkspaceSource(WorkspaceSource):
     view = None
@@ -53,6 +58,9 @@ class DetachedWorkspaceSource(WorkspaceSource):
 
     def sidebar_focus_target(self):
         return None
+
+    def sidebars(self):
+        return ()
 
 
 class BoundWorkspaceSource(WorkspaceSource):
@@ -82,6 +90,11 @@ class BoundWorkspaceSource(WorkspaceSource):
 
     def sidebar_focus_target(self):
         return self.view.sidebar_focus_target()
+
+    def sidebars(self):
+        from toad.widgets.side_bar import SideBar
+
+        return tuple(self.view.query(SideBar))
 
 
 class LoadingWorkspaceSource(BoundWorkspaceSource):

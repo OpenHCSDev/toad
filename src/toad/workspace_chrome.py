@@ -47,10 +47,9 @@ class WorkspaceChrome:
 
     def layout_sidebars(self, screen) -> bool:
         """Resolve and publish one mounted sidebar cohort in native frame order."""
-        from toad.widgets.side_bar import SideBar
-
-        bars = tuple(bar for bar in screen.query(SideBar)
-                     if bar.id in screen.app.sidebar_layout.placements)
+        bars = tuple(bar for bar in (
+            self.channels, *screen.app.workspace_sessions.source.sidebars())
+            if bar.is_mounted and bar.id in screen.app.sidebar_layout.placements)
         visible = tuple(bar for bar in bars if bar.presentation_visible)
         resolved = screen.app.sidebar_layout.resolve(
             screen.size.width, {bar.id: bar.collapsed for bar in visible})

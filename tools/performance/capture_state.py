@@ -200,7 +200,8 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                 frame = frame.f_back
             thread = threads.get(ident)
             metadata["python_threads"].append({
-                "ident": ident, "name": None if thread is None else thread.name,
+                "ident": ident, "native_id": None if thread is None else thread.native_id,
+                "name": None if thread is None else thread.name,
                 "stack": chain,
             })
         metadata["retained_presentations"] = [

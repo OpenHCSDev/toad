@@ -137,7 +137,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await until(pilot, lambda: comms.registry.require("goal-child").executing is False)
     await until(pilot, lambda: "NATIVE_RESPONSE_3" in screen_paint(app))
     assert comms.registry.require("goal-child").goal == goal
-    assert child_view.queue_projection.status == "available"
+    assert child_view.submissions.queue_projection.status == "available"
     require_current_activity(child_screen)
     print("COMPLETED_GOAL_IDLE_FORK_ACCEPTS_REAL_EDITOR_MESSAGE_AND_SETTLES", flush=True)
 
