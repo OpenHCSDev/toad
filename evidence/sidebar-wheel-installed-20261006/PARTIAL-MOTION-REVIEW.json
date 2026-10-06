@@ -1,0 +1,130 @@
+{
+  "scope": "Partial original failed capture; no physical acceptance, monitor latency, smoothness or baseline gain",
+  "analysis_owner": {
+    "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tools/performance/analyze_trace.py",
+    "sha256": "d333fad936188c8ee6fad58f4cb9a580d022917a9e09a8db0fddc5b3a29a4d49",
+    "bytes": 16344
+  },
+  "completed_driver_intervals": {
+    "path": "/home/ts/.cache/agent-scratch/parent-sidebar-source-20261006/partial-review/intervals.json",
+    "sha256": "f3305622ac27aac2616bf555f88f5d6931e3858eea93c5a8f359689497749f14",
+    "bytes": 1697
+  },
+  "trace": {
+    "path": "/home/ts/.cache/agent-scratch/puip01/evidence/capture/phase-context-scroll-down-state-frames.json",
+    "sha256": "7e32e0a9882e6ed121634cc07fc19931acb5429df4583919ef9c2bd9e0262183",
+    "bytes": 1253799
+  },
+  "enqueue_to_writer": {
+    "count": 310,
+    "median_ms": 2.22,
+    "p95_ms": 5.93,
+    "p99_ms": 8.7,
+    "max_ms": 14.89
+  },
+  "phases": [
+    {
+      "action": "sidebar-scroll-down",
+      "body_outputs": 2,
+      "ready_viewport_outputs": 2,
+      "useful_writer_intervals": {
+        "count": 1,
+        "median_ms": 6.79,
+        "p95_ms": 6.79,
+        "p99_ms": 6.79,
+        "max_ms": 6.79
+      },
+      "output_to_writer": {
+        "count": 2,
+        "median_ms": 9.52,
+        "p95_ms": 5.51,
+        "p99_ms": 5.51,
+        "max_ms": 13.53
+      }
+    },
+    {
+      "action": "sidebar-scroll-up",
+      "body_outputs": 0,
+      "ready_viewport_outputs": 0,
+      "useful_writer_intervals": {},
+      "output_to_writer": {}
+    },
+    {
+      "action": "wheel-up",
+      "body_outputs": 38,
+      "ready_viewport_outputs": 38,
+      "useful_writer_intervals": {
+        "count": 37,
+        "median_ms": 99.52,
+        "p95_ms": 109.19,
+        "p99_ms": 110.46,
+        "max_ms": 116.99
+      },
+      "output_to_writer": {
+        "count": 38,
+        "median_ms": 4.12,
+        "p95_ms": 5.96,
+        "p99_ms": 5.99,
+        "max_ms": 15.36
+      }
+    },
+    {
+      "action": "wheel-down",
+      "body_outputs": 36,
+      "ready_viewport_outputs": 36,
+      "useful_writer_intervals": {
+        "count": 35,
+        "median_ms": 100.03,
+        "p95_ms": 109.29,
+        "p99_ms": 110.96,
+        "max_ms": 114.38
+      },
+      "output_to_writer": {
+        "count": 36,
+        "median_ms": 3.41,
+        "p95_ms": 4.89,
+        "p99_ms": 5.38,
+        "max_ms": 6.56
+      }
+    },
+    {
+      "action": "wheel-reverse",
+      "body_outputs": 36,
+      "ready_viewport_outputs": 36,
+      "useful_writer_intervals": {
+        "count": 35,
+        "median_ms": 99.66,
+        "p95_ms": 114.9,
+        "p99_ms": 115.21,
+        "max_ms": 119.73
+      },
+      "output_to_writer": {
+        "count": 36,
+        "median_ms": 3.41,
+        "p95_ms": 4.86,
+        "p99_ms": 4.9,
+        "max_ms": 4.97
+      }
+    },
+    {
+      "action": "wheel-end",
+      "body_outputs": 1,
+      "ready_viewport_outputs": 1,
+      "useful_writer_intervals": {},
+      "output_to_writer": {
+        "count": 1,
+        "median_ms": 5.67,
+        "p95_ms": 5.67,
+        "p99_ms": 5.67,
+        "max_ms": 5.67
+      }
+    }
+  ],
+  "visual_review": [
+    "sidebar-down.png",
+    "transcript-up.png",
+    "transcript-down.png"
+  ],
+  "video_scope": "Original1280x800display but small80x24st; message area narrow with both sidebars; right/context/saved-return incomplete",
+  "stationary_outputs_not_stalls": true
+}

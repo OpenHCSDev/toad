@@ -41,3 +41,20 @@ another use of the closed purpose or prove that six wheels expose the tree.
 
 FINAL-PHYSICAL-OPERANDS.json remains the byte-exact record for the first attempt.
 It does not bind this changed recorder for a future attempt.
+
+## Completed-motion review
+
+Existing native analysis joins actual source-bound body output to writer receipts.
+Up/down/reversal phases produced38/36/36 selected body outputs, all carrying the
+original ready-viewport predicate. Median intervals were about100ms; the driver's
+wheel cadence is part of that observation, so these are not a smoothness claim.
+Across the trace, native enqueue-to-writer median was2.22ms, p955.93ms and max14.89ms.
+These are writer acknowledgments, not emulator/input-to-pixel latency.
+Cropped contact sheets show transcript movement and left panel motion without
+qualifying the incomplete journey. Zero stationary outputs are not classified as
+stalls. See PARTIAL-MOTION-REVIEW.json.
+
+The next useful-paint callback passes the original recorder --fit-window option
+so st uses the isolated1280x800display. The original narrow80x24window cannot
+establish acceptable layout/performance with both sidebars. This changes only
+recording setup and adds no backend sizing or paint mechanism.
