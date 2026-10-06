@@ -305,6 +305,10 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
         viewport = self.window.content_region
         if not region.overlaps(viewport):
             return
+        # This callback follows committed native geometry for scroll, resize
+        # and row publication. The painted window owns its receipt demand.
+        self.mark_visible()
+        self.view._refresh_notifications()
         if self.follows_tail and self.has_newer:
             self._request_page(False)
         elif (self.has_older and region.y >= viewport.y - self.prefetch_distance
