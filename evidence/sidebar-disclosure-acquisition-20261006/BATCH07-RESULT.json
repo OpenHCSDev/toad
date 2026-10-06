@@ -1,0 +1,38 @@
+{
+  "result": "FAIL",
+  "runtime_seconds": 52.84444589796476,
+  "original_parent_join_seconds": 53.87189341208432,
+  "whole_return": {
+    "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch07-installed-purpose/whole-handback.json",
+    "sha256": "ae061e1af4b7c2a82b1085858112ce7b35d6a7f4e069f7406ea37b476e6f6cdf",
+    "bytes": 28876
+  },
+  "terminal": {
+    "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch07-installed-purpose/control-terminal.json",
+    "sha256": "d42c933421726262817e0af6c1357ad03b492c0c09224a7617afb080417204b5",
+    "bytes": 743
+  },
+  "raw_failure": {
+    "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch07-installed-purpose/control.stderr.log",
+    "sha256": "5f72b67336d00ec11d2a7904fa78b3ebaa0a8995f39e9899e0e32748a6e1c817",
+    "bytes": 3306
+  },
+  "whole_floor": {
+    "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch07-installed-purpose/whole-floor-readback.json",
+    "sha256": "67aff142d64356ab49d953394db1a95f49fc8e222f39c1857f3dd668f430800b",
+    "bytes": 730156
+  },
+  "closed_lifecycle": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Parent-selected-target-batch07-package-App-lifecycle.json",
+    "sha256": "c80438d0a554128d109d05cb46b32d52ac2d9b230a9042ef24133fb62c5cadc5",
+    "bytes": 28564
+  },
+  "reached": "selected_target_actions60-row fixture acquisition",
+  "first_failure": "reveal_thread_row disclosure Pilot.click raised OutOfBounds",
+  "later_clipped_range_and_native_batch_unqualified": true,
+  "one_original_restore": true,
+  "raw_and_two_journals_retained": true,
+  "provider_requests": 0,
+  "public_source_capture": false,
+  "no_retry": true
+}
