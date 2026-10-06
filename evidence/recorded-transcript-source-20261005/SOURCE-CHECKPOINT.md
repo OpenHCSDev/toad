@@ -92,3 +92,7 @@ No NativeBackendFixture or original session was used. The newly changed helper
 install, environment, runtime holder, native/SDK/provider or input operation.
 Genuine old720 routing/native-page and live central-batch qualification remain
 separate and unfinished; accepted684 is unchanged.
+
+## Mounted historical pilot successor
+
+Core b97345686f8b498db24069d262f364c5ad1ffb1b normally joins actual main6de443/accepted685 and keeps declaration4b, not7a. Core original installed routing pilot now mounts HistoricalSessions and exercises native selection/capture/notification handling plus stale handling-worker selection/unmount retirement; no manual TranscriptHistory mount. Toad historical pilot expected notifications now also come from original attached HistorySource. This source checkpoint has not launched the App or native SDK. Core52 original tools parsed without omissions; both changed controls compile. Prior11 notification source controls, accepted684 and all negatives remain scoped and preserved. No687 membership/476 warm changes are included.
