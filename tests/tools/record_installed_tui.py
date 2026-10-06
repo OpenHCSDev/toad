@@ -1221,10 +1221,8 @@ class InputWarmJourney(WarmScrollJourney):
         InputPagingAcceptanceJourney.validate_review(review["input"])
 
 
-class SidebarWarmJourney(InputWarmJourney):
-    """Exercise native sidebar drag and wheel input in the saved-history journey."""
-
-    motion_phases = (*InputWarmJourney.motion_phases, "sidebar-scroll-down", "sidebar-scroll-up")
+class SidebarMotion:
+    """Share the original left-sidebar native motion with physical journeys."""
 
     @classmethod
     def opening_commands(cls, args):
@@ -1243,6 +1241,43 @@ class SidebarWarmJourney(InputWarmJourney):
                 settle, marker + "sidebar-down-done", marker + "sidebar-scroll-up",
                 native_click_command("phase-sidebar-down-done-state.pickle", **viewport, wheel=-6),
                 settle, marker + "sidebar-up-done")
+
+
+class SidebarWarmJourney(SidebarMotion, InputWarmJourney):
+    """Exercise native sidebar drag and wheel input in the saved-history journey."""
+
+    motion_phases = (*InputWarmJourney.motion_phases, "sidebar-scroll-down", "sidebar-scroll-up")
+
+
+class SidebarWheelJourney(SidebarMotion, WheelWarmJourney):
+    """Both native sidebars and transcript wheels in one saved-history App."""
+
+    motion_phases = (*WheelWarmJourney.motion_phases, "sidebar-scroll-down", "sidebar-scroll-up",
+                     "right-panels-scroll-down", "context-scroll-down", "context-scroll-up",
+                     "right-sidebar-hide",
+                     "right-sidebar-return")
+
+    @classmethod
+    def history_commands(cls, args):
+        marker = marker_command()
+        settle = f"sleep {args.navigation_settle_seconds:g}"
+        # ContextSessionPanel is last in the original sidebar declaration.
+        # Scroll its enclosing native viewport before targeting the clipped tree.
+        return (*super().history_commands(args), marker + "right-panels-before",
+                marker + "right-panels-scroll-down",
+                native_click_command("phase-right-panels-before-state.pickle", target="widget",
+                                     name="SidebarViewport#sidebar-panels",
+                                     within="SessionThreadSidebar", wheel=6),
+                settle, marker + "context-before",
+                marker + "context-scroll-down",
+                native_click_command("phase-context-before-state.pickle", target="context_tree", wheel=6),
+                settle, marker + "context-down-done", marker + "context-scroll-up",
+                native_click_command("phase-context-down-done-state.pickle", target="context_tree", wheel=-6),
+                settle, marker + "context-up-done", marker + "right-sidebar-hide",
+                native_click_command("phase-context-up-done-state.pickle", target="right_sidebar"),
+                settle, marker + "right-sidebar-hidden", marker + "right-sidebar-return",
+                native_click_command("phase-right-sidebar-hidden-state.pickle", target="right_sidebar"),
+                settle, marker + "right-sidebar-restored")
 
 
 class ForkCompactionJourney(InputWarmJourney):

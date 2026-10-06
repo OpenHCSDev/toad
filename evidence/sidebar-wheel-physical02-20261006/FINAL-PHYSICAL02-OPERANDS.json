@@ -1,0 +1,740 @@
+{
+  "state": "FINAL SOURCE PREPARED; actual new readonly assessment bound; specific issue and all authorities UNBOUND",
+  "recipient": "OriginalParent",
+  "recipient_thread": "01a0d295-dfad-71f3-89f7-8a78d8917a73",
+  "eligible_contract": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Parent-current-ui-physical02-saved-history-eligible-contract-readback.json",
+    "sha256": "630d764ed8666b72824b3cc9f8b4e0b2a2d3e0b11724e4134222b6c013868a28",
+    "bytes": 17985
+  },
+  "assessment": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Parent-current-ui-physical02-saved-history-eligible-contract-readback.json",
+    "sha256": "630d764ed8666b72824b3cc9f8b4e0b2a2d3e0b11724e4134222b6c013868a28",
+    "bytes": 17985
+  },
+  "fresh_preimage": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Parent-current-ui-physical02-saved-history-fresh-CURRENT471-preimage.json",
+    "sha256": "96d99a79e389adb8f8395e4783eccabb98890fa6a17db884bf9245e1c533fcea",
+    "bytes": 2713964
+  },
+  "floor_bindings": {
+    "floor_readback": {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Parent-current-ui-physical02-saved-history-fresh-floor-readback.json",
+      "sha256": "8000f141dc9cbff1c3b9d0d6cd80d47422460a3e30d2367de36ed91463cf0eec",
+      "bytes": 2737
+    },
+    "fresh_borrowers": {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Parent-current-ui-physical02-saved-history-fresh-borrowers.json",
+      "sha256": "12dad98ef1c2f9b51722d2b8a1c53e178a00215230fb7a86564e53aec76173ce",
+      "bytes": 627
+    },
+    "reference_classification": {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Parent-current-ui-physical02-saved-history-fresh-reference-classification.json",
+      "sha256": "de595ae85e25babfd98575515976cae99d7377602858ecb1e12d260164052df2",
+      "bytes": 5904
+    },
+    "PUBLIC475_source_disposition": {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Parent-current-ui-physical02-saved-history-fresh-reference-classification.json",
+      "sha256": "de595ae85e25babfd98575515976cae99d7377602858ecb1e12d260164052df2",
+      "bytes": 5904
+    }
+  },
+  "owned_output": "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/485-installed-purpose",
+  "root_prepare": {
+    "argv": [
+      "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+      "-B",
+      "-c",
+      "from pathlib import Path; import os; p=Path('/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/485-installed-purpose'); p.mkdir(mode=0o700,parents=True,exist_ok=False); os.chmod(p,0o700)"
+    ]
+  },
+  "stage_argv": [
+    "uv",
+    "pip",
+    "install",
+    "--python",
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+    "--no-deps",
+    "--no-cache",
+    "--no-index",
+    "--link-mode",
+    "copy",
+    "--reinstall",
+    "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/current-paired-core-20261006/wheel/agent_comms-0.1.0-py3-none-any.whl",
+    "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/current-ui-publication-pair-20261006/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/current-ui-publication-pair-20261006/textual-wheel/textual-8.2.8-py3-none-any.whl"
+  ],
+  "stage_cwd": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+  "stage_environment": {
+    "unset": [
+      "PYTHONPATH",
+      "PYTHONHOME",
+      "VIRTUAL_ENV",
+      "AGENT_COMMS_THREAD",
+      "AGENT_COMMS_STARTUP_INPUT_KEY",
+      "PI_PROMPT",
+      "PI_PARENT_ID",
+      "PI_AGENT_ID",
+      "PI_TASK",
+      "TEXTUAL_DRIVER",
+      "AC_REAL_ORIGINAL_PYTHON",
+      "AC_REAL_SOURCE_OWNER",
+      "AC_REAL_SOURCE_ROOT",
+      "AC_REAL_SOURCE_FILE",
+      "AC_REAL_PROVIDER_AUTHORIZED",
+      "AC_REAL_READ_ONLY_CUSTODY",
+      "WORKSPACE_COHORTS"
+    ],
+    "set": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONNOUSERSITE": "1"
+    }
+  },
+  "stage_attemptlimit": 1,
+  "source_filewheels": [
+    {
+      "module": "agent_comms",
+      "distribution": "agent-comms",
+      "head": "ddcdc422c7fe01453edb2469bcfa8303d771db67",
+      "path": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/current-paired-core-20261006/wheel/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "6b426d7ea31f4a6e30db2c2fdbd4eaa4d1be6dcea9aba3c6e599f7c063987b6b",
+      "bytes": 910730,
+      "assets": 355
+    },
+    {
+      "module": "toad",
+      "distribution": "batrachian-toad",
+      "head": "6fd04962278db94fd2c22c46b5f83b74c72c9e1e",
+      "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/current-ui-publication-pair-20261006/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "b3b0b385e76e8feed4feee846e428919a385d561d715ab86a1a6cf2a734eb8d7",
+      "bytes": 2251105,
+      "assets": 319
+    },
+    {
+      "module": "textual",
+      "distribution": "textual",
+      "head": "e15d066a62ac9a1a028b3a023a9b070c74b04501",
+      "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/current-ui-publication-pair-20261006/textual-wheel/textual-8.2.8-py3-none-any.whl",
+      "sha256": "eec03a2df96bae773f8d02b69ff6036ed300f1d68c7953507fbd49e00fcf4906",
+      "bytes": 771643,
+      "assets": 266
+    },
+    {
+      "module": "textual_diff_view",
+      "distribution": "textual-diff-view",
+      "head": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "path": "/home/ts/.cache/uv/sdists-v9/git/6a8a377ce2150d3f/8fa7d4d0db993ea3/textual_diff_view-0.1.5-py3-none-any.whl",
+      "sha256": "be7089c8f282e07e893b0254a0859e0f1b243a7ba591749f2053fa1fb775ad36",
+      "bytes": 25753,
+      "assets": 3
+    },
+    {
+      "module": "refactor_audit",
+      "distribution": "nominal-refactor-audit",
+      "head": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10",
+      "path": "/home/ts/wt/nra-skill-publish-20261002/.artifacts/family-flattened-collector-20261004/wheels/nominal_refactor_audit-0.1.0-py3-none-any.whl",
+      "sha256": "8d489731728ebf9f7e0f90ef2b14e7e3b5d2f90ed82bd8b1482d735f82869886",
+      "bytes": 23532,
+      "assets": 10
+    }
+  ],
+  "candidate_filewheels": [
+    {
+      "module": "agent_comms",
+      "distribution": "agent-comms",
+      "head": "ddcdc422c7fe01453edb2469bcfa8303d771db67",
+      "path": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/current-paired-core-20261006/wheel/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "6b426d7ea31f4a6e30db2c2fdbd4eaa4d1be6dcea9aba3c6e599f7c063987b6b",
+      "bytes": 910730,
+      "assets": 355
+    },
+    {
+      "module": "toad",
+      "distribution": "batrachian-toad",
+      "head": "6fd04962278db94fd2c22c46b5f83b74c72c9e1e",
+      "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/current-ui-publication-pair-20261006/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "b3b0b385e76e8feed4feee846e428919a385d561d715ab86a1a6cf2a734eb8d7",
+      "bytes": 2251105,
+      "assets": 319
+    },
+    {
+      "module": "textual",
+      "distribution": "textual",
+      "head": "e15d066a62ac9a1a028b3a023a9b070c74b04501",
+      "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/current-ui-publication-pair-20261006/textual-wheel/textual-8.2.8-py3-none-any.whl",
+      "sha256": "eec03a2df96bae773f8d02b69ff6036ed300f1d68c7953507fbd49e00fcf4906",
+      "bytes": 771643,
+      "assets": 266
+    }
+  ],
+  "matching_native_reference": {
+    "package": "/home/ts/wt/comms-native-bootstrap-origin-guard-20261005/stack/.pi-native-4b687d2ddcafeea5/node_modules/@earendil-works/pi-coding-agent",
+    "manifest": "4b687d2ddcafeea5b8baad92f4e88217f8dc78b38c3b608a024abc7e4ec31e50",
+    "tree": "63f18710cb9329be6ade27bac3b4dd822e2b36f013756fa8e6717b8073a4592c",
+    "authority": "UNBOUND new matching4b READ for proof; separate matching4b EXEC after actual final proof/controller/source READ binding. No old7a/closed authority inheritance."
+  },
+  "controls": [
+    {
+      "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/history_edge_scheduling_pilot.py",
+      "sha256": "018122b36b5b8b2e3148b1f2b4f5887540670eb47ead117d99367d5c0612b262",
+      "bytes": 22898
+    },
+    {
+      "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/tools/record_installed_tui.py",
+      "sha256": "e3c4c39b64c54d476a5bf704b2c8722da1ed51b82dcd5b58523679f50a39005c",
+      "bytes": 146613
+    },
+    {
+      "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/original_turn_resource_real_installed_pilot.py",
+      "sha256": "6ddc46989485b6f794fd647dbf242a84f36fd6bf5ef8841f1863e1625efb5c39",
+      "bytes": 19515
+    },
+    {
+      "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/runtime_fixture.py",
+      "sha256": "c34f37f450a02f09d344352466431744892a0c788953212da5ac434d912e3315",
+      "bytes": 18978
+    },
+    {
+      "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/l0a_native_installed_pilot.py",
+      "sha256": "af0fb2d285ce9dddf728650809ab206b706000ed1d003e520d382b483b04e61a",
+      "bytes": 37666
+    },
+    {
+      "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/saved_state_user_journey_pilot.py",
+      "sha256": "21ce690ba324ad6bae9d53b0881f8e302aae3fbb206fa733c256a42ea8804598",
+      "bytes": 47806
+    },
+    {
+      "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/native_session_retention_pilot.py",
+      "sha256": "6eb54c6444f8d96d15be94671a8fb7c1ec7ca8348357c18804f73dbd2a61e48a",
+      "bytes": 35091
+    },
+    {
+      "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/viewport_recent_tabs_pilot.py",
+      "sha256": "b6141aeb7024439d39c57802bf3f0d10be394e17e5e6f0610479843ad3a19f57",
+      "bytes": 22482
+    },
+    {
+      "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/manual_live_turn_status.py",
+      "sha256": "f333da956fcc9e367f993853aa3daabbaea8d4278feed24eaa644d51c74e48fa",
+      "bytes": 7122
+    },
+    {
+      "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/readonly_saved_reader_pilot.py",
+      "sha256": "63c36b3cde89cf899995508cf73c4b193e385826e56a2f79e640349f6cc06c0e",
+      "bytes": 19357
+    },
+    {
+      "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/tools/scroll_observation.py",
+      "sha256": "0c70f4c0af55842c6dedf04378aec5dac203066ee549bd316c8df68980558829",
+      "bytes": 12907
+    },
+    {
+      "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tools/performance/click_history.py",
+      "sha256": "9fdd1a319ae6d85c9ae2673984210f1023247d8f776b20ac926de8e3a85fee17",
+      "bytes": 13724
+    },
+    {
+      "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tools/performance/capture_state.py",
+      "sha256": "1cce4fa4902f11f4ffd6201293564cd8a574354591359d7ddb0b557cebdc7138",
+      "bytes": 33577
+    },
+    {
+      "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tools/performance/run_observed_app.py",
+      "sha256": "58eb91775be167e338cc882e7eaec177a397f0099fc2fae3c72e472f3914f355",
+      "bytes": 249
+    },
+    {
+      "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tools/performance/sidebar_validation_driver.py",
+      "sha256": "391fe4cdd18a8b39949a21d0d127c4e712efaf619af25a2cf178ebb21446545c",
+      "bytes": 40719
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/carry_history_provenance.py",
+      "sha256": "44735bcdd6424af4203ac75e509f8a80cf41641882b249610ccadd0215c527b2",
+      "bytes": 4308
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/cutover_child.py",
+      "sha256": "69a63c30a27ce6971d31e9669ff8c86b06579612c796f044126f629917e51966",
+      "bytes": 1207
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/native_schema_carry.py",
+      "sha256": "08d5b673910f96634ad017eb7e8224cb440e5b5cfea7c07d597b3ddf0f209c2b",
+      "bytes": 43894
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/original_owner_capture.py",
+      "sha256": "0505975196d438b2721d48efde97e777f124a34ea1fe6f05dd50751a29f2932f",
+      "bytes": 3846
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/owner_read_projection.py",
+      "sha256": "c719ec35fa61942ee76b6aa8b87e1155e66235eb1d696736bd9597b1fa2caba7",
+      "bytes": 4645
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/publish_openhcs_recovery.py",
+      "sha256": "27516db16a4bec25bb37fb394e1c7bc04c567eb0a780fb1e0ed62235ca0ed9ff",
+      "bytes": 21793
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/publish_retained_summary.py",
+      "sha256": "025babf120563228d99920617d34f2e4142307d38e049405d4af49b2ecd7a960",
+      "bytes": 24056
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/read_original_owner.py",
+      "sha256": "c963d51ec834e7caef5a0a10b704773546f548cf967e5e8716e147db0a2557d9",
+      "bytes": 1057
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/retained_summary_reset.py",
+      "sha256": "86d28cc9f9c74c9156ee258d061168a17003ab94f6c9ba1fdaac2dd01eb8dd12",
+      "bytes": 8554
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/routing_carry.py",
+      "sha256": "44509029e1fb4c975f8bb5b6c14cd8ecb1e2c9697f24374883b02f26360a3b4c",
+      "bytes": 11939
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/runtime_installation.py",
+      "sha256": "77841672b6d9d99e3cb4c724706ffdad7eefd604aab583743f2e4b341156224c",
+      "bytes": 3393
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/thread_format_retirement.py",
+      "sha256": "e31ca7198a19f0c7f92f65663adc82d3e10cd9194278951a77a936332ce25737",
+      "bytes": 3873
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/carry_history_provenance.py",
+      "sha256": "44735bcdd6424af4203ac75e509f8a80cf41641882b249610ccadd0215c527b2",
+      "bytes": 4308
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/cutover_child.py",
+      "sha256": "69a63c30a27ce6971d31e9669ff8c86b06579612c796f044126f629917e51966",
+      "bytes": 1207
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/native_schema_carry.py",
+      "sha256": "08d5b673910f96634ad017eb7e8224cb440e5b5cfea7c07d597b3ddf0f209c2b",
+      "bytes": 43894
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/original_owner_capture.py",
+      "sha256": "0505975196d438b2721d48efde97e777f124a34ea1fe6f05dd50751a29f2932f",
+      "bytes": 3846
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/owner_read_projection.py",
+      "sha256": "c719ec35fa61942ee76b6aa8b87e1155e66235eb1d696736bd9597b1fa2caba7",
+      "bytes": 4645
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/publish_openhcs_recovery.py",
+      "sha256": "27516db16a4bec25bb37fb394e1c7bc04c567eb0a780fb1e0ed62235ca0ed9ff",
+      "bytes": 21793
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/publish_retained_summary.py",
+      "sha256": "025babf120563228d99920617d34f2e4142307d38e049405d4af49b2ecd7a960",
+      "bytes": 24056
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/read_original_owner.py",
+      "sha256": "c963d51ec834e7caef5a0a10b704773546f548cf967e5e8716e147db0a2557d9",
+      "bytes": 1057
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/retained_summary_reset.py",
+      "sha256": "86d28cc9f9c74c9156ee258d061168a17003ab94f6c9ba1fdaac2dd01eb8dd12",
+      "bytes": 8554
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/routing_carry.py",
+      "sha256": "44509029e1fb4c975f8bb5b6c14cd8ecb1e2c9697f24374883b02f26360a3b4c",
+      "bytes": 11939
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/runtime_installation.py",
+      "sha256": "77841672b6d9d99e3cb4c724706ffdad7eefd604aab583743f2e4b341156224c",
+      "bytes": 3393
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/thread_format_retirement.py",
+      "sha256": "e31ca7198a19f0c7f92f65663adc82d3e10cd9194278951a77a936332ce25737",
+      "bytes": 3873
+    }
+  ],
+  "control_hashes": {
+    "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/history_edge_scheduling_pilot.py": "018122b36b5b8b2e3148b1f2b4f5887540670eb47ead117d99367d5c0612b262",
+    "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/tools/record_installed_tui.py": "e3c4c39b64c54d476a5bf704b2c8722da1ed51b82dcd5b58523679f50a39005c",
+    "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/original_turn_resource_real_installed_pilot.py": "6ddc46989485b6f794fd647dbf242a84f36fd6bf5ef8841f1863e1625efb5c39",
+    "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/runtime_fixture.py": "c34f37f450a02f09d344352466431744892a0c788953212da5ac434d912e3315",
+    "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/l0a_native_installed_pilot.py": "af0fb2d285ce9dddf728650809ab206b706000ed1d003e520d382b483b04e61a",
+    "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/saved_state_user_journey_pilot.py": "21ce690ba324ad6bae9d53b0881f8e302aae3fbb206fa733c256a42ea8804598",
+    "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/native_session_retention_pilot.py": "6eb54c6444f8d96d15be94671a8fb7c1ec7ca8348357c18804f73dbd2a61e48a",
+    "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/viewport_recent_tabs_pilot.py": "b6141aeb7024439d39c57802bf3f0d10be394e17e5e6f0610479843ad3a19f57",
+    "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/manual_live_turn_status.py": "f333da956fcc9e367f993853aa3daabbaea8d4278feed24eaa644d51c74e48fa",
+    "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/readonly_saved_reader_pilot.py": "63c36b3cde89cf899995508cf73c4b193e385826e56a2f79e640349f6cc06c0e",
+    "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/tools/scroll_observation.py": "0c70f4c0af55842c6dedf04378aec5dac203066ee549bd316c8df68980558829",
+    "/home/ts/wt/toad-right-sidebar-latency-20261006/tools/performance/click_history.py": "9fdd1a319ae6d85c9ae2673984210f1023247d8f776b20ac926de8e3a85fee17",
+    "/home/ts/wt/toad-right-sidebar-latency-20261006/tools/performance/capture_state.py": "1cce4fa4902f11f4ffd6201293564cd8a574354591359d7ddb0b557cebdc7138",
+    "/home/ts/wt/toad-right-sidebar-latency-20261006/tools/performance/run_observed_app.py": "58eb91775be167e338cc882e7eaec177a397f0099fc2fae3c72e472f3914f355",
+    "/home/ts/wt/toad-right-sidebar-latency-20261006/tools/performance/sidebar_validation_driver.py": "391fe4cdd18a8b39949a21d0d127c4e712efaf619af25a2cf178ebb21446545c",
+    "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/carry_history_provenance.py": "44735bcdd6424af4203ac75e509f8a80cf41641882b249610ccadd0215c527b2",
+    "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/cutover_child.py": "69a63c30a27ce6971d31e9669ff8c86b06579612c796f044126f629917e51966",
+    "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/native_schema_carry.py": "08d5b673910f96634ad017eb7e8224cb440e5b5cfea7c07d597b3ddf0f209c2b",
+    "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/original_owner_capture.py": "0505975196d438b2721d48efde97e777f124a34ea1fe6f05dd50751a29f2932f",
+    "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/owner_read_projection.py": "c719ec35fa61942ee76b6aa8b87e1155e66235eb1d696736bd9597b1fa2caba7",
+    "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/publish_openhcs_recovery.py": "27516db16a4bec25bb37fb394e1c7bc04c567eb0a780fb1e0ed62235ca0ed9ff",
+    "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/publish_retained_summary.py": "025babf120563228d99920617d34f2e4142307d38e049405d4af49b2ecd7a960",
+    "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/read_original_owner.py": "c963d51ec834e7caef5a0a10b704773546f548cf967e5e8716e147db0a2557d9",
+    "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/retained_summary_reset.py": "86d28cc9f9c74c9156ee258d061168a17003ab94f6c9ba1fdaac2dd01eb8dd12",
+    "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/routing_carry.py": "44509029e1fb4c975f8bb5b6c14cd8ecb1e2c9697f24374883b02f26360a3b4c",
+    "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/runtime_installation.py": "77841672b6d9d99e3cb4c724706ffdad7eefd604aab583743f2e4b341156224c",
+    "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/thread_format_retirement.py": "e31ca7198a19f0c7f92f65663adc82d3e10cd9194278951a77a936332ce25737",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/carry_history_provenance.py": "44735bcdd6424af4203ac75e509f8a80cf41641882b249610ccadd0215c527b2",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/cutover_child.py": "69a63c30a27ce6971d31e9669ff8c86b06579612c796f044126f629917e51966",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/native_schema_carry.py": "08d5b673910f96634ad017eb7e8224cb440e5b5cfea7c07d597b3ddf0f209c2b",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/original_owner_capture.py": "0505975196d438b2721d48efde97e777f124a34ea1fe6f05dd50751a29f2932f",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/owner_read_projection.py": "c719ec35fa61942ee76b6aa8b87e1155e66235eb1d696736bd9597b1fa2caba7",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/publish_openhcs_recovery.py": "27516db16a4bec25bb37fb394e1c7bc04c567eb0a780fb1e0ed62235ca0ed9ff",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/publish_retained_summary.py": "025babf120563228d99920617d34f2e4142307d38e049405d4af49b2ecd7a960",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/read_original_owner.py": "c963d51ec834e7caef5a0a10b704773546f548cf967e5e8716e147db0a2557d9",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/retained_summary_reset.py": "86d28cc9f9c74c9156ee258d061168a17003ab94f6c9ba1fdaac2dd01eb8dd12",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/routing_carry.py": "44509029e1fb4c975f8bb5b6c14cd8ecb1e2c9697f24374883b02f26360a3b4c",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/runtime_installation.py": "77841672b6d9d99e3cb4c724706ffdad7eefd604aab583743f2e4b341156224c",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/thread_format_retirement.py": "e31ca7198a19f0c7f92f65663adc82d3e10cd9194278951a77a936332ce25737"
+  },
+  "proof": {
+    "template": {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/evidence/configured-loaded-consumer-repair-20261006/verify_configured_source_member.template.py",
+      "sha256": "647980f579bb77ac9e1a6b3db7c7dab12b1af153f31ecbe1b3bd8b9da9e80113",
+      "bytes": 10546
+    },
+    "source_binding": {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/evidence/configured-loaded-consumer-repair-20261006/PROOF-SOURCE-MEMBER-BINDING.json",
+      "sha256": "18e13c57f2d314c6f0103c3ccbce83305ba4ab28c864e9c6742d562124932312",
+      "bytes": 2156
+    },
+    "argv": [
+      "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+      "-B",
+      "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/485-installed-purpose/verify_installed.py"
+    ],
+    "cwd": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+    "environment": {
+      "unset": [
+        "PYTHONPATH",
+        "PYTHONHOME",
+        "VIRTUAL_ENV",
+        "AGENT_COMMS_THREAD",
+        "AGENT_COMMS_STARTUP_INPUT_KEY",
+        "PI_PROMPT",
+        "PI_PARENT_ID",
+        "PI_AGENT_ID",
+        "PI_TASK",
+        "TEXTUAL_DRIVER",
+        "AC_REAL_ORIGINAL_PYTHON",
+        "AC_REAL_SOURCE_OWNER",
+        "AC_REAL_SOURCE_ROOT",
+        "AC_REAL_SOURCE_FILE",
+        "AC_REAL_PROVIDER_AUTHORIZED",
+        "AC_REAL_READ_ONLY_CUSTODY",
+        "WORKSPACE_COHORTS"
+      ],
+      "set": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1"
+      }
+    },
+    "exclusive_destinations": [
+      "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/485-installed-purpose/agent_comms-installed-inventory.json",
+      "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/485-installed-purpose/toad-installed-inventory.json",
+      "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/485-installed-purpose/textual-installed-inventory.json",
+      "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/485-installed-purpose/textual_diff_view-installed-inventory.json",
+      "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/485-installed-purpose/refactor_audit-installed-inventory.json",
+      "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/485-installed-purpose/native-full-trust.json",
+      "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/485-installed-purpose/source-proof.json",
+      "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/485-installed-purpose/candidate-activation.json",
+      "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/485-installed-purpose/package-boundary-proof.json",
+      "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/485-installed-purpose/core-installed-source.json"
+    ],
+    "materialization": "Only four actual fresh grantpath/SHA and newREADpath/SHA substitutions, after actual stagePASS/matchingREAD. Exact helper hash/argv/env/output binding and Bohr proofrelease precede sole invocation. Same original953/69/FullTrust algorithm; changed3 and1883 other66 truthful. Original typed Core member is a tenth exclusive proof output and must enter final App map/handoff."
+  },
+  "exact_control": {
+    "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/history_edge_scheduling_pilot.py",
+    "sha256": "018122b36b5b8b2e3148b1f2b4f5887540670eb47ead117d99367d5c0612b262",
+    "bytes": 22898
+  },
+  "physical_arguments": [
+    "--journey",
+    "sidebar_wheel",
+    "--recording-seconds",
+    "240"
+  ],
+  "outer_argv": [
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+    "-B",
+    "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/history_edge_scheduling_pilot.py",
+    "--record-useful-paint",
+    "--journey",
+    "sidebar_wheel",
+    "--recording-seconds",
+    "240"
+  ],
+  "cwd": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+  "environment": {
+    "unset": [
+      "PYTHONPATH",
+      "PYTHONHOME",
+      "VIRTUAL_ENV",
+      "AGENT_COMMS_THREAD",
+      "AGENT_COMMS_STARTUP_INPUT_KEY",
+      "PI_PROMPT",
+      "PI_PARENT_ID",
+      "PI_AGENT_ID",
+      "PI_TASK",
+      "TEXTUAL_DRIVER",
+      "AC_REAL_ORIGINAL_PYTHON",
+      "AC_REAL_SOURCE_OWNER",
+      "AC_REAL_SOURCE_ROOT",
+      "AC_REAL_SOURCE_FILE",
+      "AC_REAL_PROVIDER_AUTHORIZED",
+      "AC_REAL_READ_ONLY_CUSTODY",
+      "WORKSPACE_COHORTS"
+    ],
+    "set": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONNOUSERSITE": "1",
+      "AC_REAL_PROVIDER_AUTHORIZED": "Sol/high retained acceptance",
+      "AC_REAL_READ_ONLY_CUSTODY": "1",
+      "AC_REAL_FIXTURE_STAGE": "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/private-fixture",
+      "L0A_EVIDENCE": "/home/ts/.cache/agent-scratch/puip02/evidence",
+      "AC_REAL_CORE_HEAD": "ddcdc422c7fe01453edb2469bcfa8303d771db67",
+      "AC_REAL_TOAD_HEAD": "6fd04962278db94fd2c22c46b5f83b74c72c9e1e",
+      "AC_REAL_SOURCE_ROOT": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "AC_REAL_ORIGINAL_PYTHON": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+      "AC_REAL_SOURCE_OWNER": "openhcs-architecture-memory",
+      "AC_NATIVE_COPIED_PACKAGE": "/home/ts/wt/comms-native-bootstrap-origin-guard-20261005/stack/.pi-native-4b687d2ddcafeea5/node_modules/@earendil-works/pi-coding-agent",
+      "ORIGINAL_CAPTURE_HELPER_ROOT": "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover",
+      "USEFUL_PAINT_CANDIDATE": "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/485-installed-purpose/candidate-activation.json",
+      "TMPDIR": "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/485-installed-purpose/tmp"
+    }
+  },
+  "controller": {
+    "template": {
+      "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/evidence/sidebar-wheel-installed-20261006/run_physical.template.py",
+      "sha256": "115acb1ef790812e96d70a6a93980aa033c263f87f4c2e546015c9f5a5a5ccfa",
+      "bytes": 5452
+    },
+    "new_literal": "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/485-installed-purpose/run_physical.py",
+    "argv": [
+      "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+      "-B",
+      "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/485-installed-purpose/run_physical.py"
+    ],
+    "materialization": "Only three actual grant/lifecycle/SHA literals; original BoundedRun/AttachedChild custody unchanged"
+  },
+  "control_timeout_seconds": 600,
+  "recording_timeout_seconds": 240,
+  "outer_bound_basis": "Whole source acquisition/two SDK forks, installed preflight, physical phases, snapshots and joined cleanup. Safety deadlines, no speed claim. Existing history20 and navigation2 remain unchanged.",
+  "source_capture_scope": {
+    "original_owner": {
+      "argv": [
+        "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+        "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/read_original_owner.py",
+        "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "openhcs-architecture-memory",
+        "current_thread"
+      ],
+      "stdin": "Original OwnerRestartSelection FieldCodec request for require_current; no replacement identity/registry",
+      "helpers": [
+        {
+          "path": "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/original_owner_capture.py",
+          "sha256": "0505975196d438b2721d48efde97e777f124a34ea1fe6f05dd50751a29f2932f",
+          "bytes": 3846
+        },
+        {
+          "path": "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/owner_read_projection.py",
+          "sha256": "c719ec35fa61942ee76b6aa8b87e1155e66235eb1d696736bd9597b1fa2caba7",
+          "bytes": 4645
+        },
+        {
+          "path": "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/read_original_owner.py",
+          "sha256": "c963d51ec834e7caef5a0a10b704773546f548cf967e5e8716e147db0a2557d9",
+          "bytes": 1057
+        },
+        {
+          "path": "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/thread_format_retirement.py",
+          "sha256": "e31ca7198a19f0c7f92f65663adc82d3e10cd9194278951a77a936332ce25737",
+          "bytes": 3873
+        }
+      ],
+      "owner": "Original CurrentTypedCapture and RetainedOwnerLaunch; no direct decoder run before actual new sourceREAD release",
+      "return": "After SDK private fork/admission and capture.require_current/source SHA check, original PUBLIC_WITNESS_RELEASED; source custody unchanged. Separate from eventual whole private return."
+    },
+    "source_bytes_minimum": 40000000,
+    "public_inputs_replayed": 0,
+    "private_submitted_inputs": 0,
+    "SDK_forks": 2,
+    "source_witness_return": "Original ORIGINAL_CAPTURE_COMPLETE_PUBLIC_WITNESS_RELEASED after actual currentness/source hash checked; separate source READ return. No fabricated marker.",
+    "private_worktree": "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/private-fixture/project"
+  },
+  "mandatory_phases": [
+    "actual private saved histories",
+    "left sidebar native resize/wheel down/up",
+    "right sidebar disclosure/native resize",
+    "transcript36 wheels up/down/reverse and End",
+    "native outer right SidebarViewport scroll before visible ContextTree acquisition",
+    "native context-tree wheels down/up",
+    "right hide/reopen",
+    "native peer click and original-tab return",
+    "unsent draft/native Undo",
+    "zero native_runtime_input and dispositions",
+    "real st pixels/profile/native phase review",
+    "App/workers/executor/native children joined"
+  ],
+  "restore": {
+    "argv": [
+      "uv",
+      "pip",
+      "install",
+      "--python",
+      "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+      "--no-deps",
+      "--no-cache",
+      "--no-index",
+      "--link-mode",
+      "copy",
+      "--reinstall",
+      "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/same-owner-native-fork676-corrected-wheel-20261005/agent_comms-0.1.0-py3-none-any.whl",
+      "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native67-filewheel-20261005/textual-8.2.8-py3-none-any.whl"
+    ],
+    "cwd": "/home/ts/wt/toad-warm-rendered-reader-20261006",
+    "environment": {
+      "unset": [
+        "PYTHONPATH",
+        "PYTHONHOME",
+        "VIRTUAL_ENV",
+        "AGENT_COMMS_THREAD",
+        "AGENT_COMMS_STARTUP_INPUT_KEY",
+        "PI_PROMPT",
+        "PI_PARENT_ID",
+        "PI_AGENT_ID",
+        "PI_TASK",
+        "TEXTUAL_DRIVER",
+        "AC_REAL_ORIGINAL_PYTHON",
+        "AC_REAL_SOURCE_OWNER",
+        "AC_REAL_SOURCE_ROOT",
+        "AC_REAL_SOURCE_FILE",
+        "AC_REAL_PROVIDER_AUTHORIZED",
+        "AC_REAL_READ_ONLY_CUSTODY",
+        "WORKSPACE_COHORTS"
+      ],
+      "set": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1"
+      }
+    },
+    "filewheels": [
+      {
+        "module": "agent_comms",
+        "head": "3931f16feb8bcb2dbcc3041446ca342dea665024",
+        "assets": 355,
+        "wheel": {
+          "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/same-owner-native-fork676-corrected-wheel-20261005/agent_comms-0.1.0-py3-none-any.whl",
+          "sha256": "3fe14077293b691000394831ed7458ecae92afd9b667af4501be2945ab86051d",
+          "bytes": 904487
+        },
+        "inventory": {
+          "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/agent_comms-inventory.json",
+          "sha256": "3b7c13a8db9130ac170bbb8df5e77e61409c482242f226d0bd6ee6d8f2e5bee0",
+          "bytes": 55897
+        },
+        "installed_namespace_noextras_and_ZIPbytes_equal": true
+      },
+      {
+        "module": "toad",
+        "head": "289f1c6cd7667abf985ddba265d6469a95e3ea48",
+        "assets": 319,
+        "wheel": {
+          "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+          "sha256": "b2e420e5b2eed1aaa96d815b2abf38f990272a047417c2ca5082c01d9149a151",
+          "bytes": 2251159
+        },
+        "inventory": {
+          "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/toad-inventory.json",
+          "sha256": "3034ea1634b3d371d32595fc76e25f1605a5152e28a3e4e6ea7814f64a639236",
+          "bytes": 48134
+        },
+        "installed_namespace_noextras_and_ZIPbytes_equal": true
+      },
+      {
+        "module": "textual",
+        "head": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78",
+        "assets": 266,
+        "wheel": {
+          "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native67-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+          "sha256": "16c9f5e7a1aca9f7a339fdb859c1743bbc0ba8f17327ba3debd4b13959ca927d",
+          "bytes": 768752
+        },
+        "inventory": {
+          "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/textual-inventory.json",
+          "sha256": "06cf52a6d070eb515e9b061c1f81ce97ee34fed231a15e37b62401fb725ba610",
+          "bytes": 39856
+        },
+        "installed_namespace_noextras_and_ZIPbytes_equal": true
+      }
+    ],
+    "attemptlimit": 1,
+    "whole_floor": {
+      "nodes": 1467,
+      "assets": 953,
+      "versions": 69,
+      "other66": 1883,
+      "protected": 266,
+      "environment_nodes": 2,
+      "PREFIXactivation_sha256": "273d1ae8cbd9b38adfeb17e379419beea26c5a52fa2394aff16de6661c6eec11"
+    }
+  },
+  "outputs": {
+    "controller": [
+      "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/485-installed-purpose/physical-effective-release.json",
+      "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/485-installed-purpose/physical-command.json",
+      "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/485-installed-purpose/physical-handle.json",
+      "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/485-installed-purpose/physical.stdout.log",
+      "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/485-installed-purpose/physical.stderr.log",
+      "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/485-installed-purpose/physical-terminal.json"
+    ],
+    "private_fixture": "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/private-fixture",
+    "recording": "/home/ts/.cache/agent-scratch/puip02/evidence/capture",
+    "whole_handback": "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/485-installed-purpose/whole-handback.json"
+  },
+  "fresh_issue_READ_proof_EXEC_sourceREAD_release": "UNBOUND until original owner phases",
+  "selected_core_not_latest_main": true,
+  "public_originals_UNKNOWN_journals_preserved": true,
+  "previous_attempt": {
+    "operands": {
+      "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/evidence/sidebar-wheel-installed-20261006/FINAL-PHYSICAL-OPERANDS.json",
+      "sha256": "1898b359576040743f1fd0c591b31cba145a857ccea2ca5855bcb0565d811e04",
+      "bytes": 39262
+    },
+    "state": "CLOSED; raw and journals held; not current authority"
+  },
+  "source_change": "Only recorder SidebarWheelJourney: original native outer panel wheel before strict ContextTree target; production/pins/wheels unchanged; existing useful-paint callback passes original --fit-window so isolated st uses original 1280x800 recording area",
+  "new_outputs_absent": [
+    "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/485-installed-purpose",
+    "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/private-fixture",
+    "/home/ts/.cache/agent-scratch/puip02/evidence/capture"
+  ],
+  "prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "published_helper_head": "df77f1534",
+  "assessment_helper_delta": "Recorder matches assessed4aeefc; useful-paint callback now passes its original --fit-window. Only these two helper declarations changed from original physical tuple; no artifact rebuild."
+}
