@@ -4,6 +4,7 @@ One actual application journey controls completion of its original source read;
 all pages, registrations, messages, read witnesses and native rows remain real.
 """
 
+import argparse
 import asyncio
 import importlib.util
 import json
@@ -28,7 +29,7 @@ from toad.widgets.transcript_history import TranscriptHistory
 from toad.transcript_preparation import PageRequest
 sys.path.insert(0, str(Path(__file__).resolve().parent / 'tools'))
 from record_installed_tui import (ObserveJourney, InputWarmJourney, ProcessOwner, RuntimeSelection,
-                                 WheelWarmJourney, marker_command, phase_events, main as record_main)
+                                 WheelWarmJourney, PhysicalJourney, marker_command, phase_events, main as record_main)
 from runtime_fixture import private_native_wire
 
 
@@ -420,7 +421,8 @@ def await_completion(root):
         raise RuntimeError('Original source fixture failed: ' + outcome['error'])
 
 
-async def record_useful_paint(service, project, evidence, environment, *, candidate):
+async def record_useful_paint(service, project, evidence, environment, *, candidate,
+                              journey=WheelWarmJourney, recording_seconds=150):
     """One original retained-fork fixture and one installed CLI/physical App."""
     entry = Path(__file__).resolve().parents[1] / 'tools/performance/run_observed_app.py'
     command = [sys.executable, str(entry), 'acp',
@@ -429,10 +431,10 @@ async def record_useful_paint(service, project, evidence, environment, *, candid
     await record_retained(
         service, project, evidence,
         dict(environment, TOAD_VALIDATION_USEFUL_PAINT='1'),
-        recording_args=['--review-timing', 'deferred', '--max-duration', '150',
+        recording_args=['--fit-window', '--review-timing', 'deferred', '--max-duration', str(recording_seconds),
                         '--startup-wait', '8', '--history-wait-seconds', '20'],
-        recording_timeout=150, recording_output=evidence / 'capture',
-        retained_channel_source=None, journey=WheelWarmJourney,
+        recording_timeout=recording_seconds, recording_output=evidence / 'capture',
+        retained_channel_source=None, journey=journey,
         application_command=command, candidate=candidate)
 
 
@@ -444,8 +446,13 @@ if __name__ == '__main__':
         sys.path.insert(0, os.environ['ORIGINAL_CAPTURE_HELPER_ROOT'])
         from original_turn_resource_real_installed_pilot import main as original_fixture
 
+        parser = argparse.ArgumentParser(description='Original saved-source physical capture')
+        parser.add_argument('--journey', type=PhysicalJourney.decode, default=WheelWarmJourney)
+        parser.add_argument('--recording-seconds', type=float, default=150)
+        options = parser.parse_args(sys.argv[2:])
         asyncio.run(original_fixture(readonly_capture=partial(
-            record_useful_paint, candidate=Path(os.environ['USEFUL_PAINT_CANDIDATE']))))
+            record_useful_paint, candidate=Path(os.environ['USEFUL_PAINT_CANDIDATE']),
+            journey=options.journey, recording_seconds=options.recording_seconds)))
     elif sys.argv[1:2] == ['--await-completion']:
         await_completion(Path(sys.argv[2]))
     elif sys.argv[1:2] == ['--retained-app']:
