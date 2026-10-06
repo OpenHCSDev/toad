@@ -118,6 +118,10 @@ class RelationshipRows(SidebarGroup):
         super().__init__(Static(model.title), expanded=expanded, scrollable=False,
                          id=f"relationships-{model.key}")
 
+    def toggle_members(self) -> None:
+        super().toggle_members()
+        self.query_ancestor(ThreadCommsSidebar).view_state.expanded[self.model.key] = self.expanded
+
     def thread_people(self):
         return {entry.person.thread.name: entry.person for entry in self.model.entries
                 if entry.person is not None}.values()
@@ -462,12 +466,6 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 context = self.query_one(".relationship-context", Static)
                 _update_content(context, Content("Comms unavailable"))
                 context.tooltip = str(error)
-
-    @on(SidebarGroup.Toggled)
-    def group_toggled(self, event):
-        if isinstance(event.group, RelationshipRows):
-            event.stop()
-            self.view_state.expanded[event.group.model.key] = event.group.expanded
 
     def _ordered_rows(self):
         return [row for group in self.groups.values() if group.expanded and group.display

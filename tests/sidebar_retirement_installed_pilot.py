@@ -149,6 +149,7 @@ async def main():
                     await until(pilot, lambda: len(relationships.groups) == 5)
                     assert not relationships.groups["collaborating"].expanded
                     relationships.groups["collaborating"].toggle_members()
+                    assert state.expanded["collaborating"] is True
                     try:
                         await until(pilot, lambda: bool(relationships.groups["collaborating"].rows))
                     except TimeoutError:

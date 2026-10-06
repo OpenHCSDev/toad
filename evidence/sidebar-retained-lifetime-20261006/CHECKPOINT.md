@@ -40,3 +40,23 @@ The screenshot directory refusal was a test output-path error, corrected to the
 existing owned scratch directory. No production assertion was weakened.
 No source provider, saved session input, physical recording or installed package
 was operated or changed. Frame latency acceptance remains pending.
+
+## Disclosure ownership closure
+
+Complete Package source inventory parsed 288 production, 403 test and 40 tool
+modules with zero omissions. The only two SidebarGroup specializations are
+ChannelGroup and RelationshipRows. ChannelGroup already stores disclosure intent
+synchronously in toggle_members. RelationshipRows previously delegated that write
+to SidebarGroup.Toggled, whose only consumer was ThreadCommsSidebar.group_toggled.
+A concurrent original _refresh could overwrite expanded from the old saved value
+before this queued callback; the callback then saved that overwritten value.
+RelationshipRows now owns the synchronous update through the same existing
+method override. The unused Toggled message/import/post and type-dispatch handler
+are deleted. This is IMPL-4 family completion and removal of a delayed competing
+state publication, not a claim that the earlier run recorded that exact interleaving.
+
+The original four-tab source App passed after this closure, with an immediate
+intent check before yielding to original preparation, one identical warm return,
+four total returns, exact eviction restoration and native painted relationship
+text. Original process exit zero, stderr empty. Raw: scale4-disclosure-owner.*
+under the same owned scratch root. No installed or physical latency claim.
