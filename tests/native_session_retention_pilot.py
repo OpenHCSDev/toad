@@ -12,6 +12,7 @@ import pstats
 import gc
 from importlib.resources import files
 from functools import partial
+from weakref import ref
 import json
 import os
 from pathlib import Path
@@ -274,15 +275,17 @@ async def warm_admission_acceptance(app, pilot, agent, comms, entered, release, 
     del checkpoints, witness, ordered, admitted, costs, roots, widget, owner, painted_owner
 
 
-async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
-    from viewport_recent_tabs_pilot import ReaderCheckpoint
+async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests,
+                     *, loaded_histories=False):
+    from viewport_recent_tabs_pilot import ReaderCheckpoint, settled
 
     workspace = app.screen
     owner_mode = app.selected_mode
     owner_view = app.selected_session
     original = app.selected_session.conversation
+    project = original.project_path
     editor = original.prompt.prompt_text_area
-    original_editor = editor
+    original_editor = ref(editor)
     editor.insert("untouched native draft")
     editor.history.checkpoint()
     editor.insert(" with undo")
@@ -294,18 +297,27 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     alpha_mode = await ThreadTarget("alpha").open(owner_view.navigation_context)
     await until(pilot, lambda: "NATIVE_RESPONSE_1" in conversation_paint(app.screen))
     modes = [owner_mode, alpha_mode]
-    loaded_modes = frozenset(modes)
+    loaded_modes = set(modes)
+    native_sources = (owner_view, app.workspace_sessions.require(alpha_mode))
     records = []
+    completed = False
+    painted = []
     markers = {owner_mode: ("untouched native draft with undo", "NATIVE_RESPONSE_2"),
                alpha_mode: ("NATIVE_RESPONSE_1",)}
     active_prompt = None
     try:
         for count in tuple(map(int, os.environ.get("WORKSPACE_COHORTS", "4,16,32,64").split(","))):
-            # Capture the two actual unchanged native sources before this
-            # cohort; blank logical tabs are not loaded-history witnesses.
+            unchanged_inputs = len(requests)
+            # Capture before departure, never reconstruct the witness after a
+            # return. The default cohort still has only two loaded histories.
             checkpoints = {}
+            witness = None
+            peer = window = source = attached = loaded = None
+            rich_views = retained = ()
             try:
-                for mode in (owner_mode, alpha_mode):
+                for mode in modes:
+                    if mode not in loaded_modes:
+                        continue
                     if app.selected_mode != mode:
                         await physical_painted_switch(app, pilot, mode, markers[mode])
                     checkpoints[mode] = await ReaderCheckpoint.capture(
@@ -313,13 +325,48 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                     )
                 while len(modes) < count:
                     index = len(modes)
-                    details = await app.session_navigation.new(lambda: MainScreen(
-                        original.project_path, agent_session_id=f"cohort-{index}"))
+                    if loaded_histories:
+                        source = native_sources[index % len(native_sources)]
+                        native_id = source.presentation.sources.agent.session_id
+                        details = await app.session_navigation.new(partial(
+                            source.spawn, session_id=native_id, root=source.coordination_root))
+                        loaded = app.workspace_sessions.require(details.mode_name)
+                        await loaded.wait_content_ready()
+                        await until(pilot, lambda: loaded.conversation.agent is not None)
+                        attached = loaded.conversation.agent
+                        await until(pilot, attached.session.settled.is_set)
+                        assert attached.session.connected and attached.session_id == native_id
+                        assert attached.coordination.thread == source.presentation.sources.agent.coordination.thread
+                        expected = markers[source.id][-1]
+                        await until(pilot, lambda: expected in conversation_paint(app.screen))
+                        await settled(pilot, loaded.conversation)
+                        assert loaded.conversation.window.histories
+                        assert all(history.pages and history.displayed_cursor is not None
+                                   for history in loaded.conversation.window.histories)
+                        loaded_modes.add(details.mode_name)
+                    else:
+                        details = await app.session_navigation.new(lambda: MainScreen(
+                            project, agent_session_id=f"cohort-{index}"))
                     modes.append(details.mode_name)
-                    marker = f"BLANK_TAB_DRAFT_{index}"
-                    app.selected_session.conversation.prompt.prompt_text_area.insert(marker)
-                    markers[details.mode_name] = (marker,)
+                    marker = f"{'LOADED' if loaded_histories else 'BLANK'}_TAB_DRAFT_{index}"
+                    peer = app.selected_session.conversation
+                    peer.prompt.prompt_text_area.insert(marker)
+                    markers[details.mode_name] = ((marker, "actual native journal source.")
+                                                 if loaded_histories else (marker,))
+                    if loaded_histories:
+                        peer.prompt.prompt_text_area.history.checkpoint()
+                        peer.prompt.prompt_text_area.insert(" with undo")
+                        window = peer.window
+                        assert window.max_scroll_y > 0
+                        window.scroll_to(y=min(5, window.max_scroll_y / 2),
+                                         animate=False, immediate=True, force=True)
+                        await settled(pilot, peer)
+                        assert not window.follows_tail and window.scroll_y < window.max_scroll_y
+                        checkpoints[details.mode_name] = await ReaderCheckpoint.capture(
+                            app.selected_session, app, pilot)
                     await pilot.pause(.02)
+                if loaded_histories:
+                    assert len(loaded_modes) == count and set(modes) == loaded_modes
                 # Each cohort uses the same three strict visit phases. Do not hide
                 # a bad phase with the predecessor's optional diagnostic filtering.
                 durations = []
@@ -333,16 +380,40 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                         if mode == app.selected_mode:
                             continue
                         if mode in checkpoints:
-                            reads_before = await checkpoints[mode].page_reads()
+                            witness = checkpoints[mode]
+                            source = app.workspace_sessions.require(mode)
+                            retained_native = source.presentation.widget is not None
+                            retained = retained_native and source.presentation.widget is witness.view()
+                            if not retained_native:
+                                assert source.presentation.state is not None
+                            reads_before = await witness.page_reads()
                         timing = await physical_painted_switch(app, pilot, mode, markers[mode])
                         painted.append({"mode": mode, "source": "loaded-native" if mode in loaded_modes else "blank",
                                         **timing})
                         if mode in checkpoints:
-                            await checkpoints[mode].verify(app, pilot)
-                            read_delta = await checkpoints[mode].page_reads() - reads_before
-                            assert read_delta == 0, ("Warm return repeated raw page acquisition", mode, read_delta)
+                            if not loaded_histories or retained:
+                                await witness.verify(app, pilot)
+                            else:
+                                view = source.conversation
+                                await settled(pilot, view)
+                                editor = view.prompt.prompt_text_area
+                                assert editor.document is witness.document and editor.history is witness.history
+                                assert editor.text == witness.text
+                                assert view.window.scroll_y == witness.reader_y
+                                assert view.window.follows_tail is witness.follows_tail
+                                assert view.window.histories and all(
+                                    history.pages and history.displayed_cursor is not None
+                                    for history in view.window.histories)
+                            read_delta = await witness.page_reads() - reads_before
                             painted[-1]["raw_page_read_delta"] = read_delta
-                            painted[-1]["warm_page_fragments_and_rendered_rows_retained"] = True
+                            if not loaded_histories or retained:
+                                assert read_delta == 0, ("Warm return repeated raw page acquisition", mode, read_delta)
+                                painted[-1]["warm_page_fragments_and_rendered_rows_retained"] = True
+                            else:
+                                painted[-1]["evicted_editor_reader_restored"] = not retained_native
+                                painted[-1]["restored_tree_return_after_eviction"] = retained_native
+                            painted[-1]["original_native_incarnation_retained"] = retained
+                            painted[-1]["native_session_id"] = source.presentation.sources.agent.session_id
                         assert app.selected_mode == mode and app.selected_session.id == mode
                         assert app.screen is workspace, "Tab change replaced native WorkspaceScreen"
                         durations.append(timing["first_paint_ms"])
@@ -359,7 +430,13 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                 # The warm proof ends here, before new input and resource counts.
                 # Empty the graph owners even when an identity assertion fails.
                 checkpoints.clear()
-            del checkpoints
+                witness = None
+                # The observer must not keep an evicted native tree through
+                # pending input and the resource snapshot via a loop local.
+                original = editor = peer = window = source = attached = loaded = view = None
+            del checkpoints, witness
+            assert len(requests) == unchanged_inputs, "History/tab admission replayed native input"
+            phase_editor = ref(owner_view.conversation.prompt.prompt_text_area)
             await app.select_session(modes[-1])
             entered.clear()
             release.clear()
@@ -394,8 +471,22 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                 "switch_median_ms": statistics.median(durations),
                 "switch_max_ms": max(durations),
                 "switches_over_100ms": sum(value > 100 for value in durations),
-                "switch_count": len(durations), "fixed_native_owners": 2,
-                "fixed_acp_attachments": 2,
+                "switch_count": len(durations),
+                "loaded_logical_histories": len(loaded_modes),
+                "distinct_native_journal_sources": len({
+                    app.workspace_sessions.require(mode).presentation.sources.agent.session_id
+                    for mode in loaded_modes}),
+                "native_owners": len({
+                    app.workspace_sessions.require(mode).presentation.sources.agent.coordination.thread
+                    for mode in loaded_modes}),
+                "connected_acp_attachments": sum(
+                    app.workspace_sessions.require(mode).presentation.sources.agent.session.connected
+                    for mode in loaded_modes),
+                "blank_logical_tabs": len(modes) - len(loaded_modes),
+                "currently_retained_native_histories": len(rich_views),
+                "loaded_history_scope": "Loaded logical views of TWO original private journals; not distinct native turns or simultaneous retained trees",
+                "evicted_reader_restorations": sum(
+                    item.get("evicted_editor_reader_restored", False) for item in painted),
                 "unchanged_loaded_resource_returns": sum(
                     item.get("warm_page_fragments_and_rendered_rows_retained", False)
                     for item in painted
@@ -403,7 +494,8 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                 "loaded_reader_positions": loaded_reader_positions,
                 "measurement": "physical Pilot tab click: production selection to first actual compositor output with destination draft; no fixed settle added, headless not terminal writer latency",
                 "painted_switches": painted,
-                "blank_median_ms": statistics.median(item["first_paint_ms"] for item in painted if item["source"] == "blank"),
+                "blank_median_ms": (statistics.median(item["first_paint_ms"] for item in painted if item["source"] == "blank")
+                                    if any(item["source"] == "blank" for item in painted) else None),
                 "loaded_median_ms": statistics.median(item["first_paint_ms"] for item in painted if item["source"] == "loaded-native"),
                 **resource_snapshot(owner, acp_process),
             }
@@ -413,11 +505,14 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             await until(pilot, lambda: not comms.registry.require("beta").executing)
             await until(pilot, lambda: not agent.queue_attachment.projection.items)
             assert len(requests) == before_requests + 2, "Queued prompt was lost or replayed"
+            return_retained = owner_view.presentation.widget is not None
             await app.select_session(owner_mode)
             await pilot.pause()
             original = app.selected_session.conversation
             editor = original.prompt.prompt_text_area
-            assert editor is original_editor, "Source return rebuilt the native editor"
+            if not loaded_histories or return_retained:
+                assert editor is (phase_editor() if loaded_histories else original_editor()), (
+                    "Source return rebuilt the native editor")
             assert original.agent is agent
             assert editor.document is document and editor.history is history
             assert editor.text == "untouched native draft with undo"
@@ -446,12 +541,21 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         editor.redo()
         assert editor.text == "untouched native draft with undo"
         assert agent.session_id == session_id
-        Path(os.environ["NATIVE_RETENTION_RECEIPT"]).write_text(json.dumps(records, indent=2))
+        completed = True
+        if not loaded_histories:
+            Path(os.environ["NATIVE_RETENTION_RECEIPT"]).write_text(json.dumps(records, indent=2))
     finally:
         release.set()
         if active_prompt is not None and not active_prompt.done():
             active_prompt.cancel()
             await asyncio.gather(active_prompt, return_exceptions=True)
+        if loaded_histories:
+            Path(os.environ["NATIVE_RETENTION_RECEIPT"]).write_text(json.dumps({
+                "completed": completed, "cohorts": records,
+                "loaded_logical_histories_reached": len(loaded_modes),
+                "last_visit_phase": painted, "native_inputs": len(requests),
+                "scope": "Genuinely loaded logical views of TWO original private journals; authored localhost only",
+            }, indent=2) + "\n")
 
 
 if __name__ == "__main__":
@@ -462,5 +566,9 @@ if __name__ == "__main__":
                                    acceptance=warm_admission_acceptance))
     elif not sys.argv[1:]:
         asyncio.run(native_fixture(app_type=PaintedSwitchApp, prepare_state=prepare_loaded_histories, acceptance=acceptance))
+    elif sys.argv[1:] == ["--loaded-histories-only"]:
+        asyncio.run(native_fixture(app_type=PaintedSwitchApp,
+                                   prepare_state=partial(prepare_loaded_histories, long_history=True),
+                                   acceptance=partial(acceptance, loaded_histories=True)))
     else:
-        raise SystemExit("usage: native_session_retention_pilot.py [--warm-admission-only]")
+        raise SystemExit("usage: native_session_retention_pilot.py [--warm-admission-only | --loaded-histories-only]")
