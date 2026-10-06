@@ -39,3 +39,20 @@ physical stopped-batch/OFD/unchanged-source recovery remains unqualified.
 No public cutover or old input replay follows this checkpoint. Full configured
 continuous UI, warm/eviction, genuinely loaded views, startup/frame/CPU and live
 central batch remain unfinished. CI is deferred.
+
+## Reader repair integration
+
+PR480 source is normally joined. ReaderPosition captures admitted ranges from
+its own mounted TranscriptHistory children, including parked pagers; the active
+work set keeps its original lifecycle. The warm control additionally checks those
+ranges survive eviction. Both changed modules compile without imports.
+
+Warm04 is independently closed: two warm returns preserved rendered identity
+with zero page reads; reader position failed after genuine eviction. Journals
+and raw results remain held. The remaining three MCP cases have completed their
+installed-source proof and await separate EXEC and the existing purpose release.
+
+The retained configured pair remains frozen at its original build heads. Current
+integration source now includes this later production repair and is not equal to
+the retained Toad wheel. No rebuild, installation or runtime rerun follows this
+source join. Configured source/floor/outer-bound preparation remains separate.
