@@ -1,0 +1,30 @@
+{
+  "state": "SOURCE ONLY; unissued template, not invoked",
+  "original_template": {
+    "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/evidence/configured-continuous-source-20261006/verify_configured.template.py",
+    "sha256": "32376cbfc2922df2e558b69f4eb34f6c5a853daec595fde001c74d62fc476b14",
+    "bytes": 10355
+  },
+  "template": {
+    "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/evidence/configured-loaded-consumer-repair-20261006/verify_configured_source_member.template.py",
+    "sha256": "647980f579bb77ac9e1a6b3db7c7dab12b1af153f31ecbe1b3bd8b9da9e80113",
+    "bytes": 10546
+  },
+  "ordered_replacements": [
+    {
+      "before_literal": "'candidate-activation.json', 'package-boundary-proof.json')",
+      "after_literal": "'candidate-activation.json', 'package-boundary-proof.json', 'core-installed-source.json')",
+      "before_sha256": "32376cbfc2922df2e558b69f4eb34f6c5a853daec595fde001c74d62fc476b14",
+      "after_sha256": "8e7d0498347f48eb2e0a5f00c66c5aec2b25919b227277acbfc3b0b3e70ad68c"
+    },
+    {
+      "before_literal": "write(OUT/'source-proof.json',FieldCodec.encode(proof));write(OUT/'candidate-activation.json',FieldCodec.encode(activation))",
+      "after_literal": "write(OUT/'source-proof.json',FieldCodec.encode(proof));write(OUT/'candidate-activation.json',FieldCodec.encode(activation))\ncore_source = next(source for source in proof.sources if source.module == 'agent_comms')\nwrite(OUT/'core-installed-source.json', FieldCodec.encode(core_source))",
+      "before_sha256": "8e7d0498347f48eb2e0a5f00c66c5aec2b25919b227277acbfc3b0b3e70ad68c",
+      "after_sha256": "647980f579bb77ac9e1a6b3db7c7dab12b1af153f31ecbe1b3bd8b9da9e80113"
+    }
+  ],
+  "owner": "InstalledSourceProof.sources yields the original agent_comms InstalledSource; FieldCodec.encode preserves its declared format. InstalledSource.command_arguments remains strict and unchanged.",
+  "additional_exclusive_output": "core-installed-source.json",
+  "materialization": "Only four future actual grant path/SHA and new READ path/SHA substitutions after fresh issue/stage/READ; exact same-purpose proof binding precedes invocation."
+}
