@@ -1,0 +1,9 @@
+# Capture request execution evidence
+
+The installed CPython3.14 remote_exec contract says its return acknowledges scheduling, not execution. The existing capture client recorded only final export/error/pending files. Remote module loading and observer imports also ran outside the exporter error boundary. An import refusal could therefore leave the same pending result as an unexecuted request or unfinished asynchronous wait.
+
+The original capture client now generates an exclusive target-entry receipt before imports and catches remote loader/invocation failures into the existing error receipts, preserving their traceback and re-raising. Completed exports and prior error receipts are not overwritten. The existing manifest derives entered/unacknowledged from that receipt. No history predicate, publication/writer owner, timer, queue, input or runtime policy changed.
+
+Five related capture/recorder modules parse and compile with zero omissions; diff check passes. An actual disposable CPython3.14 process received the generated remote script. Its real missing-Toad import refusal produced both the target entry receipt and original traceback error receipt; the client reported error instead of pending. The original process was terminated and joined. Raw results are retained under /home/ts/.cache/agent-scratch/capture-execution-receipt-20261006. This is remote capture-boundary qualification, not a mounted Toad or performance test.
+
+Physical04 remains closed and unchanged. Its footage shows saved transcript paint, but it has no new entry receipt; this correction cannot retroactively establish whether that request executed or explain its sole cause. Fresh paired physical sidebar/scroll and latency acceptance remain required. Frozen operator roots, packages, journals and public installation were not changed.

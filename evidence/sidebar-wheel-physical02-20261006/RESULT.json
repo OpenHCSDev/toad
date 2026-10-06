@@ -1,0 +1,31 @@
+{
+  "operation": "physical02",
+  "controller_result": "PASS",
+  "controller_seconds": 208.52607653697487,
+  "capture_completed": true,
+  "native_journey_checks_passed": true,
+  "source_bytes": 42662475,
+  "private_saved_sdk_forks": 2,
+  "submitted_inputs": 0,
+  "restoration_attempts": 1,
+  "restoration_seconds": 0.2716812699800357,
+  "whole_handback": {
+    "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/ui-physical-publication02-20261006/485-installed-purpose/whole-handback.json",
+    "sha256": "7cd4302f448ec323a75c83afae95be8c624d8b242e5ebb172547c5ac8b8920d5",
+    "bytes": 130347
+  },
+  "held_raw_references": 458,
+  "held_fixture_files": 36,
+  "held_journals": 2,
+  "absent_recorded_owned_identities": 116,
+  "performance_accepted": false,
+  "review_findings": [
+    "Native saved return, editor draft and Undo checks passed; sidebar and context gestures completed.",
+    "During transcript wheel-up footage the right sidebar widens; transcript extent changes with width, remaining at its bottom.",
+    "Wheel-down and reversal snapshots remain scroll_y=maximum=585; their phases have no body outputs. They do not qualify transcript scrolling.",
+    "The captured native history target and terminal coordinate mapping are declared by existing owners; the reason actual gesture delivery changed sidebar width is not proved."
+  ],
+  "next_owner": "Parent: trace native drag release, capture custody and physical gesture delivery before correction; preserve this attempt.",
+  "holder_closed": true,
+  "independent_return_readback": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Parent-current-ui-physical02-saved-history-independent-final-floor-readback.json"
+}
