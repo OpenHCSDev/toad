@@ -29,7 +29,16 @@ class TargetContext:
     actor: str
     project: Path
     mode: str | None = None
-    channel: str | None = None
+    channel: str | dict[str, str | None] | None = None
+    targets: tuple[str, ...] = ()
+
+    @property
+    def selected_targets(self):
+        return self.targets or (self.subject,)
+
+    @property
+    def title(self):
+        return ", ".join(self.selected_targets)
 
     def current(self):
         if not root_is_current(self.comms.root):
@@ -40,7 +49,7 @@ class TargetContext:
         from toad.comms_root import RouteSelection
         selected = RouteSelection.capture(self.comms.root)
         self.current()
-        actions = CliCommand.target_catalog(self.comms, self.subject, self.channel, project=str(self.project))
+        actions = CliCommand.target_catalog(self.comms, self.targets or self.subject, self.channel, project=str(self.project))
         if RouteSelection.capture(self.comms.root) != selected:
             raise ValueError('Comms route changed during command discovery')
         return actions
@@ -56,7 +65,7 @@ class TargetContext:
                         or sidebar.observation.service is not self.comms
                         or sidebar.app.screen is not selected_screen):
                     return
-                show_target_menu(selected_screen, offset, self.subject,
+                show_target_menu(selected_screen, offset, self.title,
                     [(command.command.removeprefix('/'), command.label(self)) for command in choices],
                     {command.command.removeprefix('/'): partial(self.execute_menu, sidebar, command)
                      for command in choices})
@@ -148,7 +157,7 @@ class CopyCommand(ViewCommand, declared_name="copy"):
         return True
 
     def execute(self, ctx: TargetContext) -> None:
-        ctx.app.copy_to_clipboard(ctx.subject)
+        ctx.app.copy_to_clipboard("\n".join(ctx.selected_targets))
 
 
 class CloseViewCommand(ViewCommand, declared_name="close_view"):
@@ -156,7 +165,8 @@ class CloseViewCommand(ViewCommand, declared_name="close_view"):
 
     def available(self, ctx: TargetContext) -> bool:
         return (
-            ctx.mode is not None
+            not ctx.targets
+            and ctx.mode is not None
             and ctx.app.session_tracker.get_session(ctx.mode) is not None
         )
 
