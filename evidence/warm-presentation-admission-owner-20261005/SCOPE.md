@@ -29,3 +29,10 @@ The receiving474 wheel is not full319 source-equal to this successor: two produc
 ## Still active
 
 Genuinely loaded 4/16/32/64, full configured continuous saved/unopened/channel/tab/fork-before-answer/first-message/DM/reply/notification/handling/queue/status/history/draftUndo/reader, and startup/frame/CPU/baseline remain unfinished. Original mixed cohorts still mean two loaded histories plus blank remainder. This warm-owner implementation accompanies that work; it does not replace it or promote source preparation to installed acceptance. Qualified private07 motion/graceful quit and worker466 remain closed and are not replayed. All prior SDK journals/movies/raw failures remain held.
+
+
+## Consumed warm01 and canonical acquisition control successor
+
+Warm01 failed after 40.181945s at the mounted history/displayed-cursor precondition, with zero verified warm or eviction returns. Exactly two localhost requests and two original journals are retained. Normal CURRENT471 Toadb2e/Text16c9 restoration completed once; independent Bohr lifecycle969c and matching Sch authority855804 are CLOSED. Raw negatives and the original f9c control remain preserved.
+
+The source-only successor waits for original TranscriptPresentation canonical histories and displayed cursor at the two loaded warm admission sites before the existing generic body/frame settled witness. All29 assertion ASTs are unchanged, as are generic settled, product/pins/build inputs, original20s observation deadline and150s outer bound. Compilation/diff-check passed; changed App remains UNRUN, with no next grant or inherited access. This closes a source-supported readiness gap without asserting that it caused the whole runtime failure or guarantees eventual publication. Full configured >=40MB source/private-fork/InputDisposition adaptation, continuous journey, genuinely loaded cohorts, startup/frame/CPU and baseline remain active and unfinished.

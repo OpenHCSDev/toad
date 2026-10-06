@@ -148,6 +148,11 @@ async def warm_admission_acceptance(app, pilot, agent, comms, entered, release, 
         for source in sources:
             await app.select_session(source.id)
             view = source.conversation
+            # A cold acquisition schedules canonical publication after paint;
+            # an empty viewport can already satisfy generic body readiness.
+            await until(pilot, lambda: (
+                view.transcript.histories and view.transcript.displayed_cursor is not None
+            ))
             await settled(pilot, view)
             assert view.window.histories and view.transcript.displayed_cursor is not None
             assert view.agent.session_id in original_files
@@ -189,6 +194,9 @@ async def warm_admission_acceptance(app, pilot, agent, comms, entered, release, 
             reads = await witness.page_reads()
             await app.select_session(source.id)
             view = source.conversation
+            await until(pilot, lambda: (
+                view.transcript.histories and view.transcript.displayed_cursor is not None
+            ))
             await settled(pilot, view)
             editor = view.prompt.prompt_text_area
             assert editor.document is witness.document and editor.history is witness.history
