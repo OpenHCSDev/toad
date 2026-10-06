@@ -1,27 +1,28 @@
-## Change
+# Sidebar responsiveness and independent native frame publication
 
-Delete the mouse-only descendant refresh walk and duplicate sidebar layout. Original collapse/watch and native invalidation own both pointer and keyboard updates. Context projection runs through the existing Coordination worker; native Tree updates remain on its UI owner. Coordinate identity replaces deep inspection equality, and reader restoration walks the native tree once.
+## Changes
 
-WorkspaceScreen no longer pauses the whole update timer during transcript mutation. ViewportPresentation declares original mutation/deferred Widget roots. Native Screen/Compositor owns their committed geometry, damage and callback admission. A polymorphic frame-publication hook replaces App-level FrameDisplay dispatch. Original FrameFlush joins the writer, complete-scene readiness requires an empty-root receipt, and callbacks retain original logical source checks.
+- Sidebar visibility uses its existing displayed ancestry. Parked tabs retain intent and apply geometry on activation, without restyling or hydrating on every toggle.
+- Deleted the pointer-only descendant refresh walk and old conversation sidebar-padding subscriber. SidebarLayout owns placement; native invalidation owns paint.
+- Context projection preparation runs in the original worker. Native Tree reconciliation preserves the acquired reader without deep whole-inspection comparisons or repeated descendant walks.
+- WorkspaceScreen supplies original mutation/deferred roots to Textual72. Native Screen/Compositor owns geometry, damage and callback admission; there is no frontend region mask or whole-frame timer veto.
+- FramePresentation joins the original writer with its canonical scene identity. Old writer completions cannot release callbacks into a different selected scene.
+- SidebarNavigation consumes native publication and actual scroll restoration; its duplicate private layout calls are deleted.
 
-## Verification
+The candidate pins native e15d066a6 in the manifest and lock. Parent integration478 and accepted helper repairs483/484 are included by normal merge. Historical wheels, frozen operator roots and saved journals remain unchanged.
 
-Original refactor-audit Package parsed 728 Toad and 710 selected Textual modules without omissions. Seven changed Python modules compile/parse; diff check passes. The overlapping-annotation native Tree check passed acquired-model rebind and retained reader remount.
+## Verified
 
-The corrected original sidebar App check joined with empty stderr, but right-side p95 was 429.5ms. That is evidence of remaining latency, not acceptance. Original fixture refusal and all receipts are retained. No installed package or public provider input changed.
+Complete original Package source parse:728 Toad modules,710 native modules, zero omissions. Changed source compiles and diff check passes. Existing context annotation checks verify acquired-model rebind and reader remount.
 
-## Remaining work
+Matched headless source App, ten logical tabs: actual visible right sidebar median50.4ms/p9558.5ms/max112.9ms; left median54.5ms/p9571.6ms/max185.5ms; empty stderr. The old429/424ms figures selected a hidden zero-size sidebar and are invalid visible-toggle measurements, not a speedup baseline.
 
-This draft selects Arendt's corrected native iterable-root/layout/publication producer e15d066a6. There is no bool compatibility fallback. Translucent modal checks now inspect actual cut-cell publication against held body geometry and require retained damage; they compile but have not run with the matching producer. Matched source App and isolated physical UI checks, pins and installed delivery remain outstanding. No smooth-scrolling or live-readiness claim.
+Matched held-body App passed7.55s with empty stderr: real delayed child Unmount, two chained writers, available Conversation input pump, native MouseDown protection/replacement, strict held cut-cell exclusion and retained damage under a translucent modal, editor draft and collapse/reentry. The original control now requests a native repaint rather than asserting damage retention after invoking a clean compositor. Guards are unchanged. No SDK/provider/public input ran.
 
-Source/consumer checkpoint: evidence/sidebar-responsiveness-20261006/SOURCE-CHECKPOINT.md.
+Native owner separately verified17 publication controls and12 changed callback/inline/translucent/hit/reparent controls. The earlier225c callback hang and all original App/control negatives are retained.
 
-First matched native225c App check failed to finish: high CPU in held-callback idle admission. Original check/children are terminal and absent; raw preserved. Corrected native e15 is now selected; its pointer App completes cleanly, but right p95 remains424ms. No live installation changed. The remaining delay is being traced through publication/preparation owners. Held-body publication is unqualified: its fixture stopped at the first TextContent query before the publication assertions. Raw failures and original profiler output are preserved.
+## Remaining
 
-## Visible sidebar correction
+These are actual source App/native results, not installed or physical-terminal readiness. Coherent candidate packaging, staged saved-history/sidebar/wheel-scroll recording and the local installation remain to be completed. No smooth-scrolling claim is made from these headless timings.
 
-Fixed shared-screen visibility: parked tabs no longer restyle/hydrate/layout their sidebar on preference toggles. Deleted the old conversation-padding subscriber; SidebarLayout placement remains the geometry owner. Original App benchmark now selects the visible native sidebar rather than a zero-size parked tab. Earlier429/424ms results are invalid visible-toggle measurements, not a speedup baseline. Corrected matched App: right median50.4/p9558.5/max112.9ms, left median54.5/p9571.6/max185.5ms, empty stderr. Actual regions and publication exclusions are retained. Physical scrolling and installed delivery remain unverified.
-
-## Matched publication App accepted
-
-Corrected original modal control now uses actual native repaint input rather than invoking a clean compositor. Strict held-damage/cut-cell/selection/body checks remain. Matched e15 real source App passed7.55s, empty stderr,33 native displays: delayed child Unmount, chained writers, responsive Conversation input pump, translucent modal, editor draft and reentry. This does not prove installed or physical-terminal behavior. No native defect is inferred from the prior empty-damage assertion.
+Source/consumer evidence: evidence/sidebar-responsiveness-20261006/SOURCE-CHECKPOINT.md.
