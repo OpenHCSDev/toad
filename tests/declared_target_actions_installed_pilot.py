@@ -175,6 +175,11 @@ async def selected_target_actions(app, pilot, comms, project, base, checks):
     original_mode = app.selected_mode
     await select_rows(app, pilot, rows[:1])
     assert await pilot.click(rows[2], shift=True)
+    (base / 'initial-selection-state.json').write_text(json.dumps({
+        'sidebar_state': FieldCodec.encode(app.sidebar_state),
+        'cohort': cohort,
+        'row_visibility': {row.target_name: row.is_on_screen for row in rows},
+    }, indent=2))
     assert tuple(item.target for item in app.sidebar_state.selected_targets) == cohort
     assert app.selected_mode == original_mode
     assert await pilot.click(rows[1], control=True)
@@ -239,6 +244,26 @@ async def selected_target_actions(app, pilot, comms, project, base, checks):
     assert retained.session_file == survivor.session_file and retained.process_identity == survivor.process_identity
     await until(pilot, lambda: '#remove-only' not in sidebar.projection.channels)
     checks.append('native-editor-exclusive-inactive-delete-retains-multitag-incarnation')
+    # A clipped row remains part of the original admitted hierarchy. Exercise
+    # the production range through native pointer input in this SAME App.
+    range_names = tuple(f'range-{index:02}' for index in range(60))
+    for name in range_names:
+        comms.registry.declare(Thread(name, frozenset({'range'}), str(project)), StoppedThreadStatus())
+    comms.threads.restore_stopped(comms.registry.snapshot(), range_names)
+    anchor = await reveal_thread_row(app, pilot, range_names[0], '#range')
+    await select_rows(app, pilot, (anchor,))
+    endpoint = await reveal_thread_row(app, pilot, range_names[-1], '#range')
+    assert not anchor.is_on_screen and endpoint.is_on_screen
+    assert await pilot.click(endpoint, shift=True)
+    (base / 'scrolled-range-selection-state.json').write_text(json.dumps({
+        'sidebar_state': FieldCodec.encode(app.sidebar_state),
+        'expected_targets': range_names,
+        'anchor_visible': anchor.is_on_screen,
+        'endpoint_visible': endpoint.is_on_screen,
+    }, indent=2))
+    assert tuple(item.target for item in app.sidebar_state.selected_targets) == range_names
+    assert app.selected_mode == original_mode
+    checks.append('native-shift-range-retains-offscreen-anchor-across60-admitted-rows')
     assert app._exception is None
 
 
