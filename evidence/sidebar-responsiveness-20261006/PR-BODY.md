@@ -15,3 +15,5 @@ The corrected original sidebar App check joined with empty stderr, but right-sid
 This draft requires Arendt's matching native iterable-root/layout/publication hook implementation. There is no bool compatibility fallback. Translucent modal checks now inspect actual cut-cell publication against held body geometry and require retained damage; they compile but have not run with the matching producer. Matched source App and isolated physical UI checks, pins and installed delivery remain outstanding. No smooth-scrolling or live-readiness claim.
 
 Source/consumer checkpoint: evidence/sidebar-responsiveness-20261006/SOURCE-CHECKPOINT.md.
+
+First matched native225c App check failed to finish: high CPU in held-callback idle admission. Original check/children are terminal and absent; raw preserved. Native queue owner is repairing this concrete regression. Candidate pins match225c, but no live installation changed.
