@@ -890,7 +890,11 @@ class ScrollJourney(PhysicalJourney):
     def script(cls, args):
         if not args.capture_state:
             raise ValueError("Scrolling requires --capture-state for the native history focus target")
-        return scroll_script(idle_seconds=args.scroll_idle_seconds, hold_seconds=args.scroll_hold_seconds)
+        ready = (marker_command() + f"scroll-ready --wait-history-seconds {args.history_wait_seconds:g} "
+                 f"--wait-history-interval {args.history_wait_interval:g} "
+                 f"--wait-history-thread {shlex.quote(cls.history_thread(args))}")
+        return ready + "\n" + scroll_script(idle_seconds=args.scroll_idle_seconds,
+            hold_seconds=args.scroll_hold_seconds, state="phase-scroll-ready-state.pickle")
 
 
 class WheelCadenceJourney(ScrollJourney):
