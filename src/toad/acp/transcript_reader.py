@@ -80,10 +80,12 @@ class CoordinationTranscriptReader(ABC):
             page = await self.deliver(PublishedNativeTranscriptReadWork(read, update.page))
         except StaleRevision:
             return await self.snapshot(identity.root, identity.requested_name,
-                before=identity.before, after=identity.after, through=identity.through)
+                before=identity.before, after=identity.after, through=identity.through,
+                historical_source=identity.historical_source)
         if not await asyncio.to_thread(read.content_current):
             return await self.snapshot(identity.root, identity.requested_name,
-                before=identity.before, after=identity.after, through=identity.through)
+                before=identity.before, after=identity.after, through=identity.through,
+                historical_source=identity.historical_source)
         return TranscriptSnapshotUpdate(page, identity)
 
     async def notifications(self, root, references):
@@ -91,17 +93,22 @@ class CoordinationTranscriptReader(ABC):
             return await asyncio.to_thread(reader.views.message_notifications_for_references, references)
 
     async def page(self, root, thread, *, before=None, after=None, through=None,
-                   read_identity: TranscriptReadIdentity | None = None):
+                   read_identity: TranscriptReadIdentity | None = None,
+                   historical_source: str | None = None):
         snapshot = await self.snapshot(root, thread, before=before, after=after, through=through,
-                                       read_identity=read_identity)
+                                       read_identity=read_identity, historical_source=historical_source)
         return snapshot.page
 
     async def snapshot(self, root, thread, *, before=None, after=None, through=None,
-                       read_identity: TranscriptReadIdentity | None = None):
+                       read_identity: TranscriptReadIdentity | None = None,
+                       historical_source: str | None = None):
         async with self.bind(root) as reader:
             if read_identity is None:
-                request = partial(reader.transcripts.capture_page_read, thread)
+                request = partial(reader.transcripts.capture_page_read, thread,
+                                  historical_source=historical_source)
             else:
+                if historical_source is not None and historical_source != read_identity.historical_source:
+                    raise StaleRevision("Published transcript belongs to another recorded source")
                 request = partial(reader.transcripts.bind_page_read, thread, read_identity)
             read = await asyncio.to_thread(request, before=before, after=after, through=through)
         page = await self.deliver(NativeTranscriptReadWork(read))
