@@ -1,0 +1,55 @@
+{
+  "readback": "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/native76-selection-pair-20261006/CANONICAL-WHEEL-READBACK.json",
+  "packages": [
+    {
+      "package": "core",
+      "repository": "/home/ts/wt/comms-cleanup-live-integration-20260929",
+      "commit": "d8467b730cf87d45931fcc44e8ecb409277f86ed",
+      "wheel": "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/sidebar-latency-pair-20261006/core-wheel/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "b55c17dc1acf22af7b03a2233cbd60e04c6a173d615aa0b1f38a58b3f51e7362",
+      "bytes": 912589,
+      "package_assets": 355,
+      "RECORD_rows": 360,
+      "Git_archive_ZIP_equal": true,
+      "no_package_extras": true,
+      "complete_RECORD": true,
+      "installed": false,
+      "reused_without_rebuild": true,
+      "canonical_Git_commit": "d8467b730cf87d45931fcc44e8ecb409277f86ed"
+    },
+    {
+      "package": "textual",
+      "repository": "/home/ts/wt/textual-frame-publication-20261006",
+      "commit": "8814c5410ffa981a89a34cd18403ba0b54c867f1",
+      "wheel": "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/native76-selection-pair-20261006/textual-wheel/textual-8.2.8-py3-none-any.whl",
+      "sha256": "f99a8749981e01fcccd04b97129b830cf19377fa486c941ae07f2f85fef28158",
+      "bytes": 772751,
+      "package_assets": 266,
+      "RECORD_rows": 270,
+      "Git_archive_ZIP_equal": true,
+      "no_package_extras": true,
+      "complete_RECORD": true,
+      "installed": false,
+      "canonical_Git_commit": "8814c5410ffa981a89a34cd18403ba0b54c867f1"
+    },
+    {
+      "package": "toad",
+      "repository": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "commit": "3182b5303",
+      "wheel": "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/native76-selection-pair-20261006/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "1c14c6924f7980c58344bf85f11da241fba0ea1245be4f502865965febfcabfb",
+      "bytes": 2252781,
+      "package_assets": 319,
+      "RECORD_rows": 324,
+      "Git_archive_ZIP_equal": true,
+      "no_package_extras": true,
+      "complete_RECORD": true,
+      "installed": false,
+      "canonical_Git_commit": "3182b5303afe13dcb32997c295dd1372215518cc"
+    }
+  ],
+  "Core_reused_without_rebuild": true,
+  "installed": false,
+  "native_App_range_control_UNRUN": true,
+  "new_packages_built_once_from_fixed_Git": true
+}
