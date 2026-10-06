@@ -1,40 +1,41 @@
-# Current paired source checkpoint
+# Current paired build checkpoint
 
-Parent Toad478 normally joins original472/477/476 and main, preserving the original
-five production owner files and Text71 PathContent. ReaderCheckpoint capture,
-verify and diagnostics now witness both original live Markdown caches and visible
-ready source-bound rendered fragment strips. Production and original warm control
-2e2c remain unchanged by that helper correction; actual warm/eviction is unqualified.
+Parent478 normally joins original472/477/476, actual main and configured4798dc69.
+Core source pin is ddcdc422c7fe01453edb2469bcfa8303d771db67 in pyproject and all
+three lock locators. That source includes canonical retired handoff689fe32,
+configured producer692b331 and fixture-only mounted receipt69324bd. The real
+producer helper is byte equalb086; existing compaction/S4 defaults stay false.
+Configured consumer2 controls match their original source bytes and compile
+without imports. No passing source controls were repeated.
 
-The existing Core declaration and three lock-file locator occurrences now select
-exact Parent Core source 99cdd707ca84b5a19ee3584a3653ca6d5a664abf. That published
-checkpoint includes original689d433 full journal/report preservation and admission/partial-retirement, clean merged
-configured producer691 and the earlier fresh ACP/recorded routing/native source
-union. The new selection adds the reviewed full journal acquisition and carrier/postimage
-preservation to the previous admission checkpoint. Fourteen changed Python modules
-compile without imports and merged source/tool/test bytes equal original d433.
-Original focused control results are retained; no passed batch was repeated. Source selection is explicit; this is not a
-built wheel or installed current pair. TOML parsing and literal locator checks
-pass, without a resolver, dependency install, environment or package operation.
+ONE retained Core wheel6b426d7e910730B and ONE Toad wheelbfbde5ba2251133B match all
+355/319 Git/local/ZIP assets and complete360/324 RECORD rows. Original build
+heads ddcdc422/c2b4c3e8 and raw/joined process receipts are published in
+../current-paired-artifacts-20261006. Core native manifest is4b. The fork pin is
+owned by Git build inputs; normal METADATA dependency is agent-comms[acp]. No
+resolver, environment, prefix install, native assembly or runtime launch ran.
 
-Historical installed routing686/477 passed once and both purposes/authority are
-closed. Its b973/d08/c44/0fb artifacts remain frozen, not renamed as this union.
-Warm01/02/03 are closed negatives with original journals/raw held. Heis owns the
-fresh corrected affected warm qualification and configured continuous source work.
-Native3808 uses its historical bee/4b/b2e/16c9 tuple and separate fresh authorities;
-its actual allow case passed through real Pi/ACP/MCP/mounted Toad, while
-no-controller attachment settlement failed and two cases were unrun. Its normal
-floor was restored once and Bohr independently closed40b25eca; Sch matching
-artifact closure remains separate. These results do not use this pin or confer
-permission for the pair.
+Native3808 allow47.833 is accepted in its historical cohort; no-controller failed
+and revoke/disconnect were unrun. Both matching authority and holder are closed,
+raw/UNKNOWN preserved. Original693 now moves the existing response gate to
+Attachment after mounted receipt consumption, without weakening native guards
+or repeating allow. Its three affected cases still need fresh custody.
 
-Actual live PUBLIC475 source3931 and target689 differ in restart handoff and wire
-resource declarations despite the earlier equal stored registry fields. Einstein
-owns the original source/target transport/recovery relationship and goal-report
-preservation source is integrated; no phase injection or raw handoff codec fallback
-is permitted. Actual same-format installation/recovery remains unqualified.
+Historical routing686/477 passed once and is closed. Warm01/02/03 are closed
+negatives with original journals held. Warm04 has a distinct stage/proof purpose;
+its proof passed7.81057, mounted App still requires new EXEC and Bohr release.
+Neither historical artifact is rebound as this new pair.
 
-No original input is replayed, no frozen grant/helper/artifact/prefix is rebound,
-and no public client/source/publisher operation follows this source checkpoint.
-Whole configured UI/provider, warm/eviction, loaded/startup/frame/CPU, real OFD
-retirement/recovery and live central batch remain unfinished. CI is deferred.
+ReaderCheckpoint witnesses live native Markdown caches and ready visible,
+source-bound rendered resources with exact identity/rawreads/editor/reader facts.
+Configured continuous controls use original captured >=40MB source, SDK fork,
+owned binding and RuntimeServer, original input/queue/message reference owners.
+Six authored UI inputs are not a total automatic-provider request budget.
+Actual source/floor/grants/outer bound remain unbound until the original purpose.
+
+Original3931 canonical handoff declarations are restored in source. Stored
+schema/source preservation supports existing PreserveRuntimeInstallation;
+physical stopped-batch/OFD/unchanged-source recovery remains unqualified.
+No public cutover or old input replay follows this checkpoint. Full configured
+continuous UI, warm/eviction, genuinely loaded views, startup/frame/CPU and live
+central batch remain unfinished. CI is deferred.
