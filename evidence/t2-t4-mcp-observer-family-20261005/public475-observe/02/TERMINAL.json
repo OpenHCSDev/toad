@@ -1,0 +1,17 @@
+{
+  "outcome": {
+    "kind": "exited",
+    "code": 0
+  },
+  "duration_seconds": 24.688835697015747,
+  "controller": {
+    "pid": 2332213,
+    "start_time": 72145899
+  },
+  "controller_alive": false,
+  "operator": {
+    "pid": 2332174,
+    "start_time": 72145801
+  },
+  "wait_owner": "await original ParentedProcess.wait; no addedtimer/deadline"
+}

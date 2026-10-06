@@ -1,0 +1,150 @@
+{
+  "identities": [
+    {
+      "identity": {
+        "pid": 2332236,
+        "start_time": 72145969
+      },
+      "proc_absent": true,
+      "group": []
+    },
+    {
+      "identity": {
+        "pid": 2332456,
+        "start_time": 72146185
+      },
+      "proc_absent": true,
+      "group": []
+    },
+    {
+      "identity": {
+        "pid": 2332460,
+        "start_time": 72146195
+      },
+      "proc_absent": true,
+      "group": []
+    },
+    {
+      "identity": {
+        "pid": 2332485,
+        "start_time": 72146259
+      },
+      "proc_absent": true,
+      "group": []
+    },
+    {
+      "identity": {
+        "pid": 2332488,
+        "start_time": 72146265
+      },
+      "proc_absent": true,
+      "group": []
+    },
+    {
+      "identity": {
+        "pid": 2332513,
+        "start_time": 72146337
+      },
+      "proc_absent": true,
+      "group": []
+    },
+    {
+      "identity": {
+        "pid": 2332723,
+        "start_time": 72146474
+      },
+      "proc_absent": true,
+      "group": []
+    },
+    {
+      "identity": {
+        "pid": 2332730,
+        "start_time": 72146490
+      },
+      "proc_absent": true,
+      "group": []
+    },
+    {
+      "identity": {
+        "pid": 2332745,
+        "start_time": 72146504
+      },
+      "proc_absent": true,
+      "group": []
+    },
+    {
+      "identity": {
+        "pid": 2333090,
+        "start_time": 72147318
+      },
+      "proc_absent": true,
+      "group": []
+    },
+    {
+      "identity": {
+        "pid": 2333106,
+        "start_time": 72147358
+      },
+      "proc_absent": true,
+      "group": []
+    },
+    {
+      "identity": {
+        "pid": 2333122,
+        "start_time": 72147395
+      },
+      "proc_absent": true,
+      "group": []
+    },
+    {
+      "identity": {
+        "pid": 2333320,
+        "start_time": 72147624
+      },
+      "proc_absent": true,
+      "group": []
+    },
+    {
+      "identity": {
+        "pid": 2333324,
+        "start_time": 72147653
+      },
+      "proc_absent": true,
+      "group": []
+    },
+    {
+      "identity": {
+        "pid": 2333329,
+        "start_time": 72147697
+      },
+      "proc_absent": true,
+      "group": []
+    },
+    {
+      "identity": {
+        "pid": 2333330,
+        "start_time": 72147885
+      },
+      "proc_absent": true,
+      "group": []
+    },
+    {
+      "identity": {
+        "pid": 2332213,
+        "start_time": 72145899
+      },
+      "proc_absent": true,
+      "group": []
+    },
+    {
+      "identity": {
+        "pid": 2332174,
+        "start_time": 72145801
+      },
+      "proc_absent": true,
+      "group": []
+    }
+  ],
+  "display": ":3317",
+  "lock_socket_absent": true
+}

@@ -1,0 +1,9 @@
+{
+  "completed": false,
+  "qualified": false,
+  "cause": "Outer operator invoked ParentedProcess.reap before completion; original STOP_GRACE_SECONDS wait raised subprocess.TimeoutExpired after2 seconds. Original recorder45 second bound not qualified.",
+  "raw_error_retained": "Original toolcall traceback in Codex rollout; stdout.log empty; original launch/parent outcome files retained.",
+  "recorder_receipt_created": false,
+  "cleanup": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-01/OWNED-CLEANUP.json",
+  "retry": false
+}

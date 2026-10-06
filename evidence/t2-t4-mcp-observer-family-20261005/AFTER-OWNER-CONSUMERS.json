@@ -1,0 +1,165 @@
+{
+  "scope": "SOURCE ONLY; no product import/test collection/execution/native/provider qualification",
+  "base": "b67020085c72a7aa6a048feaaf4d814fc6a926d7",
+  "source_tree": "7a1f897df7834364ef1ce0a87092165b6305c10a",
+  "declared_core_pin": "7b68d630caa654d3e9884f45cbd6493718752a0c",
+  "read_only_core_head": "97d4a687e7307145cce48bc852d1ff2d6ad42fb7",
+  "coverage": [
+    {
+      "repository": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "revision": "7a1f897df7834364ef1ce0a87092165b6305c10a",
+      "root": "src/toad",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "revision": "7a1f897df7834364ef1ce0a87092165b6305c10a",
+      "root": "tests",
+      "parsed": 398,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "revision": "7a1f897df7834364ef1ce0a87092165b6305c10a",
+      "root": "tools",
+      "parsed": 40,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "revision": "97d4a687e7307145cce48bc852d1ff2d6ad42fb7",
+      "root": "src/agent_comms",
+      "parsed": 324,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "revision": "97d4a687e7307145cce48bc852d1ff2d6ad42fb7",
+      "root": "tests",
+      "parsed": 373,
+      "omissions": []
+    }
+  ],
+  "compiler": [
+    {
+      "path": "tests/mcp_observation_fixture.py",
+      "sha256": "63fabd727fa12c0dafdac992a5ee0bc653915c3a89ec07ce9838791c76ecc4cc",
+      "compile": "PASS; no module executed"
+    },
+    {
+      "path": "tests/native_permission_ui.py",
+      "sha256": "8e9d11da1538b82f24595e5db6285d99f6ff1dc970d46f55030e0a026857536b",
+      "compile": "PASS; no module executed"
+    },
+    {
+      "path": "tests/typed_comms_command_pilot.py",
+      "sha256": "e783896329e4616a44e8dac320916eb6302293cbf496b5b222d1f8c6453345a3",
+      "compile": "PASS; no module executed"
+    }
+  ],
+  "callers": [
+    {
+      "repository": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "path": "tests/native_permission_ui.py",
+      "line": 15,
+      "source": "from mcp_observation_fixture import AGENT_DATA, exercise_boundaries, notes"
+    },
+    {
+      "repository": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "path": "tests/typed_comms_command_pilot.py",
+      "line": 18,
+      "source": "from mcp_observation_fixture import AGENT_DATA, turn_source"
+    },
+    {
+      "repository": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "path": "tests/test_mcp_acceptance.py",
+      "line": 288,
+      "external_selector": "AC_MCP_TOAD_ADAPTER"
+    }
+  ],
+  "consumed_core_declarations": [
+    {
+      "path": "src/agent_comms/coordinator.py",
+      "declaration": "Coordination.run_worker",
+      "ast_equal_at_declared_pin": true
+    },
+    {
+      "path": "src/agent_comms/session_lifecycle.py",
+      "declaration": "SessionLifecycle.declare_thread",
+      "ast_equal_at_declared_pin": true
+    },
+    {
+      "path": "src/agent_comms/session_lifecycle.py",
+      "declaration": "SessionLifecycle.bind_owned",
+      "ast_equal_at_declared_pin": true
+    },
+    {
+      "path": "src/agent_comms/session_lifecycle.py",
+      "declaration": "SessionLifecycle.release_owned",
+      "ast_equal_at_declared_pin": true
+    },
+    {
+      "path": "src/agent_comms/turn_runner.py",
+      "declaration": "TurnRunner.acquire_turn",
+      "ast_equal_at_declared_pin": true
+    },
+    {
+      "path": "src/agent_comms/turn_runner.py",
+      "declaration": "TurnRunner.current_turn_update",
+      "ast_equal_at_declared_pin": true
+    },
+    {
+      "path": "src/agent_comms/turn_runner.py",
+      "declaration": "TurnRunner.replay_turn_state",
+      "ast_equal_at_declared_pin": true
+    },
+    {
+      "path": "src/agent_comms/turn_runner.py",
+      "declaration": "TurnRunner.settle_turn",
+      "ast_equal_at_declared_pin": true
+    },
+    {
+      "path": "src/agent_comms/turn_runner.py",
+      "declaration": "TurnRunner.finish_turn",
+      "ast_equal_at_declared_pin": true
+    },
+    {
+      "path": "src/agent_comms/turn_runner.py",
+      "declaration": "TurnRunner.observe_compaction",
+      "ast_equal_at_declared_pin": true
+    },
+    {
+      "path": "src/agent_comms/agent_event_updates.py",
+      "declaration": "AcpEventConsumer.on_compaction",
+      "ast_equal_at_declared_pin": true
+    },
+    {
+      "path": "src/agent_comms/child_process.py",
+      "declaration": "ParentedProcess.launch",
+      "ast_equal_at_declared_pin": true
+    },
+    {
+      "path": "src/agent_comms/child_process.py",
+      "declaration": "ParentedProcess.reap",
+      "ast_equal_at_declared_pin": true
+    },
+    {
+      "path": "src/agent_comms/child_process.py",
+      "declaration": "ParentedProcess.close",
+      "ast_equal_at_declared_pin": true
+    },
+    {
+      "path": "src/agent_comms/owner_lifecycle.py",
+      "declaration": "OwnerLifecycle.stop",
+      "ast_equal_at_declared_pin": true
+    }
+  ],
+  "changed_source_files": [
+    "tests/mcp_observation_fixture.py",
+    "tests/native_permission_ui.py",
+    "tests/typed_comms_command_pilot.py"
+  ],
+  "initial_evidence_check_negative": "First scope assertion included inherited SOURCE-CHECKPOINT.md, which is already tracked at the predecessor. Corrected comparison limits source scope to src/tests/tools/pins; no source workaround.",
+  "dynamic_limit": "Core tests/test_mcp_acceptance.py still imports/consumes deleted TurnStartedUpdate/TurnSettledUpdate; arbitrary external AC_MCP_TOAD_ADAPTER modules cannot be statically closed."
+}
