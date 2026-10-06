@@ -1,0 +1,9 @@
+# Physical04 result
+
+The sole installed run failed in72.10 seconds; the original operator joined in73.11 seconds. There was no outer timeout, error or drain failure. The initial warm-ready saved-history capture request remained pending and the recorder stopped before sidebar/scroll gestures. No motion, smoothness or latency acceptance is claimed.
+
+The actual40-second footage shows saved transcript text and Ready / Saved history available, while both sidebar rows show Indexing. Therefore the pending state-capture request is not proof of no rendered history. No task stack was captured; the cause is unproved. Parent owns the capture / viewport / FrameFlush consumer trace; Arendt owns the native App/pump/publication/callback trace. No rerun or speculative timing/guard fix is authorized by this result.
+
+The authentic42,701,205-byte source was privately forked twice, its unchanged-source witness was genuinely released, and source READ returned separately. Zero inputs were submitted. The one original three-wheel restoration passed in0.264691 seconds; full1467-node floor/953 ZIP assets/full69 origins and protected files match. Thirty recorded private identities are absent, owned sockets and isolated display7852 are gone, and the fresh privileged208-process census has no private references or gaps.
+
+Whole package/import/operator/private READ/EXEC return: `/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/sidebar-latency-physical04-20261006/485-installed-purpose/whole-handback.json`, SHA92fafd2577267d037231de98de03f29c7f931a1b0d83a50c208e3cb2c7600b82,35264bytes. It retains120 raw references,31 authored files and both journals with postterminal custody facts. Source return is separate. Independent Bohr holder and Sch artifact closures remain their steps. Public installation is unchanged.
