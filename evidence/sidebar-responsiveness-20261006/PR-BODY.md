@@ -21,3 +21,7 @@ First matched native225c App check failed to finish: high CPU in held-callback i
 ## Visible sidebar correction
 
 Fixed shared-screen visibility: parked tabs no longer restyle/hydrate/layout their sidebar on preference toggles. Deleted the old conversation-padding subscriber; SidebarLayout placement remains the geometry owner. Original App benchmark now selects the visible native sidebar rather than a zero-size parked tab. Earlier429/424ms results are invalid visible-toggle measurements, not a speedup baseline. Corrected matched App: right median50.4/p9558.5/max112.9ms, left median54.5/p9571.6/max185.5ms, empty stderr. Actual regions and publication exclusions are retained. Physical scrolling and installed delivery remain unverified.
+
+## Matched publication App accepted
+
+Corrected original modal control now uses actual native repaint input rather than invoking a clean compositor. Strict held-damage/cut-cell/selection/body checks remain. Matched e15 real source App passed7.55s, empty stderr,33 native displays: delayed child Unmount, chained writers, responsive Conversation input pump, translucent modal, editor draft and reentry. This does not prove installed or physical-terminal behavior. No native defect is inferred from the prior empty-damage assertion.

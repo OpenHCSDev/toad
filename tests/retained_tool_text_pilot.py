@@ -152,7 +152,10 @@ async def publication_lifetime(app, pilot, tool):
         # The real native admission holds body spans without vetoing chrome.
         held_regions = body.screen._compositor.deferred_regions((body,))
         assert held_regions
-        modal._compositor_refresh()
+        # Request a genuine native repaint. Calling _compositor_refresh on
+        # an already-clean compositor supplies no damage to retain.
+        modal.refresh()
+        await pilot.pause()
         assert any(damage.overlaps(region)
                    for damage in modal._compositor._dirty_regions for region in held_regions), (
             "Native publication consumed the held body's pending damage"
