@@ -1,0 +1,196 @@
+{
+  "base": "c73768022ff3b31017fc63f6dc07d847a450e825",
+  "changed_helpers": [
+    {
+      "path": "/home/ts/wt/toad-loaded-native-paint-lifetime-20261006/tests/viewport_recent_tabs_pilot.py",
+      "sha256": "b6141aeb7024439d39c57802bf3f0d10be394e17e5e6f0610479843ad3a19f57",
+      "bytes": 22482
+    },
+    {
+      "path": "/home/ts/wt/toad-loaded-native-paint-lifetime-20261006/tests/native_session_retention_pilot.py",
+      "sha256": "6eb54c6444f8d96d15be94671a8fb7c1ec7ca8348357c18804f73dbd2a61e48a",
+      "bytes": 35091
+    }
+  ],
+  "test_modules_parsed": 400,
+  "parse_omissions": [],
+  "consumer_refs": [
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "line": 53,
+      "kind": "Attribute",
+      "name": "native_render_resources"
+    },
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "line": 53,
+      "kind": "Name",
+      "name": "ReaderCheckpoint"
+    },
+    {
+      "path": "tests/native_session_retention_pilot.py",
+      "line": 169,
+      "kind": "Name",
+      "name": "ReaderCheckpoint"
+    },
+    {
+      "path": "tests/native_session_retention_pilot.py",
+      "line": 340,
+      "kind": "Name",
+      "name": "ReaderCheckpoint"
+    },
+    {
+      "path": "tests/native_session_retention_pilot.py",
+      "line": 383,
+      "kind": "Name",
+      "name": "ReaderCheckpoint"
+    },
+    {
+      "path": "tests/native_session_retention_pilot.py",
+      "line": 414,
+      "kind": "Attribute",
+      "name": "verify_loaded_return"
+    },
+    {
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 332,
+      "kind": "Name",
+      "name": "ReaderCheckpoint"
+    },
+    {
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "line": 243,
+      "kind": "Name",
+      "name": "ReaderCheckpoint"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 645,
+      "kind": "Attribute",
+      "name": "native_render_resources"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 645,
+      "kind": "Name",
+      "name": "ReaderCheckpoint"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 198,
+      "kind": "Name",
+      "name": "ReaderCheckpoint"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 345,
+      "kind": "Name",
+      "name": "ReaderCheckpoint"
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "line": 356,
+      "kind": "Name",
+      "name": "ReaderCheckpoint"
+    },
+    {
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "line": 58,
+      "kind": "ClassDef",
+      "name": "NativePaintWitness"
+    },
+    {
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "line": 80,
+      "kind": "ClassDef",
+      "name": "FragmentPaintWitness"
+    },
+    {
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "line": 109,
+      "kind": "ClassDef",
+      "name": "ReaderCheckpoint"
+    },
+    {
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "line": 80,
+      "kind": "Name",
+      "name": "NativePaintWitness"
+    },
+    {
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "line": 124,
+      "kind": "FunctionDef",
+      "name": "native_render_resources"
+    },
+    {
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "line": 291,
+      "kind": "AsyncFunctionDef",
+      "name": "verify_loaded_return"
+    },
+    {
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "line": 121,
+      "kind": "Name",
+      "name": "NativePaintWitness"
+    },
+    {
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "line": 216,
+      "kind": "Attribute",
+      "name": "native_render_resources"
+    },
+    {
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "line": 280,
+      "kind": "Attribute",
+      "name": "native_render_resources"
+    },
+    {
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "line": 240,
+      "kind": "Name",
+      "name": "FragmentPaintWitness"
+    },
+    {
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "line": 243,
+      "kind": "Name",
+      "name": "NativePaintWitness"
+    },
+    {
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "line": 204,
+      "kind": "Attribute",
+      "name": "native_render_resources"
+    },
+    {
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "line": 204,
+      "kind": "Name",
+      "name": "ReaderCheckpoint"
+    }
+  ],
+  "production_pins_build_delta": [],
+  "source_counterexample": "LiveBody retirement commits source-bound RenderedBody then prunes reconstructible Markdown leaves. Their weakrefs are not the lifetime of the original fragment or captured native paint.",
+  "runtime_counterexample_limit": "Loaded02 did not record which resource was captured; this source relationship is not a sole runtime-cause claim.",
+  "before_census": {
+    "path": "/home/ts/.cache/agent-scratch/heis-loaded-body-source-20261006/before-tests-census.json",
+    "sha256": "ec59c493c9e38aa2e2dd3426581e525f81de1025cea9cf375da786943fc73fd5",
+    "bytes": 261095
+  },
+  "frozen_failure": {
+    "path": "/home/ts/.cache/agent-scratch/mlh02/f/acceptance-failure.txt",
+    "sha256": "cfb778374a5f969caaa4eaa1348551cf12794168d9734d55fbb7fbc666db300d",
+    "bytes": 713
+  },
+  "frozen_reached": {
+    "path": "/home/ts/.cache/agent-scratch/mlh02/f/loaded-histories.json",
+    "sha256": "7a6b70e1b0b0242391a6a9aaa41c21951881a3a37c8b4e60bca707c42e7b66ce",
+    "bytes": 8467
+  },
+  "verification": "Changed helpers compile without import and diff check passes. No mounted run, provider input, installed package operation or new purpose.",
+  "warm_contract": "Existing verify remains exact resource identity. Captured retirement never counts as unchanged_loaded_resource_returns.",
+  "loaded_contract": "Same editor/reader/source pages/fragments/views/full native text and zero raw reads; exact identity or original fragment captured visible native crop, reported separately."
+}
