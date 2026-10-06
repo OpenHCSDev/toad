@@ -19,7 +19,8 @@ from textual.widget import Widget
 from textual.widgets._markdown import MarkdownBlock
 from toad.widgets.prepared_markdown import PreparedConversationMarkdown
 from toad.widgets.transcript_history import TranscriptFragmentView
-from agent_comms.transcript_events import TextTranscript
+from agent_comms.transcript_events import TextTranscript, UserTranscript, MarkdownTranscript
+from toad.widgets.viewport_body import MeasuredViewportBody, RenderedBody
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.transcript_fragments import TranscriptRenderTask
 from toad.work_preparation import RenderPreparation
@@ -65,8 +66,56 @@ class ReaderCheckpoint:
     fragments: tuple[tuple[object, ...], ...]
     fragment_views: tuple[tuple[Widget, ...], ...]
     painted: str
-    rendered_bodies: tuple[ReferenceType[MarkdownBlock], ...]
+    rendered_bodies: tuple[ReferenceType[Widget], ...]
     rendered_content: tuple[object, ...]
+
+    @staticmethod
+    def native_render_resources(source, app):
+        """Original visible paint resources, including retired native subtrees.
+
+        A rendered fragment paints its captured Layout/Chops strips itself;
+        its reconstructible Markdown descendants need not still exist.
+        Measurement, readiness and a border alone are never a text witness.
+        """
+        view = source.conversation
+        region = view.window.scrollable_content_region
+        visible = app.screen._compositor.visible_widgets
+        resources = {}
+        committed_fragments = {body for history in view.window.histories
+                               if history.state.reports_coverage
+                               for body in history.fragment_views}
+        for markdown in view.query(PreparedConversationMarkdown):
+            for block in markdown.query(MarkdownBlock):
+                if block not in visible:
+                    continue
+                bounds, clip = visible[block]
+                exposed = bounds.intersection(clip).intersection(region)
+                if not exposed:
+                    continue
+                crop = exposed - bounds.offset
+                lines = block._render_cache.lines[crop.y:crop.bottom]
+                if any(line.crop(crop.x, crop.right).text.strip() for line in lines):
+                    resources[block] = block._render_cache
+        for _window, body in app.screen.viewport_presentation.visible_bodies((view.window,)):
+            if not isinstance(body, TranscriptFragmentView):
+                continue
+            if (body not in committed_fragments
+                    or body not in view.window.document_viewport.owners):
+                continue
+            measurement = body._body_measurement
+            if not isinstance(measurement, RenderedBody) or not body.body_ready:
+                continue
+            if not any(isinstance(event, (UserTranscript, MarkdownTranscript))
+                       for event in body.fragment.events):
+                continue
+            bounds, clip = visible[body]
+            exposed = bounds.intersection(clip).intersection(region)
+            if not exposed:
+                continue
+            crop = exposed - bounds.offset
+            if any(line.text.strip() for line in measurement.content.render_lines(crop)):
+                resources[body] = measurement.content
+        return resources
 
     @staticmethod
     def record_failed_reader(source, app):
@@ -84,6 +133,17 @@ class ReaderCheckpoint:
                 "display": body.display, "ready": body.body_ready,
                 "children": len(body.children), "parent": type(body.parent).__name__,
             } for body in view.query(PreparedConversationMarkdown)],
+            "native_bodies": [{
+                "type": type(body).__name__, "region": str(body.region),
+                "measurement": type(body._body_measurement).__name__,
+                "ready": body.body_ready, "dormant": body.body_dormant,
+                "visible": body in app.screen._compositor.visible_widgets,
+                "children": len(body.children),
+            } for body in view.query(MeasuredViewportBody)],
+            "visible_text_resources": [{"type": type(body).__name__,
+                                        "resource": type(resource).__name__}
+                                       for body, resource in
+                                       ReaderCheckpoint.native_render_resources(source, app).items()],
         }
         (evidence / "body-return-geometry.json").write_text(json.dumps(diagnostic, indent=2))
         (evidence / "body-return-reader.txt").write_text(conversation_paint(app.screen))
@@ -95,19 +155,17 @@ class ReaderCheckpoint:
         view = source.conversation
         await settled(pilot, view)
         editor = view.prompt.prompt_text_area
-        region = view.window.scrollable_content_region
-        bodies = tuple(block for markdown in view.query(PreparedConversationMarkdown)
-                       for block in markdown.query(MarkdownBlock)
-                       if block in app.screen._compositor.visible_widgets
-                       if block.region.overlaps(region))
-        assert len(bodies) > 0, "Checkpoint needs actually rendered native Markdown bodies"
+        resources = cls.native_render_resources(source, app)
+        if not resources:
+            cls.record_failed_reader(source, app)
+        assert resources, "Checkpoint needs actual visible native source text paint"
         pages = tuple((history, tuple(history.pages)) for history in view.window.histories)
         return cls(source, ref(view), editor.document, editor.history, editor.text,
                    view.window.scroll_y, view.window.follows_tail, pages,
                    tuple(page.fragments for _, cohort in pages for page in cohort),
                    tuple(page.fragment_views for _, cohort in pages for page in cohort),
-                   conversation_paint(app.screen), tuple(ref(block) for block in bodies),
-                   tuple(block._render_cache for block in bodies))
+                   conversation_paint(app.screen), tuple(ref(body) for body in resources),
+                   tuple(resources.values()))
 
     async def page_reads(self):
         agent = self.source.presentation.sources.agent
@@ -138,19 +196,19 @@ class ReaderCheckpoint:
                 "Warm return replaced unchanged committed native fragment views", self.source.id
             )
         assert conversation_paint(app.screen) == self.painted
-        current_bodies = {block for block in view.query(MarkdownBlock)
-                          if block in app.screen._compositor.visible_widgets}
+        current_resources = self.native_render_resources(self.source, app)
         for body, rendered in zip(self.rendered_bodies, self.rendered_content):
-            assert body() in current_bodies, (
-                "Native tab return replaced a previously rendered Markdown body",
+            assert body() in current_resources, (
+                "Native tab return replaced or hid a previously rendered source body",
                 self.source.id, body(),
             )
-            assert body()._render_cache is rendered, (
-                "Warm return rendered an unchanged Markdown body again",
-                self.source.id, body(), rendered.size, body()._render_cache.size,
+            assert current_resources[body()] is rendered, (
+                "Warm return replaced an unchanged native paint resource",
+                self.source.id, body(), type(rendered).__name__,
             )
         print("CLICKED_RETURN_ACTUAL_RENDERED_BODY_IDENTITY", self.source.id,
-              len(self.rendered_bodies), flush=True)
+              len(self.rendered_bodies),
+              [type(resource).__name__ for resource in self.rendered_content], flush=True)
 
 
 async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
