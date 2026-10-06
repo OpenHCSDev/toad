@@ -1,5 +1,5 @@
 {
-  "state": "FUTURE SOURCE-ONLY UNRUN; interpreter, artifact and eligible floor UNBOUND",
+  "state": "FUTURE SOURCE-ONLY UNRUN; artifact61bf bound; eligible interpreter/floor/installedproof/native custody UNBOUND",
   "source_base": "8373e79697202792c38ad16f42fdf907d2d4e5b1",
   "source_index_tree": "9d0086766f5915a36300ed897848e4d163507669",
   "argv": [
@@ -22,7 +22,8 @@
   ],
   "scope": "One original mounted App; two genuinely loaded private SDK histories authored via existing localhost producer, two native inputs total; no queue/DM/blank-tab/4-16-32-64 repeat. Shared resource costs, paint byte exclusion, required selection, recency, warm identities when retained and original editor/reader/Undo on genuine eviction. Original fixture owns joined retirement.",
   "control_hashes": {
-    "tests/native_session_retention_pilot.py": "74a882ef2809760f06bed8af87625d6f1e9277a3746d716366ed2f699c833816",
+    "tests/native_session_retention_pilot.py": "d69706b445652d8ec849c1be9cec5502b6dd61b5d41c347bd4fe2f67ee354235",
+    "tests/viewport_recent_tabs_pilot.py": "1750ffcfb3335b707f3fb4920ad7e0ef69efa241242009e8105269d03a065bfe",
     "tests/thread_navigation_installed_journey.py": "a23fbcb8578986949712cacc8d7b1af01b97808de225c9dbdf970177c4a6f4d2"
   },
   "production_hashes": {
@@ -37,26 +38,22 @@
     "socket_bytes": 99,
     "linux_path_limit": 107
   },
-  "future_artifact_sha": "UNBOUND; receiving474 wheel is not successor full-source equal",
+  "future_artifact_sha": "61bf637992b00953a85249423e568e1958a0521b58b230b00c4f46023322aef2",
   "runtime_grant": "NONE; no eligible prefix/native authority/input operation inferred",
   "remaining": [
-    "Genuinely loaded 4/16/32/64 remains unfinished; original mixed control has two loaded histories and blank remainder.",
+    "Genuinely loaded logical4/16/32/64 from TWO private journals is now source-prepared in the separate original loaded-mode control; UNRUN, no distinct64 journals or simultaneous64 retained-tree credit.",
     "Configured continuous producer/source adaptation remains active, distinct from authored localhost.",
     "No startup/frame/CPU/baseline/full-workflow qualification from this source checkpoint."
   ],
   "supersedes": "Prior a52b/187fac source previews preserved; effective current control adds mandatory actual warm return and genuine cold restoration through original presentation.evict if natural eviction has not already happened.",
   "coverage": "Receipt always records entered and verified branches and explicit original-owner eviction count; current-selected snapshots are not warm returns. PASS requires warm_identity_raw_read_returns>0 AND eviction_editor_reader_returns>0, unchanged source hashes and exactly2 seed inputs.",
   "determining_before": "46256a3e7ca176f444182064de04123ac9e0c8fd",
-  "control_sha256": "d69706b445652d8ec849c1be9cec5502b6dd61b5d41c347bd4fe2f67ee354235",
-  "current_helpers": {
-    "tests/native_session_retention_pilot.py": "d69706b445652d8ec849c1be9cec5502b6dd61b5d41c347bd4fe2f67ee354235",
-    "tests/viewport_recent_tabs_pilot.py": "1750ffcfb3335b707f3fb4920ad7e0ef69efa241242009e8105269d03a065bfe"
-  },
   "wheel": {
     "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/filewheel/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
     "sha256": "61bf637992b00953a85249423e568e1958a0521b58b230b00c4f46023322aef2",
     "source": "2ae78aac63db588e1a33d1da1c903139746d55aa",
     "current_product_root_equal": true
   },
-  "effective_correction": "Only helper module hashes/frozen61bf source artifact relation refreshed after separate loaded-mode source adaptation. Original warm_admission_acceptance AST unchanged; original ReaderCheckpoint.verify AST unchanged, weak native-view witness added at its owner. Existing warm argv/env/output/scope still two seed inputs and mandatory warm+eviction, UNRUN."
+  "effective_correction": "Only helper module hashes/frozen61bf source artifact relation refreshed after separate loaded-mode source adaptation. Original warm_admission_acceptance AST unchanged; original ReaderCheckpoint.verify AST unchanged, weak native-view witness added at its owner. Existing warm argv/env/output/scope still two seed inputs and mandatory warm+eviction, UNRUN.",
+  "source_head": "e902c850cbcf0fcf8042cc893bcce22af7be2b9b"
 }
