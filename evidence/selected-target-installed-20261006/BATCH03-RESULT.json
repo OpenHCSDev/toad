@@ -1,0 +1,84 @@
+{
+  "whole": {
+    "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch03-installed-purpose/whole-handback.json",
+    "sha256": "75410996e8bef903e2249496e3adc79dadfaf214af1ee1665d941e0e4c295a7e",
+    "bytes": 26888
+  },
+  "closed_lifecycle": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Parent-selected-target-batch03-package-App-lifecycle.json",
+    "sha256": "34c5dbc4d50ef68f81fc64dc98e32730b96a651bdbe1bf56a4334a61061e0c36",
+    "bytes": 27721
+  },
+  "terminal": {
+    "elapsed": 25.543146729003638,
+    "returncode": 1,
+    "timed_out": false,
+    "error": null,
+    "drain_errors": [],
+    "outcome": {
+      "kind": "exited",
+      "code": 1
+    },
+    "child_retired": true,
+    "owned_group_members": [],
+    "controller": {
+      "pid": 99675,
+      "start_time": 77201930
+    },
+    "child": {
+      "pid": 99677,
+      "start_time": 77202020
+    },
+    "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Parent-selected-target-batch03-package-App-issued-grant.json",
+    "input_and_qualification_claim": "Original selected-target assertions, native owner receipts, zero provider requests/input dispositions and joined App/SDK fixture cleanup must establish affected acceptance; no public source or performance claim"
+  },
+  "operator": {
+    "elapsed_seconds": 26.619477957021445,
+    "operator": {
+      "pid": 99664,
+      "start_time": 77201833
+    },
+    "controller": {
+      "pid": 99675,
+      "start_time": 77201930
+    },
+    "parent_wait_outcome": {
+      "kind": "exited",
+      "code": 1
+    },
+    "returncode": 1,
+    "original_parent_wait": true
+  },
+  "restore": {
+    "elapsed_seconds": 0.2389739699428901,
+    "returncode": 0,
+    "error": null,
+    "drain_errors": [],
+    "parent_wait_outcome": {
+      "kind": "exited",
+      "code": 0
+    },
+    "controller": {
+      "pid": 100454,
+      "start_time": 77205810
+    },
+    "child": {
+      "pid": 100473,
+      "start_time": 77205906
+    },
+    "child_retired": true,
+    "owned_group_members": []
+  },
+  "passed_scope": [
+    "initial canonical Shift exact order",
+    "Ctrl removal exact order",
+    "unchanged view mode"
+  ],
+  "first_failure": "choose read-target found no ContextMenuItem actions at helper58; callsite204",
+  "native_mount_state_at_failure_not_recorded": true,
+  "60row_and_nativebatch_unreached": true,
+  "provider_requests": 0,
+  "public_source_acquired": false,
+  "full_acceptance": false,
+  "source_correction_runtime_unrun": true
+}

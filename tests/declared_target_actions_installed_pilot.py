@@ -49,7 +49,7 @@ async def open_menu(app, pilot, row):
     row.scroll_visible(animate=False, immediate=True)
     await pilot.pause()
     assert await pilot.click(row, button=3)
-    await until(pilot, lambda: isinstance(app.screen, ContextMenu))
+    await until(pilot, lambda: isinstance(app.screen, ContextMenu) and app.screen.is_mounted)
     return {item.action: item for item in app.screen.query(ContextMenuItem)}
 
 
@@ -57,7 +57,7 @@ async def choose(app, pilot, row, operation, fields, evidence):
     menu = await open_menu(app, pilot, row)
     assert operation in menu, tuple(menu)
     assert await pilot.click(menu[operation])
-    await until(pilot, lambda: not isinstance(app.screen, ContextMenu)
+    await until(pilot, lambda: not isinstance(app.screen, ContextMenu) and app.screen.is_mounted
                 and (isinstance(app.screen, CommandDialog) or not app.thread_actions.pending))
     if not isinstance(app.screen, CommandDialog):
         assert not fields, (operation, fields)
@@ -725,7 +725,8 @@ async def journey(args):
             row = await reveal_thread_row(reopened, pilot, 'tagged', '#cli-tag')
             menu = await open_menu(reopened, pilot, row)
             assert await pilot.click(menu['thread-tags'])
-            await until(pilot, lambda: isinstance(reopened.screen, CommandDialog))
+            await until(pilot, lambda: isinstance(reopened.screen, CommandDialog)
+                        and reopened.screen.is_mounted)
             assert reopened.screen.query_one('#command-field-tags', Input).value == 'cli-tag, first, hidden-tag'
             reopened.save_screenshot(str(base / 'saved-reopen-tags.svg'))
             await pilot.press('escape')
