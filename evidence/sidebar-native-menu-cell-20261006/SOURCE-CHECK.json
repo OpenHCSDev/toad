@@ -1,0 +1,55 @@
+{
+  "base": "749f5e813565a0592f580ed477bfb5e3efd77d38",
+  "changed_declarations": [
+    "open_menu"
+  ],
+  "callers": [
+    {
+      "file": "tests/declared_target_actions_installed_pilot.py",
+      "line": 61
+    },
+    {
+      "file": "tests/declared_target_actions_installed_pilot.py",
+      "line": 173
+    },
+    {
+      "file": "tests/declared_target_actions_installed_pilot.py",
+      "line": 260
+    },
+    {
+      "file": "tests/declared_target_actions_installed_pilot.py",
+      "line": 655
+    },
+    {
+      "file": "tests/declared_target_actions_installed_pilot.py",
+      "line": 763
+    }
+  ],
+  "packages": [
+    {
+      "root": "src",
+      "parsed": 288,
+      "unparsed": []
+    },
+    {
+      "root": "tests",
+      "parsed": 403,
+      "unparsed": []
+    },
+    {
+      "root": "tools",
+      "parsed": 40,
+      "unparsed": []
+    }
+  ],
+  "native": {
+    "revision": "2d45091584a7f9b386baa2a8edf8fb3a3ba8a3d6",
+    "parsed": 249,
+    "unparsed": []
+  },
+  "compile_without_import": true,
+  "runtime_repeated": false,
+  "recorded_failure_cause_proved": false,
+  "geometry_owner": "Screen compositor visible_widgets -> bounds intersection clip intersection screen -> get_widget_at",
+  "replacement": "open_menu obtains exposed original cell rather than assuming widget top-left is exposed; native Pilot still owns gesture and recipient receipt"
+}
