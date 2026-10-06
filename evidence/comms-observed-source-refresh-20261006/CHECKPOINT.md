@@ -17,3 +17,7 @@ The real Toad App/HeadlessDriver check uses an original private initialized bus 
 Matched dependencies are original current Core697 source and corrected native73 checkpoint3e73a51ab. Raw logs and SVGs are retained under `/home/ts/.cache/agent-scratch/parent-comms-observation-20261006`. The first fixture omitted its normal project thread, producing an unregistered-command warning; that refusal is held. Its actual thread declaration corrected the fixture, and the final App check has empty stderr. An initial raw SVG string assertion failed on XML text encoding; decoding native SVG text entities fixed the check without any production change or weakening of visible text.
 
 Public installation is unchanged. Small-source App observations do not establish simultaneous-agent frame latency, whole saved-history acceptance or provider/native qualification. Before/after original-source comparison and installed physical measurement remain separate steps.
+
+## Matched original-source comparison
+
+The same final private App pilot, Core notification owner and native pointer implementation ran against original Toad main 63d87b202. During the same 2.2-second idle window it recorded 33 actual HistoryViews.message_notifications calls, versus four with this observer change. Both runs passed live update and parked retained-return checks with empty stderr. Original stdout/stderr are retained as baseline.stdout/baseline.stderr in the same scratch. This is a source App read-count comparison, not installed frame latency or terminal publication acceptance.
