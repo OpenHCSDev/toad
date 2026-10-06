@@ -11,10 +11,10 @@ from textual.content import Content
 
 from toad.session_tracker import OpenTab, UnreadPresentation, ExactUnread
 from toad.widgets.activity_spinner import FRAMES, animated_label
-from toad.work_preparation import ContentAddressedWork, RendererWork, SerializedWork
+from toad.work_preparation import ContentAddressedWork, RendererWork, SerializedWork, ThreadWork
 
 if TYPE_CHECKING:
-    from toad.render_tasks import TabRosterRenderTask, ThreadRowsRenderTask
+    from toad.render_tasks import ThreadRowsRenderTask
     from toad.work_preparation import PreparationRuntime
 
 
@@ -142,15 +142,14 @@ def prepare_tab(tab: OpenTab) -> PreparedTab:
 @dataclass(frozen=True)
 class TabRosterWork(SerializedWork[tuple[PreparedTab, ...]],
                     ContentAddressedWork[tuple[PreparedTab, ...]],
-                    RendererWork[tuple[PreparedTab, ...]]):
+                    ThreadWork[tuple[PreparedTab, ...]]):
+    """Prepare short tab labels independently of transcript renderer admission."""
+
     tabs: tuple[OpenTab, ...]
 
     @property
     def inputs(self) -> object:
         return self.tabs
 
-    @property
-    def render_task(self) -> TabRosterRenderTask:
-        from toad.render_tasks import TabRosterRenderTask
-
-        return TabRosterRenderTask(self.tabs)
+    def prepare(self) -> tuple[PreparedTab, ...]:
+        return tuple(prepare_tab(tab) for tab in self.tabs)

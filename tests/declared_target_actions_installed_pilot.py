@@ -327,7 +327,7 @@ async def selected_target_actions(app, pilot, comms, project, base, checks):
     assert app._exception is None
 
 
-async def started_target_connections(base, *, batch=False):
+async def started_target_connections(base, *, batch=False, selection_checks=True):
     """Use the original SDK/ACP fixture, with no native prompt or model call."""
     from l0a_native_installed_pilot import main as native_journey
     from toad.acp.agent_session import AgentSession
@@ -377,7 +377,8 @@ async def started_target_connections(base, *, batch=False):
             await app.thread_actions.close()
 
         if batch:
-            await batch_started_target_actions(app, pilot, actor, comms, project, evidence, requests, calls, observe)
+            await batch_started_target_actions(app, pilot, actor, comms, project, evidence, requests, calls, observe,
+                                              selection_checks=selection_checks)
             return
 
         threading.setprofile_all_threads(observe)
@@ -438,7 +439,8 @@ async def started_target_connections(base, *, batch=False):
 
 
 
-async def batch_started_target_actions(app, pilot, actor, comms, project, evidence, requests, reconnects, observe_reconnect):
+async def batch_started_target_actions(app, pilot, actor, comms, project, evidence, requests, reconnects, observe_reconnect,
+                                      *, selection_checks=True):
     """Existing selection checks and native batches share one SDK/ACP App."""
     from agent_comms.owner_lifecycle import OwnerLifecycle
 
@@ -479,7 +481,8 @@ async def batch_started_target_actions(app, pilot, actor, comms, project, eviden
     threading.setprofile_all_threads(observed)
     try:
         checks = []
-        await selected_target_actions(app, pilot, comms, project, evidence, checks)
+        if selection_checks:
+            await selected_target_actions(app, pilot, comms, project, evidence, checks)
         await selected('start')
         assert calls['start'] == ['peer', 'peer-two']
         assert reconnects == []
@@ -805,12 +808,14 @@ if __name__ == '__main__':
     parser.add_argument('--physical',action='store_true')
     parser.add_argument('--selected-only', action='store_true', help='Affected selected-target menus and private-store outcomes; no old ordinary journey replay')
     parser.add_argument('--batch-native-only', action='store_true', help='Selected channel/member start-stop deduplication and original ACP reconnect; zero provider prompts')
+    parser.add_argument('--batch-start-stop-only', action='store_true', help='Remaining native start/stop/reconnect and active tag preservation; omit previously accepted selection checks')
     parser.add_argument('--start-only', action='store_true', help='Original SDK/ACP Start-target resource control')
     parser.add_argument('--delete-native-only', action='store_true', help='Current history and hidden native view retirement')
     args = parser.parse_args()
-    if args.batch_native_only:
+    if args.batch_native_only or args.batch_start_stop_only:
         args.output.mkdir(parents=True, exist_ok=False)
-        asyncio.run(started_target_connections(args.output.resolve(), batch=True))
+        asyncio.run(started_target_connections(args.output.resolve(), batch=True,
+                                             selection_checks=not args.batch_start_stop_only))
     elif args.start_only:
         args.output.mkdir(parents=True, exist_ok=False)
         asyncio.run(started_target_connections(args.output.resolve()))
