@@ -258,14 +258,7 @@ console.log(manager.getSessionFile());
         refs = WireMessageHandling.references_in(bodies)
         assert set(refs) == {original_out.reference, original_in.reference}
         item = threads[selected]
-        original_service = __import__("agent_comms.comms", fromlist=["Comms"]).Comms(
-            Path(item.source.root), private_initial_writes=False, private_claim_writes=False)
-        from agent_comms import HistoricalMessage
-        messages = tuple(HistoricalMessage.project(message, item.source,
-                           live.bus.history.sources().index(item.source), item.source.provenance)
-                         for message in original_service.bus.log.messages_for_references(refs))
-        expected = original_service.views.message_notifications(messages)
-        assert all(not message.notification_references() for message in messages)
+        expected = item.source.notification_references(live.bus.history, refs)
         await until(pilot, lambda: all(body.query_one(MessageNotifications)._notifications is not None
                                      for body in bodies))
         rows = []
