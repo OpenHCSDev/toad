@@ -1,0 +1,9 @@
+# Paired source integration
+
+Parent normally joined original Toad472 afc657ef, recorded-reader477 d08c1a49 and warm476 1b5f8da3 onto main55d942e2 without conflicts. All five changed production files are byte equal to their original owners: three recorded-reader/notification consumers and two warm resource owners. Main Text71 PathContent remains byte equal and is not reverted by the older MCP branch.
+
+The existing pyproject declaration and its three lock-file locator occurrences now select exact Core source union c34b35033c444d8864b85c6ff3c256fd829aceaa (Draft688). The Core dependency/build declaration is byte equal to the recorded branch declaration; no resolver, dependency install or environment operation was run. This changes source provenance and is not equivalence to a retained built artifact.
+
+The first complete source compilation found one inherited syntax failure in default_route_admission_pilot.py: request_target import preceded the future import, already in main55d942e2. Only that import was moved after the future declaration. No executable body, provider/input operation, test expectation or frozen original control was changed. The complete final source batch compiled728 tracked Python modules across src/tests/tools with zero omissions and no application imports.
+
+Installed MCP four-case qualification is still owned by Mendel under actual d6ce. Recorded-routing mounted purpose is unissued while334 is occupied. Warm01/02 are closed failures with no verified warm/eviction branches; Heis continues the native source validation/resumption investigation and full configured/loaded journey. Original raw failures, journals, wheels, native keepers and lifecycle permissions remain unchanged. This draft does not install or activate the union, rebuild or rebind an existing purpose, or claim latest main/source equality for historical wheels.
