@@ -1,0 +1,17 @@
+{
+  "source_head": "afae409d1cdf34e0a0fa06c8fb02dfba740ad229",
+  "core_source_pin": "ddcdc422c7fe01453edb2469bcfa8303d771db67",
+  "wheel": "/home/ts/wt/toad-current-installed-integration-20261006/.artifacts/current-paired-toad-reader-20261006/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+  "sha256": "410c3ab0eee04e628d16fbbd11c591d7d7676f5c714ce82b273cfb0ad89acd8c",
+  "bytes": 2251240,
+  "package_assets": 319,
+  "record_rows": 324,
+  "git_local_zip_equal": true,
+  "no_package_extras": true,
+  "complete_RECORD": true,
+  "changed_package_members_from_retained_pair": [
+    "toad/widgets/history_anchor.py"
+  ],
+  "installed": false,
+  "runtime_acceptance": "UNRUN; reader repair source/artifact only"
+}

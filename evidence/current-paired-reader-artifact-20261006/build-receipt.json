@@ -1,0 +1,33 @@
+{
+  "source_head": "afae409d1cdf34e0a0fa06c8fb02dfba740ad229",
+  "core_pin": "ddcdc422c7fe01453edb2469bcfa8303d771db67",
+  "argv": [
+    "/usr/bin/python",
+    "-B",
+    "-m",
+    "build",
+    "--wheel",
+    "--no-isolation",
+    "--outdir",
+    "/home/ts/wt/toad-current-installed-integration-20261006/.artifacts/current-paired-toad-reader-20261006/wheel"
+  ],
+  "cwd": "/home/ts/wt/toad-current-installed-integration-20261006",
+  "environment_overrides": {
+    "PYTHONPATH": "/home/ts/.cache/uv/archive-v0/RgcgNn7xR1Zs9HSF",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "build_inputs": {
+    "pyproject.toml": "fb92193bf4490a36901c57695508deb8f995c4ade658773e8b06ece5f5638bcd",
+    "uv.lock": "0f355cb0f1a7f8a3d7c67eead946a1d402d1880f6577dce5dca42c6464842aa8",
+    "README.md": "11b3f5195acb00a19a73229749e2e71ba924314a8b1c650f05a2bf43f537d35d",
+    "LICENSE": "4df3c306dddaaf4baffdff5ca820cc679ac8cd6dc263c6a74517783e42fa7a3b"
+  },
+  "pid": 3073553,
+  "start_time": 73417555,
+  "exit_code": 0,
+  "elapsed_seconds": 0.6673973790602759,
+  "joined": true,
+  "pid_absent": true,
+  "build_attempts": 1,
+  "install_or_native_operation": false
+}

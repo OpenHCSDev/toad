@@ -56,3 +56,11 @@ The retained configured pair remains frozen at its original build heads. Current
 integration source now includes this later production repair and is not equal to
 the retained Toad wheel. No rebuild, installation or runtime rerun follows this
 source join. Configured source/floor/outer-bound preparation remains separate.
+
+## Matching reader artifact retained
+
+One separate Toad successor wheel now includes the reader repair; see
+../current-paired-reader-artifact-20261006. It matches all 319 source assets and
+324 RECORD rows. Only history_anchor.py differs from the frozen prior wheel.
+Core and Textual are unchanged. No installation or App run followed this build.
+Heis selects its exact artifact before new configured-purpose issue.
