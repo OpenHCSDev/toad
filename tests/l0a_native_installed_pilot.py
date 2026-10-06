@@ -41,13 +41,31 @@ from runtime_fixture import refresh_comms
 
 
 def response_painted(app, view, text):
-    window = view.window.region
+    from agent_comms.transcript_events import AssistantTranscript
+    from toad.widgets.transcript_history import TranscriptFragmentView
+    from viewport_recent_tabs_pilot import ReaderCheckpoint
+
+    window = view.window.scrollable_content_region
     frame = "\n".join(strip.crop(window.x, window.right).text
                       for strip in app.screen._compositor.render_strips()[window.y:window.bottom])
-    return text in frame and any(
-        block in app.screen._compositor.visible_widgets and block.region.overlaps(window)
-        for block in view.query(AgentResponse) if text in block.source
-    )
+    if text not in frame:
+        return False
+    resources = ReaderCheckpoint.native_render_resources(app.selected_session, app)
+    visible = app.screen._compositor.visible_widgets
+    for body, content in resources.items():
+        bounds, clip = visible[body]
+        crop = bounds.intersection(clip).intersection(window) - bounds.offset
+        if isinstance(body, TranscriptFragmentView):
+            if (any(isinstance(event, AssistantTranscript) and text in event.text
+                    for event in body.fragment.events)
+                    and text in "\n".join(line.text for line in content.render_lines(crop))):
+                return True
+        elif any(isinstance(parent, AgentResponse) and text in parent.source
+                 for parent in body.ancestors):
+            if text in "\n".join(line.crop(crop.x, crop.right).text
+                                 for line in content.lines[crop.y:crop.bottom]):
+                return True
+    return False
 
 
 async def until(pilot, predicate, seconds=20):
@@ -65,65 +83,77 @@ def message_feedback(view, original):
 
 
 async def direct_reply_feedback(
-    pilot, app, comms, owner_mode, project, entered, release, hold_next
+    pilot, app, comms, owner_mode, project, entered=None, release=None, hold_next=None,
+    *, target_name="beta", body="DIRECT_NATIVE_MESSAGE", response_prefix="NATIVE_RESPONSE_"
 ):
     """One real DM; observe it open, hidden during settlement and reopened."""
     user = comms.messaging.user_identity(str(project)).name
     navigation = NavigationContext(app, owner_mode, project, user)
-    await DirectTarget("beta").open(navigation)
+    await DirectTarget(target_name).open(navigation)
     screen = app.selected_session
     await screen.wait_content_ready()
     dm = screen.query_one(CommsChatView)
-    assert dm.target == "beta" and dm.conversation_kind is DmConversation
-    body = "DIRECT_NATIVE_MESSAGE"
+    assert dm.target == target_name and dm.conversation_kind is DmConversation
     assert not any(message.body == body for message, _ in dm.message_history.rows)
-    entered.clear()
-    release.clear()
-    hold_next.set()
+    if entered is not None:
+        entered.clear()
+        release.clear()
+        hold_next.set()
     try:
         await dm.submit_input(input_events.UserInputSubmitted(body))
-        await until(pilot, entered.is_set)
+        if entered is not None:
+            await until(pilot, entered.is_set)
         await until(pilot, lambda: any(message.body == body
                                       for message, _ in dm.message_history.rows))
         originals = [message for message, _ in dm.message_history.rows
                      if message.body == body]
         assert len(originals) == 1
         original = originals[0]
-        assert original.sender == user and original.target == "beta"
+        assert original.sender == user and original.target == target_name
         await until(pilot, lambda: "Responding" in str(message_feedback(dm, original).title))
-        assert comms.registry.require("beta").executing
+        assert comms.registry.require(target_name).executing
         print("DM_ORIGINAL_OPEN_NOTIFICATION_WORKING", original.reference, flush=True)
 
         await app.select_session(owner_mode)
         assert app.selected_session is not screen
-        release.set()
-        await until(pilot, lambda: not comms.registry.require("beta").executing)
+        if release is not None:
+            release.set()
+        await until(pilot, lambda: not comms.registry.require(target_name).executing)
         assert app.selected_session is not screen
         print("DM_ORIGINAL_SETTLED_WHILE_HIDDEN", original.reference, flush=True)
     finally:
-        release.set()
+        if release is not None:
+            release.set()
 
-    await DirectTarget("beta").open(navigation)
+    await DirectTarget(target_name).open(navigation)
     assert app.selected_session is screen, "Returning replaced the original DM admission"
     await until(pilot, lambda: any(
-        message.sender == "beta" and message.seq > original.seq
-        and message.body.startswith("NATIVE_RESPONSE_")
+        message.sender == target_name and message.seq > original.seq
+        and (response_prefix is None or message.body.startswith(response_prefix))
         for message, _ in dm.message_history.rows))
     responses = [message for message, _ in dm.message_history.rows
-                 if message.sender == "beta" and message.seq > original.seq
-                 and message.body.startswith("NATIVE_RESPONSE_")]
+                 if message.sender == target_name and message.seq > original.seq
+                 and (response_prefix is None or message.body.startswith(response_prefix))]
     assert len(responses) == 1
     response = responses[0]
     assert response.target == user and response.reference != original.reference
     await until(pilot, lambda: "Responded" in str(message_feedback(dm, original).title))
     outcomes = await asyncio.to_thread(comms.views.message_notifications, (original,))
-    assert any(item.recipient == "beta" and item.state == "Responded"
+    assert any(item.recipient == target_name and item.state == "Responded"
                for item in outcomes[original.seq, original.message_id])
+    if entered is None:
+        from agent_comms.input_origin import WireInputOrigin
+        recipient = comms.registry.require(target_name)
+        native_input = InputDispositions(comms.root / InputDispositions.filename).read().lookup(
+            InputDispositions.bus_key(original, recipient))
+        assert native_input.has_started and native_input.matches_owner(recipient.incarnation)
+        assert isinstance(native_input.origin, WireInputOrigin)
+        assert native_input.origin.reference == original.reference
     print("DM_ORIGINAL_RETURN_NOTIFICATION_AND_DISTINCT_REPLY", original.reference,
           response.reference, flush=True)
 
     await app.session_navigation.close(screen.id)
-    await DirectTarget("beta").open(navigation)
+    await DirectTarget(target_name).open(navigation)
     reopened = app.selected_session
     assert reopened is not screen and reopened.id != screen.id
     await reopened.wait_content_ready()

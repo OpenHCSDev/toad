@@ -1,0 +1,1014 @@
+{
+  "strength": "Source-only original Package AST, no application imports/test execution",
+  "roots": [
+    {
+      "repository": "/home/ts/wt/toad-configured-continuous-owner-20261006",
+      "revision": "bd3e1ee1f3e9fa783c5782778c0d8664375895c8",
+      "root": "src/toad",
+      "modules": 288,
+      "unparsed_original": [],
+      "sites": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-configured-continuous-owner-20261006",
+      "revision": "bd3e1ee1f3e9fa783c5782778c0d8664375895c8",
+      "root": "tests",
+      "modules": 400,
+      "unparsed_original": [],
+      "sites": [
+        {
+          "path": "tests/agent_configuration_native_installed_pilot.py",
+          "line": 7,
+          "kind": "import",
+          "expression": "from l0a_native_installed_pilot import main, until, response_painted"
+        },
+        {
+          "path": "tests/agent_configuration_native_installed_pilot.py",
+          "line": 22,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_1')"
+        },
+        {
+          "path": "tests/canonical_wire_conversation_installed_pilot.py",
+          "line": 29,
+          "kind": "import",
+          "expression": "from l0a_native_installed_pilot import main, until as native_until, response_painted, selected_triage_reply"
+        },
+        {
+          "path": "tests/canonical_wire_conversation_installed_pilot.py",
+          "line": 421,
+          "kind": "call",
+          "expression": "response_painted(app, recipient, response.body)"
+        },
+        {
+          "path": "tests/catalog_actions_native_installed_pilot.py",
+          "line": 21,
+          "kind": "import",
+          "expression": "from l0a_native_installed_pilot import main, until, response_painted"
+        },
+        {
+          "path": "tests/catalog_actions_native_installed_pilot.py",
+          "line": 169,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_1')"
+        },
+        {
+          "path": "tests/catalog_actions_native_installed_pilot.py",
+          "line": 174,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_1')"
+        },
+        {
+          "path": "tests/client_session_native_installed_pilot.py",
+          "line": 6,
+          "kind": "import",
+          "expression": "from l0a_native_installed_pilot import main, until, response_painted"
+        },
+        {
+          "path": "tests/client_session_native_installed_pilot.py",
+          "line": 24,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_1')"
+        },
+        {
+          "path": "tests/client_session_native_installed_pilot.py",
+          "line": 28,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_1')"
+        },
+        {
+          "path": "tests/cold_context_installed_physical.py",
+          "line": 285,
+          "kind": "import",
+          "expression": "from original_owner_capture import CurrentTypedCapture"
+        },
+        {
+          "path": "tests/cold_context_installed_physical.py",
+          "line": 302,
+          "kind": "call",
+          "expression": "CurrentTypedCapture(options.public_root, options.original_python)"
+        },
+        {
+          "path": "tests/cold_context_installed_physical.py",
+          "line": 378,
+          "kind": "call",
+          "expression": "owner.sessions.bind_owned(declared, declared.name)"
+        },
+        {
+          "path": "tests/command_family_pilot.py",
+          "line": 20,
+          "kind": "import",
+          "expression": "from saved_state_user_journey_pilot import prepare_saved_state"
+        },
+        {
+          "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+          "line": 63,
+          "kind": "import",
+          "expression": "from saved_state_user_journey_pilot import SavedStateSubscriber"
+        },
+        {
+          "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+          "line": 72,
+          "kind": "call",
+          "expression": "SavedStateSubscriber()"
+        },
+        {
+          "path": "tests/context_compaction_native_installed_pilot.py",
+          "line": 10,
+          "kind": "import",
+          "expression": "from l0a_native_installed_pilot import main, until, response_painted"
+        },
+        {
+          "path": "tests/context_compaction_native_installed_pilot.py",
+          "line": 105,
+          "kind": "import",
+          "expression": "from saved_state_user_journey_pilot import SavedStateSubscriber"
+        },
+        {
+          "path": "tests/context_compaction_native_installed_pilot.py",
+          "line": 106,
+          "kind": "call",
+          "expression": "SavedStateSubscriber()"
+        },
+        {
+          "path": "tests/context_compaction_native_installed_pilot.py",
+          "line": 31,
+          "kind": "call",
+          "expression": "response_painted(app, view, f'NATIVE_RESPONSE_{index}')"
+        },
+        {
+          "path": "tests/context_compaction_native_installed_pilot.py",
+          "line": 49,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'COMPACTION_FINAL_ANSWER')"
+        },
+        {
+          "path": "tests/context_native_installed_pilot.py",
+          "line": 6,
+          "kind": "import",
+          "expression": "from l0a_native_installed_pilot import main, until, response_painted"
+        },
+        {
+          "path": "tests/context_native_installed_pilot.py",
+          "line": 23,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_1')"
+        },
+        {
+          "path": "tests/core_events_native_installed_pilot.py",
+          "line": 10,
+          "kind": "import",
+          "expression": "from l0a_native_installed_pilot import main, response_painted, until"
+        },
+        {
+          "path": "tests/core_events_native_installed_pilot.py",
+          "line": 45,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_2')"
+        },
+        {
+          "path": "tests/core_events_native_installed_pilot.py",
+          "line": 51,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_2')"
+        },
+        {
+          "path": "tests/core_events_native_installed_pilot.py",
+          "line": 75,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_2')"
+        },
+        {
+          "path": "tests/core_events_native_installed_pilot.py",
+          "line": 83,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_2')"
+        },
+        {
+          "path": "tests/f4_declared_family_installed_pilot.py",
+          "line": 81,
+          "kind": "call",
+          "expression": "owner.sessions.bind_owned(declared, declared.name)"
+        },
+        {
+          "path": "tests/first_fork_native_installed_pilot.py",
+          "line": 10,
+          "kind": "import",
+          "expression": "from l0a_native_installed_pilot import main, until, response_painted"
+        },
+        {
+          "path": "tests/first_fork_native_installed_pilot.py",
+          "line": 79,
+          "kind": "call",
+          "expression": "response_painted(app, parent_view, 'NATIVE_RESPONSE_1')"
+        },
+        {
+          "path": "tests/first_fork_native_installed_pilot.py",
+          "line": 273,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_1')"
+        },
+        {
+          "path": "tests/first_fork_native_installed_pilot.py",
+          "line": 289,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_2')"
+        },
+        {
+          "path": "tests/goal_pause_owner_pilot.py",
+          "line": 18,
+          "kind": "import",
+          "expression": "from l0a_native_installed_pilot import main as native_fixture, response_painted, until"
+        },
+        {
+          "path": "tests/goal_pause_owner_pilot.py",
+          "line": 20,
+          "kind": "import",
+          "expression": "from saved_state_user_journey_pilot import SavedStateSubscriber, click_tab, submit_editor"
+        },
+        {
+          "path": "tests/goal_pause_owner_pilot.py",
+          "line": 35,
+          "kind": "call",
+          "expression": "SavedStateSubscriber()"
+        },
+        {
+          "path": "tests/goal_pause_owner_pilot.py",
+          "line": 90,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_3')"
+        },
+        {
+          "path": "tests/goal_pause_owner_pilot.py",
+          "line": 101,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_3')"
+        },
+        {
+          "path": "tests/goal_pause_owner_pilot.py",
+          "line": 139,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_4')"
+        },
+        {
+          "path": "tests/goal_pause_owner_pilot.py",
+          "line": 75,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_2')"
+        },
+        {
+          "path": "tests/goal_state_installed_journey.py",
+          "line": 15,
+          "kind": "import",
+          "expression": "from saved_state_user_journey_pilot import click_tab, click_thread, prepare_saved_state, screen_paint, submit_editor"
+        },
+        {
+          "path": "tests/goal_state_installed_journey.py",
+          "line": 34,
+          "kind": "call",
+          "expression": "prepare_saved_state(*args)"
+        },
+        {
+          "path": "tests/independent_native_writer_pilot.py",
+          "line": 24,
+          "kind": "import",
+          "expression": "from saved_state_user_journey_pilot import SavedStateSubscriber"
+        },
+        {
+          "path": "tests/independent_native_writer_pilot.py",
+          "line": 70,
+          "kind": "call",
+          "expression": "SavedStateSubscriber()"
+        },
+        {
+          "path": "tests/input_history_native_installed_pilot.py",
+          "line": 4,
+          "kind": "import",
+          "expression": "from l0a_native_installed_pilot import main, until, response_painted"
+        },
+        {
+          "path": "tests/input_history_native_installed_pilot.py",
+          "line": 15,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_1')"
+        },
+        {
+          "path": "tests/input_visibility_native_installed_pilot.py",
+          "line": 29,
+          "kind": "import",
+          "expression": "from l0a_native_installed_pilot import main, until, response_painted"
+        },
+        {
+          "path": "tests/input_visibility_native_installed_pilot.py",
+          "line": 246,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_4')"
+        },
+        {
+          "path": "tests/l0a_native_installed_pilot.py",
+          "line": 43,
+          "kind": "declaration",
+          "name": "response_painted"
+        },
+        {
+          "path": "tests/l0a_native_installed_pilot.py",
+          "line": 85,
+          "kind": "declaration",
+          "name": "direct_reply_feedback"
+        },
+        {
+          "path": "tests/l0a_native_installed_pilot.py",
+          "line": 630,
+          "kind": "call",
+          "expression": "direct_reply_feedback(pilot, app, comms, owner_mode, project, entered, release, hold_next)"
+        },
+        {
+          "path": "tests/l0a_native_installed_pilot.py",
+          "line": 566,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_2')"
+        },
+        {
+          "path": "tests/l0a_native_installed_pilot.py",
+          "line": 575,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_2')"
+        },
+        {
+          "path": "tests/l0a_native_installed_pilot.py",
+          "line": 620,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_2')"
+        },
+        {
+          "path": "tests/l0a_native_installed_pilot.py",
+          "line": 660,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_2')"
+        },
+        {
+          "path": "tests/mcp_observation_fixture.py",
+          "line": 63,
+          "kind": "call",
+          "expression": "producer.sessions.bind_owned(thread, session_id)"
+        },
+        {
+          "path": "tests/native_widget_actions_installed_pilot.py",
+          "line": 18,
+          "kind": "import",
+          "expression": "from l0a_native_installed_pilot import main, until, response_painted"
+        },
+        {
+          "path": "tests/native_widget_actions_installed_pilot.py",
+          "line": 41,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_1')"
+        },
+        {
+          "path": "tests/native_widget_actions_installed_pilot.py",
+          "line": 47,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_1')"
+        },
+        {
+          "path": "tests/original_stream_headers_installed_pilot.py",
+          "line": 10,
+          "kind": "import",
+          "expression": "from l0a_native_installed_pilot import main, until, response_painted"
+        },
+        {
+          "path": "tests/original_stream_headers_installed_pilot.py",
+          "line": 68,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'STREAM_HEADER_END_PROOF')"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 29,
+          "kind": "import",
+          "expression": "from l0a_native_installed_pilot import until, response_painted"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 32,
+          "kind": "import",
+          "expression": "from original_owner_capture import CurrentTypedCapture"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 90,
+          "kind": "call",
+          "expression": "CurrentTypedCapture(root=Path(os.environ['AC_REAL_SOURCE_ROOT']), original_python=Path(os.environ['AC_REAL_ORIGINAL_PYTHON']))"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 182,
+          "kind": "call",
+          "expression": "response_painted(app, view, token)"
+        },
+        {
+          "path": "tests/owner_replacement_recovery_installed_pilot.py",
+          "line": 18,
+          "kind": "import",
+          "expression": "from l0a_native_installed_pilot import main, response_painted, until"
+        },
+        {
+          "path": "tests/owner_replacement_recovery_installed_pilot.py",
+          "line": 148,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_2')"
+        },
+        {
+          "path": "tests/reconnect_source_native_installed_pilot.py",
+          "line": 13,
+          "kind": "import",
+          "expression": "from l0a_native_installed_pilot import main, until, response_painted"
+        },
+        {
+          "path": "tests/reconnect_source_native_installed_pilot.py",
+          "line": 39,
+          "kind": "call",
+          "expression": "response_painted(app, view, BODY)"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 18,
+          "kind": "import",
+          "expression": "from l0a_native_installed_pilot import selected_triage_reply, until, message_feedback, direct_reply_feedback, response_painted"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 114,
+          "kind": "declaration",
+          "name": "SavedStateSubscriber"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 132,
+          "kind": "declaration",
+          "name": "prepare_saved_state"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 379,
+          "kind": "declaration",
+          "name": "adaptive_reader_journey"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 459,
+          "kind": "declaration",
+          "name": "prepare_fork_dialog"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 484,
+          "kind": "declaration",
+          "name": "fork_and_first_input"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 544,
+          "kind": "declaration",
+          "name": "channel_reply_feedback"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 768,
+          "kind": "import",
+          "expression": "from compaction_source_successor_installed_journey import configured_saved_agent"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 769,
+          "kind": "import",
+          "expression": "from original_owner_capture import CurrentTypedCapture"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 139,
+          "kind": "call",
+          "expression": "SavedStateSubscriber()"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 784,
+          "kind": "call",
+          "expression": "SavedStateSubscriber()"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 216,
+          "kind": "call",
+          "expression": "adaptive_reader_journey(app, pilot, requests)"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 217,
+          "kind": "call",
+          "expression": "fork_and_first_input(app, pilot, comms, first, entered, release, hold_next, requests)"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 218,
+          "kind": "call",
+          "expression": "channel_reply_feedback(app, pilot, comms, channel, first, entered, release, hold_next, requests, gamma)"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 220,
+          "kind": "call",
+          "expression": "direct_reply_feedback(pilot, app, comms, first.id, app.project_dir, entered, release, hold_next)"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 488,
+          "kind": "call",
+          "expression": "prepare_fork_dialog(app, pilot, comms, 'beta', '#team', 'journey-child', 'JOURNEY_FORK_INPUT', 'refactor')"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 714,
+          "kind": "call",
+          "expression": "prepare_fork_dialog(app, pilot, comms, 'source529', '#source529', 'configured-child', fork_text, 'source529')"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 731,
+          "kind": "call",
+          "expression": "response_painted(app, child.conversation, 'CONFIGURED_FORK_FIRST')"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 749,
+          "kind": "call",
+          "expression": "adaptive_reader_journey(app, pilot, None, tail_text='CONFIGURED_QUEUED_REPLY', input_count=lambda: len(inputs.read().rows))"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 752,
+          "kind": "call",
+          "expression": "channel_reply_feedback(app, pilot, comms, channel, first, gamma=peer, recipient_name='peer529', body='@peer529 New isolated acceptance question. No tools. Reply exactly CONFIGURED_CHANNEL_REPLY.')"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 756,
+          "kind": "call",
+          "expression": "direct_reply_feedback(pilot, app, comms, first.id, app.project_dir, target_name='source529', response_prefix=None, body='New isolated acceptance DM. No tools. Reply exactly CONFIGURED_DM_REPLY.')"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 803,
+          "kind": "call",
+          "expression": "configured_saved_agent(stage, package, original, subscriber, receipt, core_source=core_source, core_artifacts=core_artifacts, capture_source=current_source, observe_launch=private_application, worktree=project, auto_wake=True)"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 776,
+          "kind": "call",
+          "expression": "CurrentTypedCapture(Path(os.environ['AC_REAL_SOURCE_ROOT']), Path(os.environ['AC_REAL_ORIGINAL_PYTHON']))"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 676,
+          "kind": "call",
+          "expression": "response_painted(app, peer.conversation, 'CONFIGURED_PEER_FIRST')"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 702,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'CONFIGURED_QUEUED_REPLY')"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 736,
+          "kind": "call",
+          "expression": "response_painted(app, child.conversation, 'CONFIGURED_FORK_FIRST')"
+        },
+        {
+          "path": "tests/sidebar_custody_installed_journey.py",
+          "line": 9,
+          "kind": "import",
+          "expression": "from l0a_native_installed_pilot import main as native_fixture, until, direct_reply_feedback"
+        },
+        {
+          "path": "tests/sidebar_custody_installed_journey.py",
+          "line": 12,
+          "kind": "import",
+          "expression": "from saved_state_user_journey_pilot import prepare_saved_state, click_tab, screen_paint, independent_source_publication, unopened_participant, clicked_reader_editor_return, fork_and_first_input, channel_reply_feedback"
+        },
+        {
+          "path": "tests/sidebar_custody_installed_journey.py",
+          "line": 74,
+          "kind": "call",
+          "expression": "fork_and_first_input(app, pilot, comms, first, entered, release, hold_next, requests)"
+        },
+        {
+          "path": "tests/sidebar_custody_installed_journey.py",
+          "line": 75,
+          "kind": "call",
+          "expression": "channel_reply_feedback(app, pilot, comms, channel, first, entered, release, hold_next, requests, gamma)"
+        },
+        {
+          "path": "tests/sidebar_custody_installed_journey.py",
+          "line": 76,
+          "kind": "call",
+          "expression": "direct_reply_feedback(pilot, app, comms, first.id, app.project_dir, entered, release, hold_next)"
+        },
+        {
+          "path": "tests/submission_native_installed_pilot.py",
+          "line": 11,
+          "kind": "import",
+          "expression": "from l0a_native_installed_pilot import main, until, response_painted"
+        },
+        {
+          "path": "tests/submission_native_installed_pilot.py",
+          "line": 58,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_1')"
+        },
+        {
+          "path": "tests/submission_native_installed_pilot.py",
+          "line": 105,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_4')"
+        },
+        {
+          "path": "tests/terminal_attention_installed_journey.py",
+          "line": 32,
+          "kind": "import",
+          "expression": "from saved_state_user_journey_pilot import SavedStateSubscriber, click_tab"
+        },
+        {
+          "path": "tests/terminal_attention_installed_journey.py",
+          "line": 124,
+          "kind": "call",
+          "expression": "SavedStateSubscriber()"
+        },
+        {
+          "path": "tests/test_context_manifest_navigation.py",
+          "line": 244,
+          "kind": "call",
+          "expression": "controller.sessions.bind_owned(owner, owner.name)"
+        },
+        {
+          "path": "tests/test_context_manifest_navigation.py",
+          "line": 667,
+          "kind": "call",
+          "expression": "controller.sessions.bind_owned(owned, owned.name)"
+        },
+        {
+          "path": "tests/thread_navigation_installed_journey.py",
+          "line": 19,
+          "kind": "import",
+          "expression": "from saved_state_user_journey_pilot import SavedStateSubscriber, click_tab"
+        },
+        {
+          "path": "tests/thread_navigation_installed_journey.py",
+          "line": 47,
+          "kind": "call",
+          "expression": "SavedStateSubscriber()"
+        },
+        {
+          "path": "tests/thread_spawn_bind_owner_installed_pilot.py",
+          "line": 7,
+          "kind": "import",
+          "expression": "from saved_state_user_journey_pilot import prepare_saved_state, fork_and_first_input"
+        },
+        {
+          "path": "tests/thread_spawn_bind_owner_installed_pilot.py",
+          "line": 13,
+          "kind": "call",
+          "expression": "fork_and_first_input(app, pilot, comms, first, entered, release, hold_next, requests)"
+        },
+        {
+          "path": "tests/transcript_filter_installed_journey.py",
+          "line": 16,
+          "kind": "import",
+          "expression": "from saved_state_user_journey_pilot import SavedStateSubscriber, click_tab"
+        },
+        {
+          "path": "tests/transcript_filter_installed_journey.py",
+          "line": 39,
+          "kind": "call",
+          "expression": "SavedStateSubscriber()"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/toad-configured-continuous-owner-20261006",
+      "revision": "bd3e1ee1f3e9fa783c5782778c0d8664375895c8",
+      "root": "tools",
+      "modules": 40,
+      "unparsed_original": [],
+      "sites": []
+    },
+    {
+      "repository": "/home/ts/wt/comms-configured-continuous-producer-20261006",
+      "revision": "48f6d69588a64ceca82e914a8d4faa81387179a0",
+      "root": "src/agent_comms",
+      "modules": 324,
+      "unparsed_original": [],
+      "sites": [
+        {
+          "path": "src/agent_comms/input_drain.py",
+          "line": 199,
+          "kind": "declaration",
+          "name": "ensure_live_drain"
+        },
+        {
+          "path": "src/agent_comms/session_lifecycle.py",
+          "line": 181,
+          "kind": "declaration",
+          "name": "bind_owned"
+        },
+        {
+          "path": "src/agent_comms/session_lifecycle.py",
+          "line": 260,
+          "kind": "call",
+          "expression": "self.effects.inputs.ensure_live_drain(thread.name)"
+        },
+        {
+          "path": "src/agent_comms/session_lifecycle.py",
+          "line": 289,
+          "kind": "call",
+          "expression": "self.effects.inputs.ensure_live_drain(session_id)"
+        },
+        {
+          "path": "src/agent_comms/session_lifecycle.py",
+          "line": 259,
+          "kind": "call",
+          "expression": "self.bind_owned(thread, thread.name)"
+        },
+        {
+          "path": "src/agent_comms/session_lifecycle.py",
+          "line": 285,
+          "kind": "call",
+          "expression": "self.bind_owned(thread, session_id)"
+        },
+        {
+          "path": "src/agent_comms/turn_runner.py",
+          "line": 362,
+          "kind": "call",
+          "expression": "self.inputs.ensure_live_drain(session_id)"
+        },
+        {
+          "path": "src/agent_comms/turn_runner.py",
+          "line": 289,
+          "kind": "call",
+          "expression": "self.inputs.ensure_live_drain(session_id)"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/comms-configured-continuous-producer-20261006",
+      "revision": "48f6d69588a64ceca82e914a8d4faa81387179a0",
+      "root": "tests",
+      "modules": 374,
+      "unparsed_original": [],
+      "sites": [
+        {
+          "path": "tests/channel_drain_readiness_installed_ui.py",
+          "line": 23,
+          "kind": "import",
+          "expression": "from l0a_native_installed_pilot import main, until, response_painted"
+        },
+        {
+          "path": "tests/channel_drain_readiness_installed_ui.py",
+          "line": 67,
+          "kind": "call",
+          "expression": "response_painted(app, view, 'NATIVE_RESPONSE_1')"
+        },
+        {
+          "path": "tests/compaction_source_successor_installed_journey.py",
+          "line": 59,
+          "kind": "declaration",
+          "name": "configured_saved_agent"
+        },
+        {
+          "path": "tests/compaction_source_successor_installed_journey.py",
+          "line": 196,
+          "kind": "call",
+          "expression": "configured_saved_agent(stage, package, source_file, Receiver(), receipt, capture_source=capture_source, observe_launch=observe_launch, core_source=core_source, core_artifacts=core_artifacts)"
+        },
+        {
+          "path": "tests/compaction_source_successor_installed_journey.py",
+          "line": 153,
+          "kind": "call",
+          "expression": "agent.sessions.bind_owned(service.registry.require(name), name)"
+        },
+        {
+          "path": "tests/compaction_source_successor_installed_journey.py",
+          "line": 155,
+          "kind": "call",
+          "expression": "agent.inputs.ensure_live_drain(name)"
+        },
+        {
+          "path": "tests/native_backend_fixture.py",
+          "line": 69,
+          "kind": "call",
+          "expression": "agent.inputs.ensure_live_drain(thread.name)"
+        },
+        {
+          "path": "tests/native_backend_fixture.py",
+          "line": 68,
+          "kind": "call",
+          "expression": "agent.sessions.bind_owned(thread, thread.name)"
+        },
+        {
+          "path": "tests/native_request_wait_installed_journey.py",
+          "line": 25,
+          "kind": "import",
+          "expression": "from l0a_native_installed_pilot import until, response_painted"
+        },
+        {
+          "path": "tests/native_request_wait_installed_journey.py",
+          "line": 187,
+          "kind": "call",
+          "expression": "response_painted(app, view, f'WAIT_NATIVE_OK_{index}')"
+        },
+        {
+          "path": "tests/session_coverage_configured_journey.py",
+          "line": 20,
+          "kind": "import",
+          "expression": "from original_owner_capture import CurrentTypedCapture"
+        },
+        {
+          "path": "tests/session_coverage_configured_journey.py",
+          "line": 29,
+          "kind": "call",
+          "expression": "CurrentTypedCapture(Path('/var/tmp/agent-comms-live-20260927-wzjtqhza'), original_python)"
+        },
+        {
+          "path": "tests/summary_prefix_configured_installed_journey.py",
+          "line": 65,
+          "kind": "import",
+          "expression": "from original_owner_capture import CurrentTypedCapture"
+        },
+        {
+          "path": "tests/summary_prefix_configured_installed_journey.py",
+          "line": 68,
+          "kind": "call",
+          "expression": "CurrentTypedCapture(Path('/var/tmp/agent-comms-live-20260927-wzjtqhza'), original_python)"
+        },
+        {
+          "path": "tests/test_acp_input_disposition.py",
+          "line": 250,
+          "kind": "call",
+          "expression": "owner.sessions.bind_owned(thread, session)"
+        },
+        {
+          "path": "tests/test_cursor_load_recovery.py",
+          "line": 95,
+          "kind": "call",
+          "expression": "agent.inputs.ensure_live_drain(owner.name)"
+        },
+        {
+          "path": "tests/test_live_drain_failure.py",
+          "line": 48,
+          "kind": "call",
+          "expression": "agent.inputs.ensure_live_drain('beta')"
+        },
+        {
+          "path": "tests/test_live_drain_failure.py",
+          "line": 94,
+          "kind": "call",
+          "expression": "agent.inputs.ensure_live_drain('beta')"
+        },
+        {
+          "path": "tests/test_retained_manual_compaction.py",
+          "line": 160,
+          "kind": "call",
+          "expression": "agent.sessions.bind_owned(comms.registry.require('retained'), 'retained')"
+        },
+        {
+          "path": "tests/test_runtime_owned_session_admission.py",
+          "line": 59,
+          "kind": "call",
+          "expression": "owner.sessions.bind_owned(retired, 'retired-acp-session')"
+        },
+        {
+          "path": "tests/test_runtime_owned_session_admission.py",
+          "line": 69,
+          "kind": "call",
+          "expression": "owner.sessions.bind_owned(thread, 'original-acp-session')"
+        },
+        {
+          "path": "tests/test_wire_watch.py",
+          "line": 83,
+          "kind": "call",
+          "expression": "agent.inputs.ensure_live_drain('owner')"
+        },
+        {
+          "path": "tests/test_wire_watch.py",
+          "line": 139,
+          "kind": "call",
+          "expression": "agent.inputs.ensure_live_drain('owner')"
+        },
+        {
+          "path": "tests/three_cut_retention_configured_journey.py",
+          "line": 31,
+          "kind": "import",
+          "expression": "from original_owner_capture import CurrentTypedCapture"
+        },
+        {
+          "path": "tests/three_cut_retention_configured_journey.py",
+          "line": 32,
+          "kind": "import",
+          "expression": "from compaction_source_successor_installed_journey import configured_saved_agent, digest"
+        },
+        {
+          "path": "tests/three_cut_retention_configured_journey.py",
+          "line": 375,
+          "kind": "call",
+          "expression": "configured_saved_agent(seed_stage, package, source_file, receiver, seed_receipt, capture_source=capture_source, core_source=core_source, core_artifacts=core_artifacts)"
+        },
+        {
+          "path": "tests/three_cut_retention_configured_journey.py",
+          "line": 128,
+          "kind": "call",
+          "expression": "CurrentTypedCapture(Path('/var/tmp/agent-comms-live-20260927-wzjtqhza'), original_python)"
+        },
+        {
+          "path": "tests/three_cut_retention_configured_journey.py",
+          "line": 153,
+          "kind": "call",
+          "expression": "configured_saved_agent(application_stage, package, captured_source, Receiver(), receipt, capture_source=capture_source, observe_launch=launch, core_source=core_source, core_artifacts=core_artifacts)"
+        },
+        {
+          "path": "tests/three_cut_retention_configured_journey.py",
+          "line": 167,
+          "kind": "call",
+          "expression": "CurrentTypedCapture(Path('/var/tmp/agent-comms-live-20260927-wzjtqhza'), original_python)"
+        },
+        {
+          "path": "tests/three_cut_retention_configured_journey.py",
+          "line": 189,
+          "kind": "call",
+          "expression": "configured_saved_agent(stage, package, source, Receiver(), receipt, capture_source=capture_source, observe_launch=observe_launch, core_source=core_source, core_artifacts=core_artifacts)"
+        },
+        {
+          "path": "tests/three_cut_retention_configured_journey.py",
+          "line": 240,
+          "kind": "call",
+          "expression": "configured_saved_agent(stage, package, source_file, receiver, receipt, capture_source=capture_source, observe_launch=observe_launch, core_source=core_source, core_artifacts=core_artifacts)"
+        },
+        {
+          "path": "tests/three_cut_retention_configured_journey.py",
+          "line": 350,
+          "kind": "call",
+          "expression": "CurrentTypedCapture(Path('/var/tmp/agent-comms-live-20260927-wzjtqhza'), original_python)"
+        },
+        {
+          "path": "tests/turn_context_installed_journey.py",
+          "line": 183,
+          "kind": "import",
+          "expression": "from original_owner_capture import CurrentTypedCapture"
+        },
+        {
+          "path": "tests/turn_context_installed_journey.py",
+          "line": 195,
+          "kind": "call",
+          "expression": "CurrentTypedCapture(options.configured_source_root, options.original_python)"
+        }
+      ]
+    },
+    {
+      "repository": "/home/ts/wt/comms-configured-continuous-producer-20261006",
+      "revision": "48f6d69588a64ceca82e914a8d4faa81387179a0",
+      "root": "tools",
+      "modules": 54,
+      "unparsed_original": [],
+      "sites": [
+        {
+          "path": "tools/cutover/original_owner_capture.py",
+          "line": 74,
+          "kind": "declaration",
+          "name": "CurrentTypedCapture"
+        }
+      ]
+    }
+  ],
+  "compiled": [
+    {
+      "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/tests/l0a_native_installed_pilot.py",
+      "sha256": "af0fb2d285ce9dddf728650809ab206b706000ed1d003e520d382b483b04e61a",
+      "bytes": 37666,
+      "without_import": true
+    },
+    {
+      "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/tests/saved_state_user_journey_pilot.py",
+      "sha256": "7e6d769953fd8ae18ae3527d590a06d246891765d8a61a0ffc6a63722d8a2dbe",
+      "bytes": 46843,
+      "without_import": true
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tests/compaction_source_successor_installed_journey.py",
+      "sha256": "b086d7a5e5a3792e0b3ff19088b6b88cb9286dd76c9323d764d2dbb82920d0cf",
+      "bytes": 13064,
+      "without_import": true
+    }
+  ],
+  "unparsed_working": []
+}
