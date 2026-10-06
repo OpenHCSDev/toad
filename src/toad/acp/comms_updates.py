@@ -214,10 +214,13 @@ class OwnerSnapshotConsumer(CommsUpdateConsumer):
         identity = presentation.read_identity
         if identity is None:
             return  # An unavailable source supplies no turn settlement.
+        identity.publish_turn(self.publish_thread_turn)
+
+    def publish_thread_turn(self, root, thread):
+        """Only the live transcript member can supply actual owner settlement."""
         coordination = self.agent.coordination
         self.agent.controller.require_owner(
             coordination, ClientSessionRequest(self.agent, self.session_id))
-        if (identity.root != coordination.wire_root
-                or identity.thread.incarnation != coordination.thread):
+        if (root != coordination.wire_root or thread.incarnation != coordination.thread):
             raise ValueError('Turn snapshot belongs to another original thread source')
-        self.turn_changed(TurnChangedUpdate(identity.thread.turn_state))
+        self.turn_changed(TurnChangedUpdate(thread.turn_state))

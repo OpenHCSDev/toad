@@ -8,11 +8,11 @@ from pathlib import Path
 from typing import ClassVar
 
 from agent_comms.comms import Comms
+from agent_comms.coordination_errors import StaleRevision
 from agent_comms.mro_dispatch import handles
 from toad.core.source_events import MessageHandlingRequested
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
-from agent_comms import HistoricalMessage, HistoricalThread
-from agent_comms.presentation import MessageNotification
+from agent_comms import HistoricalThread
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalGroup
@@ -105,17 +105,20 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
             f"Session: {item.thread.session_file or 'No saved session recorded'} · read only"
         )
         loader = partial(
-            self.comms.transcripts.thread_transcript_page,
+            self.comms.transcripts.capture_page_read,
             item.thread.name,
             historical_source=item.source.key,
         )
 
         async def load(**kwargs):
-            return await asyncio.to_thread(loader, **kwargs)
+            def read():
+                return loader(**kwargs).read()
+
+            return await asyncio.to_thread(read)
 
         try:
             page = await load()
-        except (OSError, ValueError) as error:
+        except (OSError, ValueError, StaleRevision) as error:
             if generation == self._selection_generation:
                 await content.mount(
                     Static(f"Could not read this saved session: {error}", markup=False)
@@ -157,21 +160,7 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
             return
 
         def read():
-            item.source.validate()
-            # Source-only Comms reads admit no protocol initialization, claim
-            # or historical execution; the original frozen registry owns joins.
-            original = Comms(Path(item.source.root), private_initial_writes=False,
-                             private_claim_writes=False)
-            order = self.comms.bus.history.sources().index(item.source)
-            messages = tuple(HistoricalMessage.project(message, item.source, order,
-                                                       item.source.provenance)
-                             for message in original.bus.log.messages_for_references(references))
-            results = {}
-            for start in range(0, len(messages), MessageNotification.window_limit):
-                results.update(original.views.message_notifications(
-                    messages[start:start + MessageNotification.window_limit]))
-            item.source.validate()
-            return results
+            return item.source.notification_references(self.comms.bus.history, references)
 
         try:
             results = await asyncio.to_thread(read)

@@ -1,0 +1,7 @@
+# Paired installed-purpose handoff
+
+Toad source determining8c84 remains unchanged in all three controls and production/helper assets. Core qualifier determining003c30742fce6a34a9a27e3d4430adfd55c5b095 closes the original declaring consumer plus selected immutable MCP setup/PTY family. No adapter alias, surface mirror, fake native proof or producer bypass.
+
+Original metadata source, native observer and typed mounted pilot hashes are bound in /home/ts/wt/comms-goal-ledger-schema-carry-20261002/evidence/current-native-mcp-qualifier-family-20261005/FUTURE-INSTALLED-PURPOSE.json (SHA256 849bc21dd59688f1202459bf88a06774612bde44ba4746140d2f99df38ad3110). Seven control/helper sources compiled; no application import, collection, test, installed/native/provider operation. All319 retainedToadb2e assets match selectedGit/wheel; runtime_fixture and CSS are unchanged.
+
+Original typed pilot stdout/stderr remain separate PIPE outputs as guaranteed by ChildLaunch.spawn/Popen. No typed source change is needed. Future zero-input mounted phase/stale lease/goal clear run is independent of Sch's committed origin guard. Native four-case/mounted permission/refusal/disconnect follows only a truthful guard artifact/pin and exact holder/native purpose. Candidate NONLIVE holder remains UNBOUND; no public485/package loan or input authority is inferred. First failure stops and returns the issued floor, preserving UNKNOWN.
