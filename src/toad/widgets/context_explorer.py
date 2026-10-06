@@ -11,6 +11,7 @@ from textual.containers import Horizontal, Vertical
 from textual.widgets import Button, Input, Static, TextArea, Tree
 from textual.worker import Worker, WorkerCancelled, WorkerState, get_current_worker
 from agent_comms.mro_dispatch import handles
+from agent_comms.coordinator import Coordination
 
 from toad.core.context_inspection import (
     ContextNode, DetachedInspection, HoldingInspection, InspectionState,
@@ -393,12 +394,18 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             self.notify("Original human correction recorded")
             self._read()
 
-    def _present(self, captured: HoldingInspection):
+    @work(group="context-presentation", exclusive=True, exit_on_error=False)
+    async def _present(self, captured: HoldingInspection):
         if self.intent.query:
             self._search(captured, self.intent.query, self.intent.selected)
             return
         self.workers.cancel_group(self, "context-search")
-        self.query_one(ContextTree).present(captured.groups())
+        # The acquired inspection owns its source projection. Building all
+        # recorded segments and annotation relationships is preparation, not
+        # a native Tree operation; keep it off the application's input loop.
+        groups = await Coordination.run_worker(captured.groups)
+        if self.state is captured and self.presentation_visible():
+            self.query_one(ContextTree).present(groups)
 
     @on(Input.Changed, "#context-search")
     def query_changed(self, event):
