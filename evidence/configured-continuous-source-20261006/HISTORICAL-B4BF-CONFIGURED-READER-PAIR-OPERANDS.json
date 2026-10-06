@@ -263,7 +263,7 @@
   "configured_provider_requests": "UNBOUND: original selected triage/native automatic-author/reply handling can create additional native requests; 6 authored UI inputs is not total provider calls",
   "model_thinking_auth": "Original captured configured model/thinking/provider/environment, no selected-offline replacement",
   "readiness_seconds": 20,
-  "outer_seconds": 2100,
+  "outer_seconds": 150,
   "mandatory_phases": [
     "saved committed journal source-bound nonwhite native paint without input",
     "saved channel actual sidebar open and tab return",
@@ -397,7 +397,7 @@
     },
     "admission_generation": 3394
   },
-  "outer_owner": "Original BoundedRun.session/AttachedChild consumes issued2100seconds once for complete configured workflow;93 existing20s waits,4roster8s waits, original fork helpers and explicit acquisition/close allowance. Not a timing claim or warm budget inheritance.",
+  "outer_owner": "Original BoundedRun.session/AttachedChild; exact proposed150 becomes usable only when actual immutable grant and released lifecycle bind it. No inner competing timeout/extension.",
   "environment": {
     "unset": [
       "PYTHONPATH",
@@ -724,12 +724,7 @@
       "-B",
       "/home/ts/wt/toad-configured-continuous-owner-20261006/.artifacts/configured-continuous-source-20261006/485-current471-reader-pair-installed-purpose/run_configured.py"
     ],
-    "materialization": "Only three actual fresh grant/lifecycle/SHA literals after issue. Exact controller/Appmap/final handoff/newmatchingEXEC and actual source READ must bind in same lifecycle before sole App release.",
-    "outer_bound_descriptor": {
-      "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/evidence/configured-continuous-source-20261006/CONFIGURED-OUTER-BOUND-CORRECTION.json",
-      "sha256": "ca1fa6a34c19d8aebc42637c589b9f5323f4245b1b5a46369723cb9e1888bd24",
-      "bytes": 7710
-    }
+    "materialization": "Only three actual fresh grant/lifecycle/SHA literals after issue. Exact controller/Appmap/final handoff/newmatchingEXEC and actual source READ must bind in same lifecycle before sole App release."
   },
   "configured_arguments": [
     "--core-checkout",
@@ -770,7 +765,7 @@
     "/home/ts/wt/toad-configured-continuous-owner-20261006/tests/readonly_saved_reader_pilot.py": "63c36b3cde89cf899995508cf73c4b193e385826e56a2f79e640349f6cc06c0e",
     "/home/ts/wt/toad-configured-continuous-owner-20261006/tests/canonical_wire_conversation_installed_pilot.py": "b8b4c67ea8bbdb2062d64b275de3cc5cce31d62471350eeca4441de105d10843"
   },
-  "control_timeout_seconds": 2100,
+  "control_timeout_seconds": 150,
   "outputs": {
     "stage": [
       "/home/ts/wt/toad-configured-continuous-owner-20261006/.artifacts/configured-continuous-source-20261006/485-current471-reader-pair-installed-purpose/stage-command.json",
@@ -853,10 +848,5 @@
     "owner": "Original CurrentTypedCapture and RetainedOwnerLaunch; no direct decoder run before actual new sourceREAD release",
     "return": "After SDK private fork/admission and capture.require_current/source SHA check, original PUBLIC_WITNESS_RELEASED; source custody unchanged. Separate from eventual whole private return."
   },
-  "runtime_paths_absent_at_preparation": true,
-  "outer_bound_basis": {
-    "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/evidence/configured-continuous-source-20261006/CONFIGURED-OUTER-BOUND-CORRECTION.json",
-    "sha256": "ca1fa6a34c19d8aebc42637c589b9f5323f4245b1b5a46369723cb9e1888bd24",
-    "bytes": 7710
-  }
+  "runtime_paths_absent_at_preparation": true
 }
