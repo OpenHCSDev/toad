@@ -1,0 +1,220 @@
+{
+  "coverage": [
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "root": "tests",
+      "modules": 403,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "root": "tools",
+      "modules": 40,
+      "omissions": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": []
+    }
+  ],
+  "consumers": [
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "src/toad/widgets/comms_menu.py",
+      "declarations": [
+        "ContextMenuItem",
+        "ContextMenu",
+        "show_target_menu",
+        "Pressed",
+        "on_mouse_down",
+        "on_mouse_up",
+        "on_leave",
+        "action_choose",
+        "action_cancel",
+        "item_pressed",
+        "on_click"
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/agent_configuration_native_installed_pilot.py",
+      "declarations": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/agent_selection_configured_installed_pilot.py",
+      "declarations": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/channel_any_mode_ui_pilot.py",
+      "declarations": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/channel_views_pilot.py",
+      "declarations": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/channel_visibility_pilot.py",
+      "declarations": [
+        "choose"
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/command_family_pilot.py",
+      "declarations": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/comms_pilot.py",
+      "declarations": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/core_events_native_installed_pilot.py",
+      "declarations": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/declared_target_actions_installed_pilot.py",
+      "declarations": [
+        "open_menu",
+        "choose"
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/file_path_preview_pilot.py",
+      "declarations": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/first_fork_native_installed_pilot.py",
+      "declarations": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/goal_pause_owner_pilot.py",
+      "declarations": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/goal_state_installed_journey.py",
+      "declarations": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/human_mark_read_pilot.py",
+      "declarations": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/l0a_archive_history_pilot.py",
+      "declarations": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/main_menu_transfer_pilot.py",
+      "declarations": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/markdown_return_reuse_pilot.py",
+      "declarations": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/nominal_tool_menu_pilot.py",
+      "declarations": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/provider_login_installed_physical.py",
+      "declarations": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/right_comms_integration_pilot.py",
+      "declarations": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "declarations": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/session_sort_pilot.py",
+      "declarations": [
+        "choose"
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/sidebar_custody_installed_journey.py",
+      "declarations": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/sidebar_selected_targets_pilot.py",
+      "declarations": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/stop_responsiveness_pilot.py",
+      "declarations": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/test_context_manifest_navigation.py",
+      "declarations": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/thread_unread_start_pilot.py",
+      "declarations": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tools/performance/capture_state.py",
+      "declarations": []
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tools/performance/click_history.py",
+      "declarations": []
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/app.py",
+      "declarations": [
+        "on_event"
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/pilot.py",
+      "declarations": [
+        "_post_mouse_events"
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widget.py",
+      "declarations": [
+        "_forward_event"
+      ]
+    }
+  ]
+}
