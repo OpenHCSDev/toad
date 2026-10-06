@@ -1,0 +1,117 @@
+{
+  "scope": "Recorded native owner events and selected screenshots; full video presentation review incomplete",
+  "raw_references": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/pslp05/evidence/capture/after-state-frames.json",
+      "sha256": "966b27624f4d78a991dbe10660c2f918c4efb907e64dd4e4ec9f6e930454c1b1",
+      "bytes": 3007153
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/pslp05/evidence/capture/scroll-travel.jsonl",
+      "sha256": "5d8c1049f81d2df27e25fcd581453cc4918e5f470305bdd990a4f3474a41dbc3",
+      "bytes": 1597005
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/pslp05/evidence/capture/receipt.json",
+      "sha256": "6c6b3a3c6528501ade192d0bcf48a6831805489e990c71e0159ef2daca394a64",
+      "bytes": 795628
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/pslp05/evidence/capture/frame-delivery.json",
+      "sha256": "2ea1239a893d6a2076fc3cea47407b79dc1f2cfb7a543330fdc6c7ce2175a3a0",
+      "bytes": 146823
+    }
+  ],
+  "toggle_to_next_writer": [
+    {
+      "collapsed": false,
+      "handler_ms": 1.49934,
+      "next_writer_ms": 50.059056,
+      "limitation": "First writer completion after handler; not matched changed pixels or input-to-photon latency"
+    },
+    {
+      "collapsed": true,
+      "handler_ms": 3.902761,
+      "next_writer_ms": 38.663525,
+      "limitation": "First writer completion after handler; not matched changed pixels or input-to-photon latency"
+    },
+    {
+      "collapsed": false,
+      "handler_ms": 5.27006,
+      "next_writer_ms": 69.447156,
+      "limitation": "First writer completion after handler; not matched changed pixels or input-to-photon latency"
+    }
+  ],
+  "owner_durations_ms": {
+    "_refresh_layout": {
+      "count": 512,
+      "median": 14.494566,
+      "p95": 26.054715,
+      "max": 73.466466
+    },
+    "_compositor_refresh": {
+      "count": 1036,
+      "median": 3.016668,
+      "p95": 8.472857,
+      "max": 23.71316
+    },
+    "arrange_root": {
+      "count": 570,
+      "median": 9.088898499999999,
+      "p95": 17.438025,
+      "max": 96.387357
+    }
+  },
+  "motion": [
+    {
+      "phase": "transcript_up",
+      "changes": 36,
+      "from": 302,
+      "to": 230.0,
+      "raw_restore_flags": [
+        false
+      ]
+    },
+    {
+      "phase": "transcript_down",
+      "changes": 36,
+      "from": 230.0,
+      "to": 302.0,
+      "raw_restore_flags": [
+        false
+      ]
+    },
+    {
+      "phase": "transcript_reverse",
+      "changes": 36,
+      "from": 302,
+      "to": 230.0,
+      "raw_restore_flags": [
+        false
+      ]
+    },
+    {
+      "phase": "context_down",
+      "changes": 6,
+      "from": 12.0,
+      "to": 24.0,
+      "raw_restore_flags": [
+        null
+      ]
+    },
+    {
+      "phase": "context_up",
+      "changes": 6,
+      "from": 24.0,
+      "to": 12.0,
+      "raw_restore_flags": [
+        null
+      ]
+    }
+  ],
+  "left_sidebar_scroll_qualified": false,
+  "left_sidebar_reason": "Two authored thread rows fit entirely; screenshots show no overflowing roster and wheel phases recorded no left viewport movement.",
+  "presentation_fps_qualified": false,
+  "many_responding_agents_qualified": false,
+  "public_installation_changed": false
+}
