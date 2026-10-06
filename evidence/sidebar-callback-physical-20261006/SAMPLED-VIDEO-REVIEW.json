@@ -1,0 +1,51 @@
+{
+  "source_video": {
+    "path": "/home/ts/.cache/agent-scratch/pslp05/evidence/capture/terminal.mp4",
+    "sha256": "8e097c84d3183d78a06b533fec43ed97f090fa47e64f5768f21e895ec392da5f",
+    "bytes": 25129250
+  },
+  "extraction": "ffmpeg read-only source video, three3s intervals sampled4fps, contact sheets4x3; raw video/receipt unchanged",
+  "intervals": [
+    {
+      "name": "transcript-up",
+      "start_seconds": 70.57
+    },
+    {
+      "name": "transcript-down",
+      "start_seconds": 80.51
+    },
+    {
+      "name": "context-down",
+      "start_seconds": 118.0
+    }
+  ],
+  "derived_contact_sheets": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/parent-selected-target-acceptance-20261006/video-review/transcript-up.png",
+      "sha256": "b0541c4df409833d432f3d469edcf3cf71d7218ed8d705b50f3a7da5c2396b3b",
+      "bytes": 505521
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/parent-selected-target-acceptance-20261006/video-review/transcript-down.png",
+      "sha256": "3b0e669b393076f3013ed2997d44593804f63f3a03dce7d25448f1dd8a557f9b",
+      "bytes": 473153
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/parent-selected-target-acceptance-20261006/video-review/context-down.png",
+      "sha256": "26ade0d3138dad199f46b2f401a53b7fbe6ab09c1f8117874af1f948f4cbe010",
+      "bytes": 287840
+    }
+  ],
+  "visual_observations": [
+    "Transcript text visibly moves in both directions with sidebar widths remaining stable through these sampled intervals",
+    "Right sidebar containing the context tree moves vertically; the original scroll records identify SidebarViewport object140690396470224, not ContextTree internal scroll",
+    "Sampled transcript frames retain nonblank native text; sparse samples cannot prove absence of transient missing paint or frame stalls",
+    "Left roster still contains only two authored thread rows and does not exercise an overflowing left bar"
+  ],
+  "limits": [
+    "No presentation FPS/input-to-photon/smoothness claim",
+    "Not a complete frame-by-frame review",
+    "No many-agent response workload",
+    "No live installation change"
+  ]
+}
