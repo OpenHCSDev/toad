@@ -1,0 +1,172 @@
+{
+  "state": "SOURCE binding only; no runtime authority",
+  "historical_tuple": {
+    "path": "/home/ts/wt/toad-configured-participant-cells-20261006/evidence/configured-current-menu-pair-20261006/FINAL-CONFIGURED-OPERANDS.json",
+    "sha256": "300395e0a926bad6ae6b95b63c24bfe3c58d24052f808cbebedd656ba62497cc",
+    "bytes": 64199
+  },
+  "parent_PR": "https://github.com/OpenHCSDev/toad/pull/498",
+  "published_parent_head": "6c52fd28faa73feaaf509506a7c9c1dcab29579d",
+  "determining_helper_commit": "150ce813f61f9f4b937657aad559b1306c18907d",
+  "actual_parent_root_head": "d043cc46d113e1890d0b9ee46bc22f7ada39c373",
+  "all9_actual_helper_bytes_equal_published6c52": true,
+  "effective_control": {
+    "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/saved_state_user_journey_pilot.py",
+    "sha256": "c9e8e3b32c0285653112a37ea6596a809d601e0c779a3dabd35f6b2f0b4c971e",
+    "bytes": 47905
+  },
+  "only_configured_declaration_changed": "reveal_thread_row",
+  "exact_change": {
+    "before": "    if group.expanded is False:\n        assert await pilot.click(group.disclosure)",
+    "after": "    if group.expanded is False:\n        group.disclosure.scroll_visible(animate=False, immediate=True)\n        await pilot.pause()\n        assert await pilot.click(group.disclosure)"
+  },
+  "sibling_helper_relations": [
+    {
+      "historical": {
+        "path": "/home/ts/wt/toad-configured-participant-cells-20261006/tests/l0a_native_installed_pilot.py",
+        "sha256": "af0fb2d285ce9dddf728650809ab206b706000ed1d003e520d382b483b04e61a",
+        "bytes": 37666
+      },
+      "effective": {
+        "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/l0a_native_installed_pilot.py",
+        "sha256": "af0fb2d285ce9dddf728650809ab206b706000ed1d003e520d382b483b04e61a",
+        "bytes": 37666
+      },
+      "byte_equal": true
+    },
+    {
+      "historical": {
+        "path": "/home/ts/wt/toad-configured-participant-cells-20261006/tests/manual_live_turn_status.py",
+        "sha256": "f333da956fcc9e367f993853aa3daabbaea8d4278feed24eaa644d51c74e48fa",
+        "bytes": 7122
+      },
+      "effective": {
+        "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/manual_live_turn_status.py",
+        "sha256": "f333da956fcc9e367f993853aa3daabbaea8d4278feed24eaa644d51c74e48fa",
+        "bytes": 7122
+      },
+      "byte_equal": true
+    },
+    {
+      "historical": {
+        "path": "/home/ts/wt/toad-configured-participant-cells-20261006/tests/native_session_retention_pilot.py",
+        "sha256": "6eb54c6444f8d96d15be94671a8fb7c1ec7ca8348357c18804f73dbd2a61e48a",
+        "bytes": 35091
+      },
+      "effective": {
+        "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/native_session_retention_pilot.py",
+        "sha256": "b2ef51a97609077948f4e9ac0c4820aa4e0ae04bdf2a12e8e5c7544afc33e85c",
+        "bytes": 35157
+      },
+      "byte_equal": false
+    },
+    {
+      "historical": {
+        "path": "/home/ts/wt/toad-configured-participant-cells-20261006/tests/runtime_fixture.py",
+        "sha256": "c34f37f450a02f09d344352466431744892a0c788953212da5ac434d912e3315",
+        "bytes": 18978
+      },
+      "effective": {
+        "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/runtime_fixture.py",
+        "sha256": "c34f37f450a02f09d344352466431744892a0c788953212da5ac434d912e3315",
+        "bytes": 18978
+      },
+      "byte_equal": true
+    },
+    {
+      "historical": {
+        "path": "/home/ts/wt/toad-configured-participant-cells-20261006/tests/saved_state_user_journey_pilot.py",
+        "sha256": "21ce690ba324ad6bae9d53b0881f8e302aae3fbb206fa733c256a42ea8804598",
+        "bytes": 47806
+      },
+      "effective": {
+        "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/saved_state_user_journey_pilot.py",
+        "sha256": "c9e8e3b32c0285653112a37ea6596a809d601e0c779a3dabd35f6b2f0b4c971e",
+        "bytes": 47905
+      },
+      "byte_equal": false
+    },
+    {
+      "historical": {
+        "path": "/home/ts/wt/toad-configured-participant-cells-20261006/tests/thread_navigation_installed_journey.py",
+        "sha256": "a23fbcb8578986949712cacc8d7b1af01b97808de225c9dbdf970177c4a6f4d2",
+        "bytes": 10668
+      },
+      "effective": {
+        "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/thread_navigation_installed_journey.py",
+        "sha256": "a23fbcb8578986949712cacc8d7b1af01b97808de225c9dbdf970177c4a6f4d2",
+        "bytes": 10668
+      },
+      "byte_equal": true
+    },
+    {
+      "historical": {
+        "path": "/home/ts/wt/toad-configured-participant-cells-20261006/tests/viewport_recent_tabs_pilot.py",
+        "sha256": "b6141aeb7024439d39c57802bf3f0d10be394e17e5e6f0610479843ad3a19f57",
+        "bytes": 22482
+      },
+      "effective": {
+        "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/viewport_recent_tabs_pilot.py",
+        "sha256": "b6141aeb7024439d39c57802bf3f0d10be394e17e5e6f0610479843ad3a19f57",
+        "bytes": 22482
+      },
+      "byte_equal": true
+    },
+    {
+      "historical": {
+        "path": "/home/ts/wt/toad-configured-participant-cells-20261006/tests/readonly_saved_reader_pilot.py",
+        "sha256": "63c36b3cde89cf899995508cf73c4b193e385826e56a2f79e640349f6cc06c0e",
+        "bytes": 19357
+      },
+      "effective": {
+        "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/readonly_saved_reader_pilot.py",
+        "sha256": "63c36b3cde89cf899995508cf73c4b193e385826e56a2f79e640349f6cc06c0e",
+        "bytes": 19357
+      },
+      "byte_equal": true
+    },
+    {
+      "historical": {
+        "path": "/home/ts/wt/toad-configured-participant-cells-20261006/tests/canonical_wire_conversation_installed_pilot.py",
+        "sha256": "b8b4c67ea8bbdb2062d64b275de3cc5cce31d62471350eeca4441de105d10843",
+        "bytes": 31836
+      },
+      "effective": {
+        "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/tests/canonical_wire_conversation_installed_pilot.py",
+        "sha256": "b8b4c67ea8bbdb2062d64b275de3cc5cce31d62471350eeca4441de105d10843",
+        "bytes": 31836
+      },
+      "byte_equal": true
+    }
+  ],
+  "native_sibling_only_changed_declaration": [
+    "warm_admission_acceptance"
+  ],
+  "configured_native_imports_ASTequal": [
+    "InstalledApp",
+    "conversation_paint"
+  ],
+  "all_other_saved_declarations_assertions_ASTequal": true,
+  "configured_caller": "configured_acceptance -> click_thread -> reveal_thread_row; reveal disclosure before real Pilot.click, then unchanged member geometry and same-session assertions",
+  "production_edit": false,
+  "wheel_changes": false,
+  "Core694_producer_unchanged": {
+    "path": "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tests/compaction_source_successor_installed_journey.py",
+    "sha256": "4cdfe9eb035cac9a12fe0fab7c432210662b7258c311a41d8b3a2058a61e59f0",
+    "bytes": 13304
+  },
+  "controller_and_proof_templates_unchanged": [
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/evidence/configured-continuous-source-20261006/run_configured.template.py",
+      "sha256": "112a0ceb4779515152f0d8b20d3db25f3333084ce75ed670253179c20cd7acf0",
+      "bytes": 5528
+    },
+    {
+      "path": "/home/ts/wt/toad-configured-participant-cells-20261006/evidence/configured-current-menu-pair-20261006/verify_configured_334.template.py",
+      "sha256": "438ea275923c3cfdf3c2504e220734b13150bfa9fadaa1d386181987a34ea137",
+      "bytes": 10686
+    }
+  ],
+  "old_operator_roots_and_tuple_bytepreserved": true,
+  "runtime_cause_beyond_original_Batch07_OutOfBounds_not_inferred": true
+}
