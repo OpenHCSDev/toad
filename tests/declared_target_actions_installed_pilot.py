@@ -154,7 +154,7 @@ async def select_rows(app, pilot, rows, evidence):
                 'navigation_restoring': sidebar.navigation.restoring,
                 'observation_pending': sidebar.observation.pending,
                 'input_attached': row.is_attached,
-                'input_visible': row.is_on_screen,
+                'input_visible': row in app.screen._compositor.visible_widgets,
             }) + '\n')
 
     record('before-menu', rows[0])
@@ -205,7 +205,7 @@ async def selected_target_actions(app, pilot, comms, project, base, checks):
         'sidebar_state': FieldCodec.encode(app.sidebar_state),
         'cohort': cohort,
         'expected_targets': ordered_cohort,
-        'row_visibility': {row.target_name: row.is_on_screen for row in rows},
+        'row_visibility': {row.target_name: row in app.screen._compositor.visible_widgets for row in rows},
     }, indent=2))
     assert tuple(item.target for item in app.sidebar_state.selected_targets) == ordered_cohort
     assert app.selected_mode == original_mode
@@ -281,7 +281,7 @@ async def selected_target_actions(app, pilot, comms, project, base, checks):
     anchor = await reveal_thread_row(app, pilot, range_names[0], '#range')
     await select_rows(app, pilot, (anchor,), base)
     endpoint = await reveal_thread_row(app, pilot, range_names[-1], '#range')
-    assert not anchor.is_on_screen and endpoint.is_on_screen
+    assert anchor not in app.screen._compositor.visible_widgets and endpoint in app.screen._compositor.visible_widgets
     ordered_range = tuple(row.target_name for row in sidebar.projection.rows
                           if sidebar.navigation.selection_for(row).channel == '#range'
                           and row.target_name in range_names)
@@ -290,8 +290,8 @@ async def selected_target_actions(app, pilot, comms, project, base, checks):
     (base / 'scrolled-range-selection-state.json').write_text(json.dumps({
         'sidebar_state': FieldCodec.encode(app.sidebar_state),
         'expected_targets': ordered_range,
-        'anchor_visible': anchor.is_on_screen,
-        'endpoint_visible': endpoint.is_on_screen,
+        'anchor_visible': anchor in app.screen._compositor.visible_widgets,
+        'endpoint_visible': endpoint in app.screen._compositor.visible_widgets,
     }, indent=2))
     assert tuple(item.target for item in app.sidebar_state.selected_targets) == ordered_range
     assert app.selected_mode == original_mode

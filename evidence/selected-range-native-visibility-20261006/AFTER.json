@@ -1,0 +1,50 @@
+{
+  "changed_functions": [
+    "select_rows",
+    "selected_target_actions"
+  ],
+  "all_other_declarations_AST_equal": true,
+  "assertions": 124,
+  "only_changed_assertion": "clipped anchor/endpoint operands now borrowed from native positive paint cohort",
+  "all_other_assertions_AST_equal": true,
+  "whole_helper_is_on_screen_consumers_removed": true,
+  "unchanged_sibling_helpers": [
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "sha256": "af0fb2d285ce9dddf728650809ab206b706000ed1d003e520d382b483b04e61a",
+      "bytes": 37666
+    },
+    {
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "sha256": "b6141aeb7024439d39c57802bf3f0d10be394e17e5e6f0610479843ad3a19f57",
+      "bytes": 22482
+    },
+    {
+      "path": "tests/native_session_retention_pilot.py",
+      "sha256": "b2ef51a97609077948f4e9ac0c4820aa4e0ae04bdf2a12e8e5c7544afc33e85c",
+      "bytes": 35157
+    },
+    {
+      "path": "tests/thread_navigation_installed_journey.py",
+      "sha256": "a23fbcb8578986949712cacc8d7b1af01b97808de225c9dbdf970177c4a6f4d2",
+      "bytes": 10668
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "sha256": "c9e8e3b32c0285653112a37ea6596a809d601e0c779a3dabd35f6b2f0b4c971e",
+      "bytes": 47905
+    },
+    {
+      "path": "tests/manual_live_turn_status.py",
+      "sha256": "f333da956fcc9e367f993853aa3daabbaea8d4278feed24eaa644d51c74e48fa",
+      "bytes": 7122
+    },
+    {
+      "path": "tests/runtime_fixture.py",
+      "sha256": "c34f37f450a02f09d344352466431744892a0c788953212da5ac434d912e3315",
+      "bytes": 18978
+    }
+  ],
+  "changed_module_compile_without_imports": true,
+  "tests_or_App_run": false
+}

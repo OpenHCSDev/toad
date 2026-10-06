@@ -1,0 +1,958 @@
+{
+  "head": "d963b978fdde6ed524dcb273a63d2c7a9d19f11e",
+  "coverage": [
+    {
+      "root": "src/toad",
+      "modules": 288,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "modules": 403,
+      "omissions": []
+    },
+    {
+      "root": "tools",
+      "modules": 40,
+      "omissions": []
+    },
+    {
+      "root": "native src/textual",
+      "head": "2d45091584a7f9b386baa2a8edf8fb3a3ba8a3d6",
+      "modules": 249,
+      "omissions": []
+    }
+  ],
+  "visibility_consumers": [
+    {
+      "path": "src/toad/goal_interaction.py",
+      "sites": [
+        {
+          "line": 214,
+          "expression": "view.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/mounted_message_history.py",
+      "sites": [
+        {
+          "line": 176,
+          "expression": "self.view.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 301,
+          "expression": "self.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/project_path_owner.py",
+      "sites": [
+        {
+          "line": 19,
+          "expression": "widget.is_on_screen"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/transcript_filter.py",
+      "sites": [
+        {
+          "line": 191,
+          "expression": "owner.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 130,
+          "expression": "snapshot.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/widgets/committed_presentation.py",
+      "sites": [
+        {
+          "line": 294,
+          "expression": "view.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "sites": [
+        {
+          "line": 314,
+          "expression": "self.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 173,
+          "expression": "self.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "sites": [
+        {
+          "line": 54,
+          "expression": "screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "sites": [
+        {
+          "line": 252,
+          "expression": "self.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "sites": [
+        {
+          "line": 288,
+          "expression": "self.is_on_screen"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/widgets/project_directory_tree.py",
+      "sites": [
+        {
+          "line": 111,
+          "expression": "self.is_on_screen"
+        },
+        {
+          "line": 116,
+          "expression": "self.is_on_screen"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/widgets/recovery_view.py",
+      "sites": [
+        {
+          "line": 56,
+          "expression": "self.is_on_screen"
+        },
+        {
+          "line": 112,
+          "expression": "self.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "sites": [
+        {
+          "line": 40,
+          "expression": "self.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "sites": [
+        {
+          "line": 374,
+          "expression": "self.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/widgets/throbber.py",
+      "sites": [
+        {
+          "line": 132,
+          "expression": "screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "sites": [
+        {
+          "line": 285,
+          "expression": "self.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "sites": [
+        {
+          "line": 558,
+          "expression": "self.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 786,
+          "expression": "self.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "sites": [
+        {
+          "line": 803,
+          "expression": "self.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 957,
+          "expression": "self.window.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 1094,
+          "expression": "screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/agent_configuration_native_installed_pilot.py",
+      "sites": [
+        {
+          "line": 33,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/agent_selection_configured_installed_pilot.py",
+      "sites": [
+        {
+          "line": 150,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/attachment_request_pilot.py",
+      "sites": [
+        {
+          "line": 124,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/canonical_wire_conversation_installed_pilot.py",
+      "sites": [
+        {
+          "line": 266,
+          "expression": "app.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 174,
+          "expression": "view.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/channel_roster_retention_pilot.py",
+      "sites": [
+        {
+          "line": 34,
+          "expression": "screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/command_family_pilot.py",
+      "sites": [
+        {
+          "line": 72,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "sites": [
+        {
+          "line": 882,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/core_events_native_installed_pilot.py",
+      "sites": [
+        {
+          "line": 64,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/cursor_extent_pilot.py",
+      "sites": [
+        {
+          "line": 60,
+          "expression": "view.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 100,
+          "expression": "view.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 76,
+          "expression": "view.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/cursor_request_pilot.py",
+      "sites": [
+        {
+          "line": 138,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/declared_target_actions_installed_pilot.py",
+      "sites": [
+        {
+          "line": 284,
+          "expression": "endpoint.is_on_screen"
+        },
+        {
+          "line": 284,
+          "expression": "anchor.is_on_screen"
+        },
+        {
+          "line": 293,
+          "expression": "anchor.is_on_screen"
+        },
+        {
+          "line": 294,
+          "expression": "endpoint.is_on_screen"
+        },
+        {
+          "line": 208,
+          "expression": "row.is_on_screen"
+        },
+        {
+          "line": 157,
+          "expression": "row.is_on_screen"
+        }
+      ]
+    },
+    {
+      "path": "tests/guards/test_plan_presentation.py",
+      "sites": [
+        {
+          "line": 61,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/history_availability_installed_pilot.py",
+      "sites": [
+        {
+          "line": 71,
+          "expression": "app.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 74,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/history_edge_scheduling_pilot.py",
+      "sites": [
+        {
+          "line": 79,
+          "expression": "chat.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/history_frame_publication_pilot.py",
+      "sites": [
+        {
+          "line": 44,
+          "expression": "screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/history_mounted_budget_pilot.py",
+      "sites": [
+        {
+          "line": 59,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/history_page_batch_mount_pilot.py",
+      "sites": [
+        {
+          "line": 121,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/independent_native_writer_pilot.py",
+      "sites": [
+        {
+          "line": 109,
+          "expression": "workspace._compositor.visible_widgets"
+        },
+        {
+          "line": 131,
+          "expression": "workspace._compositor.visible_widgets"
+        },
+        {
+          "line": 134,
+          "expression": "workspace._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "sites": [
+        {
+          "line": 54,
+          "expression": "app.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 195,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "sites": [
+        {
+          "line": 54,
+          "expression": "screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "sites": [
+        {
+          "line": 54,
+          "expression": "screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/markdown_return_reuse_pilot.py",
+      "sites": [
+        {
+          "line": 160,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/message_dividers_pilot.py",
+      "sites": [
+        {
+          "line": 129,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "sites": [
+        {
+          "line": 242,
+          "expression": "app.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 381,
+          "expression": "frame._compositor.visible_widgets"
+        },
+        {
+          "line": 279,
+          "expression": "frame._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/original_stream_headers_installed_pilot.py",
+      "sites": [
+        {
+          "line": 37,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "sites": [
+        {
+          "line": 30,
+          "expression": "widget.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 122,
+          "expression": "mounted.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 123,
+          "expression": "mounted.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/prompt_completion_installed_pilot.py",
+      "sites": [
+        {
+          "line": 38,
+          "expression": "widget.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/prompt_popup_new_case_pilot.py",
+      "sites": [
+        {
+          "line": 48,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/queue_admission_pilot.py",
+      "sites": [
+        {
+          "line": 127,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "sites": [
+        {
+          "line": 136,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/recovery_view_boundaries_pilot.py",
+      "sites": [
+        {
+          "line": 139,
+          "expression": "owner_screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "sites": [
+        {
+          "line": 46,
+          "expression": "screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "sites": [
+        {
+          "line": 399,
+          "expression": "scene.visible_widgets"
+        },
+        {
+          "line": 288,
+          "expression": "scene.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/retained_tool_text_pilot.py",
+      "sites": [
+        {
+          "line": 125,
+          "expression": "body.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 50,
+          "expression": "body.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 151,
+          "expression": "body.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "sites": [
+        {
+          "line": 73,
+          "expression": "screen._compositor.visible_widgets"
+        },
+        {
+          "line": 292,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/scroll_select_latency_pilot.py",
+      "sites": [
+        {
+          "line": 244,
+          "expression": "app.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 232,
+          "expression": "app.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 233,
+          "expression": "app.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 239,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "sites": [
+        {
+          "line": 62,
+          "expression": "app.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 101,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/shared_channels_pilot.py",
+      "sites": [
+        {
+          "line": 51,
+          "expression": "screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/sidebar_direction_pilot.py",
+      "sites": [
+        {
+          "line": 42,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/sidebar_edge_anchor_installed_pilot.py",
+      "sites": [
+        {
+          "line": 71,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "sites": [
+        {
+          "line": 59,
+          "expression": "widget.screen.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/sidebar_selected_targets_pilot.py",
+      "sites": [
+        {
+          "line": 142,
+          "expression": "endpoint.is_on_screen"
+        },
+        {
+          "line": 142,
+          "expression": "anchor.is_on_screen"
+        }
+      ]
+    },
+    {
+      "path": "tests/tab_history_controls_pilot.py",
+      "sites": [
+        {
+          "line": 104,
+          "expression": "app.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 74,
+          "expression": "first_screen._compositor.visible_widgets"
+        },
+        {
+          "line": 143,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/tail_anchor_policy_pilot.py",
+      "sites": [
+        {
+          "line": 31,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/thread_navigation_installed_journey.py",
+      "sites": [
+        {
+          "line": 136,
+          "expression": "app.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 106,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/throbber_busy_pilot.py",
+      "sites": [
+        {
+          "line": 44,
+          "expression": "compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/throbber_scroll_cost_pilot.py",
+      "sites": [
+        {
+          "line": 44,
+          "expression": "compositor.visible_widgets"
+        },
+        {
+          "line": 45,
+          "expression": "compositor.visible_widgets"
+        },
+        {
+          "line": 46,
+          "expression": "compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "sites": [
+        {
+          "line": 372,
+          "expression": "app.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 386,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/viewport_demand_custody_pilot.py",
+      "sites": [
+        {
+          "line": 48,
+          "expression": "window.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "sites": [
+        {
+          "line": 58,
+          "expression": "app.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 97,
+          "expression": "app.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 48,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/viewport_rapid_scroll_pilot.py",
+      "sites": [
+        {
+          "line": 94,
+          "expression": "app.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 107,
+          "expression": "app.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 20,
+          "expression": "screen._compositor.visible_widgets"
+        },
+        {
+          "line": 79,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "sites": [
+        {
+          "line": 133,
+          "expression": "app.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 223,
+          "expression": "app.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 198,
+          "expression": "app.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 387,
+          "expression": "frame._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/viewport_runway_pilot.py",
+      "sites": [
+        {
+          "line": 53,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/viewport_selection_diff_pilot.py",
+      "sites": [
+        {
+          "line": 43,
+          "expression": "app.screen._compositor.visible_widgets"
+        },
+        {
+          "line": 57,
+          "expression": "screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tests/worker_native_size_pilot.py",
+      "sites": [
+        {
+          "line": 100,
+          "expression": "scene.visible_widgets"
+        },
+        {
+          "line": 147,
+          "expression": "scene.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tools/performance/benchmark_spinner.py",
+      "sites": [
+        {
+          "line": 69,
+          "expression": "app.screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tools/performance/capture_state.py",
+      "sites": [
+        {
+          "line": 202,
+          "expression": "compositor.visible_widgets"
+        },
+        {
+          "line": 101,
+          "expression": "screen._compositor.visible_widgets"
+        }
+      ]
+    },
+    {
+      "path": "tools/performance/sidebar_validation_driver.py",
+      "sites": [
+        {
+          "line": 392,
+          "expression": "screen._compositor.visible_widgets"
+        },
+        {
+          "line": 675,
+          "expression": "screen._compositor.visible_widgets"
+        }
+      ]
+    }
+  ],
+  "native_owners": [
+    {
+      "path": "src/textual/_compositor.py",
+      "declaration": "Compositor.visible_widgets",
+      "line": 830,
+      "source": "def visible_widgets(self) -> dict[Widget, tuple[Region, Region]]:\n        \"\"\"Get widget origins and rectangles admitted to this original scene.\n\n        Returns:\n            Visible widget mapping.\n        \"\"\"\n\n        if self._visible_widgets is None:\n            self._visible_widgets = self._paint_regions(self.layers, self.size.region)\n        return self._visible_widgets"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "declaration": "Compositor._paint_regions",
+      "line": 848,
+      "source": "def _paint_regions(layers: Iterable[tuple[Widget, MapGeometry]], bounds: Region\n                       ) -> dict[Widget, tuple[Region, Region]]:\n        \"\"\"Own each positive paint rectangle within the original scene bounds.\"\"\"\n        return {widget: (entry.region, paint_region)\n                for widget, entry in layers\n                if (paint_region := entry.visible_region.intersection(bounds))}"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "declaration": "Compositor.get_widget_at",
+      "line": 1260,
+      "source": "def get_widget_at(self, x: int, y: int) -> tuple[Widget, Region]:\n        \"\"\"Get the widget under a given coordinate.\n\n        Args:\n            x: X Coordinate.\n            y: Y Coordinate.\n\n        Raises:\n            errors.NoWidget: If there is not widget underneath (x, y).\n\n        Returns:\n            A tuple of the widget and its region.\n        \"\"\"\n\n        for hit in self.get_widgets_at(x, y):\n            return hit\n        raise errors.NoWidget(f\"No widget under screen coordinate ({x}, {y})\")"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "declaration": "Compositor.find_widget",
+      "line": 1416,
+      "source": "def find_widget(self, widget: Widget) -> MapGeometry:\n        \"\"\"Get information regarding the relative position of a widget in the Compositor.\n\n        Args:\n            widget: The Widget in this layout you wish to know the Region of.\n\n        Raises:\n            NoWidget: If the Widget is not contained in this Layout.\n\n        Returns:\n            Widget's composition information.\n        \"\"\"\n        geometry = self._get_geometry(widget)\n        if geometry is None:\n            if self.root is not None and self._full_map_invalidated and not self._arranging:\n                # A position query requires this original ancestry path, not\n                # every offscreen descendant. Preserve the scene's existing\n                # reader placements in the same original reflow publication.\n                self.reflow_visible(\n                    self.root, self.size,\n                    retain_geometry=(*self._published_map, widget),\n                )\n                geometry = self._get_geometry(widget)\n            else:\n                # Measurement inside arrangement must not recursively arrange;\n                # the original complete map remains its available prior scope.\n                geometry = self.full_map.get(widget)\n        if geometry is None:\n            raise errors.NoWidget(\"Widget is not in layout\")\n        return geometry"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "declaration": "Compositor._get_geometry",
+      "line": 1447,
+      "source": "def _get_geometry(self, widget: Widget) -> MapGeometry | None:\n        \"\"\"Select geometry from its original current publication.\n\n        Capture consumes this publication; ordinary find_widget may arrange\n        missing geometry. An invalidated full map cannot override the viewport.\n        A missing capture descendant cannot escape to another scene.\n        \"\"\"\n        if self._render_geometry is not None:\n            root, geometry = self._render_geometry\n            # The original arrangement already admits its members, including\n            # cover and scrollbar resources. Only a missing query needs its\n            # ancestry to distinguish an omitted descendant from another scene.\n            placement = geometry.get(widget)\n            if placement is not None:\n                return placement\n            if root in widget.walk_ancestors(with_self=True):\n                raise errors.NoWidget(\"Widget is not in layout\")\n        return self._get_published_geometry(widget)"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "declaration": "Screen.get_widget_at",
+      "line": 647,
+      "source": "def get_widget_at(self, x: int, y: int) -> tuple[Widget, Region]:\n        \"\"\"Get the widget at a given coordinate.\n\n        Args:\n            x: X Coordinate.\n            y: Y Coordinate.\n\n        Returns:\n            Widget and screen region.\n\n        Raises:\n            NoWidget: If there is no widget under the screen coordinate.\n        \"\"\"\n        return self._compositor.get_widget_at(x, y)"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "declaration": "Screen.find_widget",
+      "line": 754,
+      "source": "def find_widget(self, widget: Widget) -> MapGeometry:\n        \"\"\"Get the screen region of a Widget.\n\n        Args:\n            widget: A Widget within the composition.\n\n        Returns:\n            Region relative to screen.\n\n        Raises:\n            NoWidget: If the widget could not be found in this screen.\n        \"\"\"\n        return self._compositor.find_widget(widget)"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "declaration": "Widget.is_on_screen",
+      "line": 2661,
+      "source": "def is_on_screen(self) -> bool:\n        \"\"\"Check if the node was displayed in the last screen update.\"\"\"\n        try:\n            self.screen.find_widget(self)\n        except (NoScreen, errors.NoWidget):\n            return False\n        return True"
+    }
+  ],
+  "affected_family": "select_rows diagnostics and selected_target_actions clipped-range assertions/receipt; compositor paint cohort is visibility owner"
+}
