@@ -21,3 +21,22 @@ The original lifetime App reached all three exact tree/panel restorations, selec
 The normal multi-tab caller check is in progress at this checkpoint. The earlier scale fixture tried to read an offscreen and collapsed relationship group; its original visibility/disclosure owners are now used before reading. All raw runs and read-only resource traces are under /home/ts/.cache/agent-scratch/parent-sidebar-retention-20261006. Source/native App checks are not an installed or physical frame-time result. No package build, installation, provider input, saved source capture or physical replay has occurred.
 
 Relevant existing controls are migrated: rich sidebar teardown means evict, plan lifecycle uses actual eviction, and transcript-specific accounting selects its original conversation resources. Sidebar admission is checked independently by the normal caller. The source family is being kept as one coherent change, with initial negatives preserved and no weakened reader/body checks.
+
+## Normal tab caller result
+
+The four-tab source App completed four returns, including two actual warm
+returns with identical panel widgets. Project selected path and reader scroll,
+relationship selection/disclosure and native painted text survived rebuild.
+Twenty-five retired widget references were collected or belonged to the current
+admitted sidebar. The original working-set admission bound remained enforced.
+Raw receipt: /home/ts/.cache/agent-scratch/parent-sidebar-retention-20261006/scale4-final-receipt.json; stdout/stderr alongside it.
+The original process exited zero with empty stderr. The receipt's old
+"installed" label names a source test class; this was a source App with current
+Core/native paths, not an installed-wheel verification.
+
+An earlier relationship disclosure wait failed intermittently; later complete
+returns passed, but that first refusal is retained and its cause is not claimed.
+The screenshot directory refusal was a test output-path error, corrected to the
+existing owned scratch directory. No production assertion was weakened.
+No source provider, saved session input, physical recording or installed package
+was operated or changed. Frame latency acceptance remains pending.
