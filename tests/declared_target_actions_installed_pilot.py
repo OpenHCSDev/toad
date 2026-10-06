@@ -84,6 +84,12 @@ async def choose(app, pilot, row, operation, fields, evidence):
         import runpy
         capture = runpy.run_path(Path(__file__).parents[1] / 'tools/performance/capture_state.py')['capture']
         capture(expected_pid=os.getpid(), output_prefix=evidence / (operation + '-completion-failure'))
+        if operation == 'start' and os.environ.get('TOAD_START_FAILURE_GDB') == '1':
+            # The reviewed diagnostic launches this App as GDB's inferior.
+            # Save Python evidence first; GDB suppresses only this marker,
+            # observes the stopped native threads, then resumes this failure.
+            import signal
+            signal.raise_signal(signal.SIGTRAP)
         raise
     if not isinstance(app.screen, CommandDialog):
         assert not fields, (operation, fields)

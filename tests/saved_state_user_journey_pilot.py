@@ -716,16 +716,16 @@ async def configured_acceptance(app, pilot, agent, comms, receipt, subscriber):
     await until(pilot, lambda: view.agent.current_turn.busy)
     require_current_activity(first)
     await submit_editor(pilot, view.prompt.prompt_text_area, queued_text)
-    await until(pilot, lambda: bool(view.queue_projection.items))
-    queued = tuple(view.queue_projection.items)
+    await until(pilot, lambda: bool(view.submissions.queue_projection.items))
+    queued = tuple(view.submissions.queue_projection.items)
     assert len(queued) == 1 and queued[0].text == queued_text
     assert queued_text in view.query_one(QueueSummary).render().plain
     await click_tab(app, pilot, channel.id)
     await click_tab(app, pilot, first.id)
-    assert view.queue_projection.items and view.queue_projection.items[0].input_id == queued[0].input_id
+    assert view.submissions.queue_projection.items and view.submissions.queue_projection.items[0].input_id == queued[0].input_id
     await until(pilot, lambda: not comms.registry.require('source529').executing
                 and view.agent.presentation.prompt_in_flight == 0
-                and not view.queue_projection.items)
+                and not view.submissions.queue_projection.items)
     await pilot.press('end')
     await until(pilot, lambda: response_painted(app, view, 'CONFIGURED_QUEUED_REPLY'))
     started_queue = inputs.read().lookup('acp:' + queued[0].input_id)

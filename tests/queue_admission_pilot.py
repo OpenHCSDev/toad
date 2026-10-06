@@ -118,7 +118,7 @@ async def main():
                 view.prompt.text = "local editable draft"
                 ids = [await enqueue("same text"), await enqueue("same text")]
                 assert ids[0] != ids[1]
-                assert [row.input_id for row in view.queue_projection.items] == ids
+                assert [row.input_id for row in view.submissions.queue_projection.items] == ids
                 assert all(
                     producer.inputs.dispositions.read().rows["acp:" + exact].unresolved
                     for exact in ids
@@ -129,7 +129,7 @@ async def main():
                 before = len(view.query(UserInput))
                 await producer.inputs.input_started("beta", ids[0], (), None)
                 await pilot.pause()
-                assert [row.input_id for row in view.queue_projection.items] == ids[1:]
+                assert [row.input_id for row in view.submissions.queue_projection.items] == ids[1:]
                 assert len(view.query(UserInput)) == before + 1
                 started = next(
                     packet
@@ -144,7 +144,7 @@ async def main():
                 assert len(view.query(UserInput)) == before + 1
                 await producer.inputs.finish_turn_inputs("beta", inbox)
                 await pilot.pause()
-                assert [row.input_id for row in view.queue_projection.restored] == ids[
+                assert [row.input_id for row in view.submissions.queue_projection.restored] == ids[
                     1:
                 ]
                 assert "Restored (1, read-only)" in summary.render().plain
@@ -155,7 +155,7 @@ async def main():
                 assert all(decode_updates(packet["_meta"]) for packet in callbacks)
                 producer.inputs.backend_inboxes["beta"] = asyncio.Queue()
                 invalid = await enqueue("\ud800")
-                assert view.queue_projection.status == "unavailable"
+                assert view.submissions.queue_projection.status == "unavailable"
                 assert "Remote queue unavailable" in summary.render().plain
                 assert (
                     producer.inputs.dispositions.read()
@@ -165,10 +165,10 @@ async def main():
                 assert view.prompt.text == "local editable draft"
                 comms.registry.register(comms.registry.require("beta"), new_owner=True)
                 await load()
-                assert view.queue_projection.status == "available"
+                assert view.submissions.queue_projection.status == "available"
                 assert (
-                    not view.queue_projection.items
-                    and not view.queue_projection.restored
+                    not view.submissions.queue_projection.items
+                    and not view.submissions.queue_projection.restored
                 )
                 assert invalid in producer.inputs.queued_inputs["beta"]
                 assert ids[1] in producer.inputs.restored_inputs["beta"]
