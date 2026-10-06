@@ -76,7 +76,7 @@ class CommandDialog(ModalScreen[dict[str, str]]):
 
     def update_confirmation(self):
         try:
-            confirmation = self.definition.edited(self.arguments()).confirmation()
+            confirmation = self.definition.edited(self.arguments()).confirmation
         except (KeyError, ValueError, TypeError):
             confirmation = self.definition.confirmation
         self.query_one('#command-confirmation', Static).update(confirmation)

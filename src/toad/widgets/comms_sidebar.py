@@ -213,7 +213,8 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
         return self.target.name
 
     def show_menu(self, sidebar, offset) -> None:
-        self.target.show_menu(sidebar, offset, mode_name=self.mode_name, channel=self.query_ancestor(ChannelGroup).row.target_name)
+        sidebar.navigation.pointer_select(self, menu=True)
+        sidebar.navigation.menu_context(self).show_menu(sidebar, offset)
 
 
 
@@ -222,6 +223,7 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
         height: auto;
         padding: 0;
     }
+    CommsRow.-selected { background: $accent 35%; }
     CommsRow.-unread { text-style: bold; }
     CommsRow.-current { color: $text; text-style: bold; }
     CommsRow.-channel-active { color: $warning 100%; text-style: bold; }
@@ -255,7 +257,7 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
     @property
     def selected(self) -> bool:
         sidebar = self.sidebar_owner()
-        return sidebar is not None and sidebar.selected == self.target_name
+        return sidebar is not None and sidebar.navigation.selection_for(self) in sidebar.navigation.state.selected_targets
 
     def set_label(self, label: str) -> None:
         self.retire_thread_preparation()
@@ -304,6 +306,11 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
     def on_click(self, event) -> None:
         if event.button == 3:
             return  # right click handled by context menu in CommsSidebar
+        if sidebar := self.sidebar_owner():
+            if event.ctrl or event.shift:
+                event.stop()
+                sidebar.navigation.pointer_select(self, control=event.ctrl, shift=event.shift)
+                return
         self.action_open_selected()
 
 

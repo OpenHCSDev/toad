@@ -93,6 +93,7 @@ class SidebarState:
     expanded: dict[str, bool] = field(default_factory=dict)
     panels_collapsed: dict[str, bool] = field(default_factory=dict)
     selected: SidebarSelection | None = None
+    selected_targets: tuple[SidebarSelection, ...] = ()
     channel_scroll_y: float = 0
     panel_scroll_y: float = 0
 

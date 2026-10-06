@@ -12,6 +12,7 @@ class SidebarNavigation:
         self.revision = 0
         self.worker = None
         self.painted_selection = None
+        self.painted_targets = ()
         self.selected_row = None
         self.painted_mode = None
         self.selection_applied = False
@@ -97,12 +98,50 @@ class SidebarNavigation:
         if row in rows:
             self.sidebar._cursor = rows.index(row)
             self.state.selected = self.selection_for(row)
+            self.state.selected_targets = (self.state.selected,)
             self.apply()
+
+    def pointer_select(self, row: CommsRow, *, control=False, shift=False, menu=False) -> None:
+        """Selection is view intent; backend declarations own the operations."""
+        if self.restoring:
+            return
+        selected = self.selection_for(row)
+        current = self.state.selected_targets
+        if menu and selected in current:
+            return
+        rows = [item for item in self.sidebar.projection.rows if item.is_on_screen]
+        identities = tuple(self.selection_for(item) for item in rows)
+        if shift and self.state.selected in identities and selected in identities:
+            start, end = sorted((identities.index(self.state.selected), identities.index(selected)))
+            span = identities[start:end + 1]
+            self.state.selected_targets = tuple(dict.fromkeys((*current, *span))) if control else span
+        elif control:
+            self.state.selected_targets = (tuple(item for item in current if item != selected)
+                                           if selected in current else (*current, selected))
+            self.state.selected = selected
+        else:
+            self.state.selected = selected
+            self.state.selected_targets = (selected,)
+        self.selection_applied = False
+        self.apply()
+
+    def menu_context(self, row: CommsRow):
+        from dataclasses import replace
+        context = row.target.menu_context(
+            self.sidebar, mode_name=row.mode_name,
+            channel=self.selection_for(row).channel)
+        selected = self.state.selected_targets
+        names = tuple(dict.fromkeys(item.target for item in selected))
+        if len(names) < 2:
+            return context
+        return replace(context, targets=names, mode=None,
+                       channel={item.target: item.channel for item in selected})
 
     def selection_current(self) -> bool:
         """One selected destination has one retained painted row identity."""
         painted = self.selected_row
         return (self.selection_applied and self.painted_selection == self.state.selected
+                and self.painted_targets == self.state.selected_targets
                 and (painted is None or painted.is_attached))
 
     def rows_changed(self) -> None:
@@ -115,12 +154,13 @@ class SidebarNavigation:
             return
         self.selected_row = None
         for index, row in enumerate(self.sidebar.projection.rows):
-            selected = self.selection_for(row) == self.state.selected
-            row.set_class(selected, "-selected")
-            if selected:
+            identity = self.selection_for(row)
+            row.set_class(identity in self.state.selected_targets, "-selected")
+            if identity == self.state.selected:
                 self.selected_row = row
                 self.sidebar._cursor = index
         self.painted_selection = self.state.selected
+        self.painted_targets = self.state.selected_targets
         self.selection_applied = True
 
     def restore_scroll(self) -> bool:

@@ -7,7 +7,7 @@ import asyncio
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from agent_comms.cli_commands import TargetAction, TargetEdit
+from agent_comms.cli_commands import TargetAction, TargetEdit, TargetBatchResult, TargetFailed
 from toad.comms_root import RouteSelection
 
 if TYPE_CHECKING:
@@ -40,21 +40,24 @@ class ThreadActions:
         except (OSError, ValueError, RuntimeError) as error:
             app.notify(str(error), title="Session action", severity="error")
             return
-        if subject in self.requests:
+        if any(target in self.requests for target in action.definition.targets):
             app.notify(f"An action for @{subject} is already in progress", title="Session action")
             return
-        self.requests[subject] = ThreadActionExecution(self, action, selected, subject)
+        execution = ThreadActionExecution(self, action, selected, subject)
+        for target in action.definition.targets:
+            self.requests[target] = execution
         app.events.publish(core_events.ThreadActionsChanged())
 
     def finished(self, execution: ThreadActionExecution) -> None:
-        if self.requests.get(execution.subject) is execution:
-            del self.requests[execution.subject]
+        for target in execution.action.definition.targets:
+            if self.requests.get(target) is execution:
+                del self.requests[target]
         self.app.events.publish(core_events.ThreadActionsChanged())
 
     async def close(self) -> None:
         # Domain writes already accepted at their sink must finish, not be
         # reported as absent because a UI task was cancelled during shutdown.
-        await asyncio.gather(*(request.task for request in tuple(self.requests.values())), return_exceptions=True)
+        await asyncio.gather(*(request.task for request in set(self.requests.values())), return_exceptions=True)
 
 
 class ThreadActionExecution:
@@ -97,7 +100,15 @@ class ThreadAction:
         await app.session_navigation.retire_missing()
         await app.session_navigation.reconnect(
             selected, self.request.declaration.reconnect_targets(result))
-        app.notify(self.definition.label, title=self.request.target)
+        title = ", ".join(self.definition.targets)
+        if isinstance(result, TargetBatchResult) and not result.successful:
+            failures = [f"{item.target}: {item.error}" for item in result.outcomes
+                        if isinstance(item, TargetFailed)]
+            completed = sum(item.successful for item in result.outcomes)
+            app.notify(f"{completed}/{len(result.outcomes)} completed\n" + "\n".join(failures),
+                       title=title, severity="error")
+        else:
+            app.notify(self.definition.label, title=title)
 
     @classmethod
     def collect(cls, ctx, definition):
@@ -108,13 +119,13 @@ class ThreadAction:
                 return
             try:
                 ctx.current()
-                request = TargetEdit(declaration=definition.declaration, target=ctx.subject,
-                    arguments=arguments, confirmed=bool(definition.edited(arguments).confirmation()), channel=ctx.channel)
+                request = TargetEdit(declaration=definition.declaration, target=definition.targets if ctx.targets else ctx.subject,
+                    arguments=arguments, confirmed=bool(definition.edited(arguments).confirmation), channel=ctx.channel)
                 ctx.app.thread_actions.invoke(cls(definition, request), ctx.subject)
             except (OSError, ValueError) as error:
                 ctx.app.notify(str(error), title=definition.label, severity='error')
 
         if definition.editable_fields or definition.confirmation:
-            ctx.app.push_screen(CommandDialog(definition, ctx.subject), accepted)
+            ctx.app.push_screen(CommandDialog(definition, ctx.title), accepted)
         else:
             accepted({})
