@@ -11,10 +11,9 @@ from textual.content import Content
 
 from toad.session_tracker import OpenTab, UnreadPresentation, ExactUnread
 from toad.widgets.activity_spinner import FRAMES, animated_label
-from toad.work_preparation import ContentAddressedWork, RendererWork, SerializedWork
+from toad.work_preparation import ContentAddressedWork, SerializedWork, ThreadWork
 
 if TYPE_CHECKING:
-    from toad.render_tasks import TabRosterRenderTask, ThreadRowsRenderTask
     from toad.work_preparation import PreparationRuntime
 
 
@@ -81,7 +80,9 @@ def prepare_thread_presentation(source: ThreadRowPresentation) -> PreparedThread
 @dataclass(frozen=True)
 class ThreadRowsWork(SerializedWork[tuple[PreparedThreadRow, ...]],
                      ContentAddressedWork[tuple[PreparedThreadRow, ...]],
-                     RendererWork[tuple[PreparedThreadRow, ...]]):
+                     ThreadWork[tuple[PreparedThreadRow, ...]]):
+    """Prepare captured sidebar labels independently of transcript rendering."""
+
     rows: tuple[ThreadRowPresentation, ...]
 
     @classmethod
@@ -113,11 +114,8 @@ class ThreadRowsWork(SerializedWork[tuple[PreparedThreadRow, ...]],
         return max((Content(text).cell_length for row in self.rows
                     for text in (row.label, row.summary)), default=0)
 
-    @property
-    def render_task(self) -> ThreadRowsRenderTask:
-        from toad.render_tasks import ThreadRowsRenderTask
-
-        return ThreadRowsRenderTask(self.inputs)
+    def prepare(self) -> tuple[PreparedThreadRow, ...]:
+        return tuple(prepare_thread_presentation(row) for row in self.rows)
 
 
 @dataclass(frozen=True)
@@ -142,15 +140,14 @@ def prepare_tab(tab: OpenTab) -> PreparedTab:
 @dataclass(frozen=True)
 class TabRosterWork(SerializedWork[tuple[PreparedTab, ...]],
                     ContentAddressedWork[tuple[PreparedTab, ...]],
-                    RendererWork[tuple[PreparedTab, ...]]):
+                    ThreadWork[tuple[PreparedTab, ...]]):
+    """Prepare short tab labels independently of transcript renderer admission."""
+
     tabs: tuple[OpenTab, ...]
 
     @property
     def inputs(self) -> object:
         return self.tabs
 
-    @property
-    def render_task(self) -> TabRosterRenderTask:
-        from toad.render_tasks import TabRosterRenderTask
-
-        return TabRosterRenderTask(self.tabs)
+    def prepare(self) -> tuple[PreparedTab, ...]:
+        return tuple(prepare_tab(tab) for tab in self.tabs)

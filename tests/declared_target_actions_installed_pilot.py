@@ -46,9 +46,27 @@ async def command(root, *arguments):
 
 
 async def open_menu(app, pilot, row):
+    from toad.widgets.comms_sidebar import CommsSidebar
+    # A completed backend action may still have a pending roster publication.
+    # Reconcile it through the original observer before acquiring pointer geometry.
+    await row.query_ancestor(CommsSidebar).observation.sync()
     row.scroll_visible(animate=False, immediate=True)
     await pilot.pause()
-    assert await pilot.click(row, button=3)
+    # Native visibility admits a clipped region, not necessarily the widget's
+    # top-left cell. Acquire the pointer from that original published geometry.
+    screen = app.screen
+    geometry = screen._compositor.visible_widgets.get(row)
+    assert geometry is not None, ("Menu row has no published geometry", row.target_name)
+    bounds, clip = geometry
+    exposed = bounds.intersection(clip).intersection(screen.size.region)
+    assert exposed, ("Menu row has no exposed cells", row.target_name, bounds, clip)
+    cell = exposed.offset
+    hit, _ = screen.get_widget_at(*cell)
+    assert hit is row, ("Menu cell belongs to another native widget", row.target_name, cell, hit)
+    clicked = await pilot.click(row, button=3,
+        offset=(cell.x - row.region.x, cell.y - row.region.y))
+    assert clicked, ("Native menu click missed", row.target_name, bounds, clip, cell,
+                     row.is_attached, screen._compositor.visible_widgets.get(row))
     await until(pilot, lambda: isinstance(app.screen, ContextMenu) and app.screen.is_mounted)
     return {item.action: item for item in app.screen.query(ContextMenuItem)}
 
@@ -57,8 +75,22 @@ async def choose(app, pilot, row, operation, fields, evidence):
     menu = await open_menu(app, pilot, row)
     assert operation in menu, tuple(menu)
     assert await pilot.click(menu[operation])
-    await until(pilot, lambda: not isinstance(app.screen, ContextMenu) and app.screen.is_mounted
-                and (isinstance(app.screen, CommandDialog) or not app.thread_actions.pending))
+    try:
+        await until(pilot, lambda: not isinstance(app.screen, ContextMenu) and app.screen.is_mounted
+                    and (isinstance(app.screen, CommandDialog) or not app.thread_actions.pending))
+    except TimeoutError:
+        # Record the original task and native scene before shutdown changes them.
+        # The timeout still fails this attempt; no action or input is repeated.
+        import runpy
+        capture = runpy.run_path(Path(__file__).parents[1] / 'tools/performance/capture_state.py')['capture']
+        capture(expected_pid=os.getpid(), output_prefix=evidence / (operation + '-completion-failure'))
+        if operation == 'start' and os.environ.get('TOAD_START_FAILURE_GDB') == '1':
+            # The reviewed diagnostic launches this App as GDB's inferior.
+            # Save Python evidence first; GDB suppresses only this marker,
+            # observes the stopped native threads, then resumes this failure.
+            import signal
+            signal.raise_signal(signal.SIGTRAP)
+        raise
     if not isinstance(app.screen, CommandDialog):
         assert not fields, (operation, fields)
         return
@@ -154,12 +186,14 @@ async def select_rows(app, pilot, rows, evidence):
                 'navigation_restoring': sidebar.navigation.restoring,
                 'observation_pending': sidebar.observation.pending,
                 'input_attached': row.is_attached,
-                'input_visible': row.is_on_screen,
+                'input_visible': row in app.screen._compositor.visible_widgets,
             }) + '\n')
 
     record('before-menu', rows[0])
     await open_menu(app, pilot, rows[0])
     await pilot.press('escape')
+    await sidebar.observation.sync()
+    await pilot.pause()
     record('after-menu-dismiss', rows[0])
     for identity in tuple(app.sidebar_state.selected_targets):
         if identity != sidebar.navigation.selection_for(rows[0]):
@@ -205,7 +239,7 @@ async def selected_target_actions(app, pilot, comms, project, base, checks):
         'sidebar_state': FieldCodec.encode(app.sidebar_state),
         'cohort': cohort,
         'expected_targets': ordered_cohort,
-        'row_visibility': {row.target_name: row.is_on_screen for row in rows},
+        'row_visibility': {row.target_name: row in app.screen._compositor.visible_widgets for row in rows},
     }, indent=2))
     assert tuple(item.target for item in app.sidebar_state.selected_targets) == ordered_cohort
     assert app.selected_mode == original_mode
@@ -281,7 +315,7 @@ async def selected_target_actions(app, pilot, comms, project, base, checks):
     anchor = await reveal_thread_row(app, pilot, range_names[0], '#range')
     await select_rows(app, pilot, (anchor,), base)
     endpoint = await reveal_thread_row(app, pilot, range_names[-1], '#range')
-    assert not anchor.is_on_screen and endpoint.is_on_screen
+    assert anchor not in app.screen._compositor.visible_widgets and endpoint in app.screen._compositor.visible_widgets
     ordered_range = tuple(row.target_name for row in sidebar.projection.rows
                           if sidebar.navigation.selection_for(row).channel == '#range'
                           and row.target_name in range_names)
@@ -290,8 +324,8 @@ async def selected_target_actions(app, pilot, comms, project, base, checks):
     (base / 'scrolled-range-selection-state.json').write_text(json.dumps({
         'sidebar_state': FieldCodec.encode(app.sidebar_state),
         'expected_targets': ordered_range,
-        'anchor_visible': anchor.is_on_screen,
-        'endpoint_visible': endpoint.is_on_screen,
+        'anchor_visible': anchor in app.screen._compositor.visible_widgets,
+        'endpoint_visible': endpoint in app.screen._compositor.visible_widgets,
     }, indent=2))
     assert tuple(item.target for item in app.sidebar_state.selected_targets) == ordered_range
     assert app.selected_mode == original_mode
@@ -299,7 +333,7 @@ async def selected_target_actions(app, pilot, comms, project, base, checks):
     assert app._exception is None
 
 
-async def started_target_connections(base, *, batch=False):
+async def started_target_connections(base, *, batch=False, selection_checks=True):
     """Use the original SDK/ACP fixture, with no native prompt or model call."""
     from l0a_native_installed_pilot import main as native_journey
     from toad.acp.agent_session import AgentSession
@@ -349,7 +383,8 @@ async def started_target_connections(base, *, batch=False):
             await app.thread_actions.close()
 
         if batch:
-            await batch_started_target_actions(app, pilot, actor, comms, project, evidence, requests, calls, observe)
+            await batch_started_target_actions(app, pilot, actor, comms, project, evidence, requests, calls, observe,
+                                              selection_checks=selection_checks)
             return
 
         threading.setprofile_all_threads(observe)
@@ -410,7 +445,8 @@ async def started_target_connections(base, *, batch=False):
 
 
 
-async def batch_started_target_actions(app, pilot, actor, comms, project, evidence, requests, reconnects, observe_reconnect):
+async def batch_started_target_actions(app, pilot, actor, comms, project, evidence, requests, reconnects, observe_reconnect,
+                                      *, selection_checks=True):
     """Existing selection checks and native batches share one SDK/ACP App."""
     from agent_comms.owner_lifecycle import OwnerLifecycle
 
@@ -451,7 +487,8 @@ async def batch_started_target_actions(app, pilot, actor, comms, project, eviden
     threading.setprofile_all_threads(observed)
     try:
         checks = []
-        await selected_target_actions(app, pilot, comms, project, evidence, checks)
+        if selection_checks:
+            await selected_target_actions(app, pilot, comms, project, evidence, checks)
         await selected('start')
         assert calls['start'] == ['peer', 'peer-two']
         assert reconnects == []
@@ -777,12 +814,14 @@ if __name__ == '__main__':
     parser.add_argument('--physical',action='store_true')
     parser.add_argument('--selected-only', action='store_true', help='Affected selected-target menus and private-store outcomes; no old ordinary journey replay')
     parser.add_argument('--batch-native-only', action='store_true', help='Selected channel/member start-stop deduplication and original ACP reconnect; zero provider prompts')
+    parser.add_argument('--batch-start-stop-only', action='store_true', help='Remaining native start/stop/reconnect and active tag preservation; omit previously accepted selection checks')
     parser.add_argument('--start-only', action='store_true', help='Original SDK/ACP Start-target resource control')
     parser.add_argument('--delete-native-only', action='store_true', help='Current history and hidden native view retirement')
     args = parser.parse_args()
-    if args.batch_native_only:
+    if args.batch_native_only or args.batch_start_stop_only:
         args.output.mkdir(parents=True, exist_ok=False)
-        asyncio.run(started_target_connections(args.output.resolve(), batch=True))
+        asyncio.run(started_target_connections(args.output.resolve(), batch=True,
+                                             selection_checks=not args.batch_start_stop_only))
     elif args.start_only:
         args.output.mkdir(parents=True, exist_ok=False)
         asyncio.run(started_target_connections(args.output.resolve()))

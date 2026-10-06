@@ -7,6 +7,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
     from collections import Counter
     from dataclasses import asdict
     import json
+    import inspect
     import os
     import pickle
     import sys
@@ -153,6 +154,64 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                                        for name in ("toad", "textual", "agent_comms")},
                     "registry_size": len(app._registry), "views": [], "truncated": False,
                     "capture_scope": "view state, loaded pages/live block sources, cached sidebar DTO; not process memory"}
+
+        def task_state(task):
+            """Borrow the actual Task's wait chain without inspecting its locals."""
+            awaited = task.get_coro()
+            chain = []
+            seen = set()
+            while id(awaited) not in seen:
+                seen.add(id(awaited))
+                if inspect.iscoroutine(awaited):
+                    frame, following = awaited.cr_frame, awaited.cr_await
+                elif inspect.isgenerator(awaited):
+                    frame, following = awaited.gi_frame, awaited.gi_yieldfrom
+                else:
+                    break
+                if frame is not None:
+                    chain.append({"file": frame.f_code.co_filename,
+                                  "function": frame.f_code.co_qualname,
+                                  "line": frame.f_lineno})
+                awaited = following
+            return {"name": task.get_name(), "done": task.done(),
+                    "cancelled": task.cancelled(), "await_chain": chain}
+
+        metadata["target_actions"] = [
+            {"subject": execution.subject,
+             "targets": execution.action.definition.targets,
+             "command": execution.action.definition.declaration.__name__,
+             "task": task_state(execution.task)}
+            for execution in dict.fromkeys(app.thread_actions.requests.values())
+        ]
+        metadata["preparation_threads"] = [
+            task_state(task) for task in tuple(app.preparation._thread_tasks)
+        ]
+        # to_thread's coroutine ends at the executor boundary. Observe the
+        # original OS threads too, so a suspended backend call is distinguishable
+        # from UI work. Never export frame locals or argument values.
+        threads = {thread.ident: thread for thread in threading.enumerate()}
+        metadata["python_threads"] = []
+        for ident, frame in sys._current_frames().items():
+            chain = []
+            while frame is not None:
+                chain.append({"file": frame.f_code.co_filename,
+                              "function": frame.f_code.co_qualname,
+                              "line": frame.f_lineno})
+                frame = frame.f_back
+            thread = threads.get(ident)
+            metadata["python_threads"].append({
+                "ident": ident, "native_id": None if thread is None else thread.native_id,
+                "name": None if thread is None else thread.name,
+                "stack": chain,
+            })
+        metadata["retained_presentations"] = [
+            {"mode": view.id, "owner": type(owner).__name__,
+             "object_id": id(owner), "selected": view is app.selected_session,
+             "widgets": owner.retained_widget_count,
+             "source_bytes": owner.retained_source_bytes,
+             "paint_bytes": owner.retained_paint_bytes}
+            for view, owner in app.workspace_chrome.native._presentations()
+        ]
 
         def node_identity(node):
             return {"object_id": id(node), "class": type(node).__name__,

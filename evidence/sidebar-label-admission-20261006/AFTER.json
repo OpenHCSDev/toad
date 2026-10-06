@@ -1,0 +1,12 @@
+{
+  "coverage": {
+    "src/toad": 288,
+    "tests": 403,
+    "tools": 40
+  },
+  "parse_omissions": [],
+  "deleted_renderer_task_references": [],
+  "preparation_algorithm_ast_equal": true,
+  "changed_python_compilation": 4,
+  "semantic_owner": "Core ThreadPresentation remains original status authority; ThreadRowsWork owns preparation of captured display inputs; Textual Content owns backend paint resources"
+}
