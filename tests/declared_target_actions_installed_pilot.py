@@ -354,7 +354,7 @@ async def started_target_connections(base, *, batch=False):
 
 
 async def batch_started_target_actions(app, pilot, actor, comms, project, evidence, requests, reconnects, observe_reconnect):
-    """Original SDK/ACP fixture: two real owners, overlapping selection once."""
+    """Existing selection checks and native batches share one SDK/ACP App."""
     from agent_comms.owner_lifecycle import OwnerLifecycle
 
     original_actor = actor.process.process
@@ -371,10 +371,15 @@ async def batch_started_target_actions(app, pilot, actor, comms, project, eviden
     app.settings.sidebar.show_stopped = True
     calls = {'start': [], 'stop': []}
     codes = {OwnerLifecycle.start.__code__: calls['start'], OwnerLifecycle.stop.__code__: calls['stop']}
+    catalog_code = CliCommand.target_catalog.__func__.__code__
+    catalog_reads = []
+    ui_thread = threading.get_ident()
     def observed(frame, event, argument):
         observe_reconnect(frame, event, argument)
         if event == 'call' and frame.f_code in codes:
             codes[frame.f_code].append(frame.f_locals['name'])
+        if event == 'call' and frame.f_code is catalog_code:
+            catalog_reads.append({'thread': threading.get_ident(), 'target': frame.f_locals['target']})
 
     async def selected(operation):
         sidebar = await wait_channel_roster(app, pilot, '#batch-native')
@@ -388,6 +393,8 @@ async def batch_started_target_actions(app, pilot, actor, comms, project, eviden
     before_inputs = inputs.read_bytes() if inputs.exists() else None
     threading.setprofile_all_threads(observed)
     try:
+        checks = []
+        await selected_target_actions(app, pilot, comms, project, evidence, checks)
         await selected('start')
         assert calls['start'] == ['peer', 'peer-two']
         assert reconnects == []
@@ -441,6 +448,8 @@ async def batch_started_target_actions(app, pilot, actor, comms, project, eviden
         assert all(not Path('/proc', str(identity.pid)).exists() for identity in identities)
         assert (inputs.read_bytes() if inputs.exists() else None) == before_inputs
         assert requests == [] and app._exception is None
+        assert catalog_reads and all(read['thread'] != ui_thread for read in catalog_reads)
+        checks.append('all-observed-selection-catalog-reads-off-ui-loop')
         (evidence / 'receipt.json').write_text(json.dumps({
             'result': 'ASSERTIONS_PASS_SHUTDOWN_PENDING',
             'native_owner_start_calls': calls['start'], 'native_owner_stop_calls': calls['stop'],
@@ -448,6 +457,9 @@ async def batch_started_target_actions(app, pilot, actor, comms, project, eviden
             'only_original_open_peer_reconnected': len(reconnects),
             'actor_connection_and_reader_unchanged': True,
             'active_tag_survivors_preserved': True,
+            'selected_target_checks': checks,
+            'catalog_reads': catalog_reads,
+            'ui_thread': ui_thread,
             'provider_calls': 0, 'native_inputs': 0,
             'original_process_identities': [FieldCodec.encode(identity) for identity in identities],
         }, indent=2) + '\n')
