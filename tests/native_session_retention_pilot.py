@@ -409,7 +409,10 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                         painted.append({"mode": mode, "source": "loaded-native" if mode in loaded_modes else "blank",
                                         **timing})
                         if mode in checkpoints:
-                            if not loaded_histories or retained:
+                            native_retirements = 0
+                            if loaded_histories and retained:
+                                native_retirements = await witness.verify_loaded_return(app, pilot)
+                            elif not loaded_histories:
                                 await witness.verify(app, pilot)
                             else:
                                 view = source.conversation
@@ -426,7 +429,8 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                             painted[-1]["raw_page_read_delta"] = read_delta
                             if not loaded_histories or retained:
                                 assert read_delta == 0, ("Warm return repeated raw page acquisition", mode, read_delta)
-                                painted[-1]["warm_page_fragments_and_rendered_rows_retained"] = True
+                                painted[-1]["warm_page_fragments_and_rendered_rows_retained"] = native_retirements == 0
+                                painted[-1]["native_paint_retirements"] = native_retirements
                             else:
                                 painted[-1]["evicted_editor_reader_restored"] = not retained_native
                                 painted[-1]["restored_tree_return_after_eviction"] = retained_native
@@ -508,6 +512,9 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                 "unchanged_loaded_resource_returns": sum(
                     item.get("warm_page_fragments_and_rendered_rows_retained", False)
                     for item in painted
+                ),
+                "native_paint_retirement_returns": sum(
+                    item.get("native_paint_retirements", 0) > 0 for item in painted
                 ),
                 "loaded_reader_positions": loaded_reader_positions,
                 "measurement": "physical Pilot tab click: production selection to first actual compositor output with destination draft; no fixed settle added, headless not terminal writer latency",
