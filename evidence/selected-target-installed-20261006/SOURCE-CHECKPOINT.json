@@ -533,7 +533,7 @@
     "selected_target_actions"
   ],
   "changed_file": "tests/declared_target_actions_installed_pilot.py",
-  "changed_file_sha256": "2e39b3a1a65d8b7c7f1c732b439f7d07bb7eec995d8e488b6b17a3acdae4e592",
+  "changed_file_sha256": "94ed238acebc1523907ab54fefb54b28ee795e13c4feec25ad10ccf1f7412436",
   "compile_without_product_imports": "PASS",
   "production_pins_wheels_unchanged": true,
   "behavioral_execution": "UNRUN",
@@ -542,5 +542,6 @@
     "batch-native-only original SDK/ACP start-stop/dedup/reconnect/active tag survivors",
     "real run_async pointer task fix and affected physical recording",
     "actual public installation after reviewed accepted pair"
-  ]
+  ],
+  "private_test_cleanup_owner": "Existing runtime_fixture.ToadApp delegates to the original product App, then owns test workers/children; no new cleanup manager"
 }

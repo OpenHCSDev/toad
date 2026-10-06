@@ -3,6 +3,8 @@
 This checkpoint extends the existing `declared_target_actions_installed_pilot.py`.
 It changes no production module, pin, wheel, installed package or frozen recorder.
 The source parsed and the related helpers compiled without product imports.
+The existing test-owned App lifetime closes private workers and children after
+the original product App exits; production shutdown is not replaced.
 Behavioral acceptance is **unrun**.
 
 The `--selected-only` path checks real Ctrl/Shift pointer selection, preserved
