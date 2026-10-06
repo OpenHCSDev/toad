@@ -1,0 +1,124 @@
+{
+  "historical_template": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/run_warm.py",
+    "sha256": "4731831502f1a1e3e5fba15a3cc445319e7516e1a3cfc7dd1bc5cec1b4536ec5",
+    "bytes": 5497
+  },
+  "prepared_template": {
+    "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/evidence/configured-continuous-source-20261006/run_configured.template.py",
+    "sha256": "112a0ceb4779515152f0d8b20d3db25f3333084ce75ed670253179c20cd7acf0",
+    "bytes": 5528
+  },
+  "ordered_changes": [
+    {
+      "before_literal": "UNISSUED476 template: original BoundedRun custody, no runtime authority.",
+      "after_literal": "UNISSUED configured reader-pair controller: original BoundedRun custody.",
+      "occurrences": 1,
+      "before_sha256": "4731831502f1a1e3e5fba15a3cc445319e7516e1a3cfc7dd1bc5cec1b4536ec5",
+      "after_sha256": "9d6b711de9cd25812d38b4721d6747521a4faa8121c922539fedc9bc343f90f3"
+    },
+    {
+      "before_literal": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis476-current471-warm-package-App-issued-grant.json",
+      "after_literal": "UNBOUND_CONFIGURED_ACTUAL_GRANT_PATH",
+      "occurrences": 1,
+      "before_sha256": "9d6b711de9cd25812d38b4721d6747521a4faa8121c922539fedc9bc343f90f3",
+      "after_sha256": "03ec96bdef9d6d3d24a8622c0975f7cb1074ade97315583f7dd63f3ca8536690"
+    },
+    {
+      "before_literal": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis476-current471-warm-package-App-lifecycle.json",
+      "after_literal": "UNBOUND_CONFIGURED_ACTUAL_LIFECYCLE_PATH",
+      "occurrences": 1,
+      "before_sha256": "03ec96bdef9d6d3d24a8622c0975f7cb1074ade97315583f7dd63f3ca8536690",
+      "after_sha256": "1750f9ae50aa4ef900d8596eabfc5b846ff2b6f3770a754496e0ac8d3c599e67"
+    },
+    {
+      "before_literal": "89e82fcfe007577fecaecd383d801503615e7f934e79b53d5d57f84d5a1fdc40",
+      "after_literal": "UNBOUND_CONFIGURED_ACTUAL_GRANT_SHA256",
+      "occurrences": 1,
+      "before_sha256": "1750f9ae50aa4ef900d8596eabfc5b846ff2b6f3770a754496e0ac8d3c599e67",
+      "after_sha256": "15f186957f50a33f2ef8329149d3f56ce19f802ceb251c36d00fa2f19dbe0b60"
+    },
+    {
+      "before_literal": "assert not l[\"source_publicdecoder_READ_authorized\"]",
+      "after_literal": "assert l[\"source_publicdecoder_READ_authorized\"]",
+      "occurrences": 1,
+      "before_sha256": "15f186957f50a33f2ef8329149d3f56ce19f802ceb251c36d00fa2f19dbe0b60",
+      "after_sha256": "559a8882b4bd9177c84bf43c4a58b6a2c9777aa1512841af895179f151c01aca"
+    },
+    {
+      "before_literal": "assert command == (command[0], \"-B\", control[\"path\"], \"--warm-admission-only\")",
+      "after_literal": "assert command[:4] == (command[0], \"-B\", control[\"path\"], \"--configured-saved\")\n    assert command[4:] == tuple(g[\"configured_arguments\"])",
+      "occurrences": 1,
+      "before_sha256": "559a8882b4bd9177c84bf43c4a58b6a2c9777aa1512841af895179f151c01aca",
+      "after_sha256": "003008ba4fb43941533e975c4102e78bd24259bb9d560e36cada9a2de43fd53f"
+    },
+    {
+      "before_literal": "    evidence.mkdir(mode=0o700, parents=True)\n",
+      "after_literal": "",
+      "occurrences": 1,
+      "before_sha256": "003008ba4fb43941533e975c4102e78bd24259bb9d560e36cada9a2de43fd53f",
+      "after_sha256": "f602078cf19591e317481fff9b6dbe740549a7607044a2e002bbb64eaa2e8e3d"
+    },
+    {
+      "before_literal": "Path(g[\"environment\"][\"set\"][\"TMPDIR\"]).mkdir(mode=0o700)",
+      "after_literal": "Path(g[\"environment\"][\"set\"][\"TMPDIR\"]).mkdir(mode=0o700, parents=True)",
+      "occurrences": 1,
+      "before_sha256": "f602078cf19591e317481fff9b6dbe740549a7607044a2e002bbb64eaa2e8e3d",
+      "after_sha256": "89a07fb37b3703d1561b3a382521b4896d5c3a2ef7c7b8808b816b53aa8638d3"
+    },
+    {
+      "before_literal": "two authored localhost inputs, no public decoder",
+      "after_literal": "six authored private UI inputs plus native automatic handling; original public source read only",
+      "occurrences": 1,
+      "before_sha256": "89a07fb37b3703d1561b3a382521b4896d5c3a2ef7c7b8808b816b53aa8638d3",
+      "after_sha256": "17549c3eb6de5181e237dab8304311e665f6cdbeab44784a78b0765d980e654f"
+    },
+    {
+      "before_literal": "warm-",
+      "after_literal": "configured-",
+      "occurrences": 4,
+      "before_sha256": "17549c3eb6de5181e237dab8304311e665f6cdbeab44784a78b0765d980e654f",
+      "after_sha256": "b6a8d34a0d83654dc91e1c913505e1cfdd5cf41b0e3423fcf5f0ceef981462c0"
+    },
+    {
+      "before_literal": "warm.stdout",
+      "after_literal": "configured.stdout",
+      "occurrences": 1,
+      "before_sha256": "b6a8d34a0d83654dc91e1c913505e1cfdd5cf41b0e3423fcf5f0ceef981462c0",
+      "after_sha256": "c05adafcbc7e846b2b2d3ff48778df9847f5021f547a9b6b10a0e57e3650dde5"
+    },
+    {
+      "before_literal": "warm.stderr",
+      "after_literal": "configured.stderr",
+      "occurrences": 1,
+      "before_sha256": "c05adafcbc7e846b2b2d3ff48778df9847f5021f547a9b6b10a0e57e3650dde5",
+      "after_sha256": "9845c131e76edbe0d830db04d26174808f0dcc10637c17693dc38ec799c9ad14"
+    },
+    {
+      "before_literal": "WARM_HANDLE",
+      "after_literal": "CONFIGURED_HANDLE",
+      "occurrences": 1,
+      "before_sha256": "9845c131e76edbe0d830db04d26174808f0dcc10637c17693dc38ec799c9ad14",
+      "after_sha256": "658a7a27ebdcd9406dd68fb4f4dacd15ccf84b6f90a3f396fea1cf9da0f6abbb"
+    },
+    {
+      "before_literal": "WARM_TERMINAL",
+      "after_literal": "CONFIGURED_TERMINAL",
+      "occurrences": 1,
+      "before_sha256": "658a7a27ebdcd9406dd68fb4f4dacd15ccf84b6f90a3f396fea1cf9da0f6abbb",
+      "after_sha256": "7151e61defbb361720ee59de0f0d7999fb2ce4bb147d4dc76013a502f2f7ab7d"
+    },
+    {
+      "before_literal": "Original mounted receipt must prove both verified branches and exactly2inputs; no effect absence or whole qualification inferred from launch/exit alone",
+      "after_literal": "Original configured journey and native InputDispositions must prove reached phases, admitted inputs, source preservation and joined close; six authored UI inputs is not total provider requests; no effect absence inferred from failed launch",
+      "occurrences": 1,
+      "before_sha256": "7151e61defbb361720ee59de0f0d7999fb2ce4bb147d4dc76013a502f2f7ab7d",
+      "after_sha256": "112a0ceb4779515152f0d8b20d3db25f3333084ce75ed670253179c20cd7acf0"
+    }
+  ],
+  "drain_AST_equal": true,
+  "timeout_owner": "Original BoundedRun.session consumes issued control_timeout_seconds, proposed same150; no competing timer",
+  "evidence_owner": "configured_main creates L0A_EVIDENCE; controller asserts absent and does not precreate it",
+  "materialization": "Only three actual grant/lifecycle/SHA substitutions after actual fresh issue; no template invocation",
+  "runtime": "UNRUN"
+}
