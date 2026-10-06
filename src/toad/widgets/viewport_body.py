@@ -937,6 +937,16 @@ class DocumentViewport:
         return sum(owner.materialized_widget_count for owner in self.owners)
 
     @property
+    def retained_source_bytes(self) -> int:
+        """Source retained by this window's registered body boundaries."""
+        return sum(owner.retained_source_bytes for owner in self.owners)
+
+    @property
+    def retained_paint_bytes(self) -> int:
+        """Prepared paint still owned by the same registered bodies."""
+        return sum(owner.retained_paint_bytes for owner in self.owners)
+
+    @property
     def visible_body_rows(self) -> float:
         """Measured native density, derived from the current viewport owners."""
         visible = self.window.screen._compositor.visible_widgets

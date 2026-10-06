@@ -55,6 +55,7 @@ async def settled(pilot, view):
 @dataclass
 class ReaderCheckpoint:
     source: object
+    view: ReferenceType[Widget]
     document: object
     history: object
     text: str
@@ -101,7 +102,7 @@ class ReaderCheckpoint:
                        if block.region.overlaps(region))
         assert len(bodies) > 0, "Checkpoint needs actually rendered native Markdown bodies"
         pages = tuple((history, tuple(history.pages)) for history in view.window.histories)
-        return cls(source, editor.document, editor.history, editor.text,
+        return cls(source, ref(view), editor.document, editor.history, editor.text,
                    view.window.scroll_y, view.window.follows_tail, pages,
                    tuple(page.fragments for _, cohort in pages for page in cohort),
                    tuple(page.fragment_views for _, cohort in pages for page in cohort),

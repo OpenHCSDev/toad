@@ -1,0 +1,441 @@
+{
+  "state": "FINAL PROPOSED original476 selectedformer485 CURRENT471 warmONLY; purpose UNISSUED/access NONE",
+  "source_head": "21424c77293b57234d6150f65789dad331e39293",
+  "source_product": "2ae78aac63db588e1a33d1da1c903139746d55aa",
+  "root_build_relation": "Currentsrc+pyproject/uv/LICENSE/README BYTEequal frozen2ae normal61bf319 wheel; originmain475 normaljoin evidence only. No fullsource equivalence to old4742ece or466b2e.",
+  "prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "application_python": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+  "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+  "owned_output": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose",
+  "OWNOUT_preimage": "ABSENT record only; no mkdir before actualissued",
+  "floor_contract": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis476-current471-warm-eligible-contract-readback.json",
+    "sha256": "576bf0047517b9807c111c619215eb74dd3933bf0750242af8668607416b1b4e",
+    "bytes": 11840
+  },
+  "floor_preimage": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis476-current471-selection-preimage.json",
+    "sha256": "138a1491c585949aba85b855a422602a0745b95b164e45528bb102f57e9887d1",
+    "bytes": 1778843
+  },
+  "fresh_refs": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis476-warm-fresh-floor-borrowers.json",
+    "sha256": "dbba3d3a0eadc8fc2cb4401f4fb340ecd6a9d9c0deaf451289c357844ed42d8c",
+    "bytes": 237
+  },
+  "PUBLIC475_disposition": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis476-current-PUBLIC475-disposition-readback.json",
+    "sha256": "e58b43d53c5a0f1d83d689865d883742b545b34fce54ad05be9bf671a0b215cb",
+    "bytes": 7739
+  },
+  "floor": {
+    "name": "ActualCURRENT471 nothistoricalCURRENT459",
+    "nodes": 1467,
+    "source_assets": 953,
+    "distributions": 69,
+    "unchanged_other67_records": 2253,
+    "protected_originals": 266,
+    "bootstrap_records": 2,
+    "PREFIXactivation": {
+      "path": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/activation.json",
+      "sha256": "273d1ae8cbd9b38adfeb17e379419beea26c5a52fa2394aff16de6661c6eec11"
+    },
+    "archive_relation": "Historical CURRENT459 only; current changed Core/Toad normal-wheel bytes and fresh CURRENT471 preimage are authoritative. No false wholearchive/current471 equality."
+  },
+  "source_filewheels": [
+    {
+      "module": "agent_comms",
+      "distribution": "agent-comms",
+      "head": "3931f16feb8bcb2dbcc3041446ca342dea665024",
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/same-owner-native-fork676-corrected-wheel-20261005/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "3fe14077293b691000394831ed7458ecae92afd9b667af4501be2945ab86051d",
+      "bytes": 904487,
+      "assets": 355
+    },
+    {
+      "module": "toad",
+      "distribution": "batrachian-toad",
+      "head": "2ae78aac63db588e1a33d1da1c903139746d55aa",
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/filewheel/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "61bf637992b00953a85249423e568e1958a0521b58b230b00c4f46023322aef2",
+      "bytes": 2251251,
+      "assets": 319
+    },
+    {
+      "module": "textual",
+      "distribution": "textual",
+      "head": "a2dd8a9a37825a828df0d8f651ca57d92db69e5f",
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native70-71-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+      "sha256": "bc47c59ea7db78a9a443c5f5e3f10836660957f21bb998d2ffa3ae8e4a2ddbe3",
+      "bytes": 768804,
+      "assets": 266
+    },
+    {
+      "module": "textual_diff_view",
+      "distribution": "textual-diff-view",
+      "head": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "path": "/home/ts/.cache/uv/sdists-v9/git/6a8a377ce2150d3f/8fa7d4d0db993ea3/textual_diff_view-0.1.5-py3-none-any.whl",
+      "sha256": "be7089c8f282e07e893b0254a0859e0f1b243a7ba591749f2053fa1fb775ad36",
+      "bytes": 25753,
+      "assets": 3
+    },
+    {
+      "module": "refactor_audit",
+      "distribution": "nominal-refactor-audit",
+      "head": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10",
+      "path": "/home/ts/wt/nra-skill-publish-20261002/.artifacts/family-flattened-collector-20261004/wheels/nominal_refactor_audit-0.1.0-py3-none-any.whl",
+      "sha256": "8d489731728ebf9f7e0f90ef2b14e7e3b5d2f90ed82bd8b1482d735f82869886",
+      "bytes": 23532,
+      "assets": 10
+    }
+  ],
+  "candidate_filewheels": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/filewheel/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "61bf637992b00953a85249423e568e1958a0521b58b230b00c4f46023322aef2",
+      "bytes": 2251251
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native70-71-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+      "sha256": "bc47c59ea7db78a9a443c5f5e3f10836660957f21bb998d2ffa3ae8e4a2ddbe3",
+      "bytes": 768804
+    }
+  ],
+  "stage_argv": [
+    "uv",
+    "pip",
+    "install",
+    "--python",
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+    "--no-deps",
+    "--no-cache",
+    "--no-index",
+    "--link-mode",
+    "copy",
+    "--reinstall",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/filewheel/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native70-71-filewheel-20261005/textual-8.2.8-py3-none-any.whl"
+  ],
+  "stage_environment": {
+    "unset": [
+      "PYTHONPATH",
+      "PYTHONHOME",
+      "VIRTUAL_ENV",
+      "AGENT_COMMS_THREAD",
+      "AGENT_COMMS_STARTUP_INPUT_KEY",
+      "PI_PROMPT",
+      "PI_PARENT_ID",
+      "PI_AGENT_ID",
+      "PI_TASK",
+      "TEXTUAL_DRIVER",
+      "AC_REAL_ORIGINAL_PYTHON",
+      "AC_REAL_SOURCE_OWNER",
+      "AC_REAL_SOURCE_ROOT",
+      "AC_REAL_SOURCE_FILE",
+      "AC_REAL_PROVIDER_AUTHORIZED",
+      "AC_REAL_READ_ONLY_CUSTODY",
+      "WORKSPACE_COHORTS"
+    ],
+    "set": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONNOUSERSITE": "1"
+    }
+  },
+  "stage_outputs": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/stage-command.json",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/stage-handle.json",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/stage.stdout.log",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/stage.stderr.log",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/stage-terminal.json"
+  ],
+  "stage_attemptlimit": 1,
+  "proof": {
+    "historical_template": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor07-installed-purpose/verify_installed.py",
+      "sha256": "6a09793a806478a4d4cd0813adce2a89c0a2fd3c0bc7990546847b0a37d65741",
+      "bytes": 11006
+    },
+    "prepared_template": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/controller-preparation/verify_installed.template.py",
+      "sha256": "c22c0ec70bc8d64cf15c0192346f008abdd051483e7356d1430b2d26762bd569",
+      "bytes": 10167
+    },
+    "source_relation": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/warm-presentation-admission-owner-20261005/CURRENT471-ORIGINAL-PROOF-TEMPLATE-RELATION.json",
+      "sha256": "b9140eada05438ab7c1fa3d24a986e685b6d3d653d1c19b16cdf527c627c665c",
+      "bytes": 9313
+    },
+    "argv": [
+      "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+      "-B",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/verify_installed.py"
+    ],
+    "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+    "environment": {
+      "unset": [
+        "PYTHONPATH",
+        "PYTHONHOME",
+        "VIRTUAL_ENV",
+        "AGENT_COMMS_THREAD",
+        "AGENT_COMMS_STARTUP_INPUT_KEY",
+        "PI_PROMPT",
+        "PI_PARENT_ID",
+        "PI_AGENT_ID",
+        "PI_TASK",
+        "TEXTUAL_DRIVER",
+        "AC_REAL_ORIGINAL_PYTHON",
+        "AC_REAL_SOURCE_OWNER",
+        "AC_REAL_SOURCE_ROOT",
+        "AC_REAL_SOURCE_FILE",
+        "AC_REAL_PROVIDER_AUTHORIZED",
+        "AC_REAL_READ_ONLY_CUSTODY",
+        "WORKSPACE_COHORTS"
+      ],
+      "set": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1"
+      }
+    },
+    "exclusive_destinations": [
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/agent_comms-installed-inventory.json",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/toad-installed-inventory.json",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/textual-installed-inventory.json",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/textual_diff_view-installed-inventory.json",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/refactor_audit-installed-inventory.json",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/native-full-trust.json",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/source-proof.json",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/candidate-activation.json",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/package-boundary-proof.json"
+    ],
+    "outputs": [
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/proof-source-binding.json",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/proof-command.json",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/proof-handle.json",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/proof.stdout.log",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/proof.stderr.log",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/proof-terminal.json"
+    ],
+    "materialization": "Only after literalactualissuedgrant/newmatchingSchREAD; four actual grant/READ path+SHA substitutions in preparedc22 template, OUT ownissuedpath. No template invocation. ExacthelperSHA+argv/outputs binding and originalBohr proofrelease before ONE execution. Actual freshfloor/literal953/69/2253/266/bootstrap/PREFIX declared from issued owner records.",
+    "attemptlimit": 1
+  },
+  "controller": {
+    "template": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/controller-preparation/run_warm.template.py",
+      "sha256": "7b5340d0900b5d30cd4a91956624fbda3769d5d6f1656e29c1e0aad8517bcfe6",
+      "bytes": 5313
+    },
+    "argv": [
+      "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+      "-B",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/run_warm.py"
+    ],
+    "materialization": "After actualgrant/lifecycle/hash literal replacements ONLY into original7b534template; newexclusive controller SHA+proof-binding/handoff/nativeEXEC personallyread and bound byBohr before sole invocation.",
+    "outputs": [
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/run_warm.py",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/controller-source-binding.json",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/App-proof-binding.json",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/App-final-proof-handoff.json",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/warm-effective-release.json",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/warm-command.json",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/warm-handle.json",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/warm.stdout.log",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/warm.stderr.log",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/warm-terminal.json",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/controller-terminal.json"
+    ]
+  },
+  "exact_control": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/native_session_retention_pilot.py",
+    "sha256": "d69706b445652d8ec849c1be9cec5502b6dd61b5d41c347bd4fe2f67ee354235",
+    "bytes": 33493
+  },
+  "outer_argv": [
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+    "-B",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/native_session_retention_pilot.py",
+    "--warm-admission-only"
+  ],
+  "environment": {
+    "unset": [
+      "PYTHONPATH",
+      "PYTHONHOME",
+      "VIRTUAL_ENV",
+      "AGENT_COMMS_THREAD",
+      "AGENT_COMMS_STARTUP_INPUT_KEY",
+      "PI_PROMPT",
+      "PI_PARENT_ID",
+      "PI_AGENT_ID",
+      "PI_TASK",
+      "TEXTUAL_DRIVER",
+      "AC_REAL_ORIGINAL_PYTHON",
+      "AC_REAL_SOURCE_OWNER",
+      "AC_REAL_SOURCE_ROOT",
+      "AC_REAL_SOURCE_FILE",
+      "AC_REAL_PROVIDER_AUTHORIZED",
+      "AC_REAL_READ_ONLY_CUSTODY",
+      "WORKSPACE_COHORTS"
+    ],
+    "set": {
+      "L0A_EVIDENCE": "/home/ts/.cache/agent-scratch/hwb/wa",
+      "TMPDIR": "/home/ts/.cache/agent-scratch/hwb/wa/tmp",
+      "NATIVE_RETENTION_RECEIPT": "/home/ts/.cache/agent-scratch/hwb/wa/warm-admission.json",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONNOUSERSITE": "1",
+      "AC_NATIVE_COPIED_PACKAGE": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent"
+    }
+  },
+  "controls_and_helpers": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/native_session_retention_pilot.py",
+      "sha256": "d69706b445652d8ec849c1be9cec5502b6dd61b5d41c347bd4fe2f67ee354235",
+      "bytes": 33493
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/viewport_recent_tabs_pilot.py",
+      "sha256": "1750ffcfb3335b707f3fb4920ad7e0ef69efa241242009e8105269d03a065bfe",
+      "bytes": 15039
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/thread_navigation_installed_journey.py",
+      "sha256": "a23fbcb8578986949712cacc8d7b1af01b97808de225c9dbdf970177c4a6f4d2",
+      "bytes": 10668
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/l0a_native_installed_pilot.py",
+      "sha256": "ac942dd20defe4d8074ffa3a38c1b7428a3b1475ff60ba9a094b41a2c6521a93",
+      "bytes": 35830
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/runtime_fixture.py",
+      "sha256": "c34f37f450a02f09d344352466431744892a0c788953212da5ac434d912e3315",
+      "bytes": 18978
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/saved_state_user_journey_pilot.py",
+      "sha256": "4f0948b8fb5fcab6cab12802cf8b5b3cb6498188ce3b67af8a88b787b3865dca",
+      "bytes": 30003
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/manual_live_turn_status.py",
+      "sha256": "f333da956fcc9e367f993853aa3daabbaea8d4278feed24eaa644d51c74e48fa",
+      "bytes": 7122
+    },
+    {
+      "path": "/home/ts/wt/comms-task-aware-native-bundle-20261002/tools/cutover/publish_retained_summary.py",
+      "sha256": "c146d510f445fddab2bfa4489bd7fad5530e7f9e77e73ad96c108b7647115830",
+      "bytes": 23103
+    }
+  ],
+  "control_hashes": {
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/native_session_retention_pilot.py": "d69706b445652d8ec849c1be9cec5502b6dd61b5d41c347bd4fe2f67ee354235",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/viewport_recent_tabs_pilot.py": "1750ffcfb3335b707f3fb4920ad7e0ef69efa241242009e8105269d03a065bfe",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/thread_navigation_installed_journey.py": "a23fbcb8578986949712cacc8d7b1af01b97808de225c9dbdf970177c4a6f4d2",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/l0a_native_installed_pilot.py": "ac942dd20defe4d8074ffa3a38c1b7428a3b1475ff60ba9a094b41a2c6521a93",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/runtime_fixture.py": "c34f37f450a02f09d344352466431744892a0c788953212da5ac434d912e3315",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/saved_state_user_journey_pilot.py": "4f0948b8fb5fcab6cab12802cf8b5b3cb6498188ce3b67af8a88b787b3865dca",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/manual_live_turn_status.py": "f333da956fcc9e367f993853aa3daabbaea8d4278feed24eaa644d51c74e48fa",
+    "/home/ts/wt/comms-task-aware-native-bundle-20261002/tools/cutover/publish_retained_summary.py": "c146d510f445fddab2bfa4489bd7fad5530e7f9e77e73ad96c108b7647115830"
+  },
+  "production_hashes": {
+    "src/toad/session_presentation.py": "355e11576540dd9d60102c8b90ff79d43e91a2702f769749a56a23b3b20a4873",
+    "src/toad/widgets/viewport_body.py": "aa8c9d1acd462275be96f5f56b0e0d0b43283456e52624c43d1bc5c9121e8228"
+  },
+  "build_proofs": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/filewheel/build-receipt.json",
+      "sha256": "be267615b4b3b06fc7e55a24ebb60f4352fe310ffcbed934ee849d041a5fbb65",
+      "bytes": 1095
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/filewheel/toad-inventory.json",
+      "sha256": "8a3c9e6dfc87fce2a70e380271199de6b6318f1bb25d093a5e88023c349a5c57",
+      "bytes": 73987
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/filewheel/wheel-proof.json",
+      "sha256": "ee36987df2a61646b5c43370eafe1321438e54633e1e50d8952d48a8f80004b1",
+      "bytes": 3552
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/filewheel/record-proof.json",
+      "sha256": "921bc825039ce65c8c31fe2de66143fc2c62b47482ce2ced2edf93eece102b16",
+      "bytes": 62500
+    }
+  ],
+  "matching_native_reference": {
+    "package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent",
+    "manifest": "7a2e4aabdbc5af49dd9af942190d92086df2eb3489903674a74af51cf831cd33",
+    "tree": "0d7ff54a04d4f0ff175fc889e936ca3cea8b1f98eb8b73ed6215c3373cbd984d",
+    "permission": "UNISSUED; originalSch NEWmatchingREAD after actualgrant for proof; separate matchingEXEC after finalproof and Bohr release. No artifact copy/build/mutation/exclusivity."
+  },
+  "control_timeout_seconds": 150,
+  "operation_bound_seconds": 150,
+  "bound_provenance": {
+    "historical_controller": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor07-installed-purpose/run_useful_PUBLIC471.py",
+      "sha256": "d15c19d8103d54d2a166aecd3397470f1b81220dc8f496135c5563de9f24af3d",
+      "bytes": 6458
+    },
+    "historical_grant": {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Heis460-useful-cold-wheel-successor07-package-App-issued-grant.json",
+      "sha256": "43b54ee0d15f76c6c42197d7b5133d8fdbce537811ce068822cf88ef14c3121c",
+      "bytes": 1909961
+    },
+    "relation": "Original bounded controller and original150s operation ceiling reused; this warm App has no inner recorder/150s capture or16s finalize reserve. No deadline increase/cap/newclock. Stage/proof/restore original serialphase receipts; cease firstFAIL/UNKNOWN."
+  },
+  "scope": "ONE original mountedwarm App; exactly TWO authored localhost native seed inputs/2originalprivatejournals; mandatory actualretainedwarm identity/rawreads0 return ANDgenuineoriginal-owner eviction/editorDocumentUndo/non-tailrestoration; actualnative/source/paint projections/sharedbudget. No loaded4/16/32/64/configuredoriginalfork/provider/publicdecoder/physical/accepted07/466repeat.",
+  "input_count": {
+    "localhost_model_requests": 2,
+    "native_seed_inputs": 2,
+    "warm_mode_added_inputs": 0,
+    "public_original_inputs_replayed": 0
+  },
+  "public_decoder": "NONE; source_publicdecoder_READ_authorized mustfalse. PUBLIC475style22 protected.",
+  "return": {
+    "argv": [
+      "uv",
+      "pip",
+      "install",
+      "--python",
+      "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+      "--no-deps",
+      "--no-cache",
+      "--no-index",
+      "--link-mode",
+      "copy",
+      "--reinstall",
+      "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native67-filewheel-20261005/textual-8.2.8-py3-none-any.whl"
+    ],
+    "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+    "environment": {
+      "unset": [
+        "PYTHONPATH",
+        "PYTHONHOME",
+        "VIRTUAL_ENV",
+        "AGENT_COMMS_THREAD",
+        "AGENT_COMMS_STARTUP_INPUT_KEY",
+        "PI_PROMPT",
+        "PI_PARENT_ID",
+        "PI_AGENT_ID",
+        "PI_TASK",
+        "TEXTUAL_DRIVER",
+        "AC_REAL_ORIGINAL_PYTHON",
+        "AC_REAL_SOURCE_OWNER",
+        "AC_REAL_SOURCE_ROOT",
+        "AC_REAL_SOURCE_FILE",
+        "AC_REAL_PROVIDER_AUTHORIZED",
+        "AC_REAL_READ_ONLY_CUSTODY",
+        "WORKSPACE_COHORTS"
+      ],
+      "set": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1"
+      }
+    },
+    "attemptlimit": 1,
+    "scope": "NormalCURRENT471 Toadb2e+Text16c9 restore only ONCE; Core3931/3fe unchanged. Compare actual1467nodes/69versions+RAWorigins/2253other67/266protected/bootstrap2/PREFIX/noextras against actualfreshissuedpreimage, noarchive/current471 equality. JoinoriginalApp/renderer/nativeACP/worker/controller/groups/sockets, preserve input journals/rawFAIL/UNKNOWN before verified own scratch retirement; privileged freshcensus/wholehandback +explicitmatching7aREAD/EXECreturn. No publicsignals or oldpurpose restore replay."
+  },
+  "after_first_failure": "STOP preserve originalhandle/raw/privatejournals; join and mandatoryoriginalfloorreturn; no retry/stage-proofApp replay or newpurpose inferred.",
+  "readiness": "SOURCE/builder proof only. Mountedwarm App/control UNRUN; loadedlogical/fullconfigured/startupCPU/frame/speed obligations stay unfinished."
+}

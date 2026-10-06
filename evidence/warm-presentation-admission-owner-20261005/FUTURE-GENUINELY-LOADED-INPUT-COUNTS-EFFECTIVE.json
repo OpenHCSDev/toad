@@ -1,0 +1,71 @@
+{
+  "historical_descriptor": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/warm-presentation-admission-owner-20261005/FUTURE-GENUINELY-LOADED-OPERANDS.json",
+    "sha256": "2d1c437dd196e34b1b55a49afc0e9c655ade6532c2083b0969a02b14b17977a1",
+    "bytes": 2526
+  },
+  "effective_descriptor": {
+    "status": "SOURCE PREPARATION ONLY; eligible interpreter/floor/operator/proof/native custody UNBOUND",
+    "determining_before": "46256a3e7ca176f444182064de04123ac9e0c8fd",
+    "source_index_tree": "9d0086766f5915a36300ed897848e4d163507669",
+    "wheel": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/filewheel/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "61bf637992b00953a85249423e568e1958a0521b58b230b00c4f46023322aef2",
+      "product_source": "2ae78aac63db588e1a33d1da1c903139746d55aa",
+      "current_product_root_equal": true
+    },
+    "argv": [
+      "UNBOUND_ELIGIBLE_PREFIX/bin/python",
+      "-B",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/native_session_retention_pilot.py",
+      "--loaded-histories-only"
+    ],
+    "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+    "environment": {
+      "WORKSPACE_COHORTS": "4,16,32,64",
+      "L0A_EVIDENCE": "/home/ts/.cache/agent-scratch/h476/lh",
+      "TMPDIR": "/home/ts/.cache/agent-scratch/h476/lh/tmp",
+      "NATIVE_RETENTION_RECEIPT": "/home/ts/.cache/agent-scratch/h476/lh/loaded-histories.json",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONNOUSERSITE": "1"
+    },
+    "unset": [
+      "PYTHONPATH",
+      "PYTHONHOME"
+    ],
+    "original_private_fixture_socket": {
+      "root": "/home/ts/.cache/agent-scratch/h476/lh/native-fixture-12345678/private-root/wire",
+      "root_bytes": 79,
+      "socket": "/home/ts/.cache/agent-scratch/h476/lh/native-fixture-12345678/private-root/wire/runtime/1234567.sock",
+      "socket_bytes": 100,
+      "linux_limit": 107
+    },
+    "helpers": {
+      "tests/native_session_retention_pilot.py": "d69706b445652d8ec849c1be9cec5502b6dd61b5d41c347bd4fe2f67ee354235",
+      "tests/viewport_recent_tabs_pilot.py": "1750ffcfb3335b707f3fb4920ad7e0ef69efa241242009e8105269d03a065bfe"
+    },
+    "seed": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/thread_navigation_installed_journey.py",
+      "sha256": "a23fbcb8578986949712cacc8d7b1af01b97808de225c9dbdf970177c4a6f4d2",
+      "kwargs": {
+        "long_history": true
+      }
+    },
+    "qualification": "UNRUN; two original journals reused as actual loaded logical views, no blank or64-native-turn credit. Existing queue/input assertions run only under future specific authored-localhost scope.",
+    "native_authority": "Fresh purpose/source proof plus matching original7a READ/EXEC required before original native fixture/ACP; no receiving475/334MCP/PUBLIC borrow.",
+    "input_counts": {
+      "seed_authored_localhost_model_requests": 2,
+      "cohort_authored_localhost_model_requests": {
+        "4": 2,
+        "16": 2,
+        "32": 2,
+        "64": 2
+      },
+      "prospective_total_authored_localhost_model_requests": 10,
+      "native_inputs": "2seed +8 HELD/QUEUED across4cohorts; not64native turns",
+      "distinct_original_private_journals": 2,
+      "not_warm_only_two_input_scope": true
+    }
+  },
+  "correction": "Metadata only; exact2seed+8cohort=10 prospective localhost requests. Originalproducer/budget/oracles/commands/controlhashes unchanged. AppUNRUN; warm-only e781/2inputs independent."
+}

@@ -1,0 +1,120 @@
+{
+  "base": "8373e79697202792c38ad16f42fdf907d2d4e5b1",
+  "index_tree": "236e043c3dda1a30cc9515826deb7a9a06f24a2a",
+  "coverage": [
+    {
+      "root": "src/toad",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "parsed": 399,
+      "omissions": []
+    },
+    {
+      "root": "tools",
+      "parsed": 40,
+      "omissions": []
+    }
+  ],
+  "changed_modules": [
+    "src/toad/session_presentation.py",
+    "src/toad/widgets/viewport_body.py",
+    "tests/native_session_retention_pilot.py",
+    "tests/thread_navigation_installed_journey.py"
+  ],
+  "source_compile": "PASS without application import",
+  "runtime": "UNRUN",
+  "existing_lifetimes_AST_equal": true,
+  "shared_budget_AST_equal": true,
+  "pins_and_build_inputs_unchanged": true,
+  "duplicate_admission_and_foreign_warm_read_deleted": true,
+  "local_product_debt": {
+    "tally": {
+      "type_identity_check": 0,
+      "long_boolean_chain": 0,
+      "boolean_chain_terms": 0,
+      "codec_subclass": 0,
+      "foreign_absence_probe": 0,
+      "string_dispatch": 0,
+      "type_switch": 0,
+      "string_dispatch_arms": 0,
+      "type_switch_arms": 0,
+      "string_key_subscript": 0,
+      "literal_key_get": 0,
+      "string_equality": 0,
+      "none_identity": 2,
+      "isinstance_call": 0,
+      "attribute_by_name": 0,
+      "getattr_default": 0,
+      "broad_except": 0,
+      "json_loads": 0,
+      "long_function": 0,
+      "class_definition": 0,
+      "abstract_base": 0,
+      "enum_class": 0,
+      "code_lines": 13
+    },
+    "files": {
+      "src/toad/session_presentation.py": {
+        "type_identity_check": 0,
+        "long_boolean_chain": 0,
+        "boolean_chain_terms": 0,
+        "codec_subclass": 0,
+        "foreign_absence_probe": 0,
+        "string_dispatch": 0,
+        "type_switch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch_arms": 0,
+        "string_key_subscript": 0,
+        "literal_key_get": 0,
+        "string_equality": 0,
+        "none_identity": 2,
+        "isinstance_call": 0,
+        "attribute_by_name": 0,
+        "getattr_default": 0,
+        "broad_except": 0,
+        "json_loads": 0,
+        "long_function": 0,
+        "class_definition": 0,
+        "abstract_base": 0,
+        "enum_class": 0,
+        "code_lines": 5
+      },
+      "src/toad/widgets/viewport_body.py": {
+        "type_identity_check": 0,
+        "long_boolean_chain": 0,
+        "boolean_chain_terms": 0,
+        "codec_subclass": 0,
+        "foreign_absence_probe": 0,
+        "string_dispatch": 0,
+        "type_switch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch_arms": 0,
+        "string_key_subscript": 0,
+        "literal_key_get": 0,
+        "string_equality": 0,
+        "none_identity": 0,
+        "isinstance_call": 0,
+        "attribute_by_name": 0,
+        "getattr_default": 0,
+        "broad_except": 0,
+        "json_loads": 0,
+        "long_function": 0,
+        "class_definition": 0,
+        "abstract_base": 0,
+        "enum_class": 0,
+        "code_lines": 8
+      }
+    },
+    "unparsed": []
+  },
+  "hashes": {
+    "src/toad/session_presentation.py": "355e11576540dd9d60102c8b90ff79d43e91a2702f769749a56a23b3b20a4873",
+    "src/toad/widgets/viewport_body.py": "aa8c9d1acd462275be96f5f56b0e0d0b43283456e52624c43d1bc5c9121e8228",
+    "tests/native_session_retention_pilot.py": "57c73125243a2754b8e8f3a80c71f36b3551a0781ee555536ea02140a081dc19",
+    "tests/thread_navigation_installed_journey.py": "a23fbcb8578986949712cacc8d7b1af01b97808de225c9dbdf970177c4a6f4d2"
+  },
+  "artifact_relation": "Receiving 474 source/artifact frozen; successor differs in two production assets and is not full319 equal to its wheel."
+}

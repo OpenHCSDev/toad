@@ -1,0 +1,16 @@
+{
+  "elapsed": 41.166019638068974,
+  "returncode": 1,
+  "controller": {
+    "pid": 2433857,
+    "start_time": 72325800
+  },
+  "launch_parent": {
+    "pid": 2433843,
+    "start_time": 72325786
+  },
+  "controller_joined": true,
+  "controller_proc_absent": true,
+  "issued_sha256": "89e82fcfe007577fecaecd383d801503615e7f934e79b53d5d57f84d5a1fdc40",
+  "attempt": 1
+}

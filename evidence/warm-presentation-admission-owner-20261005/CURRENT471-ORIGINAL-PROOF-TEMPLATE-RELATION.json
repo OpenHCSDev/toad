@@ -1,0 +1,128 @@
+{
+  "state": "Source-only UNISSUED template; compile without imports PASS; never execute template",
+  "historical_template": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/native71-useful-paint460-20261005/successor07-installed-purpose/verify_installed.py",
+    "sha256": "6a09793a806478a4d4cd0813adce2a89c0a2fd3c0bc7990546847b0a37d65741"
+  },
+  "template": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/controller-preparation/verify_installed.template.py",
+    "sha256": "c22c0ec70bc8d64cf15c0192346f008abdd051483e7356d1430b2d26762bd569",
+    "bytes": 10167
+  },
+  "ordered_source_adaptations": [
+    {
+      "before": "Issued usefulcold/wheel artifact proof only; original typed receipt, no App/process launch.",
+      "after": "UNISSUED476 original installed source/FullTrust proof template; do not execute.",
+      "occurrences": 1,
+      "result_sha256": "7ac51096cd7d4a78951a69760b879377c0de84f838db0a77bb9b0af45e7b54cb"
+    },
+    {
+      "before": "GRANT = Path('/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/334-Heis460-useful-cold-wheel-successor07-package-App-issued-grant.json')",
+      "after": "GRANT = Path(\"UNBOUND_476_ACTUAL_ISSUED_GRANT_PATH\")",
+      "occurrences": 1,
+      "result_sha256": "c00dd4110f83b04a88d44a3a2fafd61c676f05b9b7ee61ab6dbcfdd15f454808"
+    },
+    {
+      "before": "43b54ee0d15f76c6c42197d7b5133d8fdbce537811ce068822cf88ef14c3121c",
+      "after": "UNBOUND_476_ACTUAL_ISSUED_GRANT_SHA256",
+      "occurrences": 1,
+      "result_sha256": "aea5f2c0867b714afdd090e6b2040ca379df75d9c179210ab743a45e84f56b50"
+    },
+    {
+      "before": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper460-useful-cold-wheel-successor07-READ-issued-20261005.json",
+      "after": "UNBOUND_476_ACTUAL_NATIVE_READ_PATH",
+      "occurrences": 1,
+      "result_sha256": "e23b21f86fdfc012ddd7c89fd34d415663f959e7bf341ca1224c10df9272ffbe"
+    },
+    {
+      "before": "4b10e4d663996c0d0620f6ac89b10fc7ffdb5209c134fc42f80d91dc8379b072",
+      "after": "UNBOUND_476_ACTUAL_NATIVE_READ_SHA256",
+      "occurrences": 1,
+      "result_sha256": "383366360448dc1dad4e3998d729d9d3df528ad0142de60211086d3ee845ab24"
+    },
+    {
+      "before": "grant['unchanged_other66_unique_records']",
+      "after": "grant['unchanged_other67_unique_records']",
+      "occurrences": 1,
+      "result_sha256": "91e82b2052136f1d39ece6acf281a999113063ff2ba83e9d8f419e8872e4ae8d"
+    },
+    {
+      "before": "    if name in ('agent-comms', 'batrachian-toad', 'textual'):",
+      "after": "    if name in ('batrachian-toad', 'textual'):",
+      "occurrences": 1,
+      "result_sha256": "ac92dcf6d8661d670f486da7e95525860bc887ce1a20004a0c837a539bc45b4c"
+    },
+    {
+      "before": "prior = json.loads(Path('/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/projected-prefetch443-current440-334-20261004/source-proof.json').read_text())\ndiff = {'module':'textual_diff_view', 'head':'8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9', 'wheel':'/home/ts/.cache/uv/sdists-v9/git/6a8a377ce2150d3f/8fa7d4d0db993ea3/textual_diff_view-0.1.5-py3-none-any.whl', 'sha256':'be7089c8f282e07e893b0254a0859e0f1b243a7ba591749f2053fa1fb775ad36'}\nnra_wheel = next(row for row in grant['restore_filewheels'] if 'nominal_refactor_audit-' in row['path'])\ndeclarations = [('agent_comms','agent-comms','7b68d630caa654d3e9884f45cbd6493718752a0c'), ('toad','batrachian-toad',grant['source_product']), ('textual','textual','a2dd8a9a37825a828df0d8f651ca57d92db69e5f')]\ninputs = [(module, distribution, head, Path(row['path']), row['sha256']) for (module, distribution, head), row in zip(declarations, grant['candidate_filewheels'], strict=True)]\ninputs.extend([('textual_diff_view', 'textual-diff-view', diff['head'], Path(diff['wheel']), diff['sha256']),\n               ('refactor_audit', 'nominal-refactor-audit', next(row['head'] for row in prior['sources'] if row['module']=='refactor_audit'), Path(nra_wheel['path']), nra_wheel['sha256'])])\n",
+      "after": "inputs = [(row['module'], row['distribution'], row['head'], Path(row['path']), row['sha256'])\n          for row in grant['source_filewheels']]\ndiff = next(row for row in grant['source_filewheels'] if row['module'] == 'textual_diff_view')\n",
+      "occurrences": 1,
+      "result_sha256": "6f2593514364b9756ba1b5a0accdf84308cfaff5edc74c3d50b5088e3a98409a"
+    },
+    {
+      "before": "    if module_name == 'textual_diff_view':",
+      "after": "    if module_name not in ('toad', 'textual'):",
+      "occurrences": 1,
+      "result_sha256": "68c79c633cff0c89a25b0d494f402da53ce4808afeb3fca76456b008f99a7a4f"
+    },
+    {
+      "before": "requirements_sha=hashlib.sha256",
+      "after": "for record in grant['original_environment_bootstrap_records']:\n    path=Path(record['path'])\n    assert digest(path)==record['sha256'] and stat.S_IMODE(path.stat().st_mode)==record['mode'], path\nprefix_activation=grant['actual_PREFIXactivation']\nassert digest(Path(prefix_activation['path']))==prefix_activation['sha256']\nrequirements_sha=hashlib.sha256",
+      "occurrences": 1,
+      "result_sha256": "63d2d6adb9935124fc4df920b153caffe934e2b9f8a77dead12d6ce8cfccd7ee"
+    },
+    {
+      "before": "HELD usefulcold/wheel460 installed source/immutable READ proof; App unrun",
+      "after": "HELD warm476 installed source/immutable READ proof; App unrun",
+      "occurrences": 1,
+      "result_sha256": "4ec6ad58e18b6b6bf3727d3e38e0b1ab5aa4546e43abbe65b3153cd8db7f492b"
+    },
+    {
+      "before": "'protected_old_prefix_files':428",
+      "after": "'protected_old_prefix_files':266",
+      "occurrences": 1,
+      "result_sha256": "765fc2c2028edc29799a84deda68c239d0308bb73bf8f8cd0f351ad9d8b15d87"
+    },
+    {
+      "before": "Original Heis exact6e398 usefulcold/wheel App only after matching Bohr release; accepted renderer and geometry not repeated",
+      "after": "Original Heis warm-admission-only TWO authored localhost inputs after actual new matching EXEC and Bohr release; no public decoder or loaded/configured mode",
+      "occurrences": 1,
+      "result_sha256": "3a11f190af16c4fd9fd13b452781e51ffbe2024541198af2b118edab3b1503c6"
+    },
+    {
+      "before": "1883other66+428keepers unchanged. No App/render controller/nativeSDK/ACP/provider/input executed.",
+      "after": "2253other67+266keepers/bootstrap2/PREFIX unchanged. Core3931/3fe retained. No App/render controller/nativeSDK/ACP/provider/input executed.",
+      "occurrences": 1,
+      "result_sha256": "214c5443e307f412baf1d5b902363241faef08ed385513d3410f8f349b659b25"
+    },
+    {
+      "before": "HELD original usefulcold/wheel successor07 43b54 actualNONLIVE334CURRENT447 purpose; App unrun",
+      "after": "HELD original warm476 actualNONLIVE former485 CURRENT471 purpose; App unrun",
+      "occurrences": 1,
+      "result_sha256": "7d724ec9e3c0fc33620b7f142a8991e7b8dcb4e1f260a7999d71980f97db2e33"
+    },
+    {
+      "before": "diff['head']",
+      "after": "diff['head']",
+      "occurrences": 1,
+      "result_sha256": "7d724ec9e3c0fc33620b7f142a8991e7b8dcb4e1f260a7999d71980f97db2e33"
+    },
+    {
+      "before": "'native_configuration_note':'Actual NONLIVE334 CURRENT447 archive41b065/preimagefa647:1468members/69originalorigins/428keepers/PREFIXactivation+1883other66 unchanged. Candidate675Core7b68/a685,Text71a2dd/bc47,Toadmerged466 union25dae/sourceequal2ece; three retained wheels/full69 with no optional extras. Shared immutable7a NEW READ proof only; actual configured readonly usefulcold/wheel App HELD. ActualCURRENT447 floor restore after terminal; PUBLIC465 style22 untouched; only exact original decoder READ is bound for the later App after release.",
+      "after": "'native_configuration_note':'Actual NONLIVE former485 CURRENT471 fresh1467 preimage authoritative; historical1563 archive is CURRENT459 only. Full69 original origins,266 protected/bootstrap2/PREFIX+2253 other67 unchanged. Core3931/3fe retained; only normal ToAd47661bf and nativeText71bc47 candidate stage. Candidate953 original source assets. TWO authored localhost native seed inputs in later warm-only App; no public decoder/configured original fork. Actual CURRENT471 Toadb2e+Text16c9 normal restore after terminal; PUBLIC475 style22 protected. NEW matching7a READ for proof only; App HELD separate newEXEC/release.",
+      "occurrences": 1,
+      "result_sha256": "6bfdfabb5bbb1edab4781842a12ad05408445bc796382bbd9b5ea6c69948f16c"
+    },
+    {
+      "before": "'other66_unchanged':1883, 'protected_originals_unchanged':428",
+      "after": "'other67_unchanged':2253, 'protected_originals_unchanged':266",
+      "occurrences": 1,
+      "result_sha256": "c22c0ec70bc8d64cf15c0192346f008abdd051483e7356d1430b2d26762bd569"
+    }
+  ],
+  "remaining_actual_replacements": [
+    "issued grant path/SHA",
+    "NEW matching native READ path/SHA"
+  ],
+  "contract": "Fresh CURRENT471 1467/full69/266/bootstrap2/PREFIX/2253other67; selected Core3931/3fe stays installed, only ToAd61bf+Textbc47 changed. All5 source declarations come from actual issued source_filewheels; no prior334/a685 origin or floor inheritance.",
+  "execution": "Only after actual fresh purpose stagePASS/NEWREAD and Bohr exact final materialized helper/argv/output binding."
+}
