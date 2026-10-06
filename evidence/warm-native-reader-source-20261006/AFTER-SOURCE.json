@@ -1,0 +1,38 @@
+{
+  "scope": "source only, no application imports or tests",
+  "source_compile": [
+    {
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "sha256": "2ea128c76d469c15e8e4633922110ccfaf200f86e2131eeb0d942129284ce030",
+      "bytes": 18068
+    },
+    {
+      "path": "tests/native_session_retention_pilot.py",
+      "sha256": "2e2c707ce97ba51b7619302e51ad0dd39b13fed9cbe79e5745cf5ddf0118259a",
+      "bytes": 33949
+    },
+    {
+      "path": "tests/saved_state_user_journey_pilot.py",
+      "sha256": "4f0948b8fb5fcab6cab12802cf8b5b3cb6498188ce3b67af8a88b787b3865dca",
+      "bytes": 30003
+    },
+    {
+      "path": "tests/readonly_saved_reader_pilot.py",
+      "sha256": "63c36b3cde89cf899995508cf73c4b193e385826e56a2f79e640349f6cc06c0e",
+      "bytes": 19357
+    },
+    {
+      "path": "tests/thread_navigation_installed_journey.py",
+      "sha256": "a23fbcb8578986949712cacc8d7b1af01b97808de225c9dbdf970177c4a6f4d2",
+      "bytes": 10668
+    }
+  ],
+  "changed_declarations": [
+    "ReaderCheckpoint"
+  ],
+  "unchanged_generic_settled": true,
+  "production_root_tests_unchanged": [],
+  "warm03": "consumed FAIL; whole ba383; Bohr CLOSED063b72; matching Sch closure e4df4168",
+  "runtime_qualification": "UNRUN; mandatory warm identity/raw reads zero and genuine eviction unchanged",
+  "rendered_source_provenance": "Actual current committed history.fragment_views AND original DocumentViewport.owners membership; User/Markdown event; visible native clipped nonwhite paint"
+}

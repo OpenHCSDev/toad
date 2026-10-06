@@ -1,0 +1,48 @@
+{
+  "source_freeze": "2ae78aac63db588e1a33d1da1c903139746d55aa",
+  "product_and_root_equal_source_freeze": true,
+  "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/filewheel/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+  "wheel_sha256": "61bf637992b00953a85249423e568e1958a0521b58b230b00c4f46023322aef2",
+  "bytes": 2251251,
+  "proof_path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/filewheel/wheel-proof.json",
+  "proof_sha256": "ee36987df2a61646b5c43370eafe1321438e54633e1e50d8952d48a8f80004b1",
+  "319_Git_local_ZIP_equal": true,
+  "324_RECORD_verified": true,
+  "root": {
+    "pyproject.toml": "bd8ffc54903d895903260c67614a2c876d1a59b3ebea03460a2db421ba658cfa",
+    "uv.lock": "2374d074eef0d436acd483473de7aa57b6219f2e87055a0fb2d1eea352f4a9a9",
+    "README.md": "11b3f5195acb00a19a73229749e2e71ba924314a8b1c650f05a2bf43f537d35d",
+    "LICENSE": "4df3c306dddaaf4baffdff5ca820cc679ac8cd6dc263c6a74517783e42fa7a3b"
+  },
+  "selected_Core": {
+    "head": "3931f16feb8bcb2dbcc3041446ca342dea665024",
+    "wheel_sha256": "3fe14077293b691000394831ed7458ecae92afd9b667af4501be2945ab86051d"
+  },
+  "selected_nativeText": {
+    "head": "a2dd8a9a37825a828df0d8f651ca57d92db69e5f",
+    "wheel_sha256": "bc47c59ea7db78a9a443c5f5e3f10836660957f21bb998d2ffa3ae8e4a2ddbe3"
+  },
+  "Diff_pin": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "build_attempts": 1,
+  "mounted_control": {
+    "path": "tests/native_session_retention_pilot.py",
+    "sha256": "74a882ef2809760f06bed8af87625d6f1e9277a3746d716366ed2f699c833816",
+    "argv": [
+      "UNBOUND_ELIGIBLE_PREFIX/bin/python",
+      "-B",
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/native_session_retention_pilot.py",
+      "--warm-admission-only"
+    ],
+    "required_verified_branches": [
+      "warm_identity_raw_read_returns",
+      "eviction_editor_reader_returns"
+    ],
+    "runtime": "UNRUN"
+  },
+  "historical474_sourceequal476": false,
+  "source_only_canonical_correction": "tests/canonical_wire_conversation_installed_pilot.py",
+  "prefix_access": false,
+  "stage": false,
+  "App": false,
+  "qualification": "Build proof only; no eligible holder or runtime authority. Receiving475 frozen separately."
+}

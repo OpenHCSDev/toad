@@ -1,0 +1,26 @@
+{
+  "production_assets_equal_repaired410c": 319,
+  "root_pyproject_uv_equal_frozen_pair": true,
+  "changed_production_files": 0,
+  "templates_compiled_without_import": [
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/evidence/configured-loaded-consumer-repair-20261006/verify_configured_source_member.template.py"
+  ],
+  "configured_outer_seconds": 2100,
+  "readiness_seconds": 20,
+  "new_runtime_paths_absent": true,
+  "runtime_or_build_run": false,
+  "changed_controls": [
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/native_session_retention_pilot.py",
+      "sha256": "b78fbe7375515965050ef7eebda89604edc9546204fb85d2e95d6332e5208c63",
+      "bytes": 34617
+    },
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/saved_state_user_journey_pilot.py",
+      "sha256": "808025d777fe53499b25659c581a7f2945c42390b04cf5c7fcc2256850bebb4b",
+      "bytes": 46866
+    }
+  ],
+  "socket_bytes": 67,
+  "all10proof_outputs_preflighted": true
+}

@@ -1,0 +1,8 @@
+{
+  "historical_commit": "e902c850cbcf0fcf8042cc893bcce22af7be2b9b",
+  "historical_descriptor_sha256": "6391fa1a2683148a8efa8ff7fd4dcd0859ffb5e0346fd641e74ddceee879a27a",
+  "effective_descriptor": "evidence/warm-presentation-admission-owner-20261005/FUTURE-WARM-ADMISSION-BUILD-BOUND-OPERANDS.json",
+  "effective_sha256": "e781e74d176544e44afcd8aa13be8f8c3cba0e62b6f5fb67bb522ed420e7002c",
+  "change": "Existing control_hashes and artifact state updated to actual new loaded-control module and weak checkpoint witness; old inherited2ae preview preserved in historical commit, not executable. Warm leaf and verify assertions unchanged, same two-input argv/env/output and mandatory branches. No helper/product/build/runtime repeat.",
+  "runtime": "UNRUN"
+}

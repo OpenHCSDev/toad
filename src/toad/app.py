@@ -442,10 +442,6 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
                 and not self._batch_count and screen is self.screen):
             self._renderer_warmup_started = True
             self._warm_renderer()
-        if renderable is not None and not self._batch_count:
-            if screen is self.screen:
-                from toad.frame_presentation import FrameDisplay
-                FrameDisplay().dispatch_sync(screen)
 
     @work(group="renderer-warmup", exit_on_error=False)
     async def _warm_renderer(self) -> None:

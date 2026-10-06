@@ -1,0 +1,72 @@
+{
+  "base": "c73768022ff3b31017fc63f6dc07d847a450e825",
+  "helper": "tests/saved_state_user_journey_pilot.py",
+  "before_sha256": "808025d777fe53499b25659c581a7f2945c42390b04cf5c7fcc2256850bebb4b",
+  "after_sha256": "21ce690ba324ad6bae9d53b0881f8e302aae3fbb206fa733c256a42ea8804598",
+  "owner_source": [
+    {
+      "path": "src/toad/widgets/channel_participants.py",
+      "sha256": "13c4e9bdbfdb0b10689bfe8c11c624ab9070b7496dc1d2a6453f4e23af4a148e",
+      "bytes": 1879
+    },
+    {
+      "path": "src/toad/core_event_carrier.py",
+      "sha256": "578385dd75277e77a103fb1db5983c622c087c83182c441ab2189752e7c4c53a",
+      "bytes": 5028
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "sha256": "e38700a9d3cfdf4f10ce81c67a4c88ad974a9946cc58581c5083dc7ebef746ad",
+      "bytes": 12026
+    },
+    {
+      "path": "src/toad/navigation_target.py",
+      "sha256": "ce9130880e327f3a0c9414155276676b2b544d16cb16d380b12e8b974cad060b",
+      "bytes": 5475
+    },
+    {
+      "path": "src/toad/thread_navigation.py",
+      "sha256": "0d29bd31f3b38fd593801d6bc96890d5425cbe7a00c0e19b923caccbd42d0b3e",
+      "bytes": 4400
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "sha256": "d67f93ce6dade644c10a85355d09e1b5cd2baf2a0a6911a6210a922325241522",
+      "bytes": 12217
+    },
+    {
+      "path": "src/toad/session_admission.py",
+      "sha256": "5250f341d42429a2725fea40cd6237837162cfc1aee1ca3d331c15ac3a8440f2",
+      "bytes": 10427
+    },
+    {
+      "path": "src/toad/workspace_sessions.py",
+      "sha256": "eb47184cbc15e82ba039c0662ff3986099aa9b54e24908721a68edcfb986aba8",
+      "bytes": 6201
+    }
+  ],
+  "changed_consumers": [
+    "unopened_participant",
+    "configured_acceptance"
+  ],
+  "shared_consumer": "click_participant",
+  "deleted_decision": "plain character index + 1 projected directly to terminal x at fixed y0",
+  "current_decision": "Original published native widget bounds/clip and exact original @click open_thread tuple choose real pointer cell",
+  "canonical_action_chain": [
+    "ParticipantNames.action_open_thread",
+    "CoreEventReceiver.publish_core",
+    "CommsScreen.on_select_target",
+    "ThreadTarget.open",
+    "ThreadNavigator.open",
+    "SessionAdmissions/WorkspaceSessions.select"
+  ],
+  "source_api": "Original Textual Content owns cell length/wrapping/style metadata; Screen.get_style_at publishes actual native action; Pilot.click offsets are terminal cell coordinates and only prove widget hit, not correct target action.",
+  "readiness": "Existing until20 replaces existing participant label wait; outer2100 and following same-peer selection wait unchanged",
+  "compile_without_import": "PASS",
+  "diff_check": "PASS",
+  "production_pins_build_delta": [],
+  "mounted_qualification": "UNRUN; no old grant/source capture/input replay",
+  "runtime_cause_limit": "Configured03 recorded only the following peer-selection timeout. Its click action/cell was not recorded, so this source operand correction is not a sole-cause claim.",
+  "frozen_failure": "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured03-installed-purpose/configured.stderr.log",
+  "whole_return": "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured03-installed-purpose/whole-handback.json"
+}

@@ -1,0 +1,864 @@
+{
+  "state": "SOURCE ONLY configured successor preparation; purpose/floor/source witness UNBOUND; no reservation or access",
+  "supersedes_artifact_UNBOUND_only": {
+    "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/evidence/configured-continuous-source-20261006/EFFECTIVE-CONFIGURED-READER-PAIR-OPERANDS.json",
+    "sha256": "919e2cfa28960d834c181dd1abc4607ffdc49dfd6a5c49b5469594a5badcf189",
+    "bytes": 49259
+  },
+  "selected_pair": [
+    {
+      "artifact": {
+        "path": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/current-paired-core-20261006/wheel/agent_comms-0.1.0-py3-none-any.whl",
+        "sha256": "6b426d7ea31f4a6e30db2c2fdbd4eaa4d1be6dcea9aba3c6e599f7c063987b6b",
+        "bytes": 910730
+      },
+      "source_relation": {
+        "path": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/current-paired-core-20261006/wheel-source-relation.json",
+        "sha256": "ef146377965f6c2e2ede6a446990745366dfe63e24ae111958fa0111e29069ba",
+        "bytes": 562
+      },
+      "build_receipt": {
+        "path": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/current-paired-core-20261006/build-receipt.json",
+        "sha256": "840fddeefc4237f085324ee7ce03106f586c01b5527c1a5f5d3aa0308061eac3",
+        "bytes": 1293
+      },
+      "source_head": "ddcdc422c7fe01453edb2469bcfa8303d771db67"
+    },
+    {
+      "artifact": {
+        "path": "/home/ts/wt/toad-current-installed-integration-20261006/.artifacts/current-paired-toad-reader-20261006/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+        "sha256": "410c3ab0eee04e628d16fbbd11c591d7d7676f5c714ce82b273cfb0ad89acd8c",
+        "bytes": 2251240
+      },
+      "source_relation": {
+        "path": "/home/ts/wt/toad-current-installed-integration-20261006/.artifacts/current-paired-toad-reader-20261006/wheel-source-relation.json",
+        "sha256": "74fcebdd6b08499904796422f95f3fe772e09c1dee1006f32e3a236546ce6863",
+        "bytes": 709
+      },
+      "build_receipt": {
+        "path": "/home/ts/wt/toad-current-installed-integration-20261006/.artifacts/current-paired-toad-reader-20261006/build-receipt.json",
+        "sha256": "1947216b86a84ccdf29ea1b42595e59edbcf7f596bf413301751da62abce9ea9",
+        "bytes": 1139
+      },
+      "source_head": "afae409d1cdf34e0a0fa06c8fb02dfba740ad229"
+    }
+  ],
+  "selected_core_pin": "ddcdc422c7fe01453edb2469bcfa8303d771db67",
+  "selected_Text": {
+    "module": "textual",
+    "package": "textual",
+    "artifact": {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native70-71-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+      "sha256": "bc47c59ea7db78a9a443c5f5e3f10836660957f21bb998d2ffa3ae8e4a2ddbe3",
+      "bytes": 768804
+    },
+    "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+    "assets": 266,
+    "RECORD_files": 270
+  },
+  "producer": {
+    "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tests/compaction_source_successor_installed_journey.py",
+    "sha256": "b086d7a5e5a3792e0b3ff19088b6b88cb9286dd76c9323d764d2dbb82920d0cf",
+    "bytes": 13064
+  },
+  "producer_selected_pair_BYTEequal": true,
+  "controls": [
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tests/compaction_source_successor_installed_journey.py",
+      "sha256": "b086d7a5e5a3792e0b3ff19088b6b88cb9286dd76c9323d764d2dbb82920d0cf",
+      "bytes": 13064
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/carry_history_provenance.py",
+      "sha256": "44735bcdd6424af4203ac75e509f8a80cf41641882b249610ccadd0215c527b2",
+      "bytes": 4308
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/cutover_child.py",
+      "sha256": "69a63c30a27ce6971d31e9669ff8c86b06579612c796f044126f629917e51966",
+      "bytes": 1207
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/native_schema_carry.py",
+      "sha256": "08d5b673910f96634ad017eb7e8224cb440e5b5cfea7c07d597b3ddf0f209c2b",
+      "bytes": 43894
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/original_owner_capture.py",
+      "sha256": "0505975196d438b2721d48efde97e777f124a34ea1fe6f05dd50751a29f2932f",
+      "bytes": 3846
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/owner_read_projection.py",
+      "sha256": "c719ec35fa61942ee76b6aa8b87e1155e66235eb1d696736bd9597b1fa2caba7",
+      "bytes": 4645
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/publish_openhcs_recovery.py",
+      "sha256": "27516db16a4bec25bb37fb394e1c7bc04c567eb0a780fb1e0ed62235ca0ed9ff",
+      "bytes": 21793
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/publish_retained_summary.py",
+      "sha256": "025babf120563228d99920617d34f2e4142307d38e049405d4af49b2ecd7a960",
+      "bytes": 24056
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/read_original_owner.py",
+      "sha256": "c963d51ec834e7caef5a0a10b704773546f548cf967e5e8716e147db0a2557d9",
+      "bytes": 1057
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/retained_summary_reset.py",
+      "sha256": "86d28cc9f9c74c9156ee258d061168a17003ab94f6c9ba1fdaac2dd01eb8dd12",
+      "bytes": 8554
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/routing_carry.py",
+      "sha256": "44509029e1fb4c975f8bb5b6c14cd8ecb1e2c9697f24374883b02f26360a3b4c",
+      "bytes": 11939
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/routing_recovery.py",
+      "sha256": "af599ee91746123ed33606691973ef3a2a0e77e2d994cd158a1c5ddef2c2aafc",
+      "bytes": 2347
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/runtime_installation.py",
+      "sha256": "77841672b6d9d99e3cb4c724706ffdad7eefd604aab583743f2e4b341156224c",
+      "bytes": 3393
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/thread_format_retirement.py",
+      "sha256": "e31ca7198a19f0c7f92f65663adc82d3e10cd9194278951a77a936332ce25737",
+      "bytes": 3873
+    },
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/l0a_native_installed_pilot.py",
+      "sha256": "af0fb2d285ce9dddf728650809ab206b706000ed1d003e520d382b483b04e61a",
+      "bytes": 37666
+    },
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/manual_live_turn_status.py",
+      "sha256": "f333da956fcc9e367f993853aa3daabbaea8d4278feed24eaa644d51c74e48fa",
+      "bytes": 7122
+    },
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/native_session_retention_pilot.py",
+      "sha256": "b78fbe7375515965050ef7eebda89604edc9546204fb85d2e95d6332e5208c63",
+      "bytes": 34617
+    },
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/runtime_fixture.py",
+      "sha256": "c34f37f450a02f09d344352466431744892a0c788953212da5ac434d912e3315",
+      "bytes": 18978
+    },
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/saved_state_user_journey_pilot.py",
+      "sha256": "808025d777fe53499b25659c581a7f2945c42390b04cf5c7fcc2256850bebb4b",
+      "bytes": 46866
+    },
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/thread_navigation_installed_journey.py",
+      "sha256": "a23fbcb8578986949712cacc8d7b1af01b97808de225c9dbdf970177c4a6f4d2",
+      "bytes": 10668
+    },
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/viewport_recent_tabs_pilot.py",
+      "sha256": "2ea128c76d469c15e8e4633922110ccfaf200f86e2131eeb0d942129284ce030",
+      "bytes": 18068
+    },
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/readonly_saved_reader_pilot.py",
+      "sha256": "63c36b3cde89cf899995508cf73c4b193e385826e56a2f79e640349f6cc06c0e",
+      "bytes": 19357
+    },
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/canonical_wire_conversation_installed_pilot.py",
+      "sha256": "b8b4c67ea8bbdb2062d64b275de3cc5cce31d62471350eeca4441de105d10843",
+      "bytes": 31836
+    }
+  ],
+  "toad_production_319_owned_vs_selected_zip_BYTEequal": true,
+  "owned_root_equals_selected_build_inputs": true,
+  "root_relation": "Fixed operator checkout afae package/root equals repaired410c, Core checkout ddcdc package/root equals6b426; evidence-only additions. No oldwheel relabel or source overlay.",
+  "argv": [
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+    "-B",
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/saved_state_user_journey_pilot.py",
+    "--configured-saved",
+    "--core-checkout",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006",
+    "--installed-source",
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/core-installed-source.json",
+    "--archive",
+    "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/current-paired-core-20261006/wheel/agent_comms-0.1.0-py3-none-any.whl",
+    "6b426d7ea31f4a6e30db2c2fdbd4eaa4d1be6dcea9aba3c6e599f7c063987b6b"
+  ],
+  "cwd": "/home/ts/wt/toad-warm-rendered-reader-20261006",
+  "environment_set": {
+    "L0A_EVIDENCE": "/home/ts/.cache/agent-scratch/hcf02/e",
+    "AC_REAL_FIXTURE_STAGE": "/home/ts/.cache/agent-scratch/hcf02/sf",
+    "TMPDIR": "/home/ts/.cache/agent-scratch/hcf02/tmp",
+    "AC_REAL_PROVIDER_AUTHORIZED": "Sol/high retained acceptance",
+    "AC_REAL_READ_ONLY_CUSTODY": "1",
+    "AC_REAL_ORIGINAL_PYTHON": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "AC_REAL_SOURCE_ROOT": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "AC_REAL_SOURCE_OWNER": "openhcs-architecture-memory",
+    "AC_NATIVE_COPIED_PACKAGE": "/home/ts/wt/comms-native-bootstrap-origin-guard-20261005/stack/.pi-native-4b687d2ddcafeea5/node_modules/@earendil-works/pi-coding-agent",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONNOUSERSITE": "1"
+  },
+  "receipt": "/home/ts/.cache/agent-scratch/hcf02/e/configured-journey.json",
+  "original_producer_receipt": "/home/ts/.cache/agent-scratch/hcf02/sf/receipt.json",
+  "literal_socket_relation": {
+    "owner": "Core runtime.socket_path(root,pid)",
+    "formula": "AC_REAL_FIXTURE_STAGE/wire/runtime/{actualPID}.sock",
+    "largest_decimal_pid_example": "/home/ts/.cache/agent-scratch/hcf02/sf/wire/runtime/2147483647.sock",
+    "utf8_bytes": 67,
+    "linux_limit": 107,
+    "no_runtime_probe": true
+  },
+  "configured_source": {
+    "acquisition": "CurrentTypedCapture + RetainedOwnerLaunch at use, then original configured_saved_agent SDK private_inputs.fork",
+    "minimum_original_bytes": 40000000,
+    "original_file_and_input_proof": "Hash checked through original producer; original source unchanged; no original inputs replayed",
+    "private_worktree": "One ForkSessionRequest.cwd from /home/ts/.cache/agent-scratch/hcf02/sf/project",
+    "native_runtime": "Original CommsAgent._runtime + bind_owned; auto_wake=True opts into original live InputDrain",
+    "physical_mode": "Default installed mounted run_test; headful flag only with future specifically granted physical purpose"
+  },
+  "authored_new_input_sequence": [
+    {
+      "owner": "peer529",
+      "path": "actual composer",
+      "marker": "CONFIGURED_PEER_FIRST"
+    },
+    {
+      "owner": "source529",
+      "path": "actual composer first input",
+      "marker": "CONFIGURED_FIRST_REPLY"
+    },
+    {
+      "owner": "source529",
+      "path": "actual busy composer queue",
+      "marker": "CONFIGURED_QUEUED_REPLY"
+    },
+    {
+      "owner": "configured-child",
+      "path": "original ForkCliCommand startup task before first native answer",
+      "marker": "CONFIGURED_FORK_FIRST"
+    },
+    {
+      "owner": "peer529",
+      "path": "original channel Message.reference/native assignment",
+      "marker": "CONFIGURED_CHANNEL_REPLY"
+    },
+    {
+      "owner": "source529",
+      "path": "original DM Message.reference/native assignment",
+      "marker": "CONFIGURED_DM_REPLY"
+    }
+  ],
+  "authored_ui_inputs": 6,
+  "configured_provider_requests": "UNBOUND: original selected triage/native automatic-author/reply handling can create additional native requests; 6 authored UI inputs is not total provider calls",
+  "model_thinking_auth": "Original captured configured model/thinking/provider/environment, no selected-offline replacement",
+  "readiness_seconds": 20,
+  "outer_seconds": 2100,
+  "mandatory_phases": [
+    "saved committed journal source-bound nonwhite native paint without input",
+    "saved channel actual sidebar open and tab return",
+    "unopened peer first native input/participant click/current turn",
+    "first source input, real busy queue identity/status and native reply history",
+    "native CLI fork immediate source attachment before first actual assistant answer; exact original native input",
+    ">=40MB saved/fork A-B-A exact warm pages/fragments/content identities rawreads0 draft Undo reader",
+    "adaptive original slow/fast page movement/reversal/End/idle no replay",
+    "channel exact authored Message.reference notification hidden settlement/reply/handling",
+    "DM original Message.reference open hidden same admission return and SessionNavigation cold reopen",
+    "App/preparation and original Core agent/native child joined close"
+  ],
+  "fresh_bindings": {
+    "eligible_floor": "Actual contract bound; Bohr fresh atissue recheck still required",
+    "prefix_interpreter": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+    "current_source_witness": "Original CurrentTypedCapture/RetainedOwnerLaunch require_current at use; locator is not a promise. >=40MB/hash/settings/authentic source process/interpreter remain actual acquisition obligations. Source READ unissued.",
+    "source_installed_DTO": "UNBOUND actual Core InstalledSource member in own core-installed-source.json, exported from the fresh verified full proof",
+    "native_READ_EXEC": "UNBOUND fresh matching4b scopes naming actual new grant",
+    "return": "Actual contract three normal original Core3fe+Toadb2e+Text16c9 once, full floor+owned joins+census/explicitreturns"
+  },
+  "separate_scopes": {
+    "warm04": "Frozen e601/742a/4d018 independent exactly2 localhost seeds; no configured source/helper/wheel rebind",
+    "loaded4_16_32_64": "Separate UNRUN logical native admitted cohorts from two authored journals; total prospective10 localhost requests (2 seed+8 cohort), no 64 distinct journal or configured >=40MB credit",
+    "startup_frame_CPU": "Original performance objective active; this continuous source implementation supplies no FPS/CPU/baseline claim"
+  },
+  "operations": "Source compile/Git/localZIP/RECORD and metadata contract READ only; no build/package/prefix/import/sourcecapture/FullTrust/native/provider/App operation",
+  "preserved_original_operands": [
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/evidence/configured-continuous-source-20261006/FUTURE-CONFIGURED-OPERANDS.json",
+      "sha256": "3158b661586fb882770574debce96ea76ecd813321cc86ef957c4870a40952dc",
+      "bytes": 8726
+    },
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/evidence/configured-continuous-source-20261006/EFFECTIVE-CONFIGURED-PAIRED-OPERANDS.json",
+      "sha256": "6c76cd604eae7550eea2ad99ac2c48a065aa3903e5c3a14082fd8583e5ca626f",
+      "bytes": 16880
+    }
+  ],
+  "stable_helpers": {
+    "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/evidence/configured-continuous-source-20261006/STABLE-CONFIGURED-HELPERS.json",
+    "sha256": "3bbdf0ad72db6480540e537becf19afb7933950ecaab564857890517feb836d3",
+    "bytes": 17918
+  },
+  "own_source_proof": {
+    "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/evidence/configured-continuous-source-20261006/REPAIRED-PAIR-SOURCE-PROOF.json",
+    "sha256": "3606d2e2c8ce3b70b24805541f0fac6b77dce8ccfdf0b3d0f0b6b9d95df37a30",
+    "bytes": 168301
+  },
+  "source_capture_scope": {
+    "original_public_root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "original_public_python": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "default_original_configured_source_name": "openhcs-architecture-memory",
+    "owner_identity_incarnation_settings_environment_source_hash_and_minimum40MB_at_use": "Original CurrentTypedCapture + RetainedOwnerLaunch; no original source journal read/capture now",
+    "original_input_replays": 0,
+    "original_source_preserved": true,
+    "provider_model": "Original captured configured provider/model/thinking/auth; normal Sol/high scope unchanged; no offline replacement",
+    "authored_UI_inputs": 6,
+    "provider_request_count": "not capped at6; original automatic triage/reply processing creates additional requests",
+    "private_native_package": "/home/ts/wt/comms-native-bootstrap-origin-guard-20261005/stack/.pi-native-4b687d2ddcafeea5/node_modules/@earendil-works/pi-coding-agent",
+    "original_public_native7a_shared_preserved": true,
+    "public_source_custody_return": "Original capture.require_current/hash and PUBLIC_WITNESS_RELEASED after SDK private fork/admission join; independent from whole private journey",
+    "fresh_source_READ_and_new_matching_private4b_READ_EXEC_not_authorized_by_this_assessment": true,
+    "source_installed_DTO": "UNBOUND actual Core InstalledSource member in own core-installed-source.json, exported from the fresh verified full proof",
+    "historical_source_locator_only": {
+      "identity": {
+        "incarnation": {
+          "name": "openhcs-architecture-memory",
+          "created_at": 1790654215.0835924
+        },
+        "generation": 3430
+      },
+      "process": {
+        "pid": 2286404,
+        "start_time": 72080993
+      },
+      "admission_generation": 3394
+    },
+    "current_source_locator_not_admission": "UNBOUND original typed source identity/settings/source/hash at use"
+  },
+  "current_source_locator_not_admission": {
+    "state": "UNBOUND original CurrentTypedCapture/RetainedOwnerLaunch at use; historical locator not promised"
+  },
+  "outer_owner": "Original BoundedRun.session/AttachedChild consumes issued2100seconds once for complete configured workflow;93 existing20s waits,4roster8s waits, original fork helpers and explicit acquisition/close allowance. Not a timing claim or warm budget inheritance.",
+  "environment": {
+    "unset": [
+      "PYTHONPATH",
+      "PYTHONHOME",
+      "VIRTUAL_ENV",
+      "AGENT_COMMS_THREAD",
+      "AGENT_COMMS_STARTUP_INPUT_KEY",
+      "PI_PROMPT",
+      "PI_PARENT_ID",
+      "PI_AGENT_ID",
+      "PI_TASK",
+      "TEXTUAL_DRIVER",
+      "AC_REAL_ORIGINAL_PYTHON",
+      "AC_REAL_SOURCE_OWNER",
+      "AC_REAL_SOURCE_ROOT",
+      "AC_REAL_SOURCE_FILE",
+      "AC_REAL_PROVIDER_AUTHORIZED",
+      "AC_REAL_READ_ONLY_CUSTODY",
+      "WORKSPACE_COHORTS"
+    ],
+    "set": {
+      "L0A_EVIDENCE": "/home/ts/.cache/agent-scratch/hcf02/e",
+      "AC_REAL_FIXTURE_STAGE": "/home/ts/.cache/agent-scratch/hcf02/sf",
+      "TMPDIR": "/home/ts/.cache/agent-scratch/hcf02/tmp",
+      "AC_REAL_PROVIDER_AUTHORIZED": "Sol/high retained acceptance",
+      "AC_REAL_READ_ONLY_CUSTODY": "1",
+      "AC_REAL_ORIGINAL_PYTHON": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+      "AC_REAL_SOURCE_ROOT": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "AC_REAL_SOURCE_OWNER": "openhcs-architecture-memory",
+      "AC_NATIVE_COPIED_PACKAGE": "/home/ts/wt/comms-native-bootstrap-origin-guard-20261005/stack/.pi-native-4b687d2ddcafeea5/node_modules/@earendil-works/pi-coding-agent",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONNOUSERSITE": "1"
+    }
+  },
+  "stage_environment": {
+    "unset": [
+      "PYTHONPATH",
+      "PYTHONHOME",
+      "VIRTUAL_ENV",
+      "AGENT_COMMS_THREAD",
+      "AGENT_COMMS_STARTUP_INPUT_KEY",
+      "PI_PROMPT",
+      "PI_PARENT_ID",
+      "PI_AGENT_ID",
+      "PI_TASK",
+      "TEXTUAL_DRIVER",
+      "AC_REAL_ORIGINAL_PYTHON",
+      "AC_REAL_SOURCE_OWNER",
+      "AC_REAL_SOURCE_ROOT",
+      "AC_REAL_SOURCE_FILE",
+      "AC_REAL_PROVIDER_AUTHORIZED",
+      "AC_REAL_READ_ONLY_CUSTODY",
+      "WORKSPACE_COHORTS"
+    ],
+    "set": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONNOUSERSITE": "1"
+    }
+  },
+  "candidate_filewheels": [
+    {
+      "path": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/current-paired-core-20261006/wheel/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "6b426d7ea31f4a6e30db2c2fdbd4eaa4d1be6dcea9aba3c6e599f7c063987b6b",
+      "bytes": 910730
+    },
+    {
+      "path": "/home/ts/wt/toad-current-installed-integration-20261006/.artifacts/current-paired-toad-reader-20261006/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "410c3ab0eee04e628d16fbbd11c591d7d7676f5c714ce82b273cfb0ad89acd8c",
+      "bytes": 2251240
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native70-71-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+      "sha256": "bc47c59ea7db78a9a443c5f5e3f10836660957f21bb998d2ffa3ae8e4a2ddbe3",
+      "bytes": 768804
+    }
+  ],
+  "stage_argv": [
+    "uv",
+    "pip",
+    "install",
+    "--python",
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+    "--no-deps",
+    "--no-cache",
+    "--no-index",
+    "--link-mode",
+    "copy",
+    "--reinstall",
+    "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/current-paired-core-20261006/wheel/agent_comms-0.1.0-py3-none-any.whl",
+    "/home/ts/wt/toad-current-installed-integration-20261006/.artifacts/current-paired-toad-reader-20261006/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+    "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native70-71-filewheel-20261005/textual-8.2.8-py3-none-any.whl"
+  ],
+  "stage_cwd": "/home/ts/wt/toad-warm-rendered-reader-20261006",
+  "stage_attemptlimit": 1,
+  "restore": {
+    "argv": [
+      "uv",
+      "pip",
+      "install",
+      "--python",
+      "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+      "--no-deps",
+      "--no-cache",
+      "--no-index",
+      "--link-mode",
+      "copy",
+      "--reinstall",
+      "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/same-owner-native-fork676-corrected-wheel-20261005/agent_comms-0.1.0-py3-none-any.whl",
+      "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native67-filewheel-20261005/textual-8.2.8-py3-none-any.whl"
+    ],
+    "cwd": "/home/ts/wt/toad-warm-rendered-reader-20261006",
+    "environment": {
+      "unset": [
+        "PYTHONPATH",
+        "PYTHONHOME",
+        "VIRTUAL_ENV",
+        "AGENT_COMMS_THREAD",
+        "AGENT_COMMS_STARTUP_INPUT_KEY",
+        "PI_PROMPT",
+        "PI_PARENT_ID",
+        "PI_AGENT_ID",
+        "PI_TASK",
+        "TEXTUAL_DRIVER",
+        "AC_REAL_ORIGINAL_PYTHON",
+        "AC_REAL_SOURCE_OWNER",
+        "AC_REAL_SOURCE_ROOT",
+        "AC_REAL_SOURCE_FILE",
+        "AC_REAL_PROVIDER_AUTHORIZED",
+        "AC_REAL_READ_ONLY_CUSTODY",
+        "WORKSPACE_COHORTS"
+      ],
+      "set": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1"
+      }
+    },
+    "filewheels": [
+      {
+        "module": "agent_comms",
+        "head": "3931f16feb8bcb2dbcc3041446ca342dea665024",
+        "assets": 355,
+        "wheel": {
+          "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/same-owner-native-fork676-corrected-wheel-20261005/agent_comms-0.1.0-py3-none-any.whl",
+          "sha256": "3fe14077293b691000394831ed7458ecae92afd9b667af4501be2945ab86051d",
+          "bytes": 904487
+        },
+        "inventory": {
+          "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/agent_comms-inventory.json",
+          "sha256": "3b7c13a8db9130ac170bbb8df5e77e61409c482242f226d0bd6ee6d8f2e5bee0",
+          "bytes": 55897
+        },
+        "installed_namespace_noextras_and_ZIPbytes_equal": true
+      },
+      {
+        "module": "toad",
+        "head": "289f1c6cd7667abf985ddba265d6469a95e3ea48",
+        "assets": 319,
+        "wheel": {
+          "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+          "sha256": "b2e420e5b2eed1aaa96d815b2abf38f990272a047417c2ca5082c01d9149a151",
+          "bytes": 2251159
+        },
+        "inventory": {
+          "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/toad-inventory.json",
+          "sha256": "3034ea1634b3d371d32595fc76e25f1605a5152e28a3e4e6ea7814f64a639236",
+          "bytes": 48134
+        },
+        "installed_namespace_noextras_and_ZIPbytes_equal": true
+      },
+      {
+        "module": "textual",
+        "head": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78",
+        "assets": 266,
+        "wheel": {
+          "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native67-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+          "sha256": "16c9f5e7a1aca9f7a339fdb859c1743bbc0ba8f17327ba3debd4b13959ca927d",
+          "bytes": 768752
+        },
+        "inventory": {
+          "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/textual-inventory.json",
+          "sha256": "06cf52a6d070eb515e9b061c1f81ce97ee34fed231a15e37b62401fb725ba610",
+          "bytes": 39856
+        },
+        "installed_namespace_noextras_and_ZIPbytes_equal": true
+      }
+    ],
+    "attemptlimit": 1,
+    "boundary": "Only after actual new configured stage; whole exact1467/953/full69RAW/1883unchanged other66/266keepers/bootstrap2/PREFIX, original owned joins/groups/sockets and fresh privileged census; explicit private4b READ/EXEC and public source READ returns. Historical1563 archive does not equal current471 floor."
+  },
+  "matching_native_reference": {
+    "package": "/home/ts/wt/comms-native-bootstrap-origin-guard-20261005/stack/.pi-native-4b687d2ddcafeea5/node_modules/@earendil-works/pi-coding-agent",
+    "manifest": "4b687d2ddcafeea5b8baad92f4e88217f8dc78b38c3b608a024abc7e4ec31e50",
+    "tree": "63f18710cb9329be6ade27bac3b4dd822e2b36f013756fa8e6717b8073a4592c",
+    "authority": "UNBOUND new matching4b READ for proof; separate matching4b EXEC after actual final proof/controller/source READ binding. No old7a/closed authority inheritance."
+  },
+  "source_filewheels": [
+    {
+      "module": "agent_comms",
+      "distribution": "agent-comms",
+      "head": "ddcdc422c7fe01453edb2469bcfa8303d771db67",
+      "path": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/current-paired-core-20261006/wheel/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "6b426d7ea31f4a6e30db2c2fdbd4eaa4d1be6dcea9aba3c6e599f7c063987b6b",
+      "bytes": 910730,
+      "assets": 355
+    },
+    {
+      "module": "toad",
+      "distribution": "batrachian-toad",
+      "head": "afae409d1cdf34e0a0fa06c8fb02dfba740ad229",
+      "path": "/home/ts/wt/toad-current-installed-integration-20261006/.artifacts/current-paired-toad-reader-20261006/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "410c3ab0eee04e628d16fbbd11c591d7d7676f5c714ce82b273cfb0ad89acd8c",
+      "bytes": 2251240,
+      "assets": 319
+    },
+    {
+      "module": "textual",
+      "distribution": "textual",
+      "head": "a2dd8a9a37825a828df0d8f651ca57d92db69e5f",
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native70-71-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+      "sha256": "bc47c59ea7db78a9a443c5f5e3f10836660957f21bb998d2ffa3ae8e4a2ddbe3",
+      "bytes": 768804,
+      "assets": 266
+    },
+    {
+      "module": "textual_diff_view",
+      "distribution": "textual-diff-view",
+      "head": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "path": "/home/ts/.cache/uv/sdists-v9/git/6a8a377ce2150d3f/8fa7d4d0db993ea3/textual_diff_view-0.1.5-py3-none-any.whl",
+      "sha256": "be7089c8f282e07e893b0254a0859e0f1b243a7ba591749f2053fa1fb775ad36",
+      "bytes": 25753,
+      "assets": 3
+    },
+    {
+      "module": "refactor_audit",
+      "distribution": "nominal-refactor-audit",
+      "head": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10",
+      "path": "/home/ts/wt/nra-skill-publish-20261002/.artifacts/family-flattened-collector-20261004/wheels/nominal_refactor_audit-0.1.0-py3-none-any.whl",
+      "sha256": "8d489731728ebf9f7e0f90ef2b14e7e3b5d2f90ed82bd8b1482d735f82869886",
+      "bytes": 23532,
+      "assets": 10
+    }
+  ],
+  "owned_output": "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose",
+  "root_prepare": {
+    "argv": [
+      "mkdir",
+      "-m",
+      "0700",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose"
+    ],
+    "parent_preparation": "ONLY after actual new rootprepare grant; parents under existing owned .artifacts/configured-continuous-source-20261006",
+    "cwd": "/home/ts/wt/toad-warm-rendered-reader-20261006"
+  },
+  "proof": {
+    "template": {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/evidence/configured-loaded-consumer-repair-20261006/verify_configured_source_member.template.py",
+      "sha256": "647980f579bb77ac9e1a6b3db7c7dab12b1af153f31ecbe1b3bd8b9da9e80113",
+      "bytes": 10546
+    },
+    "source_binding": {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/evidence/configured-loaded-consumer-repair-20261006/PROOF-SOURCE-MEMBER-BINDING.json",
+      "sha256": "18e13c57f2d314c6f0103c3ccbce83305ba4ab28c864e9c6742d562124932312",
+      "bytes": 2156
+    },
+    "argv": [
+      "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+      "-B",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/verify_installed.py"
+    ],
+    "cwd": "/home/ts/wt/toad-warm-rendered-reader-20261006",
+    "environment": {
+      "unset": [
+        "PYTHONPATH",
+        "PYTHONHOME",
+        "VIRTUAL_ENV",
+        "AGENT_COMMS_THREAD",
+        "AGENT_COMMS_STARTUP_INPUT_KEY",
+        "PI_PROMPT",
+        "PI_PARENT_ID",
+        "PI_AGENT_ID",
+        "PI_TASK",
+        "TEXTUAL_DRIVER",
+        "AC_REAL_ORIGINAL_PYTHON",
+        "AC_REAL_SOURCE_OWNER",
+        "AC_REAL_SOURCE_ROOT",
+        "AC_REAL_SOURCE_FILE",
+        "AC_REAL_PROVIDER_AUTHORIZED",
+        "AC_REAL_READ_ONLY_CUSTODY",
+        "WORKSPACE_COHORTS"
+      ],
+      "set": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1"
+      }
+    },
+    "exclusive_destinations": [
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/agent_comms-installed-inventory.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/toad-installed-inventory.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/textual-installed-inventory.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/textual_diff_view-installed-inventory.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/refactor_audit-installed-inventory.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/native-full-trust.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/source-proof.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/candidate-activation.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/package-boundary-proof.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/core-installed-source.json"
+    ],
+    "materialization": "Only four actual fresh grantpath/SHA and newREADpath/SHA substitutions, after actual stagePASS/matchingREAD. Exact helper hash/argv/env/output binding and Bohr proofrelease precede sole invocation. Same original953/69/FullTrust algorithm; changed3 and1883 other66 truthful. Original typed Core member is a tenth exclusive proof output and must enter final App map/handoff."
+  },
+  "controller": {
+    "template": {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/evidence/configured-continuous-source-20261006/run_configured.template.py",
+      "sha256": "112a0ceb4779515152f0d8b20d3db25f3333084ce75ed670253179c20cd7acf0",
+      "bytes": 5528
+    },
+    "source_binding": {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/evidence/configured-continuous-source-20261006/CONFIGURED-CONTROLLER-SOURCE-BINDING.json",
+      "sha256": "4195f53aca4616aa1f9d10e22718d38885526d99aa7f5e69a925e50916b7e822",
+      "bytes": 6839
+    },
+    "new_literal": "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/run_configured.py",
+    "argv": [
+      "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+      "-B",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/run_configured.py"
+    ],
+    "materialization": "Only three actual fresh grant/lifecycle/SHA literals after issue. Exact controller/Appmap/final handoff/newmatchingEXEC and actual source READ must bind in same lifecycle before sole App release.",
+    "outer_bound_descriptor": {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/evidence/configured-continuous-source-20261006/CONFIGURED-OUTER-BOUND-CORRECTION.json",
+      "sha256": "ca1fa6a34c19d8aebc42637c589b9f5323f4245b1b5a46369723cb9e1888bd24",
+      "bytes": 7710
+    }
+  },
+  "configured_arguments": [
+    "--core-checkout",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006",
+    "--installed-source",
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/core-installed-source.json",
+    "--archive",
+    "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/current-paired-core-20261006/wheel/agent_comms-0.1.0-py3-none-any.whl",
+    "6b426d7ea31f4a6e30db2c2fdbd4eaa4d1be6dcea9aba3c6e599f7c063987b6b"
+  ],
+  "exact_control": {
+    "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/saved_state_user_journey_pilot.py",
+    "sha256": "808025d777fe53499b25659c581a7f2945c42390b04cf5c7fcc2256850bebb4b",
+    "bytes": 46866
+  },
+  "control_hashes": {
+    "/home/ts/wt/comms-configured-continuous-producer-20261006/tests/compaction_source_successor_installed_journey.py": "b086d7a5e5a3792e0b3ff19088b6b88cb9286dd76c9323d764d2dbb82920d0cf",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/carry_history_provenance.py": "44735bcdd6424af4203ac75e509f8a80cf41641882b249610ccadd0215c527b2",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/cutover_child.py": "69a63c30a27ce6971d31e9669ff8c86b06579612c796f044126f629917e51966",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/native_schema_carry.py": "08d5b673910f96634ad017eb7e8224cb440e5b5cfea7c07d597b3ddf0f209c2b",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/original_owner_capture.py": "0505975196d438b2721d48efde97e777f124a34ea1fe6f05dd50751a29f2932f",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/owner_read_projection.py": "c719ec35fa61942ee76b6aa8b87e1155e66235eb1d696736bd9597b1fa2caba7",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/publish_openhcs_recovery.py": "27516db16a4bec25bb37fb394e1c7bc04c567eb0a780fb1e0ed62235ca0ed9ff",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/publish_retained_summary.py": "025babf120563228d99920617d34f2e4142307d38e049405d4af49b2ecd7a960",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/read_original_owner.py": "c963d51ec834e7caef5a0a10b704773546f548cf967e5e8716e147db0a2557d9",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/retained_summary_reset.py": "86d28cc9f9c74c9156ee258d061168a17003ab94f6c9ba1fdaac2dd01eb8dd12",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/routing_carry.py": "44509029e1fb4c975f8bb5b6c14cd8ecb1e2c9697f24374883b02f26360a3b4c",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/routing_recovery.py": "af599ee91746123ed33606691973ef3a2a0e77e2d994cd158a1c5ddef2c2aafc",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/runtime_installation.py": "77841672b6d9d99e3cb4c724706ffdad7eefd604aab583743f2e4b341156224c",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/thread_format_retirement.py": "e31ca7198a19f0c7f92f65663adc82d3e10cd9194278951a77a936332ce25737",
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/l0a_native_installed_pilot.py": "af0fb2d285ce9dddf728650809ab206b706000ed1d003e520d382b483b04e61a",
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/manual_live_turn_status.py": "f333da956fcc9e367f993853aa3daabbaea8d4278feed24eaa644d51c74e48fa",
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/native_session_retention_pilot.py": "b78fbe7375515965050ef7eebda89604edc9546204fb85d2e95d6332e5208c63",
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/runtime_fixture.py": "c34f37f450a02f09d344352466431744892a0c788953212da5ac434d912e3315",
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/saved_state_user_journey_pilot.py": "808025d777fe53499b25659c581a7f2945c42390b04cf5c7fcc2256850bebb4b",
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/thread_navigation_installed_journey.py": "a23fbcb8578986949712cacc8d7b1af01b97808de225c9dbdf970177c4a6f4d2",
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/viewport_recent_tabs_pilot.py": "2ea128c76d469c15e8e4633922110ccfaf200f86e2131eeb0d942129284ce030",
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/readonly_saved_reader_pilot.py": "63c36b3cde89cf899995508cf73c4b193e385826e56a2f79e640349f6cc06c0e",
+    "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/canonical_wire_conversation_installed_pilot.py": "b8b4c67ea8bbdb2062d64b275de3cc5cce31d62471350eeca4441de105d10843"
+  },
+  "control_timeout_seconds": 2100,
+  "outputs": {
+    "stage": [
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/stage-command.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/stage-handle.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/stage.stdout.log",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/stage.stderr.log",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/stage-terminal.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/stage-consumed-binding.json"
+    ],
+    "proof": [
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/proof-source-binding.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/proof-command.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/proof-handle.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/proof.stdout.log",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/proof.stderr.log",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/proof-terminal.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/core-installed-source.json"
+    ],
+    "App": [
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/configured-effective-release.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/configured-command.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/configured-handle.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/configured.stdout.log",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/configured.stderr.log",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/configured-terminal.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/controller-terminal.json"
+    ],
+    "return": [
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/restore-command.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/restore-handle.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/restore.stdout.log",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/restore.stderr.log",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/restore-terminal.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/package-floor-readback.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/final-borrowers.json",
+      "/home/ts/wt/toad-warm-rendered-reader-20261006/.artifacts/configured-continuous-source-20261006/485-current471-configured02-installed-purpose/whole-handback.json"
+    ]
+  },
+  "unbound_before_issue": [
+    "immutable_grant_path_SHA",
+    "effective_lifecycle_path",
+    "new_matching_private4b_READ_EXEC",
+    "actual_installed_DTO_hash",
+    "materialized_verify_helper_SHA",
+    "materialized_controller_SHA",
+    "final_Appmap_handoff",
+    "source_decoder_READ_authority",
+    "fresh_source_identity_settings_file_hash_atuse",
+    "fresh_eligible_contract_floor_preimage_refs",
+    "actual_core_installed_source_member_SHA",
+    "all10proof_outputs_and_13Appmap_entries"
+  ],
+  "source_read_descriptor": {
+    "argv": [
+      "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+      "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/read_original_owner.py",
+      "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "openhcs-architecture-memory",
+      "current_thread"
+    ],
+    "stdin": "Original OwnerRestartSelection FieldCodec request for require_current; no replacement identity/registry",
+    "helpers": [
+      {
+        "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/original_owner_capture.py",
+        "sha256": "0505975196d438b2721d48efde97e777f124a34ea1fe6f05dd50751a29f2932f",
+        "bytes": 3846
+      },
+      {
+        "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/owner_read_projection.py",
+        "sha256": "c719ec35fa61942ee76b6aa8b87e1155e66235eb1d696736bd9597b1fa2caba7",
+        "bytes": 4645
+      },
+      {
+        "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/read_original_owner.py",
+        "sha256": "c963d51ec834e7caef5a0a10b704773546f548cf967e5e8716e147db0a2557d9",
+        "bytes": 1057
+      },
+      {
+        "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/thread_format_retirement.py",
+        "sha256": "e31ca7198a19f0c7f92f65663adc82d3e10cd9194278951a77a936332ce25737",
+        "bytes": 3873
+      }
+    ],
+    "owner": "Original CurrentTypedCapture and RetainedOwnerLaunch; no direct decoder run before actual new sourceREAD release",
+    "return": "After SDK private fork/admission and capture.require_current/source SHA check, original PUBLIC_WITNESS_RELEASED; source custody unchanged. Separate from eventual whole private return."
+  },
+  "runtime_paths_absent_at_preparation": true,
+  "outer_bound_basis": {
+    "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/evidence/configured-continuous-source-20261006/CONFIGURED-OUTER-BOUND-CORRECTION.json",
+    "sha256": "ca1fa6a34c19d8aebc42637c589b9f5323f4245b1b5a46369723cb9e1888bd24",
+    "bytes": 7710
+  },
+  "historical_floor_bindings": {
+    "floor": {
+      "nodes": 1467,
+      "assets": 953,
+      "versions": 69,
+      "other67": 2253,
+      "configured_unchanged_other66": 1883,
+      "protected": 266,
+      "bootstrap": 2,
+      "source": "actual CURRENT471 Core3931_3fe+Toad289f_b2e+Text67_16c9+NRA10+genuineDiff3"
+    },
+    "floor_readback": {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis-configured-reader-pair-fresh-floor-readback.json",
+      "sha256": "34ccb2b659df02fad03533883161d2eb36f403defc8719fec1b45ba748ff5d29",
+      "bytes": 12663
+    },
+    "floor_preimage": {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis-configured-reader-pair-fresh-CURRENT471-preimage.json",
+      "sha256": "e6c48380c5cdbe5f8df6ef7223eb925a12bbfdbeaf5132a30fc801d2c48736aa",
+      "bytes": 2632726
+    },
+    "fresh_refs": {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis-configured-reader-pair-fresh-borrowers.json",
+      "sha256": "a17ef34dc245d04b53090d7114f2d0d6ed168797adaec3a53d459ba01f2ee1ff",
+      "bytes": 333
+    },
+    "PUBLIC475_source_disposition": {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis-configured-reader-pair-PUBLIC475-source-disposition.json",
+      "sha256": "fe023d37dcf9d8e0f8d0e1da044a5e3eff22175be9271dab7ba6db310863c18c",
+      "bytes": 6980
+    },
+    "previous_warm04_CLOSED": {
+      "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis476-current471-warm04-package-App-lifecycle.json",
+      "sha256": "915f337612a05333206fb543cace58d4de79ef2bb34ef2fe4ab7b926edaf4214",
+      "bytes": 21350
+    }
+  },
+  "historical_eligible_contract": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis-configured-reader-pair-eligible-contract-readback.json",
+    "sha256": "122a765f4fe8ce2c1da95954829387ec484e168601b96fd8a289163cee7072bf",
+    "bytes": 21101
+  },
+  "eligible_contract": {
+    "state": "UNBOUND fresh returned485 assessment needed; historical contract is evidence only"
+  },
+  "floor_bindings": {
+    "state": "UNBOUND actual fresh floor/preimage/census/origins/PUBLIC source disposition; no historical authority inheritance"
+  }
+}

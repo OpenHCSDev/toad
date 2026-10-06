@@ -1,0 +1,342 @@
+{
+  "state": "SOURCE-only effective configured pair; purpose/floor/source witness UNBOUND, no access or reservation",
+  "supersedes_artifact_UNBOUND_only": {
+    "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/evidence/configured-continuous-source-20261006/FUTURE-CONFIGURED-OPERANDS.json",
+    "sha256": "3158b661586fb882770574debce96ea76ecd813321cc86ef957c4870a40952dc",
+    "bytes": 8726
+  },
+  "selected_pair": [
+    {
+      "artifact": {
+        "path": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/current-paired-core-20261006/wheel/agent_comms-0.1.0-py3-none-any.whl",
+        "sha256": "6b426d7ea31f4a6e30db2c2fdbd4eaa4d1be6dcea9aba3c6e599f7c063987b6b",
+        "bytes": 910730
+      },
+      "source_relation": {
+        "path": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/current-paired-core-20261006/wheel-source-relation.json",
+        "sha256": "ef146377965f6c2e2ede6a446990745366dfe63e24ae111958fa0111e29069ba",
+        "bytes": 562
+      },
+      "build_receipt": {
+        "path": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/current-paired-core-20261006/build-receipt.json",
+        "sha256": "840fddeefc4237f085324ee7ce03106f586c01b5527c1a5f5d3aa0308061eac3",
+        "bytes": 1293
+      },
+      "declaration": {
+        "source_head": "ddcdc422c7fe01453edb2469bcfa8303d771db67",
+        "wheel": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/current-paired-core-20261006/wheel/agent_comms-0.1.0-py3-none-any.whl",
+        "sha256": "6b426d7ea31f4a6e30db2c2fdbd4eaa4d1be6dcea9aba3c6e599f7c063987b6b",
+        "bytes": 910730,
+        "package_assets": 355,
+        "record_rows": 360,
+        "git_local_zip_equal": true,
+        "no_package_extras": true,
+        "complete_RECORD": true,
+        "native_manifest_sha256": "4b687d2ddcafeea5b8baad92f4e88217f8dc78b38c3b608a024abc7e4ec31e50",
+        "installed": false
+      }
+    },
+    {
+      "artifact": {
+        "path": "/home/ts/wt/toad-current-installed-integration-20261006/.artifacts/current-paired-toad-20261006/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+        "sha256": "bfbde5ba4026e5fb6c30cbaf58cc4b97bcc8ae5c0f528379db77b3c9f859289d",
+        "bytes": 2251133
+      },
+      "source_relation": {
+        "path": "/home/ts/wt/toad-current-installed-integration-20261006/.artifacts/current-paired-toad-20261006/wheel-source-relation.json",
+        "sha256": "dd755c42dd740f762606d17ff145b4fb90afe7aff82da1168eab96a168353dd2",
+        "bytes": 628
+      },
+      "build_receipt": {
+        "path": "/home/ts/wt/toad-current-installed-integration-20261006/.artifacts/current-paired-toad-20261006/build-receipt.json",
+        "sha256": "a97a04489e4396761db3094018f54a56705a56c11f5ae97c42fda771bd1c7e31",
+        "bytes": 1132
+      },
+      "declaration": {
+        "source_head": "c2b4c3e828322b9e4803a8d29f38ad6ddc27065a",
+        "core_source_pin": "ddcdc422c7fe01453edb2469bcfa8303d771db67",
+        "wheel": "/home/ts/wt/toad-current-installed-integration-20261006/.artifacts/current-paired-toad-20261006/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+        "sha256": "bfbde5ba4026e5fb6c30cbaf58cc4b97bcc8ae5c0f528379db77b3c9f859289d",
+        "bytes": 2251133,
+        "package_assets": 319,
+        "record_rows": 324,
+        "git_local_zip_equal": true,
+        "no_package_extras": true,
+        "complete_RECORD": true,
+        "metadata_dependency": "agent-comms[acp]; exact fork pin owned by Git build inputs",
+        "installed": false
+      }
+    }
+  ],
+  "selected_core_pin": "ddcdc422c7fe01453edb2469bcfa8303d771db67",
+  "selected_Text": "native71 a2dd/bc47 unchanged; exact future floor/sourceproof must bind actual artifact",
+  "producer": {
+    "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tests/compaction_source_successor_installed_journey.py",
+    "sha256": "b086d7a5e5a3792e0b3ff19088b6b88cb9286dd76c9323d764d2dbb82920d0cf",
+    "bytes": 13064
+  },
+  "producer_selected_pair_BYTEequal": true,
+  "controls": [
+    {
+      "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/tests/saved_state_user_journey_pilot.py",
+      "sha256": "7e6d769953fd8ae18ae3527d590a06d246891765d8a61a0ffc6a63722d8a2dbe",
+      "bytes": 46843
+    },
+    {
+      "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/tests/l0a_native_installed_pilot.py",
+      "sha256": "af0fb2d285ce9dddf728650809ab206b706000ed1d003e520d382b483b04e61a",
+      "bytes": 37666
+    },
+    {
+      "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/tests/viewport_recent_tabs_pilot.py",
+      "sha256": "2ea128c76d469c15e8e4633922110ccfaf200f86e2131eeb0d942129284ce030",
+      "bytes": 18068
+    },
+    {
+      "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/tests/runtime_fixture.py",
+      "sha256": "c34f37f450a02f09d344352466431744892a0c788953212da5ac434d912e3315",
+      "bytes": 18978
+    },
+    {
+      "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/tests/native_session_retention_pilot.py",
+      "sha256": "2e2c707ce97ba51b7619302e51ad0dd39b13fed9cbe79e5745cf5ddf0118259a",
+      "bytes": 33949
+    },
+    {
+      "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/tests/readonly_saved_reader_pilot.py",
+      "sha256": "63c36b3cde89cf899995508cf73c4b193e385826e56a2f79e640349f6cc06c0e",
+      "bytes": 19357
+    },
+    {
+      "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/tests/canonical_wire_conversation_installed_pilot.py",
+      "sha256": "b8b4c67ea8bbdb2062d64b275de3cc5cce31d62471350eeca4441de105d10843",
+      "bytes": 31836
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tests/compaction_source_successor_installed_journey.py",
+      "sha256": "b086d7a5e5a3792e0b3ff19088b6b88cb9286dd76c9323d764d2dbb82920d0cf",
+      "bytes": 13064
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/original_owner_capture.py",
+      "sha256": "4ac5449955a1df1fdde5bf8fc8597d227172c76dfb8c3727de83d1ec3befa36b",
+      "bytes": 3644
+    },
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tools/cutover/publish_retained_summary.py",
+      "sha256": "025babf120563228d99920617d34f2e4142307d38e049405d4af49b2ecd7a960",
+      "bytes": 24056
+    }
+  ],
+  "paired_consumer_comparison": [
+    {
+      "helper": "tests/saved_state_user_journey_pilot.py",
+      "owned": {
+        "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/tests/saved_state_user_journey_pilot.py",
+        "sha256": "7e6d769953fd8ae18ae3527d590a06d246891765d8a61a0ffc6a63722d8a2dbe",
+        "bytes": 46843
+      },
+      "paired_source": {
+        "path": "/home/ts/wt/toad-current-installed-integration-20261006/tests/saved_state_user_journey_pilot.py",
+        "sha256": "7e6d769953fd8ae18ae3527d590a06d246891765d8a61a0ffc6a63722d8a2dbe",
+        "bytes": 46843
+      },
+      "byte_equal": true
+    },
+    {
+      "helper": "tests/l0a_native_installed_pilot.py",
+      "owned": {
+        "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/tests/l0a_native_installed_pilot.py",
+        "sha256": "af0fb2d285ce9dddf728650809ab206b706000ed1d003e520d382b483b04e61a",
+        "bytes": 37666
+      },
+      "paired_source": {
+        "path": "/home/ts/wt/toad-current-installed-integration-20261006/tests/l0a_native_installed_pilot.py",
+        "sha256": "af0fb2d285ce9dddf728650809ab206b706000ed1d003e520d382b483b04e61a",
+        "bytes": 37666
+      },
+      "byte_equal": true
+    },
+    {
+      "helper": "tests/viewport_recent_tabs_pilot.py",
+      "owned": {
+        "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/tests/viewport_recent_tabs_pilot.py",
+        "sha256": "2ea128c76d469c15e8e4633922110ccfaf200f86e2131eeb0d942129284ce030",
+        "bytes": 18068
+      },
+      "paired_source": {
+        "path": "/home/ts/wt/toad-current-installed-integration-20261006/tests/viewport_recent_tabs_pilot.py",
+        "sha256": "2ea128c76d469c15e8e4633922110ccfaf200f86e2131eeb0d942129284ce030",
+        "bytes": 18068
+      },
+      "byte_equal": true
+    },
+    {
+      "helper": "tests/runtime_fixture.py",
+      "owned": {
+        "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/tests/runtime_fixture.py",
+        "sha256": "c34f37f450a02f09d344352466431744892a0c788953212da5ac434d912e3315",
+        "bytes": 18978
+      },
+      "paired_source": {
+        "path": "/home/ts/wt/toad-current-installed-integration-20261006/tests/runtime_fixture.py",
+        "sha256": "c34f37f450a02f09d344352466431744892a0c788953212da5ac434d912e3315",
+        "bytes": 18978
+      },
+      "byte_equal": true
+    },
+    {
+      "helper": "tests/native_session_retention_pilot.py",
+      "owned": {
+        "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/tests/native_session_retention_pilot.py",
+        "sha256": "2e2c707ce97ba51b7619302e51ad0dd39b13fed9cbe79e5745cf5ddf0118259a",
+        "bytes": 33949
+      },
+      "paired_source": {
+        "path": "/home/ts/wt/toad-current-installed-integration-20261006/tests/native_session_retention_pilot.py",
+        "sha256": "2e2c707ce97ba51b7619302e51ad0dd39b13fed9cbe79e5745cf5ddf0118259a",
+        "bytes": 33949
+      },
+      "byte_equal": true
+    },
+    {
+      "helper": "tests/readonly_saved_reader_pilot.py",
+      "owned": {
+        "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/tests/readonly_saved_reader_pilot.py",
+        "sha256": "63c36b3cde89cf899995508cf73c4b193e385826e56a2f79e640349f6cc06c0e",
+        "bytes": 19357
+      },
+      "paired_source": {
+        "path": "/home/ts/wt/toad-current-installed-integration-20261006/tests/readonly_saved_reader_pilot.py",
+        "sha256": "63c36b3cde89cf899995508cf73c4b193e385826e56a2f79e640349f6cc06c0e",
+        "bytes": 19357
+      },
+      "byte_equal": true
+    },
+    {
+      "helper": "tests/canonical_wire_conversation_installed_pilot.py",
+      "owned": {
+        "path": "/home/ts/wt/toad-configured-continuous-owner-20261006/tests/canonical_wire_conversation_installed_pilot.py",
+        "sha256": "b8b4c67ea8bbdb2062d64b275de3cc5cce31d62471350eeca4441de105d10843",
+        "bytes": 31836
+      },
+      "paired_source": {
+        "path": "/home/ts/wt/toad-current-installed-integration-20261006/tests/canonical_wire_conversation_installed_pilot.py",
+        "sha256": "b8b4c67ea8bbdb2062d64b275de3cc5cce31d62471350eeca4441de105d10843",
+        "bytes": 31836
+      },
+      "byte_equal": true
+    }
+  ],
+  "toad_production_319_owned_vs_selected_zip_BYTEequal": true,
+  "owned_root_equals_selected_build_inputs": false,
+  "root_relation": "Selected wheel is Parent c2b4/ddcdc root. Own configured control checkout retains historical root pin; it supplies outside-package helpers only, no production source overlay or old-wheel relabel.",
+  "argv": [
+    "UNBOUND actual eligible application prefix/bin/python",
+    "-B",
+    "/home/ts/wt/toad-configured-continuous-owner-20261006/tests/saved_state_user_journey_pilot.py",
+    "--configured-saved",
+    "--core-checkout",
+    "/home/ts/wt/comms-configured-continuous-producer-20261006",
+    "--installed-source",
+    "UNBOUND original actual selected installed Core DTO",
+    "--archive",
+    "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/current-paired-core-20261006/wheel/agent_comms-0.1.0-py3-none-any.whl",
+    "6b426d7ea31f4a6e30db2c2fdbd4eaa4d1be6dcea9aba3c6e599f7c063987b6b"
+  ],
+  "cwd": "/home/ts/wt/toad-configured-continuous-owner-20261006",
+  "environment_set": {
+    "L0A_EVIDENCE": "/home/ts/.cache/agent-scratch/hcf/e",
+    "AC_REAL_FIXTURE_STAGE": "/home/ts/.cache/agent-scratch/hcf/sf",
+    "TMPDIR": "/home/ts/.cache/agent-scratch/hcf/tmp",
+    "AC_REAL_PROVIDER_AUTHORIZED": "Sol/high retained acceptance",
+    "AC_REAL_READ_ONLY_CUSTODY": "1",
+    "AC_REAL_ORIGINAL_PYTHON": "UNBOUND actual released public source interpreter at issue",
+    "AC_REAL_SOURCE_ROOT": "UNBOUND actual public source root at issue",
+    "AC_REAL_SOURCE_OWNER": "UNBOUND original configured >=40MB source owner at use",
+    "AC_NATIVE_COPIED_PACKAGE": "UNBOUND matching declared native package by future READ/EXEC",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONNOUSERSITE": "1"
+  },
+  "receipt": "/home/ts/.cache/agent-scratch/hcf/e/configured-journey.json",
+  "original_producer_receipt": "/home/ts/.cache/agent-scratch/hcf/sf/receipt.json",
+  "literal_socket_relation": {
+    "owner": "Core runtime.socket_path(root,pid)",
+    "formula": "AC_REAL_FIXTURE_STAGE/wire/runtime/{actualPID}.sock",
+    "largest_decimal_pid_example": "/home/ts/.cache/agent-scratch/hcf/sf/wire/runtime/2147483647.sock",
+    "utf8_bytes": 65,
+    "linux_limit": 107,
+    "no_runtime_probe": true
+  },
+  "configured_source": {
+    "acquisition": "CurrentTypedCapture + RetainedOwnerLaunch at use, then original configured_saved_agent SDK private_inputs.fork",
+    "minimum_original_bytes": 40000000,
+    "original_file_and_input_proof": "Hash checked through original producer; original source unchanged; no original inputs replayed",
+    "private_worktree": "One ForkSessionRequest.cwd from /home/ts/.cache/agent-scratch/hcf/sf/project",
+    "native_runtime": "Original CommsAgent._runtime + bind_owned; auto_wake=True opts into original live InputDrain",
+    "physical_mode": "Default installed mounted run_test; headful flag only with future specifically granted physical purpose"
+  },
+  "authored_new_input_sequence": [
+    {
+      "owner": "peer529",
+      "path": "actual composer",
+      "marker": "CONFIGURED_PEER_FIRST"
+    },
+    {
+      "owner": "source529",
+      "path": "actual composer first input",
+      "marker": "CONFIGURED_FIRST_REPLY"
+    },
+    {
+      "owner": "source529",
+      "path": "actual busy composer queue",
+      "marker": "CONFIGURED_QUEUED_REPLY"
+    },
+    {
+      "owner": "configured-child",
+      "path": "original ForkCliCommand startup task before first native answer",
+      "marker": "CONFIGURED_FORK_FIRST"
+    },
+    {
+      "owner": "peer529",
+      "path": "original channel Message.reference/native assignment",
+      "marker": "CONFIGURED_CHANNEL_REPLY"
+    },
+    {
+      "owner": "source529",
+      "path": "original DM Message.reference/native assignment",
+      "marker": "CONFIGURED_DM_REPLY"
+    }
+  ],
+  "authored_ui_inputs": 6,
+  "configured_provider_requests": "UNBOUND: original selected triage/native automatic-author/reply handling can create additional native requests; 6 authored UI inputs is not total provider calls",
+  "model_thinking_auth": "Original captured configured model/thinking/provider/environment, no selected-offline replacement",
+  "readiness_seconds": 20,
+  "outer_seconds": "UNBOUND to future original issued purpose; no present run or silent deadline increase",
+  "mandatory_phases": [
+    "saved committed journal source-bound nonwhite native paint without input",
+    "saved channel actual sidebar open and tab return",
+    "unopened peer first native input/participant click/current turn",
+    "first source input, real busy queue identity/status and native reply history",
+    "native CLI fork immediate source attachment before first actual assistant answer; exact original native input",
+    ">=40MB saved/fork A-B-A exact warm pages/fragments/content identities rawreads0 draft Undo reader",
+    "adaptive original slow/fast page movement/reversal/End/idle no replay",
+    "channel exact authored Message.reference notification hidden settlement/reply/handling",
+    "DM original Message.reference open hidden same admission return and SessionNavigation cold reopen",
+    "App/preparation and original Core agent/native child joined close"
+  ],
+  "fresh_bindings": {
+    "eligible_floor": "UNBOUND; Bohr reports all original holders currently occupied or incomplete",
+    "prefix_interpreter": "UNBOUND",
+    "current_source_witness": "UNBOUND fresh CurrentTypedCapture/RetainedOwnerLaunch identity/settings/hash/admission at use",
+    "source_installed_DTO": "UNBOUND original selected installed source proof",
+    "native_READ_EXEC": "UNBOUND fresh exact matching scope",
+    "return": "UNBOUND actual issued floor, original joins and normal restore once; no historical floor substitution"
+  },
+  "separate_scopes": {
+    "warm04": "Frozen e601/742a/4d018 independent exactly2 localhost seeds; no configured source/helper/wheel rebind",
+    "loaded4_16_32_64": "Separate UNRUN logical native admitted cohorts from two authored journals; total prospective10 localhost requests (2 seed+8 cohort), no 64 distinct journal or configured >=40MB credit",
+    "startup_frame_CPU": "Original performance objective active; this continuous source implementation supplies no FPS/CPU/baseline claim"
+  },
+  "operations": "No build/package/prefix/import/sourcecapture/native/provider/App operation"
+}

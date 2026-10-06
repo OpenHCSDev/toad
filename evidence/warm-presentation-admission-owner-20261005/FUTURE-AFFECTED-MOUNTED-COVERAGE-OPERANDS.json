@@ -1,0 +1,49 @@
+{
+  "state": "FUTURE SOURCE-ONLY UNRUN; interpreter, artifact and eligible floor UNBOUND",
+  "source_base": "8373e79697202792c38ad16f42fdf907d2d4e5b1",
+  "source_index_tree": "UNBOUND until frozen commit; production/root byte equal a52b56214c6deadc799511b3272689a1eb415445",
+  "argv": [
+    "UNBOUND_ELIGIBLE_PREFIX/bin/python",
+    "-B",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/native_session_retention_pilot.py",
+    "--warm-admission-only"
+  ],
+  "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+  "environment": {
+    "L0A_EVIDENCE": "/home/ts/.cache/agent-scratch/hwb/wa",
+    "TMPDIR": "/home/ts/.cache/agent-scratch/hwb/wa/tmp",
+    "NATIVE_RETENTION_RECEIPT": "/home/ts/.cache/agent-scratch/hwb/wa/warm-admission.json",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONNOUSERSITE": "1"
+  },
+  "unset": [
+    "PYTHONPATH",
+    "PYTHONHOME"
+  ],
+  "scope": "One original mounted App; two genuinely loaded private SDK histories authored via existing localhost producer, two native inputs total; no queue/DM/blank-tab/4-16-32-64 repeat. Shared resource costs, paint byte exclusion, required selection, recency, warm identities when retained and original editor/reader/Undo on genuine eviction. Original fixture owns joined retirement.",
+  "control_hashes": {
+    "tests/native_session_retention_pilot.py": "74a882ef2809760f06bed8af87625d6f1e9277a3746d716366ed2f699c833816",
+    "tests/thread_navigation_installed_journey.py": "a23fbcb8578986949712cacc8d7b1af01b97808de225c9dbdf970177c4a6f4d2"
+  },
+  "production_hashes": {
+    "src/toad/session_presentation.py": "355e11576540dd9d60102c8b90ff79d43e91a2702f769749a56a23b3b20a4873",
+    "src/toad/widgets/viewport_body.py": "aa8c9d1acd462275be96f5f56b0e0d0b43283456e52624c43d1bc5c9121e8228"
+  },
+  "socket_path": {
+    "formula": "Comms.root / runtime / {pid}.sock; l0a evidence/native-fixture-{8-character suffix}/private-root/wire",
+    "root_example": "/home/ts/.cache/agent-scratch/hwb/wa/native-fixture-xxxxxxxx/private-root/wire",
+    "root_bytes": 78,
+    "seven_digit_pid_socket_example": "/home/ts/.cache/agent-scratch/hwb/wa/native-fixture-xxxxxxxx/private-root/wire/runtime/9999999.sock",
+    "socket_bytes": 99,
+    "linux_path_limit": 107
+  },
+  "future_artifact_sha": "UNBOUND; receiving474 wheel is not successor full-source equal",
+  "runtime_grant": "NONE; no eligible prefix/native authority/input operation inferred",
+  "remaining": [
+    "Genuinely loaded 4/16/32/64 remains unfinished; original mixed control has two loaded histories and blank remainder.",
+    "Configured continuous producer/source adaptation remains active, distinct from authored localhost.",
+    "No startup/frame/CPU/baseline/full-workflow qualification from this source checkpoint."
+  ],
+  "supersedes": "Prior a52b/187fac source previews preserved; effective current control adds mandatory actual warm return and genuine cold restoration through original presentation.evict if natural eviction has not already happened.",
+  "coverage": "Receipt always records entered and verified branches and explicit original-owner eviction count; current-selected snapshots are not warm returns. PASS requires warm_identity_raw_read_returns>0 AND eviction_editor_reader_returns>0, unchanged source hashes and exactly2 seed inputs."
+}

@@ -1,0 +1,133 @@
+{
+  "state": "SOURCE ONLY; original loaded attempt returned, no new grant/runtime",
+  "loaded_control": {
+    "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/native_session_retention_pilot.py",
+    "sha256": "b78fbe7375515965050ef7eebda89604edc9546204fb85d2e95d6332e5208c63",
+    "bytes": 34617
+  },
+  "reader_checkpoint": {
+    "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/viewport_recent_tabs_pilot.py",
+    "sha256": "2ea128c76d469c15e8e4633922110ccfaf200f86e2131eeb0d942129284ce030",
+    "bytes": 18068
+  },
+  "seed_fixture": {
+    "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/l0a_native_installed_pilot.py",
+    "sha256": "af0fb2d285ce9dddf728650809ab206b706000ed1d003e520d382b483b04e61a",
+    "bytes": 37666
+  },
+  "fixture_family": [
+    {
+      "path": "/home/ts/wt/comms-configured-continuous-producer-20261006/tests/compaction_source_successor_installed_journey.py",
+      "sha256": "b086d7a5e5a3792e0b3ff19088b6b88cb9286dd76c9323d764d2dbb82920d0cf",
+      "bytes": 13064
+    },
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/l0a_native_installed_pilot.py",
+      "sha256": "af0fb2d285ce9dddf728650809ab206b706000ed1d003e520d382b483b04e61a",
+      "bytes": 37666
+    },
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/manual_live_turn_status.py",
+      "sha256": "f333da956fcc9e367f993853aa3daabbaea8d4278feed24eaa644d51c74e48fa",
+      "bytes": 7122
+    },
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/native_session_retention_pilot.py",
+      "sha256": "b78fbe7375515965050ef7eebda89604edc9546204fb85d2e95d6332e5208c63",
+      "bytes": 34617
+    },
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/runtime_fixture.py",
+      "sha256": "c34f37f450a02f09d344352466431744892a0c788953212da5ac434d912e3315",
+      "bytes": 18978
+    },
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/saved_state_user_journey_pilot.py",
+      "sha256": "808025d777fe53499b25659c581a7f2945c42390b04cf5c7fcc2256850bebb4b",
+      "bytes": 46866
+    },
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/thread_navigation_installed_journey.py",
+      "sha256": "a23fbcb8578986949712cacc8d7b1af01b97808de225c9dbdf970177c4a6f4d2",
+      "bytes": 10668
+    },
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/viewport_recent_tabs_pilot.py",
+      "sha256": "2ea128c76d469c15e8e4633922110ccfaf200f86e2131eeb0d942129284ce030",
+      "bytes": 18068
+    },
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/readonly_saved_reader_pilot.py",
+      "sha256": "63c36b3cde89cf899995508cf73c4b193e385826e56a2f79e640349f6cc06c0e",
+      "bytes": 19357
+    },
+    {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/tests/canonical_wire_conversation_installed_pilot.py",
+      "sha256": "b8b4c67ea8bbdb2062d64b275de3cc5cce31d62471350eeca4441de105d10843",
+      "bytes": 31836
+    }
+  ],
+  "selected_pair": [
+    {
+      "artifact": {
+        "path": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/current-paired-core-20261006/wheel/agent_comms-0.1.0-py3-none-any.whl",
+        "sha256": "6b426d7ea31f4a6e30db2c2fdbd4eaa4d1be6dcea9aba3c6e599f7c063987b6b",
+        "bytes": 910730
+      },
+      "source_relation": {
+        "path": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/current-paired-core-20261006/wheel-source-relation.json",
+        "sha256": "ef146377965f6c2e2ede6a446990745366dfe63e24ae111958fa0111e29069ba",
+        "bytes": 562
+      },
+      "build_receipt": {
+        "path": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/current-paired-core-20261006/build-receipt.json",
+        "sha256": "840fddeefc4237f085324ee7ce03106f586c01b5527c1a5f5d3aa0308061eac3",
+        "bytes": 1293
+      },
+      "source_head": "ddcdc422c7fe01453edb2469bcfa8303d771db67"
+    },
+    {
+      "artifact": {
+        "path": "/home/ts/wt/toad-current-installed-integration-20261006/.artifacts/current-paired-toad-reader-20261006/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+        "sha256": "410c3ab0eee04e628d16fbbd11c591d7d7676f5c714ce82b273cfb0ad89acd8c",
+        "bytes": 2251240
+      },
+      "source_relation": {
+        "path": "/home/ts/wt/toad-current-installed-integration-20261006/.artifacts/current-paired-toad-reader-20261006/wheel-source-relation.json",
+        "sha256": "74fcebdd6b08499904796422f95f3fe772e09c1dee1006f32e3a236546ce6863",
+        "bytes": 709
+      },
+      "build_receipt": {
+        "path": "/home/ts/wt/toad-current-installed-integration-20261006/.artifacts/current-paired-toad-reader-20261006/build-receipt.json",
+        "sha256": "1947216b86a84ccdf29ea1b42595e59edbcf7f596bf413301751da62abce9ea9",
+        "bytes": 1139
+      },
+      "source_head": "afae409d1cdf34e0a0fa06c8fb02dfba740ad229"
+    }
+  ],
+  "selected_Text": {
+    "module": "textual",
+    "package": "textual",
+    "artifact": {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native70-71-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+      "sha256": "bc47c59ea7db78a9a443c5f5e3f10836660957f21bb998d2ffa3ae8e4a2ddbe3",
+      "bytes": 768804
+    },
+    "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+    "assets": 266,
+    "RECORD_files": 270
+  },
+  "mode": "--loaded-histories-only",
+  "authored_journals": 2,
+  "logical_cohorts": [
+    4,
+    16,
+    32,
+    64
+  ],
+  "prospective_localhost_requests": 10,
+  "bound_owner": "OriginalMendel existing BoundedRun loaded-only1800 planning envelope; original20/10/25 checks and admission/paint/warm/page/eviction checks unchanged",
+  "source_delta": "Only two loaded checks take displayed_cursor from the conversation TranscriptPresentation; TranscriptHistory pages remain required. Configured consumer third site changed separately. No product/pin/build changes.",
+  "future_issue": "OriginalMendel prepares fresh loaded tuple/grant/READ/proof/EXEC; no reuse of consumed mlh01 or configured485 purpose",
+  "old_fixed_root_preserved": "/home/ts/wt/toad-configured-continuous-owner-20261006"
+}

@@ -154,16 +154,15 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
             # Record that completed update instead of repeating it next resume.
             self._resume_style = self._style_revision()
 
-    def _on_timer_update(self) -> None:
-        if self.viewport_presentation.has_pending_mutations(self.viewport_presentation.frame_windows()):
-            # The window releases its native mutation lock before requesting
-            # the compensated layout. Keep damage/layout intent until then.
-            self._update_timer.pause()
-            return
-        super()._on_timer_update()
+    def _layout_mutation_roots(self) -> tuple[Widget, ...]:
+        return self.viewport_presentation.mutation_roots()
 
-    def _prepare_compositor_refresh(self) -> bool:
+    def _prepare_compositor_refresh(self) -> tuple[Widget, ...]:
         return self.viewport_presentation.prepare()
+
+    def _on_frame_published(self, deferred: tuple[Widget, ...]) -> None:
+        if self is self.app.screen:
+            self.frame_presentation.displayed(deferred)
 
     def release_frame_callback(self, owner, callback) -> bool:
         """Inactive native scenes retain their work for their next frame."""

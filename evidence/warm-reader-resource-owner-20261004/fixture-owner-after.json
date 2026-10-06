@@ -1,0 +1,45 @@
+{
+  "source_head": "3dbc2b9885c56276fadf1ac85bf2a9ca0ce9df29",
+  "package_census": {
+    "src/toad": {
+      "modules": 288,
+      "parse_omissions": []
+    },
+    "tests": {
+      "modules": 395,
+      "parse_omissions": []
+    },
+    "tools": {
+      "modules": 41,
+      "parse_omissions": []
+    }
+  },
+  "complete_three_response_consumers": {
+    "tests/l0a_native_installed_pilot.py": {
+      "shared_triage_calls": [
+        179
+      ],
+      "old_whole_history_word_heuristic": [],
+      "assertions": 57
+    },
+    "tests/saved_state_user_journey_pilot.py": {
+      "shared_triage_calls": [
+        48
+      ],
+      "old_whole_history_word_heuristic": [],
+      "assertions": 65
+    },
+    "tests/canonical_wire_conversation_installed_pilot.py": {
+      "shared_triage_calls": [
+        127
+      ],
+      "old_whole_history_word_heuristic": [],
+      "assertions": 34
+    }
+  },
+  "provider_callback_admissions": 1,
+  "automatic_source_deletion_scopes": 0,
+  "original_explicit_fixture_stage_calls_preserved": true,
+  "src_tools_pins_ZERO": true,
+  "runtime": "Corrected source UNRUN. Original installed01 FAIL retained; no retry/purpose inherited."
+}

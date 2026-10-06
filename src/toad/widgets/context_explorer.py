@@ -11,6 +11,7 @@ from textual.containers import Horizontal, Vertical
 from textual.widgets import Button, Input, Static, TextArea, Tree
 from textual.worker import Worker, WorkerCancelled, WorkerState, get_current_worker
 from agent_comms.mro_dispatch import handles
+from agent_comms.coordinator import Coordination
 
 from toad.core.context_inspection import (
     ContextNode, DetachedInspection, HoldingInspection, InspectionState,
@@ -103,7 +104,10 @@ class ContextTree(Tree[ContextNode]):
                 self._add(parent, model, before=index)
                 continue
             original = node.data
-            if original != model:
+            # The original coordinate already selected the native node above.
+            # Bind the newly acquired reader instead of recursively comparing
+            # its complete inspection and all recorded requests on the UI loop.
+            if original is not model:
                 node.data = model
                 self.intent.rebind(original, model, self.show_detail)
             if node.label.plain != model.label:
@@ -125,13 +129,16 @@ class ContextTree(Tree[ContextNode]):
 
     def restore_reader(self, placeholder):
         with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
-            pending = list(self.context_nodes.values())
+            # Traverse the original native tree once. The lookup contains
+            # descendants too; seeding from it and adding children revisited
+            # expanded subtrees once for every ancestor.
+            pending = list(self.root.children)
             while pending:
                 node = pending.pop()
-                if node.data.key in self.intent.expanded:
+                if self.owns_node(node) and node.data.key in self.intent.expanded:
                     self._expand(node)
                     node.expand()
-                    pending.extend(node.children)
+                pending.extend(node.children)
         if not self.intent.restore(self.reveal, self._reveal_restored):
             self.show_placeholder(placeholder)
 
@@ -393,12 +400,18 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             self.notify("Original human correction recorded")
             self._read()
 
-    def _present(self, captured: HoldingInspection):
+    @work(group="context-presentation", exclusive=True, exit_on_error=False)
+    async def _present(self, captured: HoldingInspection):
         if self.intent.query:
             self._search(captured, self.intent.query, self.intent.selected)
             return
         self.workers.cancel_group(self, "context-search")
-        self.query_one(ContextTree).present(captured.groups())
+        # The acquired inspection owns its source projection. Building all
+        # recorded segments and annotation relationships is preparation, not
+        # a native Tree operation; keep it off the application's input loop.
+        groups = await Coordination.run_worker(captured.groups)
+        if self.state is captured and self.presentation_visible():
+            self.query_one(ContextTree).present(groups)
 
     @on(Input.Changed, "#context-search")
     def query_changed(self, event):

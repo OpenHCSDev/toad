@@ -1,0 +1,84 @@
+{
+  "state": "SOURCE-only changed warm canonical acquisition observation; App UNRUN/no nextpurpose",
+  "determining_head": "f9c7fc1c079fd9d9ae670182cdbc43ae37b5e620",
+  "closed_lifecycle": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis476-current471-warm-package-App-lifecycle.json",
+    "sha256": "969c6e4ad67b48032332cce53ef873796382ff56962f05df54c8ae50b717a667"
+  },
+  "old_control": {
+    "Git": "f9c7fc1c079fd9d9ae670182cdbc43ae37b5e620:tests/native_session_retention_pilot.py",
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/frozen-f9c7/native_session_retention_pilot.py",
+    "sha256": "d69706b445652d8ec849c1be9cec5502b6dd61b5d41c347bd4fe2f67ee354235"
+  },
+  "new_control": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/native_session_retention_pilot.py",
+    "sha256": "849b936dddd07b8afae746ce91088b4d131da88afcbb1fc749c9d2a73df7dcb5",
+    "bytes": 33941
+  },
+  "changed_AST_declarations": [
+    "warm_admission_acceptance"
+  ],
+  "assertion_ASTs_equal": true,
+  "compile_without_import": "PASS",
+  "production_pins_buildinputs_delta": 0,
+  "retained_candidate_wheel_sha256": "61bf637992b00953a85249423e568e1958a0521b58b230b00c4f46023322aef2",
+  "generic_settled_unchanged": true,
+  "source_trace": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-installed-purpose/AFTER-SOURCE-READINESS-TRACE.json",
+    "sha256": "db78eae02242e035c4e00b0919d2fd0e9468e9b67bc341ec32ff6eb8c607c97a"
+  },
+  "control_family": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/native_session_retention_pilot.py",
+      "sha256": "849b936dddd07b8afae746ce91088b4d131da88afcbb1fc749c9d2a73df7dcb5",
+      "bytes": 33941,
+      "historical_sha256": "d69706b445652d8ec849c1be9cec5502b6dd61b5d41c347bd4fe2f67ee354235"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/viewport_recent_tabs_pilot.py",
+      "sha256": "1750ffcfb3335b707f3fb4920ad7e0ef69efa241242009e8105269d03a065bfe",
+      "bytes": 15039,
+      "historical_sha256": "1750ffcfb3335b707f3fb4920ad7e0ef69efa241242009e8105269d03a065bfe"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/thread_navigation_installed_journey.py",
+      "sha256": "a23fbcb8578986949712cacc8d7b1af01b97808de225c9dbdf970177c4a6f4d2",
+      "bytes": 10668,
+      "historical_sha256": "a23fbcb8578986949712cacc8d7b1af01b97808de225c9dbdf970177c4a6f4d2"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/l0a_native_installed_pilot.py",
+      "sha256": "ac942dd20defe4d8074ffa3a38c1b7428a3b1475ff60ba9a094b41a2c6521a93",
+      "bytes": 35830,
+      "historical_sha256": "ac942dd20defe4d8074ffa3a38c1b7428a3b1475ff60ba9a094b41a2c6521a93"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/runtime_fixture.py",
+      "sha256": "c34f37f450a02f09d344352466431744892a0c788953212da5ac434d912e3315",
+      "bytes": 18978,
+      "historical_sha256": "c34f37f450a02f09d344352466431744892a0c788953212da5ac434d912e3315"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/saved_state_user_journey_pilot.py",
+      "sha256": "4f0948b8fb5fcab6cab12802cf8b5b3cb6498188ce3b67af8a88b787b3865dca",
+      "bytes": 30003,
+      "historical_sha256": "4f0948b8fb5fcab6cab12802cf8b5b3cb6498188ce3b67af8a88b787b3865dca"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/manual_live_turn_status.py",
+      "sha256": "f333da956fcc9e367f993853aa3daabbaea8d4278feed24eaa644d51c74e48fa",
+      "bytes": 7122,
+      "historical_sha256": "f333da956fcc9e367f993853aa3daabbaea8d4278feed24eaa644d51c74e48fa"
+    },
+    {
+      "path": "/home/ts/wt/comms-task-aware-native-bundle-20261002/tools/cutover/publish_retained_summary.py",
+      "sha256": "c146d510f445fddab2bfa4489bd7fad5530e7f9e77e73ad96c108b7647115830",
+      "bytes": 23103,
+      "historical_sha256": "c146d510f445fddab2bfa4489bd7fad5530e7f9e77e73ad96c108b7647115830"
+    }
+  ],
+  "original_until_bound_seconds": 20,
+  "original_whole_App_bound_seconds": 150,
+  "runtime_strength": "Original warm01 FAIL preserved; source readiness gap does not prove eventual canonical publication or sole runtime cause. Both mandatory retained-return and genuine-eviction assertions remain unqualified.",
+  "next_actual_runtime": "Only future fresh eligible specific issued scope can admit this changed control; no old89e retry or nextloan inferred."
+}
