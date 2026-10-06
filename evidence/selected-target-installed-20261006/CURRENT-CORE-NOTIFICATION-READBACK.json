@@ -1,0 +1,18 @@
+{
+  "current_GitHub_main": "d8467b730cf87d45931fcc44e8ecb409277f86ed",
+  "selected_wheel_head": "d8467b730cf87d45931fcc44e8ecb409277f86ed",
+  "notification697_merge": "f80d0718e9ebceb95006b9c29495cc6f4cf13cc5",
+  "notification_merge_ancestor": true,
+  "selected_wheel_contains_actual_current_notification_source": [
+    {
+      "path": "src/agent_comms/notification_assignment.py",
+      "sha256": "ef43a0d6fd9be20e1bc1a7ec0aa5d4e0b67ac784b28236fb7d623d1463034257"
+    },
+    {
+      "path": "src/agent_comms/presentation.py",
+      "sha256": "9c0d3e8ae49395fad94f23742b16c7f7c3c97ea6612df222072a2c118c463a5e"
+    }
+  ],
+  "wheel_sha256": "b55c17dc1acf22af7b03a2233cbd60e04c6a173d615aa0b1f38a58b3f51e7362",
+  "public_install_changed": false
+}
