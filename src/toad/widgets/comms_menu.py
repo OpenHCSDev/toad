@@ -19,7 +19,7 @@ from toad.widgets.selection import FocusSelection
 class ContextMenuItem(FocusSelection):
     """A menu item with desktop-style press and release behavior."""
 
-    class Pressed(Message):
+    class Selected(Message):
         def __init__(self, item: ContextMenuItem) -> None:
             self.item = item
             super().__init__()
@@ -27,7 +27,6 @@ class ContextMenuItem(FocusSelection):
     def __init__(self, action: str, label: str) -> None:
         super().__init__(label, classes="item")
         self.action = action
-        self._pressed = False
 
     @property
     def allow_select(self) -> bool:
@@ -35,17 +34,17 @@ class ContextMenuItem(FocusSelection):
 
     def on_mouse_down(self, event: events.MouseDown) -> None:
         if event.button == 1:
-            self._pressed = True
             self.add_class("-pressed")
 
     def on_mouse_up(self, event: events.MouseUp) -> None:
         self.remove_class("-pressed")
-        if event.button == 1 and self._pressed:
-            self._pressed = False
-            self.post_message(self.Pressed(self))
+
+    def on_click(self, event: events.Click) -> None:
+        if event.button == 1:
+            event.stop()
+            self.post_message(self.Selected(self))
 
     def on_leave(self) -> None:
-        self._pressed = False
         self.remove_class("-pressed")
 
 class ContextMenu(ModalScreen[str]):
@@ -161,8 +160,8 @@ class ContextMenu(ModalScreen[str]):
     def action_cancel(self) -> None:
         self.dismiss("")
 
-    @on(ContextMenuItem.Pressed)
-    def item_pressed(self, event: ContextMenuItem.Pressed) -> None:
+    @on(ContextMenuItem.Selected)
+    def item_selected(self, event: ContextMenuItem.Selected) -> None:
         event.stop()
         self.dismiss(event.item.action)
 
