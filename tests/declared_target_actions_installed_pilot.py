@@ -30,10 +30,23 @@ from runtime_fixture import ToadApp, private_native_wire, wait_channel_roster
 from saved_state_user_journey_pilot import reveal_thread_row
 
 
-async def until(pilot, predicate):
-    async with asyncio.timeout(15):
-        while not predicate():
-            await pilot.pause(.025)
+async def until(pilot, predicate, *, failure_prefix=None, native_wait=False):
+    try:
+        async with asyncio.timeout(15):
+            while not predicate():
+                await pilot.pause(.025)
+    except TimeoutError:
+        if failure_prefix is not None:
+            import runpy
+            diagnostic = native_wait and os.environ.get('TOAD_START_FAILURE_GDB') == '1'
+            capture = runpy.run_path(Path(__file__).parents[1] / 'tools/performance/capture_state.py')['capture']
+            capture(expected_pid=os.getpid(), output_prefix=failure_prefix,
+                    native_process_output=(Path(os.environ['TOAD_NATIVE_WAIT_OUTPUT']) / 'startup-processes.json')
+                    if diagnostic else None)
+            if diagnostic:
+                import signal
+                signal.raise_signal(signal.SIGTRAP)
+        raise
 
 
 async def command(root, *arguments):
@@ -75,22 +88,9 @@ async def choose(app, pilot, row, operation, fields, evidence):
     menu = await open_menu(app, pilot, row)
     assert operation in menu, tuple(menu)
     assert await pilot.click(menu[operation])
-    try:
-        await until(pilot, lambda: not isinstance(app.screen, ContextMenu) and app.screen.is_mounted
-                    and (isinstance(app.screen, CommandDialog) or not app.thread_actions.pending))
-    except TimeoutError:
-        # Record the original task and native scene before shutdown changes them.
-        # The timeout still fails this attempt; no action or input is repeated.
-        import runpy
-        capture = runpy.run_path(Path(__file__).parents[1] / 'tools/performance/capture_state.py')['capture']
-        capture(expected_pid=os.getpid(), output_prefix=evidence / (operation + '-completion-failure'))
-        if operation == 'start' and os.environ.get('TOAD_START_FAILURE_GDB') == '1':
-            # The reviewed diagnostic launches this App as GDB's inferior.
-            # Save Python evidence first; GDB suppresses only this marker,
-            # observes the stopped native threads, then resumes this failure.
-            import signal
-            signal.raise_signal(signal.SIGTRAP)
-        raise
+    await until(pilot, lambda: not isinstance(app.screen, ContextMenu) and app.screen.is_mounted
+                and (isinstance(app.screen, CommandDialog) or not app.thread_actions.pending),
+                failure_prefix=evidence / (operation + '-completion-failure'), native_wait=operation == 'start')
     if not isinstance(app.screen, CommandDialog):
         assert not fields, (operation, fields)
         return
@@ -399,7 +399,8 @@ async def started_target_connections(base, *, batch=False, selection_checks=True
             peer_source = app.session_navigation.source(peer_mode)
             await until(pilot, lambda: peer_source.conversation.agent is not None)
             peer = peer_source.conversation.agent
-            await until(pilot, peer.session.settled.is_set)
+            await until(pilot, peer.session.settled.is_set,
+                        failure_prefix=evidence / 'peer-startup-failure', native_wait=True)
             assert peer.session.connected
             await peer.stop()
             await app.preparation.run_thread(comms.owners.stop, 'peer')
@@ -498,7 +499,8 @@ async def batch_started_target_actions(app, pilot, actor, comms, project, eviden
         source = app.session_navigation.source(mode)
         await until(pilot, lambda: source.conversation.agent is not None)
         peer = source.conversation.agent
-        await until(pilot, peer.session.settled.is_set)
+        await until(pilot, peer.session.settled.is_set,
+                        failure_prefix=evidence / 'peer-startup-failure', native_wait=True)
         assert peer.session.connected
         # Retire this fixture's original ACP connection before stopping its
         # native owners, exactly as the existing single-start control does.
@@ -583,7 +585,8 @@ async def deleted_native_connections(base):
         native_source = app.session_navigation.source(native_mode)
         await until(pilot, lambda: native_source.conversation.agent is not None)
         peer = native_source.conversation.agent
-        await until(pilot, peer.session.settled.is_set)
+        await until(pilot, peer.session.settled.is_set,
+                        failure_prefix=evidence / 'peer-startup-failure', native_wait=True)
         assert peer.session.connected
         history_mode = await app.session_navigation.history(owner_mode=actor_mode,
             project_path=project, me='beta', target='peer', kind=DmConversation)
