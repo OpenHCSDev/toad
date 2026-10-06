@@ -61,8 +61,16 @@ async def choose(app, pilot, row, operation, fields, evidence):
     menu = await open_menu(app, pilot, row)
     assert operation in menu, tuple(menu)
     assert await pilot.click(menu[operation])
-    await until(pilot, lambda: not isinstance(app.screen, ContextMenu) and app.screen.is_mounted
-                and (isinstance(app.screen, CommandDialog) or not app.thread_actions.pending))
+    try:
+        await until(pilot, lambda: not isinstance(app.screen, ContextMenu) and app.screen.is_mounted
+                    and (isinstance(app.screen, CommandDialog) or not app.thread_actions.pending))
+    except TimeoutError:
+        # Record the original task and native scene before shutdown changes them.
+        # The timeout still fails this attempt; no action or input is repeated.
+        import runpy
+        capture = runpy.run_path(Path(__file__).parents[1] / 'tools/performance/capture_state.py')['capture']
+        capture(expected_pid=os.getpid(), output_prefix=evidence / (operation + '-completion-failure'))
+        raise
     if not isinstance(app.screen, CommandDialog):
         assert not fields, (operation, fields)
         return
