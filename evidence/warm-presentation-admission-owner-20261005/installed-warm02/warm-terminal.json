@@ -1,0 +1,23 @@
+{
+  "elapsed": 31.686981333070435,
+  "returncode": 1,
+  "timed_out": false,
+  "error": null,
+  "drain_errors": [],
+  "outcome": {
+    "kind": "exited",
+    "code": 1
+  },
+  "child_retired": true,
+  "owned_group_members": [],
+  "controller": {
+    "pid": 2611168,
+    "start_time": 72625028
+  },
+  "child": {
+    "pid": 2611169,
+    "start_time": 72625081
+  },
+  "grant": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Heis476-current471-warm02-package-App-issued-grant.json",
+  "input_and_qualification_claim": "Original mounted receipt must prove both verified branches and exactly2inputs; no effect absence or whole qualification inferred from launch/exit alone"
+}

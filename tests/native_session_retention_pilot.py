@@ -148,10 +148,10 @@ async def warm_admission_acceptance(app, pilot, agent, comms, entered, release, 
         for source in sources:
             await app.select_session(source.id)
             view = source.conversation
-            # A cold acquisition schedules canonical publication after paint;
-            # an empty viewport can already satisfy generic body readiness.
+            # Retained children and a displayed cursor can precede validated
+            # source resumption. Parked pagers do not report coverage.
             await until(pilot, lambda: (
-                view.transcript.histories and view.transcript.displayed_cursor is not None
+                view.transcript.reports_coverage and view.transcript.displayed_cursor is not None
             ))
             await settled(pilot, view)
             assert view.window.histories and view.transcript.displayed_cursor is not None
@@ -195,7 +195,7 @@ async def warm_admission_acceptance(app, pilot, agent, comms, entered, release, 
             await app.select_session(source.id)
             view = source.conversation
             await until(pilot, lambda: (
-                view.transcript.histories and view.transcript.displayed_cursor is not None
+                view.transcript.reports_coverage and view.transcript.displayed_cursor is not None
             ))
             await settled(pilot, view)
             editor = view.prompt.prompt_text_area

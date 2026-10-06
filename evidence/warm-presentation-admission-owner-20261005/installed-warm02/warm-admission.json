@@ -1,0 +1,18 @@
+{
+  "scope": "two genuinely loaded native journals; authored localhost input only",
+  "completed": false,
+  "branches_entered": {
+    "warm_identity_raw_read_returns": 0,
+    "eviction_editor_reader_returns": 0,
+    "selected_without_departure": 0
+  },
+  "branches_verified": {
+    "warm_identity_raw_read_returns": 0,
+    "eviction_editor_reader_returns": 0,
+    "selected_without_departure": 0
+  },
+  "explicit_presentation_evictions": 0,
+  "rows": [],
+  "native_inputs": 2,
+  "history_scaling_4_16_32_64": "UNRUN"
+}

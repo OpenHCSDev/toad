@@ -1,0 +1,22 @@
+{
+  "elapsed": 32.59397115500178,
+  "returncode": 1,
+  "launch_parent": {
+    "pid": 2611158,
+    "start_time": 72625019
+  },
+  "controller": {
+    "pid": 2611168,
+    "start_time": 72625028
+  },
+  "controller_joined": true,
+  "controller_proc_absent": true,
+  "argv": [
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+    "-B",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/warm-presentation-admission-source-20261005/485-current471-warm02-installed-purpose/run_warm.py"
+  ],
+  "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+  "attempt": 1,
+  "effect_claim": "Original warm mounted receipt governs actual input dispositions and verified branch strength; no absence or whole qualification inferred from terminal alone"
+}
