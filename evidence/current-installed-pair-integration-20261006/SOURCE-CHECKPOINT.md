@@ -1,9 +1,33 @@
-# Paired source integration
+# Current paired source checkpoint
 
-Parent normally joined original Toad472 afc657ef, recorded-reader477 d08c1a49 and warm476 1b5f8da3 onto main55d942e2 without conflicts. All five changed production files are byte equal to their original owners: three recorded-reader/notification consumers and two warm resource owners. Main Text71 PathContent remains byte equal and is not reverted by the older MCP branch.
+Parent Toad478 normally joins original472/477/476 and main, preserving the original
+five production owner files and Text71 PathContent. ReaderCheckpoint capture,
+verify and diagnostics now witness both original live Markdown caches and visible
+ready source-bound rendered fragment strips. Production and original warm control
+2e2c remain unchanged by that helper correction; actual warm/eviction is unqualified.
 
-The existing pyproject declaration and its three lock-file locator occurrences now select exact Core source union c34b35033c444d8864b85c6ff3c256fd829aceaa (Draft688). The Core dependency/build declaration is byte equal to the recorded branch declaration; no resolver, dependency install or environment operation was run. This changes source provenance and is not equivalence to a retained built artifact.
+The existing Core declaration and three lock-file locator occurrences now select
+exact Parent Core source ce24e9fd5ea9cd11cd09226e1550623ff7b16ec3. That published
+checkpoint includes original68911afe admission/partial-retirement, clean merged
+configured producer691 and the earlier fresh ACP/recorded routing/native source
+union. Compared with previous c34 source, four production files add the reviewed
+original owner admission changes. Source selection is explicit; this is not a
+built wheel or installed current pair. TOML parsing and literal locator checks
+pass, without a resolver, dependency install, environment or package operation.
 
-The first complete source compilation found one inherited syntax failure in default_route_admission_pilot.py: request_target import preceded the future import, already in main55d942e2. Only that import was moved after the future declaration. No executable body, provider/input operation, test expectation or frozen original control was changed. The complete final source batch compiled728 tracked Python modules across src/tests/tools with zero omissions and no application imports.
+Historical installed routing686/477 passed once and both purposes/authority are
+closed. Its b973/d08/c44/0fb artifacts remain frozen, not renamed as this union.
+Warm01/02/03 are closed negatives with original journals/raw held. Heis owns the
+fresh corrected affected warm qualification and configured continuous source work.
+Native3808 uses its historical bee/4b/b2e/16c9 tuple and separate fresh authorities;
+its source/proof operations do not use this pin or inherit permission for the pair.
 
-Installed MCP four-case qualification is still owned by Mendel under actual d6ce. Recorded-routing mounted purpose is unissued while334 is occupied. Warm01/02 are closed failures with no verified warm/eviction branches; Heis continues the native source validation/resumption investigation and full configured/loaded journey. Original raw failures, journals, wheels, native keepers and lifecycle permissions remain unchanged. This draft does not install or activate the union, rebuild or rebind an existing purpose, or claim latest main/source equality for historical wheels.
+Actual live PUBLIC475 source3931 and target689 differ in restart handoff and wire
+resource declarations despite the earlier equal stored registry fields. Einstein
+owns the original source/target transport/recovery relationship and goal-report
+preservation; no phase injection or raw handoff codec fallback is permitted.
+
+No original input is replayed, no frozen grant/helper/artifact/prefix is rebound,
+and no public client/source/publisher operation follows this source checkpoint.
+Whole configured UI/provider, warm/eviction, loaded/startup/frame/CPU, real OFD
+retirement/recovery and live central batch remain unfinished. CI is deferred.
