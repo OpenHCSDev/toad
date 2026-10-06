@@ -1,0 +1,19 @@
+{
+  "original": {
+    "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/evidence/configured-continuous-source-20261006/run_configured.template.py",
+    "sha256": "112a0ceb4779515152f0d8b20d3db25f3333084ce75ed670253179c20cd7acf0",
+    "bytes": 5528
+  },
+  "selected": {
+    "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/evidence/sidebar-wheel-installed-20261006/run_physical.template.py",
+    "sha256": "115acb1ef790812e96d70a6a93980aa033c263f87f4c2e546015c9f5a5a5ccfa",
+    "bytes": 5452
+  },
+  "changes": [
+    "physical argv relation",
+    "truthful zero-input saved SDK scope",
+    "physical output names",
+    "three actual grant/lifecycle/SHA placeholders"
+  ],
+  "custody": "Original BoundedRun.session/AttachedChild, drains/parent wait/group retirement/default executor unchanged"
+}
