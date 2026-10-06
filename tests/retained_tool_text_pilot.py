@@ -14,6 +14,7 @@ from acp import schema as protocol
 from toad.acp.status import ToolCallStatus
 from toad.widgets.comms_chat import session_thread_name
 from textual.content import Content
+from textual.css.query import NoMatches
 from textual import events
 from textual._compositor import ChopsUpdate
 from textual.geometry import Offset, Region, Size
@@ -196,7 +197,19 @@ async def main():
             tool.set_expanded(True)
             await tool.output.sync()
             await pilot.pause()
-            original = tool.query_one(TextContent)
+            try:
+                original = tool.query_one(TextContent)
+            except NoMatches:
+                body = tool.query_one(ToolContent)
+                print(json.dumps({"initial_tool_body": {
+                    "measurement": type(body._body_measurement).__name__,
+                    "dormant": body.body_dormant, "ready": body.body_ready,
+                    "parts": [type(part).__name__ for part in tool.output.parts],
+                    "children": [type(child).__name__ for child in body.children],
+                    "body_region": tuple(body.region), "tool_region": tuple(tool.region),
+                    "display": tool.display, "expanded": tool.expanded,
+                }}), flush=True)
+                raise
             values = ["[red]literal markup[/]\n界 é 🙂", "\x1b[31mred text\x1b[0m", "",
                       "\n".join(f"line {index}" for index in range(40)), "short"]
             for text in values:

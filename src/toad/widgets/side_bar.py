@@ -874,7 +874,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
         return changed
 
     def watch_collapsed(self, collapsed: bool) -> None:
-        if self._navigation is None and self.is_mounted and not self.screen.is_current:
+        if self.is_mounted and not self.presentation_visible:
             # Keep shared intent current without resizing every hidden transcript.
             # Activation applies the latest value inside its render transaction;
             # an open/close round trip can therefore keep unchanged geometry.

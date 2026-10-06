@@ -17,3 +17,7 @@ This draft selects Arendt's corrected native iterable-root/layout/publication pr
 Source/consumer checkpoint: evidence/sidebar-responsiveness-20261006/SOURCE-CHECKPOINT.md.
 
 First matched native225c App check failed to finish: high CPU in held-callback idle admission. Original check/children are terminal and absent; raw preserved. Corrected native e15 is now selected; its pointer App completes cleanly, but right p95 remains424ms. No live installation changed. The remaining delay is being traced through publication/preparation owners. Held-body publication is unqualified: its fixture stopped at the first TextContent query before the publication assertions. Raw failures and original profiler output are preserved.
+
+## Visible sidebar correction
+
+Fixed shared-screen visibility: parked tabs no longer restyle/hydrate/layout their sidebar on preference toggles. Deleted the old conversation-padding subscriber; SidebarLayout placement remains the geometry owner. Original App benchmark now selects the visible native sidebar rather than a zero-size parked tab. Earlier429/424ms results are invalid visible-toggle measurements, not a speedup baseline. Corrected matched App: right median50.4/p9558.5/max112.9ms, left median54.5/p9571.6/max185.5ms, empty stderr. Actual regions and publication exclusions are retained. Physical scrolling and installed delivery remain unverified.

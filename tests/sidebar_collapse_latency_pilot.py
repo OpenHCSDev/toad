@@ -22,7 +22,23 @@ class FrameApp(ToadApp):
     next_frame: asyncio.Future[float] | None = None
     frame_profiler: cProfile.Profile | None = None
 
+    def __init__(self, **kwargs):
+        self.frame_started = None
+        self.publication_trace = []
+        super().__init__(**kwargs)
+
     def _display(self, screen, renderable):
+        if self.frame_started is not None and os.environ.get("TOAD_SIDEBAR_PROFILE"):
+            bar = self.selected_session.query_one("#thread-sidebar", SideBar)
+            self.publication_trace.append({
+                "elapsed_ms": round((time.perf_counter() - self.frame_started) * 1000, 1),
+                "renderable": type(renderable).__name__,
+                "batch_count": self._batch_count,
+                "current": screen is self.screen,
+                "right_collapsed": bar.collapsed,
+                "right_region": tuple(bar.region),
+                "exclusions": [tuple(region) for region in screen._compositor._render_exclusions],
+            })
         result = super()._display(screen, renderable)
         if (self.next_frame is not None and not self.next_frame.done()
                 and renderable is not None and not self._batch_count
@@ -60,7 +76,8 @@ async def main():
             results = {}
             cache_trace = []
             for selector in ("#channels-sidebar", "#thread-sidebar"):
-                sidebar = app.screen.query_one(selector, SideBar)
+                sidebar = next(bar for bar in app.screen.query(selector) if bar.presentation_visible)
+                assert sidebar.region.area > 0
                 timings = []
                 for index in range(10):
                     traced = os.environ.get("TOAD_SIDEBAR_COUNTS") and index < 4
@@ -73,13 +90,14 @@ async def main():
                     if index == 1 and profile_path:
                         app.frame_profiler = cProfile.Profile()
                         app.frame_profiler.enable()
-                    start = time.perf_counter()
+                    start = app.frame_started = time.perf_counter()
                     if pointer:
                         sidebar.toggle(focus=False)
                     else:
                         sidebar.toggle()
                     timings.append((await asyncio.wait_for(painted, 5) - start) * 1000)
                     app.next_frame = None
+                    app.frame_started = None
                     if traced:
                         counts = Counter()
                         for widget, before in before_cache.items():
@@ -106,6 +124,8 @@ async def main():
             print(json.dumps({"boundary": "completed headless _display; not terminal pixels", "tabs": 10, "pointer": pointer,
                               "active_widgets": len(list(app.screen.walk_children())),
                                "toggle_first_paint": results}, indent=2))
+            if app.publication_trace:
+                print(json.dumps({"publication_trace": app.publication_trace}, indent=2))
             if cache_trace:
                 print(json.dumps(cache_trace, indent=2))
             assert app._exception is None
