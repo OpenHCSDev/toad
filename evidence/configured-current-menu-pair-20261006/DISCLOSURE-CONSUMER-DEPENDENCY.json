@@ -1,0 +1,14 @@
+{
+  "state": "Source dependency reported after the operator tuple was published; no purpose is issued",
+  "preserved_tuple": "FINAL-CONFIGURED-OPERANDS.json",
+  "source_owner": "Parent",
+  "method": "saved_state_user_journey_pilot.reveal_thread_row",
+  "source_fact": "A collapsed group's disclosure is clicked before scroll_visible. Parent's separate sixty-row Batch07 recorded Pilot OutOfBounds at this first disclosure.",
+  "configured_consumer": "configured_acceptance calls click_thread(app,pilot,'peer529','#source529'); click_thread calls reveal_thread_row. Thus the same disclosure method is part of this configured journey.",
+  "runtime_attribution": "No configured failure at this disclosure is asserted. Prior configured03's participant-selection timeout remains distinct.",
+  "next_dependency": "Parent publishes the narrow original disclosure scroll_visible/pause correction and its stable helper root. Heis then appends the actual changed helper/root binding and affected dependency closure before any specific configured issue.",
+  "no_writer_collision": true,
+  "fixed_operator_and_installed_roots_unchanged": true,
+  "old_helper_tuple_and_evidence_immutable": true,
+  "no_new_review_gate_or_runtime_authority": true
+}
