@@ -186,6 +186,23 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
         metadata["preparation_threads"] = [
             task_state(task) for task in tuple(app.preparation._thread_tasks)
         ]
+        # to_thread's coroutine ends at the executor boundary. Observe the
+        # original OS threads too, so a suspended backend call is distinguishable
+        # from UI work. Never export frame locals or argument values.
+        threads = {thread.ident: thread for thread in threading.enumerate()}
+        metadata["python_threads"] = []
+        for ident, frame in sys._current_frames().items():
+            chain = []
+            while frame is not None:
+                chain.append({"file": frame.f_code.co_filename,
+                              "function": frame.f_code.co_qualname,
+                              "line": frame.f_lineno})
+                frame = frame.f_back
+            thread = threads.get(ident)
+            metadata["python_threads"].append({
+                "ident": ident, "name": None if thread is None else thread.name,
+                "stack": chain,
+            })
         metadata["retained_presentations"] = [
             {"mode": view.id, "owner": type(owner).__name__,
              "object_id": id(owner), "selected": view is app.selected_session,
