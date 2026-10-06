@@ -1,0 +1,168 @@
+{
+  "status": "consumedFAIL_UNQUALIFIED",
+  "all_owned_processes_absent": true,
+  "original_groups_empty": true,
+  "display_lock_socket_absent": true,
+  "public_owner_same_birth_alive": true,
+  "public_route_settings_saved_source_unchanged": true,
+  "runtime_after": "recorder UNREACHED; independent source/default owner readback only",
+  "client_and_source_read_claim": "WHOLE RETURNED",
+  "native_input": 0,
+  "provider_input": 0,
+  "movie": false,
+  "png_review": "No captured PNGs; not UI acceptance",
+  "refs": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-01/cleanup-owned.py",
+      "sha256": "563355ae70098527ee0bfd19266d65d3d9c986d55ed0dd73d6f90901c8ff5f19",
+      "bytes": 2658,
+      "mode": 33188,
+      "mtime_ns": 1791245722909584417,
+      "inode": 2925657
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-01/finalize-return.py",
+      "sha256": "7523cf83821c059962b457f6fc92ddf96199de3bb6e930e947aff89f72c698f3",
+      "bytes": 3004,
+      "mode": 33188,
+      "mtime_ns": 1791245754818252690,
+      "inode": 2925633
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-01/SAVED-SOURCE-BEFORE.json",
+      "sha256": "97f54dc35dbc796f0ebfc1db735933f1a433d4c42bdd3d42efeafa93342f6cdf",
+      "bytes": 337,
+      "mode": 33188,
+      "mtime_ns": 1791245474987111868,
+      "inode": 2925492
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-01/UI-STATE-COPY.json",
+      "sha256": "7e3a8ab4d1d65af792002dbfb5299bed9fd39bb4e796f95cf84e717df7d2bd8e",
+      "bytes": 892,
+      "mode": 33188,
+      "mtime_ns": 1791245475001110219,
+      "inode": 2925538
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-01/OPERATOR-FAILURE.json",
+      "sha256": "b2ba908911b8245ed7fdbaa6135865f1606cf71c63cfbc07c3be9dd8cc054625",
+      "bytes": 549,
+      "mode": 33188,
+      "mtime_ns": 1791245755812641890,
+      "inode": 2925646
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-01/COMMAND.json",
+      "sha256": "6c3330675cca12ee73ebb0c97235ccd9f5438ed2c99deb3fcdc687f4915bc5b6",
+      "bytes": 4206,
+      "mode": 33188,
+      "mtime_ns": 1791245474231463384,
+      "inode": 2925427
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-01/AT-RETURN-ADMISSION.json",
+      "sha256": "9087daa0f58152eaa1695698cdb520cd6992dc1e720f9cfc15399bd56e2c5167",
+      "bytes": 1728,
+      "mode": 33188,
+      "mtime_ns": 1791245755812767178,
+      "inode": 2925682
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-01/stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "mode": 33188,
+      "mtime_ns": 1791245475021391566,
+      "inode": 2925541
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-01/RESOURCE-ADMISSION.json",
+      "sha256": "bb7286129dc6b5bd13c97eae4c7732cfee84b75c5aa944e5486663bbd3400189",
+      "bytes": 480,
+      "mode": 33188,
+      "mtime_ns": 1791245474290376249,
+      "inode": 2925471
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-01/AT-USE-ADMISSION.json",
+      "sha256": "84b0c46dc9c201bbdf67f264422d507e50058249675ec2d91d9c1b42847aeb20",
+      "bytes": 3217,
+      "mode": 33188,
+      "mtime_ns": 1791245474937389806,
+      "inode": 2925475
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-01/OWNED-CLEANUP.json",
+      "sha256": "7150a7bd9c10f9a176a21ae2e6e595cca7c2d532e93f4d9cebc24057afe3d967",
+      "bytes": 1746,
+      "mode": 33188,
+      "mtime_ns": 1791245724961925546,
+      "inode": 2925588
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-01/LAUNCH.json",
+      "sha256": "3da8dc5ca3dc2aa8e109b5a1ee69025b8b07aacf268101612b9b015e9d601777",
+      "bytes": 1464,
+      "mode": 33188,
+      "mtime_ns": 1791245475023887201,
+      "inode": 2925555
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-01/ordinary/terminal.log",
+      "sha256": "e7ae198a5d065d22229078bfe3cedffb0d341c5dc9b9bef63ed306c74cf8d846",
+      "bytes": 174,
+      "mode": 33188,
+      "mtime_ns": 1791245723986606974,
+      "inode": 2925583
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-01/ordinary/terminal-launch.json",
+      "sha256": "1dfb3ffd6cfd72bfd699886bf8050249f88aac1f2c49cc856f92d3da3dec3f69",
+      "bytes": 2242,
+      "mode": 33188,
+      "mtime_ns": 1791245724255828185,
+      "inode": 2925601
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-01/ordinary/program-launch.json",
+      "sha256": "49c2650d750a932314dc66f2b21bb7429b9e91f395e66f85690b5e7d0c0f2938",
+      "bytes": 2684,
+      "mode": 33188,
+      "mtime_ns": 1791245723777583159,
+      "inode": 2925665
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-01/ordinary/xvfb.log",
+      "sha256": "ee3c08f7e6b04799eb02a81297e0de66e99fee84c3dd27c9b7625972ac4a687f",
+      "bytes": 1634,
+      "mode": 33188,
+      "mtime_ns": 1791245724075608838,
+      "inode": 2925578
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-01/state/toad/toad.db",
+      "sha256": "340093fa9220b3a8a34f2475f97b5a1dce1539185675fa9dd2b9ef7f5fe46403",
+      "bytes": 81920,
+      "mode": 33188,
+      "mtime_ns": 1791245474998391084,
+      "inode": 2925530
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-01/state/toad/logs/Agent_Comms_2026-10-05T20_11_26_336848.txt",
+      "sha256": "cbddab5cc2d312c53a4e41a2a6ea0f586966ad63910c762cc66774b95797344f",
+      "bytes": 43061,
+      "mode": 33188,
+      "mtime_ns": 1791245488807680425,
+      "inode": 2925619
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-01/ordinary/ui-config/toad/toad.json",
+      "sha256": "dc7757bf1a59dc9df0b20a575d6453def6b0283742bced0aa3d910edec2b79a2",
+      "bytes": 176,
+      "mode": 33152,
+      "mtime_ns": 1790914597027065580,
+      "inode": 2925569
+    }
+  ]
+}

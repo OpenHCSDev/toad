@@ -1,0 +1,99 @@
+{
+  "authority": "OriginalParent explicit changed-operator observe02 authorization after original01 whole-client return4c8bacc. Same45/stills/zeroinput; correct only premature outerreap through original await child.wait().",
+  "control": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/record_installed_tui.py",
+  "control_sha256": "cd22359d0f1715104b40e16e79526c50e555ff03bcd5ed2735eb5c0041703d16",
+  "cwd": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+  "argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+    "-B",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/record_installed_tui.py",
+    "--capture-target",
+    "existing_thread",
+    "--journey",
+    "observe",
+    "--still-images",
+    "--capture-state",
+    "--review-timing",
+    "deferred",
+    "--startup-wait",
+    "8",
+    "--max-duration",
+    "45",
+    "--fit-window",
+    "--owner",
+    "Mendel-public475-observe02",
+    "--output",
+    "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary",
+    "--",
+    "toad-comms",
+    "nra-architecture"
+  ],
+  "environment_set": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "XDG_STATE_HOME": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/state"
+  },
+  "environment_absent": [
+    "PYTHONPATH",
+    "AGENT_COMMS_RUNTIME_ROOT",
+    "AGENT_COMMS_ACP_LAUNCHER",
+    "AGENT_COMMS_ROOT",
+    "AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID",
+    "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
+    "AGENT_COMMS_THREAD",
+    "AGENT_COMMS_MANAGED",
+    "PI_AGENT_ID",
+    "PI_PARENT_ID",
+    "PI_TASK",
+    "PI_WORKTREE",
+    "PI_PROMPT"
+  ],
+  "publication": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/publication-receipt.json",
+  "publication_sha256": "9462e14e891c129408f4127ece3911f43c600b670fa3fae532d80027e728f34c",
+  "authority_return": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/receiving475-public-20261005/authority-return.json",
+  "authority_return_sha256": "8f803f62462234a0736357c1b1ab16387d6c82cc1d250066b8a72f15b34d32fa",
+  "scope": {
+    "stationary_savedbody_ready_attachment": true,
+    "channel_lifetime_repeated": false,
+    "native_input": false,
+    "provider_input": false,
+    "movie": false,
+    "os_profile_renderer_controls": false,
+    "package_writes": false
+  },
+  "source_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+  "capture_state_sha256": "1cce4fa4902f11f4ffd6201293564cd8a574354591359d7ddb0b557cebdc7138",
+  "output": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02",
+  "sqlite_state_copy": {
+    "source": "/home/ts/.local/state/toad/toad.db",
+    "source_open": "SQLite URI mode=ro",
+    "algorithm": "existing editor_focus_journey SQLite Connection.backup; no writes to original",
+    "target": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/state/toad/toad.db",
+    "performed": false,
+    "before_journey_actions": true
+  },
+  "at_use_admission": {
+    "original_public_default": "style22 PUBLIC475",
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "requested_thread": "nra-architecture",
+    "actual_route_default_owner_birth_settings_source_witness": "UNBOUND until at-use original ExistingThreadCapture.admit/observe",
+    "private_native4B": "Proof completed/joined; nativeEXEC/control not started. Serial client phase, no overlap."
+  },
+  "helpers": {
+    "read_only_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+    "hashes": {
+      "tests/tools/record_installed_tui.py": "cd22359d0f1715104b40e16e79526c50e555ff03bcd5ed2735eb5c0041703d16",
+      "tools/performance/capture_state.py": "1cce4fa4902f11f4ffd6201293564cd8a574354591359d7ddb0b557cebdc7138"
+    },
+    "edits": false,
+    "copies": false
+  },
+  "launch_performed": false,
+  "identity_closure": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged460-public471-native71-receiving-20261005/publication-identity-closure.json",
+  "identity_closure_sha256": "531be3de2116c1be8f2f75ebeee7f7cb47061dba494d3fb867854395ce429d00",
+  "predecessor_whole_return": {
+    "path": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-01/WHOLE-CLIENT-RETURN.json",
+    "sha256": "4c8bacc58add8eee35a6ef97887e58d2213d6bfe965f5abcd0b48ab9e0e439f2"
+  },
+  "operator_completion": "await child.wait() before ParentedProcess context retirement; direct stdout/stderr file, actual parent outcome/joins; no timeout or bound added"
+}

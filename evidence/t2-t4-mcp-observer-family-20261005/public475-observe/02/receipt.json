@@ -1,0 +1,948 @@
+{
+  "owner": "Mendel-public475-observe02",
+  "purpose": "installed TUI physical interaction video review",
+  "output": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary",
+  "command": [
+    "toad-comms",
+    "nra-architecture"
+  ],
+  "terminal_command": [
+    "st",
+    "-e",
+    "toad-comms",
+    "nra-architecture"
+  ],
+  "fps": 60,
+  "screen": [
+    1280,
+    800
+  ],
+  "profiling_requested": false,
+  "state_capture_requested": true,
+  "ui_config": {
+    "source": "/home/ts/.config/toad/toad.json",
+    "home": "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/ui-config",
+    "initial_sha256": "dc7757bf1a59dc9df0b20a575d6453def6b0283742bced0aa3d910edec2b79a2"
+  },
+  "private_root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+  "capture_target": "existing_thread",
+  "physical_journey": "observe",
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2286043,
+      "start_time": 72080136
+    },
+    "original_owner_alive": true
+  },
+  "recorder_argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/record_installed_tui.py",
+    "--capture-target",
+    "existing_thread",
+    "--journey",
+    "observe",
+    "--still-images",
+    "--capture-state",
+    "--review-timing",
+    "deferred",
+    "--startup-wait",
+    "8",
+    "--max-duration",
+    "45",
+    "--fit-window",
+    "--owner",
+    "Mendel-public475-observe02",
+    "--output",
+    "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary",
+    "--",
+    "toad-comms",
+    "nra-architecture"
+  ],
+  "recorder_source_sha256": "cd22359d0f1715104b40e16e79526c50e555ff03bcd5ed2735eb5c0041703d16",
+  "started_utc": "2026-10-06T00:17:00.494186+00:00",
+  "assessment": "unreviewed",
+  "capture_completed": true,
+  "completed": true,
+  "review_timing": "deferred",
+  "review": {
+    "start_seconds": 0,
+    "seconds": 3,
+    "fps": 8,
+    "frames_limit": 24,
+    "slowdown": 8,
+    "timestamp_basis": "source video seconds"
+  },
+  "runtime_before": {
+    "selection": "PATH agent-comms-acp",
+    "bin_directory": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin",
+    "launcher": "/home/ts/.agent-comms/stack/bin/toad-comms",
+    "launcher_sha256": "139697cd787f598b06c989e41ab6d09632fda135aa5db9354e4e60ea04e3069e",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/bin/toad-comms",
+        "resolved_path": "/home/ts/.agent-comms/stack/bin/toad-comms",
+        "sha256": "139697cd787f598b06c989e41ab6d09632fda135aa5db9354e4e60ea04e3069e"
+      },
+      "acp": {
+        "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/agent-comms-acp",
+        "sha256": "5e09b6233ec9d76ffb14593d11145bf36b28794fb7db6953b3b84849e408e741"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/toad",
+        "sha256": "f5f7c41f9195e7353bb3376df52ead90159200c25f1033def081beb128dc765b"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/agent-comms-acp",
+        "sha256": "5e09b6233ec9d76ffb14593d11145bf36b28794fb7db6953b3b84849e408e741"
+      }
+    },
+    "activation_path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/activation.json",
+    "activation_sha256": "2d46e956b37e599add12718b06770cce5a1b53c1421c95a3e69201d34750c63b",
+    "activation": {
+      "stage": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+      "pins": {
+        "agent_comms": "9195325146f70886d7d879edbfcae74b12bd63c8",
+        "toad": "8605373406a99af96510fd50bf5102b84c7cc291",
+        "textual": "456c27e18688e6c829c727f766561c9eb8640803",
+        "refactor_audit": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10"
+      },
+      "sdk": "0.12.1",
+      "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-086d511f2026b10d/node_modules/@earendil-works/pi-coding-agent",
+      "state": "Normal69 qualifiedCore919/Toad426429/Tree58/originalNRA9a/native086; unqualifiedF3/417/627/430/59/JeV excluded",
+      "staging_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/source-proof.json",
+      "bins": {
+        "python": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+        "toad": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/toad",
+        "agent-comms": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/agent-comms",
+        "agent-comms-acp": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/agent-comms-acp",
+        "agent-comms-agent": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/agent-comms-agent",
+        "pi-comms-native": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/pi-comms-native"
+      },
+      "native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-086d511f2026b10d/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+      "native_manifest": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
+      "native_tree": "dbc88ed9231d1275da3ce218aa8919a247e41ce1f010ce765e7ac0960193f4ac",
+      "native_configuration_note": "Released receiving holder /home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002; original activation/source/native and saved-source qualification proof archived. Public source, named rollback and other borrowed holders are untouched. Core/native and frontend follow this complete installed proof; no provider/public changes from packaging and no environment/native build."
+    },
+    "observed": {
+      "python": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+      "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "3cdd76038181cd4d2926c087006a8056663432d06971a1066a64b4a881108f38",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "file:///home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/merged460-current-public-receiving-source-20261005/filewheel/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+            "archive_info": {}
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "f0a7d665218ae207aa72a6516e1be2a8468703560ac5abc8c8fc967c209ead05",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "file:///home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native70-71-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+            "archive_info": {}
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "7838b981ed040c9b4039d4718281c97a269ee2d4f28635b8e4e3b7a7571b6c27",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "file:///home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/same-owner-native-fork676-corrected-wheel-20261005/agent_comms-0.1.0-py3-none-any.whl",
+            "archive_info": {}
+          }
+        }
+      },
+      "route": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent"
+      },
+      "native_launch": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "display": ":3317",
+  "ui_identity": {
+    "pid": 2332513,
+    "start_ticks": 72146337
+  },
+  "window": "2097158",
+  "capture_launch_monotonic": 721465.184111819,
+  "interaction_deadline_monotonic": 721494.184111819,
+  "finish_deadline_monotonic": 721510.184111819,
+  "finalize_seconds": 16,
+  "terminal_pid": 2332485,
+  "movie_requested": false,
+  "state_captures": {
+    "before": {
+      "started_seconds": 8.39997496898286,
+      "manifest": {
+        "pid": 2332513,
+        "created": 1791245823.37,
+        "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+        "rss_before": 192872448,
+        "started_ns": 1791245834474897544,
+        "profile_seconds": 0,
+        "gil_only": false,
+        "native": false,
+        "receipts": {
+          "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/before-state": "complete",
+          "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/before-screen": "complete"
+        },
+        "finished_ns": 1791245834639693268
+      },
+      "finished_seconds": 8.772716540959664
+    },
+    "observers": {
+      "started_seconds": 8.772814056021161,
+      "manifest": {
+        "pid": 2332513,
+        "created": 1791245823.37,
+        "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+        "rss_before": 195231744,
+        "started_ns": 1791245834847915840,
+        "profile_seconds": 0,
+        "gil_only": false,
+        "native": false,
+        "receipts": {
+          "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/observers-state": "complete"
+        },
+        "finished_ns": 1791245834912274452
+      },
+      "finished_seconds": 9.032834204961546
+    },
+    "after": {
+      "started_seconds": 11.346814229968004,
+      "manifest": {
+        "pid": 2332513,
+        "created": 1791245823.37,
+        "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+        "rss_before": 202493952,
+        "started_ns": 1791245837418812327,
+        "profile_seconds": 0,
+        "gil_only": false,
+        "native": false,
+        "receipts": {
+          "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/after-state": "complete",
+          "/home/ts/.cache/agent-scratch/mendel-public475-observe-20261005-02/ordinary/after-screen": "complete"
+        },
+        "finished_ns": 1791245837651507478
+      },
+      "finished_seconds": 11.791212765034288
+    }
+  },
+  "terminal_processes": {
+    "2332485": {
+      "start_ticks": 72146259,
+      "command": "st -e /home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python /home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/record_installed_tui.py --program-launch toad-comms nra-architecture "
+    },
+    "2332513": {
+      "start_ticks": 72146337,
+      "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   "
+    },
+    "2332793": {
+      "start_ticks": 72146641,
+      "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -B -c from multiprocessing.resource_tracker import main;main(6) "
+    },
+    "2332865": {
+      "start_ticks": 72146805,
+      "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -B -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=7, pipe_handle=27) --multiprocessing-fork "
+    },
+    "2332866": {
+      "start_ticks": 72146805,
+      "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -B -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=7, pipe_handle=25) --multiprocessing-fork "
+    },
+    "2333086": {
+      "start_ticks": 72147248,
+      "command": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python -B -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=7, pipe_handle=22) --multiprocessing-fork "
+    }
+  },
+  "duration_seconds": 11.791218186030164,
+  "runtime_after": {
+    "selection": "PATH agent-comms-acp",
+    "bin_directory": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin",
+    "launcher": "/home/ts/.agent-comms/stack/bin/toad-comms",
+    "launcher_sha256": "139697cd787f598b06c989e41ab6d09632fda135aa5db9354e4e60ea04e3069e",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/bin/toad-comms",
+        "resolved_path": "/home/ts/.agent-comms/stack/bin/toad-comms",
+        "sha256": "139697cd787f598b06c989e41ab6d09632fda135aa5db9354e4e60ea04e3069e"
+      },
+      "acp": {
+        "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/agent-comms-acp",
+        "sha256": "5e09b6233ec9d76ffb14593d11145bf36b28794fb7db6953b3b84849e408e741"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/toad",
+        "sha256": "f5f7c41f9195e7353bb3376df52ead90159200c25f1033def081beb128dc765b"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/agent-comms-acp",
+        "sha256": "5e09b6233ec9d76ffb14593d11145bf36b28794fb7db6953b3b84849e408e741"
+      }
+    },
+    "activation_path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/activation.json",
+    "activation_sha256": "2d46e956b37e599add12718b06770cce5a1b53c1421c95a3e69201d34750c63b",
+    "activation": {
+      "stage": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+      "pins": {
+        "agent_comms": "9195325146f70886d7d879edbfcae74b12bd63c8",
+        "toad": "8605373406a99af96510fd50bf5102b84c7cc291",
+        "textual": "456c27e18688e6c829c727f766561c9eb8640803",
+        "refactor_audit": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10"
+      },
+      "sdk": "0.12.1",
+      "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-086d511f2026b10d/node_modules/@earendil-works/pi-coding-agent",
+      "state": "Normal69 qualifiedCore919/Toad426429/Tree58/originalNRA9a/native086; unqualifiedF3/417/627/430/59/JeV excluded",
+      "staging_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/frame426-startup429-tree58-receiving-20261004/source-proof.json",
+      "bins": {
+        "python": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+        "toad": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/toad",
+        "agent-comms": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/agent-comms",
+        "agent-comms-acp": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/agent-comms-acp",
+        "agent-comms-agent": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/agent-comms-agent",
+        "pi-comms-native": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/pi-comms-native"
+      },
+      "native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-086d511f2026b10d/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+      "native_manifest": "086d511f2026b10d2cdb09380026d9503b0461e3a9998048902fe3aee5671872",
+      "native_tree": "dbc88ed9231d1275da3ce218aa8919a247e41ce1f010ce765e7ac0960193f4ac",
+      "native_configuration_note": "Released receiving holder /home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002; original activation/source/native and saved-source qualification proof archived. Public source, named rollback and other borrowed holders are untouched. Core/native and frontend follow this complete installed proof; no provider/public changes from packaging and no environment/native build."
+    },
+    "observed": {
+      "python": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+      "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "3cdd76038181cd4d2926c087006a8056663432d06971a1066a64b4a881108f38",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "file:///home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/merged460-current-public-receiving-source-20261005/filewheel/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+            "archive_info": {}
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "f0a7d665218ae207aa72a6516e1be2a8468703560ac5abc8c8fc967c209ead05",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "file:///home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native70-71-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+            "archive_info": {}
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "7838b981ed040c9b4039d4718281c97a269ee2d4f28635b8e4e3b7a7571b6c27",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "file:///home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/same-owner-native-fork676-corrected-wheel-20261005/agent_comms-0.1.0-py3-none-any.whl",
+            "archive_info": {}
+          }
+        }
+      },
+      "route": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent"
+      },
+      "native_launch": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-7a2e4aabdbc5af49/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "runtime_unchanged": true,
+  "quit": {
+    "requested_monotonic": 721478.849936344,
+    "key": "ctrl+q",
+    "delivered_monotonic": 721478.977675942,
+    "program_exited_before_retirement": true
+  },
+  "terminal_exit": {
+    "pid": 2332485,
+    "start_ticks": 72146259,
+    "signals": [],
+    "custody": "verified launch identity transferred to installed ObservedProcess",
+    "parent": {
+      "pid": 2332460,
+      "start_ticks": 72146195
+    },
+    "parent_exit": {
+      "pid": 2332485,
+      "start_ticks": 72146259,
+      "returncode": 0,
+      "signals": [],
+      "outcome": {
+        "kind": "exited",
+        "code": 0
+      }
+    },
+    "parent_cleanup": {
+      "remaining_owned_pids": [],
+      "errors": [],
+      "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+      "processes": [
+        {
+          "pid": 2332485,
+          "start_ticks": 72146259,
+          "returncode": 0,
+          "signals": [],
+          "outcome": {
+            "kind": "exited",
+            "code": 0
+          }
+        },
+        {
+          "pid": 2332488,
+          "start_ticks": 72146265,
+          "signals": [],
+          "custody": "verified launch identity transferred to installed ObservedProcess"
+        },
+        {
+          "pid": 2332513,
+          "start_ticks": 72146337,
+          "signals": [],
+          "custody": "verified launch identity transferred to installed ObservedProcess",
+          "parent": {
+            "pid": 2332488,
+            "start_ticks": 72146265
+          },
+          "parent_exit": {
+            "pid": 2332513,
+            "start_ticks": 72146337,
+            "returncode": 0,
+            "signals": [],
+            "outcome": {
+              "kind": "exited",
+              "code": 0
+            }
+          },
+          "parent_cleanup": {
+            "remaining_owned_pids": [],
+            "errors": [],
+            "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+            "processes": [
+              {
+                "pid": 2332513,
+                "start_ticks": 72146337,
+                "returncode": 0,
+                "signals": [],
+                "outcome": {
+                  "kind": "exited",
+                  "code": 0
+                }
+              }
+            ]
+          },
+          "parent_error": null
+        }
+      ]
+    },
+    "parent_error": null
+  },
+  "ui_exit": {
+    "pid": 2332513,
+    "start_ticks": 72146337,
+    "signals": [],
+    "custody": "verified launch identity transferred to installed ObservedProcess",
+    "parent": {
+      "pid": 2332488,
+      "start_ticks": 72146265
+    },
+    "parent_exit": {
+      "pid": 2332513,
+      "start_ticks": 72146337,
+      "returncode": 0,
+      "signals": [],
+      "outcome": {
+        "kind": "exited",
+        "code": 0
+      }
+    },
+    "parent_cleanup": {
+      "remaining_owned_pids": [],
+      "errors": [],
+      "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+      "processes": [
+        {
+          "pid": 2332513,
+          "start_ticks": 72146337,
+          "returncode": 0,
+          "signals": [],
+          "outcome": {
+            "kind": "exited",
+            "code": 0
+          }
+        }
+      ]
+    },
+    "parent_error": null
+  },
+  "events": [],
+  "frame_review": {
+    "available": true,
+    "trace": "after-state-frames.json",
+    "artifacts": [
+      "frame-delivery.json",
+      "frame-delivery.svg",
+      "useful-body-delivery.json"
+    ],
+    "intervals": {
+      "count": 6,
+      "median_ms": 443.78,
+      "p95_ms": 500.57,
+      "p99_ms": 500.57,
+      "max_ms": 500.9
+    },
+    "scope": "Native writer completion; not changed pixels or terminal presentation FPS. Zero stationary motion is legitimate, not a stall classification.",
+    "body_output": {
+      "selections": [
+        {
+          "request": {
+            "event": "ui_child_release",
+            "ns": 721463376555685,
+            "process": {
+              "pid": 2332513,
+              "start_ticks": 72146337
+            }
+          },
+          "interval_end_ns": null,
+          "first_body_output": null,
+          "body_output_ms": null,
+          "body_writer_ms": null,
+          "first_ready_viewport_output": null,
+          "ready_viewport_output_ms": null,
+          "ready_viewport_writer_ms": null
+        }
+      ],
+      "phases": [],
+      "scope": "First nonwhite source-bound body output and ready-viewport output are separate. Readiness is the original visible-body predicate, not a stable complete viewport. Terminal writer completion is an acknowledgement. No extra rasterization. Not monitor presentation, smoothness, baseline gain or continuous scrolling when no body output was required."
+    }
+  },
+  "journey_review": null,
+  "review_intervals": [
+    {
+      "label": "main",
+      "start": 0,
+      "seconds": 3,
+      "complete": false,
+      "basis": "explicit review start"
+    }
+  ],
+  "artifacts": {
+    "before.png": {
+      "bytes": 113793,
+      "sha256": "3b30245eea5c34c3807062b03d01f6b236b1eeb279183d97a736f6a56e85ca62"
+    },
+    "after.png": {
+      "bytes": 108744,
+      "sha256": "4ca7455458f60f30cd91f718e17faa51e9442b52ebe7352cbcf6d0b2a45373d6"
+    },
+    "program-launch.json": {
+      "bytes": 1710,
+      "sha256": "e2607f3f6d56a042a9ba9512f2f04c81ce72a790b58a87bc8a13afaf9783b150"
+    },
+    "terminal-launch.json": {
+      "bytes": 1283,
+      "sha256": "1c5eeedc6a950509e301969adaca9dcae79208a8bf8cb0f7b552ee0d7bf270dc"
+    },
+    "before-state.json": {
+      "bytes": 949699,
+      "sha256": "192963d023aee720a3debb6aa57d98b4bf0d00d66d2f008bd075224455e4d27e"
+    },
+    "before-state.pickle": {
+      "bytes": 370744,
+      "sha256": "896691cdc68921b82b45b0b5d34a9ba1a2f469abdad8aa1ac010a5dede5f4d45"
+    },
+    "before-screen.svg": {
+      "bytes": 61529,
+      "sha256": "33c6f5e221064c5e2a06eb4aa84dd9c968f280c4b526c805d4d0299550fbba16"
+    },
+    "before-remote.py": {
+      "bytes": 1402,
+      "sha256": "1fdd31baf9025d91f6f4f221d96eae8af77b2ad4e274286e22cb56bcded1881a"
+    },
+    "before-state-metadata.json": {
+      "bytes": 949672,
+      "sha256": "1e52693f9743942dfc67e9bbbcacce8997c5c3a4b45d8407db596e6c1fe651b1"
+    },
+    "before-state-frames.json": {
+      "bytes": 118,
+      "sha256": "b1f66cf7573f74dcee994a4efde680f1ef61f015cd47bd2a72202d7cc5235e55"
+    },
+    "before-manifest.json": {
+      "bytes": 549,
+      "sha256": "3d6c174de5773fd4518dc32de8311a0d832a237d9f19a14293bd864a2a40d9ae"
+    },
+    "before-screen.json": {
+      "bytes": 165,
+      "sha256": "9d890b0816243c5f7291cb4304ead571a8e03be3e8deaf23421f179cc03cca27"
+    },
+    "before-capture.log": {
+      "bytes": 97,
+      "sha256": "b8ba5729f6af8219608a8aeaa6b484aaf573ca5513d70dd2e40ae1964ffad708"
+    },
+    "after-screen.svg": {
+      "bytes": 58908,
+      "sha256": "0e503ee74aee457422ab4e3fe7eafd39fb93c660815b10ddc7b560e5240612fc"
+    },
+    "after-state-metadata.json": {
+      "bytes": 949216,
+      "sha256": "a428eb8cd37368776fc0b4113f5a9bb9fa81bc021cee8599b30f9a4e8bf7a2ce"
+    },
+    "after-remote.py": {
+      "bytes": 1400,
+      "sha256": "2428eca98f7addc383afe556f07586f4b81e4ba1ad4e71bd1b85b4d17b52e520"
+    },
+    "after-manifest.json": {
+      "bytes": 547,
+      "sha256": "a41b05cf9359fc3ad1dbe21caebeb75250a83aad95c51ec8da86d0b8396a850c"
+    },
+    "after-state-frames.json": {
+      "bytes": 1945,
+      "sha256": "c9cbee6a3c6dce8010ab582fb0aac8736c8f0118fb4bc5351ff9b31972b07fda"
+    },
+    "after-capture.log": {
+      "bytes": 96,
+      "sha256": "24b9af0f73b27b375135258c10dfa91d60f5e449421032da95bc649b7c8db64f"
+    },
+    "after-state.json": {
+      "bytes": 949243,
+      "sha256": "883e5729d04923ff09f7da2de5346505967475d29dec80fbfdb57cd441a37cb0"
+    },
+    "after-state.pickle": {
+      "bytes": 371152,
+      "sha256": "84bd3c35b7443399d3f98af3b614ac34c68aec648b2d13d4266b4b139bae61f9"
+    },
+    "after-screen.json": {
+      "bytes": 164,
+      "sha256": "ea49b3fd52cef68affef3c16575c60b7448cd48ea0eef9ab96100956e534d7c2"
+    },
+    "frame-delivery.json": {
+      "bytes": 3177,
+      "sha256": "831d2404ef9a8424274c28a609cbdb20d5be3b284887d6e210cd0eb4654cfcae"
+    },
+    "frame-delivery.svg": {
+      "bytes": 1183,
+      "sha256": "2eeb61bc23a687d13a9c9b38492bbb3856094712ec7b36659a9e869de9ac4fc4"
+    },
+    "useful-body-delivery.json": {
+      "bytes": 1210,
+      "sha256": "1e518845158aa24b11eed45301c91dfad2d00797c1c6f0686d4af1923527d247"
+    }
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 2332236,
+        "start_ticks": 72145969,
+        "returncode": 0,
+        "signals": [],
+        "outcome": {
+          "kind": "exited",
+          "code": 0
+        }
+      },
+      {
+        "pid": 2332456,
+        "start_ticks": 72146185,
+        "returncode": 0,
+        "signals": [
+          {
+            "pid": 2332456,
+            "start_ticks": 72146185,
+            "signal": 15,
+            "monotonic": 721481.971778978
+          }
+        ],
+        "outcome": {
+          "kind": "exited",
+          "code": 0
+        }
+      },
+      {
+        "pid": 2332460,
+        "start_ticks": 72146195,
+        "returncode": 0,
+        "signals": [],
+        "outcome": {
+          "kind": "exited",
+          "code": 0
+        }
+      },
+      {
+        "pid": 2332485,
+        "start_ticks": 72146259,
+        "signals": [],
+        "custody": "verified launch identity transferred to installed ObservedProcess",
+        "parent": {
+          "pid": 2332460,
+          "start_ticks": 72146195
+        },
+        "parent_exit": {
+          "pid": 2332485,
+          "start_ticks": 72146259,
+          "returncode": 0,
+          "signals": [],
+          "outcome": {
+            "kind": "exited",
+            "code": 0
+          }
+        },
+        "parent_cleanup": {
+          "remaining_owned_pids": [],
+          "errors": [],
+          "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+          "processes": [
+            {
+              "pid": 2332485,
+              "start_ticks": 72146259,
+              "returncode": 0,
+              "signals": [],
+              "outcome": {
+                "kind": "exited",
+                "code": 0
+              }
+            },
+            {
+              "pid": 2332488,
+              "start_ticks": 72146265,
+              "signals": [],
+              "custody": "verified launch identity transferred to installed ObservedProcess"
+            },
+            {
+              "pid": 2332513,
+              "start_ticks": 72146337,
+              "signals": [],
+              "custody": "verified launch identity transferred to installed ObservedProcess",
+              "parent": {
+                "pid": 2332488,
+                "start_ticks": 72146265
+              },
+              "parent_exit": {
+                "pid": 2332513,
+                "start_ticks": 72146337,
+                "returncode": 0,
+                "signals": [],
+                "outcome": {
+                  "kind": "exited",
+                  "code": 0
+                }
+              },
+              "parent_cleanup": {
+                "remaining_owned_pids": [],
+                "errors": [],
+                "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+                "processes": [
+                  {
+                    "pid": 2332513,
+                    "start_ticks": 72146337,
+                    "returncode": 0,
+                    "signals": [],
+                    "outcome": {
+                      "kind": "exited",
+                      "code": 0
+                    }
+                  }
+                ]
+              },
+              "parent_error": null
+            }
+          ]
+        },
+        "parent_error": null
+      },
+      {
+        "pid": 2332488,
+        "start_ticks": 72146265,
+        "signals": [],
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 2332513,
+        "start_ticks": 72146337,
+        "signals": [],
+        "custody": "verified launch identity transferred to installed ObservedProcess",
+        "parent": {
+          "pid": 2332488,
+          "start_ticks": 72146265
+        },
+        "parent_exit": {
+          "pid": 2332513,
+          "start_ticks": 72146337,
+          "returncode": 0,
+          "signals": [],
+          "outcome": {
+            "kind": "exited",
+            "code": 0
+          }
+        },
+        "parent_cleanup": {
+          "remaining_owned_pids": [],
+          "errors": [],
+          "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+          "processes": [
+            {
+              "pid": 2332513,
+              "start_ticks": 72146337,
+              "returncode": 0,
+              "signals": [],
+              "outcome": {
+                "kind": "exited",
+                "code": 0
+              }
+            }
+          ]
+        },
+        "parent_error": null
+      },
+      {
+        "pid": 2332723,
+        "start_ticks": 72146474,
+        "returncode": 0,
+        "signals": [],
+        "outcome": {
+          "kind": "exited",
+          "code": 0
+        }
+      },
+      {
+        "pid": 2332730,
+        "start_ticks": 72146490,
+        "returncode": 0,
+        "signals": [],
+        "outcome": {
+          "kind": "exited",
+          "code": 0
+        }
+      },
+      {
+        "pid": 2332745,
+        "start_ticks": 72146504,
+        "returncode": 0,
+        "signals": [],
+        "outcome": {
+          "kind": "exited",
+          "code": 0
+        }
+      },
+      {
+        "pid": 2333090,
+        "start_ticks": 72147318,
+        "returncode": 0,
+        "signals": [],
+        "outcome": {
+          "kind": "exited",
+          "code": 0
+        }
+      },
+      {
+        "pid": 2333106,
+        "start_ticks": 72147358,
+        "returncode": 0,
+        "signals": [],
+        "outcome": {
+          "kind": "exited",
+          "code": 0
+        }
+      },
+      {
+        "pid": 2333122,
+        "start_ticks": 72147395,
+        "returncode": 0,
+        "signals": [],
+        "outcome": {
+          "kind": "exited",
+          "code": 0
+        }
+      },
+      {
+        "pid": 2333320,
+        "start_ticks": 72147624,
+        "returncode": 0,
+        "signals": [],
+        "outcome": {
+          "kind": "exited",
+          "code": 0
+        }
+      },
+      {
+        "pid": 2333324,
+        "start_ticks": 72147653,
+        "returncode": 0,
+        "signals": [],
+        "outcome": {
+          "kind": "exited",
+          "code": 0
+        }
+      },
+      {
+        "pid": 2333329,
+        "start_ticks": 72147697,
+        "returncode": 0,
+        "signals": [],
+        "outcome": {
+          "kind": "exited",
+          "code": 0
+        }
+      },
+      {
+        "pid": 2333330,
+        "start_ticks": 72147885,
+        "returncode": 0,
+        "signals": [],
+        "outcome": {
+          "kind": "exited",
+          "code": 0
+        }
+      }
+    ]
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2286043,
+      "start_time": 72080136
+    },
+    "original_owner_alive": true
+  },
+  "terminal_stderr": {
+    "bytes": 174,
+    "sha256": "578cd7249ee237923e96875cb8a79b16214a805ea596c88ad3af3f65a59aa461"
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "cleanup": [
+    {
+      "name": "program",
+      "identity": {
+        "pid": 2307392,
+        "start_time": 72111896
+      },
+      "before": [
+        {
+          "pid": 2307392,
+          "start_time": 72111896
+        },
+        {
+          "pid": 2307522,
+          "start_time": 72112206
+        },
+        {
+          "pid": 2307984,
+          "start_time": 72112348
+        },
+        {
+          "pid": 2307985,
+          "start_time": 72112348
+        },
+        {
+          "pid": 2308605,
+          "start_time": 72112835
+        }
+      ],
+      "remaining": [],
+      "signals": []
+    },
+    {
+      "name": "terminal",
+      "identity": {
+        "pid": 2307355,
+        "start_time": 72111820
+      },
+      "before": [],
+      "remaining": [],
+      "signals": []
+    },
+    {
+      "name": "xvfb",
+      "identity": {
+        "pid": 2307341,
+        "start_time": 72111714
+      },
+      "before": [
+        {
+          "pid": 2307341,
+          "start_time": 72111714
+        }
+      ],
+      "remaining": [],
+      "signals": [
+        {
+          "pid": 2307341,
+          "start_ticks": 72111714,
+          "signal": 15,
+          "monotonic": 721363.838991363
+        }
+      ]
+    }
+  ],
+  "remaining_alive": [],
+  "proc_present": [],
+  "groups": {
+    "2307062": [],
+    "2307065": [],
+    "2307344": [],
+    "2307355": [],
+    "2307358": [],
+    "2307392": [],
+    "2307341": []
+  },
+  "display": ":2800",
+  "display_lock_present": false,
+  "display_socket_present": false,
+  "public_owner": {
+    "pid": 2286043,
+    "start_time": 72080136
+  },
+  "public_owner_alive": true,
+  "original_parent_outcomes": "Consume original terminal/program exit publications only; forced retirement is not graceful acceptance."
+}
