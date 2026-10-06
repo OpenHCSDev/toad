@@ -1,0 +1,11 @@
+# Fresh ACP observer consumer correction
+
+Original25ce native attempt stopped in the first allow observer setup: the metadata producer still passed a PID to SessionLifecycle.declare_thread. Other three cases and permission/native prompt path were unrun. The three committed Node trust/declaration helpers reached exit0 and joined; this does not qualify the four-case workflow. The secondary UI UnregisteredThreadError is retained without a broader cause claim.
+
+After the original whole floor/READ/EXEC handback, turn_source now calls the owning declaration with cwd only. Existing SessionLifecycle publishes membership and acquires the current process; the fixture does not select a PID or inject participants. AsyncExitStack shutdown, owner-stop callback enlisted before worker delivery, bind_owned, protocol/permission/receipt/refusal checks and cleanup stay unchanged. The module AST is identical except removal of this one argument.
+
+Original NRA Package enumerated Core src324/tests373/tools54 and Toad src288/tests398/tools40 with zero omissions before editing. The sole obsolete direct call is now migrated; owning/attached declaration hooks, partial new_session calls, NativeBackendFixture and attached source control are recorded in FRESH-ACP-DECLARATION-CONSUMERS.json. Arbitrary external AC_MCP_TOAD_ADAPTER modules remain a static resolution limit.
+
+Compilation and diff check pass. No import/test/native rerun, participant injector, compatibility API, production change or wheel build. Retained Corebee/Toadb2e/Text16c9 remain the required runtime tuple. Corrected observer behavior is not installed-qualified; a future separately issued purpose is still required, with no authority inherited from consumed25ce or older9b. Original three ACP source successes and guard-only proof do not repeat.
+
+Original whole handback: /home/ts/.cache/agent-scratch/m687n01/whole-handback.json SHA2c1f23e9441ffd8e2519258ad5b4670f188dee91b153767ebeea84a9069265f8. It binds76 raw refs and25 authored fixture files, all13 original identities absent, normalfour floor restore0/.4052087029s and actual1468/945/full69RAW/428+1883+5nodes/PREFIX exact/no extras/groups/sockets. Independent lifecycle closure remains Bohr and matching artifact closure Sch.

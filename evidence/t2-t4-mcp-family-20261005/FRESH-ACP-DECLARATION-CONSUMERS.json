@@ -1,0 +1,183 @@
+{
+  "state": "Before narrow existingfixtureconsumer correction; originalNRA Package source AST, no productimport/test/native operation",
+  "roots": [
+    {
+      "repository": "Core",
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "head": "c5a966aa6b1a83bdc9c226ee583c079dde71a18a",
+      "root": "src",
+      "parsed": 324,
+      "omissions": []
+    },
+    {
+      "repository": "Core",
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "head": "c5a966aa6b1a83bdc9c226ee583c079dde71a18a",
+      "root": "tests",
+      "parsed": 373,
+      "omissions": []
+    },
+    {
+      "repository": "Core",
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002",
+      "head": "c5a966aa6b1a83bdc9c226ee583c079dde71a18a",
+      "root": "tools",
+      "parsed": 54,
+      "omissions": []
+    },
+    {
+      "repository": "Toad",
+      "path": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "head": "fbfcfa097167ba047a2338ef92f22764b2efaf37",
+      "root": "src",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "repository": "Toad",
+      "path": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "head": "fbfcfa097167ba047a2338ef92f22764b2efaf37",
+      "root": "tests",
+      "parsed": 398,
+      "omissions": []
+    },
+    {
+      "repository": "Toad",
+      "path": "/home/ts/wt/toad-original-reply-handling-20261002",
+      "head": "fbfcfa097167ba047a2338ef92f22764b2efaf37",
+      "root": "tools",
+      "parsed": 40,
+      "omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "repository": "Core",
+      "path": "src/agent_comms/session_lifecycle.py",
+      "line": 150,
+      "kind": "declaration",
+      "name": "declare_thread",
+      "signature": "self, cwd: str"
+    },
+    {
+      "repository": "Core",
+      "path": "src/agent_comms/session_lifecycle.py",
+      "line": 164,
+      "kind": "declaration",
+      "name": "acquire_declared_thread",
+      "signature": "self, thread: Thread"
+    },
+    {
+      "repository": "Core",
+      "path": "src/agent_comms/session_lifecycle.py",
+      "line": 424,
+      "kind": "declaration",
+      "name": "acquire_declared_thread",
+      "signature": "self, thread: Thread"
+    },
+    {
+      "repository": "Core",
+      "path": "src/agent_comms/session_lifecycle.py",
+      "line": 162,
+      "kind": "direct call",
+      "expression": "self.acquire_declared_thread(thread)",
+      "positional_arguments": 1,
+      "keywords": []
+    },
+    {
+      "repository": "Core",
+      "path": "src/agent_comms/session_lifecycle.py",
+      "line": 162,
+      "kind": "member reference",
+      "expression": "self.acquire_declared_thread"
+    },
+    {
+      "repository": "Core",
+      "path": "src/agent_comms/session_lifecycle.py",
+      "line": 258,
+      "kind": "member reference",
+      "expression": "self.declare_thread"
+    },
+    {
+      "repository": "Core",
+      "path": "src/agent_comms/session_lifecycle.py",
+      "line": 432,
+      "kind": "member reference",
+      "expression": "self.declare_thread"
+    },
+    {
+      "repository": "Core",
+      "path": "tests/native_backend_fixture.py",
+      "line": 64,
+      "kind": "direct call",
+      "expression": "agent.sessions.declare_thread(str(project))",
+      "positional_arguments": 1,
+      "keywords": []
+    },
+    {
+      "repository": "Core",
+      "path": "tests/native_backend_fixture.py",
+      "line": 64,
+      "kind": "member reference",
+      "expression": "agent.sessions.declare_thread"
+    },
+    {
+      "repository": "Core",
+      "path": "tests/test_session_components.py",
+      "line": 89,
+      "kind": "direct call",
+      "expression": "attachment.sessions.declare_thread(str(tmp_path / 'attached'))",
+      "positional_arguments": 1,
+      "keywords": []
+    },
+    {
+      "repository": "Core",
+      "path": "tests/test_session_components.py",
+      "line": 89,
+      "kind": "member reference",
+      "expression": "attachment.sessions.declare_thread"
+    },
+    {
+      "repository": "Toad",
+      "path": "tests/mcp_observation_fixture.py",
+      "line": 54,
+      "kind": "direct call",
+      "expression": "producer.sessions.declare_thread(str(project), os.getpid())",
+      "positional_arguments": 2,
+      "keywords": []
+    },
+    {
+      "repository": "Toad",
+      "path": "tests/mcp_observation_fixture.py",
+      "line": 54,
+      "kind": "member reference",
+      "expression": "producer.sessions.declare_thread"
+    }
+  ],
+  "sole_retired_2arg_consumer": [
+    {
+      "repository": "Toad",
+      "path": "tests/mcp_observation_fixture.py",
+      "line": 54,
+      "kind": "direct call",
+      "expression": "producer.sessions.declare_thread(str(project), os.getpid())",
+      "positional_arguments": 2,
+      "keywords": []
+    }
+  ],
+  "owner": "SessionLifecycle.declare_thread(cwd) owns membership publication and acquire_declared_thread; attached hook preserves PID0/status; owninghookcurrentprocess",
+  "fixture_lifetime": "turn_source resources registers producer.shutdown before declaration; enlist owners.stop before joinedworker delivery; bind_owned unchanged; caller exercise_boundaries retains real originalturn leases and sends ordered typedpublications",
+  "dynamic_limit": "External AC_MCP_TOAD_ADAPTER permits arbitrary modules; AST enumeration covers all tracked Python roots above, not unknown future external code",
+  "native_negative": "25ce firstallow observer setupFAIL11.123729360/other3UNRUN/whole2c1f returned, no replay",
+  "after": {
+    "path": "/home/ts/wt/toad-original-reply-handling-20261002/tests/mcp_observation_fixture.py",
+    "sha256": "7a16afdb7ed4d95b943627ab70a6e7a6f505ad2b16af0bdba07678090a49ad29",
+    "changed_call": "producer.sessions.declare_thread(str(project))",
+    "source_compile": "PASS",
+    "complete_module_AST_equal_except_removed_PID_argument": true,
+    "all_other_related_calls_current_shape": true,
+    "cleanup_shutdown_bind_owned_owner_stop_unchanged": true,
+    "tests_imports_native_runtime": "UNRUN; no oldattempt retry/source control repeat",
+    "runtime_package_assets": "No product/pin/dependency delta; verified retained Corebee/Toadb2e/Text16c9 unchanged; no wheel rebuild"
+  }
+}

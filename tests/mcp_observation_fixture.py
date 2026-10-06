@@ -51,7 +51,7 @@ async def turn_source(root: Path, session_id: str):
             resources.push_async_callback(producer.shutdown)
 
             def declare():
-                thread = producer.sessions.declare_thread(str(project), os.getpid())
+                thread = producer.sessions.declare_thread(str(project))
                 # Enlist cleanup before joined worker delivery, including a
                 # cancelled declaration whose committed owner must retire.
                 resources.push_async_callback(
