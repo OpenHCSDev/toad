@@ -81,8 +81,6 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                 write_json(prefix + ".json", {"pid": expected_pid, "scope": "driver frame trace only"})
                 return
         if wait_history_seconds:
-            from toad.frame_presentation import FrameFlush
-
             if not wait_history_thread:
                 raise ValueError("Visible-history waiting requires the intended thread")
 
@@ -118,7 +116,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                                         written.set_result(None)
 
                                 app.call_after_refresh(
-                                    lambda: FrameFlush.for_driver(app._driver).submit(acknowledge))
+                                    lambda: app._driver.call_after_flush(acknowledge))
                                 await written
                                 if visible_history_ready():
                                     write_json(prefix + "-wait.json", {

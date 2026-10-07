@@ -194,6 +194,8 @@ def install_observer():
         (Conversation, Conversation.on_agent_ready),
     ]
     if os.environ.get("TOAD_VALIDATION_OPEN_STAGES"):
+        from toad.acp.agent_process import AgentProcess
+        from toad.acp.agent_session import AgentSession
         from textual.widget import Widget
         from toad.sidebar_observation import SidebarObservation
         from toad.sidebar_projection import SidebarProjection
@@ -206,6 +208,11 @@ def install_observer():
             (SidebarProjection, SidebarProjection.rebuild),
             (SessionsTabs, SessionsTabs._sync_tabs),
             (NavigationReader, NavigationReader.read),
+            (AgentProcess, AgentProcess.start),
+            (AgentSession, AgentSession.initialize),
+            (AgentSession, AgentSession.load),
+            (AgentSession, AgentSession.touch),
+            (AgentSession, AgentSession.run),
         ))
         constructor = Widget.__init__
         preprocess = Widget._pre_process
@@ -238,6 +245,7 @@ def install_observer():
                 return await _function(self, *args, **kwargs)
             finally:
                 record("navigation_stage", stage=_name, begin_ns=begin,
+                       function=_function.__qualname__, object_id=id(self),
                        duration_ms=(time.monotonic_ns()-begin)/1e6,
                        mode=args[0] if _name == "_switch_mode_ready" and args else
                        self.app.current_mode if hasattr(self, "app") else None,
@@ -373,7 +381,6 @@ class ValidationDriver(LinuxDriver):
         Scalars alone survive the callback; no widget/render-cache graph is
         retained by the observer. Headless output remains source evidence.
         """
-        from toad.frame_presentation import FrameFlush
         from toad.widgets.conversation import Conversation, Window
         from toad.widgets.transcript_history import TranscriptHistory
         from toad.widgets.viewport_body import MeasuredViewportBody
@@ -422,7 +429,7 @@ class ValidationDriver(LinuxDriver):
         record("body_output", **values)
         if not app.is_headless:
             mode = app.current_mode
-            FrameFlush.for_driver(app._driver).submit(
+            app._driver.call_after_flush(
                 lambda: record("body_output_written", display_begin_ns=begin,
                                mode=mode, current_mode=app.current_mode))
 
