@@ -57,8 +57,7 @@ class PaintedSwitchApp(InstalledApp):
             if all(marker in paint for marker in self.observed_expected):
                 self.observed_frames.append((time.monotonic() - self.observed_started) * 1000)
                 from functools import partial
-                from toad.frame_presentation import FrameFlush
-                FrameFlush.for_driver(self._driver).submit(partial(
+                self._driver.call_after_flush(partial(
                     self.record_written_destination, self.observed_started,
                     self.observed_destination))
 
