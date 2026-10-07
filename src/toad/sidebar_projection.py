@@ -12,7 +12,6 @@ class SidebarProjection:
         self.lock = asyncio.Lock()
         self.phase = 0
         self.timer = None
-        self.horizontal_width = 0
 
     @property
     def channels(self):
@@ -128,6 +127,16 @@ class SidebarProjection:
             row_inputs = snapshot.row_inputs
             if not self.sidebar.accepts_publication():
                 return
+            def measure_width() -> int:
+                widest = max((Content(view.channel.name).cell_length + 12
+                              for view in snapshot.wire.channels), default=0)
+                if row_inputs.rows:
+                    widest = max(widest, row_inputs.content_width + 8)
+                return min(widest, 512)
+
+            width = await self.sidebar.app.preparation.run_thread(measure_width)
+            if not self.sidebar.accepts_publication():
+                return
             channels = self.channels
             from toad.widgets.comms_sidebar import CommsRow, ChannelGroup, NewSessionButton
             from toad.navigation_target import channel_target
@@ -189,15 +198,9 @@ class SidebarProjection:
             self.sync_spinner()
             # Retain full row text. Only the content grows; the outer sidebar owns
             # both native scrollbars and keeps their geometry at the visible edge.
-            widest = max((Content(view.channel.name).cell_length + 12
-                          for view in snapshot.wire.channels), default=0)
-            if row_inputs.rows:
-                widest = max(widest, row_inputs.content_width + 8)
-            widest = min(widest, 512)
             panel = self.sidebar.query_ancestor(SideBarCollapsible)
-            if widest != self.horizontal_width:
-                self.horizontal_width = widest
-                panel.styles.min_width = widest
+            # Native scalar styles own equality and geometry invalidation.
+            panel.styles.min_width = width
             completed = True
         finally:
             # Interrupted delivery must reconcile on the next activation.
