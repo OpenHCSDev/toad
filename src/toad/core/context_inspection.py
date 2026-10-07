@@ -17,6 +17,7 @@ from agent_comms.mro_dispatch import handles
 from toad.core.projection import MroProjection
 from agent_comms.native_turn_context import NativeContextData
 from agent_comms.pi_payloads import PiMessage
+from agent_comms.private_bus_checkpoint import CapturedWireSource
 from agent_comms.selected_source import SessionRevision, SessionObservation
 from agent_comms.threads import Thread
 from agent_comms.turn_context import (
@@ -465,15 +466,18 @@ class ContextInspection:
     service: Comms
     annotations: tuple[ModelLabel, ...] = ()
     imported_sources: tuple[CodexRolloutProvenance, ...] = ()
+    manifest_sources: tuple[CapturedWireSource[ContextManifest], ...] = ()
 
     @classmethod
-    def read(cls, comms, owner):
+    def read(cls, comms, owner, *, previous=()):
         thread = comms.registry.require(owner)
-        manifests = comms.bus.log.context_manifests(owner, comms.registry)
+        resources = comms.bus.log.context_manifest_resources(owner, comms.registry, previous=previous)
+        manifests = tuple(resource.value for resource in resources)
         annotations = WorkingMemoryAnnotations.for_context(
             comms.root / "coordination.sqlite3", manifests, JevClassifier.version())
         imported = ImportedSessionMetadata.sources_for_owner(comms.registry, thread)
-        return cls(thread, manifests, SessionRevision.observe(thread.session_file), comms, annotations, imported)
+        return cls(thread, manifests, SessionRevision.observe(thread.session_file), comms,
+                   annotations, imported, resources)
 
     def same_native_source(self, other: ContextInspection):
         """Compare original SDK source/launch facts, not roster presentation."""
@@ -616,10 +620,15 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
     def observe(self, revision) -> InspectionState:
         return self
 
+    @property
+    def manifest_sources(self):
+        return ()
+
     async def acquire(self, service, revision) -> InspectionState:
         if str(service.root.resolve()) != self.root:
             raise ValueError("Selected context belongs to another wire root")
-        inspection = await Coordination.run_worker(partial(ContextInspection.read, service, self.name))
+        inspection = await Coordination.run_worker(partial(ContextInspection.read, service,
+            self.name, previous=self.manifest_sources))
         return HoldingInspection(inspection, revision)
 
     def receive_inspection(self, acquired) -> InspectionState:
@@ -693,6 +702,10 @@ class ObservedOwnerInspection(ReadingOwnerInspection):
 class HoldingInspection(InspectionState):
     inspection: ContextInspection
     revision: int
+
+    @property
+    def manifest_sources(self):
+        return self.inspection.manifest_sources
 
     @property
     def name(self):
