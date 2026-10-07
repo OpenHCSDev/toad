@@ -22,3 +22,21 @@ Original failed logs remain in /home/ts/.cache/agent-scratch/sidebar-header-owne
 Corrected original tab-history App passed Back/Forward, branching, closed tabs,
 draft retention and horizontal scrolling, empty stderr. No accepted resize check
 was repeated after it passed.
+
+## Installed delivery
+
+Core722 and Toad537 merged. Built Core2fb82a8e0 and Toad23f724187 with unchanged
+Textual48cf, exact954 assets/full69 packages and2857 RECORD entries verified.
+The installed resize App passed again through the built modules. Original installed
+channel App160 authored messages/20 arrivals/focused PageUp reached older113->73
+and88 mounted rows, exit0/empty stderr. With profiling enabled, loop p9546.13ms,
+max182.39ms/110 gaps>50ms: stalls remain; not terminal frame times, not comparable
+to the preceding unprofiled run, and no general latency gain claimed.
+Raw /home/ts/.cache/agent-scratch/installed-viewer-cut-header-20261007.
+
+Original ReviewedBackendCohort and ReviewedFrontendCohort published both defaults
+to .artifacts/viewer-cut-and-header-delivery-20261007/runtime. Existing running
+Apps/agents keep their loaded versions. No public input, worker restart or provider
+operation was added. First publication refused directory permissions before writes
+to defaults; the owned output directory was corrected to0700 and the same original
+reviewed backend record was consumed. No duplicate publication record fabricated.
