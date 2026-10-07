@@ -204,6 +204,11 @@ def install_observer():
         from toad.screens.main import MainScreen
         from toad.session_presentation import OperationalSessionSources
         from toad.agent_presentation import ACPAgentPresentation
+        from toad.acp.agent_controller import AgentController
+        from toad.acp.session_updates import SessionNotificationOwner
+        from toad.render_backend import Renderer
+        from toad.render_processes import RenderProcessPool
+        from toad import jsonrpc
         navigation_methods.extend((
             (WorkspaceSessions, WorkspaceSessions.prepare),
             (WorkspaceSessions, WorkspaceSessions.select),
@@ -222,7 +227,36 @@ def install_observer():
             (AgentSession, AgentSession.load),
             (AgentSession, AgentSession.touch),
             (AgentSession, AgentSession.run),
+            (SessionNotificationOwner, SessionNotificationOwner.receive),
+            (AgentController, AgentController.validate),
+            (Renderer, Renderer._submit),
+            (RenderProcessPool, RenderProcessPool.run),
         ))
+        send = AgentProcess.send
+        response = jsonrpc.API._process_method_response
+
+        def measured_send(self, request, agent):
+            calls = [(call.id, call.method) for call in request._calls]
+            begin = time.monotonic_ns()
+            try:
+                return send(self, request, agent)
+            finally:
+                record("rpc_request_sent", calls=calls, begin_ns=begin,
+                       duration_ms=(time.monotonic_ns()-begin)/1e6)
+
+        def measured_response(self, value):
+            call = self._calls.get(value.get("id"))
+            method = call.method if call is not None else None
+            begin = time.monotonic_ns()
+            try:
+                return response(self, value)
+            finally:
+                record("rpc_response_received", request_id=value.get("id"),
+                       method=method, begin_ns=begin,
+                       duration_ms=(time.monotonic_ns()-begin)/1e6)
+
+        AgentProcess.send = measured_send
+        jsonrpc.API._process_method_response = measured_response
         constructor = Widget.__init__
         preprocess = Widget._pre_process
 
@@ -269,6 +303,7 @@ def install_observer():
                        duration_ms=(time.monotonic_ns()-begin)/1e6,
                        mode=args[0] if _name == "_switch_mode_ready" and args else
                        self.app.current_mode if hasattr(self, "app") else None,
+                       task=type(args[0]).__name__ if _name == "_submit" and args else None,
                        owner=type(self).__name__)
 
         # MroDispatch reads the current method declarations. Copy the original
