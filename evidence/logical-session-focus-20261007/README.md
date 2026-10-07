@@ -21,5 +21,16 @@ Original editor artifacts:
 `/home/ts/.cache/agent-scratch/logical-session-focus-20261007`.
 Original opening profile:
 `/home/ts/.cache/agent-scratch/agent-screen-mount-cpu-live-20261007`.
-Combined installed application measurement and frontend delivery are pending.
-Backend startup remains a separate unresolved cost.
+The combined installed open/close/reopen journey passed all six checks, with
+original source and runtime unchanged, no cleanup errors and no owned processes
+left behind. Recorded arrangements fell from 25/20 during open/reopen to 15/13.
+Opening measured 492 ms, return 159 ms, reopening 331 ms; the earlier profiled
+run measured 504/167/457 ms. These are single-run elapsed observations with
+different profiler overhead, not a reliable speedup or input-to-pixel claim.
+ACP initialization remains 2.03/1.88 seconds and is independently unresolved.
+
+Combined candidate artifacts:
+`/home/ts/.cache/agent-scratch/session-focus-candidate-installed-20261007`.
+All 953 installed assets matched Git/wheels, all 69 versions matched and 2,787
+hashed RECORD entries matched. Frontend publication and actual-default check
+follow; existing backend processes and older windows are preserved.
