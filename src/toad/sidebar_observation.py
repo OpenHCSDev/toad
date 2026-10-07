@@ -2,12 +2,11 @@
 from __future__ import annotations
 import asyncio
 from dataclasses import dataclass
-from agent_comms.comms import Comms, wire
+from agent_comms.comms import Comms
 from agent_comms.presentation import WireRevision
 from toad.preferences import SidebarSettings
 from toad.core.preference_events import PreferenceChanged
 from toad.core.events import SessionChangedEvent
-from toad.comms_root import current_root
 
 @dataclass(frozen=True)
 class SidebarReadIdentity:
@@ -146,18 +145,6 @@ class SidebarObservation:
         if update.field in {SidebarSettings.show_stopped, SidebarSettings.show_archived}:
             self.identity = None
             self.refresh()
-
-    def registry_names(self) -> list[str]:
-        """Registered thread names on the wire (for view toggles)."""
-        try:
-            local_threads = self.sidebar.app.local_coordination_threads()
-            return [
-                name
-                for name in wire(current_root()).registry.active_threads()
-                if name not in local_threads
-            ]
-        except Exception:
-            return []
 
     async def route_changed(self) -> bool:
         return await self.sidebar.app.coordination_access.route_changed()
