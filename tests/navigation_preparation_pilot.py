@@ -120,7 +120,7 @@ async def mounted() -> None:
                 opening = None
                 try:
                     with patch.object(request_type, "read", gated):
-                        opening = asyncio.create_task(ThreadTarget("metadata-peer") if kind == "thread" else channel_target("#all").open(NavigationContext(app, owner, root, source._comms_thread)))
+                        opening = asyncio.create_task((ThreadTarget("metadata-peer") if kind == "thread" else channel_target("#all")).open(NavigationContext(app, owner, root, source._comms_thread)))
                         assert await asyncio.to_thread(entered.wait, 2)
                         assert (
                             thread_ids == [thread_ids[0]]
