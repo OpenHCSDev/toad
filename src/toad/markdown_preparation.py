@@ -13,7 +13,6 @@ FenceKey = tuple[str, str, bool, bool]
 @dataclass(frozen=True)
 class PreparedFence:
     content: Content
-    lines: tuple[Content, ...]
 
 
 @dataclass(frozen=True)
@@ -30,6 +29,5 @@ def prepare_tokens(tokens: list[Token], ansi: bool, dark: bool) -> PreparedMarkd
             key = (code, token.info, ansi, dark)
             if key not in fences:
                 content = MarkdownFence.highlight(code, token.info, ansi=ansi, dark=dark)
-                content.get_optimal_width({}, 0)
-                fences[key] = PreparedFence(content, tuple(content.split("\n", allow_blank=True)))
+                fences[key] = PreparedFence(content)
     return PreparedMarkdown(tokens, fences)

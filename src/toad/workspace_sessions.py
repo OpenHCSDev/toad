@@ -97,9 +97,7 @@ class BoundWorkspaceSource(WorkspaceSource):
         return self.view.sidebar_focus_target()
 
     def sidebars(self):
-        from toad.widgets.side_bar import SideBar
-
-        return tuple(self.view.query(SideBar))
+        return self.view.sidebars()
 
 
 class LoadingWorkspaceSource(BoundWorkspaceSource):

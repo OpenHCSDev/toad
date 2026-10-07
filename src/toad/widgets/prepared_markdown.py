@@ -1,31 +1,21 @@
 """Use the app-owned CPU pool for heavy conversation Markdown preparation."""
 
 import asyncio
+from contextlib import asynccontextmanager
 from collections.abc import Callable
-from dataclasses import replace
 from functools import partial
 from typing import cast
 
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
 
-from rich.segment import Segment
-from rich.style import Style as RichStyle
 
 from textual.content import Content
 from textual.app import ComposeResult
-from textual._measurement import NATIVE_WIDGET_HEIGHT, height_dependency
-from textual.css.styles import RulesMap
-from textual.geometry import Offset, Size
-from textual.selection import Selection
-from textual.strip import Strip
-from textual.style import Style
-from textual.visual import RenderOptions, Visual
 from textual.worker import WorkerCancelled
 from textual.await_complete import AwaitComplete
 from textual.widget import Widget
 from textual.widgets import Label
-from textual.widgets._label import LabelVariant
 from textual.widgets._markdown import Markdown, MarkdownBlock
 
 from toad.app import ToadApp
@@ -34,11 +24,65 @@ from toad.markdown_preparation import FenceKey, PreparedFence
 from toad.render_tasks import MarkdownRenderTask
 from toad.widgets.transcript_fragments import RenderBudget
 from toad.widgets.viewport_body import MeasuredViewportBody
+from toad.widgets.worker_static import WorkerStatic
+
+
+class PreparedMarkdownContent(WorkerStatic):
+    """Native blocks keep token/link custody; WorkerStatic owns their wrapping."""
+
+    @asynccontextmanager
+    async def preparation_publication(self, *, layout: bool):
+        from toad.widgets.history_anchor import HistoryWindow
+
+        window = next((ancestor for ancestor in self.ancestors
+                       if isinstance(ancestor, HistoryWindow)), None)
+        if layout and window is not None:
+            async with window.preserve_history(self):
+                yield
+        else:
+            async with super().preparation_publication(layout=layout):
+                yield
+
+
+class PreparedParagraph(ConversationMarkdown.BLOCKS["paragraph_open"], PreparedMarkdownContent):
+    pass
+
+
+class PreparedH1(ConversationMarkdown.BLOCKS["h1"], PreparedMarkdownContent):
+    pass
+
+
+class PreparedH2(ConversationMarkdown.BLOCKS["h2"], PreparedMarkdownContent):
+    pass
+
+
+class PreparedH3(ConversationMarkdown.BLOCKS["h3"], PreparedMarkdownContent):
+    pass
+
+
+class PreparedH4(ConversationMarkdown.BLOCKS["h4"], PreparedMarkdownContent):
+    pass
+
+
+class PreparedH5(ConversationMarkdown.BLOCKS["h5"], PreparedMarkdownContent):
+    pass
+
+
+class PreparedH6(ConversationMarkdown.BLOCKS["h6"], PreparedMarkdownContent):
+    pass
 
 
 class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
+    BLOCKS = {
+        **ConversationMarkdown.BLOCKS,
+        "paragraph_open": PreparedParagraph,
+        "h1": PreparedH1, "h2": PreparedH2, "h3": PreparedH3,
+        "h4": PreparedH4, "h5": PreparedH5, "h6": PreparedH6,
+    }
+
     def native_body_ready(self) -> bool:
-        return super().native_body_ready() and not self.loading
+        return (super().native_body_ready() and not self.loading
+                and all(block.paint_ready for block in self.query(PreparedMarkdownContent)))
 
     def _measured_virtual_size_requires_layout(self) -> bool:
         # Markdown extent comes from its arranged blocks, not a separately
@@ -131,107 +175,16 @@ class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
         return super().get_block_class(block_name)
 
 
-class _FenceRow(Visual):
-    def __init__(self, content: Content, y: int) -> None:
-        self.content, self.y = content, y
-
-    def get_optimal_width(self, rules: RulesMap, container_width: int) -> int:
-        return self.content.get_optimal_width(rules, container_width)
-
-    def get_height(self, rules: RulesMap, width: int) -> int:
-        return self.content.get_height(rules, width)
-
-    def render_strips(
-        self, width: int, height: int | None, style: Style, options: RenderOptions,
-    ) -> list[Strip]:
-        selection = options.selection
-        if selection is not None:
-            start, end = selection
-            selection = Selection(
-                None if start is None else Offset(start.x, start.y - self.y),
-                None if end is None else Offset(end.x, end.y - self.y),
-            )
-            options = replace(options, selection=selection)
-        strips = self.content.render_strips(width, height, style, options)
-        result: list[Strip] = []
-        for strip in strips:
-            segments: list[Segment] = []
-            for text, rich_style, control in strip:
-                if rich_style is not None and rich_style._meta is not None:
-                    metadata = rich_style.meta
-                    if "offset" in metadata:
-                        x, y = cast(tuple[int, int | None], metadata["offset"])
-                        metadata["offset"] = (x, None if y is None else y + self.y)
-                        rich_style = rich_style + RichStyle.from_meta(metadata)
-                segments.append(Segment(text, rich_style, control))
-            result.append(Strip(segments, strip.cell_length))
-        return result
-
-
-class PreparedCodeLabel(Label):
-    def __init__(
-        self, content: Content, lines: tuple[Content, ...], *, variant: LabelVariant | None = None,
-        expand: bool = False, shrink: bool = False, markup: bool = True,
-        name: str | None = None, id: str | None = None, classes: str | None = None,
-        disabled: bool = False,
-    ) -> None:
-        self._code_content, self._code_lines = content, lines
-        self._code_has_tabs = "\t" in content.plain
-        super().__init__(content, variant=variant, expand=expand, shrink=shrink, markup=markup,
-                         name=name, id=id, classes=classes, disabled=disabled)
-
-    def set_code(self, content: Content, lines: tuple[Content, ...]) -> None:
-        if self.content is content:
-            return
-        layout = not isinstance(self.content, Content) or self.content.plain != content.plain
-        self._code_content, self._code_lines = content, lines
-        self._code_has_tabs = "\t" in content.plain
-        self.update(content, layout=layout)
-
-    @height_dependency(NATIVE_WIDGET_HEIGHT)
-    def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
-        if (width > 0 and self._render() is self._code_content and not self._code_has_tabs
-                and self._code_content.get_optimal_width(self.styles.get_rules(), width) <= width):
-            # The worker already split this code and measured its widest row.
-            # Every row fits at this width, so reformatting the complete fence
-            # during first mount or tab reflow cannot change its line count.
-            return len(self._code_lines)
-        return super().get_content_height(container, viewport, width)
-
-    def render_line(self, y: int) -> Strip:
-        content = self._render()
-        if (content is not self._code_content or self.styles.content_align != ("left", "top")
-                or content.get_optimal_width(self.styles.get_rules(), self.size.width) > self.size.width):
-            return super().render_line(y)
-        if not 0 <= y < len(self._code_lines):
-            return Strip.blank(self.size.width, self.visual_style.rich_style)
-        return Visual.to_strips(self, _FenceRow(self._code_lines[y], y), self.size.width,
-                               1, self.visual_style)[0]
+class PreparedCodeLabel(Label, PreparedMarkdownContent):
+    """Code uses the same native Content worker and publication lifetime."""
 
 
 class PreparedCodeFence(ConversationCodeFence):
-    def __init__(self, markdown: Markdown, token: Token, code: str) -> None:
-        self._rows_content: Content | None = None
-        self._rows: tuple[Content, ...] = ()
-        super().__init__(markdown, token, code)
-
-    def _code_rows(self) -> tuple[Content, ...]:
-        content = self._highlighted_code
-        if self._rows_content is not content:
-            key = (self.code, self.lexer, self.app.native_ansi_color, self.app.current_theme.dark)
-            document = self._markdown
-            assert isinstance(document, PreparedConversationMarkdown)
-            prepared = document._prepared_fences.get(key)
-            self._rows = (prepared.lines if prepared is not None and prepared.content is content
-                          else tuple(content.split("\n", allow_blank=True)))
-            self._rows_content = content
-        return self._rows
-
     def set_content(self, content: Content) -> None:
         self._content = content
         label = self.query_one_optional("#code-content", PreparedCodeLabel)
         if label is not None:
-            label.set_code(content, self._code_rows())
+            label.update(content)
 
     def compose(self) -> ComposeResult:
-        yield PreparedCodeLabel(self._highlighted_code, self._code_rows(), id="code-content", expand=True)
+        yield PreparedCodeLabel(self._highlighted_code, id="code-content", expand=True)
