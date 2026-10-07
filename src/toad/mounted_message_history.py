@@ -109,6 +109,14 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
         return (self.reader is not None
                 and not self.reader.source.loading)
 
+    async def source_is_current(self, snapshot: HistorySourceSnapshot) -> bool:
+        """Route I/O cannot admit a replaced, parked or retired publication."""
+        reader = self.reader
+        if reader is None or not snapshot.current(self):
+            return False
+        route_current = await reader.route_current()
+        return route_current and reader is self.reader and snapshot.current(self)
+
     def paging_window(self):
         return (tuple(message.view_key for message, _ in self.rows),
                 self.has_older, self.has_newer)
@@ -205,11 +213,9 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
         read: HistoryReadResult | None = None,
     ) -> None:
         """Acquire reader/native resources only for an actual row mutation."""
-        from toad.comms_root import root_is_current
-        if (not self.source_publication_available or self.reader is None
-                or not root_is_current(self.reader.comms.root)):
-            return
         snapshot = self.source_snapshot()
+        if not await self.source_is_current(snapshot):
+            return
         mounted = {message.view_key for message, _ in retained}
         messages = (tuple(message for message, _ in self.rows)
                     if page is None else page.messages)
@@ -219,8 +225,7 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
         removed = tuple(widget for _, widget in self.rows if widget not in retained_widgets)
         if pairs or removed:
             async with self.native_publication(retained, older=older) as protected:
-                if (not snapshot.current(self)
-                        or not root_is_current(self.reader.comms.root)):
+                if not await self.source_is_current(snapshot):
                     return
                 committed = await self.insert_page(
                     page, pairs, older=older, protected=protected,
@@ -256,8 +261,7 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
                 admission.push_async_callback(self.remove_children,
                                               tuple(widget for _, widget in pairs))
                 await self.mount(*(widget for _, widget in pairs), before=before)
-            from toad.comms_root import root_is_current
-            if not snapshot.current(self) or not root_is_current(self.reader.comms.root):
+            if not await self.source_is_current(snapshot):
                 return False
             if read is not None and not self.reader.current(read, self.follows_tail):
                 return False
@@ -347,14 +351,12 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
 
     async def publish(self, read: HistoryReadResult) -> bool:
         """Validate and advance the original source inside native publication."""
-        from toad.comms_root import root_is_current
         async with self.window.history_lock:
             reader = self.reader
-            if (reader is None or not self.source_publication_available
-                    or not root_is_current(reader.comms.root)
+            snapshot = self.source_snapshot()
+            if (reader is None or not await self.source_is_current(snapshot)
                     or not reader.current(read, self.follows_tail)):
                 return False
-            snapshot = self.source_snapshot()
             page = read.page
             if page is not None:
                 if read.replace_tail:
@@ -370,8 +372,8 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
                                            retained=tuple(self.rows), style=self.style, read=read)
                 elif page.messages:
                     self.has_newer = True
-            if (not snapshot.current(self) or not reader.current(read, self.follows_tail)
-                    or not root_is_current(reader.comms.root)):
+            if (not await self.source_is_current(snapshot)
+                    or not reader.current(read, self.follows_tail)):
                 return False
             reader.accept(read, read.follow_tail)
             if page is not None and read.replace_tail:
@@ -382,46 +384,50 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
     def mark_visible(self) -> None:
         if self.ack_inflight or not self.is_attached:
             return
-        from toad.comms_root import root_is_current
-
-        if self.reader is None or not root_is_current(self.reader.comms.root):
-            self.view.display = False
-            return
-        visible = set(self.painted_keys())
-        historical = next((page for key, page in self.historical_receipts.items() if key in visible), None)
-        if historical is not None:
-            selected = {key for key, page in self.historical_receipts.items()
-                        if page is historical and key in visible}
-            self.ack_inflight = True
-            self.view.run_worker(self.mark_historical(historical, selected), group="comms-painted-read")
-            return
-        painted = {sequence for source, sequence in visible if not source}
-        selected = self.view.conversation_kind.painted_page(self, painted)
-        if selected is None:
-            return
-        page, original_page = selected
         self.ack_inflight = True
-        self.view.run_worker(self.mark_page(page, original_page,
-                            snapshot=self.source_snapshot()), group="comms-painted-read")
+        self.view.run_worker(self.mark_painted(self.source_snapshot()), group="comms-painted-read")
 
-
-    async def mark_historical(self, page: MessagePage, keys: set[tuple[str, int]]) -> None:
-        from toad.comms_root import implicit_root, root_is_current, run_selected_write
+    async def mark_painted(self, snapshot: HistorySourceSnapshot) -> None:
         try:
-            if self.reader is None or not root_is_current(self.reader.comms.root) or not self.current:
+            if not await self.source_is_current(snapshot):
+                if snapshot.current(self):
+                    self.view.display = False
+                return
+            visible = set(self.painted_keys())
+            historical = next((page for key, page in self.historical_receipts.items() if key in visible), None)
+            if historical is not None:
+                selected = {key for key, page in self.historical_receipts.items()
+                            if page is historical and key in visible}
+                await self.mark_historical(historical, selected, snapshot=snapshot)
+                return
+            painted = {sequence for source, sequence in visible if not source}
+            selected = self.view.conversation_kind.painted_page(self, painted)
+            if selected is None:
+                return
+            page, original_page = selected
+            await self.mark_page(page, original_page, snapshot=snapshot)
+        finally:
+            self.ack_inflight = False
+
+    async def mark_historical(self, page: MessagePage, keys: set[tuple[str, int]], *,
+                              snapshot: HistorySourceSnapshot) -> None:
+        from toad.comms_root import implicit_root, run_selected_write
+        try:
+            if not await self.source_is_current(snapshot):
                 return
             displayed = page.historical_display.select({seq for _, seq in keys})
             await asyncio.to_thread(run_selected_write, self.reader.comms.root,
                 self.reader.comms.views.mark_historical_view_read, displayed, implicit=implicit_root())
+            if not snapshot.current(self):
+                return
             for key in keys:
                 if self.historical_receipts.get(key) is page:
                     del self.historical_receipts[key]
         except ValueError:
-            self.historical_receipts = {
-                key: source for key, source in self.historical_receipts.items() if source is not page
-            }
-        finally:
-            self.ack_inflight = False
+            if snapshot.current(self):
+                self.historical_receipts = {
+                    key: source for key, source in self.historical_receipts.items() if source is not page
+                }
 
 
     async def mark_page(
@@ -429,17 +435,16 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
         snapshot: HistorySourceSnapshot,
     ) -> None:
         try:
-            from toad.comms_root import root_is_current
-
-            if self.reader is None or not snapshot.current(self):
+            if not await self.source_is_current(snapshot):
+                if snapshot.current(self):
+                    self.view.display = False
                 return
             comms = self.reader.comms
-            if not root_is_current(comms.root):
-                self.view.display = False
-                return
             project = str(self.view.project_path)
             target = self.view.target
             await self.view.conversation_kind.mark_painted(comms, target, project, page)
+            if not snapshot.current(self):
+                return
             if self.tail_receipt is page or self.tail_receipt is original_page:
                 self.tail_receipt = None
             if original_page is not None:
@@ -463,6 +468,5 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
                         self.channel_receipts.clear()
                         self.historical_receipts.clear()
         finally:
-            self.ack_inflight = False
             if self.is_attached:
                 self.view.call_after_refresh(self.mark_visible)
