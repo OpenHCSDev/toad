@@ -71,7 +71,7 @@ async def main():
                 if not group.expanded:
                     group.toggle_members()
             await pilot.pause()
-            viewport = sidebar.navigation.scroll_containers[0].content_region
+            viewport = sidebar.navigation.scroll_container.content_region
             rows = [row for row in sidebar._ordered_rows() if row.region.overlaps(viewport)]
             timings = []
             for row in rows[:7] * 3:
