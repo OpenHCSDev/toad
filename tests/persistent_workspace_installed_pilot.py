@@ -40,6 +40,12 @@ async def main():
             assert app.screen is workspace and workspace.query_one(SessionsTabs) is header
             await app.select_session(second.mode_name)
             assert app.selected_session.conversation.prompt.text=='second draft'
+            await app.session_navigation.close(second.mode_name)
+            assert app.selected_session is first
+            assert second.mode_name not in app.workspace_sessions.factories
+            assert second.mode_name not in app.workspace_sessions.views
+            assert first.conversation.prompt.prompt_text_area is editor
+            assert editor.text == 'persistent original draft'
             assert app._exception is None
     print('Installed persistent native workspace/editor/chrome passed')
 

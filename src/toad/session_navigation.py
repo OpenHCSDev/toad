@@ -219,10 +219,14 @@ class SessionAdmissions:
         for member in closing:
             self.app.workspace_sessions.factories.pop(member.mode)
         self.publish()
-        for member in closing:
-            await self.app.workspace_sessions.close(member.mode)
-        if returning is not None:
-            await returning.return_to(self)
+        try:
+            # Retired admissions cannot reopen. Show the surviving workspace
+            # before joining hydration, native sessions and widget removal.
+            if returning is not None:
+                await returning.return_to(self)
+        finally:
+            for member in closing:
+                await self.app.workspace_sessions.close(member.mode)
 
     async def observed(self, event: core_events.CoordinationObserved) -> None:
         await self.retire_missing()
