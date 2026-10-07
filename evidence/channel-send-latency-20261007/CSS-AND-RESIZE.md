@@ -30,3 +30,20 @@ Only the native CSS source fix, dependency selection and existing recorder
 journey are changed. The pending native Widget work is excluded. Publication
 through the existing frontend owner follows this affected installed check;
 running windows and the original backend are preserved.
+
+The native CSS frontend is published; a normal default launch in isolated st
+completed cleanly and selected the new frontend with the original backend.
+Exact result: `/home/ts/.cache/agent-scratch/css-path-default-launch-20261007`.
+
+Core PR709 now offers the original tag-disposition command for channel batches.
+The updated installed private native App opened the two-channel menu/dialog,
+required both confirmations, removed both tags through their original owner,
+refreshed the visible channel rows and retained the original threads. No public
+channel was changed. This is an availability declaration, not a second batch
+implementation. Client publication retains existing backend owners.
+
+The actual st0.8.2 terminal had reserved Shift for its own selection. With the
+user-selected Alt override, real isolated st input reports Shift and Control
+to the application and consumes Alt itself. The installed binary was atomically
+replaced, keeping its original font/opacity and running terminals. Source and
+raw check are retained at `/home/ts/wt/st-app-shift-selection-20261007`.
