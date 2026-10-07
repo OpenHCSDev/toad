@@ -843,7 +843,9 @@ class ObserveJourney(PhysicalJourney):
 class ChannelDisclosureJourney(PhysicalJourney):
     """Real channel disclosure clicks without a message submission."""
 
-    motion_phases = ("channel-collapse", "channel-expand")
+    disclosure_phases = ("channel-disclosure-first", "channel-disclosure-first-done",
+                         "channel-disclosure-second", "channel-disclosure-second-done")
+    motion_phases = disclosure_phases[::2]
 
     @classmethod
     def require_channel(cls, target, args):
@@ -873,12 +875,13 @@ class ChannelDisclosureJourney(PhysicalJourney):
         marker = marker_command()
         settle = f"sleep {args.navigation_settle_seconds:g}"
         channel = shlex.quote(args.peer_channel)
+        first, first_done, second, second_done = cls.disclosure_phases
         return (
-            marker + "channel-collapse",
+            marker + first,
             native_click_command(state, target="channel_disclosure") + " --name " + channel,
-            settle, marker + "channel-collapsed", marker + "channel-expand",
-            native_click_command("phase-channel-collapsed-state.pickle", target="channel_disclosure") + " --name " + channel,
-            settle, marker + "channel-expanded",
+            settle, marker + first_done, marker + second,
+            native_click_command(f"phase-{first_done}-state.pickle", target="channel_disclosure") + " --name " + channel,
+            settle, marker + second_done,
         )
 
     @classmethod
@@ -890,7 +893,8 @@ class ChannelDisclosureJourney(PhysicalJourney):
 class ChannelSendJourney(ChannelDisclosureJourney):
     """One explicitly supplied human channel message and real disclosure clicks."""
 
-    motion_phases = ("channel-send", *ChannelDisclosureJourney.motion_phases)
+    disclosure_phases = ("channel-collapse", "channel-collapsed", "channel-expand", "channel-expanded")
+    motion_phases = ("channel-send", *disclosure_phases[::2])
 
     @classmethod
     def authorize(cls, target, args):
