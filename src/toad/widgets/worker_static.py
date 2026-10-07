@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from contextlib import asynccontextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import cast
 
 from rich.console import RenderableType
@@ -23,7 +23,7 @@ from textual.visual import VisualType
 from toad.app import ToadApp
 from toad.render_tasks import RichRenderTask
 from toad.rich_preparation import (
-    ContentSource, PreparedRichContent, RenderableSource, RichColorSystem, RichPresentation, RichSource, SyntaxSource,
+    ContentSource, PreparedRichContent, RenderableSource, RichPresentation, RichSource, SyntaxSource,
 )
 
 
@@ -77,7 +77,7 @@ class WorkerStatic(Static):
         self._ready.clear()
         self._layout_screen = self.screen
         self._layout_screen.screen_layout_refresh_signal.subscribe(self, self._layout_changed)
-        self.call_after_refresh(self._request_preparation)
+        self.call_after_refresh(self._request_preparation, capture=True)
 
     def _layout_changed(self, _screen: Screen) -> None:
         if self.styles.is_auto_width:
@@ -89,7 +89,7 @@ class WorkerStatic(Static):
     def notify_style_update(self) -> None:
         super().notify_style_update()
         if self.is_attached:
-            self.call_later(self._request_preparation)
+            self.call_later(self._request_preparation, capture=True)
 
     def set_source(self, content: RenderableType | RichSource) -> None:
         self._source = self.source_for(content)
@@ -97,7 +97,7 @@ class WorkerStatic(Static):
         self._prepared = None
         self._ready.clear()
         super().update("Preparing preview…")
-        self._request_preparation()
+        self._request_preparation(capture=True)
 
     def update(self, content: VisualType | RichSource = "", *, layout: bool = True) -> None:
         """The usual Static update entry point also uses CPU preparation.
@@ -109,7 +109,7 @@ class WorkerStatic(Static):
             raise TypeError("WorkerStatic requires data-only Rich content or RichSource")
         self.set_source(cast(RenderableType | RichSource, content))
 
-    def _request_preparation(self, width: int | None = None) -> None:
+    def _request_preparation(self, width: int | None = None, *, capture: bool = False) -> None:
         if self._closed or self._pruning or not self.is_attached:
             return
         app = self.app
@@ -120,22 +120,37 @@ class WorkerStatic(Static):
                  if auto_width and isinstance(parent, Widget)
                  else max(0, self.outer_size.width - self.styles.gutter.width))
         width = max(1, width or app.size.width)
-        selection = self.text_selection
-        source = self._source.capture_selection(selection,
-            Style.from_styles(self.screen.get_component_styles("screen--selection"))
-            if selection is not None else None)
-        presentation = RichPresentation(
-            app.console_options.update(width=width, height=None, highlight=False),
-            self.visual_style.rich_style,
-            self.link_style if self.auto_links and not self.screen._selecting else None,
-            auto_width, self._get_justify_method(), cast(RichColorSystem | None, app.console.color_system),
-            app.current_theme.dark,
-            tuple((name, self._get_style(name)) for name in source.style_names),
-            tuple((name, self.styles.get_rule(name))
-                  for name in ("text_align", "text_overflow", "text_wrap", "line_pad")
-                  if self.styles.has_rule(name)), self.visual_style,
-        )
-        request = _Preparation(self._generation, RichRenderTask(source, presentation))
+        options = app.console_options.update(width=width, height=None, highlight=False)
+        link_style = self.link_style if self.auto_links and not self.screen._selecting else None
+        wanted = self._wanted
+        if not capture and wanted is not None and wanted.generation == self._generation:
+            # Layout borrows the original acquired source/style/selection. Only
+            # geometry and the screen's live link-selection admission change
+            # here. Their own callbacks capture independently changed answers.
+            presentation = wanted.task.presentation
+            if (presentation.options == options and presentation.auto_width == auto_width
+                    and presentation.link_style == link_style):
+                request = wanted
+            else:
+                presentation = replace(presentation, options=options, auto_width=auto_width,
+                                       link_style=link_style)
+                request = replace(wanted, task=replace(wanted.task, presentation=presentation))
+        else:
+            selection = self.text_selection
+            source = self._source.capture_selection(selection,
+                Style.from_styles(self.screen.get_component_styles("screen--selection"))
+                if selection is not None else None)
+            native_style = self.visual_style
+            presentation = RichPresentation(
+                options, native_style.rich_style, link_style,
+                auto_width, self._get_justify_method(), app.console.color_system,
+                app.current_theme.dark,
+                tuple((name, self._get_style(name)) for name in source.style_names),
+                tuple((name, self.styles.get_rule(name))
+                      for name in ("text_align", "text_overflow", "text_wrap", "line_pad")
+                      if self.styles.has_rule(name)), native_style,
+            )
+            request = _Preparation(self._generation, RichRenderTask(source, presentation))
         self._wanted = request
         if request == self._ready_request:
             if not self._ready.is_set():
@@ -241,7 +256,7 @@ class WorkerStatic(Static):
 
     def selection_updated(self, selection: Selection | None) -> None:
         super().selection_updated(selection)
-        self._request_preparation()
+        self._request_preparation(capture=True)
 
     def render_line(self, y: int) -> Strip:
         prepared = self._prepared
