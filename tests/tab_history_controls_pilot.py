@@ -40,7 +40,8 @@ async def main():
             await pilot.pause()
             first = app.selected_mode
             first_screen = app.screen
-            first_screen.conversation.prompt.text = "Preserve first draft"
+            first_view = app.selected_session
+            first_view.conversation.prompt.text = "Preserve first draft"
             left = first_screen.query_one("#channels-sidebar", SideBar)
             controls = first_screen.query_one(TabHistoryControls)
             header = first_screen.query_one("#tab-navigation-header")
@@ -108,18 +109,19 @@ async def main():
             await wait_for(pilot, lambda: app.selected_mode == channel)
             second = (await app.session_navigation.new(app.session_navigation.default_source)).mode_name
             second_screen = app.screen
-            second_screen.conversation.prompt.text = "Preserve second draft"
+            second_view = app.selected_session
+            second_view.conversation.prompt.text = "Preserve second draft"
 
             assert await pilot.click("#tab-back")
             await wait_for(pilot, lambda: app.selected_mode == channel)
             assert await pilot.click("#tab-back")
             await wait_for(pilot, lambda: app.selected_mode == first)
-            assert first_screen.conversation.prompt.text == "Preserve first draft"
+            assert first_view.conversation.prompt.text == "Preserve first draft"
             assert await pilot.click("#tab-forward")
             await wait_for(pilot, lambda: app.selected_mode == channel)
             assert await pilot.click("#tab-forward")
             await wait_for(pilot, lambda: app.selected_mode == second)
-            assert second_screen.conversation.prompt.text == "Preserve second draft"
+            assert second_view.conversation.prompt.text == "Preserve second draft"
 
             # A direct selection after Back branches history, without closing
             # the other tab or adding another view to the strip.
@@ -150,7 +152,7 @@ async def main():
             assert app.selected_mode == first
             await app.session_navigation.close(channel)
             assert {tab.mode_name for tab in app.open_tabs} == {first, second}
-            assert first_screen.conversation.prompt.text == "Preserve first draft"
+            assert first_view.conversation.prompt.text == "Preserve first draft"
 
             # Long labels and many open tabs expose a 1-cell horizontal
             # scrollbar below the native underline without changing tab order.
@@ -171,11 +173,11 @@ async def main():
 
             # Closing an intervening preview leaves two visits to the same
             # retained mode. Back must advance its cursor even with no switch.
-            await app.switch_mode(first)
+            await app.select_session(first)
             transient_path = root / "transient.txt"
             transient_path.write_text("A removable history visit\n")
             transient = await app.session_navigation.preview(transient_path)
-            await app.switch_mode(first)
+            await app.select_session(first)
             await app.session_navigation.close(transient)
             target = app.tab_order.history_target(-1)
             assert target is not None and target[1] == first
