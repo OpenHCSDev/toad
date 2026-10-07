@@ -207,6 +207,13 @@ def test_context_detail_retains_native_reader_through_fresh_reads_and_tab_return
             await pilot.pause()
             await until(pilot, lambda: not any(worker.node is area and not worker.is_finished
                                                for worker in area.workers))
+            # Scrollbar admission changes the native wrapping width. Capture
+            # the reader only after its prepared view matches that geometry.
+            await until(pilot, lambda: (area.wrapped_document._width,
+                                       area.wrapped_document._tab_width) ==
+                                      (area.wrap_width, area.indent_width)
+                        and not any(worker.node is area and not worker.is_finished
+                                    for worker in area.workers))
             document, wrapped = area.document, area.wrapped_document
             selection, reader = area.selection, area.scroll_offset
             node = tree.context_nodes[key]
@@ -231,9 +238,19 @@ def test_context_detail_retains_native_reader_through_fresh_reads_and_tab_return
                     await until(pilot, lambda: counts["authenticated_source_reads"] > before
                                 and not explorer._working("context-detail"))
                     assert tree.context_nodes[key] is node
-                    assert area.document is document and area.wrapped_document is wrapped, (
-                        wrapped._width, area.wrapped_document._width, area.wrap_width,
-                        wrapped._tab_width, area.wrapped_document._tab_width, area.size)
+                    assert area.document is document
+                    await until(pilot, lambda: (area.wrapped_document._width,
+                                               area.wrapped_document._tab_width) ==
+                                              (area.wrap_width, area.indent_width)
+                                and not any(worker.node is area and not worker.is_finished
+                                            for worker in area.workers))
+                    # A changed status can alter scrollbar geometry. Native
+                    # wrapping must follow the width; unchanged inputs retain
+                    # the exact prepared view instead of recreating it.
+                    if (wrapped._width, wrapped._tab_width) == (area.wrap_width, area.indent_width):
+                        assert area.wrapped_document is wrapped
+                    else:
+                        wrapped = area.wrapped_document
                     assert area.selection == selection and area.scroll_offset == reader
                     assert not area.loading and area._cover_widget is None
                 state = explorer.state

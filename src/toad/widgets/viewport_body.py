@@ -23,7 +23,7 @@ from toad.widgets.presentation_window import (
 
 from textual.widget import Widget
 from textual.walk import walk_depth_first
-from textual._measurement import NATIVE_WIDGET_HEIGHT, height_dependency
+from textual._measurement import INDEPENDENT_HEIGHT, NATIVE_WIDGET_HEIGHT, height_dependency
 from textual.geometry import Size
 from textual._paint_state import PaintState
 from textual.worker import WorkerCancelled, NoActiveWorker, get_current_worker
@@ -503,10 +503,13 @@ class MeasuredViewportBody(ViewportBody):
         return self._body_measurement.requires_geometry(self)
 
     @property
+    @height_dependency(INDEPENDENT_HEIGHT)
     def is_container(self):
         # Rendered and pending resources paint their whole original subtree.
         # Native children remain in custody for the worker and interaction,
         # but must not overpaint the preceding rows while it is reconstructing.
+        # Selection follows resource/style lifetime, not an incoming layout
+        # height. Resource changes publish through _update_body_measurement.
         return not self._body_measurement.paint_ready(self) and super().is_container
 
     @property
