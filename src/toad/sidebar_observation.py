@@ -122,7 +122,7 @@ class SidebarObservation:
             self.identity = None
             return
         if self.sidebar.projection.has_snapshot() and self.sidebar.is_attached:
-            await self.sidebar.projection.publish(self.sidebar.projection.snapshot)
+            await self.sidebar.projection.actions_changed()
         self.identity = None
         self.refresh()
 

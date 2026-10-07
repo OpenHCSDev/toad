@@ -34,6 +34,36 @@ class SidebarSnapshot:
                 and self.worktree == worktree
                 and (self.wire.show_stopped, self.wire.show_archived) == filters)
 
+    def same_rows(self, other: SidebarSnapshot) -> bool:
+        """Compare native roster answers, independently of read-cut custody.
+
+        Activity timestamps already determine the acquired member ordering;
+        they aren't another row output. Revision and process observations must
+        still advance even when their captured presentation is unchanged.
+        Targets remain independent of labels: an inactive native owner routes
+        to history even when its text happens to match an active owner.
+        """
+        from toad.navigation_target import person_target
+
+        return (
+            self.service is other.service and self.worktree == other.worktree
+            and self.session_threads == other.session_threads
+            and self.row_inputs == other.row_inputs
+            and self.wire.channel_order == other.wire.channel_order
+            and self.wire.channel_unread == other.wire.channel_unread
+            and self.wire.unread == other.wire.unread
+            and self.wire.thread_unread == other.wire.thread_unread
+            and self.wire.thread_unread_pending == other.wire.thread_unread_pending
+            and (self.wire.show_stopped, self.wire.show_archived)
+                == (other.wire.show_stopped, other.wire.show_archived)
+            and tuple((view.channel, view.members, view.pinned_members)
+                      for view in self.wire.channels)
+                == tuple((view.channel, view.members, view.pinned_members)
+                         for view in other.wire.channels)
+            and tuple(person_target(person) for person in self.all_people.values())
+                == tuple(person_target(person) for person in other.all_people.values())
+        )
+
     def project(self, app, comms) -> SidebarSnapshot:
         """Local admissions change routes, not this acquired wire or its paint inputs."""
         if comms is not self.service:
