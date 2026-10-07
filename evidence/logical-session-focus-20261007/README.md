@@ -33,4 +33,16 @@ Combined candidate artifacts:
 `/home/ts/.cache/agent-scratch/session-focus-candidate-installed-20261007`.
 All 953 installed assets matched Git/wheels, all 69 versions matched and 2,787
 hashed RECORD entries matched. Frontend publication and actual-default check
-follow; existing backend processes and older windows are preserved.
+completed through the existing frontend owner. PR515 and native PR91 merged.
+The actual default-launch journey also passed all six checks with original
+source/runtime unchanged and owned cleanup complete. Screen switching measured
+363 ms on open, 170 ms on return and 328 ms on reopen; backend initialization
+still measured 1.89/2.04 seconds. This confirms working delivered behavior at
+that scope, not that whole agent opening is fast. Existing backend processes
+and older windows are preserved.
+
+Actual-default artifacts:
+`/home/ts/.cache/agent-scratch/session-focus-default-live-20261007`.
+The initial publisher refusal was an output-directory permission check before
+any publication. The owned directory was corrected and publication completed
+once; no application attempt was repeated.
