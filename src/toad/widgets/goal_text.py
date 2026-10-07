@@ -11,12 +11,12 @@ from toad.widgets.inline_message import inline_message
 
 
 def goal_mention_candidates(app) -> tuple[MentionCandidate, ...]:
-    snapshot = getattr(app, "_sidebar_snapshot", None)
+    snapshot = app.coordination_access.sidebar_snapshot
     if snapshot is None:
         return ()
     return tuple(
         MentionCandidate(person.thread.name, person.presentation.title)
-        for person in snapshot.threads
+        for person in snapshot.wire.threads
     )
 
 

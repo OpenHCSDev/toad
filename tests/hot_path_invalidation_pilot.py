@@ -46,7 +46,9 @@ async def main():
                 for _ in range(100):
                     await screen.on_project_directory_update()
             assert screen._project_panel.directory_tree is None
-            app._sidebar_snapshot = comms.views.viewer_snapshot(str(root))
+            service = app.coordination_access.service
+            await app.coordination_access.read_sidebar(app, service,
+                (app.settings.sidebar.show_stopped, app.settings.sidebar.show_archived))
             with (
                 patch.object(
                     app.coordination_access.service.views,

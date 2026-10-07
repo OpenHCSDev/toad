@@ -294,7 +294,6 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
         self._session_tracker = SessionTracker()
         self.session_navigation = SessionAdmissions(self, agent_session_id)
         self.thread_navigation = ThreadNavigator(self)
-        self._sidebar_snapshot = None
         self.thread_actions = ThreadActions(self)
         self.transfers = Transfers(self)
         self.sidebar_state = SidebarState()
@@ -304,16 +303,13 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
             lambda mode, index: self.select_session(mode, history_index=index)
         )
         self.coordination_facts: WeakKeyDictionary[object, CoordinationChangedUpdate] = WeakKeyDictionary()
-        self.coordination_access = CoordinationAccess(self._coordination_changed, self.preparation)
+        self.coordination_access = CoordinationAccess(self.preparation)
         self.temporary_background_screen: Screen | None = None
 
         super().__init__()
         self.session_navigation.bind_events()
         self.project_dir = Path(project_dir or "./").expanduser().resolve()
 
-
-    def _coordination_changed(self) -> None:
-        self._sidebar_snapshot = None
 
     async def _close_all(self) -> None:
         await self.thread_navigation.close()

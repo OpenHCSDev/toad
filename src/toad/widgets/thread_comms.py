@@ -501,11 +501,11 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             visible.set_class(visible is row, "-selected")
 
     def unread(self, target: NavigationTarget):
-        snapshot = self.app._sidebar_snapshot
+        snapshot = self.app.coordination_access.sidebar_snapshot
         if (snapshot is None or self.wire_root is None
                 or Path(self.wire_root).resolve() != self.app.coordination_access.service.root.resolve()):
             return ExactUnread()
-        return target.unread(snapshot)
+        return target.unread(snapshot.wire)
 
     def open_target(self, target: NavigationTarget):
         if self.wire_root is None or Path(self.wire_root).resolve() != self.app.coordination_access.service.root.resolve():
