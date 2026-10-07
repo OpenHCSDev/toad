@@ -225,9 +225,6 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
             sidebar.session_thread = self._comms_thread
         except Exception:
             pass
-        # Hidden screens may defer sidebar geometry until they resume. Rebind
-        # the header before the resumed screen's first paint, not on a timer.
-        self.screen.align_tabs_to_sidebars()
         if conversation := self.query_one_optional(Conversation):
             if watcher := conversation._directory_watcher:
                 self.call_after_refresh(watcher.notify_if_visible)
@@ -477,10 +474,6 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
             tree.data_bind(path=MainScreen.project_path)
         for tree in self.query(DirectoryTree):
             tree.guide_depth = 3
-
-    @handles(core_events.SidebarLayoutChanged)
-    async def layout_observed(self, event: CoreEventMessage) -> None:
-        self.screen.align_tabs_to_sidebars()
 
     def channels_context(self) -> tuple[str, str]:
         return self._comms_thread, ""

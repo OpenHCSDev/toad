@@ -129,17 +129,6 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
 
     def on_resize(self, _event: Resize) -> None:
         self.app.workspace_chrome.layout_sidebars(self)
-        self.align_tabs_to_sidebars()
-
-    def align_tabs_to_sidebars(self) -> None:
-        """The navigation row spans the screen, independent of sidebar placement."""
-        from textual.containers import Horizontal
-
-        header = self.query_one_optional("#tab-navigation-header", Horizontal)
-        if header is None:
-            return
-        if header.styles.padding.left:
-            header.styles.padding = 0
 
     def _style_revision(self) -> ViewStyleRevision:
         return ViewStyleRevision(

@@ -80,7 +80,11 @@ async def main() -> None:
                 await pilot.pause()
                 assert slider.value == 50 and bar.size.width == 60, (side, slider.value, bar.region)
                 outward = 4 if side == "left" else slider.size.width - 1
-                assert await pilot.click(slider, offset=(outward, 0))
+                # Width changes on press, then the original capture owns release.
+                # A final Click may land outside the track it has just resized.
+                assert await pilot.mouse_down(slider, offset=(outward, 0))
+                await pilot.mouse_up(offset=(slider._drag_origin_x + outward,
+                                             slider.region.y))
                 await pilot.pause()
                 assert slider.value == 15 and bar.size.width == 18
                 assert handle.region.x == (bar.region.right - 1 if side == "left" else bar.region.x)

@@ -286,4 +286,5 @@ SessionsTabs {
 #tab-navigation-header {
     width: 1fr;
     height: auto;
+    padding: 0;
 }

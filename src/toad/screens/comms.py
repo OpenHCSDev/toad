@@ -182,7 +182,6 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
     def _prepare_content(self) -> None:
         self.app.workspace_chrome.layout_sidebars(self.screen)
         self.observe_core(self.app.events)
-        self.screen.align_tabs_to_sidebars()
         chat = self.query_one(CommsChatView)
         chat._me = self.me
         chat.project_path = self.project_path
@@ -190,10 +189,6 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
         # finishes. Its actor/target are bound by the mode transition owner.
         self.query_one(CoordinationStatus).set_thread(self.me)
         chat.prepare_prompt()
-
-    @handles(core_events.SidebarLayoutChanged)
-    async def layout_observed(self, event: CoreEventMessage) -> None:
-        self.screen.align_tabs_to_sidebars()
 
     async def _load_content(self) -> None:
         if self._content_loaded or not self.is_attached:
@@ -236,7 +231,6 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
 
 
     def activate_session(self) -> None:
-        self.screen.align_tabs_to_sidebars()
         if chat := self.query_one_optional(CommsChatView):
             self.call_after_refresh(chat.prepare_prompt)
 
