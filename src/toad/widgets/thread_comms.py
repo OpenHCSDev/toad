@@ -319,7 +319,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             if wire_root is not None:
                 from toad.widgets.thread_comms_source import WireRelationshipSource
 
-                source = WireRelationshipSource(wire_root, self.app.coordination_access.service)
+                source = WireRelationshipSource(wire_root, self.app.coordination_access.observed_service)
         if (owner, wire_root) == (self.owner, self.wire_root) and source is self._source:
             return
         for group in self.groups.values():

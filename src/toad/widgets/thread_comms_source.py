@@ -8,14 +8,15 @@ from agent_comms.display_order import ThreadSort
 
 
 class WireRelationshipSource:
-    def __init__(self, root: str, shared: Comms):
+    def __init__(self, root: str, shared: Comms | None):
         self.root = Path(root).expanduser().resolve()
         self.shared = shared
 
     @cached_property
     def service(self):
         # Called by the widget's background read, never during composition.
-        comms = self.shared if self.shared.root.resolve() == self.root else wire(self.root)
+        comms = (self.shared if self.shared is not None and self.shared.root.resolve() == self.root
+                 else wire(self.root))
         return comms.relationships
 
     def revision(self):
