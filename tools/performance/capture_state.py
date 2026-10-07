@@ -234,12 +234,17 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
             # The larger view export keeps its existing asynchronous lifetime.
             write_json(str(native_process_output), {"app_pid": os.getpid(),
                        "capture_prefix": prefix, "processes": list(native_processes.values())})
+        from toad.widgets.retiring_sidebar import RetiringSidebar
         metadata["retained_presentations"] = [
             {"mode": view.id, "owner": type(owner).__name__,
              "object_id": id(owner), "selected": view is app.selected_session,
              "widgets": owner.retained_widget_count,
              "source_bytes": owner.retained_source_bytes,
-             "paint_bytes": owner.retained_paint_bytes}
+             "paint_bytes": owner.retained_paint_bytes,
+             "panels": [{"object_id": id(panel.widget), "class": type(panel.widget).__name__,
+                         "widgets": [{"object_id": id(node), "class": type(node).__name__,
+                                      "id": node.id} for node in panel.widget.walk_children()]}
+                        for panel in owner.panels] if isinstance(owner, RetiringSidebar) else []}
             for view, owner in app.workspace_chrome.native._presentations()
         ]
 

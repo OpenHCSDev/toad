@@ -860,6 +860,17 @@ class SidebarPanelsJourney(PhysicalJourney):
         settle = f"sleep {args.navigation_settle_seconds:g}"
         viewport = dict(target="widget", name="SidebarViewport#sidebar-panels",
                         within="SessionThreadSidebar")
+        returns = ()
+        if args.peer_thread:
+            returns = (
+                marker + "right-switch-peer",
+                native_click_command("phase-right-switch-peer-state.pickle", target="thread",
+                                     name=args.peer_thread),
+                cls.ready_command(args, "right-peer-ready", args.peer_thread),
+                native_click_command("phase-right-peer-ready-state.pickle", target="original_tab",
+                                     original_state="phase-right-before-state.pickle"),
+                settle, marker + "right-tab-return",
+            )
         return "\n".join((
             marker + "right-before",
             native_click_command("phase-right-before-state.pickle", target="right_sidebar"),
@@ -871,7 +882,7 @@ class SidebarPanelsJourney(PhysicalJourney):
             native_click_command("phase-right-panels-up-state.pickle", target="right_sidebar"),
             settle, marker + "right-sidebar-hidden", marker + "right-sidebar-return",
             native_click_command("phase-right-sidebar-hidden-state.pickle", target="right_sidebar"),
-            settle, marker + "right-sidebar-restored", "",
+            settle, marker + "right-sidebar-restored", *returns, "",
         ))
 
 
