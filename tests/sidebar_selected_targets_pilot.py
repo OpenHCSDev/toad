@@ -16,6 +16,7 @@ from toad.widgets.comms_command_dialog import CommandDialog
 
 async def main():
     scratch = Path('/home/ts/.cache/agent-scratch/parent-sidebar-selection-20261006')
+    scratch.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='mounted-', dir=scratch) as directory:
         root = Path(directory)
         os.environ.update(AGENT_COMMS_ROOT=str(root / 'wire'),
@@ -29,6 +30,9 @@ async def main():
         app = ToadApp(project_dir=str(root))
         app.settings.sidebar.show_stopped = True
         async with app.run_test(size=(130, 46), notifications=True) as pilot:
+            await app.selected_session.wait_content_ready()
+            app.workspace_chrome.channels.reveal()
+            await app.workspace_chrome.channels.wait_content_ready()
             await pilot.pause()
             sidebar = app.screen.query_one(CommsSidebar)
             await sidebar.observation.sync()
@@ -87,12 +91,12 @@ async def main():
             await pilot.pause()
             channel = sidebar.projection.channels['#alpha']
             survivor = next(row for row in sidebar.projection.thread_rows if row.target_name == second.target_name)
-            scroll = tuple(panel.scroll_y for panel in sidebar.navigation.scroll_containers)
+            scroll = sidebar.navigation.scroll_container.scroll_y
             assert await pilot.click(channel, button=3)
             async with asyncio.timeout(10):
                 while not (isinstance(app.screen, ContextMenu) and app.screen.is_mounted):
                     await pilot.pause()
-            assert tuple(panel.scroll_y for panel in sidebar.navigation.scroll_containers) == scroll
+            assert sidebar.navigation.scroll_container.scroll_y == scroll
             await pilot.press('escape')
             assert await pilot.click(survivor, control=True)
             context = sidebar.navigation.menu_context(channel)
@@ -226,6 +230,9 @@ async def multi_channel_removal():
         app = ToadApp(project_dir=str(root))
         app.settings.sidebar.show_stopped = True
         async with app.run_test(size=(130, 46), notifications=True) as pilot:
+            await app.selected_session.wait_content_ready()
+            app.workspace_chrome.channels.reveal()
+            await app.workspace_chrome.channels.wait_content_ready()
             await pilot.pause()
             sidebar = app.screen.query_one(CommsSidebar)
             await sidebar.observation.sync()
