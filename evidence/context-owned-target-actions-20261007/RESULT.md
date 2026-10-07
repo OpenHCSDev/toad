@@ -9,3 +9,7 @@ Actual native Apps passed thread/channel Ctrl toggle and Shift range, right-clic
 The older navigation helper first refused the removed WorkspaceScreen callback and, after migrating that call to the selected session, refused its missing #any fixture group. Both raw negatives remain; no whole navigation/latency pass is claimed. Raw results: /home/ts/.cache/agent-scratch/context-owned-target-actions-20261007.
 
 Default installation pending. Remaining active-history native layout pauses are independent and unresolved.
+
+## Delivered
+
+PR533 merged. The built installed native selection, multi-channel removal and clipped-row scroll checks all exited zero with empty stderr. All954 assets and69 distributions matched the original declared source/wheel relation;2856 RECORD rows checked. The existing reviewed frontend publisher now points /home/ts/.local/bin/toad to .artifacts/context-owned-actions-delivery-20261007/runtime/bin/toad. Existing open windows retain their loaded code. Backend process/defaults were preserved; broader active-history pauses remain unresolved.
