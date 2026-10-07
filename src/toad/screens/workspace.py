@@ -248,7 +248,7 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
 
         self.frame_presentation.begin()
         changed = await self.app.selected_session.prepare_navigation()
-        changed |= self.app.workspace_chrome.prepare_navigation(self)
+        changed |= await self.app.workspace_chrome.prepare_navigation(self)
         if changed:
             self._navigation_layout = PendingWorkspaceLayout()
 

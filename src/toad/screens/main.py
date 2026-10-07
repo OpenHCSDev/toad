@@ -19,6 +19,7 @@ from textual.widget import Widget
 from textual.widgets import (
     DirectoryTree,
     OptionList,
+    Static,
     Tree,
 )
 
@@ -32,7 +33,7 @@ from toad.session_tracker import SidebarState
 from toad.widgets.comms_chat import resolve_session_thread, session_thread_name
 from toad.core.input_events import SelectTarget
 from toad.widgets.comms_sidebar import CommsSidebar, CoordinationStatus
-from toad.widgets.conversation import Conversation, ThreadLoading
+from toad.widgets.conversation import Conversation
 from toad.widgets.footer import Footer
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton
@@ -243,7 +244,7 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
             with containers.Vertical(id="session-content"):
                 yield self.presentation.compose_content(self)
                 if self._agent is not None:
-                    yield ThreadLoading(id="session-opening")
+                    yield Static("Opening thread…", id="session-opening")
 
     def _make_conversation(self) -> Conversation:
         with self._context():

@@ -476,9 +476,9 @@ class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
         return self.screen.is_active and self.display and all(
             node.display for node in self.ancestors if isinstance(node, Widget))
 
-    def on_mount(self) -> None:
+    async def on_mount(self) -> None:
         self.projection.mount()
-        self.observation.mount()
+        await self.observation.mount()
 
     async def on_unmount(self) -> None:
         await self.observation.close()

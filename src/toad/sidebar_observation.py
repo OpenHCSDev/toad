@@ -36,26 +36,24 @@ class SidebarObservation:
             task.cancel()
             await asyncio.gather(task, return_exceptions=True)
 
-    def mount(self) -> None:
-        from toad.comms_root import current_root
+    async def mount(self) -> None:
         from toad.screens.comms import CommsScreen
         app = self.sidebar.app
         try:
-            root = current_root().resolve()
+            service = await app.preparation.run_thread(lambda: app.coordination_access.service)
         except (OSError, ValueError, RuntimeError):
             self.sidebar.display = False
             return
         screen = self.sidebar.screen
-        if isinstance(screen, CommsScreen) and not screen.belongs_to_wire(root):
+        if isinstance(screen, CommsScreen) and not screen.belongs_to_wire(service.root):
             self.sidebar.display = False
             return
-        service = app.coordination_access.service
-        self.service = service if root == service.root else wire(root)
+        self.service = service
         self.sidebar.subscribe_core(app.session_tracker.events)
         self.sidebar.observe_core(app.events)
         self.sidebar.observe_core(app.settings.events)
         self.sidebar.observe_core(app.coordination_access.events)
-        self.sidebar.navigation.prepare()
+        await self.sidebar.navigation.prepare()
         from toad.screens.workspace import WorkspaceScreen
         if isinstance(screen, WorkspaceScreen):
             screen.frame_presentation.defer(self.sidebar, self.sidebar.navigation.start)
@@ -111,7 +109,7 @@ class SidebarObservation:
     async def sync(self) -> None:
         """Reconcile tracked rows before a resumed screen accepts input."""
         async with self.lock:
-            revision = self.service.views.revision()
+            revision = await self.sidebar.app.preparation.run_thread(self.service.views.revision)
             if self.sidebar.projection.has_snapshot() and self.read_identity(revision) == self.identity:
                 await self.sidebar.projection.publish(self.project(self.sidebar.projection.snapshot))
             else:
@@ -161,8 +159,8 @@ class SidebarObservation:
         except Exception:
             return []
 
-    def route_changed(self) -> bool:
-        return self.sidebar.app.coordination_access.route_changed()
+    async def route_changed(self) -> bool:
+        return await self.sidebar.app.coordination_access.route_changed()
 
     async def coordination_updated(self, _event=None) -> None:
         service = self.sidebar.app.coordination_access.observed_service
@@ -193,18 +191,13 @@ class SidebarObservation:
             # ordinary shutdown and belongs inside this existing error boundary.
             if self.sidebar.screen is not self.sidebar.app.screen:
                 return
-            if self.route_changed():
-                self.sidebar.display = False
             if self.pending:
                 return
-            revision = self.service.views.revision()
-            if self.sidebar.display and self.read_identity(revision) == self.identity:
-                return
-            self.task = asyncio.create_task(self.refresh_checked(revision))
+            self.task = asyncio.create_task(self.refresh_checked())
         except Exception:
             self.sidebar.display = False
 
-    async def refresh_checked(self, revision: WireRevision) -> None:
+    async def refresh_checked(self) -> None:
         service = self.service
         try:
             from toad.comms_root import root_is_current
@@ -214,6 +207,11 @@ class SidebarObservation:
                     self.sidebar.display = False
                 return
             if self.service is not service or not self.sidebar.accepts_publication():
+                return
+            revision = await self.sidebar.app.preparation.run_thread(service.views.revision)
+            if self.service is not service or not self.sidebar.accepts_publication():
+                return
+            if self.sidebar.display and self.read_identity(revision) == self.identity:
                 return
             await self.poll(revision)
             if self.service is service and self.identity is not None and (
@@ -238,7 +236,7 @@ class SidebarObservation:
                 # worktree-wide snapshot. A newly painted read cursor may
                 # change its revision, so observe that write before reuse.
                 await self.sidebar.app.mark_visible_thread_read()
-                revision = service.views.revision()
+                revision = await self.sidebar.app.preparation.run_thread(service.views.revision)
                 if self.service is not service:
                     return
                 if self.identity == self.read_identity(revision):
