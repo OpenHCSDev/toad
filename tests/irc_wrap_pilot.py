@@ -3,10 +3,14 @@ from agent_comms.mro_dispatch import handles
 """Full-width wrapping and routed spans at different terminal widths."""
 
 import asyncio
+import os
+from pathlib import Path
 
 from agent_comms.messages import Message, MessageType
 from textual import on
-from textual.app import App, ComposeResult
+from textual.app import ComposeResult
+from textual.screen import Screen
+from runtime_fixture import ToadApp
 
 from toad.core.input_events import SelectTarget
 from toad.widgets.irc_message import IRCMessage, IRCMessageText
@@ -33,12 +37,12 @@ async def click_target(app, pilot, target):
     raise AssertionError(f"No clickable routing span for {target}")
 
 
-class WrapApp(CoreEventReceiver, App):
-    def __init__(self):
-        super().__init__()
+class WrapApp(ToadApp):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.opened = []
 
-    def compose(self) -> ComposeResult:
+    def message_rows(self) -> ComposeResult:
         for target in ("#all", "receiver-with-long-name"):
             yield IRCMessage(
                 Message(
@@ -56,12 +60,24 @@ class WrapApp(CoreEventReceiver, App):
 
 
 async def main():
-    app = WrapApp()
+    root = Path(os.environ['IRC_WRAP_ARTIFACTS']).resolve()
+    root.mkdir(parents=True, exist_ok=False)
+    os.environ.update(AGENT_COMMS_ROOT=str(root / 'wire'),
+                      XDG_CONFIG_HOME=str(root / 'config'),
+                      XDG_STATE_HOME=str(root / 'state'),
+                      XDG_DATA_HOME=str(root / 'data'))
+    app = WrapApp(project_dir=str(root))
     async with app.run_test(size=(80, 50)) as pilot:
+        await app.selected_session.wait_content_ready()
+        screen = Screen()
+        await app.push_screen(screen)
+        await screen.mount(*app.message_rows())
         for width in (80, 36, 120):
             await pilot.resize_terminal(width, 50)
+            for text in screen.query(IRCMessageText):
+                await text.wait_ready()
             await pilot.pause()
-            row = app.query(IRCMessage).first()
+            row = screen.query(IRCMessage).first()
             text = row.query_one(IRCMessageText)
             lines = [text.render_line(y).text for y in range(text.size.height)]
             assert row.size.width == width
@@ -89,6 +105,7 @@ async def main():
             ("explorer-grandchild", "thread"),
             ("#all", "channel"),
         ]
+        assert app._exception is None
     print(
         "IRC wrapping: full-width body, newlines, clickable spans and keyboard navigation passed"
     )

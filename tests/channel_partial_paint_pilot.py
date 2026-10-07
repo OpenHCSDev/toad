@@ -31,7 +31,7 @@ async def main():
         acknowledged = set()
         original_mark = MountedMessageHistory.mark_page
 
-        async def checked_mark(chat, page, original_page=None):
+        async def checked_mark(chat, page, original_page, *, snapshot):
             selected = {message.seq for message in page.messages}
             assert selected <= {seq for source, seq in chat.painted_keys() if not source}
             assert page.display_scope is not None and page.display_scope.displayed is not None
@@ -39,7 +39,7 @@ async def main():
                 seq for item in page.display_scope.displayed.conversations for seq in item.sequences
             }
             acknowledged.update(selected)
-            await original_mark(chat, page, original_page)
+            await original_mark(chat, page, original_page, snapshot=snapshot)
 
         app = ToadApp(project_dir=str(root))
         with patch.object(MountedMessageHistory, "mark_page", checked_mark):
@@ -59,6 +59,11 @@ async def main():
                     if message.seq in seen:
                         continue
                     body = widget.read_ack_widget()
+                    if body is None:
+                        from toad.widgets.irc_message import IRCMessageText
+                        await widget.query_one(IRCMessageText).wait_ready()
+                        body = widget.read_ack_widget()
+                        assert body is not None
                     chat.window.scroll_to(
                         y=chat.window.scroll_y + body.region.y - chat.window.content_region.y,
                         animate=False, immediate=True,
