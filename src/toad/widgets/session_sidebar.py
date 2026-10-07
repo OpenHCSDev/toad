@@ -61,6 +61,18 @@ class ThreadStatusRow(HoverSelection):
         if self._thread_presentation is not None:
             self.paint_thread_frame(self._thread_presentation)
 
+    @property
+    def thread_incarnation(self):
+        prepared = self._thread_presentation
+        return prepared.source.incarnation if prepared is not None else None
+
+    def retained_thread_presentation(self, person) -> ThreadRowPresentation | None:
+        """Borrow captured inputs on an unchanged disclosure."""
+        prepared = self._thread_presentation
+        if prepared is not None and prepared.source.incarnation == person.thread.incarnation:
+            return prepared.source
+        return None
+
     def thread_preparation(self, source: ThreadRowPresentation) -> PreparedThreadRow | None:
         """Reuse this row's rendered resource for its exact authored inputs."""
         prepared = self._thread_presentation

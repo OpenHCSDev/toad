@@ -83,6 +83,10 @@ class RelationshipRow(CommsRow):
     BINDINGS = [Binding("ctrl+c", "copy_identity", "Copy name", show=False)]
     available = True
 
+    @property
+    def thread_incarnation(self):
+        return self.entry.person.thread.incarnation if self.entry.person is not None else None
+
     def action_copy_identity(self) -> None:
         self.app.copy_to_clipboard(self.target_name)
 
@@ -122,9 +126,16 @@ class RelationshipRows(SidebarGroup):
         super().toggle_members()
         self.query_ancestor(ThreadCommsSidebar).view_state.expanded[self.model.key] = self.expanded
 
-    def thread_people(self):
-        return {entry.person.thread.name: entry.person for entry in self.model.entries
-                if entry.person is not None}.values()
+    def members_visibility_changed(self, previous: bool, expanded: bool) -> None:
+        state = self.query_ancestor(ThreadCommsSidebar).view_state
+        if previous:
+            state.scroll[self.model.key] = self.member_container.scroll_y
+        if expanded:
+            self.member_container.scroll_to(
+                y=state.scroll.get(self.model.key, 0), animate=False)
+
+    def rows_changed(self) -> None:
+        self.query_ancestor(ThreadCommsSidebar)._sync_spinner()
 
     def present(self, model: RelationshipGroup):
         self.model = model
@@ -132,12 +143,14 @@ class RelationshipRows(SidebarGroup):
     def thread_row_inputs(self):
         tree = self.query_ancestor(ThreadCommsSidebar)
         entries = {(entry.kind, entry.target): entry for entry in self.model.entries}
-        row_keys = tuple(key for key, entry in entries.items() if entry.available and entry.person is not None)
+        row_keys = tuple(key for key, entry in entries.items()
+                         if entry.available and entry.person is not None
+                         and (self.expanded or key in self.rows))
         inputs = {key: ThreadRowInput(
             entries[key].person,
             unread=tree.unread(person_target(entries[key].person)),
             action_status=tree.app.thread_actions.pending.get(entries[key].target),
-        ) for key in row_keys} if self.expanded else {}
+        ) for key in row_keys}
         return inputs, self.rows, (self.model, tree.owner, tree._generation)
 
     async def _reconcile_members(self, prepared_rows, source) -> None:
@@ -151,17 +164,10 @@ class RelationshipRows(SidebarGroup):
         state = tree.view_state
         container = self.member_container
         entries = {(entry.kind, entry.target): entry for entry in self.model.entries}
-        if not self.expanded:
-            if container.display:
-                state.scroll[self.model.key] = container.scroll_y
-            container.display = False
-            return
-        was_hidden = not container.display
-        container.display = True
         empty = container.query_one_optional(".relationship-empty")
         if entries and empty is not None:
             await empty.remove()
-        if not entries and empty is None:
+        if self.expanded and not entries and empty is None:
             await container.mount(Static(self.EMPTY[self.model.key], classes="relationship-empty"))
         # Keep the top visible row stable when newer entries reorder a
         # scrolled list. Identity, rather than list index, owns selection.
@@ -195,14 +201,16 @@ class RelationshipRows(SidebarGroup):
                 row.tooltip = Content(f"{entry.target}\n{entry.detail}")
             row.set_class(state.selected == (self.model.key, entry.target), "-selected")
 
-        ordered = await self.reconcile_rows(entries, self.rows, create, update)
+        wanted = tuple(key for key in entries if self.expanded or key in self.rows)
+        ordered = await self.reconcile_rows(
+            wanted, self.rows, create, update,
+            replace=lambda key, row: row.thread_incarnation != (
+                entries[key].person.thread.incarnation if entries[key].person is not None else None))
         if ordered != previous_order:
             if old_scroll > 0 and anchor in ordered:
                 new_y = sum(2 if row.has_class("-wire-thread") else 1
                             for row in ordered[:ordered.index(anchor)])
                 container.scroll_to(y=new_y, animate=False, immediate=True)
-        if was_hidden:
-            container.scroll_to(y=state.scroll.get(self.model.key, 0), animate=False)
 
 
 class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
@@ -271,7 +279,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             return
         sidebar = self.query_ancestor(SideBar)
         if (sidebar.presentation_visible and not sidebar.collapsed
-                and any(row.busy for group in self.groups.values() for row in group.rows.values())):
+                and any(row.busy for row in self._ordered_rows())):
             self._spinner_timer.resume()
         else:
             self._spinner_timer.pause()
@@ -403,6 +411,18 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 return
             if snapshot.owner != owner or Path(snapshot.root).resolve() != Path(self.wire_root).resolve():
                 raise ValueError("Relationship snapshot does not match this thread and wire")
+            if self._snapshot is None and self.groups:
+                # Owner/root replacement is a new source lifetime. Do not
+                # adopt same-named native rows from the hidden previous tree.
+                await self.remove_children(list(self.groups.values()))
+                self.groups.clear()
+                if generation != self._generation or not self.is_attached:
+                    return
+            absent = set(self.groups) - {model.key for model in snapshot.groups}
+            if absent:
+                await self.remove_children([self.groups.pop(key) for key in absent])
+                if generation != self._generation or not self.is_attached:
+                    return
             row_inputs = await ThreadRowsWork.capture(
                 self.app.preparation,
                 tuple(ThreadRowInput(person) for person in {
@@ -435,9 +455,6 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                         return
                 group.display = True
                 group.expanded = self.view_state.expanded.get(model.key, True)
-                glyph = "▾" if group.expanded else "▸"
-                if group.disclosure.content != glyph:
-                    group.disclosure.update(glyph, layout=False)
                 groups[group] = model
             await RelationshipRows.reconcile_groups(groups, row_inputs, sources=groups)
             for group in groups:
@@ -470,10 +487,13 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 context.tooltip = str(error)
 
     def _ordered_rows(self):
-        return [row for group in self.groups.values() if group.expanded and group.display
-                for row in group.member_container.children if isinstance(row, RelationshipRow)]
+        return [row for group in self.groups.values()
+                for row in group.visible_members
+                if isinstance(row, RelationshipRow) and row.is_navigation_row()]
 
     def remember_row(self, row):
+        if row not in self._ordered_rows():
+            return
         group = row.query_ancestor(RelationshipRows)
         self.view_state.selected = group.model.key, row.target_name
         self.selected = row.target_name
