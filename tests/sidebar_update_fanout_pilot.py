@@ -120,7 +120,9 @@ async def main(output):
             routes = dict(roster.projection.snapshot.session_threads)
             for view in app.workspace_sessions.views.values():
                 app.session_tracker.update_session(view.id, title=f"Private tab {view.id}")
-            await pilot.pause(.1)
+            async with asyncio.timeout(20):
+                while calls["local_route_reconciliations"] != len(app.workspace_sessions.views):
+                    await asyncio.sleep(.02)
             assert dict(roster.projection.snapshot.session_threads) == routes
             metadata_calls = dict(calls)
             assert calls["local_route_reconciliations"] == len(app.workspace_sessions.views)
@@ -137,10 +139,15 @@ async def main(output):
                 async with asyncio.timeout(20):
                     while (roster.projection.snapshot is None or
                            roster.projection.snapshot.wire.channel_unread.get("#shared", 0)
-                           < len(emitted)):
-                        await pilot.pause(.02)
+                           < len(emitted) or roster.projection.lock.locked()):
+                        # Pilot.pause broadcasts a callback to every widget.
+                        # Observe original publication, not a test-created fanout.
+                        await asyncio.sleep(.02)
+                    written = asyncio.Event()
+                    app.selected_session.screen.frame_presentation.defer(roster, written.set)
+                    await written.wait()
                 elapsed.append(perf_counter() - start)
-            await pilot.pause(.1)
+            await asyncio.sleep(.1)
         finally:
             if profile is not None:
                 profile.disable()

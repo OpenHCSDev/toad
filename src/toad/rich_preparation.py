@@ -15,10 +15,12 @@ from pygments.lexers import get_lexer_for_filename
 from rich.text import Text
 from textual.render import measure
 from textual.strip import Strip
-from textual.geometry import Region
+from textual.geometry import Offset, Region
 from textual.widget import _Styled
 from textual.content import Content
 from textual.style import Style as NativeStyle
+from textual.selection import Selection
+from textual.visual import RenderOptions
 
 RichColorSystem = Literal["auto", "standard", "256", "truecolor", "windows"]
 
@@ -32,6 +34,67 @@ class RichSource(ABC):
 
     style_names: tuple[str, ...] = ()
     """Symbolic native styles required by this source's worker rendering."""
+
+    def prepare(self, presentation: RichPresentation) -> PreparedRichContent:
+        return prepare_rich(self, presentation)
+
+    def capture_selection(self, selection: Selection | None,
+                          style: NativeStyle | None) -> RichSource:
+        return self
+
+    def selected_text(self, selection: Selection, prepared: PreparedRichContent) -> str:
+        return selection.extract(prepared.text)
+
+
+@dataclass(frozen=True)
+class ContentSource(RichSource):
+    """Native wrapping retains source coordinates and component styles."""
+
+    value: Content
+    selection: tuple[tuple[int, int] | None, tuple[int, int] | None] | None = None
+    selection_style: NativeStyle | None = None
+
+    @classmethod
+    def capture(cls, value: Content, selection: Selection | None,
+                selection_style: NativeStyle | None) -> ContentSource:
+        coordinates = (None if selection is None else
+                       tuple(None if offset is None else (offset.x, offset.y)
+                             for offset in selection))
+        return cls(value, coordinates, selection_style)
+
+    @property
+    def style_names(self) -> tuple[str, ...]:
+        return tuple(dict.fromkeys(span.style for span in self.value.spans
+                                   if isinstance(span.style, str)))
+
+    def materialize(self) -> Content:
+        return self.value
+
+    def capture_selection(self, selection: Selection | None,
+                          style: NativeStyle | None) -> ContentSource:
+        return self.capture(self.value, selection, style)
+
+    def selected_text(self, selection: Selection, prepared: PreparedRichContent) -> str:
+        return selection.extract(self.value.plain)
+
+    def prepare(self, presentation: RichPresentation) -> PreparedRichContent:
+        styles = dict(presentation.styles)
+        def get_style(style):
+            return styles[style] if isinstance(style, str) else style
+        width = presentation.options.max_width
+        if presentation.auto_width:
+            width = max(1, min(width, self.value.get_optimal_width(dict(presentation.rules), width)))
+        lines = self.value.render_strips(
+            width, None, presentation.native_style,
+            RenderOptions(get_style, dict(presentation.rules),
+                          None if self.selection is None else Selection(
+                              *(None if offset is None else Offset(*offset)
+                                for offset in self.selection)),
+                          self.selection_style),
+        )
+        if presentation.link_style is not None:
+            lines = [line._apply_link_style(presentation.link_style) for line in lines]
+        return PreparedNativeContent(width, tuple(lines))
 
 
 @dataclass(frozen=True)
@@ -62,6 +125,12 @@ class SyntaxSource(RichSource):
         return Syntax(self.code, lexer, theme=self.theme, line_numbers=self.line_numbers,
                       word_wrap=False, background_color="default")
 
+    def selected_text(self, selection: Selection, prepared: PreparedRichContent) -> str:
+        # Read output owns its original tabs and final blank lines, which Rich
+        # terminal rows may omit. Numbered previews retain row-based selection.
+        return (selection.extract(self.code) if not self.line_numbers
+                else super().selected_text(selection, prepared))
+
 
 @dataclass(frozen=True)
 class PreparedRichContent:
@@ -91,6 +160,20 @@ class PreparedRichContent:
 
 
 @dataclass(frozen=True)
+class PreparedNativeContent(PreparedRichContent):
+    """Native strips already carry original source selection offsets."""
+
+    def render_lines(self, crop: Region, *, selection=None, selection_style=None) -> list[Strip]:
+        lines = [self.lines[y] if 0 <= y < len(self.lines) else Strip.blank(self.width)
+                 for y in crop.line_range]
+        # Native Content may return a full row wider than its measurement
+        # (for example a folded Unicode row). The widget's styles cache owns
+        # final clipping; borrowing the full row must preserve its metadata.
+        return lines if crop.x == 0 and crop.width == self.width else [
+            line.crop(crop.x, crop.right) for line in lines]
+
+
+@dataclass(frozen=True)
 class RichPresentation:
     options: ConsoleOptions
     base_style: Style
@@ -100,6 +183,8 @@ class RichPresentation:
     color_system: RichColorSystem | None
     dark: bool = True
     styles: tuple[tuple[str, NativeStyle], ...] = ()
+    rules: tuple[tuple[str, object], ...] = ()
+    native_style: NativeStyle = NativeStyle()
 
 
 def prepare_rich(source: RichSource, presentation: RichPresentation) -> PreparedRichContent:

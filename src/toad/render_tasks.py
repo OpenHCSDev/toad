@@ -15,7 +15,6 @@ from toad.rich_preparation import (
     PreparedRichContent,
     RichPresentation,
     RichSource,
-    prepare_rich,
 )
 
 
@@ -75,7 +74,7 @@ class RichRenderTask(ReusableRenderTask[PreparedRichContent]):
     presentation: RichPresentation
 
     def execute(self) -> PreparedRichContent:
-        return prepare_rich(self.source, self.presentation)
+        return self.source.prepare(self.presentation)
 
     def accept_result(self, result: object) -> PreparedRichContent:
         if not isinstance(result, PreparedRichContent):
