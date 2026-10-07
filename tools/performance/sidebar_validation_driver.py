@@ -201,9 +201,25 @@ def install_observer():
         from toad.sidebar_projection import SidebarProjection
         from toad.widgets.session_tabs import SessionsTabs
         from toad.navigation_preparation import NavigationReader
+        from toad.screens.main import MainScreen
+        from toad.session_presentation import OperationalSessionSources
+        from toad.agent_presentation import ACPAgentPresentation
+        from toad.acp.agent_controller import AgentController
+        from toad.acp.session_updates import SessionNotificationOwner
+        from toad.render_backend import Renderer
+        from toad.render_processes import RenderProcessPool
+        from toad.widgets.comms_chat import CommsChatView
+        from toad.widgets.prompt import PromptSubmission
+        from agent_comms.messaging import Messaging
+        from toad import jsonrpc
         navigation_methods.extend((
             (WorkspaceSessions, WorkspaceSessions.prepare),
+            (WorkspaceSessions, WorkspaceSessions.select),
+            (MainScreen, MainScreen.prepare_presentation),
+            (OperationalSessionSources, OperationalSessionSources.present),
             (Conversation, Conversation.initialize_view),
+            (Conversation, Conversation.prepare_retained_session),
+            (ACPAgentPresentation, ACPAgentPresentation.restore_saved_history),
             (SidebarObservation, SidebarObservation.present_cached),
             (SidebarProjection, SidebarProjection.rebuild),
             (SessionsTabs, SessionsTabs._sync_tabs),
@@ -214,7 +230,60 @@ def install_observer():
             (AgentSession, AgentSession.load),
             (AgentSession, AgentSession.touch),
             (AgentSession, AgentSession.run),
+            (SessionNotificationOwner, SessionNotificationOwner.receive),
+            (AgentController, AgentController.validate),
+            (Renderer, Renderer._submit),
+            (RenderProcessPool, RenderProcessPool.run),
+            (CommsChatView, CommsChatView.submit_input),
         ))
+        schedule = PromptSubmission.schedule_submission
+        publish = Messaging.send_user_message
+
+        def measured_schedule(self, *, immediate=False):
+            record("input_submission_scheduled", editor=id(self), immediate=immediate)
+            return schedule(self, immediate=immediate)
+
+        def measured_publication(self, *args, **kwargs):
+            begin, cpu = time.monotonic_ns(), time.thread_time_ns()
+            sequence = None
+            try:
+                result = publish(self, *args, **kwargs)
+                sequence = result.seq
+                return result
+            finally:
+                record("human_message_publication", begin_ns=begin, sequence=sequence,
+                       duration_ms=(time.monotonic_ns()-begin)/1e6,
+                       cpu_ms=(time.thread_time_ns()-cpu)/1e6)
+
+        update_wrapper(measured_schedule, schedule)
+        update_wrapper(measured_publication, publish)
+        PromptSubmission.schedule_submission = measured_schedule
+        Messaging.send_user_message = measured_publication
+        send = AgentProcess.send
+        response = jsonrpc.API._process_method_response
+
+        def measured_send(self, request, agent):
+            calls = [(call.id, call.method) for call in request._calls]
+            begin = time.monotonic_ns()
+            try:
+                return send(self, request, agent)
+            finally:
+                record("rpc_request_sent", calls=calls, begin_ns=begin,
+                       duration_ms=(time.monotonic_ns()-begin)/1e6)
+
+        def measured_response(self, value):
+            call = self._calls.get(value.get("id"))
+            method = call.method if call is not None else None
+            begin = time.monotonic_ns()
+            try:
+                return response(self, value)
+            finally:
+                record("rpc_response_received", request_id=value.get("id"),
+                       method=method, begin_ns=begin,
+                       duration_ms=(time.monotonic_ns()-begin)/1e6)
+
+        AgentProcess.send = measured_send
+        jsonrpc.API._process_method_response = measured_response
         constructor = Widget.__init__
         preprocess = Widget._pre_process
 
@@ -242,14 +311,26 @@ def install_observer():
 
         async def measured_navigation(self, *args, _function=original_method, _name=method, **kwargs):
             begin = time.monotonic_ns()
+            profile = None
+            if (_function.__qualname__ == "MainScreen.prepare_presentation"
+                    and os.environ.get("TOAD_VALIDATION_OPEN_PROFILE")):
+                import cProfile
+                profile = cProfile.Profile()
+                profile.enable()
             try:
                 return await _function(self, *args, **kwargs)
             finally:
+                if profile is not None:
+                    profile.disable()
+                    path = f"{os.environ['TOAD_VALIDATION_OPEN_PROFILE']}-{begin}.pstats"
+                    profile.dump_stats(path)
+                    record("navigation_profile", function=_function.__qualname__, path=path)
                 record("navigation_stage", stage=_name, begin_ns=begin,
                        function=_function.__qualname__, object_id=id(self),
                        duration_ms=(time.monotonic_ns()-begin)/1e6,
                        mode=args[0] if _name == "_switch_mode_ready" and args else
                        self.app.current_mode if hasattr(self, "app") else None,
+                       task=type(args[0]).__name__ if _name == "_submit" and args else None,
                        owner=type(self).__name__)
 
         # MroDispatch reads the current method declarations. Copy the original
