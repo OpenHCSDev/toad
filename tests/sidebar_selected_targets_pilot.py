@@ -173,6 +173,36 @@ async def main():
             assert tuple(item.target for item in app.sidebar_state.selected_targets) == expected
             assert channel.has_class('-selected') and endpoint.has_class('-selected')
             assert app.selected_mode == original_mode
+
+            # A channel archive is the catalog's reversible visibility state,
+            # not an archive of its threads. Exercise the actual single-target
+            # menu and confirmation, then its published sidebar removal.
+            assert await pilot.click(channel)
+            await pilot.pause()
+            await sidebar.observation.sync()
+            await pilot.pause()
+            channel = sidebar.projection.channels['#alpha']
+            channel.scroll_visible(animate=False, immediate=True)
+            await pilot.pause()
+            original_registry = comms.registry.snapshot()
+            assert await pilot.click(channel, button=3)
+            async with asyncio.timeout(10):
+                while not (isinstance(app.screen, ContextMenu) and app.screen.is_mounted):
+                    await pilot.pause()
+            item = next(item for item in app.screen.query(ContextMenuItem)
+                        if item.action == 'archive-channel')
+            assert await pilot.click(item)
+            async with asyncio.timeout(10):
+                while not (isinstance(app.screen, CommandDialog) and app.screen.is_mounted):
+                    await pilot.pause()
+            assert app.screen.definition.targets == ('#alpha',)
+            await pilot.click('#command-confirmed')
+            await pilot.click('#command-apply')
+            async with asyncio.timeout(10):
+                while app.thread_actions.requests or '#alpha' in sidebar.projection.channels:
+                    await pilot.pause()
+            assert comms.channels.catalog.read().resolve('#alpha').archived
+            assert comms.registry.snapshot() == original_registry
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
     print('PASS: native thread/channel Ctrl toggle and Shift range, preserved right-click selection/scroll, real dialog/archive, mixed catalog and honest partial-failure notification')

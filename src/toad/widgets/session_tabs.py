@@ -46,6 +46,7 @@ class SessionTabClose(widgets.Static, can_focus=True):
     """Close a tab without selecting it or deleting its saved thread."""
 
     ALLOW_SELECT = False
+    FOCUS_ON_CLICK = False
     BINDINGS: ClassVar[list[BindingType]] = [("enter,space", "close_tab", "Close tab")]
     DEFAULT_CSS = """
     SessionTabClose {
