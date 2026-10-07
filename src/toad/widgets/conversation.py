@@ -1616,14 +1616,26 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
 
     @work(group='command-catalog', exclusive=True, exit_on_error=False)
     async def update_slash_commands(self) -> None:
-        """Update slash commands, which may have changed since mounting."""
+        """Prepare choices only for the prompt that can actually paint them.
+
+        Hidden sources keep their display resource and refresh on selection;
+        command execution always reacquires current backend applicability.
+        """
+        from toad.screens.session_view import SessionView
+
+        if not self.is_attached:
+            return
+        source = self.query_ancestor(SessionView)
+        if not source.is_current:
+            return
         try:
             catalog = await self.read_command_catalog()
         except (OSError, ValueError) as error:
             self.prompt.slash_commands = []
             self.flash(str(error), style='error')
         else:
-            self.prompt.slash_commands = catalog.commands
+            if self.is_attached and source.is_current:
+                self.prompt.slash_commands = catalog.commands
 
     async def read_command_catalog(self) -> CommandCatalog:
         from toad.screens.session_view import SessionView
@@ -1640,6 +1652,10 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
 
     @handles(core_events.CoordinationObserved)
     async def _command_source_changed(self, event: CoreEventMessage) -> None:
+        self.prompt.slash_complete.refresh_commands()
+
+    @handles(core_events.SessionSelected, core_events.OpenTabsChanged)
+    async def _selected_commands_changed(self, event: CoreEventMessage) -> None:
         self.update_slash_commands()
 
     async def on_mount(self) -> None:
@@ -1723,10 +1739,6 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             event.stop()
             return
         await ConversationCommsConsumer(self, event).dispatch(event.event.update)
-
-    @handles(core_events.OpenTabsChanged)
-    async def _open_tabs_changed(self, event: CoreEventMessage) -> None:
-        self.update_slash_commands()
 
     @handles(input_events.GoalControlActivated)
     async def on_goal_control(self, event: CoreEventMessage):
