@@ -53,12 +53,12 @@ async def check():
             assert "Indexing" in tab.render().plain, tab.render().plain
             assert "(0)" not in row_text() and "(0)" not in tab.render().plain
             async with asyncio.timeout(45):
-                while "worker" in app._sidebar_snapshot.thread_unread_pending:
+                while "worker" in app.coordination_access.sidebar_snapshot.wire.thread_unread_pending:
                     await sidebar.observation.sync()
                     await pilot.pause(.02)
             await sidebar.observation.sync()
             await pilot.pause()
-            assert app._sidebar_snapshot.thread_unread["worker"] == records
+            assert app.coordination_access.sidebar_snapshot.wire.thread_unread["worker"] == records
             assert f"({records})" in row_text(), row_text()
             assert f"({records})" in tab.render().plain, tab.render().plain
             assert "Indexing" not in row_text() and "Indexing" not in tab.render().plain

@@ -218,7 +218,7 @@ class SidebarSettings(SettingsGroup):
         wire_name="show_stopped",
     )
     show_archived = BooleanSetting(
-        title="Show archived threads in Channels?",
+        title="Show archived channels and threads?",
         default=False,
         wire_name="show_archived",
     )

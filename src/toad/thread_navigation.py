@@ -47,10 +47,13 @@ class ThreadNavigator:
         source = self.source(owner_mode)
         if source is None:
             return app.selected_mode
+        origin = ThreadOrigin.capture(app, source)
         try:
-            requested_root = str(current_root())
+            requested_root = str(await app.preparation.run_thread(current_root))
         except (OSError, ValueError, RuntimeError) as error:
             app.notify(str(error), title="Thread unavailable", severity="error")
+            return app.selected_mode
+        if not origin.current(self, owner_mode):
             return app.selected_mode
         mounted_root = str(Path(requested_root).expanduser())
         open_threads = []
@@ -68,7 +71,7 @@ class ThreadNavigator:
         key = owner_mode, request.root, request.target
         if pending := self.pending.get(key):
             return await asyncio.shield(pending.task)
-        opening = ThreadOpening(self, owner_mode, request, ThreadOrigin.capture(app, source))
+        opening = ThreadOpening(self, owner_mode, request, origin)
         self.pending[key] = opening
         return await asyncio.shield(opening.task)
 

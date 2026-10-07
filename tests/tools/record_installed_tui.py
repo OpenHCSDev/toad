@@ -798,6 +798,12 @@ class PhysicalJourney(DeclaredFamily, affix="Journey"):
                 marker_command() + "sidebar-revealed")
 
     @classmethod
+    def ready_command(cls, args, label, thread):
+        return (marker_command() + f"{label} --wait-history-seconds {args.history_wait_seconds:g} "
+                f"--wait-history-interval {args.history_wait_interval:g} "
+                f"--wait-history-thread {shlex.quote(thread)}")
+
+    @classmethod
     @abstractmethod
     def script(cls, args): ...
 
@@ -838,6 +844,35 @@ class ObserveJourney(PhysicalJourney):
     @classmethod
     def script(cls, args):
         return ""
+
+
+class SidebarPanelsJourney(PhysicalJourney):
+    """Observe real retained right panels without editing or submitting input."""
+
+    motion_phases = ("right-panels-scroll-down", "right-panels-scroll-up",
+                     "right-sidebar-hide", "right-sidebar-return")
+
+    @classmethod
+    def script(cls, args):
+        if not args.capture_state:
+            raise ValueError("Sidebar panels require original native target captures")
+        marker = marker_command()
+        settle = f"sleep {args.navigation_settle_seconds:g}"
+        viewport = dict(target="widget", name="SidebarViewport#sidebar-panels",
+                        within="SessionThreadSidebar")
+        return "\n".join((
+            marker + "right-before",
+            native_click_command("phase-right-before-state.pickle", target="right_sidebar"),
+            settle, marker + "right-panels-open", marker + "right-panels-scroll-down",
+            native_click_command("phase-right-panels-open-state.pickle", **viewport, wheel=6),
+            settle, marker + "right-panels-down", marker + "right-panels-scroll-up",
+            native_click_command("phase-right-panels-down-state.pickle", **viewport, wheel=-6),
+            settle, marker + "right-panels-up", marker + "right-sidebar-hide",
+            native_click_command("phase-right-panels-up-state.pickle", target="right_sidebar"),
+            settle, marker + "right-sidebar-hidden", marker + "right-sidebar-return",
+            native_click_command("phase-right-sidebar-hidden-state.pickle", target="right_sidebar"),
+            settle, marker + "right-sidebar-restored", "",
+        ))
 
 
 class ChannelDisclosureJourney(PhysicalJourney):
@@ -1030,12 +1065,6 @@ class WarmScrollJourney(ScrollJourney):
     @classmethod
     def closing_commands(cls, args):
         return ()
-
-    @classmethod
-    def ready_command(cls, args, label, thread):
-        return (marker_command() + f"{label} --wait-history-seconds {args.history_wait_seconds:g} "
-                f"--wait-history-interval {args.history_wait_interval:g} "
-                f"--wait-history-thread {shlex.quote(thread)}")
 
     @classmethod
     def peer_click(cls, args):
@@ -1360,6 +1389,13 @@ class SidebarWheelJourney(SidebarMotion, WheelWarmJourney):
                 native_click_command("phase-right-panels-before-state.pickle", target="widget",
                                      name="SidebarViewport#sidebar-panels",
                                      within="SessionThreadSidebar", wheel=6),
+                settle, marker + "context-panel-before",
+                native_click_command("phase-context-panel-before-state.pickle", target="widget",
+                                     name="CollapsibleTitle", within="SideBarCollapsible#context-panel"),
+                # The native title click collapses this initially expanded panel;
+                # Enter reopens it with focus retained on its original title.
+                # ContextExplorer declares search + four buttons before its Tree.
+                "key Return", "key --repeat 6 --repeat-delay 50 Tab",
                 settle, marker + "context-before",
                 marker + "context-scroll-down",
                 native_click_command("phase-context-before-state.pickle", target="context_tree", wheel=6),
@@ -1438,19 +1474,46 @@ class StationaryInputScrollJourney(ScrollJourney):
         return result
 
 class SavedTabCloseJourney(PhysicalJourney):
+    motion_phases = ("close",)
+
     @classmethod
     def script(cls, args):
+        if not args.capture_state or not args.peer_thread:
+            raise ValueError("Tab closure requires native capture and an explicit existing peer")
         marker = marker_command()
         settle = f"sleep {args.navigation_settle_seconds:g}"
         return "\n".join([
-            marker + "open-existing", f"mousemove --sync {args.other_agent_x} {args.other_agent_y}",
-            "click 1", settle, marker + "existing-opened",
-            f"mousemove --sync {args.return_tab_x} {args.close_tab_y}", "click 1", settle,
-            marker + "close", f"mousemove --sync {args.close_tab_x} {args.close_tab_y}",
-            "click 1", settle, marker + "close-done",
-            marker + "reopen", f"mousemove --sync {args.reopen_agent_x} {args.reopen_agent_y}",
-            "click 1", settle, marker + "reopened", "",
+            *cls.opening_commands(args),
+            cls.ready_command(args, "open-existing", cls.history_thread(args)),
+            native_click_command("phase-open-existing-state.pickle", target="thread", name=args.peer_thread),
+            cls.ready_command(args, "existing-opened", args.peer_thread),
+            marker + "close",
+            native_click_command("phase-close-state.pickle", target="peer_tab_close",
+                                 original_state="phase-open-existing-state.pickle"),
+            settle, marker + "close-done", marker + "reopen",
+            native_click_command("phase-reopen-state.pickle", target="thread", name=args.peer_thread),
+            cls.ready_command(args, "reopened", args.peer_thread), "",
         ])
+
+    @classmethod
+    def review(cls, output, receipt):
+        from scroll_observation import NativePhase
+
+        labels = ("open-existing", "existing-opened", "close-done", "reopened")
+        phases = {label: NativePhase.read(output, label) for label in labels}
+        original, peer, returned, reopened = (phases[label] for label in labels)
+        closed = json.loads((output / "phase-close-done-state.json").read_text())
+        result = {"checks": {
+            "peer_opened": peer.mode != original.mode,
+            "original_selected_after_close": returned.mode == original.mode,
+            "original_editor_retained": returned.editor == original.editor,
+            "original_history_retained": returned.window == original.window,
+            "closed_tab_retired": all(tab["name"] != peer.mode
+                                      for tab in closed["navigation_targets"]["tabs"]),
+            "peer_reopened_as_new_admission": reopened.mode not in (original.mode, peer.mode),
+        }, "scope": "Native close/return and reopen; gesture bounds are not input-to-photon timing"}
+        (output / "tab-close-review.json").write_text(json.dumps(result, indent=2) + "\n")
+        return result
 
 
 class CaptureTarget(DeclaredFamily, affix="Capture"):
@@ -2643,13 +2706,6 @@ def main():
     parser.add_argument("--peer-thread", help="Actual existing private peer for the warm native roster click")
     parser.add_argument("--peer-channel", help="Actual channel roster target for the shared view lifetime journey")
     parser.add_argument("--write-journey-script", type=Path, help="Write the selected canonical physical script, then exit")
-    parser.add_argument("--close-tab-x", type=int, default=294, help="Verified saved tab close control X coordinate")
-    parser.add_argument("--close-tab-y", type=int, default=40, help="Verified saved tab close control Y coordinate")
-    parser.add_argument("--other-agent-x", type=int, default=180, help="Verified existing peer roster X coordinate")
-    parser.add_argument("--other-agent-y", type=int, default=240, help="Verified existing peer roster Y coordinate")
-    parser.add_argument("--return-tab-x", type=int, default=225, help="Verified original tab X coordinate")
-    parser.add_argument("--reopen-agent-x", type=int, default=180, help="Verified original agent roster X coordinate")
-    parser.add_argument("--reopen-agent-y", type=int, default=200, help="Verified original agent roster Y coordinate")
     parser.add_argument("--navigation-settle-seconds", type=float, default=2,
                         help="Physical navigation observation interval within the capture deadline")
     parser.add_argument("--history-wait-seconds", type=float, default=10,
@@ -2706,11 +2762,6 @@ def main():
         parser.error("Scroll idle observation must be positive and shorter than capture duration")
     if not math.isfinite(args.scroll_hold_seconds) or not 0 < args.scroll_hold_seconds < args.max_duration:
         parser.error("Scroll hold must be positive and shorter than capture duration")
-    if not (all(0 <= value < args.width for value in
-                (args.close_tab_x, args.other_agent_x, args.return_tab_x, args.reopen_agent_x))
-            and all(0 <= value < args.height for value in
-                    (args.close_tab_y, args.other_agent_y, args.reopen_agent_y))):
-        parser.error("Navigation coordinates must be within the isolated recording screen")
     if not math.isfinite(args.navigation_settle_seconds) or not 0 < args.navigation_settle_seconds < args.max_duration:
         parser.error("Navigation observation must be positive and shorter than capture duration")
     if not math.isfinite(args.history_wait_seconds) or not 0 < args.history_wait_seconds < args.max_duration:

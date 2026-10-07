@@ -145,7 +145,9 @@ class SessionAdmissions:
             return app.selected_mode
         origin = ThreadOrigin.capture(app, source)
         try:
-            requested_root = str(current_root())
+            requested_root = str(await app.preparation.run_thread(current_root))
+            if not origin.current(app.thread_navigation, owner_mode):
+                return app.selected_mode
             prepared = await app.navigation_reader.read(CommsNavigationRequest(
                 requested_root, owner_mode, me, target, kind, source.coordination_root))
         except Exception as error:
@@ -153,7 +155,11 @@ class SessionAdmissions:
             return app.selected_mode
         if prepared is None:
             return app.selected_mode
-        if not origin.current(app.thread_navigation, owner_mode) or not root_is_current(requested_root):
+        if not origin.current(app.thread_navigation, owner_mode):
+            return app.selected_mode
+        if not await app.preparation.run_thread(root_is_current, requested_root):
+            return app.selected_mode
+        if not origin.current(app.thread_navigation, owner_mode):
             return app.selected_mode
         # History admission is the only owner of this typed key. Workspace
         # factories carry its identity, so no key-to-mode mirror can go stale.
@@ -186,7 +192,8 @@ class SessionAdmissions:
 
     @property
     def tabs(self) -> tuple[OpenTab, ...]:
-        return self.app.tab_order.project({entry.mode: entry.tab(self, self.app._sidebar_snapshot)
+        snapshot = self.app.coordination_access.sidebar_snapshot
+        return self.app.tab_order.project({entry.mode: entry.tab(self, snapshot)
                                           for entry in self.members})
 
     def sync_identity(self, owner: str, previous: str, current: str) -> None:

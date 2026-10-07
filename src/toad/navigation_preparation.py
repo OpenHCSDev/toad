@@ -180,7 +180,9 @@ class ThreadOpening:
                 return navigator.app.selected_mode
             if not self.origin.current(navigator, self.owner_mode):
                 return navigator.app.selected_mode
-            if not root_is_current(self.request.root):
+            if not await navigator.app.preparation.run_thread(root_is_current, self.request.root):
+                return navigator.app.selected_mode
+            if not self.origin.current(navigator, self.owner_mode):
                 return navigator.app.selected_mode
             return await prepared.open(self)
         except Exception as error:

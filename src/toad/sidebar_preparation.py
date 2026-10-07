@@ -29,7 +29,8 @@ class ThreadRowInput:
         person = self.person
         presentation = person.presentation
         return ThreadRowPresentation(
-            person.thread.incarnation, presentation.label, presentation.summary, presentation.busy,
+            person.thread.incarnation, presentation.title, presentation.label,
+            presentation.summary, presentation.busy,
             person.runtime.model if person.runtime else person.thread.model,
             self.unread, self.pinned, self.action_status,
         )
@@ -40,6 +41,7 @@ class ThreadRowPresentation:
     """Exact display inputs; poll timestamps and authority graphs are not output."""
 
     incarnation: ThreadIncarnation
+    title: str
     label: str
     summary: str
     busy: bool
@@ -105,6 +107,10 @@ class ThreadRowsWork(SerializedWork[tuple[PreparedThreadRow, ...]],
     @property
     def inputs(self) -> tuple[ThreadRowPresentation, ...]:
         return self.rows
+
+    def for_thread(self, name: str) -> ThreadRowPresentation | None:
+        """Borrow this publication's original captured answer, without rereading a process."""
+        return next((row for row in self.rows if row.name == name), None)
 
     def for_rows[Key](self, rows: Mapping[Key, ThreadRowInput]) -> dict[Key, ThreadRowPresentation]:
         """Project row-local decoration from this publication's captured people."""

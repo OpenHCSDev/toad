@@ -44,18 +44,23 @@ class SidebarNavigation:
             self.state.channel_scroll_y = channel.scroll_y
             self.state.panel_scroll_y = panels.scroll_y
 
-    def prepare(self) -> None:
+    async def prepare(self) -> None:
         self.revision += 1
+        revision = self.revision
         self.ready.clear()
         # Retained rows belong to their validated route. Hide a changed route
         # before its first frame; ordinary same-route tab switches keep the
         # already-rendered roster while the canonical refresh runs afterward.
         if self.sidebar.observation.enabled and self.sidebar.projection.has_snapshot():
+            snapshot = self.sidebar.projection.snapshot
             try:
-                if self.sidebar.observation.route_changed():
+                if (await self.sidebar.observation.route_changed()
+                        and self.revision == revision
+                        and self.sidebar.projection.snapshot is snapshot):
                     self.sidebar.display = False
             except (OSError, ValueError):
-                self.sidebar.display = False
+                if self.revision == revision and self.sidebar.projection.snapshot is snapshot:
+                    self.sidebar.display = False
 
     def start(self) -> None:
         """Rebuild native rows only after the selected shell has been painted."""

@@ -75,13 +75,13 @@ async def main(title: str | None = None, *, cold_metadata: bool = False) -> None
         original_compose = SessionsTabs.compose
 
         def compose_before_metadata(tabs: SessionsTabs):
-            snapshot = app._sidebar_snapshot
+            snapshot = app.coordination_access.sidebar_snapshot
             if cold_metadata:
-                app._sidebar_snapshot = None
+                app.coordination_access.sidebar_snapshot = None
             try:
                 yield from original_compose(tabs)
             finally:
-                app._sidebar_snapshot = snapshot
+                app.coordination_access.sidebar_snapshot = snapshot
 
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()

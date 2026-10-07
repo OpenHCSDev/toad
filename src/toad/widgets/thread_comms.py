@@ -319,7 +319,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             if wire_root is not None:
                 from toad.widgets.thread_comms_source import WireRelationshipSource
 
-                source = WireRelationshipSource(wire_root, self.app.coordination_access.service)
+                source = WireRelationshipSource(wire_root, self.app.coordination_access.observed_service)
         if (owner, wire_root) == (self.owner, self.wire_root) and source is self._source:
             return
         for group in self.groups.values():
@@ -501,11 +501,15 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             visible.set_class(visible is row, "-selected")
 
     def unread(self, target: NavigationTarget):
-        snapshot = self.app._sidebar_snapshot
+        access = self.app.coordination_access
+        snapshot = access.sidebar_snapshot
+        # These are paint answers from the acquired publication, not a fresh
+        # route selection or navigation admission for each individual row.
         if (snapshot is None or self.wire_root is None
-                or Path(self.wire_root).resolve() != self.app.coordination_access.service.root.resolve()):
+                or snapshot.service is not access.observed_service
+                or Path(self.wire_root).resolve() != snapshot.service.root.resolve()):
             return ExactUnread()
-        return target.unread(snapshot)
+        return target.unread(snapshot.wire)
 
     def open_target(self, target: NavigationTarget):
         if self.wire_root is None or Path(self.wire_root).resolve() != self.app.coordination_access.service.root.resolve():

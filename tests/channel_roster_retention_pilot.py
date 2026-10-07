@@ -84,7 +84,7 @@ async def main():
                     "Warm channel rows retired on tab switch", mode)
             assert all(sidebar is sidebars[first] for sidebar in sidebars.values())
             await app.select_session("store")
-            with patch.object(sidebar.observation, "current_route_stamp", wraps=sidebar.observation.current_route_stamp) as probe:
+            with patch.object(app.coordination_access, "current_route_stamp", wraps=app.coordination_access.current_route_stamp) as probe:
                 sidebar.observation.refresh()
                 assert not probe.called, "A parked shared roster still polls its source"
             await app.select_session(channel)
@@ -114,10 +114,10 @@ async def main():
             assert all(sidebar.projection.channels[key] is item for key, item in retained.items())
 
             # Retention is not route authority. A route change hides old rows
-            # synchronously; the normal validated refresh can show them again.
-            stamp = sidebar.observation.current_route_stamp()
-            with patch.object(sidebar.observation, "current_route_stamp", return_value=((0, 1, 2, 3), stamp[1])):
-                sidebar.navigation.prepare()
+            # before navigation completes; validated refresh can show them again.
+            stamp = app.coordination_access.current_route_stamp()
+            with patch.object(app.coordination_access, "current_route_stamp", return_value=((0, 1, 2, 3), stamp[1])):
+                await sidebar.navigation.prepare()
                 assert not sidebar.display
                 assert all(item.is_attached for item in retained.values())
             sidebar.observation.refresh()

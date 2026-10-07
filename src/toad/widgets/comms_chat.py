@@ -19,7 +19,6 @@ from agent_comms.mro_dispatch import handles
 from toad.core import events as core_events
 from toad.message_viewport import NotificationViewport
 from agent_comms.messages import Message as WireMessage
-from agent_comms.comms import wire
 from textual import containers, work
 from textual.app import ComposeResult
 from textual.content import Content
@@ -59,9 +58,13 @@ def session_thread_name(project_path) -> str:
 
 
 def resolve_session_thread(
-    comms, project_path: Path, preferred: str | None = None
+    comms, project_path: Path, preferred: str | None = None, *, source_root: str | None = None,
 ) -> str | None:
-    """Resolve Toad's wire identity from the registry's authoritative worktree."""
+    """Resolve an exact bound thread or an unbound project's registry identity."""
+    if source_root is not None:
+        if Path(source_root).expanduser().resolve() != comms.root.resolve():
+            raise ValueError("Comms route changed; this session retains its former wire")
+        return comms.registry.require(preferred).name
     project = Path(project_path).expanduser().resolve()
     threads = comms.registry.all_threads()
     if preferred:
@@ -142,7 +145,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
         # Reuse the canonical core service already shared by tab sidebars and
         # transcript readers. Its revision-aware caches remain model-owned.
         try:
-            root = _comms_root().resolve()
+            root = await self.app.preparation.run_thread(_comms_root)
         except (OSError, ValueError, RuntimeError):
             self.display = False
             return
@@ -154,8 +157,12 @@ class CommsChatView(DeliveryFailureView, Conversation):
             INITIAL_HISTORY_PAGE_SIZE, HISTORY_PAGE_SIZE, HISTORY_PAGE_BYTES,
         )
 
-        comms = (self.app.coordination_access.service if root == self.app.coordination_access.service.root
-                 else wire(root))
+        shared = await self.app.preparation.run_thread(
+            lambda: self.app.coordination_access.service)
+        if shared.root != root:
+            self.display = False
+            return
+        comms = shared
         self.message_history.reader = ChannelHistoryReader(InitialHistoryReadRequest(
             comms, self.conversation_kind, self.target, Path(self.project_path),
             INITIAL_HISTORY_PAGE_SIZE, HISTORY_PAGE_SIZE, HISTORY_PAGE_BYTES,
@@ -244,27 +251,27 @@ class CommsChatView(DeliveryFailureView, Conversation):
         return self.message_history.viewport(NotificationViewport).visible_rows()
 
     async def _read_thread_activity(self):
-        from toad.comms_root import root_is_current
-
-        reader = self.message_history.reader
+        history = self.message_history
+        reader = history.reader
         if reader is None:
             return None
+        snapshot = history.source_snapshot()
         comms, target = reader.comms, self.target
-        if not root_is_current(comms.root):
+        if not await history.source_is_current(snapshot):
             raise ValueError("Comms route changed")
         presentation = await asyncio.to_thread(read_thread_presentation, comms, target)
-        if reader is not self.message_history.reader or target != self.target or not root_is_current(comms.root):
+        if not await history.source_is_current(snapshot) or target != self.target:
             raise ValueError("Comms route changed")
         return presentation
 
     async def _read_notifications(self, rows: tuple[tuple[WireMessage, Widget], ...]) -> None:
-        from toad.comms_root import root_is_current
-
-        reader = self.message_history.reader
+        history = self.message_history
+        reader = history.reader
         if reader is None:
             return
+        snapshot = history.source_snapshot()
         comms, target = reader.comms, self.target
-        if not root_is_current(comms.root):
+        if not await history.source_is_current(snapshot):
             return
         error = None
         try:
@@ -273,9 +280,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
             )
         except Exception as failure:
             error, results = failure, {}
-        if (not self.is_attached or self.message_history.reader is not reader or self.target != target
-                or not self.query_ancestor(SessionView).is_current
-                or not root_is_current(comms.root)):
+        if not await history.source_is_current(snapshot) or self.target != target:
             return
         visible = {widget for _, widget in self._visible_notification_rows()}
         for message, widget in rows:
@@ -293,22 +298,23 @@ class CommsChatView(DeliveryFailureView, Conversation):
             return
         if not self.query_ancestor(SessionView).is_current:
             return
-        from toad.comms_root import root_is_current
-
-        if not root_is_current(self.message_history.reader.comms.root):
-            self.display = False
-            return
         self._refresh_notifications()
         return self.message_history.schedule_source_work(self._refresh_source)
 
     async def _refresh_source(self) -> None:
-        from toad.comms_root import root_is_current
         from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
 
         try:
-            comms = self.message_history.reader.comms
+            history = self.message_history
+            snapshot = history.source_snapshot()
+            if not await history.source_is_current(snapshot):
+                if snapshot.current(history):
+                    self.display = False
+                return
+            reader = history.reader
+            comms = reader.comms
             catalog = await asyncio.to_thread(comms.channels.catalog.read)
-            if not self.is_attached or not self.query_ancestor(SessionView).is_current:
+            if not await history.source_is_current(snapshot):
                 return
             read_only = self.conversation_kind.read_only(catalog, self.target)
             if read_only:
@@ -319,17 +325,15 @@ class CommsChatView(DeliveryFailureView, Conversation):
             if show_loading:
                 self.on_work_started()
             try:
-                reader = self.message_history.reader
                 read = await reader.read(self.message_history.follows_tail)
             finally:
                 if show_loading:
                     self.on_work_finished()
-            if not self.is_attached or not self.query_ancestor(SessionView).is_current:
+            if not await history.source_is_current(snapshot):
+                if snapshot.current(history):
+                    self.display = False
                 return
-            if reader is not self.message_history.reader or not reader.current(read, self.message_history.follows_tail):
-                return
-            if not root_is_current(comms.root):
-                self.display = False
+            if not reader.current(read, self.message_history.follows_tail):
                 return
             revision = read.revision
             if reader.source.matches_revision(revision):
@@ -340,11 +344,14 @@ class CommsChatView(DeliveryFailureView, Conversation):
             if not await self.message_history.publish(read):
                 return
             follow = read.follow_tail
+            snapshot = history.source_snapshot()
             await self.conversation_kind.update_roster(self, comms)
-            if not self.is_attached or not self.query_ancestor(SessionView).is_current:
+            if not await history.source_is_current(snapshot):
+                if snapshot.current(history):
+                    self.display = False
                 return
-            if not root_is_current(comms.root):
-                self.display = False
+            if (not self.is_attached or reader is not self.message_history.reader
+                    or not self.query_ancestor(SessionView).is_current):
                 return
             self.call_after_refresh(self.message_history.mark_visible)
         except (CoordinationReadUnavailable, StaleRevision):
@@ -358,7 +365,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
 
         target = self.target
         info = await self.conversation_kind.agent_info(comms, target)
-        if not self.is_attached or self.target != target:
+        if not await history.source_is_current(snapshot) or self.target != target:
             return
         if self._unknown_send is not None:
             root_id, sequence, message_id = self._unknown_send
@@ -399,9 +406,12 @@ class CommsChatView(DeliveryFailureView, Conversation):
         try:
             from toad.comms_root import implicit_root, root_is_current, run_selected_write
 
-            if self.message_history.reader is None or not root_is_current(self.message_history.reader.comms.root):
+            reader = self.message_history.reader
+            if (reader is None
+                    or not await self.app.preparation.run_thread(root_is_current, reader.comms.root)
+                    or reader is not self.message_history.reader):
                 raise ValueError("Comms route changed; reopen this view before sending")
-            comms = self.message_history.reader.comms
+            comms = reader.comms
             catalog = await asyncio.to_thread(comms.channels.catalog.read)
             if self.conversation_kind.read_only(catalog, self.target):
                 self.prompt.text = event.body
@@ -467,7 +477,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
             self.status = self._send_block_reason
             self.prompt.prompt_text_area.tooltip = self.status
             return
-        if root_is_current(comms.root) and any(
+        if await self.app.preparation.run_thread(root_is_current, comms.root) and any(
             message.message_id == receipt.message_id and message.seq == receipt.seq
             for message, _ in self.message_history.rows
         ):
@@ -482,7 +492,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
         self, comms: Comms, receipt: WireMessage, body: str,
         root_is_current: Callable[[str | Path], bool],
     ) -> None:
-        if not root_is_current(comms.root):
+        if not await self.app.preparation.run_thread(root_is_current, comms.root):
             # The send may already have reached the former wire. Do not
             # duplicate it on the successor or paint it under the new route.
             self.display = False

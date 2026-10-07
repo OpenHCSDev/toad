@@ -7,7 +7,6 @@ from functools import partial
 from pathlib import Path
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
-from agent_comms.comms import Comms
 from agent_comms.mro_dispatch import MroDispatch, handles
 from textual import containers, getters, on
 from textual.app import ComposeResult
@@ -20,6 +19,7 @@ from textual.widget import Widget
 from textual.widgets import (
     DirectoryTree,
     OptionList,
+    Static,
     Tree,
 )
 
@@ -33,7 +33,7 @@ from toad.session_tracker import SidebarState
 from toad.widgets.comms_chat import resolve_session_thread, session_thread_name
 from toad.core.input_events import SelectTarget
 from toad.widgets.comms_sidebar import CommsSidebar, CoordinationStatus
-from toad.widgets.conversation import Conversation, ThreadLoading
+from toad.widgets.conversation import Conversation
 from toad.widgets.footer import Footer
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton
@@ -162,7 +162,6 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
         self._agent = agent
         self._agent_session_id = agent_session_id
         self.initial_coordination_root: str | None = None
-        self._identity_wire: Comms | None = None
         self._comms_thread = (
             ""
             if agent is not None and agent.identity == "agent-comms.openhcs.dev"
@@ -245,7 +244,7 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
             with containers.Vertical(id="session-content"):
                 yield self.presentation.compose_content(self)
                 if self._agent is not None:
-                    yield ThreadLoading(id="session-opening")
+                    yield Static("Opening thread…", id="session-opening")
 
     def _make_conversation(self) -> Conversation:
         with self._context():
@@ -342,33 +341,24 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
 
     @property
     def _session_thread(self) -> str:
-        return self._resolve_comms_thread()
+        """Project the identity published by this session, without reacquiring it."""
+        return self._comms_thread
 
     def _resolve_comms_thread(self) -> str:
         resolved: str | None
         try:
-            from agent_comms.comms import wire
+            from toad.comms_root import current_root
 
-            from toad.comms_root import current_root, root_is_current
-
-            if self.coordination_root is not None and not root_is_current(
-                self.coordination_root
-            ):
+            root = current_root()
+            source_root = self.coordination_root
+            if source_root is not None and Path(source_root).expanduser().resolve() != root:
                 raise ValueError("Comms route changed; this session retains its former wire")
-            root_path = (
-                Path(self.coordination_root).expanduser()
-                if self.coordination_root is not None
-                else current_root()
+            service = self.app.coordination_access.observed_service
+            if service is None or service.root.resolve() != root:
+                service = self.app.coordination_access.service
+            resolved = resolve_session_thread(
+                service, self.project_path, self._comms_thread, source_root=source_root,
             )
-            if self._identity_wire is None or self._identity_wire.root != root_path:
-                shared = self.app.coordination_access.service
-                self._identity_wire = shared if shared.root == root_path else wire(root_path)
-            if self.coordination_root is not None:
-                resolved = self._identity_wire.registry.require(self._comms_thread).name
-            else:
-                resolved = resolve_session_thread(
-                    self._identity_wire, self.project_path, self._comms_thread
-                )
         except Exception:
             resolved = None
         if resolved is not None:

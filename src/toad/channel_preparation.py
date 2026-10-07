@@ -153,7 +153,7 @@ class ChannelHistoryReader:
 
     def __init__(self, source: HistoryReadRequest) -> None:
         self.source = source
-        self._pending: set[asyncio.Task[HistoryReadResult] | asyncio.Task[MessagePage]] = set()
+        self._pending: set[asyncio.Task[HistoryReadResult] | asyncio.Task[MessagePage] | asyncio.Task[bool]] = set()
         self._closed = False
 
     @property
@@ -176,7 +176,13 @@ class ChannelHistoryReader:
                    limit: int) -> MessagePage:
         return await self._run(partial(self.source.page, before=before, after=after, limit=limit))
 
-    async def _run[T: (HistoryReadResult, MessagePage)](self, read: Callable[[], T]) -> T:
+    async def route_current(self) -> bool:
+        """Read the route on this reader's joined I/O lifetime."""
+        from toad.comms_root import root_is_current
+
+        return await self._run(partial(root_is_current, self.comms.root))
+
+    async def _run[T](self, read: Callable[[], T]) -> T:
         if self._closed:
             raise RuntimeError("Channel history reader is closed")
         task = asyncio.create_task(asyncio.to_thread(read), name="channel-history-read")

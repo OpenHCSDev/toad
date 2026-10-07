@@ -134,7 +134,8 @@ class FixtureApp(CoreEventReceiver, App):
         self.preparation = PreparationRuntime(LocalRenderer.start())
         self.thread_actions = SimpleNamespace(pending={})
         self.coordination_access = SimpleNamespace(service=SimpleNamespace(root=Path(source.root)), events=CoreEventStream(self))
-        self._sidebar_snapshot = SimpleNamespace(thread_unread={"peer": 22}, thread_unread_pending=frozenset(), unread={})
+        self.coordination_access.sidebar_snapshot = SimpleNamespace(wire=SimpleNamespace(
+            thread_unread={"peer": 22}, thread_unread_pending=frozenset(), unread={}))
         self.events = CoreEventStream(self)
         self.opened = []
 
