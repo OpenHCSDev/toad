@@ -107,10 +107,12 @@ class CoordinationAccess:
         return service
 
     async def read_sidebar(self, app, service: Comms, filters: tuple[bool, bool]):
-        """Acquire one original viewer publication and its row inputs.
+        """Acquire one original viewer publication for its native consumers.
 
         The service, revision, viewer worktree and declared filters are the
-        actual read scope. A retained view may borrow paint after activation,
+        actual read scope. Sidebar rows and channel composers borrow this same
+        publication only with their own matching declared filters. A retained
+        view may borrow paint after activation,
         but route replacement revokes this acquisition before delivery.
         """
         from toad.sidebar_snapshot import SidebarSnapshot
