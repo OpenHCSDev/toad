@@ -101,13 +101,20 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
 
 async def interaction_acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
     """Measure original sidebar frames and input while native ACP chunks arrive."""
-    from toad.widgets.side_bar import SideBar
+    from toad.widgets.side_bar import SideBar, SidebarSlider
+    import cProfile
 
     evidence = Path(os.environ['L0A_EVIDENCE'])
     view = app.selected_session.conversation
     release.set()
     hold_next.clear()
     await until(pilot, lambda: view.agent_ready)
+    if os.environ.get('STREAM_RESIZE_PROFILE') == '1':
+        # Panel hydration is independent of the first visible sidebar frame.
+        # Admit the original controls before starting the measured turn.
+        for selector in ('#channels-sidebar', '#thread-sidebar'):
+            bar = next(bar for bar in app.screen.query(selector) if bar.presentation_visible)
+            await asyncio.wait_for(bar.wait_content_ready(), 10)
     token = os.environ['STREAM_INPUT_TOKEN']
     view.prompt.text = token
     view.prompt.prompt_text_area.focus()
@@ -131,6 +138,32 @@ async def interaction_acceptance(app, pilot, agent, comms, entered, release, hol
                              'chunks_before': chunk_before, 'chunks_after': len(chunks)})
                 assert bar.collapsed != original
                 app.next_frame = None
+            if os.environ.get('STREAM_RESIZE_PROFILE') == '1':
+                if bar.collapsed:
+                    painted = app.next_frame = asyncio.get_running_loop().create_future()
+                    bar.toggle(focus=False)
+                    await asyncio.wait_for(painted, 5)
+                    app.next_frame = None
+                slider = bar.query_one('#sidebar-width-slider', SidebarSlider)
+                for direction in (-1, 1):
+                    assert comms.registry.require('beta').executing
+                    painted = app.next_frame = asyncio.get_running_loop().create_future()
+                    profile = app.frame_profiler = cProfile.Profile()
+                    before = app.sidebar_layout.get(bar.id).width_percent
+                    started = time.perf_counter()
+                    profile.enable()
+                    slider.action_step(direction)
+                    shown = await asyncio.wait_for(painted, 5)
+                    profile.disable()
+                    profile.dump_stats(str(evidence / f'{bar.id}-resize-{direction}.pstats'))
+                    rows.append({'sidebar': selector, 'action': 'resize',
+                                 'width_before': before,
+                                 'width_after': app.sidebar_layout.get(bar.id).width_percent,
+                                 'frame_ms': (shown-started)*1000,
+                                 'native_turn_busy_before': True})
+                    assert app.sidebar_layout.get(bar.id).width_percent == before + direction
+                    app.frame_profiler = None
+                    app.next_frame = None
         view.prompt.prompt_text_area.focus()
         started = time.perf_counter()
         # Pilot.press intentionally waits for global idle after every key.
@@ -150,6 +183,9 @@ async def interaction_acceptance(app, pilot, agent, comms, entered, release, hol
         assert len(requests) == 1
         assert app._exception is None
     finally:
+        if app.frame_profiler is not None:
+            app.frame_profiler.disable()
+            app.frame_profiler = None
         app.next_frame = None
         (evidence/'active-interactions.json').write_text(json.dumps({
             'sidebar_frames': rows, 'provider_chunks': chunks,

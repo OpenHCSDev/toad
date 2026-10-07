@@ -24,7 +24,6 @@ from agent_comms.acp_extension import (
     TranscriptChangedUpdate,
     TranscriptSnapshotUpdate,
     TurnChangedUpdate,
-    decode_updates,
 )
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.thread_presentation import ThreadPresentation
@@ -49,8 +48,13 @@ class CommsUpdateConsumer(MroDispatch):
         self.cursor_token = cursor_token
         self.queue_token = queue_token
 
-    def consume_metadata(self, metadata):
-        for fact in decode_updates(metadata):
+    async def consume_metadata(self, metadata):
+        from .sdk_boundary import DecodeCommsMetadataTask
+
+        authority = ClientSessionRequest(self.agent, self.session_id)
+        facts = await self.agent.controller.validation.validate(DecodeCommsMetadataTask(metadata))
+        authority.require()
+        for fact in facts:
             self.dispatch_sync(fact)
 
     def accepts_turn(self):

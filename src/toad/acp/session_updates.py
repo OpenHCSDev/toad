@@ -5,14 +5,13 @@ import asyncio
 from abc import abstractmethod
 from urllib.parse import quote
 
-from agent_comms.acp_extension import decode_updates
 from agent_comms.declared_family import DeclaredFamily
 from toad import jsonrpc
 
 from toad.core import events
 from toad.acp.client_session import ClientRequestOwner, ClientSessionRequest
 from toad.acp.context_measurement import ContextMeasurement
-from toad.acp.sdk_boundary import decode_session_update
+from toad.acp.sdk_boundary import ValidateSessionUpdateTask
 from agent_comms.mro_dispatch import MroDispatch, handles
 from acp.schema import (UserMessageChunk, AgentMessageChunk, AgentThoughtChunk,
     ToolCallStart, ToolCallProgress, AgentPlanUpdate, AvailableCommandsUpdate,
@@ -22,8 +21,12 @@ from toad.plan import decode_plan
 
 class SessionUpdateEffect(MroDispatch):
     """Effect registrations consume official SDK declarations, never raw shapes."""
-    def __init__(self, agent, route):
-        self.agent, self.route = agent, route
+    def __init__(self, agent, consumer):
+        self.agent, self.consumer = agent, consumer
+
+    @property
+    def route(self):
+        return self.consumer.route
 
     def require_supported(self, update):
         if not any(self.handlers_for(update)):
@@ -134,12 +137,8 @@ class SessionNotificationOwner(ClientRequestOwner):
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
         if authority.retired or not authority.binding.admits_notification(session_id):
             return
-        try:
-            accepted = decode_session_update(session_id, update, metadata)
-        except (ValueError, TypeError) as error:
-            self.reject(session_id, update, metadata, str(error))
-            return
-        self.publish(session_id, accepted)
+        ValidateSessionUpdateTask(session_id, update, metadata).execute().publish(
+            self, session_id, update, metadata)
 
     def reject(self, session_id, update, metadata, error):
         self.agent.log(
@@ -147,13 +146,12 @@ class SessionNotificationOwner(ClientRequestOwner):
             f"'update': {update!r}, '_meta': {metadata!r}}}; validation={error}")
         self.agent.events.publish(events.RejectedSessionUpdate())
 
-    def publish(self, session_id, update):
+    def publish(self, session_id, update, facts):
         metadata = update.update.field_meta
         consumer = self.agent.comms_consumer_class(self.agent, session_id)
-        effect = SessionUpdateEffect(self.agent, consumer.route)
+        effect = SessionUpdateEffect(self.agent, consumer)
         try:
             effect.require_supported(update.update)
-            facts = decode_updates(metadata)
         except (TypeError, ValueError) as error:
             self.reject(session_id, update, metadata, str(error))
             return

@@ -300,7 +300,7 @@ class AgentSession:
         assert response is not None
         self.agent.session_id = response.session_id
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
-        self.agent.comms_consumer_class(
+        await self.agent.comms_consumer_class(
             self.agent, self.agent.session_id,
             cursor_token=cursor_token, queue_token=queue_token,
         ).consume_metadata(response.field_meta)
@@ -378,7 +378,7 @@ class AgentSession:
         ):
             return
         assert response is not None
-        self.agent.comms_consumer_class(
+        await self.agent.comms_consumer_class(
             self.agent, self.agent.session_id,
             cursor_token=cursor_token, queue_token=queue_token,
         ).consume_metadata(response.field_meta)

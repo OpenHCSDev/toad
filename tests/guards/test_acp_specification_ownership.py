@@ -19,7 +19,7 @@ def test_external_vocabulary_has_one_behavior_family():
 
 def test_sdk_consumers_do_not_read_raw_protocol_records():
     assert not (ROOT / 'src/toad/acp/protocol.py').exists()
-    for relative in ('src/toad/acp/agent_session.py', 'src/toad/acp/session_updates.py', 'src/toad/acp/messages.py'):
+    for relative in ('src/toad/acp/agent_session.py', 'src/toad/acp/session_updates.py', 'src/toad/acp/wire_message.py'):
         tree = ast.parse((ROOT / relative).read_text())
         assert not any(isinstance(node, ast.Subscript) and isinstance(node.slice, ast.Constant)
                        and isinstance(node.slice.value, str) for node in ast.walk(tree)), relative
