@@ -7,7 +7,6 @@ from functools import partial
 from pathlib import Path
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
-from agent_comms.comms import Comms
 from agent_comms.mro_dispatch import MroDispatch, handles
 from textual import containers, getters, on
 from textual.app import ComposeResult
@@ -162,7 +161,6 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
         self._agent = agent
         self._agent_session_id = agent_session_id
         self.initial_coordination_root: str | None = None
-        self._identity_wire: Comms | None = None
         self._comms_thread = (
             ""
             if agent is not None and agent.identity == "agent-comms.openhcs.dev"
@@ -347,28 +345,18 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
     def _resolve_comms_thread(self) -> str:
         resolved: str | None
         try:
-            from agent_comms.comms import wire
+            from toad.comms_root import current_root
 
-            from toad.comms_root import current_root, root_is_current
-
-            if self.coordination_root is not None and not root_is_current(
-                self.coordination_root
-            ):
+            root = current_root()
+            source_root = self.coordination_root
+            if source_root is not None and Path(source_root).expanduser().resolve() != root:
                 raise ValueError("Comms route changed; this session retains its former wire")
-            root_path = (
-                Path(self.coordination_root).expanduser()
-                if self.coordination_root is not None
-                else current_root()
+            service = self.app.coordination_access.observed_service
+            if service is None or service.root.resolve() != root:
+                service = self.app.coordination_access.service
+            resolved = resolve_session_thread(
+                service, self.project_path, self._comms_thread, source_root=source_root,
             )
-            if self._identity_wire is None or self._identity_wire.root != root_path:
-                shared = self.app.coordination_access.service
-                self._identity_wire = shared if shared.root == root_path else wire(root_path)
-            if self.coordination_root is not None:
-                resolved = self._identity_wire.registry.require(self._comms_thread).name
-            else:
-                resolved = resolve_session_thread(
-                    self._identity_wire, self.project_path, self._comms_thread
-                )
         except Exception:
             resolved = None
         if resolved is not None:

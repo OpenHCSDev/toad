@@ -59,9 +59,13 @@ def session_thread_name(project_path) -> str:
 
 
 def resolve_session_thread(
-    comms, project_path: Path, preferred: str | None = None
+    comms, project_path: Path, preferred: str | None = None, *, source_root: str | None = None,
 ) -> str | None:
-    """Resolve Toad's wire identity from the registry's authoritative worktree."""
+    """Resolve an exact bound thread or an unbound project's registry identity."""
+    if source_root is not None:
+        if Path(source_root).expanduser().resolve() != comms.root.resolve():
+            raise ValueError("Comms route changed; this session retains its former wire")
+        return comms.registry.require(preferred).name
     project = Path(project_path).expanduser().resolve()
     threads = comms.registry.all_threads()
     if preferred:
