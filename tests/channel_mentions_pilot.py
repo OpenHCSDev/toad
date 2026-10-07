@@ -13,7 +13,7 @@ from agent_comms.comms import wire
 from toad.app import ToadApp
 from toad.widgets.channel_prompt import ChannelPrompt
 from toad.widgets.comms_chat import CommsChatView
-from toad.widgets.irc_message import IRCMessage
+from toad.widgets.irc_message import IRCMessage, IRCMessageText
 
 
 async def main():
@@ -48,8 +48,13 @@ async def main():
             assert len(history) == 1 and history[0].target == "#team"
             assert history[0].mentions[0].thread == "alpha"
             assert len(comms.bus.inbox("alpha")) == len(comms.bus.inbox("beta")) == 1
-            rendered = chat.query_one(IRCMessage).mentioned_body()
-            assert "@alpha" in rendered.plain and rendered.spans
+            rendered = chat.query_one(IRCMessage).query_one(IRCMessageText)
+            await rendered.wait_ready()
+            await pilot.pause()
+            assert "@alpha" in "\n".join(rendered.render_line(y).text for y in range(rendered.size.height))
+            assert any(segment.style and segment.style.meta.get("@click") ==
+                       ("open_target", ("alpha",))
+                       for strip in rendered._prepared.lines for segment in strip)
             prompt.text = "@"
             prompt.focus()
             await pilot.pause()
