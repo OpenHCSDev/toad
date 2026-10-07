@@ -1,6 +1,7 @@
 """Real private-store menu selection and batch archive through the native App."""
 import asyncio
 import os
+import sys
 from pathlib import Path
 import tempfile
 
@@ -208,5 +209,59 @@ async def main():
     print('PASS: native thread/channel Ctrl toggle and Shift range, preserved right-click selection/scroll, real dialog/archive, mixed catalog and honest partial-failure notification')
 
 
+async def multi_channel_removal():
+    """Apply the original disposition dialog to two real private channel tags."""
+    scratch = Path('/home/ts/.cache/agent-scratch/parent-tag-batch-installed-20261007')
+    scratch.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix='mounted-', dir=scratch) as directory:
+        root = Path(directory)
+        os.environ.update(AGENT_COMMS_ROOT=str(root / 'wire'),
+                          XDG_CONFIG_HOME=str(root / 'config'),
+                          XDG_STATE_HOME=str(root / 'state'),
+                          XDG_DATA_HOME=str(root / 'data'))
+        comms = Comms(root / 'wire', private_initial_writes=True)
+        for name, tag in (('batch-alpha', 'alpha'), ('batch-beta', 'beta')):
+            comms.registry.declare(Thread(name, frozenset({tag}), str(root)), StoppedThreadStatus())
+        comms.messaging.initialize_private_initial_protocol()
+        app = ToadApp(project_dir=str(root))
+        app.settings.sidebar.show_stopped = True
+        async with app.run_test(size=(130, 46), notifications=True) as pilot:
+            await pilot.pause()
+            sidebar = app.screen.query_one(CommsSidebar)
+            await sidebar.observation.sync()
+            await pilot.pause()
+            alpha = sidebar.projection.channels['#alpha']
+            beta = sidebar.projection.channels['#beta']
+            assert await pilot.click(alpha, control=True)
+            assert await pilot.click(beta, control=True)
+            assert tuple(item.target for item in app.sidebar_state.selected_targets) == ('#alpha', '#beta')
+            assert await pilot.click(alpha, button=3)
+            async with asyncio.timeout(10):
+                while not (isinstance(app.screen, ContextMenu) and app.screen.is_mounted):
+                    await pilot.pause()
+            item = next(item for item in app.screen.query(ContextMenuItem) if item.action == 'delete-tag')
+            assert await pilot.click(item)
+            async with asyncio.timeout(10):
+                while not (isinstance(app.screen, CommandDialog) and app.screen.is_mounted):
+                    await pilot.pause()
+            dialog = app.screen
+            assert dialog.definition.targets == ('#alpha', '#beta')
+            assert 'Remove #alpha' in dialog.definition.confirmation
+            assert 'Remove #beta' in dialog.definition.confirmation
+            await pilot.click('#command-confirmed')
+            await pilot.click('#command-apply')
+            async with asyncio.timeout(10):
+                while app.thread_actions.requests or any(
+                        name in sidebar.projection.channels for name in ('#alpha', '#beta')):
+                    await pilot.pause()
+            snapshot = comms.registry.snapshot()
+            assert snapshot.require('batch-alpha').tags == frozenset()
+            assert snapshot.require('batch-beta').tags == frozenset()
+            assert all(not status.active for status in snapshot.statuses.values())
+            assert app._exception is None
+        await asyncio.get_running_loop().shutdown_default_executor()
+    print('PASS: installed native multi-channel menu, shared disposition dialog, both confirmations, original tag removal, refreshed channel rows and preserved threads')
+
+
 if __name__ == '__main__':
-    asyncio.run(main())
+    asyncio.run(multi_channel_removal() if '--multi-channel-removal' in sys.argv else main())
