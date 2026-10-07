@@ -7,6 +7,7 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 from agent_comms.presentation import ThreadView
+from agent_comms.thread_identity import ThreadIncarnation
 from textual.content import Content
 
 from toad.session_tracker import OpenTab, UnreadPresentation, ExactUnread
@@ -28,7 +29,7 @@ class ThreadRowInput:
         person = self.person
         presentation = person.presentation
         return ThreadRowPresentation(
-            person.thread.name, presentation.label, presentation.summary, presentation.busy,
+            person.thread.incarnation, presentation.label, presentation.summary, presentation.busy,
             person.runtime.model if person.runtime else person.thread.model,
             self.unread, self.pinned, self.action_status,
         )
@@ -38,7 +39,7 @@ class ThreadRowInput:
 class ThreadRowPresentation:
     """Exact display inputs; poll timestamps and authority graphs are not output."""
 
-    name: str
+    incarnation: ThreadIncarnation
     label: str
     summary: str
     busy: bool
@@ -46,6 +47,10 @@ class ThreadRowPresentation:
     unread: UnreadPresentation
     pinned: bool
     action_status: str | None
+
+    @property
+    def name(self) -> str:
+        return self.incarnation.name
 
 
 @dataclass(frozen=True)

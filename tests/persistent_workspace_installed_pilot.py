@@ -3,15 +3,21 @@ import asyncio
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from agent_comms.comms import Comms
+from agent_comms.threads import Thread
 from runtime_fixture import ToadApp
 from toad.screens.workspace import WorkspaceScreen
 from toad.widgets.session_tabs import SessionsTabs
+from toad.widgets.comms_chat import session_thread_name
 
 async def main():
     with TemporaryDirectory(dir=os.environ['TMPDIR'], prefix='persistent-workspace-') as directory:
         root=Path(directory)
         os.environ.update(AGENT_COMMS_ROOT=str(root/'wire'), XDG_CONFIG_HOME=str(root/'config'),
                           XDG_STATE_HOME=str(root/'state'), XDG_DATA_HOME=str(root/'data'))
+        comms = Comms(root/'wire', private_initial_writes=True)
+        comms.messaging.initialize_private_initial_protocol()
+        comms.registry.declare(Thread(session_thread_name(root), frozenset(), str(root)))
         app=ToadApp(project_dir=str(root))
         async with app.run_test(size=(130,44)) as pilot:
             await pilot.pause(.02)
@@ -40,6 +46,12 @@ async def main():
             assert app.screen is workspace and workspace.query_one(SessionsTabs) is header
             await app.select_session(second.mode_name)
             assert app.selected_session.conversation.prompt.text=='second draft'
+            await app.session_navigation.close(second.mode_name)
+            assert app.selected_session is first
+            assert second.mode_name not in app.workspace_sessions.factories
+            assert second.mode_name not in app.workspace_sessions.views
+            assert first.conversation.prompt.prompt_text_area is editor
+            assert editor.text == 'persistent original draft'
             assert app._exception is None
     print('Installed persistent native workspace/editor/chrome passed')
 

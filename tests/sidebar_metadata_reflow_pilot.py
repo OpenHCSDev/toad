@@ -1,117 +1,177 @@
-"""New snapshot metadata must not reflow an unchanged transcript/sidebar tree."""
+"""Real disclosure retains native rows; source changes retire them.
 
+Private canonical stores and native Pilot clicks, without membership mocks.
+The observation owner pauses automatic reads only for the unchanged-source
+gesture profile; source updates use real reads.
+"""
 import asyncio
-from dataclasses import replace
+from collections import Counter
+import cProfile
+import json
 import os
 from pathlib import Path
-import tempfile
-from unittest.mock import patch
+import sys
+from time import perf_counter
 
-from agent_comms.child_process import ProcessIdentity
+from agent_comms.activity import ActivityState
+from agent_comms.comms import Comms
+from agent_comms.relationships import AddRelationshipEdit, RemoveRelationshipEdit
 from agent_comms.threads import Thread
-from agent_comms.comms import wire
 from runtime_fixture import ToadApp, wait_channel_roster
-from toad.widgets.agent_response import AgentResponse
-from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
+from toad.sidebar_preparation import ThreadRowInput, prepare_thread_presentation
+from toad.widgets.comms_sidebar import ChannelGroup
+from toad.widgets.session_sidebar import ThreadStatusRow
+from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 from toad.widgets.side_bar import SideBar
+from toad.widgets.thread_comms import ThreadCommsSidebar
+from toad.widgets.comms_chat import session_thread_name
 
 
-async def main():
-    with tempfile.TemporaryDirectory(prefix="toad-metadata-reflow-") as directory:
-        root = Path(directory)
-        os.environ.update(XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(root / "state"),
-                          XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "wire"))
-        comms = wire(root / "wire")
-        comms.messaging.initialize_private_initial_protocol()
-        comms.registry.declare(Thread("fixture", frozenset({"test"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
-        app = ToadApp(project_dir=str(root))
-        async with app.run_test(size=(120, 40)) as pilot:
-            await pilot.pause()
-            app.screen.query_one("#channels-sidebar", SideBar).reveal()
-            sidebar = await wait_channel_roster(app, pilot)
-            viewport = app.selected_session.conversation.window.document_viewport
-            # Isolate sidebar invalidation from the independent retention
-            # worker while retaining the original mounted conversation tree.
-            await viewport.suspend_source()
-            await app.selected_session.conversation.contents.mount(*[
-                AgentResponse(f"Reply {index}\n\n" + "Paragraph.\n\n" * 16, paginate=False)
-                for index in range(100)
-            ])
-            app.selected_session.conversation.window.anchor()
-            async with asyncio.timeout(10):
-                while not viewport.visible_bodies_ready:
-                    await pilot.pause(.02)
-            await pilot.pause()
-            with patch.object(type(sidebar.observation), "refresh"):
-                snapshot = sidebar.projection.snapshot
-                assert snapshot.wire.channels
-                screen = app.screen
-                with patch.object(screen, "_refresh_layout", wraps=screen._refresh_layout) as layout:
-                    for tick in range(5):
-                        state = replace(snapshot.wire, channels=tuple(
-                            replace(view, last_activity=view.last_activity + tick + 1)
-                            for view in snapshot.wire.channels
-                        ))
-                        await sidebar.projection.publish(sidebar.observation.project(state))
-                        await pilot.pause(.03)
-                    assert layout.call_count == 0, f"Metadata-only updates caused {layout.call_count} layouts"
-                viewport.resume_source()
-
-                # A real collapse/expand still reconciles members and geometry.
-                group = next(group for group in sidebar.query(ChannelGroup) if next(view for view in sidebar.projection.snapshot.wire.channels
-                                                      if view.channel.name == group.row.target_name).members)
-                before = group.expanded
-                group.toggle_members()
-                await pilot.pause()
-                assert group.expanded is not before
-                assert bool(group.member_container.children) == group.expanded
-                group.toggle_members()
-                await pilot.pause()
-                assert group.expanded is before
-
-                # Hold the actual native removal after it completes, before
-                # reconciliation returns. Navigation must not retain retired
-                # rows while the group's serialized update is still pending.
-                if not group.expanded:
-                    group.toggle_members()
-                    await pilot.pause()
-                retired = tuple(group.member_container.children)
-                assert retired
-                removed, release = asyncio.Event(), asyncio.Event()
-                remove_children = group.member_container.remove_children
-
-                async def held_remove(*args, **kwargs):
-                    await remove_children(*args, **kwargs)
-                    removed.set()
-                    await release.wait()
-
-                with patch.object(group.member_container, "remove_children", held_remove):
-                    click = asyncio.create_task(pilot.click(group.disclosure))
-                    try:
-                        async with asyncio.timeout(5):
-                            await removed.wait()
-                        assert not group.member_container.children
-                        assert not any(row in sidebar.projection.rows for row in retired)
-                        assert not any(row in sidebar.projection.thread_rows for row in retired)
-                        assert not any(row.is_attached for row in retired)
-                    finally:
-                        release.set()
-                        await click
-                await pilot.pause()
-                assert await pilot.click(group.disclosure)
-                await pilot.pause()
-                assert tuple(group.member_container.children)
-                assert all(row in sidebar.projection.thread_rows
-                           for row in group.member_container.children)
-                with patch.object(sidebar, "query", wraps=sidebar.query) as query:
-                    sidebar.navigation.mode_changed(app.selected_mode)
-                    assert query.call_count == 0
-                assert all(row.current == (row.mode_name == app.selected_mode)
-                           for row in sidebar.projection.thread_rows)
-            print({"widgets": len(list(screen.walk_children())), "metadata_layouts": 0,
-                   "disclosure_still_works": True, "retired_navigation_rows": 0})
-        await asyncio.get_running_loop().shutdown_default_executor()
+async def until(pilot, condition):
+    async with asyncio.timeout(12):
+        while not condition():
+            await pilot.pause(.02)
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
+async def gesture(pilot, group, expanded):
+    group.disclosure.scroll_visible(animate=False, immediate=True)
+    await pilot.pause(.02)
+    assert group.expanded is not expanded
+    started = perf_counter()
+    assert await pilot.click(group.disclosure)
+    await until(pilot, lambda: group.expanded is expanded
+                and group.member_container.display is expanded
+                and not group.member_lock.locked())
+    await pilot.pause(.02)
+    return (perf_counter() - started) * 1000
+
+
+async def main(root):
+    root.mkdir(mode=0o700, parents=True, exist_ok=False)
+    for key in tuple(os.environ):
+        if key.startswith('AGENT_COMMS_'):
+            del os.environ[key]
+    os.environ.update(AGENT_COMMS_ROOT=str(root / 'w'),
+        TOAD_TEST_ATTEMPT=str(root), XDG_CONFIG_HOME=str(root / 'config'),
+        XDG_STATE_HOME=str(root / 'state'), XDG_DATA_HOME=str(root / 'data'),
+        XDG_CACHE_HOME=str(root / 'cache'))
+    service = Comms(root / 'w', private_initial_writes=True)
+    service.messaging.initialize_private_initial_protocol()
+    for index in range(24):
+        service.registry.declare(Thread(f'member-{index:02}',
+            frozenset({'team', 'unopened'}), str(root)))
+    original = service.registry.declare(Thread(session_thread_name(root), frozenset(), str(root)))
+    app = ToadApp(project_dir=str(root))
+    profile = cProfile.Profile()
+    async with app.run_test(size=(140, 48)) as pilot:
+        await app.selected_session.wait_content_ready()
+        source = app.selected_session
+        await app.session_navigation.new(lambda: source.spawn(root=str(service.root)),
+            original=(str(service.root), original.incarnation))
+        app.screen.query_one('#channels-sidebar', SideBar).reveal()
+        sidebar = await wait_channel_roster(app, pilot)
+        await sidebar.observation.sync()
+        group = sidebar.projection.channels['#team'].query_ancestor(ChannelGroup)
+        unopened = sidebar.projection.channels['#unopened'].query_ancestor(ChannelGroup)
+        assert not unopened.expanded and not unopened._members
+        sidebar.observation.set_enabled(False)
+        await until(pilot, lambda: not sidebar.observation.pending)
+        if not group.expanded:
+            await gesture(pilot, group, True)
+        await until(pilot, lambda: len(group._members) == 24)
+        rows = dict(group._members)
+        prepared = {name: row.thread_preparation(row.retained_thread_presentation(
+            sidebar.projection.snapshot.all_people[name])) for name, row in rows.items()}
+        sidebar.navigation.pointer_select(rows['member-00'], control=True)
+        calls = Counter()
+        watched = {ThreadRowInput.presentation.__code__: 'person_captures',
+                   prepare_thread_presentation.__code__: 'row_preparations',
+                   ThreadStatusRow.__init__.__code__: 'row_constructions'}
+        monitor = sys.monitoring
+        monitor.use_tool_id(monitor.COVERAGE_ID, 'sidebar-disclosure')
+        monitor.register_callback(monitor.COVERAGE_ID, monitor.events.PY_START,
+            lambda code, offset: calls.update((watched[code],)))
+        for code in watched:
+            monitor.set_local_events(monitor.COVERAGE_ID, code, monitor.events.PY_START)
+        try:
+            profile.enable()
+            collapse_ms = await gesture(pilot, group, False)
+            assert dict(group._members) == rows
+            assert all(row.is_attached and not row.is_navigation_row() for row in rows.values())
+            assert not any(row in sidebar.projection.rows for row in rows.values())
+            assert not any(row in sidebar.projection.thread_rows for row in rows.values())
+            assert not any(choice.target.startswith('member-')
+                           for choice in sidebar.navigation.state.selected_targets)
+            expand_ms = await gesture(pilot, group, True)
+            for name, row in rows.items():
+                assert group._members[name] is row
+                assert row.thread_preparation(row.retained_thread_presentation(
+                    sidebar.projection.snapshot.all_people[name])) is prepared[name]
+            assert not calls, dict(calls)
+        finally:
+            profile.disable()
+            for code in watched:
+                monitor.set_local_events(monitor.COVERAGE_ID, code, 0)
+            monitor.free_tool_id(monitor.COVERAGE_ID)
+            profile.dump_stats(root / 'disclosure.pstats')
+
+        await gesture(pilot, group, False)
+        old = service.registry.require('member-23')
+        service.registry.unregister(old.name)
+        service.registry.delete_originals((service.registry.require(old.name),))
+        successor = service.registry.declare(Thread(old.name, old.tags, old.worktree))
+        changed = service.registry.require('member-22')
+        service.registry.declare(Thread(changed.name, frozenset({'unopened'}), changed.worktree))
+        service.agents.set_activity('member-00', ActivityState.WORKING, 'Actual changed status')
+        sidebar.observation.set_enabled(True)
+        await sidebar.observation.sync()
+        await until(pilot, lambda: 'member-22' not in group._members
+                    and group._members['member-23'].thread_incarnation == successor.incarnation)
+        assert not rows['member-22'].is_attached and not rows['member-23'].is_attached
+        assert not unopened._members
+        await gesture(pilot, group, True)
+        assert group._members['member-00'].busy
+        assert 'Actual changed status' in group._members['member-00'].content.plain
+
+        owner = app.selected_session._comms_thread
+        service.relationships.edit(owner, AddRelationshipEdit, 'member-00', 'Real private relation')
+        right = app.selected_session.query_one(SessionThreadSidebar)
+        right.reveal()
+        await right.wait_content_ready()
+        tree = right.query_one(ThreadCommsSidebar)
+        await until(pilot, lambda: 'collaborating' in tree.groups
+                    and tree.groups['collaborating'].rows)
+        relation = tree.groups['collaborating']
+        relation_rows = dict(relation.rows)
+        await gesture(pilot, relation, False)
+        assert relation.rows == relation_rows
+        assert not any(row in tree._ordered_rows() for row in relation_rows.values())
+        await gesture(pilot, relation, True)
+        assert relation.rows == relation_rows
+        await gesture(pilot, relation, False)
+        service.relationships.edit(owner, RemoveRelationshipEdit, 'member-00')
+        tree.refresh_relationships(force=True)
+        await until(pilot, lambda: not relation.rows)
+        assert all(not row.is_attached for row in relation_rows.values())
+        other = Comms(root / 'other', private_initial_writes=True)
+        other.messaging.initialize_private_initial_protocol()
+        await sidebar.observation.bind(other)
+        assert not sidebar.query(ChannelGroup)
+        assert not sidebar.projection.rows
+        assert all(not row.is_attached for row in group._members.values())
+        assert app._exception is None
+        result = dict(collapse_ms=collapse_ms, expand_ms=expand_ms,
+            unchanged_disclosure_calls=dict(calls), retained_rows=24,
+            native_row_and_prepared_identity_preserved=True,
+            hidden_selection_ranges_animation_excluded=True,
+            closed_membership_and_incarnation_retired=True,
+            unopened_groups_lazy=True, changed_live_status_painted=True,
+            relationship_rows_retained_and_stale_rows_retired=True,
+            rebind_retires_original_roster=True,
+            strength='private source native Pilot and compositor; not physical terminal latency')
+    (root / 'result.json').write_text(json.dumps(result, indent=2) + '\n')
+    print(json.dumps(result), flush=True)
+
+
+if __name__ == '__main__':
+    asyncio.run(main(Path(sys.argv[1])))

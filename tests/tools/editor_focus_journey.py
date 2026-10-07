@@ -141,7 +141,7 @@ def main():
         "originals_unchanged": (base / "originals-before.json").read_bytes()
                                == (base / "originals-after.json").read_bytes(),
     }
-    target = json.loads((base / "capture/history-click-target.json").read_text())
+    target = json.loads((base / "capture/phase-edited-state-history-click-target.json").read_text())
     history = pickle.loads((base / "capture/phase-history-focused-state.pickle").read_bytes())
     result["history_window_focused"] = history["metadata"]["screen"]["focused"]["object_id"] == target["resource_object_id"]
     result["history_source_retained"] = history["metadata"]["current_mode"] == target["mode"]

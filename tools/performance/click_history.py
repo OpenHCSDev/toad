@@ -8,6 +8,7 @@ from pathlib import Path
 import pickle
 import re
 import subprocess
+import time
 from abc import abstractmethod
 
 from agent_comms.child_process import ProcessIdentity
@@ -292,9 +293,16 @@ def main():
                    "resource_object_id": resource["object_id"], "target": target, "button": args.button,
                    "terminal_geometry": metadata["terminal_geometry"], "pixel": tuple(pixel),
                    "gesture": gesture}
-    (output / f"{args.target.declared_name}-click-target.json").write_text(json.dumps(observation, indent=2) + "\n")
+    # Keep each original captured-state gesture, not only the final target.
+    # These bounds locate X input submission in the recording; they do not
+    # assert application handling or terminal paint completion.
+    observation["input_started_monotonic_ns"] = time.monotonic_ns()
+    receipt = output / f"{args.state.stem}-{args.target.declared_name}-click-target.json"
+    receipt.write_text(json.dumps(observation, indent=2) + "\n")
     subprocess.run(["xdotool", "mousemove", "--sync", "--window", window_id,
                     str(pixel.x), str(pixel.y), *gesture], check=True, timeout=5)
+    observation["input_finished_monotonic_ns"] = time.monotonic_ns()
+    receipt.write_text(json.dumps(observation, indent=2) + "\n")
 
 
 if __name__ == "__main__":

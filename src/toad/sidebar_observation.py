@@ -96,6 +96,9 @@ class SidebarObservation:
             self.identity = None
             self.sidebar.navigation.reset()
             self.sidebar.projection.sync_spinner()
+            # Retained rows belong to the admitted service, not merely names
+            # shared by two roots. A real rebind retires that native roster.
+            await self.sidebar.remove_children()
 
     async def session_updated(self, event: SessionChangedEvent) -> None:
         if not self.accepts_observation():

@@ -840,38 +840,78 @@ class ObserveJourney(PhysicalJourney):
         return ""
 
 
-class ChannelSendJourney(PhysicalJourney):
-    """One explicitly supplied human channel message and real disclosure clicks."""
+class ChannelDisclosureJourney(PhysicalJourney):
+    """Real channel disclosure clicks without a message submission."""
 
-    motion_phases = ("channel-send", "channel-collapse", "channel-expand")
+    disclosure_phases = ("channel-disclosure-first", "channel-disclosure-first-done",
+                         "channel-disclosure-second", "channel-disclosure-second-done")
+    motion_phases = disclosure_phases[::2]
+
+    @classmethod
+    def require_channel(cls, target, args):
+        if not isinstance(target, ExistingThreadCapture) or isinstance(target, OwnedForkCapture):
+            raise ValueError("Channel interaction requires the actual existing public UI route")
+        if not args.peer_channel or not args.peer_channel.startswith("#"):
+            raise ValueError("Channel interaction requires one explicit channel")
 
     @classmethod
     def authorize(cls, target, args):
-        if not isinstance(target, ExistingThreadCapture) or isinstance(target, OwnedForkCapture):
-            raise ValueError("Channel send requires the actual existing public UI route")
-        if not args.peer_channel or not args.peer_channel.startswith("#"):
-            raise ValueError("Channel send requires one explicit channel")
+        super().authorize(target, args)
+        cls.require_channel(target, args)
+
+    @classmethod
+    def channel_commands(cls, args):
+        marker = marker_command()
+        settle = f"sleep {args.navigation_settle_seconds:g}"
+        channel = shlex.quote(args.peer_channel)
+        return (
+            *cls.opening_commands(args),
+            native_click_command("phase-sidebar-revealed-state.pickle", target="channel") + " --name " + channel,
+            settle, marker + "channel-open",
+        )
+
+    @classmethod
+    def disclosure_commands(cls, args, state):
+        marker = marker_command()
+        settle = f"sleep {args.navigation_settle_seconds:g}"
+        channel = shlex.quote(args.peer_channel)
+        first, first_done, second, second_done = cls.disclosure_phases
+        return (
+            marker + first,
+            native_click_command(state, target="channel_disclosure") + " --name " + channel,
+            settle, marker + first_done, marker + second,
+            native_click_command(f"phase-{first_done}-state.pickle", target="channel_disclosure") + " --name " + channel,
+            settle, marker + second_done,
+        )
+
+    @classmethod
+    def script(cls, args):
+        return "\n".join((*cls.channel_commands(args),
+                          *cls.disclosure_commands(args, "phase-channel-open-state.pickle"))) + "\n"
+
+
+class ChannelSendJourney(ChannelDisclosureJourney):
+    """One explicitly supplied human channel message and real disclosure clicks."""
+
+    disclosure_phases = ("channel-collapse", "channel-collapsed", "channel-expand", "channel-expanded")
+    motion_phases = ("channel-send", *disclosure_phases[::2])
+
+    @classmethod
+    def authorize(cls, target, args):
+        cls.require_channel(target, args)
         if not args.fresh_input or "\n" in args.fresh_input or len(args.fresh_input) > 512:
             raise ValueError("Channel send requires one explicit bounded new message")
 
     @classmethod
     def script(cls, args):
         marker = marker_command()
-        settle = f"sleep {args.navigation_settle_seconds:g}"
-        channel = shlex.quote(args.peer_channel)
         return "\n".join((
-            *cls.opening_commands(args),
-            native_click_command("phase-sidebar-revealed-state.pickle", target="channel") + " --name " + channel,
-            settle, marker + "channel-open",
+            *cls.channel_commands(args),
             native_click_command("phase-channel-open-state.pickle", target="editor") + " --empty",
             "type --clearmodifiers --delay 10 " + shlex.quote(args.fresh_input),
             marker + "channel-send --require-editor-focus", "key Return",
             "sleep 20", marker + "channel-sent",
-            marker + "channel-collapse",
-            native_click_command("phase-channel-sent-state.pickle", target="channel_disclosure") + " --name " + channel,
-            settle, marker + "channel-collapsed", marker + "channel-expand",
-            native_click_command("phase-channel-collapsed-state.pickle", target="channel_disclosure") + " --name " + channel,
-            settle, marker + "channel-expanded",
+            *cls.disclosure_commands(args, "phase-channel-sent-state.pickle"),
         )) + "\n"
 
 
