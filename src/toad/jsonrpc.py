@@ -449,7 +449,7 @@ class API:
 
     def _process_method_response(self, response: JSONObject) -> None:
         if (id := response.get("id")) is not None and isinstance(id, int):
-            if (method_call := self._calls.get(id)) is not None:
+            if (method_call := self._calls.get(id)) is not None and not method_call.future.done():
                 try:
                     result = response["result"]
                 except KeyError:
