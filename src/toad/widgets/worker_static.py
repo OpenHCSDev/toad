@@ -120,19 +120,20 @@ class WorkerStatic(Static):
                  if auto_width and isinstance(parent, Widget)
                  else max(0, self.outer_size.width - self.styles.gutter.width))
         width = max(1, width or app.size.width)
-        source = self._source
-        if isinstance(source, ContentSource):
-            selection = self.text_selection
-            source = ContentSource(source.value, selection,
-                Style.from_styles(self.screen.get_component_styles("screen--selection"))
-                if selection is not None else None)
+        selection = self.text_selection
+        source = self._source.capture_selection(selection,
+            Style.from_styles(self.screen.get_component_styles("screen--selection"))
+            if selection is not None else None)
         presentation = RichPresentation(
             app.console_options.update(width=width, height=None, highlight=False),
-            self.visual_style.rich_style, self.link_style if self.auto_links else None,
+            self.visual_style.rich_style,
+            self.link_style if self.auto_links and not self.screen._selecting else None,
             auto_width, self._get_justify_method(), cast(RichColorSystem | None, app.console.color_system),
             app.current_theme.dark,
             tuple((name, self._get_style(name)) for name in source.style_names),
-            tuple(self.styles.get_rules().items()), self.visual_style,
+            tuple((name, self.styles.get_rule(name))
+                  for name in ("text_align", "text_overflow", "text_wrap", "line_pad")
+                  if self.styles.has_rule(name)), self.visual_style,
         )
         request = _Preparation(self._generation, RichRenderTask(source, presentation))
         self._wanted = request
@@ -221,30 +222,26 @@ class WorkerStatic(Static):
     def get_selection(self, selection: Selection) -> tuple[str, str] | None:
         if self._prepared is None:
             return None
-        if isinstance(self._source, ContentSource):
-            return selection.extract(self._source.value.plain), "\n"
-        if isinstance(self._source, SyntaxSource) and not self._source.line_numbers:
-            # Tool Read output historically copied its original source text,
-            # including tabs and final blank lines. Rich's terminal rendering
-            # can drop that last blank row; it must not truncate clipboard text.
-            return selection.extract(self._source.code), "\n"
-        text = self._prepared.text
-        return selection.extract(text), "\n"
+        return self._source.selected_text(selection, self._prepared), "\n"
 
     def get_content_width(self, container: Size, viewport: Size) -> int:
         return (self._prepared.width if self._prepared is not None
                 else super().get_content_width(container, viewport))
 
     def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
-        if width > 0 and self.is_attached:
+        # Source/style notifications already own their new request. Native
+        # layout may ask for the same width hundreds of times; that is a
+        # measurement of this request, not another presentation acquisition.
+        if (width > 0 and self.is_attached
+                and (self._wanted is None
+                     or self._wanted.task.presentation.options.max_width != width)):
             self._request_preparation(width)
         return (len(self._prepared.lines) if self._prepared is not None
                 else super().get_content_height(container, viewport, width))
 
     def selection_updated(self, selection: Selection | None) -> None:
         super().selection_updated(selection)
-        if isinstance(self._source, ContentSource):
-            self._request_preparation()
+        self._request_preparation()
 
     def render_line(self, y: int) -> Strip:
         prepared = self._prepared
