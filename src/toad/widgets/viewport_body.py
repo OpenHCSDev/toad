@@ -808,11 +808,16 @@ class ViewportPresentation:
                             yield ancestor, body
                         break
 
-    def mutation_roots(self) -> tuple[Widget, ...]:
-        """Original native tree locks delimit the pending publication."""
-        return tuple(window for window in dict.fromkeys((*self.frame_windows(), *self.anchors))
-                     if window.is_attached and window.document_viewport.membership.displayed()
-                     and window.history_mutating())
+    def mutation_roots(self, windows: tuple[Widget, ...] | None = None) -> tuple[Widget, ...]:
+        """Use the acquired frame windows, or acquire them for layout/input."""
+        if windows is None:
+            windows = tuple(self.frame_windows())
+        displayed = dict.fromkeys(windows)
+        for anchor in self.anchors:
+            if anchor not in displayed and anchor.document_viewport.membership.displayed():
+                displayed[anchor] = None
+        return tuple(window for window in displayed
+                     if window.is_attached and window.history_mutating())
 
     def prepare(self) -> tuple[Widget, ...]:
         screen = self.screen
@@ -822,7 +827,7 @@ class ViewportPresentation:
         # membership owner. Mutation, body readiness and follow checks don't
         # independently select the same windows again within the same frame.
         windows = tuple(self.frame_windows())
-        deferred = dict.fromkeys(self.mutation_roots())
+        deferred = dict.fromkeys(self.mutation_roots(windows))
         pending_windows = set(deferred)
         # Each source owns its pending paint. Native publication derives the
         # blocked geometry; this owner neither masks regions nor stops chrome.
