@@ -299,7 +299,6 @@ def main():
     observation["input_started_monotonic_ns"] = time.monotonic_ns()
     receipt = output / f"{args.state.stem}-{args.target.declared_name}-click-target.json"
     receipt.write_text(json.dumps(observation, indent=2) + "\n")
-    (output / f"{args.target.declared_name}-click-target.json").write_text(json.dumps(observation, indent=2) + "\n")
     subprocess.run(["xdotool", "mousemove", "--sync", "--window", window_id,
                     str(pixel.x), str(pixel.y), *gesture], check=True, timeout=5)
     observation["input_finished_monotonic_ns"] = time.monotonic_ns()
