@@ -43,7 +43,8 @@ class ChannelParticipants(VerticalScroll):
                 presentation.label, "$warning" if presentation.busy else "$text-muted",
             ).stylize(Style.from_meta({"@click": ("open_thread", (person.thread.name,))})))
         content = Content.assemble("Active: ", Content(" · ").join(names)) if names else Content("No active turns")
-        if content != self.names.content:
+        previous = self.names.content
+        if not isinstance(previous, Content) or not content.is_same(previous):
             self.names.update(content)
         tooltip = Content("\n".join(summaries))
         if tooltip != self.tooltip:
