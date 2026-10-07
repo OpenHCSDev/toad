@@ -41,3 +41,20 @@ recorder invocation named the prefix instead of its `bin` directory and was
 refused before output creation or launch. Both were corrected without repeating
 an application attempt. Publication and actual-default verification follow the
 existing frontend owner; backend owners are preserved.
+
+## Delivered result
+
+PR514 merged and the existing frontend publisher switched the default `toad`
+entrypoint to `runtime-native-tab-label`. The actual default `toad-comms`
+open/close/reopen journey passed all six checks with unchanged original source,
+unchanged runtime and no cleanup errors or owned processes left behind.
+Tab reconciliation measured 13.8 ms on opening and 9 ms on reopening. Screen
+switching still measured 411/419 ms; ACP initialization 2.50/2.16 seconds. This
+run confirms the tab-update improvement but does not establish fast whole-agent
+opening. Existing windows and backend processes were not restarted.
+
+Actual-default receipt and original stage timings:
+`/home/ts/.cache/agent-scratch/native-tab-label-default-live-20261007`.
+The new prefix's complete 69-distribution RECORD readback has 2,787 matching
+hashed entries. Default publication and preserved dependency metadata are in the
+wheel artifact directory above.
