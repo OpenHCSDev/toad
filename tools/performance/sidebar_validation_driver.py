@@ -209,6 +209,8 @@ def install_observer():
         from toad.render_backend import Renderer
         from toad.render_processes import RenderProcessPool
         from toad.widgets.comms_chat import CommsChatView
+        from toad.mounted_message_history import MountedMessageHistory
+        from toad.channel_preparation import ChannelHistoryReader
         from toad.widgets.prompt import PromptSubmission
         from agent_comms.messaging import Messaging
         from toad import jsonrpc
@@ -235,6 +237,12 @@ def install_observer():
             (Renderer, Renderer._submit),
             (RenderProcessPool, RenderProcessPool.run),
             (CommsChatView, CommsChatView.submit_input),
+            (CommsChatView, CommsChatView._paint_sent_receipt),
+            (MountedMessageHistory, MountedMessageHistory.paint_receipt),
+            (MountedMessageHistory, MountedMessageHistory._mount_page),
+            (MountedMessageHistory, MountedMessageHistory.insert_page),
+            (MountedMessageHistory, MountedMessageHistory.source_is_current),
+            (ChannelHistoryReader, ChannelHistoryReader.route_current),
         ))
         schedule = PromptSubmission.schedule_submission
         publish = Messaging.send_user_message
