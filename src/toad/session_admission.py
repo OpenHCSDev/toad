@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     from toad.session_navigation import SessionAdmissions
     from toad.screens.main import MainScreen
     from toad.screens.session_view import SessionView
+    from toad.sidebar_snapshot import SidebarSnapshot
 
 
 class SessionAdmission(DeclaredFamily, affix="Admission"):
@@ -32,7 +33,7 @@ class SessionAdmission(DeclaredFamily, affix="Admission"):
     def __call__(self) -> SessionView: ...
 
     @abstractmethod
-    def tab(self, sessions: SessionAdmissions, snapshot) -> OpenTab: ...
+    def tab(self, sessions: SessionAdmissions, snapshot: SidebarSnapshot | None) -> OpenTab: ...
 
     @property
     @abstractmethod
@@ -131,13 +132,20 @@ class NativeSessionAdmission(SessionAdmission):
         root = source.coordination_root
         return root is not None and wire(root).registry.canonical_name(session_id) == source._session_thread
 
-    def tab(self, sessions: SessionAdmissions, snapshot) -> OpenTab:
+    def tab(self, sessions: SessionAdmissions, snapshot: SidebarSnapshot | None) -> OpenTab:
         source = self.source(sessions)
         name = source._comms_thread if source else ""
-        presentation = next((thread.presentation for thread in snapshot.threads
-                             if thread.thread.name == name), None) if snapshot else None
+        if snapshot is not None and (source is None or not source.belongs_to_wire(snapshot.service.root)):
+            snapshot = None
+        presentation = snapshot.row_inputs.for_thread(name) if snapshot is not None else None
+        originals = self.original_threads(sessions)
+        if presentation is not None and originals and not any(
+                Path(root).resolve() == snapshot.service.root and identity == presentation.incarnation
+                for root, identity in originals):
+            presentation = None
+            snapshot = None
         return OpenTab(self.mode, presentation.label if presentation else self.details.title or "New Session",
-                       UnreadPresentation.for_thread(snapshot, name) if snapshot else ExactUnread())
+                       UnreadPresentation.for_thread(snapshot.wire, name) if snapshot is not None else ExactUnread())
 
     async def return_to(self, sessions: SessionAdmissions) -> None:
         app = sessions.app
@@ -186,8 +194,10 @@ class HistorySessionAdmission(SessionAdmission):
     def source(self, sessions: SessionAdmissions) -> MainScreen | None:
         return sessions.source(self.key.owner_mode)
 
-    def tab(self, sessions: SessionAdmissions, snapshot) -> OpenTab:
-        return OpenTab(self.mode, self.key.title, self.kind.unread(snapshot, self.key.target))
+    def tab(self, sessions: SessionAdmissions, snapshot: SidebarSnapshot | None) -> OpenTab:
+        return OpenTab(self.mode, self.key.title, self.kind.unread(
+            snapshot.wire if snapshot is not None and Path(self.key.root).resolve() == snapshot.service.root
+            else None, self.key.target))
 
     def depends_on(self, mode: str) -> bool:
         return super().depends_on(mode) or self.key.owner_mode == mode
@@ -233,7 +243,7 @@ class PreviewSessionAdmission(SessionAdmission):
     def address(self) -> Path:
         return self.path
 
-    def tab(self, sessions: SessionAdmissions, snapshot) -> OpenTab:
+    def tab(self, sessions: SessionAdmissions, snapshot: SidebarSnapshot | None) -> OpenTab:
         return OpenTab(self.mode, self.path.name)
 
     def entered(self, previous: str) -> None:

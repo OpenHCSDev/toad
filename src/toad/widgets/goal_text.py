@@ -15,8 +15,8 @@ def goal_mention_candidates(app) -> tuple[MentionCandidate, ...]:
     if snapshot is None:
         return ()
     return tuple(
-        MentionCandidate(person.thread.name, person.presentation.title)
-        for person in snapshot.wire.threads
+        MentionCandidate(row.name, row.title)
+        for row in snapshot.row_inputs.rows
     )
 
 
