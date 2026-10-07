@@ -208,6 +208,9 @@ def install_observer():
         from toad.acp.session_updates import SessionNotificationOwner
         from toad.render_backend import Renderer
         from toad.render_processes import RenderProcessPool
+        from toad.widgets.comms_chat import CommsChatView
+        from toad.widgets.prompt import PromptSubmission
+        from agent_comms.messaging import Messaging
         from toad import jsonrpc
         navigation_methods.extend((
             (WorkspaceSessions, WorkspaceSessions.prepare),
@@ -231,7 +234,31 @@ def install_observer():
             (AgentController, AgentController.validate),
             (Renderer, Renderer._submit),
             (RenderProcessPool, RenderProcessPool.run),
+            (CommsChatView, CommsChatView.submit_input),
         ))
+        schedule = PromptSubmission.schedule_submission
+        publish = Messaging.send_user_message
+
+        def measured_schedule(self, *, immediate=False):
+            record("input_submission_scheduled", editor=id(self), immediate=immediate)
+            return schedule(self, immediate=immediate)
+
+        def measured_publication(self, *args, **kwargs):
+            begin, cpu = time.monotonic_ns(), time.thread_time_ns()
+            sequence = None
+            try:
+                result = publish(self, *args, **kwargs)
+                sequence = result.seq
+                return result
+            finally:
+                record("human_message_publication", begin_ns=begin, sequence=sequence,
+                       duration_ms=(time.monotonic_ns()-begin)/1e6,
+                       cpu_ms=(time.thread_time_ns()-cpu)/1e6)
+
+        update_wrapper(measured_schedule, schedule)
+        update_wrapper(measured_publication, publish)
+        PromptSubmission.schedule_submission = measured_schedule
+        Messaging.send_user_message = measured_publication
         send = AgentProcess.send
         response = jsonrpc.API._process_method_response
 
