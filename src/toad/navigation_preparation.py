@@ -11,7 +11,8 @@ from typing import TYPE_CHECKING, Generic, TypeVar, cast
 
 from agent_comms.threads import Thread
 from agent_comms.thread_identity import ThreadIncarnation
-from agent_comms.comms import Comms, wire
+from agent_comms.comms import Comms
+from agent_comms.registry_document import RegistrySnapshot
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.thread_execution import ConversationPreparation
 
@@ -39,7 +40,7 @@ class CommsNavigation:
 
 @dataclass(frozen=True)
 class CommsNavigationRequest(NavigationRequest[CommsNavigation]):
-    root: str
+    comms: Comms
     owner_mode: str
     me: str
     target: str
@@ -47,8 +48,8 @@ class CommsNavigationRequest(NavigationRequest[CommsNavigation]):
     recovery_root: str | None
 
     def read(self) -> CommsNavigation:
-        root = Path(self.root).expanduser().resolve()
-        comms = wire(root)
+        comms = self.comms
+        root = comms.root
         me, target = self.kind.resolve(comms, self.me, self.target)
         recovery_root = self.recovery_root
         if recovery_root is not None and Path(recovery_root).expanduser().resolve() != root:
@@ -119,20 +120,23 @@ class ExistingThreadNavigation(NativeThreadNavigation):
 
 @dataclass(frozen=True)
 class ThreadNavigationRequest(NavigationRequest[ThreadNavigation]):
-    root: str
+    comms: Comms
     target: str
     project: Path
     open_threads: tuple[OpenThread, ...]
 
+    @property
+    def root(self) -> str:
+        return str(self.comms.root)
+
     def read(self) -> ThreadNavigation:
-        root = Path(self.root).expanduser().resolve()
-        comms = wire(root)
-        thread = comms.registry.require(self.target)
+        snapshot = self.comms.registry.snapshot()
+        thread = snapshot.require(self.target)
         project = Path(thread.worktree)
         if not project.is_dir():
             project = self.project
         return thread.execution.prepare_conversation(
-            ThreadConversationPreparation(str(root), thread, project, comms, self.open_threads))
+            ThreadConversationPreparation(self.root, thread, project, snapshot, self.open_threads))
 
 
 @dataclass(frozen=True)
@@ -140,7 +144,7 @@ class ThreadConversationPreparation(ConversationPreparation):
     root: str
     thread: Thread
     project: Path
-    comms: Comms
+    snapshot: RegistrySnapshot
     open_threads: tuple[OpenThread, ...]
 
     def external(self) -> ThreadNavigation:
@@ -149,8 +153,8 @@ class ThreadConversationPreparation(ConversationPreparation):
     def native(self) -> ThreadNavigation:
         existing = next((view for view in self.open_threads
                          if view.root == self.root
-                         and self.comms.registry.canonical_name(view.name) == self.thread.name), None)
-        if not self.comms.registry.status(self.thread.name).active:
+                         and self.snapshot.canonical_name(view.name) == self.thread.name), None)
+        if not self.snapshot.status(self.thread.name).active:
             return StoppedThreadNavigation(self.root, self.thread, self.project)
         if existing is not None:
             return ExistingThreadNavigation(self.root, self.thread, self.project, existing)

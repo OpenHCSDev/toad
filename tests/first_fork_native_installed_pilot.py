@@ -190,7 +190,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         process = await held_startup
         project = parent_view.project_path
         await until(pilot, lambda: "immediate-fork" in comms.registry.all_threads())
-        navigation = ThreadNavigationRequest(str(comms.root), 'immediate-fork', project, ()).read()
+        navigation = ThreadNavigationRequest(comms, 'immediate-fork', project, ()).read()
         child = navigation.thread
         startup_identity = child.process_identity
         endpoint = socket_path(comms.root, child.pid)

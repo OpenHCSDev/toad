@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, cast
 from functools import partial
 
 
-from toad.comms_root import current_root, root_is_current
+from toad.comms_root import root_is_current
 from toad.navigation_preparation import CommsNavigationRequest
 from toad.session_admission import (HistorySessionAdmission, NativeSessionAdmission,
                                    PreviewSessionAdmission, SessionAdmission)
@@ -152,11 +152,12 @@ class SessionAdmissions:
             return app.selected_mode
         origin = ThreadOrigin.capture(app, source)
         try:
-            requested_root = str(await app.preparation.run_thread(current_root))
+            comms = await app.preparation.run_thread(lambda: app.coordination_access.service)
+            requested_root = str(comms.root)
             if not origin.current(app.thread_navigation, owner_mode):
                 return app.selected_mode
             prepared = await app.navigation_reader.read(CommsNavigationRequest(
-                requested_root, owner_mode, me, target, kind, source.coordination_root))
+                comms, owner_mode, me, target, kind, source.coordination_root))
         except Exception as error:
             app.notify(str(error), title="Comms target unavailable", severity="error")
             return app.selected_mode

@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from toad.comms_root import current_root
 from toad.navigation_preparation import OpenThread, ThreadNavigationRequest, ThreadOpening
 
 if TYPE_CHECKING:
@@ -49,7 +48,8 @@ class ThreadNavigator:
             return app.selected_mode
         origin = ThreadOrigin.capture(app, source)
         try:
-            requested_root = str(await app.preparation.run_thread(current_root))
+            comms = await app.preparation.run_thread(lambda: app.coordination_access.service)
+            requested_root = str(comms.root)
         except (OSError, ValueError, RuntimeError) as error:
             app.notify(str(error), title="Thread unavailable", severity="error")
             return app.selected_mode
@@ -67,7 +67,7 @@ class ThreadNavigator:
                 return details.mode_name
             if root is not None:
                 open_threads.append(OpenThread(details.mode_name, root, name))
-        request = ThreadNavigationRequest(requested_root, target, project_path, tuple(open_threads))
+        request = ThreadNavigationRequest(comms, target, project_path, tuple(open_threads))
         key = owner_mode, request.root, request.target
         if pending := self.pending.get(key):
             return await asyncio.shield(pending.task)
