@@ -1,3 +1,4 @@
+import asyncio
 from typing import NamedTuple
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -69,7 +70,8 @@ async def check_version() -> VersionStatus:
         raise VersionCheckFailed(f"Invalid version;{error}")
 
     try:
-        async with httpx.AsyncClient() as client:
+        client = await asyncio.to_thread(httpx.AsyncClient)
+        async with client:
             response = await client.get(VERSION_TOML_URL)
             version_toml_bytes = await response.aread()
     except Exception as error:

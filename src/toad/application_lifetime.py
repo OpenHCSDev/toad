@@ -41,7 +41,8 @@ class UsageReports:
             "os": platform.system(),
         }
         try:
-            async with httpx.AsyncClient() as client:
+            client = await app.preparation.run_thread(httpx.AsyncClient)
+            async with client:
                 await client.post("https://us.i.posthog.com/i/v0/e/", json=body)
         except httpx.HTTPError:
             # Optional collection cannot prevent normal application use.
