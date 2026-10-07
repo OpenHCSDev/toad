@@ -332,7 +332,7 @@ class AgentController(OperationalTerminalOwner):
         if response is None:
             raise ValueError('Compaction returned no result')
         consumer = agent.comms_consumer_class(agent, authority.session_id)
-        consumer.consume_metadata(response.field_meta)
+        await consumer.consume_metadata(response.field_meta)
         return consumer.require_compaction_receipt()
 
     async def cancel_prompt(self):

@@ -42,3 +42,44 @@ def test_pending_notification_cannot_publish_after_process_or_session_return(tmp
         await agent.stop()
         subscription.close()
     asyncio.run(run())
+
+
+def test_comms_facts_cross_original_validation_workers_and_reach_message_route(tmp_path):
+    from agent_comms.acp_extension import TextRouteUpdate, encode_updates
+    from agent_comms.routing import MessageRoute
+    from toad.acp.agent_controller import ApplicationValidationOwner, HeadlessValidationOwner
+    from toad.acp.sdk_boundary import (
+        AcceptedSessionUpdateValidation, DecodeCommsMetadataTask, RejectedSessionUpdateValidation,
+    )
+    from toad.render_processes import RenderProcessPool
+    from toad.core.events import Update
+
+    async def run():
+        route = MessageRoute('original', ('#team',))
+        metadata = encode_updates(TextRouteUpdate(route))
+        raw = {'sessionUpdate': 'agent_message_chunk',
+               'content': {'type': 'text', 'text': 'original routed content'}, '_meta': metadata}
+        pool = RenderProcessPool(max_workers=1, max_pending=2)
+        agent = Agent(tmp_path, AgentDefinition('updates', 'updates', {'*': 'true'}), 'A')
+        emitted = []
+        subscription = agent.events.subscribe(lambda event, source: emitted.append(event))
+        try:
+            for owner in (HeadlessValidationOwner(), ApplicationValidationOwner(pool)):
+                accepted = await owner.validate(ValidateSessionUpdateTask('A', raw))
+                assert isinstance(accepted, AcceptedSessionUpdateValidation)
+                assert accepted.updates == (TextRouteUpdate(route),)
+                assert await owner.validate(DecodeCommsMetadataTask(metadata)) == accepted.updates
+                malformed = dict(raw, _meta={'agentComms': {'updates': [{'kind': 'unknown'}]}})
+                assert isinstance(await owner.validate(ValidateSessionUpdateTask('A', malformed)),
+                                  RejectedSessionUpdateValidation)
+                agent.controller.validation = owner
+                emitted.clear()
+                await agent.server.call({'jsonrpc': '2.0', 'method': 'session/update',
+                    'params': {'sessionId': 'A', 'update': raw}})
+                message = next(event for event in emitted if isinstance(event, Update))
+                assert message.stream.delivery.route == route
+        finally:
+            subscription.close()
+            await agent.stop()
+            await pool.aclose()
+    asyncio.run(run())

@@ -275,7 +275,7 @@ class Agent(AgentBase):
         async with asyncio.timeout(3):
             turn_token = self.presentation.turns.sequence
             result = await self.controller.request_owner("goal_snapshot")
-        OwnerSnapshotConsumer(self, self.session_id, turn_token=turn_token).consume_metadata(
+        await OwnerSnapshotConsumer(self, self.session_id, turn_token=turn_token).consume_metadata(
             result.get("_meta"))
         raw_goal, raw_execution = result["goal"], result["goalExecution"]
         goal = FieldCodec.decode(Goal, raw_goal) if raw_goal is not None else None
