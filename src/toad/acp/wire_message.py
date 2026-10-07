@@ -41,7 +41,7 @@ class WireCall(IncomingWireMessage):
     async def receive(self, agent, call_jsonrpc):
         import asyncio
 
-        if agent.server.requires_ordered_dispatch(self.payload):
+        if agent is None or agent.server.requires_ordered_dispatch(self.payload):
             await call_jsonrpc(self.payload)
         else:
             agent.session.start_operation(call_jsonrpc(self.payload))

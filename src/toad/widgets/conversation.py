@@ -581,7 +581,8 @@ class ConversationSessionBinding(containers.Vertical):
                            self._agent_session_id, self._session_pk)
         self._native_agent_started_here = True
         self.bind_agent(self.agent)
-        self.agent.controller.start_operation(self.agent.start())
+        self.agent.controller.start_operation(
+            self.agent.start(self.app.session_navigation.processes))
         self.publish_core(core_events.SessionSubtitleChanged(self.agent_title))
 
     @work

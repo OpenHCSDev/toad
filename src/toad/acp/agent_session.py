@@ -53,7 +53,12 @@ class AgentSession:
         self.reconnecting = False
         self.load_admission: SessionLoadAdmission = EnsuringSessionLoadAdmission()
         self.settled = asyncio.Event()
-        self.capabilities = schema.AgentCapabilities()
+
+    @property
+    def capabilities(self):
+        response = self.agent.process.initialization
+        return (response.agent_capabilities if response is not None
+                and response.agent_capabilities is not None else schema.AgentCapabilities())
 
     @property
     def accepts_updates(self):
@@ -97,6 +102,7 @@ class AgentSession:
             await asyncio.gather(*pending, return_exceptions=True)
         self.responses.clear()
         self.task = None
+        await self.agent.process.detach(self)
 
     def session_finished(self, task):
         if task.cancelled():
@@ -104,8 +110,15 @@ class AgentSession:
         error = task.exception()
         if error is not None and self.accepts_updates:
             self.startup_failed(f"{type(error).__name__}: {error}")
-            if self.agent.process.runner is not None:
-                self.agent.process.runner.cancel()
+            self.retirement = asyncio.create_task(self._retire())
+            self.retirement.add_done_callback(self.retirement_finished)
+
+    def retirement_finished(self, task):
+        if task.cancelled():
+            return
+        error = task.exception()
+        if error is not None:
+            self.agent.log(f"[error] Session retirement failed: {error}")
 
     def session_failed(self, failure):
         self.close()
@@ -227,7 +240,7 @@ class AgentSession:
             await self.agent.stop()
             self.load_admission = admission or EnsuringSessionLoadAdmission()
             self.settled.clear()
-            await self.agent.start()
+            await self.agent.start((self.agent.process,))
             await asyncio.wait_for(self.settled.wait(), timeout=30)
             if not self.connected:
                 raise ValueError("The agent could not reconnect.")
@@ -242,31 +255,29 @@ class AgentSession:
             response = api.authenticate(method_id)
         await response.wait()
         authority.require()
-        await self.initialize()
+        await self.initialize(force=True)
         authority.require()
 
 
-    async def initialize(self):
-        """Initialize agent."""
+    async def initialize(self, *, force=False):
+        """The connection owns its original initialization response."""
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
         authority.require()
-        with self.agent.request():
-            initialize_response = api.initialize(
-                PROTOCOL_VERSION,
-                schema.ClientCapabilities(fs=schema.FileSystemCapabilities(
-                    read_text_file=True, write_text_file=True), terminal=True,
-                    auth=schema.AuthCapabilities(terminal=os.name != "nt")),
-                schema.Implementation(name=toad.NAME, title=toad.TITLE, version=toad.get_version()),
-            )
-
-        response = await initialize_response.wait()
+        response = self.agent.process.initialization
+        if response is None or force:
+            with self.agent.request():
+                initialize_response = api.initialize(
+                    PROTOCOL_VERSION,
+                    schema.ClientCapabilities(fs=schema.FileSystemCapabilities(
+                        read_text_file=True, write_text_file=True), terminal=True,
+                        auth=schema.AuthCapabilities(terminal=os.name != "nt")),
+                    schema.Implementation(name=toad.NAME, title=toad.TITLE, version=toad.get_version()),
+                )
+            response = await initialize_response.wait()
+            authority.require()
+            assert response is not None
+            self.agent.process.initialization = response
         authority.require()
-        assert response is not None
-
-        # Store agents capabilities
-        if agent_capabilities := response.agent_capabilities:
-            self.capabilities = agent_capabilities
-        self.agent.presentation.auth_methods = response.auth_methods or []
 
 
     async def new(self) -> None:
