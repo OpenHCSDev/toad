@@ -158,11 +158,13 @@ class SidebarGroup(VerticalGroup):
             for (group, key), source in captured.for_rows(inputs).items():
                 row = retained[group].get(key)
                 current = row.thread_preparation(source) if row is not None else None
+                # Reserve each resource's original projected position. Reused
+                # rows and newly prepared rows finish at different times;
+                # completion order must not replace the source's roster order.
+                prepared[group][key] = current
                 if current is None:
                     pending[source] = None
                     missing[group, key] = source
-                else:
-                    prepared[group][key] = current
             if pending:
                 values = await runtime.submit(ThreadRowsWork(tuple(pending)))
                 pending.update(zip(pending, values))
