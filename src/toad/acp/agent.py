@@ -161,7 +161,7 @@ class Agent(AgentBase):
 
     async def start(self, processes=()) -> None:
         """Start the operational agent; attachment resources are acquired separately."""
-        self.process = await self.process.start(self, processes)
+        await self.process.start(self, processes)
 
     def send(self, request: jsonrpc.Request) -> None:
         """Send a request to the agent.
