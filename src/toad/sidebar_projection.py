@@ -88,6 +88,21 @@ class SidebarProjection:
             if not self.sidebar.navigation.ready.is_set() and self.sidebar.is_attached and self.sidebar.screen.is_current:
                 self.sidebar.call_after_refresh(self.sidebar.navigation.finish, self.sidebar.navigation.revision)
 
+    async def sync_sessions(self) -> None:
+        """Reconcile local routes without republishing unchanged wire rows.
+
+        SessionTracker owns tab titles, subtitles and paths. Channels consumes
+        only their current thread routes. Borrow the latest wire snapshot under
+        its publication lock so a local notification cannot republish an older
+        backend observation while a newer read is joining.
+        """
+        async with self.lock:
+            if self.snapshot is None or not self.sidebar.accepts_publication():
+                return
+            projected = self.sidebar.observation.project(self.snapshot.wire)
+            if projected.session_threads != self.snapshot.session_threads:
+                await self.rebuild(projected)
+
     async def rebuild(self, snapshot: SidebarSnapshot) -> None:
         if not self.sidebar.accepts_publication():
             return
