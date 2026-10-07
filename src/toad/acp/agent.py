@@ -185,7 +185,7 @@ class Agent(AgentBase):
 
     async def stop(self) -> None:
         """Gracefully stop the process."""
-        self.process.close()
+        self.session.close()
         await self.controller.terminals.close()
         await self.session.touch()
 

@@ -97,7 +97,7 @@ async def main() -> None:
                         sandbox, {"name": "fixture", "run_command": {"*": "true"}}, None
                     )
                     agent.process.process = process
-                    agent.process.session_task = None
+                    agent.session.task = None
                     agent.process.runner = None
                     evidence = await agent.stop()
                     assert process.returncode is not None
