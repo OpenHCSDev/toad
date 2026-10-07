@@ -45,7 +45,7 @@ async def main():
 
         async def start(agent, target):
             target.bind_agent(agent)
-            agent.process.session_task = asyncio.create_task(asyncio.sleep(0))
+            agent.session.task = asyncio.create_task(asyncio.sleep(0))
             agent.events.publish(AgentReady())
 
         app = FrameApp(project_dir=str(root))

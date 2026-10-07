@@ -1,7 +1,7 @@
 """Registered notification authority uses the real SDK and actual binding identities."""
 import asyncio
 from toad.acp.agent import Agent
-from toad.acp.agent_process import ActiveProcessDisposition
+from toad.acp.agent_session import ActiveSessionDisposition
 from toad.agent_schema import AgentDefinition
 from toad.acp.sdk_boundary import ValidateSessionUpdateTask
 
@@ -27,8 +27,8 @@ def test_pending_notification_cannot_publish_after_process_or_session_return(tmp
                 agent.session_id = 'B'
                 agent.session_id = 'A'
             else:
-                agent.process.close()
-                agent.process.disposition = ActiveProcessDisposition()
+                agent.session.close()
+                agent.session.disposition = ActiveSessionDisposition()
             emitted.clear()
             release.set()
             assert await pending is None

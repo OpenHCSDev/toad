@@ -118,11 +118,13 @@ class CoordinationAccess:
         from toad.sidebar_snapshot import SidebarSnapshot
 
         async with self.sidebar_lock:
-            if service is not self.observed_service:
+            if (service is not self.observed_service
+                    or not await self.preparation.run_thread(root_is_current, service.root)):
                 raise ValueError("Sidebar service changed before acquisition")
-            if not await self.preparation.run_thread(root_is_current, service.root):
-                raise ValueError("Sidebar route changed before acquisition")
-            revision = service.views.revision()
+            revision = await self.preparation.run_thread(service.views.revision)
+            if (service is not self.observed_service
+                    or not await self.preparation.run_thread(root_is_current, service.root)):
+                raise ValueError("Sidebar service changed while observing its revision")
             if self.sidebar_snapshot is not None and self.sidebar_snapshot.matches(
                     service, revision, app.project_dir, filters):
                 return self.sidebar_snapshot
@@ -164,34 +166,36 @@ class CoordinationAccess:
         return (file_revision(active_route_path()),
                 file_revision(service.root / "bus_meta.json") if service else None)
 
-    def route_changed(self) -> bool:
-        return self.route_stamp is None or self.current_route_stamp()[0] != self.route_stamp[0]
+    async def route_changed(self) -> bool:
+        stamp = await self.preparation.run_thread(self.current_route_stamp)
+        return self.route_stamp is None or stamp[0] != self.route_stamp[0]
 
     def refresh(self) -> None:
         if self.task is not None and not self.task.done():
             return
+        self.task = asyncio.create_task(self.observe())
+
+    async def observe(self) -> None:
         try:
             service = self.observed_service
-            route_stamp = self.current_route_stamp()
-            revision = service.views.revision() if service else None
-            if (service is not None and revision == self.revision
+            route_stamp = await self.preparation.run_thread(self.current_route_stamp)
+            revision = await self.preparation.run_thread(service.views.revision) if service else None
+            if (service is not None and service is self.observed_service and revision == self.revision
                     and route_stamp == self.route_stamp):
                 return
-            self.task = asyncio.create_task(self.observe(revision, route_stamp))
         except (OSError, ValueError, RuntimeError):
             # A route publication may be replacing its marker. Its next revision
             # retries validation; no sidebar visibility can disable observation.
             return
 
-    async def observe(self, revision: WireRevision | None,
-                      route_stamp: tuple[tuple[int, int, int, int] | None, ...]) -> None:
         try:
             service = await self.preparation.run_thread(lambda: self.service)
-            route_stamp = self.current_route_stamp()
-            revision = service.views.revision()
+            route_stamp = await self.preparation.run_thread(self.current_route_stamp)
+            revision = await self.preparation.run_thread(service.views.revision)
             if not await self.preparation.run_thread(root_is_current, service.root):
                 raise ValueError("Observed Comms route changed before publication")
-            if service is not self.observed_service or self.current_route_stamp() != route_stamp:
+            if (service is not self.observed_service
+                    or await self.preparation.run_thread(self.current_route_stamp) != route_stamp):
                 return
         except (OSError, ValueError, RuntimeError):
             # Invalidation must also reach mounted views when validation fails.

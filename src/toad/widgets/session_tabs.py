@@ -23,7 +23,6 @@ from toad.core.events import SessionChangedEvent
 from toad.core_event_carrier import CoreEventReceiver
 from toad.app import ToadApp
 from toad.session_tracker import OpenTab
-from toad.sidebar_preparation import PreparedTab, TabRosterWork
 from toad.widgets.activity_spinner import FRAMES, animated_label
 
 
@@ -47,6 +46,7 @@ class SessionTabClose(widgets.Static, can_focus=True):
     """Close a tab without selecting it or deleting its saved thread."""
 
     ALLOW_SELECT = False
+    FOCUS_ON_CLICK = False
     BINDINGS: ClassVar[list[BindingType]] = [("enter,space", "close_tab", "Close tab")]
     DEFAULT_CSS = """
     SessionTabClose {
@@ -141,7 +141,6 @@ class SessionsTabs(CoreEventReceiver, Widget):
         self._spinner_phase = 0
         self._spinner_timer = None
         self._sync_lock = asyncio.Lock()
-        self._tab_projection: dict[str, PreparedTab] = {}
 
     def _get_scrollable_region(self, region: Region) -> Region:
         # The scrollbar occupies the explicit empty top row, not a bottom row.
@@ -230,9 +229,6 @@ class SessionsTabs(CoreEventReceiver, Widget):
                 self.scroll_to_center(current_label, animate=False)
 
     def render_session_label(self, session: OpenTab) -> Content:
-        prepared = self._tab_projection.get(session.mode_name)
-        if prepared is not None and prepared.source == session:
-            return prepared.content(self._spinner_phase)
         title = animated_label(
             session.title,
             busy=session.title.startswith(("⌛ ", "● ")),
@@ -273,63 +269,60 @@ class SessionsTabs(CoreEventReceiver, Widget):
             await self._reconcile_tabs()
 
     async def _reconcile_tabs(self) -> None:
-        if not self.is_attached or not self.screen.is_active:
-            return
         while True:
+            if not self.is_attached or not self.screen.is_active:
+                return
             tabs = self.app.open_tabs
             if tabs == self._last_tabs:
-                # Selection does not change the worker-owned label projection.
+                # Selection does not change the mounted label content.
                 # Its native reactive updates the selected class and underline.
                 self.current_session = self.app.selected_mode
                 self._sync_spinner(tabs)
                 return
-            prepared = await self.app.preparation.submit(TabRosterWork(tabs))
-            if not self.is_attached or not self.screen.is_active:
-                return
-            if tabs == self.app.open_tabs:
-                break
-            # The caller may be the activation transaction. Finish its newest
-            # roster here rather than return "ready" with stale geometry and
-            # defer the real work to an unrelated callback.
-        self._tab_projection = {tab.source.mode_name: tab for tab in prepared}
-        previous_tabs = {tab.mode_name: tab for tab in self._last_tabs or ()}
-        geometry_changed = self._last_tabs is None
-        mode_changed = self.current_session != self.app.selected_mode
-        labels = {label.id: label for label in self.query(SessionLabel)}
-        desired = {tab.mode_name for tab in tabs}
-        obsolete = set(labels) - desired
-        if obsolete:
-            retired_ids = obsolete | {f"close-{identity}" for identity in obsolete}
-            await self.title_container.remove_children(
-                child for child in self.title_container.children if child.id in retired_ids
-            )
-            geometry_changed = True
-        new_widgets: list[Widget] = []
-        for tab in tabs:
-            content = self.render_session_label(tab)
-            if label := labels.get(tab.mode_name):
-                if label.render().plain != content.plain:
-                    previous = previous_tabs.get(tab.mode_name)
-                    same_width_count = (
-                        previous is not None and previous.title == tab.title
-                        and previous.unread.highlighted == tab.unread.highlighted
-                        and len(previous.unread.label) == len(tab.unread.label)
-                    )
-                    label.update(content, layout=not same_width_count)
-                    geometry_changed |= not same_width_count
-            else:
-                new_widgets.extend((SessionLabel(content, id=tab.mode_name), SessionTabClose(tab.mode_name)))
+            previous_tabs = {tab.mode_name: tab for tab in self._last_tabs or ()}
+            geometry_changed = self._last_tabs is None
+            mode_changed = self.current_session != self.app.selected_mode
+            labels = {label.id: label for label in self.query(SessionLabel)}
+            desired = {tab.mode_name for tab in tabs}
+            obsolete = set(labels) - desired
+            if obsolete:
+                retired_ids = obsolete | {f"close-{identity}" for identity in obsolete}
+                await self.title_container.remove_children(
+                    child for child in self.title_container.children if child.id in retired_ids
+                )
                 geometry_changed = True
-        if new_widgets:
-            await self.title_container.mount(*new_widgets)
-        order = {identity: index for index, identity in enumerate(
-            identity for tab in tabs for identity in (tab.mode_name, f"close-{tab.mode_name}")
-        )}
-        if [widget.id for widget in self.title_container.children] != list(order):
-            self.title_container.sort_children(key=lambda widget: order[widget.id])
-            geometry_changed = True
-        self.current_session = self.app.selected_mode
-        self._last_tabs = tabs
-        self._sync_spinner(tabs)
-        if geometry_changed or mode_changed:
-            self.call_after_refresh(self.update_underline, self.current_session, False)
+            new_widgets: list[Widget] = []
+            for tab in tabs:
+                content = self.render_session_label(tab)
+                if label := labels.get(tab.mode_name):
+                    if label.render().plain != content.plain:
+                        previous = previous_tabs.get(tab.mode_name)
+                        same_width_count = (
+                            previous is not None and previous.title == tab.title
+                            and previous.unread.highlighted == tab.unread.highlighted
+                            and len(previous.unread.label) == len(tab.unread.label)
+                        )
+                        label.update(content, layout=not same_width_count)
+                        geometry_changed |= not same_width_count
+                else:
+                    new_widgets.extend((SessionLabel(content, id=tab.mode_name), SessionTabClose(tab.mode_name)))
+                    geometry_changed = True
+            if new_widgets:
+                await self.title_container.mount(*new_widgets)
+            if not self.is_attached:
+                return
+            order = {identity: index for index, identity in enumerate(
+                identity for tab in tabs for identity in (tab.mode_name, f"close-{tab.mode_name}")
+            )}
+            if [widget.id for widget in self.title_container.children] != list(order):
+                self.title_container.sort_children(key=lambda widget: order[widget.id])
+                geometry_changed = True
+            self.current_session = self.app.selected_mode
+            self._last_tabs = tabs
+            self._sync_spinner(tabs)
+            if geometry_changed or mode_changed:
+                self.call_after_refresh(self.update_underline, self.current_session, False)
+            # Mount/removal yields to metadata publications. Reconcile their
+            # actual newest roster before the activation caller can finish.
+            if tabs == self.app.open_tabs:
+                return

@@ -5,30 +5,10 @@ import json
 import os
 from contextlib import ExitStack
 from pathlib import Path
-from agent_comms.declared_family import DeclaredFamily
-from agent_comms.child_process import StreamingChildStdio
+from agent_comms.child_process import StreamingChildStdio, join_retirement
 from toad import jsonrpc
 from toad.core.events import LogAgentFail
 from toad.acp.wire_message import IncomingWireMessage
-
-
-class ProcessDisposition(DeclaredFamily, affix="ProcessDisposition"):
-    accepts_updates = False
-
-    def close(self, agent):
-        return self
-
-
-class ActiveProcessDisposition(ProcessDisposition):
-    accepts_updates = True
-
-    def close(self, agent):
-        agent.controller.connection_closed()
-        return ClosedProcessDisposition()
-
-
-class ClosedProcessDisposition(ProcessDisposition):
-    pass
 
 
 class AgentProcess:
@@ -39,61 +19,82 @@ class AgentProcess:
         self.route_selection = None
         self.process = None
         self.runner = None
-        self.session_task = None
-        self.responses = set()
         self.retirement = None
-        self.disposition = ActiveProcessDisposition()
         self.custody = ExitStack()
+        self.sessions = set()
+        self.initialization = None
+        self.command = None
+        self.attachment_lock = asyncio.Lock()
 
-    async def start(self):
-        self.disposition = ActiveProcessDisposition()
-        self.retirement = None
+    def accepts_attachment(self, agent, env, cwd, selection):
+        response = self.initialization
+        capabilities = response.agent_capabilities if response is not None else None
+        lifecycle = capabilities.session_capabilities if capabilities is not None else None
+        return (self.runner is not None and not self.runner.done()
+                and self.retirement is None and self.process is not None
+                and self.process.returncode is None
+                and lifecycle is not None and lifecycle.close is not None
+                and self.command == agent.command and self.env == env
+                and self.cwd == cwd and self.route_selection == selection
+                and agent.session_id is not None
+                and all(member.agent.session_id != agent.session_id for member in self.sessions))
+
+    async def start(self, agent, processes=()):
+        agent.session.reopen()
+        agent.session.starting()
         try:
             await asyncio.to_thread(
-                self.agent.presentation.log_path.parent.mkdir, parents=True, exist_ok=True
-            )
+                agent.presentation.log_path.parent.mkdir, parents=True, exist_ok=True)
         except OSError:
             pass
-        self.agent.session.starting()
-        # Freeze exactly the environment and working directory passed to the
-        # child. A relative wire root is relative to the child cwd, not Toad's.
-        # Preflight is early denial; the actual spawn takes the core wire lock.
         from toad.comms_root import RouteSelection
         from .maintenance_ingress import preflight
-
-        self.env = os.environ.copy()
-        self.cwd = str(self.agent.project_root_path.resolve())
-        self.route_selection = RouteSelection.for_child(self.env, self.cwd)
+        env = os.environ.copy()
+        cwd = str(agent.project_root_path.resolve())
+        selection = RouteSelection.for_child(env, cwd)
         with ExitStack() as acquisition:
             try:
-                acquisition.enter_context(self.route_selection.route.admit_client())
-                await asyncio.to_thread(
-                    preflight,
-                    (self.agent.coordination.wire_root if self.agent.coordination else None),
-                    ingress_root=self.route_selection.root,
-                    cwd=self.cwd,
-                )
+                acquisition.enter_context(selection.route.admit_client())
+                await asyncio.to_thread(preflight,
+                    agent.coordination.wire_root if agent.coordination else None,
+                    ingress_root=selection.root, cwd=cwd)
             except Exception as error:
-                self.agent.session.failed()
-                self.agent.events.publish(LogAgentFail("Failed to start agent", details=str(error), log_path=self.agent.presentation.log_path))
-                return
-            # Closing the operational owner during preflight revokes this
-            # acquisition; it cannot reopen the process after that await.
-            if not self.accepts_updates:
-                return
-            self.agent.controller.replace_terminal_session()
-            self.runner = asyncio.create_task(self.run())
-            # No await can cancel between task creation and resource transfer.
-            # Cancelled/failed preflight owns no runner and closes acquisition.
-            self.custody.enter_context(acquisition.pop_all())
+                agent.session.failed()
+                agent.events.publish(LogAgentFail("Failed to start agent", details=str(error),
+                                                 log_path=agent.presentation.log_path))
+                return self
+            if not agent.session.accepts_updates:
+                return self
+            for connection in dict.fromkeys((self, *processes)):
+                if connection.accepts_attachment(agent, env, cwd, selection):
+                    # Bind the acquired connection before eager session tasks run.
+                    agent.process = connection
+                    connection.sessions.add(agent.session)
+                    agent.controller.replace_terminal_session()
+                    agent.session.start()
+                    return connection
+            # A previously shared connection cannot be repurposed for another
+            # launch. Keep its original sessions and acquire a new process.
+            connection = AgentProcess(agent) if self.sessions else self
+            connection.agent = agent
+            connection.env, connection.cwd, connection.route_selection = env, cwd, selection
+            connection.command = agent.command
+            connection.initialization = None
+            connection.retirement = None
+            agent.process = connection
+            connection.sessions.add(agent.session)
+            agent.controller.replace_terminal_session()
+            connection.runner = asyncio.create_task(connection.run())
+            connection.custody.enter_context(acquisition.pop_all())
+            return connection
 
-    def send(self, request):
+    def send(self, request, agent):
         if self.process is None:
-            self.agent.log("[error] Agent process isnt running")
+            agent.log("[error] Agent process isnt running")
             return
 
         body = request.body
-        self.agent.log(f"[client] {body}")
+        agent.log(f"[client] {body}")
         if (stdin := self.process.stdin) is not None:
             calls = body if isinstance(body, list) else [body]
             if any(
@@ -103,7 +104,7 @@ class AgentProcess:
                 from .maintenance_ingress import admitted_prompt
 
                 with admitted_prompt(
-                    (self.agent.coordination.wire_root if self.agent.coordination else None),
+                    (agent.coordination.wire_root if agent.coordination else None),
                     ingress_root=self.route_selection.root,
                     cwd=self.cwd,
                     implicit=self.route_selection.implicit,
@@ -112,59 +113,63 @@ class AgentProcess:
             else:
                 stdin.write(b"%s\n" % request.body_json)
 
-    @property
-    def accepts_updates(self):
-        return self.disposition.accepts_updates
-
-    def accepts_session(self, session_id: str | None) -> bool:
-        """Only the active process may consume work for its current binding."""
-        return self.accepts_updates and self.agent.session_id == session_id
-
-    def start_operation(self, operation):
-        task = asyncio.create_task(operation)
-        if not self.accepts_updates:
-            task.cancel()
-        self.responses.add(task)
-        task.add_done_callback(self.responses.discard)
-        return task
-
-    def close(self):
-        self.disposition = self.disposition.close(self.agent)
-
     async def retire(self):
-        self.close()
+        for session in tuple(self.sessions):
+            session.close()
+            # EOF must release a pending close response too. Those replies are
+            # owned by the session, just like all its other outstanding work.
+            for task in tuple(session.responses):
+                task.cancel()
         if self.retirement is None:
             self.retirement = asyncio.create_task(self._retire())
-        cancelled = False
-        while True:
-            try:
-                await asyncio.shield(self.retirement)
-                break
-            except asyncio.CancelledError:
-                cancelled = True
-        if cancelled:
-            raise asyncio.CancelledError
+        await join_retirement(self.retirement)
 
     async def _retire(self):
-        pending = tuple(task for task in (self.session_task, *self.responses)
-                        if task is not None)
-        for task in pending:
-            task.cancel()
-        if pending:
-            await asyncio.gather(*pending, return_exceptions=True)
-        self.responses.clear()
-        if self.process is not None:
-            await self.process.stop()
-        self.process = self.session_task = None
-        self.custody.close()
+        try:
+            await asyncio.gather(*(session.retire() for session in tuple(self.sessions)),
+                                 return_exceptions=True)
+        finally:
+            if self.process is not None:
+                await self.process.stop()
+            self.process = None
+            self.sessions.clear()
+            self.custody.close()
 
-    async def stop(self):
-        self.close()
-        if self.runner is not None and self.runner is not asyncio.current_task():
-            self.runner.cancel()
-            await asyncio.gather(self.runner, return_exceptions=True)
-        await self.retire()
-        self.runner = None
+    async def detach(self, session):
+        from . import api
+        async with self.attachment_lock:
+            if session not in self.sessions:
+                return
+            try:
+                if self.retirement is None and len(self.sessions) > 1:
+                    # Only advertised scoped-close transports acquire multiple
+                    # members. Revoke locally first, then join remote retirement.
+                    with session.agent.request():
+                        response = api.session_close(session.agent.session_id)
+                    task = asyncio.create_task(response.wait())
+                    session.responses.add(task)
+                    task.add_done_callback(session.responses.discard)
+                    await task
+            except BaseException:
+                # Unknown remote closure cannot leave a shared connection with
+                # an unowned attachment. Retire it; never replay the close.
+                if self.runner is not None:
+                    self.runner.cancel()
+                raise
+            finally:
+                self.sessions.discard(session)
+            if not self.sessions and self.retirement is None and self.runner is not None:
+                self.runner.cancel()
+
+    async def stop(self, agent):
+        agent.session.close()
+        await agent.session.retire()
+        if not self.sessions:
+            if self.runner is not None and self.runner is not asyncio.current_task():
+                self.runner.cancel()
+                await asyncio.gather(self.runner, return_exceptions=True)
+            await self.retire()
+            self.runner = None
 
     async def run(self):
         try:
@@ -172,31 +177,12 @@ class AgentProcess:
         finally:
             await self.retire()
 
-    def session_finished(self, task):
-        if task.cancelled():
-            return
-        error = task.exception()
-        if error is not None and self.accepts_updates:
-            self.startup_failed(f"{type(error).__name__}: {error}")
-            if self.runner is not None:
-                self.runner.cancel()
-
-    def session_failed(self, failure):
-        self.close()
-        self.agent.session.failed()
-        self.agent.events.publish(LogAgentFail(failure.title, failure.feedback, log_path=self.agent.presentation.log_path))
-
-    def startup_failed(self, details):
-        self.close()
-        self.agent.session.failed()
-        self.agent.events.publish(LogAgentFail("ACP session startup failed", details=details, log_path=self.agent.presentation.log_path))
-
     async def communicate(self) -> None:
         """Task to communicate with the agent subprocess."""
         agent = self.agent
         env = (self.env or os.environ).copy()
         env["TOAD_CWD"] = str(Path("./").absolute())
-        if (command := agent.command) is None:
+        if (command := self.command) is None:
             agent.session.failed()
             agent.events.publish(
                 LogAgentFail("Failed to start agent; no run command for this OS", log_path=agent.presentation.log_path)
@@ -217,13 +203,18 @@ class AgentProcess:
             agent.session.failed()
             agent.events.publish(LogAgentFail("Failed to start agent", details=str(error), log_path=self.agent.presentation.log_path))
             return
-        self.session_task = asyncio.create_task(agent.session.run())
-        self.session_task.add_done_callback(self.session_finished)
+        agent.session.start()
         assert process.stdout is not None
         assert process.stdin is not None
 
-        async def call_jsonrpc(request: jsonrpc.JSONObject | jsonrpc.JSONList) -> None:
-            if (result := await agent.server.call(request)) is not None:
+        async def call_jsonrpc(request, recipient):
+            if recipient is None:
+                result = ({"jsonrpc": "2.0", "id": request["id"], "error": {
+                    "code": -32602, "message": "ACP session is retired or unknown"}}
+                    if "id" in request else None)
+            else:
+                result = await recipient.server.call(request)
+            if result is not None:
                 result_json = json.dumps(result).encode("utf-8")
                 assert process.stdin is not None
                 process.stdin.write(b"%s\n" % result_json)
@@ -236,7 +227,8 @@ class AgentProcess:
             except Exception as error:
                 agent.log(f"[error] Unable to decode utf-8 from agent: {error}")
                 continue
-            agent.log(f"[agent] {line_str}")
+            for session in tuple(self.sessions):
+                session.agent.log(f"[agent] {line_str}")
             try:
                 agent_data: jsonrpc.JSONType = json.loads(line_str)
             except Exception as error:
@@ -247,14 +239,32 @@ class AgentProcess:
             except ValueError as error:
                 agent.log(f"[error] {error}")
                 continue
-            await incoming.receive(agent, call_jsonrpc, self)
-        if process.returncode and self.accepts_updates:
-            agent.session.failed()
-            assert process.stderr is not None
-            fail_details = (await process.stderr.read()).decode("utf-8", "replace")
-            agent.events.publish(LogAgentFail(
-                f"Agent returned a failure code: [b]{process.returncode}",
-                details=fail_details, log_path=agent.presentation.log_path,
-            ))
-        elif self.accepts_updates and not agent.session.settled.is_set():
-            self.startup_failed("ACP process closed before session initialization completed.")
+            await incoming.receive(self.recipient(agent_data), call_jsonrpc)
+        for session in tuple(self.sessions):
+            if not session.accepts_updates:
+                continue
+            if process.returncode:
+                session.failed()
+                assert process.stderr is not None
+                fail_details = (await process.stderr.read()).decode("utf-8", "replace")
+                session.agent.events.publish(LogAgentFail(
+                    f"Agent returned a failure code: [b]{process.returncode}",
+                    details=fail_details, log_path=session.agent.presentation.log_path))
+            elif not session.settled.is_set():
+                session.startup_failed("ACP process closed before session initialization completed.")
+
+    def recipient(self, request):
+        if not isinstance(request, dict):
+            return None
+        params = request.get("params")
+        session_id = params.get("sessionId") if isinstance(params, dict) else None
+        members = tuple(member.agent for member in self.sessions if member.accepts_updates)
+        if session_id is not None:
+            matched = next((agent for agent in members if agent.session.accepts_session(session_id)), None)
+            if matched is not None:
+                return matched
+            return (members[0] if len(members) == 1
+                    and not members[0].controller.session.bound else None)
+        # Unbound new sessions are never multiplexed; their original callback
+        # contract remains available on their dedicated process.
+        return members[0] if len(members) == 1 else None

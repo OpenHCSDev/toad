@@ -581,7 +581,8 @@ class ConversationSessionBinding(containers.Vertical):
                            self._agent_session_id, self._session_pk)
         self._native_agent_started_here = True
         self.bind_agent(self.agent)
-        self.agent.controller.start_operation(self.agent.start())
+        self.agent.controller.start_operation(
+            self.agent.start(self.app.session_navigation.processes))
         self.publish_core(core_events.SessionSubtitleChanged(self.agent_title))
 
     @work
@@ -1034,14 +1035,14 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
 
         if self._agent_data is not None and self.session_start_time is not None:
             session_time = monotonic() - self.session_start_time
-            await self.app.application.usage.publish(
+            self.app.application.usage.publish(
                 "agent-session-end",
                 agent=self._agent_data.identity,
                 duration=session_time,
                 agent_session_fail=self._agent_fail,
                 shell_count=self._shell_count,
                 turn_count=self._turn_count,
-            ).wait()
+            )
 
     @handles(AgentFail)
     async def on_agent_fail(self, message: CoreEventMessage) -> None:

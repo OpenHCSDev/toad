@@ -78,6 +78,11 @@ class BoundWorkspaceSource(WorkspaceSource):
         return self.view is view
 
     async def retire(self):
+        # Retire this source's focus before hiding it. Hide's native fallback
+        # otherwise searches the shared frame for an intermediate target while
+        # the destination is still being admitted. Shared chrome keeps focus.
+        if self.view.has_focus_within:
+            self.view.screen.set_focus(None)
         self.view.display = False
         await self.view.retire_presentation()
         return ParkedWorkspaceSource(self.view)

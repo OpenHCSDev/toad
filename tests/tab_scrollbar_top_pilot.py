@@ -84,9 +84,22 @@ async def main():
             close = tabs.query_one(f"#close-{peers[0]}", SessionTabClose)
             close.scroll_visible(animate=False)
             await pilot.pause()
+            original_focus = app.screen.focused
             assert await pilot.click(close)
             await pilot.pause()
             assert app.session_tracker.get_session(peers[0]) is None
+            assert app.selected_mode == owner
+            assert app.screen.focused is original_focus
+
+            # Mouse close keeps the editor's focus; keyboard close remains
+            # available through the original focusable control and binding.
+            keyboard_close = tabs.query_one(f"#close-{peers[1]}", SessionTabClose)
+            keyboard_close.focus(scroll_visible=False)
+            await pilot.pause()
+            assert keyboard_close.has_focus
+            await pilot.press("enter")
+            await pilot.pause()
+            assert app.session_tracker.get_session(peers[1]) is None
             assert app.selected_mode == owner
 
             for width in (300, 100):

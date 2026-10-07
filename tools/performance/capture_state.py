@@ -62,6 +62,9 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                         observer.install(expected_pid=expected_pid, output=scroll_travel_output)
                     if install_frame_trace:
                         from sidebar_validation_driver import ValidationDriver
+                        if os.environ.get("TOAD_VALIDATION_OPEN_STAGES"):
+                            from sidebar_validation_driver import install_observer
+                            install_observer()
                         await ValidationDriver.observe_application_frames(app).wait()
                     capture(expected_pid=expected_pid, output_prefix=output_prefix,
                             wait_history_seconds=wait_history_seconds, wait_interval=wait_interval,
@@ -81,8 +84,6 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                 write_json(prefix + ".json", {"pid": expected_pid, "scope": "driver frame trace only"})
                 return
         if wait_history_seconds:
-            from toad.frame_presentation import FrameFlush
-
             if not wait_history_thread:
                 raise ValueError("Visible-history waiting requires the intended thread")
 
@@ -118,7 +119,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                                         written.set_result(None)
 
                                 app.call_after_refresh(
-                                    lambda: FrameFlush.for_driver(app._driver).submit(acknowledge))
+                                    lambda: app._driver.call_after_flush(acknowledge))
                                 await written
                                 if visible_history_ready():
                                     write_json(prefix + "-wait.json", {
@@ -206,7 +207,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
             })
         metadata["acp_startup"] = []
         native_processes = {}
-        # Take tasks and identities from the existing AgentProcess owner. No
+        # Take handshake tasks from AgentSession and child identity from AgentProcess. No
         # command matching, environment export, pipe read or new process owner.
         for conversation in (node for view in app.workspace_sessions.views.values()
                              for node in view.query(Conversation)):
@@ -219,7 +220,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                        "connected": agent.session.connected,
                        "settled": agent.session.settled.is_set(),
                        "runner": task_state(owner.runner) if owner.runner is not None else None,
-                       "session_task": task_state(owner.session_task) if owner.session_task is not None else None,
+                       "session_task": task_state(agent.session.task) if agent.session.task is not None else None,
                        "process": None}
             if child is not None:
                 startup["process"] = {"identity": asdict(child.identity), "returncode": child.returncode}

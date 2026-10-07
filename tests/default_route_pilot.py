@@ -172,12 +172,15 @@ async def main() -> None:
                     "LATE-OLD-EDGE" not in str(message) for message, _ in view.message_history.rows
                 )
                 await refresh_comms(view)
-                app.screen.query_one(CommsSidebar)._refresh()
+                app.screen.query_one(CommsSidebar).observation.refresh()
                 await pilot.pause()
                 assert not root_is_current(first)
-                assert (
-                    not view.display and not app.screen.query_one(CommsSidebar).display
-                )
+                assert not view.display
+                sidebar = app.screen.query_one(CommsSidebar)
+                if sidebar.display:
+                    # The shared workspace roster may already publish the
+                    # successor while this original conversation stays hidden.
+                    assert sidebar.projection.snapshot.service.root == second
                 assert "OLD-WIRE-ONLY" not in app.export_screenshot()
 
             # A fresh UI connection paints only the newly published wire.

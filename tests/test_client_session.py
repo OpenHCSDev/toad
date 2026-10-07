@@ -40,11 +40,11 @@ def test_retired_terminal_start_closes_actual_late_spawn(tmp_path, monkeypatch):
         entered, release = asyncio.Event(), asyncio.Event()
         real_start = TerminalExecution.start
         executions = []
-        async def pending_start(execution, width, height):
+        async def pending_start(execution):
             executions.append(execution)
             entered.set()
             await release.wait()
-            await real_start(execution, width, height)
+            await real_start(execution)
         monkeypatch.setattr(TerminalExecution, 'start', pending_start)
         original = agent.controller.terminals
         request = asyncio.create_task(rpc(agent, 'terminal/create', command='sh', args=['-c', 'sleep 30']))
@@ -96,10 +96,10 @@ def test_terminal_wait_rejects_same_session_return_after_owner_replacement(tmp_p
         monkeypatch.setattr(original, 'wait', pending_wait)
         waiting = asyncio.create_task(rpc(agent, 'terminal/wait_for_exit', terminalId=terminal_id))
         await entered.wait()
-        disposition = agent.process.disposition
+        disposition = agent.session.disposition
         agent.session_id = 'after'
         agent.session_id = 'before'
-        assert agent.process.disposition is disposition
+        assert agent.session.disposition is disposition
         await original.close()
         release.set()
         result = await waiting

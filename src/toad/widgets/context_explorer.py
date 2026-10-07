@@ -32,10 +32,9 @@ class ContextTreeIntent:
     def search_current(self, query, selected):
         return self.query == query and self.selected is selected
 
-    def rebind(self, original, model, show_detail):
+    def rebind(self, original, model):
         if self.selected is original:
             self.selected = model
-            show_detail(model)
 
     def restore(self, resolve, restore_node):
         if self.selected is None:
@@ -109,7 +108,7 @@ class ContextTree(Tree[ContextNode]):
             # its complete inspection and all recorded requests on the UI loop.
             if original is not model:
                 node.data = model
-                self.intent.rebind(original, model, self.show_detail)
+                self.intent.rebind(original, model)
             if node.label.plain != model.label:
                 node.set_label(model.label)
             # Native disclosure remembers inspected empty leaves as well as
@@ -173,8 +172,12 @@ class ContextTree(Tree[ContextNode]):
     def _restore_cursor(self, model):
         node = self.context_nodes.get(model.key)
         if self.owns_node(node) and node.data is model:
-            with self.prevent(Tree.NodeHighlighted):
-                self.move_cursor(node, animate=False)
+            # The retained native cursor already owns this selection and its
+            # scroll position. Moving it again scrolls the user's viewport back
+            # to the selected row on every background context refresh.
+            if self.cursor_node is not node:
+                with self.prevent(Tree.NodeHighlighted):
+                    self.move_cursor(node, animate=False)
             self.show_detail(model)
 
     def _add(self, parent, model, *, before=None):
@@ -314,7 +317,10 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         previous = self.state
         self.state = previous.observe(access.revision)
         try:
-            acquired = await self.state.acquire(access.service, access.revision)
+            service = await self.app.preparation.run_thread(lambda: access.service)
+            if not self._reading(previous):
+                return
+            acquired = await self.state.acquire(service, access.revision)
             if not self._reading(previous):
                 return
             self.state = self.state.receive_inspection(acquired)

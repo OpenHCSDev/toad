@@ -62,6 +62,13 @@ class SessionAdmissions:
     def members(self) -> tuple[SessionAdmission, ...]:
         return tuple(cast(SessionAdmission, factory) for factory in self.app.workspace_sessions.factories.values())
 
+    @property
+    def processes(self):
+        """Borrow connections from actual native sources; keep no second roster."""
+        return tuple(agent.process for member in self.members
+                     if (source := member.source(self)) is not None
+                     and (agent := source.presentation.operational_agent) is not None)
+
     def get(self, mode: str) -> SessionAdmission | None:
         return cast(SessionAdmission | None, self.app.workspace_sessions.factories.get(mode))
 
@@ -145,7 +152,9 @@ class SessionAdmissions:
             return app.selected_mode
         origin = ThreadOrigin.capture(app, source)
         try:
-            requested_root = str(current_root())
+            requested_root = str(await app.preparation.run_thread(current_root))
+            if not origin.current(app.thread_navigation, owner_mode):
+                return app.selected_mode
             prepared = await app.navigation_reader.read(CommsNavigationRequest(
                 requested_root, owner_mode, me, target, kind, source.coordination_root))
         except Exception as error:
@@ -153,7 +162,11 @@ class SessionAdmissions:
             return app.selected_mode
         if prepared is None:
             return app.selected_mode
-        if not origin.current(app.thread_navigation, owner_mode) or not root_is_current(requested_root):
+        if not origin.current(app.thread_navigation, owner_mode):
+            return app.selected_mode
+        if not await app.preparation.run_thread(root_is_current, requested_root):
+            return app.selected_mode
+        if not origin.current(app.thread_navigation, owner_mode):
             return app.selected_mode
         # History admission is the only owner of this typed key. Workspace
         # factories carry its identity, so no key-to-mode mirror can go stale.

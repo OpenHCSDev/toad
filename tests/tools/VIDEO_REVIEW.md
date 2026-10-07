@@ -243,10 +243,14 @@ owner's preparation evidence.
 
 ## Runtime provenance and artifacts
 
-`--profile` uses consistent stack reads by default. `--profile-sampling
-nonblocking` selects py-spy's nonblocking reads explicitly. The actual policy
-is recorded with the launch command and profile review. Consistent sampling
-briefly pauses Python; nonblocking sampling can read an inconsistent stack.
+`--profile` uses nonblocking stack reads by default so sampling does not pause
+the application whose latency is being observed. `--profile-sampling consistent`
+explicitly selects blocking reads when stack consistency is the question.
+The actual policy is recorded with the launch command and profile review.
+Blocking sampling can materially distort latency: the retained
+`context-scroll-acp-candidate-live-20261007` attempt fell21.7 seconds behind at25Hz
+and stopped before its journey. The unprofiled comparison completed the same
+observer and journey. Nonblocking sampling can read an inconsistent stack.
 Inspect reported sampling errors and missing intervals, using compatible
 unprofiled evidence or a new comparison only when an attribution question remains.
 Neither a profiler exit code nor a sparse profile establishes correctness.
