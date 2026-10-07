@@ -929,6 +929,8 @@ class DocumentViewport:
         viewport admission. Walk the original tree without expanding those
         descendants or keeping an independent order alongside native custody.
         """
+        if not self.owners:
+            return
         pending = list(reversed(self.window.children))
         while pending:
             node = pending.pop()
@@ -1000,7 +1002,8 @@ class DocumentViewport:
         return admitted
 
     def request(self, *_args) -> None:
-        if not self.accepts_frame() or not self.window.is_attached or self.window._closing:
+        if (not self.owners or not self.accepts_frame()
+                or not self.window.is_attached or self.window._closing):
             return
         self._pending = True
         if self._worker is None:
@@ -1092,7 +1095,7 @@ class DocumentViewport:
 
     async def _reconcile(self) -> None:
         try:
-            while (self._pending and self.accepts_frame()
+            while (self._pending and self.owners and self.accepts_frame()
                    and self.window.is_attached and not self.window._closing):
                 self._pending = False
                 screen = self.window.screen
