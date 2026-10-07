@@ -179,6 +179,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
     @handles(core_events.SessionSelected)
     async def _selected_source_changed(self, event) -> None:
         """A retained view reads current source after its original tab admission."""
+        await super()._selected_commands_changed(event)
         await self._refresh()
 
     def prepare_prompt(self) -> None:
