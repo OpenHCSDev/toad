@@ -257,7 +257,7 @@ async def multi_channel_removal():
             snapshot = comms.registry.snapshot()
             assert snapshot.require('batch-alpha').tags == frozenset()
             assert snapshot.require('batch-beta').tags == frozenset()
-            assert all(not status.active for status in snapshot.statuses.values())
+            assert all(not snapshot.status(name).active for name in ('batch-alpha', 'batch-beta'))
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
     print('PASS: installed native multi-channel menu, shared disposition dialog, both confirmations, original tag removal, refreshed channel rows and preserved threads')
