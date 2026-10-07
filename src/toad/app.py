@@ -518,6 +518,16 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
                 threads.add(screen._session_thread)
         return threads
 
+    async def registry_names(self) -> list[str]:
+        """Read peers through the current coordination owner, independent of panels."""
+        try:
+            registered = await self.preparation.run_thread(
+                lambda: tuple(self.coordination_access.service.registry.active_threads()))
+            local_threads = self.local_coordination_threads()
+            return [name for name in registered if name not in local_threads]
+        except Exception:
+            return []
+
     async def mark_visible_thread_read(self) -> None:
         """Report the painted native cursor, never an executor's inbox cursor."""
         from toad.screens.main import MainScreen

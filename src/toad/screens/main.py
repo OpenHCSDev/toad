@@ -392,13 +392,9 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
         """Open the last-selected DM as a native Toad session."""
         target = self._last_dm_target
         if not target:
-            try:
-                sidebar = self.query_one(CommsSidebar)
-            except Exception:
-                return
             peers = [
                 name
-                for name in sorted(sidebar.observation.registry_names())
+                for name in sorted(await self.app.registry_names())
                 if name != self._session_thread
             ]
             target = peers[0] if peers else ""
