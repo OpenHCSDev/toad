@@ -1389,6 +1389,13 @@ class SidebarWheelJourney(SidebarMotion, WheelWarmJourney):
                 native_click_command("phase-right-panels-before-state.pickle", target="widget",
                                      name="SidebarViewport#sidebar-panels",
                                      within="SessionThreadSidebar", wheel=6),
+                settle, marker + "context-panel-before",
+                native_click_command("phase-context-panel-before-state.pickle", target="widget",
+                                     name="CollapsibleTitle", within="SideBarCollapsible#context-panel"),
+                # The native title click collapses this initially expanded panel;
+                # Enter reopens it with focus retained on its original title.
+                # ContextExplorer declares search + four buttons before its Tree.
+                "key Return", "key --repeat 5 --repeat-delay 50 Tab",
                 settle, marker + "context-before",
                 marker + "context-scroll-down",
                 native_click_command("phase-context-before-state.pickle", target="context_tree", wheel=6),
