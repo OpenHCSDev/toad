@@ -2,7 +2,7 @@
 
 def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interval=.1,
             wait_history_thread=None, frame_trace=False, install_frame_trace=False,
-            frames_only=False, scroll_travel_output=None, native_process_output=None):
+            frames_only=False, runtime_only=False, scroll_travel_output=None, native_process_output=None):
     import asyncio
     from collections import Counter
     from dataclasses import asdict
@@ -16,18 +16,6 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
     import traceback
     from textual._context import active_app
     from textual.geometry import Offset
-    from toad.widgets.conversation import CursorContainer, Conversation
-    from toad.widgets.history_anchor import HistoryWindow
-    from toad.widgets.prompt import PromptTextArea
-    from toad.navigation_target import ChannelTarget
-    from toad.widgets.comms_sidebar import CommsRow, ThreadRow
-    from toad.widgets.comms_menu import ContextMenuItem
-    from toad.widgets.session_tabs import SessionLabel
-    from toad.widgets.tool_call import ToolCall
-    from toad.transcript_source_preparation import TranscriptSourcePreparation
-    from toad.widgets.transcript_history import TranscriptHistory
-    from toad.mounted_message_history import MountedMessageHistory
-    from toad.transcript_state import WorkingTranscript
 
     prefix = str(output_prefix)
     started = time.monotonic_ns()
@@ -48,6 +36,38 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                     break
         if app is None:
             raise RuntimeError("No application context")
+        if runtime_only:
+            sidebars = []
+            for sidebar in app.screen.query("CommsSidebar"):
+                projection = vars(sidebar).get("projection")
+                observation = vars(sidebar).get("observation")
+                snapshot = projection.snapshot if projection is not None else None
+                service = observation.service if observation is not None else None
+                sidebars.append({"id": sidebar.id,
+                                 "root": str(service.root) if service is not None else None,
+                                 "snapshot_show_archived": snapshot.wire.show_archived if snapshot is not None else None,
+                                 "channels": list(projection.channels) if projection is not None else None})
+            write_json(prefix + ".json", {
+                "pid": expected_pid, "prefix": sys.prefix,
+                "modules": {name: module.__file__ for name in ("toad", "agent_comms", "textual")
+                            if (module := sys.modules.get(name)) is not None},
+                "show_archived": app.settings.sidebar.show_archived,
+                "sidebars": sidebars,
+                "scope": "Original live module paths and existing sidebar settings/snapshot; no input or state mutation",
+            })
+            return
+        from toad.widgets.conversation import CursorContainer, Conversation
+        from toad.widgets.history_anchor import HistoryWindow
+        from toad.widgets.prompt import PromptTextArea
+        from toad.navigation_target import ChannelTarget
+        from toad.widgets.comms_sidebar import CommsRow, ThreadRow
+        from toad.widgets.comms_menu import ContextMenuItem
+        from toad.widgets.session_tabs import SessionLabel
+        from toad.widgets.tool_call import ToolCall
+        from toad.transcript_source_preparation import TranscriptSourcePreparation
+        from toad.widgets.transcript_history import TranscriptHistory
+        from toad.mounted_message_history import MountedMessageHistory
+        from toad.transcript_state import WorkingTranscript
         if not app._mounted_event.is_set() or install_frame_trace or scroll_travel_output is not None:
             async def acquire_and_capture():
                 try:
@@ -234,12 +254,17 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
             # The larger view export keeps its existing asynchronous lifetime.
             write_json(str(native_process_output), {"app_pid": os.getpid(),
                        "capture_prefix": prefix, "processes": list(native_processes.values())})
+        from toad.widgets.retiring_sidebar import RetiringSidebar
         metadata["retained_presentations"] = [
             {"mode": view.id, "owner": type(owner).__name__,
              "object_id": id(owner), "selected": view is app.selected_session,
              "widgets": owner.retained_widget_count,
              "source_bytes": owner.retained_source_bytes,
-             "paint_bytes": owner.retained_paint_bytes}
+             "paint_bytes": owner.retained_paint_bytes,
+             "panels": [{"object_id": id(panel.widget), "class": type(panel.widget).__name__,
+                         "widgets": [{"object_id": id(node), "class": type(node).__name__,
+                                      "id": node.id} for node in panel.widget.walk_children()]}
+                        for panel in owner.panels] if isinstance(owner, RetiringSidebar) else []}
             for view, owner in app.workspace_chrome.native._presentations()
         ]
 

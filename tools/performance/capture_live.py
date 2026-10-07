@@ -22,6 +22,8 @@ def main():
     parser.add_argument("--gil", action="store_true")
     parser.add_argument("--native", action="store_true")
     parser.add_argument("--state", action="store_true", help="Export loaded DTOs using CPython 3.14 remote_exec")
+    parser.add_argument("--runtime-only", action="store_true",
+                        help="Read original live module paths and sidebar settings without the widget/history export")
     parser.add_argument("--wait-history-seconds", type=float, default=0,
                         help="Before state export, await selected visible saved history and native writer receipt")
     parser.add_argument("--wait-history-interval", type=float, default=.1,
@@ -37,9 +39,17 @@ def main():
     parser.add_argument("--frames-only", action="store_true",
                         help="Export frame events without the widget/DTO census")
     parser.add_argument("--sudo", action="store_true", help="Use non-interactive sudo for attach operations")
+    parser.add_argument("--completion-deadline", type=float,
+                        help="Borrow the caller's original monotonic deadline for export completion")
     args = parser.parse_args()
+    if args.completion_deadline is not None and (
+            not math.isfinite(args.completion_deadline)
+            or args.completion_deadline <= time.monotonic()):
+        parser.error("Export completion requires the caller's remaining original deadline")
     if not (args.profile_seconds > 0 or args.state or args.screen):
         parser.error("Choose --profile-seconds, --state, or --screen")
+    if args.runtime_only and (not args.state or args.frames_only or args.install_frame_trace):
+        parser.error("Runtime-only requires --state without frame observation")
     if (not math.isfinite(args.wait_history_seconds) or args.wait_history_seconds < 0
             or not math.isfinite(args.wait_history_interval) or args.wait_history_interval <= 0):
         parser.error("History wait budget must be nonnegative and observation interval positive")
@@ -95,7 +105,7 @@ def main():
                  f", wait_history_thread={args.wait_history_thread!r}"
                  f", frame_trace={args.frame_trace!r}, install_frame_trace={args.install_frame_trace!r}"
                  f", scroll_travel_output={(str(args.output_dir / 'scroll-travel.jsonl') if args.scroll_travel else None)!r}"
-                 f", frames_only={args.frames_only!r}"),
+                 f", frames_only={args.frames_only!r}, runtime_only={args.runtime_only!r}"),
                 (args.screen, "capture_screen", "screen", ""),
             ):
                 if not enabled:
@@ -136,7 +146,8 @@ def main():
                 output.write("\n".join(lines) + "\n")
             subprocess.run([*privilege, executable, "-c",
                 f"import sys; sys.remote_exec({args.pid}, {str(script)!r})"], check=True, timeout=15)
-            deadline = time.monotonic() + args.wait_history_seconds + 20
+            deadline = (args.completion_deadline if args.completion_deadline is not None
+                        else time.monotonic() + args.wait_history_seconds + 20)
             while time.monotonic() < deadline and not all(
                     Path(path + ".json").exists() or Path(path + "-error.json").exists() for path in receipts):
                 time.sleep(.1)
