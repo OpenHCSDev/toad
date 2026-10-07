@@ -1395,7 +1395,7 @@ class SidebarWheelJourney(SidebarMotion, WheelWarmJourney):
                 # The native title click collapses this initially expanded panel;
                 # Enter reopens it with focus retained on its original title.
                 # ContextExplorer declares search + four buttons before its Tree.
-                "key Return", "key --repeat 5 --repeat-delay 50 Tab",
+                "key Return", "key --repeat 6 --repeat-delay 50 Tab",
                 settle, marker + "context-before",
                 marker + "context-scroll-down",
                 native_click_command("phase-context-before-state.pickle", target="context_tree", wheel=6),
