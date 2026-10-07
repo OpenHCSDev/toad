@@ -209,7 +209,8 @@ def request_target(app, command, subject):
         comms, subject, project=str(app.project_dir))
         if item.declaration is command)
     app.thread_actions.invoke(ThreadAction(definition, TargetEdit(
-        target=subject, declaration=command, arguments={})), subject)
+        target=subject, declaration=command, arguments={})), subject,
+        source_root=comms.root)
 
 
 def retain_fixture_journals(paths, *, directory: Path, stage: Path, evidence: Path,

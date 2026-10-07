@@ -14,6 +14,7 @@ from toad.widgets.side_bar import SidebarViewport
 
 async def main():
     scratch = Path('/home/ts/.cache/agent-scratch/parent-sidebar-context-20261006')
+    scratch.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='mounted-', dir=scratch) as directory:
         root = Path(directory)
         os.environ.update(AGENT_COMMS_ROOT=str(root / 'wire'),
@@ -28,6 +29,9 @@ async def main():
         app = ToadApp(project_dir=str(root))
         app.settings.sidebar.show_stopped = True
         async with app.run_test(size=(113, 34)) as pilot:
+            await app.selected_session.wait_content_ready()
+            app.workspace_chrome.channels.reveal()
+            await app.workspace_chrome.channels.wait_content_ready()
             await pilot.pause()
             sidebar = app.screen.query_one(CommsSidebar)
             # Setup uses the existing canonical observer; expose a refused read

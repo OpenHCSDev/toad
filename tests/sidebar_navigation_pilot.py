@@ -31,7 +31,7 @@ class FrameApp(ToadApp):
         sidebar = screen.query_one_optional(CommsSidebar)
         if sidebar is None:
             return ()
-        region = sidebar.navigation.scroll_containers[0].content_region
+        region = sidebar.navigation.scroll_container.content_region
         return tuple(
             (
                 strip.text[region.x : region.right]
@@ -70,8 +70,8 @@ async def main(*, finish_before_layout=False):
                 completion_attempts.append(
                     (
                         sidebar.display,
-                        sidebar.navigation.state.channel_scroll_y,
-                        sidebar.navigation.scroll_containers[0].max_scroll_y,
+                        sidebar.navigation.state.panel_scroll_y,
+                        sidebar.navigation.scroll_container.max_scroll_y,
                     )
                 )
             callback(*args, **kwargs)
@@ -108,10 +108,13 @@ async def main(*, finish_before_layout=False):
             comms.channels.create_tag(f"channel-{index:02}")
         app = FrameApp(project_dir=str(root))
         async with app.run_test(size=(100, 30)) as pilot:
+            await app.selected_session.wait_content_ready()
+            app.workspace_chrome.channels.reveal()
+            await app.workspace_chrome.channels.wait_content_ready()
             await pilot.pause()
             owner = app.selected_mode
             worker = await app.session_navigation.new(lambda: MainScreen(root, agent_session_id="worker"))
-            await app.screen.on_coordination_update(coordination_update(str(comms.root), 'worker'))
+            await app.selected_session.on_coordination_update(coordination_update(str(comms.root), 'worker'))
             await app.select_session(owner)
             await pilot.pause()
             sidebar = app.screen.query_one(CommsSidebar)
@@ -138,10 +141,8 @@ async def main(*, finish_before_layout=False):
             selected.row.focus(scroll_visible=False)
             await pilot.pause()
             await pilot.wait_for_scheduled_animations()
-            expected_scroll = tuple(
-                (widget.scroll_y for widget in sidebar.navigation.scroll_containers)
-            )
-            assert max(expected_scroll) > 0, [
+            expected_scroll = sidebar.navigation.scroll_container.scroll_y
+            assert expected_scroll > 0, [
                 (
                     type(widget).__name__,
                     widget.size,
@@ -173,17 +174,13 @@ async def main(*, finish_before_layout=False):
             app.panel_frames = None
             assert group(current, "#channel-28").expanded
             assert not group(current, "#any").expanded
-            actual_scroll = tuple(
-                (widget.scroll_y for widget in current.scroll_containers)
-            )
+            actual_scroll = current.navigation.scroll_container.scroll_y
             assert actual_scroll == expected_scroll, (
                 actual_scroll,
                 expected_scroll,
                 app.sidebar_state,
-                [
-                    (widget.scroll_y, widget.max_scroll_y)
-                    for widget in current.scroll_containers
-                ],
+                (current.navigation.scroll_container.scroll_y,
+                 current.navigation.scroll_container.max_scroll_y),
             )
             assert app.sidebar_state.selected == SidebarSelection(
                 "#channel-28", "#channel-28"
@@ -191,17 +188,13 @@ async def main(*, finish_before_layout=False):
             group(current, "#channel-28").toggle_members()
             await pilot.pause()
             await pilot.wait_for_scheduled_animations()
-            expected_scroll = tuple(
-                (widget.scroll_y for widget in current.scroll_containers)
-            )
+            expected_scroll = current.navigation.scroll_container.scroll_y
             await app.select_session(owner)
             await pilot.pause()
             await settled(sidebar)
             assert not group(sidebar, "#channel-28").expanded
             assert not group(sidebar, "#any").expanded
-            actual_scroll = tuple(
-                (widget.scroll_y for widget in sidebar.navigation.scroll_containers)
-            )
+            actual_scroll = sidebar.navigation.scroll_container.scroll_y
             assert actual_scroll == expected_scroll, (actual_scroll, expected_scroll)
             assert app.sidebar_state.selected == SidebarSelection(
                 "#channel-28", "#channel-28"
@@ -214,9 +207,7 @@ async def main(*, finish_before_layout=False):
             member.focus(scroll_visible=False)
             await pilot.pause()
             await pilot.wait_for_scheduled_animations()
-            expected_scroll = tuple(
-                (widget.scroll_y for widget in sidebar.navigation.scroll_containers)
-            )
+            expected_scroll = sidebar.navigation.scroll_container.scroll_y
             member.action_open_selected()
             assert member.has_class("-selected")
             assert (
@@ -268,12 +259,12 @@ async def main(*, finish_before_layout=False):
                 member.pseudo_classes,
                 member.has_focus,
                 app.get_widget_at(member.region.x, member.region.y),
-                current.scroll_containers[0].region,
+                current.navigation.scroll_container.region,
             )
             await pilot.hover(app.selected_session.conversation.prompt)
             assert "hover" not in member.pseudo_classes and member.current
             assert (
-                tuple((widget.scroll_y for widget in current.scroll_containers))
+                current.navigation.scroll_container.scroll_y
                 == expected_scroll
             )
             if finish_before_layout:
