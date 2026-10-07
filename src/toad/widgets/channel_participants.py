@@ -29,22 +29,23 @@ class ChannelParticipants(VerticalScroll):
     def __init__(self):
         super().__init__()
         self.names = ParticipantNames(markup=False)
-        self._content_signature: Content | None = None
 
     def compose(self) -> ComposeResult:
         yield self.names
 
     def update_participants(self, people: tuple[ThreadView, ...]) -> None:
         names = []
+        summaries = []
         for person in people:
             presentation = person.presentation
+            summaries.append(f"{person.thread.name}: {presentation.summary}")
             names.append(Content.styled(
                 presentation.label, "$warning" if presentation.busy else "$text-muted",
             ).stylize(Style.from_meta({"@click": ("open_thread", (person.thread.name,))})))
         content = Content.assemble("Active: ", Content(" · ").join(names)) if names else Content("No active turns")
-        if content != self._content_signature:
-            self._content_signature = content
+        previous = self.names.content
+        if not isinstance(previous, Content) or not content.is_same(previous):
             self.names.update(content)
-            self.tooltip = Content("\n".join(
-                f"{person.thread.name}: {person.presentation.summary}" for person in people
-            ))
+        tooltip = Content("\n".join(summaries))
+        if tooltip != self.tooltip:
+            self.tooltip = tooltip
