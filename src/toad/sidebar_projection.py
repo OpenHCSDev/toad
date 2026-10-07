@@ -139,7 +139,7 @@ class SidebarProjection:
             control.update_order(snapshot.wire.channel_order)
             desired_keys = [
                 view.channel.name
-                for view in snapshot.wire.visible_channels
+                for view in snapshot.wire.channels
             ]
             if not self.sidebar.query(NewSessionButton):
                 await self.sidebar.mount(NewSessionButton())
@@ -165,7 +165,7 @@ class SidebarProjection:
             if retired_channels or new_groups:
                 self.sidebar.navigation.rows_changed()
             groups = {}
-            for view in snapshot.wire.visible_channels:
+            for view in snapshot.wire.channels:
                 channel_row = channels[view.channel.name]
                 unread = snapshot.wire.channel_unread.get(view.channel.name, 0)
                 channel_row.set_label(f"{'* ' if view.channel.pinned else ''}{view.channel.name}")
@@ -190,7 +190,7 @@ class SidebarProjection:
             # Retain full row text. Only the content grows; the outer sidebar owns
             # both native scrollbars and keeps their geometry at the visible edge.
             widest = max((Content(view.channel.name).cell_length + 12
-                          for view in snapshot.wire.visible_channels), default=0)
+                          for view in snapshot.wire.channels), default=0)
             if row_inputs.rows:
                 widest = max(widest, row_inputs.content_width + 8)
             widest = min(widest, 512)
