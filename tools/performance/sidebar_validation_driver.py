@@ -250,9 +250,20 @@ def install_observer():
 
         async def measured_navigation(self, *args, _function=original_method, _name=method, **kwargs):
             begin = time.monotonic_ns()
+            profile = None
+            if (_function.__qualname__ == "MainScreen.prepare_presentation"
+                    and os.environ.get("TOAD_VALIDATION_OPEN_PROFILE")):
+                import cProfile
+                profile = cProfile.Profile()
+                profile.enable()
             try:
                 return await _function(self, *args, **kwargs)
             finally:
+                if profile is not None:
+                    profile.disable()
+                    path = f"{os.environ['TOAD_VALIDATION_OPEN_PROFILE']}-{begin}.pstats"
+                    profile.dump_stats(path)
+                    record("navigation_profile", function=_function.__qualname__, path=path)
                 record("navigation_stage", stage=_name, begin_ns=begin,
                        function=_function.__qualname__, object_id=id(self),
                        duration_ms=(time.monotonic_ns()-begin)/1e6,
