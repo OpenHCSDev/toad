@@ -563,6 +563,13 @@ class SidebarResizeHandle(widgets.Static, can_focus=True):
             event.stop()
             self._resize(event.screen_x)
 
+    def can_replace_mouse_move(
+        self, event: events.MouseMove, pending: events.MouseMove
+    ) -> bool:
+        # Width derives from the original press and the latest absolute point.
+        # Intermediate motion has no separate meaning for this captured handle.
+        return self._dragging and event.button == pending.button == 1
+
     def on_mouse_up(self, event: events.MouseUp) -> None:
         if event.button == 1 and self._dragging:
             event.stop()
