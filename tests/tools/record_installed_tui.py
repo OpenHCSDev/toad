@@ -906,10 +906,10 @@ class SidebarResizeJourney(SidebarPanelsJourney):
                           within=owner)
             commands.extend((marker + before, marker + f"{side}-resize-out",
                              native_click_command(f"phase-{before}-state.pickle", **handle,
-                                                  drag_columns=delta),
+                                                  drag_columns=delta, drag_step_seconds=0.04),
                              settle, marker + widened, marker + f"{side}-resize-back",
                              native_click_command(f"phase-{widened}-state.pickle", **handle,
-                                                  drag_columns=-delta),
+                                                  drag_columns=-delta, drag_step_seconds=0.04),
                              settle, marker + f"{side}-resize-restored"))
         return "\n".join(commands) + "\n"
 
@@ -2660,7 +2660,7 @@ def marker_command():
 
 
 def native_click_command(state, *, target="history", name=None, original_state=None, focused=False,
-                         within=None, drag_columns=None, wheel=None):
+                         within=None, drag_columns=None, drag_step_seconds=None, wheel=None):
     helper = Path(__file__).resolve().parents[2] / "tools/performance/click_history.py"
     argv = [sys.executable, str(helper), "--target", target, "--state", state]
     if name is not None:
@@ -2669,7 +2669,8 @@ def native_click_command(state, *, target="history", name=None, original_state=N
         argv.extend(("--original-state", original_state))
     if focused:
         argv.append("--focused")
-    for option, value in (("--within", within), ("--drag-columns", drag_columns), ("--wheel", wheel)):
+    for option, value in (("--within", within), ("--drag-columns", drag_columns),
+                          ("--drag-step-seconds", drag_step_seconds), ("--wheel", wheel)):
         if value is not None:
             argv.extend((option, str(value)))
     return "exec --sync " + shlex.join(argv)

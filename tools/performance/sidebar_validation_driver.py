@@ -197,6 +197,7 @@ def install_observer():
         from toad.acp.agent_process import AgentProcess
         from toad.acp.agent_session import AgentSession
         from textual.widget import Widget
+        from textual.screen import Screen
         from toad.sidebar_observation import SidebarObservation
         from toad.sidebar_projection import SidebarProjection
         from toad.widgets.session_tabs import SessionsTabs
@@ -243,6 +244,7 @@ def install_observer():
             (MountedMessageHistory, MountedMessageHistory.insert_page),
             (MountedMessageHistory, MountedMessageHistory.source_is_current),
             (ChannelHistoryReader, ChannelHistoryReader.route_current),
+            (Screen, Screen._on_layout),
         ))
         schedule = PromptSubmission.schedule_submission
         publish = Messaging.send_user_message
@@ -319,6 +321,14 @@ def install_observer():
 
         async def measured_navigation(self, *args, _function=original_method, _name=method, **kwargs):
             begin = time.monotonic_ns()
+            if _name == "_on_layout":
+                widget = args[0].widget
+                record("layout_admission", screen=id(self), widget=id(widget),
+                       widget_type=type(widget).__name__,
+                       requested=self._layout_required,
+                       retained_widget=widget in self._layout_widgets,
+                       pending_owners=len(self._layout_widgets),
+                       mutation_roots=tuple(id(root) for root in self._layout_mutation_roots()))
             profile = None
             if (_function.__qualname__ == "MainScreen.prepare_presentation"
                     and os.environ.get("TOAD_VALIDATION_OPEN_PROFILE")):
@@ -328,6 +338,10 @@ def install_observer():
             try:
                 return await _function(self, *args, **kwargs)
             finally:
+                if _name == "_on_layout":
+                    record("layout_admitted", screen=id(self), widget=id(args[0].widget),
+                           requested=self._layout_required,
+                           pending_owners=len(self._layout_widgets))
                 if profile is not None:
                     profile.disable()
                     path = f"{os.environ['TOAD_VALIDATION_OPEN_PROFILE']}-{begin}.pstats"
