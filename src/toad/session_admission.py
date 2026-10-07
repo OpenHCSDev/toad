@@ -130,7 +130,7 @@ class NativeSessionAdmission(SessionAdmission):
         if session_id in {source._agent_session_id, live.session_id if live else None}:
             return True
         root = source.coordination_root
-        return root is not None and wire(root).registry.canonical_name(session_id) == source._session_thread
+        return root is not None and wire(root).registry.canonical_name(session_id) == source._resolve_comms_thread()
 
     def tab(self, sessions: SessionAdmissions, snapshot: SidebarSnapshot | None) -> OpenTab:
         source = self.source(sessions)
