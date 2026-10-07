@@ -42,6 +42,10 @@ def main():
     parser.add_argument("--completion-deadline", type=float,
                         help="Borrow the caller's original monotonic deadline for export completion")
     args = parser.parse_args()
+    if args.completion_deadline is not None and (
+            not math.isfinite(args.completion_deadline)
+            or args.completion_deadline <= time.monotonic()):
+        parser.error("Export completion requires the caller's remaining original deadline")
     if not (args.profile_seconds > 0 or args.state or args.screen):
         parser.error("Choose --profile-seconds, --state, or --screen")
     if args.runtime_only and (not args.state or args.frames_only or args.install_frame_trace):
