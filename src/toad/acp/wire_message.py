@@ -42,7 +42,7 @@ class WireCall(IncomingWireMessage):
         import asyncio
 
         if agent is None or agent.server.requires_ordered_dispatch(self.payload):
-            await call_jsonrpc(self.payload)
+            await call_jsonrpc(self.payload, agent)
         else:
-            agent.session.start_operation(call_jsonrpc(self.payload))
+            agent.session.start_operation(call_jsonrpc(self.payload, agent))
             await asyncio.sleep(0)

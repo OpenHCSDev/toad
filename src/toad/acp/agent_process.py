@@ -206,8 +206,7 @@ class AgentProcess:
         assert process.stdout is not None
         assert process.stdin is not None
 
-        async def call_jsonrpc(request):
-            recipient = self.recipient(request)
+        async def call_jsonrpc(request, recipient):
             if recipient is None:
                 result = ({"jsonrpc": "2.0", "id": request["id"], "error": {
                     "code": -32602, "message": "ACP session is retired or unknown"}}
@@ -260,7 +259,7 @@ class AgentProcess:
         session_id = params.get("sessionId") if isinstance(params, dict) else None
         members = tuple(member.agent for member in self.sessions if member.accepts_updates)
         if session_id is not None:
-            matched = next((agent for agent in members if agent.session_id == session_id), None)
+            matched = next((agent for agent in members if agent.session.accepts_session(session_id)), None)
             if matched is not None:
                 return matched
             return (members[0] if len(members) == 1

@@ -67,6 +67,7 @@ def test_shared_stdio_closes_only_its_original_session(attachment_scope):
         alpha, beta, reopened = [Agent(project, definition, name)
                                  for name in ('alpha', 'beta', 'alpha')]
         original = None
+        permissions = []
         try:
             await alpha.start()
             async with asyncio.timeout(10):
@@ -90,7 +91,23 @@ def test_shared_stdio_closes_only_its_original_session(attachment_scope):
             assert not original.accepts_attachment(reopened, changed_env, original.cwd, original.route_selection)
             assert not original.accepts_attachment(reopened, original.env, str(project.parent), original.route_selection)
             identities = {name: comms.registry.require(name).require_process() for name in ('alpha', 'beta')}
+            for name in ('alpha', 'beta'):
+                selected = next(iter(owner._runtime.clients[name]))
+                permissions.append(asyncio.create_task(owner._runtime.request_permission(
+                    name, selected, {'toolCall': {'toolCallId': f'{name}-owned'},
+                                     'options': [{'optionId': 'reject', 'name': 'Reject',
+                                                  'kind': 'reject_once'}]})))
+            async with asyncio.timeout(5):
+                while not alpha.permissions.pending or not beta.permissions.pending:
+                    await asyncio.sleep(0)
             await alpha.stop()
+            async with asyncio.timeout(5):
+                answer = await permissions[0]
+                assert answer is None or answer['outcome'] == 'cancelled'
+            assert not permissions[1].done() and beta.permissions.pending
+            beta.permissions.cancel()
+            async with asyncio.timeout(5):
+                assert (await permissions[1])['outcome'] == 'cancelled'
             assert original.sessions == {beta.session} and beta.ready
             assert original.process is child and original.runner is not None and not original.runner.done()
             assert original.recipient({'params': {'sessionId': 'alpha'}}) is None
@@ -113,6 +130,7 @@ def test_shared_stdio_closes_only_its_original_session(attachment_scope):
         finally:
             for agent in (alpha, beta, reopened):
                 await agent.stop()
+            await asyncio.gather(*permissions, return_exceptions=True)
             await owner_context.__aexit__(None, None, None)
         assert original is not None and original.process is None and not original.sessions
         assert not original.custody._exit_callbacks
