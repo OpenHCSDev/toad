@@ -648,6 +648,10 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
     def present(self, consumer) -> None:
         """A detached or unacquired owner has no inspection to present."""
 
+    def present_acquired(self, previous, consumer) -> None:
+        """Publish acquired answers through this inspection's resource state."""
+        self.present(consumer)
+
     async def refresh_contributors(self, consumer) -> None:
         """Only an acquired native preview owns current contributor refresh."""
 
@@ -735,6 +739,13 @@ class HoldingInspection(InspectionState):
     def present(self, consumer) -> None:
         consumer(self)
 
+    def present_acquired(self, previous, consumer) -> None:
+        # A recorded-only acquisition is not the replacement for an already
+        # painted native context. Keep that original tree while native reads
+        # join; success or refusal publishes the actual replacement below.
+        if not previous.contains_native(bool):
+            self.present(consumer)
+
     def groups(self):
         return (*self.inspection.working_memory(),
                 ("Imported instructions · historical, not current", self.inspection.imported(), False),
@@ -774,6 +785,11 @@ class HoldingInspection(InspectionState):
 @dataclass(frozen=True)
 class NativeInspection(HoldingInspection):
     native: NativeContextData
+
+    def present_acquired(self, previous, consumer) -> None:
+        # This acquisition retains its original native source, so independently
+        # changed recorded requests and annotations can publish immediately.
+        self.present(consumer)
 
     def receive_inspection(self, acquired) -> InspectionState:
         if self.same_source(acquired.inspection):
