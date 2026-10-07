@@ -138,10 +138,12 @@ class SidebarNavigation:
             channel=self.selection_for(row).channel)
         selected = self.state.selected_targets
         names = tuple(dict.fromkeys(item.target for item in selected))
-        if len(names) < 2:
+        if len(selected) < 2:
             return context
-        return replace(context, targets=names, mode=None,
-                       channel={item.target: item.channel for item in selected})
+        channels = {name: tuple(dict.fromkeys(item.channel for item in selected
+                                             if item.target == name))
+                    for name in names}
+        return replace(context, targets=names, mode=None, channel=channels)
 
     def selection_current(self) -> bool:
         """One selected destination has one retained painted row identity."""
