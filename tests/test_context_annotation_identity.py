@@ -63,6 +63,7 @@ def test_overlapping_annotation_addresses_restore_their_own_range(tmp_path):
         intent = ContextTreeIntent(selected=short)
         detail = []
         tree = ContextTree(intent, detail.append, lambda text: None)
+        tree.styles.height = 3
 
         class TreeApp(App):
             def compose(self):
@@ -78,6 +79,19 @@ def test_overlapping_annotation_addresses_restore_their_own_range(tmp_path):
             assert tree.cursor_node is short_node and intent.selected is short_node.data
             assert short_node.data.annotation.span == spans[0]
             assert long_node.data.annotation.span == spans[1]
+
+            # A wheel scroll can leave the selected native row outside the
+            # viewport. Rebinding its source is not a new navigation request.
+            tree.scroll_home(animate=False)
+            await pilot.pause()
+            assert short_node.line >= tree.scrollable_content_region.height
+            reader_offset = tree.scroll_offset
+            detail.clear()
+            tree.present(inspection.working_memory())
+            await pilot.pause()
+            assert tree.cursor_node is short_node
+            assert tree.scroll_offset == reader_offset
+            assert detail == [short_node.data]
 
             tree.present(groups)
             await pilot.pause()
