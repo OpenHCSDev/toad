@@ -251,28 +251,27 @@ class CommsChatView(DeliveryFailureView, Conversation):
         return self.message_history.viewport(NotificationViewport).visible_rows()
 
     async def _read_thread_activity(self):
-        from toad.comms_root import root_is_current
-
-        reader = self.message_history.reader
+        history = self.message_history
+        reader = history.reader
         if reader is None:
             return None
+        snapshot = history.source_snapshot()
         comms, target = reader.comms, self.target
-        if not await self.app.preparation.run_thread(root_is_current, comms.root):
+        if not await history.source_is_current(snapshot):
             raise ValueError("Comms route changed")
         presentation = await asyncio.to_thread(read_thread_presentation, comms, target)
-        if (not await self.app.preparation.run_thread(root_is_current, comms.root)
-                or reader is not self.message_history.reader or target != self.target):
+        if not await history.source_is_current(snapshot) or target != self.target:
             raise ValueError("Comms route changed")
         return presentation
 
     async def _read_notifications(self, rows: tuple[tuple[WireMessage, Widget], ...]) -> None:
-        from toad.comms_root import root_is_current
-
-        reader = self.message_history.reader
+        history = self.message_history
+        reader = history.reader
         if reader is None:
             return
+        snapshot = history.source_snapshot()
         comms, target = reader.comms, self.target
-        if not await self.app.preparation.run_thread(root_is_current, comms.root):
+        if not await history.source_is_current(snapshot):
             return
         error = None
         try:
@@ -281,9 +280,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
             )
         except Exception as failure:
             error, results = failure, {}
-        if (not await self.app.preparation.run_thread(root_is_current, comms.root)
-                or not self.is_attached or self.message_history.reader is not reader or self.target != target
-                or not self.query_ancestor(SessionView).is_current):
+        if not await history.source_is_current(snapshot) or self.target != target:
             return
         visible = {widget for _, widget in self._visible_notification_rows()}
         for message, widget in rows:
@@ -301,27 +298,23 @@ class CommsChatView(DeliveryFailureView, Conversation):
             return
         if not self.query_ancestor(SessionView).is_current:
             return
-        from toad.comms_root import root_is_current
-
-        reader = self.message_history.reader
-        if not await self.app.preparation.run_thread(root_is_current, reader.comms.root):
-            self.display = False
-            return
-        if (not self.is_attached or reader is not self.message_history.reader
-                or not self.query_ancestor(SessionView).is_current):
-            return
         self._refresh_notifications()
         return self.message_history.schedule_source_work(self._refresh_source)
 
     async def _refresh_source(self) -> None:
-        from toad.comms_root import root_is_current
         from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
 
         try:
-            reader = self.message_history.reader
+            history = self.message_history
+            snapshot = history.source_snapshot()
+            if not await history.source_is_current(snapshot):
+                if snapshot.current(history):
+                    self.display = False
+                return
+            reader = history.reader
             comms = reader.comms
             catalog = await asyncio.to_thread(comms.channels.catalog.read)
-            if not self.is_attached or not self.query_ancestor(SessionView).is_current:
+            if not await history.source_is_current(snapshot):
                 return
             read_only = self.conversation_kind.read_only(catalog, self.target)
             if read_only:
@@ -336,12 +329,11 @@ class CommsChatView(DeliveryFailureView, Conversation):
             finally:
                 if show_loading:
                     self.on_work_finished()
-            if not await self.app.preparation.run_thread(root_is_current, comms.root):
-                self.display = False
+            if not await history.source_is_current(snapshot):
+                if snapshot.current(history):
+                    self.display = False
                 return
-            if not self.is_attached or not self.query_ancestor(SessionView).is_current:
-                return
-            if reader is not self.message_history.reader or not reader.current(read, self.message_history.follows_tail):
+            if not reader.current(read, self.message_history.follows_tail):
                 return
             revision = read.revision
             if reader.source.matches_revision(revision):
@@ -352,9 +344,11 @@ class CommsChatView(DeliveryFailureView, Conversation):
             if not await self.message_history.publish(read):
                 return
             follow = read.follow_tail
+            snapshot = history.source_snapshot()
             await self.conversation_kind.update_roster(self, comms)
-            if not await self.app.preparation.run_thread(root_is_current, comms.root):
-                self.display = False
+            if not await history.source_is_current(snapshot):
+                if snapshot.current(history):
+                    self.display = False
                 return
             if (not self.is_attached or reader is not self.message_history.reader
                     or not self.query_ancestor(SessionView).is_current):
@@ -371,7 +365,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
 
         target = self.target
         info = await self.conversation_kind.agent_info(comms, target)
-        if not self.is_attached or self.target != target:
+        if not await history.source_is_current(snapshot) or self.target != target:
             return
         if self._unknown_send is not None:
             root_id, sequence, message_id = self._unknown_send
