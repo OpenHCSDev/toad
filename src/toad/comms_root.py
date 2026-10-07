@@ -121,10 +121,9 @@ class CoordinationAccess:
             if (service is not self.observed_service
                     or not await self.preparation.run_thread(root_is_current, service.root)):
                 raise ValueError("Sidebar service changed before acquisition")
-            if not await self.preparation.run_thread(root_is_current, service.root):
-                raise ValueError("Sidebar route changed before acquisition")
             revision = await self.preparation.run_thread(service.views.revision)
-            if service is not self.observed_service:
+            if (service is not self.observed_service
+                    or not await self.preparation.run_thread(root_is_current, service.root)):
                 raise ValueError("Sidebar service changed while observing its revision")
             if self.sidebar_snapshot is not None and self.sidebar_snapshot.matches(
                     service, revision, app.project_dir, filters):
