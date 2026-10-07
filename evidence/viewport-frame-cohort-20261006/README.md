@@ -1,0 +1,11 @@
+# One synchronous visible-window cohort
+
+ViewportPresentation.prepare acquired visible windows, then mutation_roots acquired them again and rechecked their display ancestry. Its existing mutation_roots now accepts that exact synchronous cohort. Independent native layout/input callers still acquire their own current membership. Anchors outside the cohort are checked through original membership; attachment, native tree locks, readiness and follow decisions are unchanged. No state cache, alias, registry or extra lifecycle owner.
+
+The complete source consumer census has one WorkspaceScreen layout/input hook calling mutation_roots without arguments and prepare passing its acquired tuple. Frame membership, geometry targets and visible body ownership remain original. The prior original Package parsed 288 production/403 tests/40 tools plus249 native modules with zero omissions; changed sources compile.
+
+Actual source App layout reentry/growth/resize/reader/tab-return control passed. Its background private catalog emitted UnregisteredThreadError; this is not empty-stderr or full journey acceptance. The native frame-publication App passed with matched Textual82 source:1366 observed updates, no partial admissions/unmounted bodies, no paint into exact committed held regions, no blank body updates. Both used private authored data/provider0.
+
+The retained publication check had three incorrect assumptions: assistant.content was a string instead of the original native text-part array; it re-rendered current DOM rather than inspecting the supplied native update; and it delayed retirement completion after synchronous removal instead of holding original HistoryWindow.preserve_history custody. The check now witnesses actual native paint cells and the original committed deferred regions while the real history lock is held. Unrelated paint is allowed. No production parser or paint exemption changed.
+
+Original negatives and corrected raw runs are preserved under /home/ts/.cache/agent-scratch/viewport-acquired-window-cohort-20261006. publication-owned-history-lock is the completed matched run; prior publication and publication-native-record failures are retained. No general speedup or installed acceptance claimed by these source checks. Parent owns durable installation and actual saved scroll measurement.

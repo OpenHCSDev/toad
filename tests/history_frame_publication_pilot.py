@@ -4,7 +4,7 @@ Provider-free source reproducer, not physical saved-live acceptance. The app,
 native journal reader, page/body widgets, workers and key dispatch are real.
 """
 import asyncio
-from contextlib import nullcontext
+from contextlib import nullcontext, asynccontextmanager
 import hashlib
 from importlib.resources import files
 import json
@@ -25,7 +25,8 @@ from agent_comms.threads import Thread
 from toad.app import ToadApp
 from toad.widgets.transcript_history import TranscriptHistory, TranscriptFragmentView
 from textual.widget import Widget
-from textual.await_complete import AwaitComplete
+from textual._compositor import ChopsUpdate, LayoutUpdate
+from textual.geometry import Region
 
 
 class PublicationApp(ToadApp):
@@ -34,6 +35,7 @@ class PublicationApp(ToadApp):
     def __init__(self, **kwargs):
         self.observe = False
         self.frames = []
+        self.held_window = None
         super().__init__(**kwargs)
 
     def _display(self, screen, renderable):
@@ -45,10 +47,39 @@ class PublicationApp(ToadApp):
         incomplete = [type(node).__name__ for node in visible
                       if isinstance(node, TranscriptFragmentView) and not node.is_mounted]
         region = window.scrollable_content_region
-        strips = screen._compositor.render_strips()
-        text = "\n".join(strip.crop(region.x, region.right).text
-                         for strip in strips[region.y:region.bottom])
+        # Observe the cells actually supplied to App._display. Re-rendering the
+        # current DOM includes removed held subtrees which were NOT published.
+        body_strips = []
+        published_regions = []
+        if isinstance(renderable, ChopsUpdate):
+            for y, x1, x2 in renderable.spans:
+                published_regions.append(Region(x1, y, x2 - x1, 1))
+                if region.y <= y < region.bottom:
+                    left, right = max(x1, region.x), min(x2, region.right)
+                    if left < right:
+                        body_strips.extend(strip for _, strip in
+                                           renderable._get_line_chops(y, left, right))
+        elif isinstance(renderable, LayoutUpdate):
+            published_regions.append(renderable.region)
+            for y, line in enumerate(renderable.strips, renderable.region.y):
+                if region.y <= y < region.bottom:
+                    x = renderable.region.x
+                    for strip in line:
+                        left, right = max(x, region.x), min(x + strip.cell_length, region.right)
+                        if left < right:
+                            body_strips.append(strip.crop(left - x, right - x))
+                        x += strip.cell_length
+        else:
+            raise AssertionError(f"Unobserved native publication: {type(renderable).__name__}")
+        text = "\n".join(strip.text for strip in body_strips)
+        held_regions = (screen._compositor.deferred_regions((self.held_window,))
+                        if self.held_window is not None else ())
+        held_damage = [tuple(damage.intersection(held))
+                       for damage in published_regions for held in held_regions
+                       if damage.overlaps(held)]
         self.frames.append(dict(clock=monotonic(), incomplete=incomplete,
+                                body_published=bool(body_strips),
+                                held_damage=held_damage,
                                 admissions=[dict(admitted=page.stop - page.start,
                                                  mounted=len(page.fragment_views),
                                                  native_children=len(page.children))
@@ -95,9 +126,9 @@ async def main():
             comms.messaging.initialize_private_initial_protocol()
             journal = root / "saved-native.jsonl"
             journal.write_text("".join(json.dumps({"type": "message", "message": {
-                "role": "assistant", "content": f"## Saved record {number}\n\n"
+                "role": "assistant", "content": [{"type": "text", "text": f"## Saved record {number}\n\n"
                 + "Actual prepared document paragraph, with native **body**.\n\n" * 8
-                + "```python\n" + "value = 'saved native source'\n" * 8 + "```\n"
+                + "```python\n" + "value = 'saved native source'\n" * 8 + "```\n"}]
             }}) + "\n" for number in range(65)))
         comms.registry.declare(Thread("saved-pages", frozenset(), str(root), session_file=str(journal)))
 
@@ -178,31 +209,35 @@ async def main():
                 for key, count in (("pageup", 12), ("pagedown", 18), ("pageup", 6)):
                     await pilot.press(*([key] * count))
                 await pilot.pause(.3)
-                # Widen the actual remove/mount await at the physical End gap,
-                # without replacing the app, native source, widgets or input.
-                remove_children = history.remove_children
+                # Native removal changes the scene synchronously; AwaitRemove
+                # owns retirement completion. Hold the ORIGINAL history lock,
+                # rather than mistaking that later cleanup for paint custody.
+                window = history.window
+                preserve_history = window.preserve_history
                 entered, release = asyncio.Event(), asyncio.Event()
 
-                def delayed_removal(*args, **kwargs):
-                    removed = remove_children(*args, **kwargs)
+                @asynccontextmanager
+                async def held_history(widget):
+                    async with preserve_history(widget):
+                        yield
+                        app.held_window = window
+                        try:
+                            entered.set()
+                            await release.wait()
+                        finally:
+                            app.held_window = None
 
-                    async def wait():
-                        await removed
-                        entered.set()
-                        await release.wait()
-
-                    return AwaitComplete(wait())
-
-                with patch.object(history, "remove_children", delayed_removal):
+                with patch.object(window, "preserve_history", held_history):
                     try:
                         # This source preview may retain the tail after reverse.
                         # Admit the pager's destination operation explicitly;
                         # the real End binding is covered by physical capture.
                         history.request_latest()
                         await asyncio.wait_for(entered.wait(), 5)
+                        assert window.history_mutating()
                         held_frames = len(app.frames)
                         await pilot.pause(.25)
-                        assert len(app.frames) == held_frames, "End published its removed destination tree"
+                        assert not any(frame["held_damage"] for frame in app.frames[held_frames:]), "End published held history cells"
                     finally:
                         release.set()
                 await pilot.pause(.5)
@@ -211,12 +246,15 @@ async def main():
                 print(json.dumps(dict(frames=len(app.frames),
                                       incomplete=sum(bool(frame["incomplete"]) for frame in app.frames),
                                       partial_admissions=sum(bool(frame["admissions"]) for frame in app.frames),
-                                      blanks=sum(not frame["body_nonwhite"] for frame in app.frames),
+                                      blank_body_updates=sum(frame["body_published"] and not frame["body_nonwhite"]
+                                                             for frame in app.frames),
                                       histories=len(history.pages))), flush=True)
                 assert app.frames
-                assert not any(frame["admissions"] for frame in app.frames), "Published a partial native page admission"
-                assert not any(frame["incomplete"] for frame in app.frames), "Published an unmounted native page body"
-                assert all(frame["body_nonwhite"] for frame in app.frames), "Published blank body"
+                body_frames = [frame for frame in app.frames if frame["body_published"]]
+                assert body_frames, "No native history paint observed"
+                assert not any(frame["admissions"] for frame in body_frames), "Published a partial native page admission"
+                assert not any(frame["incomplete"] for frame in body_frames), "Published an unmounted native page body"
+                assert all(frame["body_nonwhite"] for frame in body_frames), "Published blank body"
         finally:
             (evidence / "frames.json").write_text(json.dumps(app.frames, indent=2))
             if physical:
