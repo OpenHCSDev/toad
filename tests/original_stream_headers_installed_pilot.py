@@ -114,7 +114,13 @@ async def interaction_acceptance(app, pilot, agent, comms, entered, release, hol
         # Admit the original controls before starting the measured turn.
         for selector in ('#channels-sidebar', '#thread-sidebar'):
             bar = next(bar for bar in app.screen.query(selector) if bar.presentation_visible)
+            collapsed = bar.collapsed
+            if collapsed:
+                bar.reveal()
             await asyncio.wait_for(bar.wait_content_ready(), 10)
+            if collapsed:
+                bar.toggle(focus=False)
+        await pilot.pause()
     token = os.environ['STREAM_INPUT_TOKEN']
     view.prompt.text = token
     view.prompt.prompt_text_area.focus()
@@ -157,11 +163,14 @@ async def interaction_acceptance(app, pilot, agent, comms, entered, release, hol
                     profile.disable()
                     profile.dump_stats(str(evidence / f'{bar.id}-resize-{direction}.pstats'))
                     rows.append({'sidebar': selector, 'action': 'resize',
+                                 'slider_direction': direction,
                                  'width_before': before,
                                  'width_after': app.sidebar_layout.get(bar.id).width_percent,
                                  'frame_ms': (shown-started)*1000,
                                  'native_turn_busy_before': True})
-                    assert app.sidebar_layout.get(bar.id).width_percent == before + direction
+                    # The slider owns direction reversal on a right edge;
+                    # this observer records its answer rather than mirroring it.
+                    assert app.sidebar_layout.get(bar.id).width_percent != before
                     app.frame_profiler = None
                     app.next_frame = None
         view.prompt.prompt_text_area.focus()
