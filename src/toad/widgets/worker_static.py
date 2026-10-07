@@ -148,14 +148,17 @@ class WorkerStatic(Static):
                     return
                 if request != self._wanted:
                     continue
-                async with self.preparation_publication():
+                previous = self._prepared
+                layout = (previous is None or previous.width != prepared.width
+                          or len(previous.lines) != len(prepared.lines))
+                async with self.preparation_publication(layout=layout):
                     # Publication may await its original viewport's mutation
                     # custody. Source/style/width can change during that wait.
                     if self._closed or self._pruning or not self.is_attached or request != self._wanted:
                         continue
                     self._prepared = prepared
                     self._ready_request = request
-                    self.refresh(layout=True)
+                    self.refresh(layout=layout)
                     self._ready.set()
         finally:
             self._preparing = False
@@ -164,7 +167,7 @@ class WorkerStatic(Static):
         await self._ready.wait()
 
     @asynccontextmanager
-    async def preparation_publication(self):
+    async def preparation_publication(self, *, layout: bool):
         """Views borrow their existing native reader lifetime for new extent."""
         yield
 

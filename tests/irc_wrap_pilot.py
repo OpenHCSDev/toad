@@ -4,6 +4,7 @@ from agent_comms.mro_dispatch import handles
 
 import asyncio
 import os
+import sys
 from pathlib import Path
 
 from agent_comms.messages import Message, MessageType
@@ -72,6 +73,31 @@ async def main():
         screen = Screen()
         await app.push_screen(screen)
         await screen.mount(*app.message_rows())
+        for text in screen.query(IRCMessageText):
+            await text.wait_ready()
+        await pilot.pause()
+        body = screen.query_one(IRCMessageText)
+        previous = body._prepared
+        published_layout = []
+
+        def observe_publication(frame, event, argument):
+            if (event == 'call' and frame.f_code.co_name == 'refresh'
+                    and frame.f_locals.get('self') is body
+                    and frame.f_back.f_code.co_name == '_prepare'):
+                published_layout.append(frame.f_locals['layout'])
+
+        sys.setprofile(observe_publication)
+        try:
+            body.styles.color = 'green'
+            async with asyncio.timeout(15):
+                while body._prepared is previous or not body.paint_ready:
+                    await pilot.pause(.02)
+            await pilot.pause()
+        finally:
+            sys.setprofile(None)
+        assert body._prepared.text == previous.text
+        assert (body._prepared.width, len(body._prepared.lines)) == (previous.width, len(previous.lines))
+        assert published_layout == [False], published_layout
         for width in (80, 36, 120):
             await pilot.resize_terminal(width, 50)
             for text in screen.query(IRCMessageText):
