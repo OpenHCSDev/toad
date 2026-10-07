@@ -886,6 +886,34 @@ class SidebarPanelsJourney(PhysicalJourney):
         ))
 
 
+class SidebarResizeJourney(SidebarPanelsJourney):
+    """Measure both native width handles after actual agent-tab preparation."""
+
+    motion_phases = (*SidebarPanelsJourney.motion_phases,
+                     "left-resize-out", "left-resize-back",
+                     "right-resize-out", "right-resize-back")
+
+    @classmethod
+    def script(cls, args):
+        commands = [super().script(args), *cls.opening_commands(args)]
+        marker = marker_command()
+        settle = f"sleep {args.navigation_settle_seconds:g}"
+        for side, owner, delta in (("left", "ChannelsSidebar#channels-sidebar", 8),
+                                   ("right", "SessionThreadSidebar", -8)):
+            before = f"{side}-resize-before"
+            widened = f"{side}-resize-wide"
+            handle = dict(target="widget", name="SidebarResizeHandle#sidebar-resize-handle",
+                          within=owner)
+            commands.extend((marker + before, marker + f"{side}-resize-out",
+                             native_click_command(f"phase-{before}-state.pickle", **handle,
+                                                  drag_columns=delta),
+                             settle, marker + widened, marker + f"{side}-resize-back",
+                             native_click_command(f"phase-{widened}-state.pickle", **handle,
+                                                  drag_columns=-delta),
+                             settle, marker + f"{side}-resize-restored"))
+        return "\n".join(commands) + "\n"
+
+
 class ChannelDisclosureJourney(PhysicalJourney):
     """Real channel disclosure clicks without a message submission."""
 
