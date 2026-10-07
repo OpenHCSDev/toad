@@ -198,6 +198,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
             content = slot.parent
             assert isinstance(content, Widget)
             self.widget = screen._make_conversation()
+            self.widget.display = False
         conversation = self.widget
         self.sources.wire(conversation)
         if not returning:
