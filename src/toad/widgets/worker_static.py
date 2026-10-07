@@ -120,7 +120,8 @@ class WorkerStatic(Static):
         request = _Preparation(self._generation, RichRenderTask(self._source, presentation))
         self._wanted = request
         if request == self._ready_request:
-            self._ready.set()
+            if not self._ready.is_set():
+                self.call_after_refresh(self._publish_ready, request)
             return
         self._ready.clear()
         if not self._preparing:
@@ -159,9 +160,17 @@ class WorkerStatic(Static):
                     self._prepared = prepared
                     self._ready_request = request
                     self.refresh(layout=layout)
-                    self._ready.set()
+                    self.call_after_refresh(self._publish_ready, request)
         finally:
             self._preparing = False
+
+    def _publish_ready(self, request: _Preparation) -> None:
+        # Preparing rows and committing their native extent are separate
+        # lifetimes. Retirement may borrow paint only after this sender's
+        # original layout/refresh completes, for the same source request.
+        if (not self._closed and self.is_attached
+                and request == self._ready_request == self._wanted):
+            self._ready.set()
 
     async def wait_ready(self) -> None:
         await self._ready.wait()
@@ -179,7 +188,7 @@ class WorkerStatic(Static):
     @property
     def prepared_content(self) -> PreparedRichContent | None:
         """Borrow the original current paint resource, never a loading preview."""
-        return self._prepared if self.paint_ready else None
+        return self._prepared if self.paint_ready and self._ready.is_set() else None
 
     def on_unmount(self) -> None:
         self._closed = True
