@@ -19,6 +19,8 @@ from textual.geometry import Region
 from textual.widget import _Styled
 from textual.content import Content
 from textual.style import Style as NativeStyle
+from textual.selection import Selection
+from textual.visual import RenderOptions
 
 RichColorSystem = Literal["auto", "standard", "256", "truecolor", "windows"]
 
@@ -32,6 +34,38 @@ class RichSource(ABC):
 
     style_names: tuple[str, ...] = ()
     """Symbolic native styles required by this source's worker rendering."""
+
+    def prepare(self, presentation: RichPresentation) -> PreparedRichContent:
+        return prepare_rich(self, presentation)
+
+
+@dataclass(frozen=True)
+class ContentSource(RichSource):
+    """Native wrapping retains source coordinates and component styles."""
+
+    value: Content
+    selection: Selection | None = None
+    selection_style: NativeStyle | None = None
+
+    @property
+    def style_names(self) -> tuple[str, ...]:
+        return tuple(dict.fromkeys(span.style for span in self.value.spans
+                                   if isinstance(span.style, str)))
+
+    def materialize(self) -> Content:
+        return self.value
+
+    def prepare(self, presentation: RichPresentation) -> PreparedRichContent:
+        styles = dict(presentation.styles)
+        def get_style(style):
+            return styles[style] if isinstance(style, str) else style
+        width = presentation.options.max_width
+        lines = self.value.render_strips(
+            width, None, presentation.native_style,
+            RenderOptions(get_style, dict(presentation.rules), self.selection,
+                          self.selection_style),
+        )
+        return PreparedNativeContent(width, tuple(lines))
 
 
 @dataclass(frozen=True)
@@ -91,6 +125,15 @@ class PreparedRichContent:
 
 
 @dataclass(frozen=True)
+class PreparedNativeContent(PreparedRichContent):
+    """Native strips already carry original source selection offsets."""
+
+    def render_lines(self, crop: Region, *, selection=None, selection_style=None) -> list[Strip]:
+        return [(self.lines[y] if 0 <= y < len(self.lines) else Strip.blank(self.width))
+                .crop(crop.x, crop.right) for y in crop.line_range]
+
+
+@dataclass(frozen=True)
 class RichPresentation:
     options: ConsoleOptions
     base_style: Style
@@ -100,6 +143,8 @@ class RichPresentation:
     color_system: RichColorSystem | None
     dark: bool = True
     styles: tuple[tuple[str, NativeStyle], ...] = ()
+    rules: tuple[tuple[str, object], ...] = ()
+    native_style: NativeStyle = NativeStyle()
 
 
 def prepare_rich(source: RichSource, presentation: RichPresentation) -> PreparedRichContent:
