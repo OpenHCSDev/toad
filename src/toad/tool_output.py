@@ -16,6 +16,7 @@ from weakref import ref
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.lifecycle import LifecycleState
+from agent_comms.transcript_events import SentTranscript
 from rich.text import Text
 from textual.content import Content
 from textual.css.query import NoMatches
@@ -235,6 +236,18 @@ class PatchToolOutputPart(ToolOutputPart):
 
 
 @dataclass(frozen=True)
+class SentMessageToolOutputPart(ToolOutputPart):
+    """Render the send owner's original publication through the outgoing view."""
+
+    message: SentTranscript
+
+    def compose(self, view: Widget) -> tuple[Widget, ...]:
+        from toad.widgets.outgoing_message import OutgoingMessage
+
+        return (OutgoingMessage(self.message),)
+
+
+@dataclass(frozen=True)
 class FileDiffToolOutputPart(ToolOutputPart):
     path: str
     old_text: str | None
@@ -292,7 +305,16 @@ class ToolContentDecoder(MroDispatch):
 
     @handles(schema.TextResourceContents)
     def text_resource(self, item):
-        self.part = PatchToolOutputPart(item.text) if item.mime_type == 'text/x-diff' else UnrenderedToolOutputPart(item)
+        from agent_comms.tool_results import SENT_MESSAGE_MIME
+
+        if item.mime_type == SENT_MESSAGE_MIME:
+            import json
+            from agent_comms.field_codec import FieldCodec
+            from agent_comms.transcript_events import SentTranscript
+
+            self.part = SentMessageToolOutputPart(FieldCodec.decode(SentTranscript, json.loads(item.text)))
+        else:
+            self.part = PatchToolOutputPart(item.text) if item.mime_type == 'text/x-diff' else UnrenderedToolOutputPart(item)
 
     @handles(schema.FileEditToolCallContent)
     def diff(self, item):
