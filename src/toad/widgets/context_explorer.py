@@ -345,7 +345,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
 
     def _inspection_acquired(self, previous, current, force):
         if previous.inspection_differs(current.inspection):
-            self._present(current)
+            current.present_acquired(previous, self._present)
         if previous.needs_native(current.inspection, force):
             source_changed = not previous.same_source(current.inspection)
             if source_changed:
@@ -381,7 +381,6 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
 
     def _show_placeholder(self, placeholder):
         detail = self.query_one(ContextDetail)
-        detail.loading = False
         detail.load_text_prepared(placeholder)
 
     @on(Button.Pressed, "#context-correct")
@@ -540,7 +539,6 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         area = self.query_one(ContextDetail)
         # A read borrows the native document; it does not replace the reader's
         # selection and scroll with a temporary one-line document.
-        area.loading = True
         try:
             detail = await model.read()
         except (OSError, ValueError, RuntimeError, RequestError) as error:
@@ -550,5 +548,3 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             # Its source is still read above; unchanged native answers need
             # neither document reconstruction nor a cursor/reader reset.
             await area.load_text_prepared(detail).wait()
-            if self._selected(model):
-                area.loading = False
