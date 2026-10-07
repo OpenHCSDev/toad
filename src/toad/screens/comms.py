@@ -115,6 +115,10 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
     def channels_context(self) -> tuple[str, str]:
         return self.me, self.target
 
+    def sidebars(self):
+        sidebar = self.query_one_optional("#thread-sidebar", ThreadSidebar)
+        return (sidebar,) if sidebar is not None else ()
+
     def compose(self) -> ComposeResult:
         with containers.Center():
             yield ThreadSidebar(
