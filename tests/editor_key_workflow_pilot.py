@@ -192,6 +192,14 @@ async def main():
             first_area = first.conversation.prompt.prompt_text_area
             assert await pilot.click(first_area)
             await edit_keys(pilot, first_area)
+            # The logical source releases its native focus before parking.
+            # Hide must not select an unrelated intermediate frame target.
+            await app.workspace_sessions.retire()
+            assert app.workspace_screen.focused is None
+            assert not first.display
+            await app.select_session(first.id)
+            await pilot.pause()
+            assert first_area.has_focus
             await pilot.press("escape", "tab", "shift+tab")
             assert await pilot.click(first_area)
             await edit_keys(pilot, first_area)
