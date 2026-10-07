@@ -120,11 +120,9 @@ class ChannelGroup(SidebarGroup):
             self.query_ancestor(CommsSidebar).navigation.apply()
 
     def rows_changed(self) -> None:
-        self.query_ancestor(CommsSidebar).navigation.rows_changed()
-
-    def thread_people(self):
-        snapshot = self.query_ancestor(CommsSidebar).projection.snapshot
-        return snapshot.all_people.values() if snapshot is not None else ()
+        sidebar = self.query_ancestor(CommsSidebar)
+        sidebar.navigation.rows_changed()
+        sidebar.projection.sync_spinner()
 
     def thread_row_inputs(self):
         sidebar = self.query_ancestor(CommsSidebar)
@@ -135,7 +133,8 @@ class ChannelGroup(SidebarGroup):
                     if view.channel.name == self.row.target_name)
         self.sort_control.update_order(view.channel.order)
         wanted = tuple(name for name in view.members
-                       if name in snapshot.all_people) if self.expanded else ()
+                       if name in snapshot.all_people
+                       and (self.expanded or name in self._members))
         app = cast("ToadApp", self.app)
         inputs = {name: ThreadRowInput(
             snapshot.all_people[name],
@@ -172,7 +171,8 @@ class ChannelGroup(SidebarGroup):
             row.current = row.mode_name == app.selected_mode
 
         await self.reconcile_rows(
-            prepared_rows if self.expanded else (), self._members, create, update)
+            prepared_rows, self._members, create, update,
+            replace=lambda name, row: row.thread_incarnation != snapshot.all_people[name].thread.incarnation)
 
 
     def present(self, view: ChannelView) -> None:
@@ -180,14 +180,8 @@ class ChannelGroup(SidebarGroup):
         sidebar = self.query_ancestor(CommsSidebar)
         if row.is_attached:
             row.tooltip = f"{len(view.members)} threads · tags: {', '.join(sorted(view.channel.tags)) or 'all'}"
-            group = self
-            expanded = sidebar.navigation.state.expanded.get(row.target_name, row.target.expanded_by_default)
-            if group.expanded != expanded:
-                group.expanded = expanded
-                # The glyph has fixed dimensions. Mounting/removing members
-                # owns the layout change, not repainting an unchanged arrow
-                # on every wire snapshot (which reflows the transcript too).
-                group.disclosure.update("▾" if expanded else "▸", layout=False)
+            self.expanded = sidebar.navigation.state.expanded.get(
+                row.target_name, row.target.expanded_by_default)
 
 
 def _comms_root() -> Path:
@@ -249,7 +243,10 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
         self.unread = unread
 
     def is_navigation_row(self) -> bool:
-        return self.is_attached and not self._pruning and not self._closing
+        if not self.is_attached or self._pruning or self._closing:
+            return False
+        group = next((node for node in self.ancestors if isinstance(node, SidebarGroup)), None)
+        return group is None or group.admits_row(self)
 
     def has_open_view(self) -> bool:
         return self.mode_name is not None

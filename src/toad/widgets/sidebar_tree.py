@@ -5,6 +5,7 @@ from contextlib import AsyncExitStack
 
 from textual.app import ComposeResult
 from textual.binding import Binding
+from textual.reactive import reactive
 from textual.containers import Vertical, VerticalGroup, VerticalScroll
 from textual.widgets import Static
 
@@ -14,6 +15,9 @@ from toad.widgets.sidebar_viewport import SidebarHeader
 class SidebarDisclosure(Static, can_focus=True):
     BINDINGS = [Binding("enter,space", "toggle", "Expand group", show=False)]
     DEFAULT_CSS = "SidebarDisclosure { width: 2; height: 1; pointer: pointer; }"
+
+    def render(self):
+        return "▾" if self.query_ancestor(SidebarGroup).expanded else "▸"
 
     def action_toggle(self) -> None:
         self.query_ancestor(SidebarGroup).toggle_members()
@@ -31,9 +35,12 @@ class SidebarGroup(VerticalGroup):
     SidebarGroup { height: auto; }
     SidebarGroup > .group-header { height: 1; }
     SidebarGroup > .group-header > .group-title { width: 1fr; height: 1; text-wrap: nowrap; text-overflow: ellipsis; }
-    SidebarGroup > .group-members { height: auto; margin-left: 2; }
+    SidebarGroup > .group-members { display: none; height: auto; margin-left: 2; }
+    SidebarGroup.-expanded > .group-members { display: block; }
     SidebarGroup > VerticalScroll.group-members { max-height: 12; overflow-x: hidden; }
     """
+
+    expanded = reactive(False, init=False, toggle_class="-expanded")
 
     def __init__(self, row, *, expanded: bool, controls=(), scrollable=False,
                  disclosure_type=SidebarDisclosure, **kwargs):
@@ -41,11 +48,11 @@ class SidebarGroup(VerticalGroup):
         self.member_lock = asyncio.Lock()
         self.row = row
         self.row.add_class("group-title")
-        self.expanded = expanded
-        self.disclosure = disclosure_type("▾" if expanded else "▸")
+        self.disclosure = disclosure_type()
         self.controls = controls
         container = VerticalScroll if scrollable else VerticalGroup
         self.member_container = container(classes="group-members channel-members")
+        self.expanded = expanded
 
     def compose(self) -> ComposeResult:
         with SidebarHeader(classes="group-header"):
@@ -56,22 +63,34 @@ class SidebarGroup(VerticalGroup):
 
     def toggle_members(self) -> None:
         self.expanded = not self.expanded
-        self.disclosure.update("▾" if self.expanded else "▸", layout=False)
         self.call_later(self._sync_and_select)
 
     async def _sync_and_select(self) -> None:
         await self._sync_members()
 
     async def _sync_members(self) -> None:
-        await self.reconcile_groups((self,))
+        if self.expanded:
+            await self.reconcile_groups((self,))
+
+    def watch_expanded(self, previous: bool, expanded: bool) -> None:
+        self.disclosure.refresh(layout=False)
+        if self.is_mounted:
+            self.members_visibility_changed(previous, expanded)
+            self.rows_changed()
+
+    def members_visibility_changed(self, previous: bool, expanded: bool) -> None:
+        """Specializations preserve existing reader intent across disclosure."""
+
+    @property
+    def visible_members(self):
+        return tuple(self.member_container.children) if self.expanded and self.display else ()
+
+    def admits_row(self, row) -> bool:
+        return self.display and (row is self.row or self.expanded)
 
     def accepts_members(self):
         """Native membership is valid until this group starts retirement."""
         return self.is_attached and not self._closing and not self._pruning
-
-    def thread_people(self):
-        """Specializations supply the original people for a disclosure change."""
-        raise NotImplementedError
 
     def thread_row_inputs(self):
         """Return decorated inputs, retained rows and original source custody."""
@@ -109,16 +128,29 @@ class SidebarGroup(VerticalGroup):
                 for group in admitted:
                     group.present(sources[group])
             runtime = admitted[0].app.preparation
-            if captured is None:
-                people = {person.thread.name: person for group in admitted
-                          for person in group.thread_people()}
-                captured = await ThreadRowsWork.capture(
-                    runtime, tuple(ThreadRowInput(person) for person in people.values()))
-                admitted = [group for group in admitted if group.accepts_members()]
             inputs, retained, witnesses = {}, {}, {}
             for group in admitted:
                 rows, retained[group], witnesses[group] = group.thread_row_inputs()
                 inputs.update(((group, key), row) for key, row in rows.items())
+            if captured is None:
+                # Disclosure changes visibility, not the source publication.
+                # Borrow captured inputs from retained native rows; acquire
+                # presentation only for newly admitted people in this group.
+                people, presentations = {}, {}
+                for (group, key), row_input in inputs.items():
+                    name = row_input.person.thread.name
+                    people[name] = row_input.person
+                    row = retained[group].get(key)
+                    source = (row.retained_thread_presentation(row_input.person)
+                              if row is not None else None)
+                    if source is not None:
+                        presentations[name] = source
+                missing = await ThreadRowsWork.capture(runtime, tuple(
+                    ThreadRowInput(person) for name, person in people.items()
+                    if name not in presentations))
+                captured = ThreadRowsWork((*presentations.values(), *missing.rows))
+                admitted = [group for group in admitted if group.accepts_members()]
+                inputs = {key: row for key, row in inputs.items() if key[0] in admitted}
             # ThreadRowsWork decorates the whole publication through one
             # captured-person lookup, rather than rebuilding it per group.
             prepared = {group: {} for group in admitted}

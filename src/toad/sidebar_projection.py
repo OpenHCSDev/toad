@@ -25,14 +25,14 @@ class SidebarProjection:
     def rows(self):
         from toad.widgets.comms_sidebar import ChannelGroup
         return [row for group in self.sidebar.children if isinstance(group, ChannelGroup)
-                for row in (group.row, *group.member_container.children)
+                for row in (group.row, *group.visible_members)
                 if row.is_navigation_row()]
 
     @property
     def thread_rows(self):
         from toad.widgets.comms_sidebar import ChannelGroup
         return [row for group in self.sidebar.children if isinstance(group, ChannelGroup)
-                for row in group.member_container.children]
+                for row in group.visible_members if row.is_navigation_row()]
 
     @property
     def session_rows(self):

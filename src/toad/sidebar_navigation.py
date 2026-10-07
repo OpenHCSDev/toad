@@ -105,11 +105,13 @@ class SidebarNavigation:
         """Selection is view intent; backend declarations own the operations."""
         if self.restoring:
             return
+        rows = self.sidebar.projection.rows
+        if row not in rows:
+            return
         selected = self.selection_for(row)
         current = self.state.selected_targets
         if menu and selected in current:
             return
-        rows = self.sidebar.projection.rows
         identities = tuple(self.selection_for(item) for item in rows)
         if shift and self.state.selected in identities and selected in identities:
             start, end = sorted((identities.index(self.state.selected), identities.index(selected)))
@@ -152,8 +154,19 @@ class SidebarNavigation:
     def apply(self) -> None:
         if self.selection_current():
             return
+        rows = self.sidebar.projection.rows
+        identities = {self.selection_for(row) for row in rows}
+        # Collapsed resources still exist, but are not admitted selection or
+        # range endpoints. Keep the header as the surviving navigation anchor.
+        self.state.selected_targets = tuple(
+            target for target in self.state.selected_targets if target in identities)
+        if self.state.selected is not None and self.state.selected not in identities:
+            header = SidebarSelection(self.state.selected.channel, self.state.selected.channel)
+            self.state.selected = header if header in identities else None
+            if not self.state.selected_targets and self.state.selected is not None:
+                self.state.selected_targets = (self.state.selected,)
         self.selected_row = None
-        for index, row in enumerate(self.sidebar.projection.rows):
+        for index, row in enumerate(rows):
             identity = self.selection_for(row)
             row.set_class(identity in self.state.selected_targets, "-selected")
             if identity == self.state.selected:
