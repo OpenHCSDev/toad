@@ -176,6 +176,11 @@ class WorkerStatic(Static):
         """A placeholder or failed preview is not rendered source evidence."""
         return self._prepared is not None and self._ready_request == self._wanted
 
+    @property
+    def prepared_content(self) -> PreparedRichContent | None:
+        """Borrow the original current paint resource, never a loading preview."""
+        return self._prepared if self.paint_ready else None
+
     def on_unmount(self) -> None:
         self._closed = True
         if self._layout_screen is not None:
