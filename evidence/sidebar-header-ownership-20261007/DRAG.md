@@ -55,3 +55,31 @@ the matched native b4b92974 and Core0b51; the final frontend selects Toadb8b6998
 Original reviewed publication and source proofs are inside those artifact roots.
 No terminal footage/overall frame-time gain or live running-window upgrade is
 claimed. About100ms width frames remain a concrete performance gap.
+
+## Width-slider delivery
+
+The width slider now supplies the same native captured-motion capability as
+the edge handle. Its original press freezes track width, origin and reversal;
+the latest absolute point selects width. Intermediate drag positions have no
+independent action. Keyboard changes and native press/release/modifier/wheel
+boundaries retain their original ordering. No second width state or queue was
+introduced. The complete declared slider family has one Changed consumer,
+which updates the existing SidebarLayout owner.
+
+Toad541 merged. The unchanged installed sidebar_drag_resize_pilot passed both
+sides, mirrored slider endpoints, keyboard steps, capture release, collapse
+and ANSI/RGB hover, with empty stderr. The built cohort matches all954 assets,
+full69 versions and2857 RECORD rows. Frontend defaults now select
+sidebar-slider-delivery-20261007/runtime, carrying the current f162 native
+refusal decoder alongside b4 native pointer handling. Backend defaults remain
+native-refusal-delivery-20261007/runtime; loaded windows and owners keep their
+code. This is installed App verification and default publication, not terminal
+frame-time acceptance or an automatic running-window upgrade.
+
+The installed raw-Driver slider burst, with profiling disabled and625 widgets,
+completed pointer publication at677ms and reached final width60 at802ms; capture
+released, App errorNone and stderr empty. Active completed headless-display gaps
+were around53ms. The final478ms gap was idle after width settled, not evidence
+of a costly frame. Raw installed-slider-motion/result.json retains every frame
+and original pointer request. It establishes a concrete remaining frame-work
+target, not terminal-pixel performance or a baseline-relative slider speedup.
