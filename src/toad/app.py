@@ -2,7 +2,7 @@ from toad.core import events as core_events
 from toad.core_event_carrier import CoreEventMessage
 from toad.workspace_sessions import WorkspaceSessionShutdown
 from inspect import isabstract
-from toad.comms_root import CoordinationAccess, implicit_root, root_is_current, run_selected_write
+from toad.comms_root import CoordinationAccess, RouteSelection
 
 from toad.thread_actions import ThreadActions
 from toad.widgets.comms_transfer import Transfers
@@ -294,7 +294,6 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
         self._session_tracker = SessionTracker()
         self.session_navigation = SessionAdmissions(self, agent_session_id)
         self.thread_navigation = ThreadNavigator(self)
-        self._sidebar_snapshot = None
         self.thread_actions = ThreadActions(self)
         self.transfers = Transfers(self)
         self.sidebar_state = SidebarState()
@@ -304,16 +303,13 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
             lambda mode, index: self.select_session(mode, history_index=index)
         )
         self.coordination_facts: WeakKeyDictionary[object, CoordinationChangedUpdate] = WeakKeyDictionary()
-        self.coordination_access = CoordinationAccess(self._coordination_changed, self.preparation)
+        self.coordination_access = CoordinationAccess(self.preparation)
         self.temporary_background_screen: Screen | None = None
 
         super().__init__()
         self.session_navigation.bind_events()
         self.project_dir = Path(project_dir or "./").expanduser().resolve()
 
-
-    def _coordination_changed(self) -> None:
-        self._sidebar_snapshot = None
 
     async def _close_all(self) -> None:
         await self.thread_navigation.close()
@@ -538,8 +534,6 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
             if sidebar is not None and sidebar.observation.service is not None
             else None
         )
-        if observed_root is not None and not root_is_current(observed_root):
-            return
         conversation = screen.query_one_optional(Conversation)
         if conversation is None or not conversation.is_mounted:
             return
@@ -558,13 +552,29 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
             return
         if any(history.blocks_visible_read for history in window.histories):
             return
+        # Capture only the selected view's painted intent on the UI loop. The
+        # original route and registry owners resolve it in the write worker;
+        # never consult a mutable widget after that worker has been scheduled.
+        access = self.coordination_access
+        name = screen._comms_thread
+        project = screen.project_path
+        source_root = screen.coordination_root
+        worktree = str(self.project_dir)
+
+        def acknowledge() -> None:
+            from toad.widgets.comms_chat import resolve_session_thread
+
+            selected = RouteSelection.capture(observed_root)
+            comms = access.require(selected)
+
+            def mark() -> None:
+                resolved = resolve_session_thread(comms, project, name, source_root=source_root)
+                comms.views.mark_thread_view_read(resolved or name, worktree=worktree, through=through)
+
+            access.write(selected, mark)
+
         try:
-            comms = self.coordination_access.service
-            await asyncio.to_thread(
-                run_selected_write, comms.root, comms.views.mark_thread_view_read,
-                screen._session_thread, worktree=str(self.project_dir),
-                through=through, implicit=implicit_root(),
-            )
+            await asyncio.to_thread(acknowledge)
         except (OSError, ValueError):
             # Source replacement or deletion is resolved by the next snapshot.
             return

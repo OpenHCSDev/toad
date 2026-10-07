@@ -314,7 +314,10 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         previous = self.state
         self.state = previous.observe(access.revision)
         try:
-            acquired = await self.state.acquire(access.service, access.revision)
+            service = await self.app.preparation.run_thread(lambda: access.service)
+            if not self._reading(previous):
+                return
+            acquired = await self.state.acquire(service, access.revision)
             if not self._reading(previous):
                 return
             self.state = self.state.receive_inspection(acquired)

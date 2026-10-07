@@ -105,6 +105,20 @@ class PeerTabTarget(NativeFocusTarget):
         return peer
 
 
+class PeerTabCloseTarget(PeerTabTarget):
+    """Close the captured selected peer, preserving the original tab."""
+
+    @classmethod
+    def locate(cls, snapshot, args):
+        peer = super().locate(snapshot, args)
+        if snapshot["metadata"]["current_mode"] != peer["name"]:
+            raise ValueError("Tab close requires the captured peer to be selected")
+        resource, = (node for node in snapshot["metadata"]["navigation_targets"]["widgets"]
+                     if node["class"] == "SessionTabClose"
+                     and node["id"] == f"close-{peer['name']}")
+        return resource
+
+
 class WidgetTarget(NativeFocusTarget):
     """Click a visible native control by class and optional Textual ID."""
 

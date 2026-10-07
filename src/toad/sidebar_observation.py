@@ -1,6 +1,5 @@
 """Validated observation of the shared coordination service; no independent store."""
 from __future__ import annotations
-from toad.core import events as core_events
 import asyncio
 from dataclasses import dataclass
 from agent_comms.comms import Comms, wire
@@ -8,7 +7,6 @@ from agent_comms.presentation import WireRevision
 from toad.preferences import SidebarSettings
 from toad.core.preference_events import PreferenceChanged
 from toad.core.events import SessionChangedEvent
-from toad.sidebar_snapshot import SidebarSnapshot
 from toad.comms_root import current_root
 
 @dataclass(frozen=True)
@@ -38,26 +36,24 @@ class SidebarObservation:
             task.cancel()
             await asyncio.gather(task, return_exceptions=True)
 
-    def mount(self) -> None:
-        from toad.comms_root import current_root
+    async def mount(self) -> None:
         from toad.screens.comms import CommsScreen
         app = self.sidebar.app
         try:
-            root = current_root().resolve()
+            service = await app.preparation.run_thread(lambda: app.coordination_access.service)
         except (OSError, ValueError, RuntimeError):
             self.sidebar.display = False
             return
         screen = self.sidebar.screen
-        if isinstance(screen, CommsScreen) and not screen.belongs_to_wire(root):
+        if isinstance(screen, CommsScreen) and not screen.belongs_to_wire(service.root):
             self.sidebar.display = False
             return
-        service = app.coordination_access.service
-        self.service = service if root == service.root else wire(root)
+        self.service = service
         self.sidebar.subscribe_core(app.session_tracker.events)
         self.sidebar.observe_core(app.events)
         self.sidebar.observe_core(app.settings.events)
         self.sidebar.observe_core(app.coordination_access.events)
-        self.sidebar.navigation.prepare()
+        await self.sidebar.navigation.prepare()
         from toad.screens.workspace import WorkspaceScreen
         if isinstance(screen, WorkspaceScreen):
             screen.frame_presentation.defer(self.sidebar, self.sidebar.navigation.start)
@@ -71,7 +67,7 @@ class SidebarObservation:
         return SidebarReadIdentity(revision, self.sidebar.session_thread, self.visible_filters)
 
     def project(self, state):
-        return SidebarSnapshot.capture(self.sidebar.app, self.service, state)
+        return state.project(self.sidebar.app, self.service)
 
     def invalidate(self) -> None:
         self.identity = None
@@ -113,9 +109,9 @@ class SidebarObservation:
     async def sync(self) -> None:
         """Reconcile tracked rows before a resumed screen accepts input."""
         async with self.lock:
-            revision = self.service.views.revision()
+            revision = await self.sidebar.app.preparation.run_thread(self.service.views.revision)
             if self.sidebar.projection.has_snapshot() and self.read_identity(revision) == self.identity:
-                await self.sidebar.projection.publish(self.project(self.sidebar.projection.snapshot.wire))
+                await self.sidebar.projection.publish(self.project(self.sidebar.projection.snapshot))
             else:
                 await self.read(revision)
 
@@ -124,7 +120,7 @@ class SidebarObservation:
             self.identity = None
             return
         if self.sidebar.projection.has_snapshot() and self.sidebar.is_attached:
-            await self.sidebar.projection.publish(self.sidebar.projection.snapshot)
+            await self.sidebar.projection.actions_changed()
         self.identity = None
         self.refresh()
 
@@ -132,9 +128,9 @@ class SidebarObservation:
         """Paint the last observed projection; refresh disk state after activation."""
         if not self.accepts_observation():
             return
-        state = self.sidebar.app._sidebar_snapshot
-        if state is not None and (
-            state.show_stopped, state.show_archived
+        state = self.sidebar.app.coordination_access.sidebar_snapshot
+        if state is not None and state.service is self.service and (
+            state.wire.show_stopped, state.wire.show_archived
         ) == self.visible_filters:
             await self.sidebar.projection.publish(self.project(state))
         # A cold tab has no last-known projection. Do not read the entire wire
@@ -163,8 +159,8 @@ class SidebarObservation:
         except Exception:
             return []
 
-    def route_changed(self) -> bool:
-        return self.sidebar.app.coordination_access.route_changed()
+    async def route_changed(self) -> bool:
+        return await self.sidebar.app.coordination_access.route_changed()
 
     async def coordination_updated(self, _event=None) -> None:
         service = self.sidebar.app.coordination_access.observed_service
@@ -195,18 +191,13 @@ class SidebarObservation:
             # ordinary shutdown and belongs inside this existing error boundary.
             if self.sidebar.screen is not self.sidebar.app.screen:
                 return
-            if self.route_changed():
-                self.sidebar.display = False
             if self.pending:
                 return
-            revision = self.service.views.revision()
-            if self.sidebar.display and self.read_identity(revision) == self.identity:
-                return
-            self.task = asyncio.create_task(self.refresh_checked(revision))
+            self.task = asyncio.create_task(self.refresh_checked())
         except Exception:
             self.sidebar.display = False
 
-    async def refresh_checked(self, revision: WireRevision) -> None:
+    async def refresh_checked(self) -> None:
         service = self.service
         try:
             from toad.comms_root import root_is_current
@@ -217,8 +208,14 @@ class SidebarObservation:
                 return
             if self.service is not service or not self.sidebar.accepts_publication():
                 return
+            revision = await self.sidebar.app.preparation.run_thread(service.views.revision)
+            if self.service is not service or not self.sidebar.accepts_publication():
+                return
+            if self.sidebar.display and self.read_identity(revision) == self.identity:
+                return
             await self.poll(revision)
-            if self.service is service and self.identity == self.read_identity(revision):
+            if self.service is service and self.identity is not None and (
+                    self.identity == self.read_identity(self.identity.revision)):
                 if not await asyncio.to_thread(root_is_current, service.root):
                     return
                 if self.service is not service:
@@ -239,12 +236,12 @@ class SidebarObservation:
                 # worktree-wide snapshot. A newly painted read cursor may
                 # change its revision, so observe that write before reuse.
                 await self.sidebar.app.mark_visible_thread_read()
-                revision = service.views.revision()
+                revision = await self.sidebar.app.preparation.run_thread(service.views.revision)
                 if self.service is not service:
                     return
                 if self.identity == self.read_identity(revision):
                     self.identity = self.read_identity(revision)
-                    await self.sidebar.projection.publish(self.project(self.sidebar.projection.snapshot.wire))
+                    await self.sidebar.projection.publish(self.project(self.sidebar.projection.snapshot))
                     return
             await self.read(revision)
 
@@ -254,10 +251,9 @@ class SidebarObservation:
             actor = self.sidebar.session_thread
             filters = self.visible_filters
             await self.sidebar.app.mark_visible_thread_read()
-            state = await asyncio.to_thread(
-                service.views.viewer_snapshot, str(self.sidebar.app.project_dir),
-                show_stopped=filters[0], show_archived=filters[1],
-            )
+            captured = await self.sidebar.app.coordination_access.read_sidebar(
+                self.sidebar.app, service, filters)
+            state = captured.wire
             if self.service is not service or not self.sidebar.accepts_publication():
                 return
             if SidebarReadIdentity(revision, actor, filters) != self.read_identity(revision):
@@ -270,7 +266,7 @@ class SidebarObservation:
                 return
             if self.service is not service:
                 return
-            snapshot = self.project(state)
+            snapshot = self.project(captured)
             if state.read_marker_notice != self.read_marker_notice:
                 self.read_marker_notice = state.read_marker_notice
                 if state.read_marker_notice:
@@ -279,16 +275,8 @@ class SidebarObservation:
                         title="Read positions",
                         severity="warning",
                     )
-            app = self.sidebar.app
-            previous_tabs = app.open_tabs
-            app._sidebar_snapshot = state
-            self.identity = SidebarReadIdentity(revision, actor, filters)
+            self.identity = SidebarReadIdentity(captured.revision, actor, filters)
             await self.sidebar.projection.publish(snapshot)
-            # Admissions own tab labels/unread, not the wire's observation
-            # metadata. Heartbeats and unrelated channel activity must not
-            # invalidate every Conversation's goal and relationship readers.
-            if app.open_tabs != previous_tabs:
-                app.events.publish(core_events.OpenTabsChanged())
         except (OSError, ValueError):
             # An external writer may be replacing/recovering the wire. Retry on
             # the next poll without blocking or terminating the view.

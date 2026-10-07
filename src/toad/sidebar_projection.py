@@ -2,7 +2,6 @@
 from __future__ import annotations
 import asyncio
 from textual.content import Content
-from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork
 from toad.sidebar_snapshot import SidebarSnapshot
 from toad.widgets.activity_spinner import FRAMES
 
@@ -80,13 +79,27 @@ class SidebarProjection:
         async with self.lock:
             if self.sidebar.observation.service is not service or not self.sidebar.accepts_publication():
                 return
-            # The snapshot is source custody, not a paint signature. Keyed
-            # groups and prepared rows own changes to their actual output.
-            await self.rebuild(snapshot)
+            previous = self.snapshot
+            if previous is not None and snapshot.same_rows(previous):
+                # Always retain the newly acquired source. Equality permits
+                # native reuse, not reuse of an old revision or authority.
+                self.snapshot = snapshot
+                self.sidebar.navigation.apply()
+                self.sidebar.navigation.mode_changed(self.sidebar.app.selected_mode)
+            else:
+                await self.rebuild(snapshot)
             if not self.sidebar.accepts_publication():
                 return
             if not self.sidebar.navigation.ready.is_set() and self.sidebar.is_attached and self.sidebar.screen.is_current:
                 self.sidebar.call_after_refresh(self.sidebar.navigation.finish, self.sidebar.navigation.revision)
+
+    async def actions_changed(self) -> None:
+        """Pending commands change row decoration independently of wire reads."""
+        service = self.sidebar.observation.service
+        async with self.lock:
+            if (self.sidebar.observation.service is service
+                    and self.snapshot is not None and self.sidebar.accepts_publication()):
+                await self.rebuild(self.snapshot)
 
     async def sync_sessions(self) -> None:
         """Reconcile local routes without republishing unchanged wire rows.
@@ -102,87 +115,91 @@ class SidebarProjection:
             if (self.sidebar.observation.service is not service
                     or self.snapshot is None or not self.sidebar.accepts_publication()):
                 return
-            projected = self.sidebar.observation.project(self.snapshot.wire)
+            projected = self.sidebar.observation.project(self.snapshot)
             if projected.session_threads != self.snapshot.session_threads:
                 await self.rebuild(projected)
 
     async def rebuild(self, snapshot: SidebarSnapshot) -> None:
         if not self.sidebar.accepts_publication():
             return
-        self.snapshot = snapshot
-        row_inputs = await ThreadRowsWork.capture(
-            self.sidebar.app.preparation,
-            tuple(ThreadRowInput(person) for person in snapshot.all_people.values()),
-        )
-        if not self.sidebar.accepts_publication():
-            return
-        channels = self.channels
-        from toad.widgets.comms_sidebar import CommsRow, ChannelGroup, NewSessionButton
-        from toad.navigation_target import channel_target
-        from toad.widgets.session_sort import ChannelListSort
-        from toad.widgets.side_bar import SideBarCollapsible
+        completed = False
+        try:
+            self.snapshot = snapshot
+            row_inputs = snapshot.row_inputs
+            if not self.sidebar.accepts_publication():
+                return
+            channels = self.channels
+            from toad.widgets.comms_sidebar import CommsRow, ChannelGroup, NewSessionButton
+            from toad.navigation_target import channel_target
+            from toad.widgets.session_sort import ChannelListSort
+            from toad.widgets.side_bar import SideBarCollapsible
 
-        control = self.sidebar.query_ancestor(SideBarCollapsible).header_control
-        assert isinstance(control, ChannelListSort)
-        control.update_order(snapshot.wire.channel_order)
-        desired_keys = [
-            view.channel.name
-            for view in snapshot.wire.channels
-        ]
-        if not self.sidebar.query(NewSessionButton):
-            await self.sidebar.mount(NewSessionButton())
+            control = self.sidebar.query_ancestor(SideBarCollapsible).header_control
+            assert isinstance(control, ChannelListSort)
+            control.update_order(snapshot.wire.channel_order)
+            desired_keys = [
+                view.channel.name
+                for view in snapshot.wire.channels
+            ]
+            if not self.sidebar.query(NewSessionButton):
+                await self.sidebar.mount(NewSessionButton())
+                if not self.sidebar.accepts_publication():
+                    return
+            retired_channels = set(channels) - set(desired_keys)
+            for key in retired_channels:
+                row = channels.pop(key)
+                await row.query_ancestor(ChannelGroup).remove()
+                if not self.sidebar.accepts_publication():
+                    return
+            new_groups: list[ChannelGroup] = []
+            for key in desired_keys:
+                if key not in channels:
+                    row = channels[key] = CommsRow(channel_target(key), key)
+                    new_groups.append(ChannelGroup(
+                        row, expanded=self.sidebar.navigation.state.expanded.get(key, row.target.expanded_by_default),
+                    ))
+            if new_groups:
+                await self.sidebar.mount(*new_groups)
+                if not self.sidebar.accepts_publication():
+                    return
+            if retired_channels or new_groups:
+                self.sidebar.navigation.rows_changed()
+            groups = {}
+            for view in snapshot.wire.channels:
+                channel_row = channels[view.channel.name]
+                unread = snapshot.wire.channel_unread.get(view.channel.name, 0)
+                channel_row.set_label(f"{'* ' if view.channel.pinned else ''}{view.channel.name}")
+                group = channel_row.query_ancestor(ChannelGroup)
+                group.update_unread(unread)
+                group.update_activity(view, row_inputs)
+                channel_row.set_class(bool(unread), "-unread")
+                groups[group] = view
+            await ChannelGroup.reconcile_groups(groups, row_inputs, sources=groups)
             if not self.sidebar.accepts_publication():
                 return
-        retired_channels = set(channels) - set(desired_keys)
-        for key in retired_channels:
-            row = channels.pop(key)
-            await row.query_ancestor(ChannelGroup).remove()
-            if not self.sidebar.accepts_publication():
-                return
-        new_groups: list[ChannelGroup] = []
-        for key in desired_keys:
-            if key not in channels:
-                row = channels[key] = CommsRow(channel_target(key), key)
-                new_groups.append(ChannelGroup(
-                    row, expanded=self.sidebar.navigation.state.expanded.get(key, row.target.expanded_by_default),
-                ))
-        if new_groups:
-            await self.sidebar.mount(*new_groups)
-            if not self.sidebar.accepts_publication():
-                return
-        if retired_channels or new_groups:
-            self.sidebar.navigation.rows_changed()
-        groups = {}
-        for view in snapshot.wire.channels:
-            channel_row = channels[view.channel.name]
-            unread = snapshot.wire.channel_unread.get(view.channel.name, 0)
-            channel_row.set_label(f"{'* ' if view.channel.pinned else ''}{view.channel.name}")
-            group = channel_row.query_ancestor(ChannelGroup)
-            group.update_unread(unread)
-            group.update_activity(view, row_inputs)
-            channel_row.set_class(bool(unread), "-unread")
-            groups[group] = view
-        await ChannelGroup.reconcile_groups(groups, row_inputs, sources=groups)
-        if not self.sidebar.accepts_publication():
-            return
-        ordered = [self.sidebar.query_one(NewSessionButton), *(
-            channels[key].query_ancestor(ChannelGroup) for key in desired_keys
-        )]
-        if list(self.sidebar.children) != ordered:
-            positions = {widget: index for index, widget in enumerate(ordered)}
-            self.sidebar.sort_children(key=positions.__getitem__)
-            self.sidebar.navigation.rows_changed()
-        self.sidebar.navigation.apply()
-        self.sidebar.navigation.mode_changed(self.sidebar.app.selected_mode)
-        self.sync_spinner()
-        # Retain full row text. Only the content grows; the outer sidebar owns
-        # both native scrollbars and keeps their geometry at the visible edge.
-        widest = max((Content(view.channel.name).cell_length + 12
-                      for view in snapshot.wire.channels), default=0)
-        if row_inputs.rows:
-            widest = max(widest, row_inputs.content_width + 8)
-        widest = min(widest, 512)
-        panel = self.sidebar.query_ancestor(SideBarCollapsible)
-        if widest != self.horizontal_width:
-            self.horizontal_width = widest
-            panel.styles.min_width = widest
+            ordered = [self.sidebar.query_one(NewSessionButton), *(
+                channels[key].query_ancestor(ChannelGroup) for key in desired_keys
+            )]
+            if list(self.sidebar.children) != ordered:
+                positions = {widget: index for index, widget in enumerate(ordered)}
+                self.sidebar.sort_children(key=positions.__getitem__)
+                self.sidebar.navigation.rows_changed()
+            self.sidebar.navigation.apply()
+            self.sidebar.navigation.mode_changed(self.sidebar.app.selected_mode)
+            self.sync_spinner()
+            # Retain full row text. Only the content grows; the outer sidebar owns
+            # both native scrollbars and keeps their geometry at the visible edge.
+            widest = max((Content(view.channel.name).cell_length + 12
+                          for view in snapshot.wire.channels), default=0)
+            if row_inputs.rows:
+                widest = max(widest, row_inputs.content_width + 8)
+            widest = min(widest, 512)
+            panel = self.sidebar.query_ancestor(SideBarCollapsible)
+            if widest != self.horizontal_width:
+                self.horizontal_width = widest
+                panel.styles.min_width = widest
+            completed = True
+        finally:
+            # Interrupted delivery must reconcile on the next activation.
+            if not completed:
+                self.snapshot = None

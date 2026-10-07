@@ -204,7 +204,15 @@ class ChannelConversation(ConversationKind):
         from toad.widgets.channel_participants import ChannelParticipants
         from toad.widgets.channel_prompt import ChannelPrompt
 
-        snapshot = await asyncio.to_thread(comms.views.coordination_snapshot)
+        # The composer consumes membership and thread presentation, not the
+        # actor's inbox counts or channel activity clocks. Borrow the original
+        # viewer publication through its acquisition owner instead of reading
+        # the same registry/activity/catalog again after every channel page.
+        # Its original roster includes stopped owners and excludes archived
+        # owners, independently of the sidebar's user-selected filters.
+        publication = await view.app.coordination_access.read_sidebar(
+            view.app, comms, (True, False))
+        snapshot = publication.wire
         view.query_one(ChannelParticipants).update_participants(
             snapshot.participants(view.target)
         )
