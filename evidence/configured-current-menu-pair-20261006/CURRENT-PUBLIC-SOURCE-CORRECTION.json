@@ -1,0 +1,94 @@
+{
+  "state": "SOURCE PREPARATION ONLY; no access, capture, purpose or runtime authority",
+  "base_operands": {
+    "path": "/home/ts/wt/toad-configured-queue-consumers-20261006/evidence/configured-current-menu-pair-20261006/EFFECTIVE-CONFIGURED-QUEUE-OPERANDS.json",
+    "sha256": "e5b39e4f9e7dc19085260057838e364848dfffeb2c0a43747b196866cb4cf1e6",
+    "bytes": 75836
+  },
+  "publication": {
+    "path": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/sidebar-live-candidate-20261006/publication.json",
+    "sha256": "926e0bae43d8e007f940ec77273e77f5d2efd02ebdd9364861e84c5b31c6c7a9",
+    "bytes": 37934
+  },
+  "publication_phase": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "effective_source": {
+    "public_prefix": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/sidebar-live-candidate-20261006/runtime",
+    "python": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/sidebar-live-candidate-20261006/runtime/bin/python",
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-native-bootstrap-origin-guard-20261005/stack/.pi-native-4b687d2ddcafeea5/node_modules/@earendil-works/pi-coding-agent",
+    "original_19_owner_restarts_recorded": true,
+    "identity_settings_provider_hash_source_at_use": "UNBOUND; original CurrentTypedCapture/RetainedOwnerLaunch require_current and configured_saved_agent private fork establish actual incarnation, source file/hash, >=40MB, configured settings/provider and original-source preservation",
+    "source_witness_return": "Actual PUBLIC_WITNESS_RELEASED after original fork/admission; separate from private whole return",
+    "public_UI_acceptance": "Pending Parent verification"
+  },
+  "exact_operand_corrections": [
+    {
+      "position": "/environment_set/AC_REAL_ORIGINAL_PYTHON",
+      "historical_value": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+      "effective_value": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/sidebar-live-candidate-20261006/runtime/bin/python"
+    },
+    {
+      "position": "/environment/set/AC_REAL_ORIGINAL_PYTHON",
+      "historical_value": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+      "effective_value": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/sidebar-live-candidate-20261006/runtime/bin/python"
+    },
+    {
+      "position": "/source_capture_scope/original_public_python",
+      "historical_value": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+      "effective_value": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/sidebar-live-candidate-20261006/runtime/bin/python"
+    },
+    {
+      "position": "/source_read_descriptor/argv/0",
+      "historical_value": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python",
+      "effective_value": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/sidebar-live-candidate-20261006/runtime/bin/python"
+    }
+  ],
+  "effective_outer_environment": {
+    "unset": [
+      "PYTHONPATH",
+      "PYTHONHOME",
+      "VIRTUAL_ENV",
+      "AGENT_COMMS_THREAD",
+      "AGENT_COMMS_STARTUP_INPUT_KEY",
+      "PI_PROMPT",
+      "PI_PARENT_ID",
+      "PI_AGENT_ID",
+      "PI_TASK",
+      "TEXTUAL_DRIVER",
+      "AC_REAL_ORIGINAL_PYTHON",
+      "AC_REAL_SOURCE_OWNER",
+      "AC_REAL_SOURCE_ROOT",
+      "AC_REAL_SOURCE_FILE",
+      "AC_REAL_PROVIDER_AUTHORIZED",
+      "AC_REAL_READ_ONLY_CUSTODY",
+      "WORKSPACE_COHORTS"
+    ],
+    "set": {
+      "L0A_EVIDENCE": "/home/ts/.cache/agent-scratch/hcf05/e",
+      "AC_REAL_FIXTURE_STAGE": "/home/ts/.cache/agent-scratch/hcf05/sf",
+      "TMPDIR": "/home/ts/.cache/agent-scratch/hcf05/tmp",
+      "AC_REAL_PROVIDER_AUTHORIZED": "Sol/high retained acceptance",
+      "AC_REAL_READ_ONLY_CUSTODY": "1",
+      "AC_REAL_ORIGINAL_PYTHON": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/sidebar-live-candidate-20261006/runtime/bin/python",
+      "AC_REAL_SOURCE_ROOT": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "AC_REAL_SOURCE_OWNER": "openhcs-architecture-memory",
+      "AC_NATIVE_COPIED_PACKAGE": "/home/ts/wt/comms-native-bootstrap-origin-guard-20261005/stack/.pi-native-4b687d2ddcafeea5/node_modules/@earendil-works/pi-coding-agent",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONNOUSERSITE": "1"
+    }
+  },
+  "effective_source_read_argv": [
+    "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/sidebar-live-candidate-20261006/runtime/bin/python",
+    "/home/ts/wt/comms-configured-peer-local-provenance-20261006/tools/cutover/read_original_owner.py",
+    "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "openhcs-architecture-memory",
+    "current_thread"
+  ],
+  "protected_public_prefix": {
+    "path": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/sidebar-live-candidate-20261006/runtime",
+    "private_stage_restore_clean": false
+  },
+  "selected_private_cohort": "Unchanged base wheel identities; no relabeling PUBLIC d69/437e/95c as private b55/b953/a59",
+  "other_operands": "Original control/template bytes,2100/readiness20,six authored UI inputs plus automatic requests and future exclusive paths unchanged. Floor/restore/keepers/refs remain unbound until original owner fresh assessment. Prior attempts and journals stay held."
+}
