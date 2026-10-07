@@ -60,17 +60,17 @@ class PersistentRenderClient(Renderer):
         self._bind_loop()
         retirement = self._retirement
         if retirement is not None:
-            await asyncio.wait((retirement,))
+            await self.wait_for_work(retirement)
             retirement.result()
             if self._retirement is retirement:
                 self._retirement = None
         if self._closed:
             raise RuntimeError("Persistent renderer is closed")
         if self._initialization is None:
-            self._initialization = asyncio.create_task(self._initialize(), name="renderer-initialize")
-            self._initialization.add_done_callback(_observe)
+            self._initialization = asyncio.create_task(self._initialize(), name="renderer-initialize", context=self.execution_context())
+            self._initialization.add_done_callback(_observe, context=self._initialization.get_context())
         initialization = self._initialization
-        await asyncio.wait((initialization,))
+        await self.wait_for_work(initialization)
         if self._closed:
             raise RuntimeError("Persistent renderer is closed")
         try:
@@ -83,8 +83,8 @@ class PersistentRenderClient(Renderer):
     def _retire(self, pool: PersistentRendererPool) -> None:
         if self.resolved_pool is pool:
             self._initialization = None
-            self._retirement = asyncio.create_task(pool.aclose(), name="renderer-retire-failed-client")
-            self._retirement.add_done_callback(_observe)
+            self._retirement = asyncio.create_task(pool.aclose(), name="renderer-retire-failed-client", context=self.execution_context())
+            self._retirement.add_done_callback(_observe, context=self._retirement.get_context())
 
     async def capture(self, task: RenderTask[ResultT]) -> "PreparedValue[ResultT]":
         pool = await self._get_pool()
@@ -115,9 +115,9 @@ class PersistentRenderClient(Renderer):
         self._bind_loop()
         self._closed = True
         if self._shutdown is None:
-            self._shutdown = asyncio.create_task(self._close(), name="renderer-runtime-close")
-            self._shutdown.add_done_callback(_observe)
-        await asyncio.wait((self._shutdown,))
+            self._shutdown = asyncio.create_task(self._close(), name="renderer-runtime-close", context=self.execution_context())
+            self._shutdown.add_done_callback(_observe, context=self._shutdown.get_context())
+        await self.wait_for_work(self._shutdown)
         self._shutdown.result()
 
     async def _close(self) -> None:
@@ -125,11 +125,11 @@ class PersistentRenderClient(Renderer):
             await self._close_submissions()
             initialization = self._initialization
             if initialization is not None:
-                await asyncio.wait((initialization,))
+                await self.wait_for_work(initialization)
                 if not initialization.cancelled() and initialization.exception() is None:
                     await initialization.result().aclose()
         finally:
             retirement = self._retirement
             if retirement is not None:
-                await asyncio.wait((retirement,))
+                await self.wait_for_work(retirement)
                 retirement.result()
