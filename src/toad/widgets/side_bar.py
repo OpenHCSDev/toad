@@ -458,6 +458,13 @@ class SidebarSlider(widgets.Static, can_focus=True):
             event.stop()
             self._choose(event.screen_x - self._drag_origin_x)
 
+    def can_replace_mouse_move(
+        self, event: events.MouseMove, pending: events.MouseMove
+    ) -> bool:
+        # The captured track maps the latest absolute point to a width.
+        # Intermediate positions do not represent separate slider actions.
+        return self._dragging and event.button == pending.button == 1
+
     def on_mouse_up(self, event: events.MouseUp) -> None:
         if event.button == 1 and self._dragging:
             event.stop()
