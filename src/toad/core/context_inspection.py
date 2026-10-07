@@ -509,6 +509,8 @@ class ContextInspection:
             self.service.registry, self.owner, source, self.service))
 
     def working_memory(self):
+        if not self.annotations:
+            return ()
         sections = {}
         for request in self.recorded():
             for root in request.children():
