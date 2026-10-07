@@ -128,7 +128,7 @@ class TranscriptBlockConsumer(MroDispatch):
         # Reuse the existing declaration-owned validator cache. Keep strict
         # field decoding: the SDK model's assignment hook drops invalid items.
         tool.content = value_schema(protocol.ToolCall.model_fields["content"].annotation).validate_python(
-            tool_result_content(event.tool_call_id, event.text, event.diff), strict=True,
+            tool_result_content(event.tool_call_id, event.text, event.diff, event.sent_message), strict=True,
         )
 
 

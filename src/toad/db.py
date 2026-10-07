@@ -98,7 +98,7 @@ class DB:
                 await db.execute(
                     """INSERT INTO model_history (agent_identity, model_id, last_used)
                     VALUES (?, ?, ?) ON CONFLICT(agent_identity, model_id)
-                    DO UPDATE SET last_used = excluded.last_used""",
+                    DO UPDATE SET last_used = MAX(model_history.last_used, excluded.last_used)""",
                     (agent_identity, model_id, time_ns()),
                 )
                 await db.commit()
