@@ -1,4 +1,4 @@
-"""Bar consumers share worker content and finish the newest roster before return."""
+"""Worker rows stay independent; native tabs finish the newest mounted roster."""
 
 import asyncio
 import os
@@ -11,7 +11,7 @@ from agent_comms.comms import wire
 
 from runtime_fixture import ToadApp
 from toad.session_tracker import ExactUnread
-from toad.sidebar_preparation import TabRosterWork, ThreadRowInput, ThreadRowsWork
+from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork
 from toad.render_choices import LocalRenderer
 from toad.widgets.session_tabs import SessionLabel, SessionsTabs
 
@@ -48,19 +48,21 @@ async def main():
 
             tabs = app.screen.query_one(SessionsTabs)
             entered, release = asyncio.Event(), asyncio.Event()
-            original_submit = app.preparation.submit
+            await tabs.title_container.remove_children()
+            original_mount = tabs.title_container.mount
             delayed = False
 
-            async def gated(work):
+            async def gated(*widgets, **kwargs):
                 nonlocal delayed
-                if isinstance(work, TabRosterWork) and not delayed:
+                result = await original_mount(*widgets, **kwargs)
+                if not delayed:
                     delayed = True
                     entered.set()
                     await release.wait()
-                return await original_submit(work)
+                return result
 
             try:
-                with patch.object(app.preparation, "submit", gated):
+                with patch.object(tabs.title_container, "mount", gated):
                     tabs._last_tabs = None
                     synchronization = asyncio.create_task(tabs._sync_tabs())
                     await asyncio.wait_for(entered.wait(), 5)
@@ -74,7 +76,7 @@ async def main():
                 release.set()
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
-    print("prepared bars: shared worker rows, independent deliveries, changed inputs, newest roster before readiness OK")
+    print("prepared bars: shared worker rows, independent deliveries, native tabs, newest roster before readiness OK")
 
 
 if __name__ == "__main__":

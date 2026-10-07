@@ -62,6 +62,9 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                         observer.install(expected_pid=expected_pid, output=scroll_travel_output)
                     if install_frame_trace:
                         from sidebar_validation_driver import ValidationDriver
+                        if os.environ.get("TOAD_VALIDATION_OPEN_STAGES"):
+                            from sidebar_validation_driver import install_observer
+                            install_observer()
                         await ValidationDriver.observe_application_frames(app).wait()
                     capture(expected_pid=expected_pid, output_prefix=output_prefix,
                             wait_history_seconds=wait_history_seconds, wait_interval=wait_interval,
