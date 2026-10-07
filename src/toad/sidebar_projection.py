@@ -2,7 +2,6 @@
 from __future__ import annotations
 import asyncio
 from textual.content import Content
-from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork
 from toad.sidebar_snapshot import SidebarSnapshot
 from toad.widgets.activity_spinner import FRAMES
 
@@ -102,7 +101,7 @@ class SidebarProjection:
             if (self.sidebar.observation.service is not service
                     or self.snapshot is None or not self.sidebar.accepts_publication()):
                 return
-            projected = self.sidebar.observation.project(self.snapshot.wire)
+            projected = self.sidebar.observation.project(self.snapshot)
             if projected.session_threads != self.snapshot.session_threads:
                 await self.rebuild(projected)
 
@@ -110,10 +109,7 @@ class SidebarProjection:
         if not self.sidebar.accepts_publication():
             return
         self.snapshot = snapshot
-        row_inputs = await ThreadRowsWork.capture(
-            self.sidebar.app.preparation,
-            tuple(ThreadRowInput(person) for person in snapshot.all_people.values()),
-        )
+        row_inputs = snapshot.row_inputs
         if not self.sidebar.accepts_publication():
             return
         channels = self.channels

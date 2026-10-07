@@ -13,7 +13,8 @@ from collections.abc import Callable, Iterator, Mapping
 from contextlib import ExitStack, contextmanager, nullcontext
 from pathlib import Path
 from typing import TYPE_CHECKING, TypeVar
-from toad.core.events import CoreEventStream, CoordinationObserved
+from functools import partial
+from toad.core.events import CoreEventStream, CoordinationObserved, OpenTabsChanged
 
 if TYPE_CHECKING:
     from agent_comms.active_route import CommsRoute
@@ -62,9 +63,8 @@ class ObservedCommsService:
 class CoordinationAccess:
     """A validated core route owns cached access and guarded UI write admission."""
 
-    def __init__(self, changed: Callable[[], None], preparation) -> None:
+    def __init__(self, preparation) -> None:
         self.observation: ObservedCommsService | None = None
-        self.changed = changed
         self.events = CoreEventStream(self)
         self.revision: WireRevision | None = None
         self.route_stamp: tuple[tuple[int, int, int, int] | None, ...] | None = None
@@ -72,6 +72,11 @@ class CoordinationAccess:
         self.timer = None
         self.custody = ExitStack()
         self.preparation = preparation
+        # The application's existing retained sidebar publication lives with
+        # its acquired service. Native views borrow it; they do not reread or
+        # recapture the same worktree publication independently.
+        self.sidebar_snapshot = None
+        self.sidebar_lock = asyncio.Lock()
 
     @property
     def observed_service(self) -> Comms | None:
@@ -98,8 +103,41 @@ class CoordinationAccess:
         self.observation = ObservedCommsService(selected, service)
         self.revision = None
         self.route_stamp = None
-        self.changed()
+        self.sidebar_snapshot = None
         return service
+
+    async def read_sidebar(self, app, service: Comms, filters: tuple[bool, bool]):
+        """Acquire one original viewer publication and its row inputs.
+
+        The service, revision, viewer worktree and declared filters are the
+        actual read scope. A retained view may borrow paint after activation,
+        but route replacement revokes this acquisition before delivery.
+        """
+        from toad.sidebar_snapshot import SidebarSnapshot
+
+        async with self.sidebar_lock:
+            if service is not self.observed_service:
+                raise ValueError("Sidebar service changed before acquisition")
+            if not await self.preparation.run_thread(root_is_current, service.root):
+                raise ValueError("Sidebar route changed before acquisition")
+            revision = service.views.revision()
+            if self.sidebar_snapshot is not None and self.sidebar_snapshot.matches(
+                    service, revision, app.project_dir, filters):
+                return self.sidebar_snapshot
+            state = await self.preparation.run_thread(partial(
+                service.views.viewer_snapshot, str(app.project_dir),
+                show_stopped=filters[0], show_archived=filters[1]))
+            snapshot = await SidebarSnapshot.capture(app, service, state, revision)
+            if (service is not self.observed_service
+                    or not await self.preparation.run_thread(root_is_current, service.root)):
+                raise ValueError("Sidebar service changed during acquisition")
+            previous_tabs = app.open_tabs
+            self.sidebar_snapshot = snapshot
+            # Only the acquired publication changes tab facts. Borrowers and
+            # local route reprojections must not broadcast that change again.
+            if app.open_tabs != previous_tabs:
+                app.events.publish(OpenTabsChanged())
+            return snapshot
 
     def start(self, app) -> None:
         """One application revision observer serves visible views and roster paint."""

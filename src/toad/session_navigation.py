@@ -186,7 +186,8 @@ class SessionAdmissions:
 
     @property
     def tabs(self) -> tuple[OpenTab, ...]:
-        return self.app.tab_order.project({entry.mode: entry.tab(self, self.app._sidebar_snapshot)
+        snapshot = self.app.coordination_access.sidebar_snapshot
+        return self.app.tab_order.project({entry.mode: entry.tab(self, snapshot.wire if snapshot is not None else None)
                                           for entry in self.members})
 
     def sync_identity(self, owner: str, previous: str, current: str) -> None:

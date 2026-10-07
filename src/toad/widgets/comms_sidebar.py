@@ -92,8 +92,10 @@ class ChannelGroup(SidebarGroup):
         # Disclosure and route/source publication share the original snapshot
         # lifetime. Keep that source until its prepared rows have been admitted.
         if self.is_attached:
-            async with self.query_ancestor(CommsSidebar).projection.lock:
-                await super()._sync_members()
+            projection = self.query_ancestor(CommsSidebar).projection
+            async with projection.lock:
+                if self.expanded and projection.snapshot is not None:
+                    await self.reconcile_groups((self,), projection.snapshot.row_inputs)
 
     def update_unread(self, unread: int) -> None:
         if unread != self.row.unread:
@@ -155,7 +157,7 @@ class ChannelGroup(SidebarGroup):
         # A tab may close while immutable row text is being prepared. The
         # shared roster survives that close; project live view routes only
         # after the await, rather than restoring a retired mode from a DTO.
-        current = sidebar.observation.project(snapshot.wire)
+        current = sidebar.observation.project(snapshot)
         modes = {name: mode for mode, name in current.session_threads.items()}
 
         def create(name):
