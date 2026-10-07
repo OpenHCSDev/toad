@@ -501,9 +501,13 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             visible.set_class(visible is row, "-selected")
 
     def unread(self, target: NavigationTarget):
-        snapshot = self.app.coordination_access.sidebar_snapshot
+        access = self.app.coordination_access
+        snapshot = access.sidebar_snapshot
+        # These are paint answers from the acquired publication, not a fresh
+        # route selection or navigation admission for each individual row.
         if (snapshot is None or self.wire_root is None
-                or Path(self.wire_root).resolve() != self.app.coordination_access.service.root.resolve()):
+                or snapshot.service is not access.observed_service
+                or Path(self.wire_root).resolve() != snapshot.service.root.resolve()):
             return ExactUnread()
         return target.unread(snapshot.wire)
 
