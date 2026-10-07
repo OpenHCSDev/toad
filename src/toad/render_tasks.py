@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from textual.document._document import DocumentBase
+from textual.document._wrapped_document import WrappedDocument
+from textual.widgets import PreparedTextArea
 
 from toad.render_backend import ReusableRenderTask
 
@@ -14,6 +17,22 @@ from toad.rich_preparation import (
     RichSource,
     prepare_rich,
 )
+
+
+@dataclass(frozen=True)
+class ReadOnlyDocumentRenderTask(ReusableRenderTask[WrappedDocument]):
+    """The native document owns splitting, tab expansion and wrap coordinates."""
+    source: str | DocumentBase
+    width: int
+    tab_width: int
+
+    def execute(self) -> WrappedDocument:
+        return PreparedTextArea.prepare_document(self.source, self.width, self.tab_width)
+
+    def accept_result(self, result: object) -> WrappedDocument:
+        if not isinstance(result, WrappedDocument):
+            raise TypeError("Document renderer returned an invalid native view")
+        return result
 
 
 @dataclass(frozen=True)
