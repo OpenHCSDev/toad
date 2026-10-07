@@ -272,12 +272,12 @@ class PersistentRendererPool(Renderer):
         if self._failure is not None:
             raise RendererSessionFailed("Renderer client session failed") from self._failure
         submission = RenderSubmission(uuid4(), task, self._bind_loop().create_future())
-        running = asyncio.create_task(self._run(submission), name="persistent-render-request")
+        running = asyncio.create_task(self._run(submission), name="persistent-render-request", context=self.execution_context())
         tracked = cast(asyncio.Task[object], running)
         self._pending.add(tracked)
-        tracked.add_done_callback(self._finished)
+        tracked.add_done_callback(self._finished, context=tracked.get_context())
         try:
-            await asyncio.wait((running,))
+            await self.wait_for_work(running)
         except asyncio.CancelledError:
             submission.cancel_requested = True
             raise
@@ -300,8 +300,8 @@ class PersistentRendererPool(Renderer):
         self._closed = True
         self._changed.set()
         if self._close_task is None:
-            self._close_task = asyncio.create_task(self._close(), name="persistent-render-close")
-        await asyncio.wait((self._close_task,))
+            self._close_task = asyncio.create_task(self._close(), name="persistent-render-close", context=self.execution_context())
+        await self.wait_for_work(self._close_task)
         self._close_task.result()
 
     async def _close(self) -> None:

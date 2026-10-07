@@ -282,7 +282,9 @@ class PreparationRuntime:
         if self._closed:
             self._threads.release()
             raise asyncio.CancelledError
-        task = asyncio.create_task(asyncio.to_thread(function, *args), name="preparation-thread")
+        context = self.renderer.execution_context()
+        task = asyncio.create_task(asyncio.to_thread(function, *args), name="preparation-thread",
+                                   context=context)
         self._thread_tasks.add(task)
 
         def finished(completed):
@@ -291,8 +293,9 @@ class PreparationRuntime:
                 completed.exception()
             self._threads.release()
 
-        task.add_done_callback(finished)
-        return await asyncio.shield(task)
+        task.add_done_callback(finished, context=context)
+        await self.renderer.wait_for_work(task)
+        return task.result()
 
     def discard_scope(self, scope: PreparationScope) -> None:
         scope.closed = True
@@ -329,7 +332,9 @@ class PreparationRuntime:
             if self._admitted[work.lane] < self.max_pending:
                 self.misses += 1
                 self._admitted[work.lane] += 1
-                pending = asyncio.create_task(self._execute(key, work), name=f"prepare-{type(work).__name__}")
+                context = self.renderer.execution_context()
+                pending = asyncio.create_task(self._execute(key, work), name=f"prepare-{type(work).__name__}",
+                                              context=context)
                 self._pending[key] = pending
 
                 def finished(completed, lane=work.lane):
@@ -339,11 +344,12 @@ class PreparationRuntime:
                         completed.exception()
                     self._changed.set()
 
-                pending.add_done_callback(finished)
+                pending.add_done_callback(finished, context=context)
                 break
             self._changed.clear()
             await self._changed.wait()
-        result = await asyncio.shield(pending)
+        await self.renderer.wait_for_work(pending)
+        result = pending.result()
         if self._closed or key.scope is not None and key.scope.closed:
             raise asyncio.CancelledError
         return key, result
@@ -373,8 +379,10 @@ class PreparationRuntime:
         self._closed = True
         self._changed.set()
         if self._shutdown is None:
-            self._shutdown = asyncio.create_task(self._close(), name="preparation-shutdown")
-        await asyncio.shield(self._shutdown)
+            self._shutdown = asyncio.create_task(self._close(), name="preparation-shutdown",
+                                                 context=self.renderer.execution_context())
+        await self.renderer.wait_for_work(self._shutdown)
+        self._shutdown.result()
 
     async def _close(self) -> None:
         if self._pending:
