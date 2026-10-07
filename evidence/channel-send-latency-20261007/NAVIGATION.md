@@ -36,3 +36,5 @@ overall performance improvement. ACP cold startup remains a concrete gap.
 
 Build/proof and publication evidence stays in the existing worktree at
 `.artifacts/navigation-service-wheel-20261007`.
+
+PR522 is merged and the original frontend publisher advanced the default Toad launcher. A normal toad-comms launch without candidate overrides opened the original saved thread in isolated st and exited cleanly. It selected the new frontend and original backend. Running windows and source owner identity were preserved. Exact installed result: `.artifacts/navigation-service-wheel-20261007/live-result.json`. ACP cold startup remains open.
