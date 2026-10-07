@@ -8,7 +8,7 @@ from pathlib import Path
 from acp.exceptions import RequestError
 from textual import on, work
 from textual.containers import Horizontal, Vertical
-from textual.widgets import Button, Input, Static, TextArea, Tree
+from textual.widgets import Button, Input, Static, PreparedTextArea, Tree
 from textual.worker import Worker, WorkerCancelled, WorkerState, get_current_worker
 from agent_comms.mro_dispatch import handles
 from agent_comms.coordinator import Coordination
@@ -216,6 +216,16 @@ class ContextTree(Tree[ContextNode]):
         return self.owns_node(self.cursor_node) and self.cursor_node.data is model
 
 
+class ContextDetail(PreparedTextArea):
+    """Borrow the App's existing process renderer for native document work."""
+
+    async def _prepare_document(self, source, width, tab_width):
+        from toad.render_tasks import ReadOnlyDocumentRenderTask
+
+        return await self.app.render_processes.submit(
+            ReadOnlyDocumentRenderTask(source, width, tab_width))
+
+
 class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
     DEFAULT_CSS = """
     ContextExplorer { height: auto; }
@@ -244,7 +254,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             yield Button("Copy", id="context-copy")
             yield Button("Correct", id="context-correct")
         yield ContextTree(self.intent, self._show_detail, self._show_placeholder)
-        yield TextArea("No context selected.", read_only=True, soft_wrap=True,
+        yield ContextDetail("No context selected.", soft_wrap=True,
                        show_line_numbers=False, id="context-detail")
         yield Input(placeholder="Export to a new text file · path", id="context-export-path")
         yield Button("Export selected text + source", id="context-export")
@@ -295,7 +305,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         self.state = InspectionState.for_owner(owner, root)
         self.intent.selected = None
         self.query_one(ContextTree).clear()
-        self.query_one(TextArea).load_text("No context selected.")
+        self._show_placeholder("No context selected.")
         self.action_refresh()
 
     def action_refresh(self):
@@ -370,7 +380,9 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         self.query_one(".context-status", Static).update(updated.status)
 
     def _show_placeholder(self, placeholder):
-        self.query_one(TextArea).load_text(placeholder)
+        detail = self.query_one(ContextDetail)
+        detail.loading = False
+        detail.load_text_prepared(placeholder)
 
     @on(Button.Pressed, "#context-correct")
     def action_correct(self, event):
@@ -467,7 +479,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             return
         if not self._selected(model):
             return
-        detail = self.query_one(TextArea)
+        detail = self.query_one(ContextDetail)
         self.screen.maximize(detail, container=False)
         detail.focus()
 
@@ -525,10 +537,18 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         # a reusable string key shared by another thread or context snapshot.
         if not self._selected(model):
             return
-        self.query_one(TextArea).load_text("Preparing selected context detail…")
+        area = self.query_one(ContextDetail)
+        # A read borrows the native document; it does not replace the reader's
+        # selection and scroll with a temporary one-line document.
+        area.loading = True
         try:
             detail = await model.read()
         except (OSError, ValueError, RuntimeError, RequestError) as error:
             detail = f"Selected context detail unavailable: {error}"
         if self._selected(model):
-            self.query_one(TextArea).load_text(detail)
+            # A new authenticated node may supply identical displayed text.
+            # Its source is still read above; unchanged native answers need
+            # neither document reconstruction nor a cursor/reader reset.
+            await area.load_text_prepared(detail).wait()
+            if self._selected(model):
+                area.loading = False
