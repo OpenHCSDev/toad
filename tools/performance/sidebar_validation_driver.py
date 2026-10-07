@@ -201,9 +201,17 @@ def install_observer():
         from toad.sidebar_projection import SidebarProjection
         from toad.widgets.session_tabs import SessionsTabs
         from toad.navigation_preparation import NavigationReader
+        from toad.screens.main import MainScreen
+        from toad.session_presentation import OperationalSessionSources
+        from toad.agent_presentation import ACPAgentPresentation
         navigation_methods.extend((
             (WorkspaceSessions, WorkspaceSessions.prepare),
+            (WorkspaceSessions, WorkspaceSessions.select),
+            (MainScreen, MainScreen.prepare_presentation),
+            (OperationalSessionSources, OperationalSessionSources.present),
             (Conversation, Conversation.initialize_view),
+            (Conversation, Conversation.prepare_retained_session),
+            (ACPAgentPresentation, ACPAgentPresentation.restore_saved_history),
             (SidebarObservation, SidebarObservation.present_cached),
             (SidebarProjection, SidebarProjection.rebuild),
             (SessionsTabs, SessionsTabs._sync_tabs),
