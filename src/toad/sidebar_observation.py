@@ -103,8 +103,7 @@ class SidebarObservation:
         # Session routes/title changes are local projection facts. The wire's
         # own revision invalidates its snapshot; do not force a full history
         # read whenever a selected rich Conversation is reconstructed.
-        if self.sidebar.projection.has_snapshot():
-            await self.sidebar.projection.publish(self.project(self.sidebar.projection.snapshot.wire))
+        await self.sidebar.projection.sync_sessions()
         self.sidebar.navigation.mode_changed(self.sidebar.app.selected_mode)
         self.refresh()
 
