@@ -67,8 +67,8 @@ class AgentProcess:
                 return self
             for connection in dict.fromkeys((self, *processes)):
                 if connection.accepts_attachment(agent, env, cwd, selection):
-                    # No await separates membership acquisition from assignment
-                    # by Agent.start. Session tasks run after that assignment.
+                    # Bind the acquired connection before eager session tasks run.
+                    agent.process = connection
                     connection.sessions.add(agent.session)
                     agent.controller.replace_terminal_session()
                     agent.session.start()
@@ -81,6 +81,7 @@ class AgentProcess:
             connection.command = agent.command
             connection.initialization = None
             connection.retirement = None
+            agent.process = connection
             connection.sessions.add(agent.session)
             agent.controller.replace_terminal_session()
             connection.runner = asyncio.create_task(connection.run())

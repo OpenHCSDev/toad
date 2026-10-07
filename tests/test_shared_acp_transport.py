@@ -148,6 +148,7 @@ def test_real_workspace_tab_uses_retained_operational_connection(attachment_scop
         assert agent.ready
 
     async def run():
+        asyncio.get_running_loop().set_task_factory(asyncio.eager_task_factory)
         async with original_owner(attachment_scope):
             app = ToadApp(project_dir=str(project), agent_data=definition,
                           agent_session_id='alpha')

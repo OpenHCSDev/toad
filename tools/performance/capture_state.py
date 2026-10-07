@@ -207,7 +207,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
             })
         metadata["acp_startup"] = []
         native_processes = {}
-        # Take tasks and identities from the existing AgentProcess owner. No
+        # Take handshake tasks from AgentSession and child identity from AgentProcess. No
         # command matching, environment export, pipe read or new process owner.
         for conversation in (node for view in app.workspace_sessions.views.values()
                              for node in view.query(Conversation)):
@@ -220,7 +220,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                        "connected": agent.session.connected,
                        "settled": agent.session.settled.is_set(),
                        "runner": task_state(owner.runner) if owner.runner is not None else None,
-                       "session_task": task_state(owner.session_task) if owner.session_task is not None else None,
+                       "session_task": task_state(agent.session.task) if agent.session.task is not None else None,
                        "process": None}
             if child is not None:
                 startup["process"] = {"identity": asdict(child.identity), "returncode": child.returncode}
