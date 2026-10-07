@@ -197,13 +197,32 @@ def install_observer():
         from toad.acp.agent_process import AgentProcess
         from toad.acp.agent_session import AgentSession
         from textual.widget import Widget
+        from textual.screen import Screen
         from toad.sidebar_observation import SidebarObservation
         from toad.sidebar_projection import SidebarProjection
         from toad.widgets.session_tabs import SessionsTabs
         from toad.navigation_preparation import NavigationReader
+        from toad.screens.main import MainScreen
+        from toad.session_presentation import OperationalSessionSources
+        from toad.agent_presentation import ACPAgentPresentation
+        from toad.acp.agent_controller import AgentController
+        from toad.acp.session_updates import SessionNotificationOwner
+        from toad.render_backend import Renderer
+        from toad.render_processes import RenderProcessPool
+        from toad.widgets.comms_chat import CommsChatView
+        from toad.mounted_message_history import MountedMessageHistory
+        from toad.channel_preparation import ChannelHistoryReader
+        from toad.widgets.prompt import PromptSubmission
+        from agent_comms.messaging import Messaging
+        from toad import jsonrpc
         navigation_methods.extend((
             (WorkspaceSessions, WorkspaceSessions.prepare),
+            (WorkspaceSessions, WorkspaceSessions.select),
+            (MainScreen, MainScreen.prepare_presentation),
+            (OperationalSessionSources, OperationalSessionSources.present),
             (Conversation, Conversation.initialize_view),
+            (Conversation, Conversation.prepare_retained_session),
+            (ACPAgentPresentation, ACPAgentPresentation.restore_saved_history),
             (SidebarObservation, SidebarObservation.present_cached),
             (SidebarProjection, SidebarProjection.rebuild),
             (SessionsTabs, SessionsTabs._sync_tabs),
@@ -214,7 +233,67 @@ def install_observer():
             (AgentSession, AgentSession.load),
             (AgentSession, AgentSession.touch),
             (AgentSession, AgentSession.run),
+            (SessionNotificationOwner, SessionNotificationOwner.receive),
+            (AgentController, AgentController.validate),
+            (Renderer, Renderer._submit),
+            (RenderProcessPool, RenderProcessPool.run),
+            (CommsChatView, CommsChatView.submit_input),
+            (CommsChatView, CommsChatView._paint_sent_receipt),
+            (MountedMessageHistory, MountedMessageHistory.paint_receipt),
+            (MountedMessageHistory, MountedMessageHistory._mount_page),
+            (MountedMessageHistory, MountedMessageHistory.insert_page),
+            (MountedMessageHistory, MountedMessageHistory.source_is_current),
+            (ChannelHistoryReader, ChannelHistoryReader.route_current),
+            (Screen, Screen._on_layout),
         ))
+        schedule = PromptSubmission.schedule_submission
+        publish = Messaging.send_user_message
+
+        def measured_schedule(self, *, immediate=False):
+            record("input_submission_scheduled", editor=id(self), immediate=immediate)
+            return schedule(self, immediate=immediate)
+
+        def measured_publication(self, *args, **kwargs):
+            begin, cpu = time.monotonic_ns(), time.thread_time_ns()
+            sequence = None
+            try:
+                result = publish(self, *args, **kwargs)
+                sequence = result.seq
+                return result
+            finally:
+                record("human_message_publication", begin_ns=begin, sequence=sequence,
+                       duration_ms=(time.monotonic_ns()-begin)/1e6,
+                       cpu_ms=(time.thread_time_ns()-cpu)/1e6)
+
+        update_wrapper(measured_schedule, schedule)
+        update_wrapper(measured_publication, publish)
+        PromptSubmission.schedule_submission = measured_schedule
+        Messaging.send_user_message = measured_publication
+        send = AgentProcess.send
+        response = jsonrpc.API._process_method_response
+
+        def measured_send(self, request, agent):
+            calls = [(call.id, call.method) for call in request._calls]
+            begin = time.monotonic_ns()
+            try:
+                return send(self, request, agent)
+            finally:
+                record("rpc_request_sent", calls=calls, begin_ns=begin,
+                       duration_ms=(time.monotonic_ns()-begin)/1e6)
+
+        def measured_response(self, value):
+            call = self._calls.get(value.get("id"))
+            method = call.method if call is not None else None
+            begin = time.monotonic_ns()
+            try:
+                return response(self, value)
+            finally:
+                record("rpc_response_received", request_id=value.get("id"),
+                       method=method, begin_ns=begin,
+                       duration_ms=(time.monotonic_ns()-begin)/1e6)
+
+        AgentProcess.send = measured_send
+        jsonrpc.API._process_method_response = measured_response
         constructor = Widget.__init__
         preprocess = Widget._pre_process
 
@@ -242,14 +321,38 @@ def install_observer():
 
         async def measured_navigation(self, *args, _function=original_method, _name=method, **kwargs):
             begin = time.monotonic_ns()
+            if _name == "_on_layout":
+                widget = args[0].widget
+                record("layout_admission", screen=id(self), widget=id(widget),
+                       widget_type=type(widget).__name__,
+                       requested=self._layout_required,
+                       retained_widget=widget in self._layout_widgets,
+                       pending_owners=len(self._layout_widgets),
+                       mutation_roots=tuple(id(root) for root in self._layout_mutation_roots()))
+            profile = None
+            if (_function.__qualname__ == "MainScreen.prepare_presentation"
+                    and os.environ.get("TOAD_VALIDATION_OPEN_PROFILE")):
+                import cProfile
+                profile = cProfile.Profile()
+                profile.enable()
             try:
                 return await _function(self, *args, **kwargs)
             finally:
+                if _name == "_on_layout":
+                    record("layout_admitted", screen=id(self), widget=id(args[0].widget),
+                           requested=self._layout_required,
+                           pending_owners=len(self._layout_widgets))
+                if profile is not None:
+                    profile.disable()
+                    path = f"{os.environ['TOAD_VALIDATION_OPEN_PROFILE']}-{begin}.pstats"
+                    profile.dump_stats(path)
+                    record("navigation_profile", function=_function.__qualname__, path=path)
                 record("navigation_stage", stage=_name, begin_ns=begin,
                        function=_function.__qualname__, object_id=id(self),
                        duration_ms=(time.monotonic_ns()-begin)/1e6,
                        mode=args[0] if _name == "_switch_mode_ready" and args else
                        self.app.current_mode if hasattr(self, "app") else None,
+                       task=type(args[0]).__name__ if _name == "_submit" and args else None,
                        owner=type(self).__name__)
 
         # MroDispatch reads the current method declarations. Copy the original
@@ -263,11 +366,24 @@ def install_observer():
         def measured(self, *args, _function=original, _name=name, **kwargs):
             begin = time.monotonic_ns()
             cpu = time.thread_time_ns()
+            profile = None
+            if (_name == "_refresh_layout" and sys.getprofile() is None
+                    and os.environ.get("TOAD_VALIDATION_LAYOUT_PROFILE")):
+                import cProfile
+                profile = cProfile.Profile()
+                profile.enable()
             try:
                 return _function(self, *args, **kwargs)
             finally:
-                record(_name, begin_ns=begin, duration_ms=(time.monotonic_ns()-begin)/1e6,
-                       cpu_ms=(time.thread_time_ns()-cpu)/1e6, mode=self.id,
+                duration = (time.monotonic_ns()-begin)/1e6
+                cpu_duration = (time.thread_time_ns()-cpu)/1e6
+                if profile is not None:
+                    profile.disable()
+                    path = f"{os.environ['TOAD_VALIDATION_LAYOUT_PROFILE']}-{begin}.pstats"
+                    profile.dump_stats(path)
+                    record("layout_profile", begin_ns=begin, path=path, mode=self.id)
+                record(_name, begin_ns=begin, duration_ms=duration,
+                       cpu_ms=cpu_duration, mode=self.id,
                        batched=self.app._batch_count > 0,
                        viewport=self._use_viewport_layout(), anchors=len(self.viewport_presentation.anchors),
                        visible_map=len(self._compositor._visible_map or {}),

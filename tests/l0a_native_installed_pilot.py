@@ -452,7 +452,7 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                     owner = comms.registry.require("beta")
                     assert owner.process_identity is not None and owner.process_alive
                     navigation = await asyncio.to_thread(
-                        ThreadNavigationRequest(str(comms.root), "beta", project, ()).read
+                        ThreadNavigationRequest(comms, "beta", project, ()).read
                     )
                     assert navigation.attachable and navigation.thread.process_alive
                     print("ATTACHED_AND_NAVIGABLE", flush=True)

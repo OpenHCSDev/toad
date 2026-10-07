@@ -119,7 +119,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert beta.prompt.prompt_text_area.history is undo and beta.prompt.prompt_text_area.text == draft
     assert origin.current(app.thread_navigation, beta_mode)
 
-    stopped = ThreadNavigationRequest(str(comms.root), "stopped", view.project_path, ()).read()
+    stopped = ThreadNavigationRequest(comms, "stopped", view.project_path, ()).read()
     assert isinstance(stopped, StoppedThreadNavigation) and not stopped.attachable
     stopped_mode = await ThreadTarget("stopped").open(app.selected_session.navigation_context)
     chat = app.selected_session.query_one(CommsChatView)

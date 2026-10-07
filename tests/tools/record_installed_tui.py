@@ -860,6 +860,17 @@ class SidebarPanelsJourney(PhysicalJourney):
         settle = f"sleep {args.navigation_settle_seconds:g}"
         viewport = dict(target="widget", name="SidebarViewport#sidebar-panels",
                         within="SessionThreadSidebar")
+        returns = ()
+        if args.peer_thread:
+            returns = (
+                marker + "right-switch-peer",
+                native_click_command("phase-right-switch-peer-state.pickle", target="thread",
+                                     name=args.peer_thread),
+                cls.ready_command(args, "right-peer-ready", args.peer_thread),
+                native_click_command("phase-right-peer-ready-state.pickle", target="original_tab",
+                                     original_state="phase-right-before-state.pickle"),
+                settle, marker + "right-tab-return",
+            )
         return "\n".join((
             marker + "right-before",
             native_click_command("phase-right-before-state.pickle", target="right_sidebar"),
@@ -871,8 +882,36 @@ class SidebarPanelsJourney(PhysicalJourney):
             native_click_command("phase-right-panels-up-state.pickle", target="right_sidebar"),
             settle, marker + "right-sidebar-hidden", marker + "right-sidebar-return",
             native_click_command("phase-right-sidebar-hidden-state.pickle", target="right_sidebar"),
-            settle, marker + "right-sidebar-restored", "",
+            settle, marker + "right-sidebar-restored", *returns, "",
         ))
+
+
+class SidebarResizeJourney(SidebarPanelsJourney):
+    """Measure both native width handles after actual agent-tab preparation."""
+
+    motion_phases = (*SidebarPanelsJourney.motion_phases,
+                     "left-resize-out", "left-resize-back",
+                     "right-resize-out", "right-resize-back")
+
+    @classmethod
+    def script(cls, args):
+        commands = [super().script(args), *cls.opening_commands(args)]
+        marker = marker_command()
+        settle = f"sleep {args.navigation_settle_seconds:g}"
+        for side, owner, delta in (("left", "ChannelsSidebar#channels-sidebar", 8),
+                                   ("right", "SessionThreadSidebar", -8)):
+            before = f"{side}-resize-before"
+            widened = f"{side}-resize-wide"
+            handle = dict(target="widget", name="SidebarResizeHandle#sidebar-resize-handle",
+                          within=owner)
+            commands.extend((marker + before, marker + f"{side}-resize-out",
+                             native_click_command(f"phase-{before}-state.pickle", **handle,
+                                                  drag_columns=delta, drag_step_seconds=0.04),
+                             settle, marker + widened, marker + f"{side}-resize-back",
+                             native_click_command(f"phase-{widened}-state.pickle", **handle,
+                                                  drag_columns=-delta, drag_step_seconds=0.04),
+                             settle, marker + f"{side}-resize-restored"))
+        return "\n".join(commands) + "\n"
 
 
 class ChannelDisclosureJourney(PhysicalJourney):
@@ -2109,6 +2148,7 @@ def capture_loaded_state(output, name, identity, owner, env, *, timeout, screen=
         with (output / f"{name}-capture.log").open("w") as log:
             owner.run([sys.executable, str(helper), "--pid", str(identity.pid),
                        "--output-dir", str(output), "--name", name,
+                       "--completion-deadline", str(time.monotonic() + timeout),
                        "--state", "--sudo", "--wait-history-seconds", str(wait_history_seconds),
                        "--wait-history-interval", str(wait_history_interval),
                        *(["--wait-history-thread", wait_history_thread] if wait_history_thread else []),
@@ -2620,7 +2660,7 @@ def marker_command():
 
 
 def native_click_command(state, *, target="history", name=None, original_state=None, focused=False,
-                         within=None, drag_columns=None, wheel=None):
+                         within=None, drag_columns=None, drag_step_seconds=None, wheel=None):
     helper = Path(__file__).resolve().parents[2] / "tools/performance/click_history.py"
     argv = [sys.executable, str(helper), "--target", target, "--state", state]
     if name is not None:
@@ -2629,7 +2669,8 @@ def native_click_command(state, *, target="history", name=None, original_state=N
         argv.extend(("--original-state", original_state))
     if focused:
         argv.append("--focused")
-    for option, value in (("--within", within), ("--drag-columns", drag_columns), ("--wheel", wheel)):
+    for option, value in (("--within", within), ("--drag-columns", drag_columns),
+                          ("--drag-step-seconds", drag_step_seconds), ("--wheel", wheel)):
         if value is not None:
             argv.extend((option, str(value)))
     return "exec --sync " + shlex.join(argv)
