@@ -840,6 +840,41 @@ class ObserveJourney(PhysicalJourney):
         return ""
 
 
+class ChannelSendJourney(PhysicalJourney):
+    """One explicitly supplied human channel message and real disclosure clicks."""
+
+    motion_phases = ("channel-send", "channel-collapse", "channel-expand")
+
+    @classmethod
+    def authorize(cls, target, args):
+        if not isinstance(target, ExistingThreadCapture) or isinstance(target, OwnedForkCapture):
+            raise ValueError("Channel send requires the actual existing public UI route")
+        if not args.peer_channel or not args.peer_channel.startswith("#"):
+            raise ValueError("Channel send requires one explicit channel")
+        if not args.fresh_input or "\n" in args.fresh_input or len(args.fresh_input) > 512:
+            raise ValueError("Channel send requires one explicit bounded new message")
+
+    @classmethod
+    def script(cls, args):
+        marker = marker_command()
+        settle = f"sleep {args.navigation_settle_seconds:g}"
+        channel = shlex.quote(args.peer_channel)
+        return "\n".join((
+            *cls.opening_commands(args),
+            native_click_command("phase-sidebar-revealed-state.pickle", target="channel") + " --name " + channel,
+            settle, marker + "channel-open",
+            native_click_command("phase-channel-open-state.pickle", target="editor") + " --empty",
+            "type --clearmodifiers --delay 10 " + shlex.quote(args.fresh_input),
+            marker + "channel-send --require-editor-focus", "key Return",
+            "sleep 20", marker + "channel-sent",
+            marker + "channel-collapse",
+            native_click_command("phase-channel-sent-state.pickle", target="channel_disclosure") + " --name " + channel,
+            settle, marker + "channel-collapsed", marker + "channel-expand",
+            native_click_command("phase-channel-collapsed-state.pickle", target="channel_disclosure") + " --name " + channel,
+            settle, marker + "channel-expanded",
+        )) + "\n"
+
+
 class ArchiveJourney(PhysicalJourney):
     """Open retained sessions using original native controls, without input."""
 

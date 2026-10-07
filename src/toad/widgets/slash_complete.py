@@ -113,13 +113,15 @@ class SlashComplete(CompletionPopup):
         yield SelectionOptionList()
 
     def focus_content(self, scroll_visible: bool) -> None:
-        from toad.widgets.conversation import Conversation
-        self.query_ancestor(Conversation).update_slash_commands()
+        self.refresh_commands()
         self.filter_slash_commands("")
         self.input.focus(scroll_visible)
 
-    def on_mount(self) -> None:
-        self.filter_slash_commands("")
+    def refresh_commands(self) -> None:
+        """Only an open completion view borrows current applicability."""
+        if self.is_open:
+            from toad.widgets.conversation import Conversation
+            self.query_ancestor(Conversation).update_slash_commands()
 
     @on(widgets.Input.Changed)
     def on_input_changed(self, event: widgets.Input.Changed) -> None:
@@ -135,6 +137,8 @@ class SlashComplete(CompletionPopup):
         Args:
             prompt: Text prompt.
         """
+        if not self.is_open:
+            return
         self.option_list.set_options(self.results.options(prompt, self.slash_commands))
         if self.display:
             self.option_list.highlighted = 0

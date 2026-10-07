@@ -64,6 +64,18 @@ class ChannelTarget(NativeFocusTarget):
         return resource
 
 
+class ChannelDisclosureTarget(NativeFocusTarget):
+    """The disclosure owned by the exact captured channel header."""
+
+    @classmethod
+    def locate(cls, snapshot, args):
+        channel = ChannelTarget.locate(snapshot, args)
+        disclosure, = (node for node in snapshot["metadata"]["navigation_targets"]["widgets"]
+                       if node["class"] == "ChannelDisclosure"
+                       and node["parent_object_id"] == channel["parent_object_id"])
+        return disclosure
+
+
 class OriginalTabTarget(NativeFocusTarget):
     @classmethod
     def locate(cls, snapshot, args):
