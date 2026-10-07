@@ -86,7 +86,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     except TimeoutError:
         print('RETURN_PERMISSION_DIAGNOSTIC', {'surface_is_returned': agent.controller.surface.target is returned,
             'ready': agent.ready, 'view_ready': returned.agent_ready, 'view_mounted': returned.is_mounted,
-            'view_closing': returned._closing, 'process_accepts': agent.process.accepts_session(agent.session_id),
+            'view_closing': returned._closing, 'process_accepts': agent.session.accepts_session(agent.session_id),
             'requests': len(agent.permissions.pending), 'task_done': pending.done(),
             'result': pending.result() if pending.done() else None, 'screen': repr(app.screen),
             'view_screen': repr(returned.screen), 'mode': app.current_mode}, flush=True)

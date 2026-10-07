@@ -72,7 +72,7 @@ async def main():
                 await target.transcript.snapshot(page)
                 agent.events.publish(AgentReady())
 
-            agent.process.session_task = asyncio.create_task(attach())
+            agent.session.task = asyncio.create_task(attach())
 
         app = ToadApp(project_dir=str(root))
         try:

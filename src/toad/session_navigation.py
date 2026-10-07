@@ -62,6 +62,13 @@ class SessionAdmissions:
     def members(self) -> tuple[SessionAdmission, ...]:
         return tuple(cast(SessionAdmission, factory) for factory in self.app.workspace_sessions.factories.values())
 
+    @property
+    def processes(self):
+        """Borrow connections from actual native sources; keep no second roster."""
+        return tuple(agent.process for member in self.members
+                     if (source := member.source(self)) is not None
+                     and (agent := source.presentation.operational_agent) is not None)
+
     def get(self, mode: str) -> SessionAdmission | None:
         return cast(SessionAdmission | None, self.app.workspace_sessions.factories.get(mode))
 

@@ -42,6 +42,12 @@ def session_load(
     ...
 
 
+@API.method(name="session/close")
+def session_close(sessionId: str) -> schema.CloseSessionResponse:
+    """Close one session only when its agent advertises this capability."""
+    ...
+
+
 @API.notification(name="session/cancel")
 def session_cancel(sessionId: str, _meta: dict):
     """https://agentclientprotocol.com/protocol/prompt-turn#cancellation"""
