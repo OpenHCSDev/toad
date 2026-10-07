@@ -340,7 +340,8 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
 
     @property
     def _session_thread(self) -> str:
-        return self._resolve_comms_thread()
+        """Project the identity published by this session, without reacquiring it."""
+        return self._comms_thread
 
     def _resolve_comms_thread(self) -> str:
         resolved: str | None
