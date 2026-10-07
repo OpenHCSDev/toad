@@ -2120,6 +2120,7 @@ def capture_loaded_state(output, name, identity, owner, env, *, timeout, screen=
         with (output / f"{name}-capture.log").open("w") as log:
             owner.run([sys.executable, str(helper), "--pid", str(identity.pid),
                        "--output-dir", str(output), "--name", name,
+                       "--completion-deadline", str(time.monotonic() + timeout),
                        "--state", "--sudo", "--wait-history-seconds", str(wait_history_seconds),
                        "--wait-history-interval", str(wait_history_interval),
                        *(["--wait-history-thread", wait_history_thread] if wait_history_thread else []),

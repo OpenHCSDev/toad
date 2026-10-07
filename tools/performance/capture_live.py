@@ -39,6 +39,8 @@ def main():
     parser.add_argument("--frames-only", action="store_true",
                         help="Export frame events without the widget/DTO census")
     parser.add_argument("--sudo", action="store_true", help="Use non-interactive sudo for attach operations")
+    parser.add_argument("--completion-deadline", type=float,
+                        help="Borrow the caller's original monotonic deadline for export completion")
     args = parser.parse_args()
     if not (args.profile_seconds > 0 or args.state or args.screen):
         parser.error("Choose --profile-seconds, --state, or --screen")
@@ -140,7 +142,8 @@ def main():
                 output.write("\n".join(lines) + "\n")
             subprocess.run([*privilege, executable, "-c",
                 f"import sys; sys.remote_exec({args.pid}, {str(script)!r})"], check=True, timeout=15)
-            deadline = time.monotonic() + args.wait_history_seconds + 20
+            deadline = (args.completion_deadline if args.completion_deadline is not None
+                        else time.monotonic() + args.wait_history_seconds + 20)
             while time.monotonic() < deadline and not all(
                     Path(path + ".json").exists() or Path(path + "-error.json").exists() for path in receipts):
                 time.sleep(.1)
