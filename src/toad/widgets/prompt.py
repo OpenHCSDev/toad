@@ -728,9 +728,9 @@ class Prompt(containers.VerticalGroup):
 
     def focus(self, scroll_visible: bool = True) -> Self:
         if self._ask is not None:
-            self.question.focus()
+            self.question.focus(scroll_visible=scroll_visible)
         else:
-            self.query(HighlightedTextArea).focus()
+            self.prompt_text_area.focus(scroll_visible=scroll_visible)
         return self
 
     def append(self, text: str) -> None:
