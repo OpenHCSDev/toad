@@ -228,7 +228,6 @@ class SessionAdmissions:
         await self.retire_missing()
 
     async def retire_missing(self) -> None:
-        from agent_comms.comms import wire
         from toad.comms_root import RouteSelection
 
         # Borrow each actual admission, including hidden views. No widget or
@@ -244,12 +243,12 @@ class SessionAdmissions:
             for root in roots:
                 try:
                     selected = RouteSelection.capture(root)
-                    service = wire(root)
+                    service = self.app.coordination_access.require(selected)
                     snapshot = service.registry.snapshot()
                     channels = service.channels.catalog.read().views(snapshot.threads)
                     if RouteSelection.capture(root) != selected:
                         raise ValueError('Comms route changed during view retirement')
-                    result[root] = snapshot, channels
+                    result[root] = selected, service, snapshot, channels
                 except (OSError, ValueError, RuntimeError):
                     continue  # An unavailable root retains its original views.
             return result
@@ -258,6 +257,17 @@ class SessionAdmissions:
             cuts = await self.app.preparation.run_thread(read)
         except (OSError, ValueError, RuntimeError):
             return  # Unavailable observation never proves a deleted member.
+        # A route/service replacement while the original read joins revokes
+        # its result. Unavailable observations still retain hidden admissions.
+        current_cuts = {}
+        for root, (selected, service, snapshot, channels) in cuts.items():
+            try:
+                if (service is self.app.coordination_access.observed_service
+                        and RouteSelection.capture(root) == selected):
+                    current_cuts[root] = snapshot, channels
+            except (OSError, ValueError, RuntimeError):
+                continue
+        cuts = current_cuts
         removed = tuple(member.mode for member, threads, channels in originals
                         if self.get(member.mode) is member and (
                             any(root in cuts and not identity.current(cuts[root][0]) for root, identity in threads)
