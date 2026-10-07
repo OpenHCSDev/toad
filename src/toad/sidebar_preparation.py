@@ -10,7 +10,7 @@ from agent_comms.presentation import ThreadView
 from agent_comms.thread_identity import ThreadIncarnation
 from textual.content import Content
 
-from toad.session_tracker import OpenTab, UnreadPresentation, ExactUnread
+from toad.session_tracker import UnreadPresentation, ExactUnread
 from toad.widgets.activity_spinner import FRAMES, animated_label
 from toad.work_preparation import ContentAddressedWork, SerializedWork, ThreadWork
 
@@ -127,38 +127,3 @@ class ThreadRowsWork(SerializedWork[tuple[PreparedThreadRow, ...]],
 
     def prepare(self) -> tuple[PreparedThreadRow, ...]:
         return tuple(prepare_thread_presentation(row) for row in self.rows)
-
-
-@dataclass(frozen=True)
-class PreparedTab:
-    source: OpenTab
-    frames: tuple[Content, ...]
-
-    def content(self, phase: int) -> Content:
-        return self.frames[phase % len(self.frames)]
-
-
-def prepare_tab(tab: OpenTab) -> PreparedTab:
-    busy = tab.title.startswith(("⌛ ", "● "))
-    frames = []
-    for phase in range(len(FRAMES) if busy else 1):
-        title = animated_label(tab.title, busy=busy, phase=phase)
-        frames.append(Content.assemble(title, (f" {tab.unread.label}", "bold $accent"))
-                      if tab.unread.label else Content(title))
-    return PreparedTab(tab, tuple(frames))
-
-
-@dataclass(frozen=True)
-class TabRosterWork(SerializedWork[tuple[PreparedTab, ...]],
-                    ContentAddressedWork[tuple[PreparedTab, ...]],
-                    ThreadWork[tuple[PreparedTab, ...]]):
-    """Prepare short tab labels independently of transcript renderer admission."""
-
-    tabs: tuple[OpenTab, ...]
-
-    @property
-    def inputs(self) -> object:
-        return self.tabs
-
-    def prepare(self) -> tuple[PreparedTab, ...]:
-        return tuple(prepare_tab(tab) for tab in self.tabs)

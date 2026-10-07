@@ -207,6 +207,7 @@ def install_observer():
             (SidebarObservation, SidebarObservation.present_cached),
             (SidebarProjection, SidebarProjection.rebuild),
             (SessionsTabs, SessionsTabs._sync_tabs),
+            (SessionsTabs, SessionsTabs._reconcile_tabs),
             (NavigationReader, NavigationReader.read),
             (AgentProcess, AgentProcess.start),
             (AgentSession, AgentSession.initialize),
