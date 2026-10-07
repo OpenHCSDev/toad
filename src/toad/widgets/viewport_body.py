@@ -1136,6 +1136,12 @@ class DocumentViewport:
                     restored = await self._restore_bodies(restoring, anchor, demand)
                     if any(owner in visible for owner in restored):
                         self.lookahead.delivered(monotonic() - started)
+                # Restoration can publish new geometry, and native input can
+                # move the viewport while it awaits. The existing request
+                # owns that invalidation: serve its visible cohort before
+                # retiring or predicting from the preceding scene.
+                if self._pending:
+                    continue
                 retiring = tuple(owner for owner in owners
                                  if owner.is_attached and not owner._closing
                                  and owner not in retained and not owner.body_dormant)
@@ -1164,6 +1170,13 @@ class DocumentViewport:
                         # Pruning retires the old scene. Continue from the next
                         # published layout, never lazily arrange it for capture.
                         screen.frame_presentation.defer(self.window, self.request)
+                    # Finish the admitted capture/prune batch, then reacquire
+                    # demand. Offscreen housekeeping must not delay newly
+                    # visible source behind the rest of an obsolete cohort.
+                    if self._pending:
+                        break
+                if self._pending:
+                    continue
                 # Capturing rows changes the original body resource cost.
                 # The same warm LRU admits or releases that paint resource.
                 if retired_owners or restored:
@@ -1172,7 +1185,7 @@ class DocumentViewport:
                 # The original demand owns incoming direction priority.
                 ahead_owners = [owner for owner in ahead_owners if owner in admitted]
                 for first in range(0, len(ahead_owners), self.budget.admission_items):
-                    if not self.lookahead.accepts(demand):
+                    if self._pending or not self.lookahead.accepts(demand):
                         break
                     batch = [owner for owner in ahead_owners[first:first + self.budget.admission_items]
                              if owner in admitted and owner.is_attached and owner.body_dormant and not owner.body_ready]

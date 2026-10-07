@@ -5,10 +5,37 @@ import json
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from time import monotonic
+from importlib.resources import files
 
 from agent_comms.comms import Comms
+from textual import events
 from toad.app import ToadApp
 from toad.widgets.agent_response import AgentResponse
+
+
+class RunwayApp(ToadApp):
+    CSS_PATH = files('toad').joinpath('toad.tcss')
+    observed_window = None
+    phase = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.scroll_frames = []
+
+    def _display(self, screen, renderable):
+        super()._display(screen, renderable)
+        window = self.observed_window
+        if window is None or self.phase is None or renderable is None or self._batch_count:
+            return
+        region = window.scrollable_content_region
+        text = '\n'.join(strip.crop(region.x, region.right).text
+                         for strip in screen._compositor.render_strips()[region.y:region.bottom])
+        self.scroll_frames.append(dict(
+            clock=monotonic(), phase=self.phase, y=window.scroll_y,
+            nonwhite=len(''.join(text.split())),
+            visible_ready=window.document_viewport.visible_bodies_ready,
+        ))
 
 
 async def main():
@@ -21,7 +48,7 @@ async def main():
                           XDG_STATE_HOME=str(root / "state"),
                           XDG_DATA_HOME=str(root / "data"))
         Comms(root / "wire").messaging.initialize_private_initial_protocol()
-        app = ToadApp(project_dir=str(root))
+        app = RunwayApp(project_dir=str(root))
         async with app.run_test(size=(110, 35)) as pilot:
             await app.selected_session.wait_content_ready()
             view = app.selected_session.conversation
@@ -86,6 +113,33 @@ async def main():
             app.settings.ui.history_buffer_viewports = 3
             await settled()
             assert viewport.budget.buffer_viewports == 3
+            # Continuous native key delivery can arrive during an admitted
+            # capture/restore await. Observe actual committed frames, without
+            # holding or replacing the viewport's workers or renderer.
+            app.observed_window = window
+            burst = []
+            window.release_anchor()
+            window.scroll_to(y=window.max_scroll_y / 2, animate=False, immediate=True)
+            await settled()
+            for key_name in ('pageup', 'pagedown', 'pageup'):
+                window.focus(scroll_visible=False)
+                app.phase = key_name
+                started = monotonic()
+                for _ in range(12):
+                    key = events.Key(key_name, None)
+                    key.set_sender(app)
+                    app._driver.send_message(key)
+                    await asyncio.sleep(.025)
+                await settled()
+                frames = [frame for frame in app.scroll_frames if frame['clock'] >= started]
+                assert frames and all(frame['visible_ready'] and frame['nonwhite'] for frame in frames), frames
+                burst.append(dict(key=key_name, inputs=12, frames=len(frames),
+                                  changed_positions=len({frame['y'] for frame in frames}),
+                                  max_frame_gap=max((right['clock'] - left['clock']
+                                                     for left, right in zip(frames, frames[1:])), default=0)))
+            app.phase = None
+            receipt['continuous_native_scroll'] = burst
+            receipt['committed_scroll_frames'] = app.scroll_frames
             receipt["configuration_reversible"] = True
             window.focus(scroll_visible=False)
             await pilot.press("pagedown", "pageup", "end")
