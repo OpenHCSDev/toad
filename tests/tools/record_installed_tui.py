@@ -846,6 +846,35 @@ class ObserveJourney(PhysicalJourney):
         return ""
 
 
+class SidebarPanelsJourney(PhysicalJourney):
+    """Observe real retained right panels without editing or submitting input."""
+
+    motion_phases = ("right-panels-scroll-down", "right-panels-scroll-up",
+                     "right-sidebar-hide", "right-sidebar-return")
+
+    @classmethod
+    def script(cls, args):
+        if not args.capture_state:
+            raise ValueError("Sidebar panels require original native target captures")
+        marker = marker_command()
+        settle = f"sleep {args.navigation_settle_seconds:g}"
+        viewport = dict(target="widget", name="SidebarViewport#sidebar-panels",
+                        within="SessionThreadSidebar")
+        return "\n".join((
+            marker + "right-before",
+            native_click_command("phase-right-before-state.pickle", target="right_sidebar"),
+            settle, marker + "right-panels-open", marker + "right-panels-scroll-down",
+            native_click_command("phase-right-panels-open-state.pickle", **viewport, wheel=6),
+            settle, marker + "right-panels-down", marker + "right-panels-scroll-up",
+            native_click_command("phase-right-panels-down-state.pickle", **viewport, wheel=-6),
+            settle, marker + "right-panels-up", marker + "right-sidebar-hide",
+            native_click_command("phase-right-panels-up-state.pickle", target="right_sidebar"),
+            settle, marker + "right-sidebar-hidden", marker + "right-sidebar-return",
+            native_click_command("phase-right-sidebar-hidden-state.pickle", target="right_sidebar"),
+            settle, marker + "right-sidebar-restored", "",
+        ))
+
+
 class ChannelDisclosureJourney(PhysicalJourney):
     """Real channel disclosure clicks without a message submission."""
 
