@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import cast
 
@@ -114,6 +115,7 @@ class WorkerStatic(Static):
             self.visual_style.rich_style, self.link_style if self.auto_links else None,
             auto_width, self._get_justify_method(), cast(RichColorSystem | None, app.console.color_system),
             app.current_theme.dark,
+            tuple((name, self._get_style(name)) for name in self._source.style_names),
         )
         request = _Preparation(self._generation, RichRenderTask(self._source, presentation))
         self._wanted = request
@@ -146,15 +148,30 @@ class WorkerStatic(Static):
                     return
                 if request != self._wanted:
                     continue
-                self._prepared = prepared
-                self._ready_request = request
-                self.refresh(layout=True)
-                self._ready.set()
+                async with self.preparation_publication():
+                    # Publication may await its original viewport's mutation
+                    # custody. Source/style/width can change during that wait.
+                    if self._closed or self._pruning or not self.is_attached or request != self._wanted:
+                        continue
+                    self._prepared = prepared
+                    self._ready_request = request
+                    self.refresh(layout=True)
+                    self._ready.set()
         finally:
             self._preparing = False
 
     async def wait_ready(self) -> None:
         await self._ready.wait()
+
+    @asynccontextmanager
+    async def preparation_publication(self):
+        """Views borrow their existing native reader lifetime for new extent."""
+        yield
+
+    @property
+    def paint_ready(self) -> bool:
+        """A placeholder or failed preview is not rendered source evidence."""
+        return self._prepared is not None and self._ready_request == self._wanted
 
     def on_unmount(self) -> None:
         self._closed = True

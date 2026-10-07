@@ -17,16 +17,21 @@ from textual.render import measure
 from textual.strip import Strip
 from textual.geometry import Region
 from textual.widget import _Styled
+from textual.content import Content
+from textual.style import Style as NativeStyle
 
 RichColorSystem = Literal["auto", "standard", "256", "truecolor", "windows"]
 
 
 class RichSource(ABC):
-    """Picklable data which materializes a Rich renderable in the CPU worker."""
+    """Picklable data which materializes Rich or native content in the worker."""
 
     @abstractmethod
-    def materialize(self) -> RenderableType:
+    def materialize(self) -> RenderableType | Content:
         """Construct the renderable without a widget, app or core service."""
+
+    style_names: tuple[str, ...] = ()
+    """Symbolic native styles required by this source's worker rendering."""
 
 
 @dataclass(frozen=True)
@@ -94,6 +99,7 @@ class RichPresentation:
     justify: JustifyMethod | None
     color_system: RichColorSystem | None
     dark: bool = True
+    styles: tuple[tuple[str, NativeStyle], ...] = ()
 
 
 def prepare_rich(source: RichSource, presentation: RichPresentation) -> PreparedRichContent:
@@ -105,7 +111,15 @@ def prepare_rich(source: RichSource, presentation: RichPresentation) -> Prepared
     if isinstance(source, SyntaxSource) and source.theme == "auto":
         source = replace(source, theme="ansi_dark" if presentation.dark else "ansi_light")
     renderable = source.materialize()
-    if isinstance(renderable, str):
+    if isinstance(renderable, Content):
+        # Capture only the source's declared style inputs on the native side;
+        # span merging, link metadata and full text conversion stay here.
+        styles = dict(presentation.styles)
+        text = Text(justify=presentation.justify)
+        for part, style in renderable.render(end="", parse_style=styles.__getitem__):
+            text.append(part, style.rich_style)
+        renderable = text
+    elif isinstance(renderable, str):
         renderable = Text.from_markup(renderable, justify=presentation.justify)
     elif isinstance(renderable, Text) and presentation.justify is not None:
         renderable = renderable.copy()

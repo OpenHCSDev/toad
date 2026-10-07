@@ -8,14 +8,14 @@ from toad.navigation_target import linked_target
 from textual import events
 from textual.app import ComposeResult
 from textual.containers import HorizontalGroup, VerticalGroup
-from textual.content import Content
-from textual.style import Style
 from textual.widget import Widget
 from textual.widgets import Static
 from agent_comms.messages import Message
 from agent_comms import HistoricalMessage
 from toad.core.input_events import SelectTarget
-from toad.widgets.inline_message import inline_message
+from toad.widgets.inline_message import IRCMessageSource
+from toad.widgets.worker_static import WorkerStatic
+from contextlib import asynccontextmanager
 from toad.widgets.message_divider import MessageDivider, MessageClock
 from toad.widgets.message_notifications import MessageNotifications
 
@@ -58,7 +58,7 @@ class MembershipNotice(ConversationBlock, Static):
         return self.message.body
 
 
-class IRCMessageText(Static):
+class IRCMessageText(WorkerStatic):
     """One wrapping, linked sender/destination/message block beside the time."""
 
     def action_open_target(self, target: str):
@@ -66,6 +66,21 @@ class IRCMessageText(Static):
 
     def action_open_url(self, url: str):
         self.app.open_url(url)
+
+    @asynccontextmanager
+    async def preparation_publication(self):
+        from toad.mounted_message_history import MountedMessageHistory
+
+        history = next((owner for owner in self.ancestors
+                        if isinstance(owner, MountedMessageHistory)), None)
+        if history is None:
+            async with super().preparation_publication():
+                yield
+        else:
+            # Worker completion changes this original row's measured extent.
+            # The mounted history already owns compensation and held readers.
+            async with history.native_publication(tuple(history.rows)):
+                yield
 
 
 class WireMarkdownMessage(CoreEventReceiver, ConversationBlock, VerticalGroup):
@@ -104,7 +119,7 @@ class WireMarkdownMessage(CoreEventReceiver, ConversationBlock, VerticalGroup):
                 for target in dict.fromkeys(mention.thread for mention in self.message.mentions):
                     yield ThreadLink(target, source)
 
-    def read_ack_widget(self) -> Widget:
+    def read_ack_widget(self) -> Widget | None:
         """Only the rendered message body can authorize a read."""
         from toad.widgets.agent_response import AgentResponse
 
@@ -142,28 +157,13 @@ class IRCMessage(WireMarkdownMessage, can_focus=True):
         message = self.message
         with HorizontalGroup(classes="irc-body"):
             yield IRCMessageText(
-                Content.assemble(
-                    self._link(message.sender),
-                    (" → ", "$text-muted"),
-                    self._link(message.target),
-                    " ",
-                    self.mentioned_body(),
-                ),
-                markup=False,
+                IRCMessageSource(message),
             )
 
-    @staticmethod
-    def _link(target: str) -> Content:
-        return Content.styled(target, "$accent").stylize(
-            Style.from_meta({"@click": ("open_target", (target,))})
-        )
-
-    def mentioned_body(self) -> Content:
-        return inline_message(self.message.body, self.message.mentions)
-
-    def read_ack_widget(self) -> Widget:
+    def read_ack_widget(self) -> Widget | None:
         """Only the text block can authorize a read, never its divider."""
-        return self.query_one(IRCMessageText)
+        body = self.query_one(IRCMessageText)
+        return body if body.paint_ready else None
 
     def get_clipboard_text(self) -> str:
         return f"{self.message.sender} → {self.message.target}: {self.message.body}"

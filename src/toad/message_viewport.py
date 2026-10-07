@@ -35,7 +35,7 @@ class MessageViewport(ABC):
 
 
 class AcknowledgementViewport(MessageViewport):
-    def painted_widget(self, widget: Widget) -> Widget:
+    def painted_widget(self, widget: Widget) -> Widget | None:
         if isinstance(widget, WireMarkdownMessage):
             return widget.read_ack_widget()
         return widget

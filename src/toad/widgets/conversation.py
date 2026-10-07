@@ -19,7 +19,7 @@ from itertools import filterfalse
 from math import atan2, pi
 from operator import attrgetter
 from pathlib import Path
-from time import monotonic, time
+from time import monotonic, time, time_ns
 from typing import TYPE_CHECKING, Any, Callable, Literal
 
 from agent_comms import agent_events as comms_events
@@ -1183,7 +1183,8 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
 
             # Recent-model persistence is optional metadata, not a prerequisite
             # for opening the model's already advertised thinking choices.
-            self.run_worker(DB().record_model_usage(self.model_history_scope, model.value),
+            self.run_worker(DB().record_model_usage(self.model_history_scope, model.value,
+                                                   last_used=time_ns()),
                             exit_on_error=False)
             levels = [choice.value for choice in agent.configuration.thinking.choices]
             if len(levels) > 1:
@@ -1237,7 +1238,8 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
 
             # Complete visible turn settlement independently of recent-model
             # database contention. The native worker owns this optional write.
-            self.run_worker(DB().record_model_usage(self.model_history_scope, model.value),
+            self.run_worker(DB().record_model_usage(self.model_history_scope, model.value,
+                                                   last_used=time_ns()),
                             exit_on_error=False)
         await self.output.settle()
         pending_loading, self._loading = self._loading, None
