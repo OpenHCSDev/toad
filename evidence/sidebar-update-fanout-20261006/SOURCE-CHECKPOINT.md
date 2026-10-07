@@ -93,3 +93,14 @@ source/event/queue path, then qualify actual simultaneous live responses after
 coherent integration. Parent's frame-preparation and Arendt's native Screen
 cohort remain separate owners. This patch is source implemented and exercised;
 installation and live multi-agent acceptance remain outstanding.
+
+## Service replacement refusal
+
+Reviewed the complete SidebarObservation.service writes: initialization, mount,
+and bind. bind holds SidebarProjection.lock while replacing the service and
+clearing snapshot/read identity/navigation. The reset protects snapshot custody.
+sync_sessions now also preserves the original service-bound refusal in publish:
+it captures the original service before waiting and rejects replacement after
+acquiring the lock. No reset/republication race is claimed as demonstrated.
+This is a borrowed identity, not retained state. Changed source
+compiles and diff check passes; no App or prior acceptance was repeated.

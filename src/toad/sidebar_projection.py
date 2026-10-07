@@ -94,10 +94,13 @@ class SidebarProjection:
         SessionTracker owns tab titles, subtitles and paths. Channels consumes
         only their current thread routes. Borrow the latest wire snapshot under
         its publication lock so a local notification cannot republish an older
-        backend observation while a newer read is joining.
+        backend observation while a newer read is joining. A replacement service
+        revokes the original notification, just as it revokes a wire publication.
         """
+        service = self.sidebar.observation.service
         async with self.lock:
-            if self.snapshot is None or not self.sidebar.accepts_publication():
+            if (self.sidebar.observation.service is not service
+                    or self.snapshot is None or not self.sidebar.accepts_publication()):
                 return
             projected = self.sidebar.observation.project(self.snapshot.wire)
             if projected.session_threads != self.snapshot.session_threads:
