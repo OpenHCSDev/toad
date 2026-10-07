@@ -54,7 +54,7 @@ class CommsUpdateConsumer(MroDispatch):
             self.dispatch_sync(fact)
 
     def accepts_turn(self):
-        return self.agent.process.accepts_session(self.session_id)
+        return self.agent.session.accepts_session(self.session_id)
 
     def require_compaction_receipt(self):
         if self.compaction_receipt is None:

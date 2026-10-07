@@ -1,5 +1,7 @@
 """ACP session handshake, durable metadata and reconnection custody."""
 from __future__ import annotations
+from agent_comms.declared_family import DeclaredFamily
+from agent_comms.child_process import join_retirement
 import asyncio
 import os
 from dataclasses import replace
@@ -9,7 +11,7 @@ from toad.core import events as core_events
 from toad.acp import api
 from acp import schema
 from toad.acp.client_session import ClientSessionRequest
-from toad.core.events import AgentReady, UnsupportedResumeAgentFail
+from toad.core.events import AgentReady, UnsupportedResumeAgentFail, LogAgentFail
 from toad.db import DB, SessionMeta
 from agent_comms.acp_failure import ACPFailure
 from agent_comms.input_attempt import NotSentInput
@@ -18,17 +20,115 @@ from agent_comms.session_load import EnsuringSessionLoadAdmission, ExistingSessi
 PROTOCOL_VERSION = 1
 
 
+class SessionDisposition(DeclaredFamily, affix="SessionDisposition"):
+    accepts_updates = False
+
+    def close(self, agent):
+        return self
+
+
+class ActiveSessionDisposition(SessionDisposition):
+    accepts_updates = True
+
+    def close(self, agent):
+        agent.controller.connection_closed()
+        return ClosedSessionDisposition()
+
+
+class ClosedSessionDisposition(SessionDisposition):
+    pass
+
+
 class AgentSession:
     """Own readiness and durable session effects; binding identity stays on the controller."""
     def __init__(self, agent, pk):
         self.agent = agent
+        self.task = None
+        self.responses = set()
+        self.retirement = None
+        self.disposition = ActiveSessionDisposition()
         self.pk = pk
         self.pending_name = None
         self.connected = False
         self.reconnecting = False
         self.load_admission: SessionLoadAdmission = EnsuringSessionLoadAdmission()
         self.settled = asyncio.Event()
-        self.capabilities = schema.AgentCapabilities()
+
+    @property
+    def capabilities(self):
+        response = self.agent.process.initialization
+        return (response.agent_capabilities if response is not None
+                and response.agent_capabilities is not None else schema.AgentCapabilities())
+
+    @property
+    def accepts_updates(self):
+        return self.disposition.accepts_updates
+
+    def accepts_session(self, session_id: str | None) -> bool:
+        """Only this active session may consume work for its current binding."""
+        return self.accepts_updates and self.agent.session_id == session_id
+
+    def start_operation(self, operation):
+        task = asyncio.create_task(operation)
+        if not self.accepts_updates:
+            task.cancel()
+        self.responses.add(task)
+        task.add_done_callback(self.responses.discard)
+        return task
+
+    def close(self):
+        self.disposition = self.disposition.close(self.agent)
+
+    def reopen(self):
+        self.disposition = ActiveSessionDisposition()
+        self.retirement = None
+
+    def start(self):
+        self.task = asyncio.create_task(self.run())
+        self.task.add_done_callback(self.session_finished)
+
+    async def retire(self):
+        self.close()
+        if self.retirement is None:
+            self.retirement = asyncio.create_task(self._retire())
+        await join_retirement(self.retirement)
+
+    async def _retire(self):
+        pending = tuple(task for task in (self.task, *self.responses)
+                        if task is not None)
+        for task in pending:
+            task.cancel()
+        if pending:
+            await asyncio.gather(*pending, return_exceptions=True)
+        self.responses.clear()
+        self.task = None
+        await self.agent.process.detach(self)
+
+    def session_finished(self, task):
+        if task.cancelled():
+            return
+        error = task.exception()
+        if error is not None and self.accepts_updates:
+            self.startup_failed(f"{type(error).__name__}: {error}")
+            self.retirement = asyncio.create_task(self._retire())
+            self.retirement.add_done_callback(self.retirement_finished)
+
+    def retirement_finished(self, task):
+        if task.cancelled():
+            return
+        error = task.exception()
+        if error is not None:
+            self.agent.log(f"[error] Session retirement failed: {error}")
+
+    def session_failed(self, failure):
+        self.close()
+        self.failed()
+        self.agent.events.publish(LogAgentFail(failure.title, failure.feedback, log_path=self.agent.presentation.log_path))
+
+    def startup_failed(self, details):
+        self.close()
+        self.failed()
+        self.agent.events.publish(LogAgentFail("ACP session startup failed", details=details, log_path=self.agent.presentation.log_path))
 
     @property
     def supports_images(self):
@@ -93,7 +193,7 @@ class AgentSession:
                 # server's reason for refusing this attachment.
                 failure = replace(ACPFailure.from_error(error.code, error.message, error.data),
                                   input_state=NotSentInput)
-                self.agent.process.session_failed(failure)
+                self.session_failed(failure)
                 return
         self.settled.set()
         self.agent.events.publish(AgentReady(reconnected=self.reconnecting))
@@ -140,7 +240,7 @@ class AgentSession:
             await self.agent.stop()
             self.load_admission = admission or EnsuringSessionLoadAdmission()
             self.settled.clear()
-            await self.agent.start()
+            await self.agent.start((self.agent.process,))
             await asyncio.wait_for(self.settled.wait(), timeout=30)
             if not self.connected:
                 raise ValueError("The agent could not reconnect.")
@@ -155,31 +255,29 @@ class AgentSession:
             response = api.authenticate(method_id)
         await response.wait()
         authority.require()
-        await self.initialize()
+        await self.initialize(force=True)
         authority.require()
 
 
-    async def initialize(self):
-        """Initialize agent."""
+    async def initialize(self, *, force=False):
+        """The connection owns its original initialization response."""
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
         authority.require()
-        with self.agent.request():
-            initialize_response = api.initialize(
-                PROTOCOL_VERSION,
-                schema.ClientCapabilities(fs=schema.FileSystemCapabilities(
-                    read_text_file=True, write_text_file=True), terminal=True,
-                    auth=schema.AuthCapabilities(terminal=os.name != "nt")),
-                schema.Implementation(name=toad.NAME, title=toad.TITLE, version=toad.get_version()),
-            )
-
-        response = await initialize_response.wait()
+        response = self.agent.process.initialization
+        if response is None or force:
+            with self.agent.request():
+                initialize_response = api.initialize(
+                    PROTOCOL_VERSION,
+                    schema.ClientCapabilities(fs=schema.FileSystemCapabilities(
+                        read_text_file=True, write_text_file=True), terminal=True,
+                        auth=schema.AuthCapabilities(terminal=os.name != "nt")),
+                    schema.Implementation(name=toad.NAME, title=toad.TITLE, version=toad.get_version()),
+                )
+            response = await initialize_response.wait()
+            authority.require()
+            assert response is not None
+            self.agent.process.initialization = response
         authority.require()
-        assert response is not None
-
-        # Store agents capabilities
-        if agent_capabilities := response.agent_capabilities:
-            self.capabilities = agent_capabilities
-        self.agent.presentation.auth_methods = response.auth_methods or []
 
 
     async def new(self) -> None:
@@ -289,7 +387,7 @@ class AgentSession:
 
 
     def rename_coordination(self, display_name: str) -> None:
-        if not self.agent.process.accepts_session(self.agent.session_id):
+        if not self.accepts_session(self.agent.session_id):
             return
         thread = self.agent.coordination.thread.name if self.agent.coordination else None
         wire_root = self.agent.coordination.wire_root if self.agent.coordination else None

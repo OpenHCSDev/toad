@@ -391,18 +391,18 @@ async def startup_hydration():
                     first = app.selected_session
                     conversation = first.conversation
                     agent = conversation.agent
-                    assert agent is not None and agent.process.responses
+                    assert agent is not None and agent.session.responses
                     await input_and_resize(conversation, conversation.prompt.prompt_text_area,
                                            "startup-pump", (104, 36))
                     await app.session_navigation.new(lambda: MainScreen(root))
                     assert first.presentation.sources.agent is agent
-                    assert agent.process.responses and agent.process.runner is None
+                    assert agent.session.responses and agent.process.runner is None
                     await app.select_session(first.id)
                     assert first.conversation.agent is agent
                     assert conversation.prompt.text == "startup-pump"
                     await app.workspace_sessions.close(first.id)
-                    assert not agent.process.responses and agent.process.runner is None
-                    assert not agent.process.accepts_updates
+                    assert not agent.session.responses and agent.process.runner is None
+                    assert not agent.session.accepts_updates
                     assert app._exception is None
             finally:
                 release.set()

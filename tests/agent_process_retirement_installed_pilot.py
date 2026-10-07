@@ -92,8 +92,8 @@ async def case(root, mode):
         await agent.stop()
     await asyncio.gather(runner, return_exceptions=True)
     await until(lambda: not descendant.is_running() or descendant.status() == psutil.STATUS_ZOMBIE)
-    assert agent.process.process is None and agent.process.session_task is None
-    assert not agent.process.responses and not agent.process.accepts_updates
+    assert agent.process.process is None and agent.session.task is None
+    assert not agent.session.responses and not agent.session.accepts_updates
     assert publication_available(), "retired process retained route custody"
     print(f"ACTUAL_{mode.upper()}_CHILD_AND_SESSION_RETIRED", flush=True)
 

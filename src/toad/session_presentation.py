@@ -60,6 +60,10 @@ class SessionViewState:
 class SessionSurfaceLifetime(ABC):
     """A session declares its own UI placement and activation lifetime."""
 
+    @property
+    def operational_agent(self):
+        return None
+
     @abstractmethod
     def compose_content(self, screen: "MainScreen") -> Widget: ...
 
@@ -146,6 +150,10 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         super().__init__()
         self.sources = OperationalSessionSources()
         self.widget: Conversation | None = None
+
+    @property
+    def operational_agent(self):
+        return self.widget.agent if self.widget is not None else self.sources.agent
 
     @property
     def retained_widget_count(self) -> int:

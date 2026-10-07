@@ -159,9 +159,9 @@ class Agent(AgentBase):
     def get_info(self) -> str:
         return self.definition.name
 
-    async def start(self) -> None:
+    async def start(self, processes=()) -> None:
         """Start the operational agent; attachment resources are acquired separately."""
-        await self.process.start()
+        self.process = await self.process.start(self, processes)
 
     def send(self, request: jsonrpc.Request) -> None:
         """Send a request to the agent.
@@ -172,7 +172,7 @@ class Agent(AgentBase):
             request: JSONRPC request object.
 
         """
-        self.process.send(request)
+        self.process.send(request, self)
 
     def request(self) -> jsonrpc.Request:
         """Create a request object."""
@@ -185,11 +185,11 @@ class Agent(AgentBase):
 
     async def stop(self) -> None:
         """Gracefully stop the process."""
-        self.process.close()
+        self.session.close()
         await self.controller.terminals.close()
         await self.session.touch()
 
-        await self.process.stop()
+        await self.process.stop(self)
 
 
     async def send_prompt(self, prompt: str, *, request: PromptRequest | None = None):

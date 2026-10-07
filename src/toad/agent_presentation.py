@@ -19,8 +19,11 @@ class AgentPresentation(DeclaredFamily, affix="AgentPresentation"):
     def __init__(self, agent):
         self.agent = agent
         self.turns = self.TURN_BINDING(agent)
-        self.auth_methods = []
         self.log_path: Path | None = None
+
+    @property
+    def auth_methods(self):
+        return ()
 
     @property
     def commands(self):
@@ -70,6 +73,11 @@ class LocalAgentPresentation(AgentPresentation):
 
 class ACPAgentPresentation(AgentPresentation):
     TURN_BINDING = LocalTurnBinding
+
+    @property
+    def auth_methods(self):
+        response = self.agent.process.initialization
+        return response.auth_methods or () if response is not None else ()
 
     @property
     def commands(self):

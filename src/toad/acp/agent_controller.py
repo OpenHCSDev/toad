@@ -195,7 +195,7 @@ class AgentController(OperationalTerminalOwner):
         self.agent.events.publish(AvailableCommandsUpdate())
 
     def start_operation(self, operation):
-        return self.agent.process.start_operation(operation)
+        return self.agent.session.start_operation(operation)
 
     async def operate(self, operation):
         return await asyncio.shield(self.start_operation(operation))

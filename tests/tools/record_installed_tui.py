@@ -2728,7 +2728,7 @@ def main():
     parser.add_argument("--scroll-travel", action="store_true",
                         help="Record native observe travel/relocations for the owned UI (requires --capture-state)")
     parser.add_argument("--profile-rate", type=int, default=25, help="Bounded sampling rate (10-49 Hz)")
-    parser.add_argument("--profile-sampling", type=ProfileSampling.decode, default=ConsistentSampling,
+    parser.add_argument("--profile-sampling", type=ProfileSampling.decode, default=NonblockingSampling,
                         help="Stack read policy: " + ", ".join(ProfileSampling.names()))
     parser.add_argument("--profile-threads", type=ThreadSampling.decode, default=AllThreadSampling,
                         help="Thread selection: " + ", ".join(ThreadSampling.names()))

@@ -156,7 +156,7 @@ async def main():
                 await target.transcript.snapshot(initial)
                 agent.events.publish(AgentReady())
 
-            agent.process.session_task = asyncio.create_task(deliver())
+            agent.session.task = asyncio.create_task(deliver())
 
         data = {"name": "Read-only fixture", "identity": "fixture", "short_name": "fixture",
                 "run_command": {"*": "/bin/false"}, "protocol": "acp"}
