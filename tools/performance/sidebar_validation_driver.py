@@ -373,7 +373,6 @@ class ValidationDriver(LinuxDriver):
         Scalars alone survive the callback; no widget/render-cache graph is
         retained by the observer. Headless output remains source evidence.
         """
-        from toad.frame_presentation import FrameFlush
         from toad.widgets.conversation import Conversation, Window
         from toad.widgets.transcript_history import TranscriptHistory
         from toad.widgets.viewport_body import MeasuredViewportBody
@@ -422,7 +421,7 @@ class ValidationDriver(LinuxDriver):
         record("body_output", **values)
         if not app.is_headless:
             mode = app.current_mode
-            FrameFlush.for_driver(app._driver).submit(
+            app._driver.call_after_flush(
                 lambda: record("body_output_written", display_begin_ns=begin,
                                mode=mode, current_mode=app.current_mode))
 
