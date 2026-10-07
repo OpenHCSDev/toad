@@ -29,7 +29,7 @@ class TargetContext:
     actor: str
     project: Path
     mode: str | None = None
-    channel: str | dict[str, str | None] | None = None
+    channel: str | dict[str, tuple[str, ...]] | None = None
     targets: tuple[str, ...] = ()
 
     @property
