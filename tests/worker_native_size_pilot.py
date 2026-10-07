@@ -23,7 +23,7 @@ from acp.schema import ToolCall as ACPToolCall
 from agent_comms.comms import Comms
 from toad.acp.status import ToolCallStatus
 from toad.app import ToadApp
-from toad.widgets.tool_call import ToolCall
+from toad.widgets.tool_call import ToolCall, ToolContent
 from toad.widgets.worker_static import WorkerStatic
 
 
@@ -66,20 +66,35 @@ async def main():
                 tool.set_expanded(True)
                 tools.append(tool)
             await pilot.pause()
-            async with asyncio.timeout(15):
-                while any(not tool.query(WorkerStatic) for tool in tools):
-                    await pilot.pause(.02)
-            bodies = [tool.query_one(WorkerStatic) for tool in tools]
+            contents = [tool.query_one(ToolContent) for tool in tools]
 
-            async def ready():
+            def resource(content):
+                measurement = content._body_measurement
+                if measurement.paint_ready(content):
+                    return measurement.content
+                workers = tuple(content.query(WorkerStatic))
+                if len(workers) == 1:
+                    return workers[0].prepared_content
+                return None
+
+            async def ready(cohort=None):
+                cohort = contents if cohort is None else cohort
                 async with asyncio.timeout(15):
-                    await asyncio.gather(*(body.wait_ready() for body in bodies if body.is_attached))
+                    while any(resource(content) is None for content in cohort):
+                        await pilot.pause(.02)
                 await pilot.pause()
+                for content in cohort:
+                    index = contents.index(content)
+                    painted = resource(content)
+                    assert painted is not None
+                    assert f'NATIVE_TOOL_{index}' in painted.text, (index, painted.text)
+                    source = tools[index].output.displayed_parts[0].text
+                    assert painted.text.count(f'NATIVE_TOOL_{index}') == source.count(f'NATIVE_TOOL_{index}'), (index, painted.text)
+                    assert 'Preparing preview' not in painted.text
 
             await ready()
-            # A retained resource is warm only after its actual native geometry
-            # has been exposed. Initial offscreen mount may still use its
-            # provisional width; first exposure legitimately changes wrapping.
+            # A retired ToolContent owns actual captured paint, not a live
+            # WorkerStatic descendant. Expose each original native body first.
             for tool in tools:
                 tool.scroll_visible(animate=False, immediate=True)
                 await pilot.pause()
@@ -89,7 +104,7 @@ async def main():
                 await pilot.pause()
                 await ready()
                 receipt.update(physical_driver=type(app._driver).__name__,
-                               retained_tool_bodies=len(bodies), ready=True,
+                               retained_tool_bodies=len(contents), ready=True,
                                source_sha256=hashlib.sha256(
                                    Path(sys.modules['toad.widgets.worker_static'].__file__).read_bytes()).hexdigest())
                 (output / 'physical-ready.json').write_text(json.dumps(receipt, indent=2) + '\n')
@@ -97,9 +112,12 @@ async def main():
                     await asyncio.sleep(.05)
                 return
             scene = app.screen._compositor
-            assert any(body not in scene.visible_widgets for body in bodies)
-            prepared = tuple(body._prepared for body in bodies)
-            widths = tuple(body._ready_request.task.presentation.options.max_width for body in bodies)
+            assert any(content not in scene.visible_widgets for content in contents)
+            retained = tuple((content, resource(content)) for content in contents
+                             if content._body_measurement.paint_ready(content))
+            assert retained, 'The native viewport must exercise actual retirement'
+            live = tuple((body, body.prepared_content) for content in contents
+                         for body in content.query(WorkerStatic))
             counts = {'full_map': 0, 'preparation_full_map': 0, 'preparation_requests': 0}
 
             def trace(frame, event, argument):
@@ -122,7 +140,8 @@ async def main():
                 # Publish the original layout relation against native lazy maps,
                 # then use actual keyboard scrolling through the same scene.
                 for _ in range(25):
-                    scene.reflow_visible(app.screen, app.size)
+                    scene.reflow_visible(app.screen, app.size,
+                                         retain_geometry=app.screen._layout_geometry_targets())
                     app.screen.screen_layout_refresh_signal.publish(app.screen)
                 view.window.focus()
                 await pilot.press(*(['pageup'] * 8 + ['pagedown'] * 8 + ['pageup'] * 4))
@@ -131,45 +150,74 @@ async def main():
                 sys.setprofile(None)
             receipt.update(counts, elapsed_seconds=perf_counter() - started,
                            ui_cpu_seconds=process_time() - cpu_started,
-                           retained_tool_bodies=len(bodies),
-                           prepared_resources_reused=all(a is b._prepared for a, b in zip(prepared, bodies)),
-                           initial_prepared_widths=widths,
-                           final_prepared_widths=tuple(body._ready_request.task.presentation.options.max_width
-                                                       for body in bodies))
+                           retained_tool_bodies=len(contents),
+                           retained_paint_resources_reused=all(
+                               resource(content) is paint for content, paint in retained),
+                           initially_live_workers=len(live),
+                           live_workers_reused=(all(body.prepared_content is paint
+                                                   for body, paint in live if body.is_attached)
+                                                if live else None),
+                           initially_retired_bodies=len(retained))
             (output / 'layout-receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
             assert counts['preparation_full_map'] == 0, receipt
-            assert receipt['prepared_resources_reused'], receipt
+            await ready()
+            assert receipt['retained_paint_resources_reused'], receipt
+            assert receipt['live_workers_reused'] is not False, receipt
 
             await pilot.resize_terminal(85, 30)
             view.window.jump_to_latest()
             await pilot.pause()
-            await ready()
-            exposed = [body for body in bodies if body in scene.visible_widgets]
+            exposed = [content for content in contents if content in scene.visible_widgets]
             assert exposed
-            assert all(body._ready_request.task.presentation.options.max_width == body.size.width
-                       for body in exposed)
-            body = exposed[-1]
+            await ready(exposed)
+            content = exposed[-1]
+            # Real native interaction reacquires controls from retained paint.
+            content.scroll_visible(animate=False, immediate=True)
+            await pilot.pause()
+            await pilot.click(content, offset=(1, 1))
+            await ready()
+            body = content.query_one(WorkerStatic)
+            assert body._ready_request.task.presentation.options.max_width == body.size.width
             body.styles.padding = (0, 2)
             body.styles.color = 'red'
             await pilot.pause()
             await ready()
             assert body._ready_request.task.presentation.options.max_width == body.size.width
             assert body._ready_request.task.presentation.base_style == body.visual_style.rich_style
-            body.set_source('CHANGED_NATIVE_TOOL_SOURCE')
+            index = contents.index(content)
+            changed = tools[index].tool_call.call.model_copy(deep=True)
+            changed_line = f'NATIVE_TOOL_{index} = "CHANGED"'
+            changed.content[0].content.text = (changed_line + '\n') * 12
+            await tools[index].update_tool_call(ToolCallStatus.from_acp(changed))
+            content.scroll_visible(animate=False, immediate=True)
             await ready()
-            assert 'CHANGED_NATIVE_TOOL_SOURCE' in '\n'.join(strip.text for strip in scene.render_strips())
-            auto = exposed[0]
+            assert body._closed and body.prepared_content is None
+            body = content.query_one(WorkerStatic)
+            visible_text = '\n'.join(strip.text for strip in scene.render_strips())
+            source_state = {
+                'worker_text': body.prepared_content.text if body.prepared_content else None,
+                'body_text': resource(content).text if resource(content) else None,
+                'body_state': type(content._body_measurement).__name__,
+                'content_region': str(content.region), 'worker_region': str(body.region),
+                'window_region': str(view.window.scrollable_content_region),
+                'visible_text': visible_text,
+            }
+            (output / 'source-publication.json').write_text(json.dumps(source_state, indent=2) + '\n')
+            assert changed_line in visible_text, source_state
+            auto = body
             auto.styles.width = 'auto'
             await pilot.pause()
             await ready()
             assert auto._ready_request.task.presentation.auto_width
             assert auto._ready_request.task.presentation.options.max_width == auto.parent.scrollable_content_region.width
             await pilot.resize_terminal(100, 30)
-            await ready()
+            # A width change invalidates offscreen retained paint. The native
+            # viewport restores its visible/protected cohort, not all history.
+            await ready([content for content in contents if content in scene.visible_widgets])
             assert auto._ready_request.task.presentation.options.max_width == auto.parent.scrollable_content_region.width
             receipt.update(resize_reveal=True, padding_and_style=True, source_painted=True,
                            auto_parent_bound=True)
-            await tools[-1].remove()
+            await tools[index].remove()
             await pilot.pause()
             assert body._closed and body._prepared is None
             receipt['native_disposal'] = True
