@@ -252,6 +252,8 @@ def main():
     parser.add_argument("--within", help="Restrict a widget target to this captured Class#id region")
     action = parser.add_mutually_exclusive_group()
     action.add_argument("--drag-columns", type=int, help="Drag from the native target by this many terminal columns")
+    parser.add_argument("--drag-step-seconds", type=float, default=0,
+                        help="Emit a held drag through each column, with this interval between moves")
     action.add_argument("--wheel", type=int, help="Scroll down (positive) or up (negative) over the native target")
     parser.add_argument("--focused", action="store_true", help="Select only the currently focused widget")
     parser.add_argument("--empty", action="store_true", help="Require empty original editor before a fresh fork input")
@@ -294,9 +296,19 @@ def main():
         destination = cell + Offset(args.drag_columns, 0)
         if destination not in Region(0, 0, grid.columns, grid.rows):
             raise ValueError("Native drag destination lies outside the owned terminal")
-        end = grid.pixel_at(destination, client)
-        gesture = ["mousedown", "1", "mousemove", "--sync", "--window", window_id,
-                   str(end.x), str(end.y), "mouseup", "1"]
+        if args.drag_step_seconds < 0:
+            raise ValueError("Drag movement interval cannot be negative")
+        offsets = (range(1, abs(args.drag_columns) + 1) if args.drag_step_seconds
+                   else (abs(args.drag_columns),))
+        direction = -1 if args.drag_columns < 0 else 1
+        gesture = ["mousedown", "1"]
+        for offset in offsets:
+            end = grid.pixel_at(cell + Offset(direction * offset, 0), client)
+            gesture.extend(("mousemove", "--sync", "--window", window_id,
+                            str(end.x), str(end.y)))
+            if args.drag_step_seconds:
+                gesture.extend(("sleep", str(args.drag_step_seconds)))
+        gesture.extend(("mouseup", "1"))
     elif args.wheel is not None:
         if not args.wheel:
             raise ValueError("A native wheel gesture requires nonzero movement")
