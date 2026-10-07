@@ -10,6 +10,7 @@ from typing import cast
 from rich.console import RenderableType
 from rich.protocol import is_renderable
 from textual import events
+from textual.content import Content
 from textual.geometry import Region, Size
 from textual.screen import Screen
 from textual.selection import Selection
@@ -22,7 +23,7 @@ from textual.visual import VisualType
 from toad.app import ToadApp
 from toad.render_tasks import RichRenderTask
 from toad.rich_preparation import (
-    PreparedRichContent, RenderableSource, RichColorSystem, RichPresentation, RichSource, SyntaxSource,
+    ContentSource, PreparedRichContent, RenderableSource, RichColorSystem, RichPresentation, RichSource, SyntaxSource,
 )
 
 
@@ -40,9 +41,11 @@ class WorkerStatic(Static):
     per widget coalesces source/style/size changes, and stale results are ignored.
     """
 
-    def __init__(self, content: RenderableType | RichSource, *, id: str | None = None,
-                 classes: str | None = None) -> None:
-        self._source = content if isinstance(content, RichSource) else RenderableSource(content)
+    def __init__(self, content: RenderableType | RichSource | Content = "", *,
+                 name: str | None = None, id: str | None = None,
+                 classes: str | None = None, expand: bool = False,
+                 shrink: bool = False, markup: bool = False, disabled: bool = False) -> None:
+        self._source = self.source_for(content)
         self._generation = 0
         self._wanted: _Preparation | None = None
         self._ready_request: _Preparation | None = None
@@ -51,7 +54,14 @@ class WorkerStatic(Static):
         self._ready = asyncio.Event()
         self._closed = False
         self._layout_screen: Screen | None = None
-        super().__init__("Preparing preview…", markup=False, id=id, classes=classes)
+        super().__init__("Preparing preview…", markup=False, name=name, id=id,
+                         classes=classes, expand=expand, shrink=shrink, disabled=disabled)
+
+    @staticmethod
+    def source_for(content):
+        if isinstance(content, RichSource):
+            return content
+        return ContentSource(content) if isinstance(content, Content) else RenderableSource(content)
 
     @classmethod
     def code(cls, text: str, *, filename: str, lexer: str | None = None,
@@ -82,7 +92,7 @@ class WorkerStatic(Static):
             self.call_later(self._request_preparation)
 
     def set_source(self, content: RenderableType | RichSource) -> None:
-        self._source = content if isinstance(content, RichSource) else RenderableSource(content)
+        self._source = self.source_for(content)
         self._generation += 1
         self._prepared = None
         self._ready.clear()
@@ -95,29 +105,36 @@ class WorkerStatic(Static):
         Actual prepared dimensions determine layout; no caller adapter is needed.
         Textual-only visuals with UI callbacks are not transferable Rich data.
         """
-        if not isinstance(content, RichSource) and not is_renderable(content):
+        if not isinstance(content, (RichSource, Content)) and not is_renderable(content):
             raise TypeError("WorkerStatic requires data-only Rich content or RichSource")
         self.set_source(cast(RenderableType | RichSource, content))
 
-    def _request_preparation(self) -> None:
+    def _request_preparation(self, width: int | None = None) -> None:
         if self._closed or self._pruning or not self.is_attached:
             return
         app = self.app
         assert isinstance(app, ToadApp)
         auto_width = self.styles.is_auto_width
         parent = self.parent
-        width = (parent.scrollable_content_region.width
+        width = width if width is not None else (parent.scrollable_content_region.width
                  if auto_width and isinstance(parent, Widget)
                  else max(0, self.outer_size.width - self.styles.gutter.width))
         width = max(1, width or app.size.width)
+        source = self._source
+        if isinstance(source, ContentSource):
+            selection = self.text_selection
+            source = ContentSource(source.value, selection,
+                Style.from_styles(self.screen.get_component_styles("screen--selection"))
+                if selection is not None else None)
         presentation = RichPresentation(
             app.console_options.update(width=width, height=None, highlight=False),
             self.visual_style.rich_style, self.link_style if self.auto_links else None,
             auto_width, self._get_justify_method(), cast(RichColorSystem | None, app.console.color_system),
             app.current_theme.dark,
-            tuple((name, self._get_style(name)) for name in self._source.style_names),
+            tuple((name, self._get_style(name)) for name in source.style_names),
+            tuple(self.styles.get_rules().items()), self.visual_style,
         )
-        request = _Preparation(self._generation, RichRenderTask(self._source, presentation))
+        request = _Preparation(self._generation, RichRenderTask(source, presentation))
         self._wanted = request
         if request == self._ready_request:
             if not self._ready.is_set():
@@ -204,6 +221,8 @@ class WorkerStatic(Static):
     def get_selection(self, selection: Selection) -> tuple[str, str] | None:
         if self._prepared is None:
             return None
+        if isinstance(self._source, ContentSource):
+            return selection.extract(self._source.value.plain), "\n"
         if isinstance(self._source, SyntaxSource) and not self._source.line_numbers:
             # Tool Read output historically copied its original source text,
             # including tabs and final blank lines. Rich's terminal rendering
@@ -217,8 +236,15 @@ class WorkerStatic(Static):
                 else super().get_content_width(container, viewport))
 
     def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
+        if width > 0 and self.is_attached:
+            self._request_preparation(width)
         return (len(self._prepared.lines) if self._prepared is not None
                 else super().get_content_height(container, viewport, width))
+
+    def selection_updated(self, selection: Selection | None) -> None:
+        super().selection_updated(selection)
+        if isinstance(self._source, ContentSource):
+            self._request_preparation()
 
     def render_line(self, y: int) -> Strip:
         prepared = self._prepared
