@@ -47,3 +47,9 @@ user-selected Alt override, real isolated st input reports Shift and Control
 to the application and consumes Alt itself. The installed binary was atomically
 replaced, keeping its original font/opacity and running terminals. Source and
 raw check are retained at `/home/ts/wt/st-app-shift-selection-20261007`.
+
+## Process menu and resize attribution
+
+Core710 is merged; the normal frontend now uses its original process-action declarations. Stop is labelled Stop process; Restart borrows the original Thread restart-owner and idle requirements, and both scope fields are bound. Installed readonly catalog verification on openhcs-pr159-viewer-bind-owner offered both actions without executing either. Publication and source/RECORD checks are retained under .artifacts/process-menu-wheel-20261007. The backend executable and existing windows are preserved.
+
+The opt-in original frame observer can profile synchronous layout calls. Nested layout calls borrow the active profiler; profile export is excluded from the reported layout interval. First capture sidebar-layout-cost-20261007 exposed nested competing profilers and is retained as a diagnostic negative. Corrected capture sidebar-layout-cost02-20261007 completed and joined with clear cleanup. Four width gestures attribute repeated native arrangement and width-dependent content-height measurement. Profiling overhead, snapshot acquisitions and independently running worker costs prohibit interpreting these totals as real input latency; the prior unprofiled 44–70 ms layout measurements remain the baseline. Native owner Arendt has the exact profiles for the existing semantic width/invalidation repair. No resize speedup or continuous-drag acceptance is claimed.

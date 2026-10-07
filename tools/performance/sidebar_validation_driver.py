@@ -344,11 +344,24 @@ def install_observer():
         def measured(self, *args, _function=original, _name=name, **kwargs):
             begin = time.monotonic_ns()
             cpu = time.thread_time_ns()
+            profile = None
+            if (_name == "_refresh_layout" and sys.getprofile() is None
+                    and os.environ.get("TOAD_VALIDATION_LAYOUT_PROFILE")):
+                import cProfile
+                profile = cProfile.Profile()
+                profile.enable()
             try:
                 return _function(self, *args, **kwargs)
             finally:
-                record(_name, begin_ns=begin, duration_ms=(time.monotonic_ns()-begin)/1e6,
-                       cpu_ms=(time.thread_time_ns()-cpu)/1e6, mode=self.id,
+                duration = (time.monotonic_ns()-begin)/1e6
+                cpu_duration = (time.thread_time_ns()-cpu)/1e6
+                if profile is not None:
+                    profile.disable()
+                    path = f"{os.environ['TOAD_VALIDATION_LAYOUT_PROFILE']}-{begin}.pstats"
+                    profile.dump_stats(path)
+                    record("layout_profile", begin_ns=begin, path=path, mode=self.id)
+                record(_name, begin_ns=begin, duration_ms=duration,
+                       cpu_ms=cpu_duration, mode=self.id,
                        batched=self.app._batch_count > 0,
                        viewport=self._use_viewport_layout(), anchors=len(self.viewport_presentation.anchors),
                        visible_map=len(self._compositor._visible_map or {}),
