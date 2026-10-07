@@ -5,6 +5,7 @@ from toad.core import events as core_events
 
 import asyncio
 from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from agent_comms.cli_commands import TargetAction, TargetEdit, TargetBatchResult, TargetFailed
@@ -25,16 +26,8 @@ class ThreadActions:
     def pending(self) -> dict[str, str]:
         return {name: execution.action.pending for name, execution in self.requests.items()}
 
-    def invoke(self, action: ThreadAction, subject: str) -> None:
+    def invoke(self, action: ThreadAction, subject: str, *, source_root: Path) -> None:
         app = self.app
-        source_root = app.screen.coordination_root
-        if source_root is None:
-            from toad.widgets.comms_sidebar import CommsSidebar
-            sidebar = app.screen.query_one_optional(CommsSidebar)
-            if sidebar is not None:
-                observed = sidebar.observation.service
-                if observed is not None:
-                    source_root = observed.root
         try:
             selected = RouteSelection.capture(source_root)
         except (OSError, ValueError, RuntimeError) as error:
@@ -121,7 +114,8 @@ class ThreadAction:
                 ctx.current()
                 request = TargetEdit(declaration=definition.declaration, target=definition.targets if ctx.targets else ctx.subject,
                     arguments=arguments, confirmed=bool(definition.edited(arguments).confirmation), channel=ctx.channel)
-                ctx.app.thread_actions.invoke(cls(definition, request), ctx.subject)
+                ctx.app.thread_actions.invoke(cls(definition, request), ctx.subject,
+                                             source_root=ctx.comms.root)
             except (OSError, ValueError) as error:
                 ctx.app.notify(str(error), title=definition.label, severity='error')
 

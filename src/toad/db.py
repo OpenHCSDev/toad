@@ -90,16 +90,19 @@ class DB:
 
         return await asyncio.to_thread(transaction)
 
-    async def record_model_usage(self, agent_identity: str, model_id: str) -> bool:
+    async def record_model_usage(
+        self, agent_identity: str, model_id: str, *, last_used: int | None = None,
+    ) -> bool:
         """Remember a confirmed selection or completed turn, never a highlight."""
+        last_used = time_ns() if last_used is None else last_used
         try:
             async with self.open() as db:
                 await db.execute(MODEL_HISTORY_SCHEMA)
                 await db.execute(
                     """INSERT INTO model_history (agent_identity, model_id, last_used)
                     VALUES (?, ?, ?) ON CONFLICT(agent_identity, model_id)
-                    DO UPDATE SET last_used = excluded.last_used""",
-                    (agent_identity, model_id, time_ns()),
+                    DO UPDATE SET last_used = MAX(model_history.last_used, excluded.last_used)""",
+                    (agent_identity, model_id, last_used),
                 )
                 await db.commit()
         except aiosqlite.Error:

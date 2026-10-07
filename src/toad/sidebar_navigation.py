@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 from toad.session_tracker import SidebarSelection, SidebarState
 from toad.constants import ALL_COMMS_TARGET
+from toad.widgets.sidebar_viewport import SidebarViewport
 from toad.widgets.comms_sidebar import CommsRow, ChannelGroup
 
 class SidebarNavigation:
@@ -26,11 +27,11 @@ class SidebarNavigation:
         return not self.ready.is_set()
 
     @property
-    def scroll_containers(self):
+    def scroll_container(self) -> SidebarViewport:
         from toad.widgets.side_bar import SideBar, SideBarCollapsible
         panel = self.sidebar.query_ancestor(SideBarCollapsible)
-        panels = panel.query_ancestor(SideBar).query_one("#sidebar-panels")
-        return panels, panels
+        panels = panel.query_ancestor(SideBar).query_one("#sidebar-panels", SidebarViewport)
+        return panels
 
     def reset(self) -> None:
         self.ready.clear()
@@ -40,9 +41,7 @@ class SidebarNavigation:
 
     def capture(self) -> None:
         if not self.restoring:
-            channel, panels = self.scroll_containers
-            self.state.channel_scroll_y = channel.scroll_y
-            self.state.panel_scroll_y = panels.scroll_y
+            self.state.panel_scroll_y = self.scroll_container.scroll_y
 
     async def prepare(self) -> None:
         self.revision += 1
@@ -139,10 +138,12 @@ class SidebarNavigation:
             channel=self.selection_for(row).channel)
         selected = self.state.selected_targets
         names = tuple(dict.fromkeys(item.target for item in selected))
-        if len(names) < 2:
+        if len(selected) < 2:
             return context
-        return replace(context, targets=names, mode=None,
-                       channel={item.target: item.channel for item in selected})
+        channels = {name: tuple(dict.fromkeys(item.channel for item in selected
+                                             if item.target == name))
+                    for name in names}
+        return replace(context, targets=names, mode=None, channel=channels)
 
     def selection_current(self) -> bool:
         """One selected destination has one retained painted row identity."""
@@ -185,11 +186,10 @@ class SidebarNavigation:
         if not self.sidebar.projection.has_snapshot():
             return False
         if self.restoring and self.sidebar.is_attached and self.sidebar.screen is self.sidebar.app.screen:
-            channel, panels = self.scroll_containers
-            before = channel.scroll_y, panels.scroll_y
-            channel.scroll_to(y=self.state.channel_scroll_y, animate=False, immediate=True)
-            panels.scroll_to(y=self.state.panel_scroll_y, animate=False, immediate=True)
-            return before != (channel.scroll_y, panels.scroll_y)
+            viewport = self.scroll_container
+            before = viewport.scroll_y
+            viewport.scroll_to(y=self.state.panel_scroll_y, animate=False, immediate=True)
+            return before != viewport.scroll_y
         return False
 
     def mode_changed(self, mode_name: str) -> None:

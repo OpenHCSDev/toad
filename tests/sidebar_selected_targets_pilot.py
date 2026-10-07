@@ -16,6 +16,7 @@ from toad.widgets.comms_command_dialog import CommandDialog
 
 async def main():
     scratch = Path('/home/ts/.cache/agent-scratch/parent-sidebar-selection-20261006')
+    scratch.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='mounted-', dir=scratch) as directory:
         root = Path(directory)
         os.environ.update(AGENT_COMMS_ROOT=str(root / 'wire'),
@@ -29,6 +30,9 @@ async def main():
         app = ToadApp(project_dir=str(root))
         app.settings.sidebar.show_stopped = True
         async with app.run_test(size=(130, 46), notifications=True) as pilot:
+            await app.selected_session.wait_content_ready()
+            app.workspace_chrome.channels.reveal()
+            await app.workspace_chrome.channels.wait_content_ready()
             await pilot.pause()
             sidebar = app.screen.query_one(CommsSidebar)
             await sidebar.observation.sync()
@@ -87,12 +91,12 @@ async def main():
             await pilot.pause()
             channel = sidebar.projection.channels['#alpha']
             survivor = next(row for row in sidebar.projection.thread_rows if row.target_name == second.target_name)
-            scroll = tuple(panel.scroll_y for panel in sidebar.navigation.scroll_containers)
+            scroll = sidebar.navigation.scroll_container.scroll_y
             assert await pilot.click(channel, button=3)
             async with asyncio.timeout(10):
                 while not (isinstance(app.screen, ContextMenu) and app.screen.is_mounted):
                     await pilot.pause()
-            assert tuple(panel.scroll_y for panel in sidebar.navigation.scroll_containers) == scroll
+            assert sidebar.navigation.scroll_container.scroll_y == scroll
             await pilot.press('escape')
             assert await pilot.click(survivor, control=True)
             context = sidebar.navigation.menu_context(channel)
@@ -226,6 +230,9 @@ async def multi_channel_removal():
         app = ToadApp(project_dir=str(root))
         app.settings.sidebar.show_stopped = True
         async with app.run_test(size=(130, 46), notifications=True) as pilot:
+            await app.selected_session.wait_content_ready()
+            app.workspace_chrome.channels.reveal()
+            await app.workspace_chrome.channels.wait_content_ready()
             await pilot.pause()
             sidebar = app.screen.query_one(CommsSidebar)
             await sidebar.observation.sync()
@@ -263,5 +270,61 @@ async def multi_channel_removal():
     print('PASS: installed native multi-channel menu, shared disposition dialog, both confirmations, original tag removal, refreshed channel rows and preserved threads')
 
 
+async def same_thread_memberships():
+    """Native rows share a thread owner but retain independent channel pins."""
+    scratch = Path('/home/ts/.cache/agent-scratch/selected-memberships-20261007')
+    scratch.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix='mounted-', dir=scratch) as directory:
+        root = Path(directory)
+        os.environ.update(AGENT_COMMS_ROOT=str(root / 'wire'),
+                          XDG_CONFIG_HOME=str(root / 'config'),
+                          XDG_STATE_HOME=str(root / 'state'),
+                          XDG_DATA_HOME=str(root / 'data'))
+        comms = Comms(root / 'wire', private_initial_writes=True)
+        comms.registry.declare(Thread('shared-member', frozenset({'alpha', 'beta'}), str(root)),
+                               StoppedThreadStatus())
+        comms.messaging.initialize_private_initial_protocol()
+        app = ToadApp(project_dir=str(root))
+        app.settings.sidebar.show_stopped = True
+        async with app.run_test(size=(130, 46), notifications=True) as pilot:
+            await app.selected_session.wait_content_ready()
+            app.workspace_chrome.channels.reveal()
+            await app.workspace_chrome.channels.wait_content_ready()
+            sidebar = app.screen.query_one(CommsSidebar)
+            await sidebar.observation.sync()
+            rows = []
+            for name in ('#alpha', '#beta'):
+                group = sidebar.projection.channels[name].query_ancestor(ChannelGroup)
+                await group.reveal_members()
+                await pilot.pause()
+                rows.append(next(row for row in group.member_container.children
+                                 if isinstance(row, ThreadRow) and row.target_name == 'shared-member'))
+            assert await pilot.click(rows[0])
+            assert await pilot.click(rows[1], control=True)
+            assert len(app.sidebar_state.selected_targets) == 2
+            assert all(row.has_class('-selected') for row in rows)
+            context = sidebar.navigation.menu_context(rows[0])
+            assert context.targets == ('shared-member',)
+            assert context.channel == {'shared-member': ('#alpha', '#beta')}
+            scroll = sidebar.navigation.scroll_container.scroll_y
+            assert await pilot.click(rows[0], button=3)
+            async with asyncio.timeout(10):
+                while not (isinstance(app.screen, ContextMenu) and app.screen.is_mounted):
+                    await pilot.pause()
+            assert sidebar.navigation.scroll_container.scroll_y == scroll
+            item = next(item for item in app.screen.query(ContextMenuItem) if item.action == 'pin-thread')
+            assert await pilot.click(item)
+            async with asyncio.timeout(10):
+                while app.thread_actions.requests or any(
+                    comms.channels.catalog.read().pinned_threads(name) != {'shared-member'}
+                    for name in ('#alpha', '#beta')):
+                    await pilot.pause()
+            assert comms.registry.require('shared-member').tags == frozenset({'alpha', 'beta'})
+            assert app._exception is None
+        await asyncio.get_running_loop().shutdown_default_executor()
+    print('PASS: native Ctrl-selected same thread in two channels, both pins preserved, right-click scroll unchanged')
+
+
 if __name__ == '__main__':
-    asyncio.run(multi_channel_removal() if '--multi-channel-removal' in sys.argv else main())
+    asyncio.run(same_thread_memberships() if '--same-thread-memberships' in sys.argv else
+                multi_channel_removal() if '--multi-channel-removal' in sys.argv else main())

@@ -99,8 +99,118 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert app._exception is None
 
 
+async def interaction_acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
+    """Measure original sidebar frames and input while native ACP chunks arrive."""
+    from toad.widgets.side_bar import SideBar, SidebarSlider
+    import cProfile
+
+    evidence = Path(os.environ['L0A_EVIDENCE'])
+    view = app.selected_session.conversation
+    release.set()
+    hold_next.clear()
+    await until(pilot, lambda: view.agent_ready)
+    if os.environ.get('STREAM_RESIZE_PROFILE') == '1':
+        # Panel hydration is independent of the first visible sidebar frame.
+        # Admit the original controls before starting the measured turn.
+        for selector in ('#channels-sidebar', '#thread-sidebar'):
+            bar = next(bar for bar in app.screen.query(selector) if bar.presentation_visible)
+            collapsed = bar.collapsed
+            if collapsed:
+                bar.reveal()
+            await asyncio.wait_for(bar.wait_content_ready(), 10)
+            if collapsed:
+                bar.toggle(focus=False)
+        await pilot.pause()
+    token = os.environ['STREAM_INPUT_TOKEN']
+    view.prompt.text = token
+    view.prompt.prompt_text_area.focus()
+    await pilot.press('enter')
+    await until(pilot, lambda: ResponseStream in view.output.streams)
+    rows = []
+    try:
+        for selector in ('#channels-sidebar', '#thread-sidebar'):
+            bar = next(bar for bar in app.screen.query(selector) if bar.presentation_visible)
+            for _ in range(2):
+                assert comms.registry.require('beta').executing
+                chunk_before = len(chunks)
+                original = bar.collapsed
+                painted = app.next_frame = asyncio.get_running_loop().create_future()
+                started = time.perf_counter()
+                bar.toggle(focus=False)
+                shown = await asyncio.wait_for(painted, 5)
+                rows.append({'sidebar': selector, 'collapsed': bar.collapsed,
+                             'frame_ms': (shown-started)*1000,
+                             'native_turn_busy_before': True,
+                             'chunks_before': chunk_before, 'chunks_after': len(chunks)})
+                assert bar.collapsed != original
+                app.next_frame = None
+            if os.environ.get('STREAM_RESIZE_PROFILE') == '1':
+                if bar.collapsed:
+                    painted = app.next_frame = asyncio.get_running_loop().create_future()
+                    bar.toggle(focus=False)
+                    await asyncio.wait_for(painted, 5)
+                    app.next_frame = None
+                slider = bar.query_one('#sidebar-width-slider', SidebarSlider)
+                for direction in (-1, 1):
+                    assert comms.registry.require('beta').executing
+                    painted = app.next_frame = asyncio.get_running_loop().create_future()
+                    profile = app.frame_profiler = cProfile.Profile()
+                    before = app.sidebar_layout.get(bar.id).width_percent
+                    started = time.perf_counter()
+                    profile.enable()
+                    slider.action_step(direction)
+                    shown = await asyncio.wait_for(painted, 5)
+                    profile.disable()
+                    profile.dump_stats(str(evidence / f'{bar.id}-resize-{direction}.pstats'))
+                    rows.append({'sidebar': selector, 'action': 'resize',
+                                 'slider_direction': direction,
+                                 'width_before': before,
+                                 'width_after': app.sidebar_layout.get(bar.id).width_percent,
+                                 'frame_ms': (shown-started)*1000,
+                                 'native_turn_busy_before': True})
+                    # The slider owns direction reversal on a right edge;
+                    # this observer records its answer rather than mirroring it.
+                    assert app.sidebar_layout.get(bar.id).width_percent != before
+                    app.frame_profiler = None
+                    app.next_frame = None
+        view.prompt.prompt_text_area.focus()
+        started = time.perf_counter()
+        # Pilot.press intentionally waits for global idle after every key.
+        # That measures the harness during a live stream, not editor delivery.
+        from textual.events import Key
+        for character in 'draft':
+            event = Key(character, character)
+            event.set_sender(app)
+            app._driver.send_message(event)
+        async with asyncio.timeout(4):
+            while view.prompt.text != 'draft':
+                await asyncio.sleep(.001)
+        key_ms = (time.perf_counter()-started)*1000
+        assert view.prompt.text == 'draft'
+        await until(pilot, lambda: response_painted(app, view, 'STREAM_HEADER_END_PROOF'), 35)
+        await until(pilot, lambda: not comms.registry.require('beta').executing)
+        assert len(requests) == 1
+        assert app._exception is None
+    finally:
+        if app.frame_profiler is not None:
+            app.frame_profiler.disable()
+            app.frame_profiler = None
+        app.next_frame = None
+        (evidence/'active-interactions.json').write_text(json.dumps({
+            'sidebar_frames': rows, 'provider_chunks': chunks,
+            'scope': 'Actual installed native ACP stream; headless completed frames, not terminal pixels',
+            'provider_requests': len(requests), 'input_replays': 0,
+        }, indent=2)+'\n')
+    (evidence/'typing.json').write_text(json.dumps({'five_key_completion_ms': key_ms,
+                                                  'draft_retained': True})+'\n')
+
+
 if __name__ == '__main__':
-    asyncio.run(main(app_type=ToadApp, acceptance=acceptance, provider_reply=reply,
+    interactive = os.environ.get('STREAM_INTERACTION_TIMING') == '1'
+    if interactive:
+        from sidebar_collapse_latency_pilot import FrameApp
+    asyncio.run(main(app_type=FrameApp if interactive else ToadApp,
+                     acceptance=interaction_acceptance if interactive else acceptance, provider_reply=reply,
                      provider_request_budget=1, provider_chunk_characters=25,
                      provider_after_chunk=after_chunk,
                      fixture_stage=Path(os.environ['STREAM_FIXTURE_STAGE'])))

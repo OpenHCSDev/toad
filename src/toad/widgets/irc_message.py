@@ -68,13 +68,14 @@ class IRCMessageText(WorkerStatic):
         self.app.open_url(url)
 
     @asynccontextmanager
-    async def preparation_publication(self):
+    async def preparation_publication(self, *, layout: bool):
         from toad.mounted_message_history import MountedMessageHistory
 
-        history = next((owner for owner in self.ancestors
-                        if isinstance(owner, MountedMessageHistory)), None)
+        history = (next((owner for owner in self.ancestors
+                         if isinstance(owner, MountedMessageHistory)), None)
+                   if layout else None)
         if history is None:
-            async with super().preparation_publication():
+            async with super().preparation_publication(layout=layout):
                 yield
         else:
             # Worker completion changes this original row's measured extent.
