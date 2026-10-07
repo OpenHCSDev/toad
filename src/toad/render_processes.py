@@ -96,8 +96,8 @@ class RenderProcessPool(Renderer):
         # underlying future (or logs an abandoned exception via shield).
         future = asyncio.wrap_future(self._executor.submit(function, *args), loop=loop)
         self._pending.add(future)
-        future.add_done_callback(self._finished)
-        await asyncio.wait((future,))
+        future.add_done_callback(self._finished, context=self.execution_context())
+        await self.wait_for_work(future)
         return future.result()
 
     async def capture(self, task: "RenderTask[Result]") -> "PreparedValue[Result]":
@@ -113,8 +113,8 @@ class RenderProcessPool(Renderer):
             await self._close_submissions()
             return
         if self._shutdown is None:
-            self._shutdown = asyncio.create_task(self._join(), name="render-process-shutdown")
-        await asyncio.wait((self._shutdown,))
+            self._shutdown = asyncio.create_task(self._join(), name="render-process-shutdown", context=self.execution_context())
+        await self.wait_for_work(self._shutdown)
         self._shutdown.result()
 
     async def _join(self) -> None:

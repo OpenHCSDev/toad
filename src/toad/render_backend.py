@@ -5,6 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable
 import asyncio
+from contextvars import Context, copy_context
 import os
 from pathlib import Path
 from typing import TypeVar, Generic, TYPE_CHECKING
@@ -96,6 +97,37 @@ class Renderer(RendererSpawn):
     def __init__(self) -> None:
         self._submissions: set[asyncio.Task] = set()
 
+    @staticmethod
+    def execution_context() -> Context:
+        """Detached work borrows ambient facts, never its waiter's native owner.
+
+        Preparation can outlive an evicted widget. App/backend context remains
+        available, but native pump and Worker custody belongs to the consumer,
+        not to shared data preparation or its completion callbacks.
+        """
+        from textual._context import active_message_pump
+        from textual.worker import active_worker
+
+        context = Context()
+        for variable, value in copy_context().items():
+            if variable is not active_message_pump and variable is not active_worker:
+                context.run(variable.set, value)
+        return context
+
+    @staticmethod
+    async def wait_for_work(pending: asyncio.Future) -> None:
+        """A cancelled consumer releases its wait, not admitted execution.
+
+        Python 3.14 wait removes its callback on cancellation but leaves the
+        awaited-by edge on a pending job. Close that original edge at the same
+        boundary; otherwise shared work retains completed native consumers.
+        """
+        waiter = asyncio.current_task()
+        try:
+            await asyncio.wait((pending,))
+        finally:
+            asyncio.future_discard_from_awaited_by(pending, waiter)
+
     def _submission_finished(self, task: asyncio.Task) -> None:
         self._submissions.discard(task)
         if not task.cancelled():
@@ -115,11 +147,13 @@ class Renderer(RendererSpawn):
 
     async def submit(self, task: RenderTask[ResultT]) -> ResultT:
         """Deliver one independent result from the worker's captured value."""
-        running = asyncio.create_task(self._submit(task), name="renderer-delivery")
+        context = self.execution_context()
+        running = asyncio.create_task(self._submit(task), name="renderer-delivery", context=context)
         self._submissions.add(running)
-        running.add_done_callback(self._submission_finished)
+        running.add_done_callback(self._submission_finished, context=context)
         try:
-            return await asyncio.shield(running)
+            await self.wait_for_work(running)
+            return running.result()
         except asyncio.CancelledError:
             running.cancel()
             raise
@@ -131,11 +165,11 @@ class Renderer(RendererSpawn):
             name="renderer-materialize",
         )
         try:
-            await asyncio.wait((delivery,))
+            await self.wait_for_work(delivery)
         except asyncio.CancelledError:
             # Cancelling a consumer cannot stop an already-running decoder.
             # Keep this submission owned until its actual delivery worker exits.
-            await asyncio.wait((delivery,))
+            await self.wait_for_work(delivery)
             if not delivery.cancelled():
                 delivery.exception()
             raise
