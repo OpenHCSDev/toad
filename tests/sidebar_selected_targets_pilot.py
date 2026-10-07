@@ -1,5 +1,6 @@
 """Real private-store menu selection and batch archive through the native App."""
 import asyncio
+import json
 import os
 import sys
 from pathlib import Path
@@ -12,6 +13,85 @@ from runtime_fixture import ToadApp
 from toad.widgets.comms_sidebar import CommsSidebar, ThreadRow, ChannelGroup
 from toad.widgets.comms_menu import ContextMenu, ContextMenuItem
 from toad.widgets.comms_command_dialog import CommandDialog
+
+
+async def process_batch():
+    """Real menu start/stop of two idle workers, including channel overlap."""
+    from runtime_fixture import private_native_wire
+    root = Path(os.environ['SELECTION_PROCESS_EVIDENCE'])
+    root.mkdir(mode=0o700, parents=True, exist_ok=False)
+    for key in tuple(os.environ):
+        if key.startswith('AGENT_COMMS_'):
+            del os.environ[key]
+    os.environ.update(TOAD_TEST_ATTEMPT=str(root),
+                      XDG_CONFIG_HOME=str(root / 'config'),
+                      XDG_STATE_HOME=str(root / 'state'),
+                      XDG_DATA_HOME=str(root / 'data'),
+                      XDG_CACHE_HOME=str(root / 'cache'),
+                      PI_CODING_AGENT_DIR=str(root / 'pi'),
+                      AGENT_COMMS_AGENT_BIN='pi',
+                      AGENT_COMMS_AGENT_ARGS='--no-extensions --no-skills --no-context-files',
+                      AGENT_COMMS_AGENT_MODELS='selected-offline/fixture')
+    comms = private_native_wire(root / 'wire')
+    comms.owners.pin_private_nk_launch(
+        comms.root, os.environ['AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID'],
+        Path(os.environ['AC_NATIVE_COPIED_PACKAGE']))
+    names = ('batch-alpha', 'batch-beta')
+    for name in names:
+        comms.registry.declare(Thread(name, frozenset({'batch'}), str(root)), StoppedThreadStatus())
+    app = ToadApp(project_dir=str(root))
+    app.settings.sidebar.show_stopped = True
+
+    async def until(pilot, condition):
+        async with asyncio.timeout(30):
+            while not condition():
+                await pilot.pause(.02)
+
+    async def menu(pilot, row, operation):
+        row.scroll_visible(animate=False, immediate=True)
+        await pilot.pause()
+        assert await pilot.click(row, button=3)
+        await until(pilot, lambda: isinstance(app.screen, ContextMenu) and app.screen.is_mounted)
+        item = next(item for item in app.screen.query(ContextMenuItem) if item.action == operation)
+        assert await pilot.click(item)
+        await until(pilot, lambda: not app.thread_actions.requests)
+
+    async with app.run_test(size=(130, 46), notifications=True) as pilot:
+        await app.selected_session.wait_content_ready()
+        app.workspace_chrome.channels.reveal()
+        await app.workspace_chrome.channels.wait_content_ready()
+        await pilot.pause()
+        sidebar = app.screen.query_one(CommsSidebar)
+        await sidebar.observation.sync()
+        await until(pilot, lambda: '#batch' in sidebar.projection.channels)
+        group = sidebar.projection.channels['#batch'].query_ancestor(ChannelGroup)
+        await group.reveal_members()
+        await pilot.pause()
+        rows = tuple(group._members[name] for name in names)
+        # Channel plus its individually selected members execute each owner once.
+        for row in (group.row, *rows):
+            row.scroll_visible(animate=False, immediate=True)
+            await pilot.pause()
+            assert await pilot.click(row, control=True)
+        await menu(pilot, rows[0], 'start')
+        await until(pilot, lambda: all(comms.registry.require(name).process_alive for name in names))
+        originals = tuple(comms.registry.require(name).process_identity for name in names)
+        assert all(identity is not None for identity in originals)
+        assert len({identity.pid for identity in originals}) == 2
+        await sidebar.observation.sync()
+        await pilot.pause()
+        assert all(group._members[name] is row for name, row in zip(names, rows))
+        await menu(pilot, rows[0], 'stop')
+        await until(pilot, lambda: all(not identity.alive() for identity in originals))
+        assert all(comms.registry.status(name).stopped for name in names)
+        assert app._exception is None
+        (root / 'result.json').write_text(json.dumps({
+            'started': names, 'original_processes': [dict(pid=identity.pid, start_time=identity.start_time)
+                                                   for identity in originals],
+            'stopped_and_absent': True, 'row_identity_preserved': True,
+            'selected_channel_member_overlap': True, 'submitted_inputs': 0,
+        }, indent=2) + '\n')
+    print('PASS: real native menu starts/stops two idle workers once despite channel/member overlap', flush=True)
 
 
 async def main():
@@ -326,5 +406,6 @@ async def same_thread_memberships():
 
 
 if __name__ == '__main__':
-    asyncio.run(same_thread_memberships() if '--same-thread-memberships' in sys.argv else
+    asyncio.run(process_batch() if '--process-batch' in sys.argv else
+                same_thread_memberships() if '--same-thread-memberships' in sys.argv else
                 multi_channel_removal() if '--multi-channel-removal' in sys.argv else main())

@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import sys
 import inspect
+import cProfile
 from collections import Counter
 from time import perf_counter
 
@@ -88,6 +89,7 @@ async def main(output):
                 await asyncio.sleep(.01)
                 gaps.append(perf_counter() - start)
         sampler = asyncio.create_task(responsiveness())
+        profile = cProfile.Profile() if os.environ.get("SIDEBAR_PROFILE") else None
         calls = Counter()
         watched = {
             SidebarProjection.sync_sessions.__code__: "local_route_reconciliations",
@@ -100,22 +102,27 @@ async def main(output):
         route_rebuild_line = route_start + next(i for i, line in enumerate(route_lines)
                                                if "await self.rebuild(projected)" in line)
         monitor = sys.monitoring
-        monitor.use_tool_id(monitor.PROFILER_ID, "private-sidebar-fanout")
-        monitor.register_callback(monitor.PROFILER_ID, monitor.events.PY_START,
+        monitor_id = monitor.COVERAGE_ID if profile is not None else monitor.PROFILER_ID
+        monitor.use_tool_id(monitor_id, "private-sidebar-fanout")
+        monitor.register_callback(monitor_id, monitor.events.PY_START,
                                   lambda code, offset: calls.update((watched[code],)))
-        monitor.register_callback(monitor.PROFILER_ID, monitor.events.LINE,
+        monitor.register_callback(monitor_id, monitor.events.LINE,
                                   lambda code, line: calls.update(("local_route_row_rebuilds",))
                                   if line == route_rebuild_line else None)
         for code in watched:
-            monitor.set_local_events(monitor.PROFILER_ID, code, monitor.events.PY_START
+            monitor.set_local_events(monitor_id, code, monitor.events.PY_START
                                      | (monitor.events.LINE if code is route_code else 0))
         try:
+            if profile is not None:
+                profile.enable()
             # Real tab metadata belongs to SessionTracker, independently of wire
             # rows. These authored titles are not provider activity markers.
             routes = dict(roster.projection.snapshot.session_threads)
             for view in app.workspace_sessions.views.values():
                 app.session_tracker.update_session(view.id, title=f"Private tab {view.id}")
-            await pilot.pause(.1)
+            async with asyncio.timeout(20):
+                while calls["local_route_reconciliations"] != len(app.workspace_sessions.views):
+                    await asyncio.sleep(.02)
             assert dict(roster.projection.snapshot.session_threads) == routes
             metadata_calls = dict(calls)
             assert calls["local_route_reconciliations"] == len(app.workspace_sessions.views)
@@ -132,14 +139,22 @@ async def main(output):
                 async with asyncio.timeout(20):
                     while (roster.projection.snapshot is None or
                            roster.projection.snapshot.wire.channel_unread.get("#shared", 0)
-                           < len(emitted)):
-                        await pilot.pause(.02)
+                           < len(emitted) or roster.projection.lock.locked()):
+                        # Pilot.pause broadcasts a callback to every widget.
+                        # Observe original publication, not a test-created fanout.
+                        await asyncio.sleep(.02)
+                    written = asyncio.Event()
+                    app.selected_session.screen.frame_presentation.defer(roster, written.set)
+                    await written.wait()
                 elapsed.append(perf_counter() - start)
-            await pilot.pause(.1)
+            await asyncio.sleep(.1)
         finally:
+            if profile is not None:
+                profile.disable()
+                profile.dump_stats(output / "ui.pstats")
             for code in watched:
-                monitor.set_local_events(monitor.PROFILER_ID, code, 0)
-            monitor.free_tool_id(monitor.PROFILER_ID)
+                monitor.set_local_events(monitor_id, code, 0)
+            monitor.free_tool_id(monitor_id)
             running = False
             await sampler
         for group in roster.query(ChannelGroup):
