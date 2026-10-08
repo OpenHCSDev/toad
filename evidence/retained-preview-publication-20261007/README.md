@@ -65,3 +65,14 @@ The source sidebar App completed with zero provider inputs: left median 72.5 ms,
 right 62.7 ms; worst observed frame 236 ms. This is headless frame admission, not
 terminal-pixel or live smoothness acceptance. Prior runs had different widget
 counts, so these observations do not establish a matched causal speedup.
+
+The combined installed candidate passed both affected App checks (18.27 s),
+including exact retained source and warm identity. It also includes native113.
+The original installed sidebar App exited successfully with 518 widgets and no
+provider inputs: left median 115.0 ms / p95 144.8 ms / worst 261.4 ms; right
+77.6 / 92.4 / 134.8 ms. Latency remains unresolved. Installed logs:
+/home/ts/.cache/agent-scratch/sidebar-drag-hotpath-20261007/preceding-frame-installed.log
+/home/ts/.cache/agent-scratch/preceding-frame-sidebar-installed-20261008/app.log
+All 288 production and 417 test modules parsed without omissions; changed
+production modules compiled. Full69 source/RECORD verification matched 954 assets
+and 2857 RECORD entries.
