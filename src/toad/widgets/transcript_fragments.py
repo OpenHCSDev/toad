@@ -1,19 +1,18 @@
 """Render-sized transcript fragments; wire records and cursors remain model-owned."""
 
 import asyncio
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from functools import cached_property
 from collections.abc import Iterator
 from typing import TYPE_CHECKING
-from threading import local
 
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.transcript_events import (
     TranscriptEvent, TextTranscript, ContextTranscript, UserTranscript, MarkdownTranscript, ToolTranscript,
 )
-from markdown_it import MarkdownIt
 
 from toad.render_backend import ReusableRenderTask
+from toad.markdown_preparation import PreparedMarkdownPart
 from toad.acp.status import ToolCallStatus
 from toad.widgets.agent_activity import AgentActivityBoundary
 from toad.widgets.message_filter import event_category, keep_events
@@ -21,19 +20,6 @@ from toad.widgets.message_filter import event_category, keep_events
 if TYPE_CHECKING:
     from toad.render_backend import Renderer
     from toad.tool_output import ToolOutputPart
-
-class _FragmentParserState(local):
-    def __init__(self) -> None:
-        self.parser = MarkdownIt("gfm-like")
-
-
-_parser_state = _FragmentParserState()
-
-
-def _fragment_parser() -> MarkdownIt:
-    """Reuse parser machinery within one execution thread, never concurrently."""
-    return _parser_state.parser
-
 
 async def prepare_transcript_fragments(
     events: tuple[TranscriptEvent, ...], pool: "Renderer | None" = None,
@@ -63,38 +49,39 @@ class RenderBudget:
     def fits(self, text: str) -> bool:
         return len(text) <= self.characters and len(text.splitlines()) <= self.lines
 
-    def _split_table(self, text: str) -> Iterator[str]:
+    def _split_table(self, part: PreparedMarkdownPart) -> Iterator[PreparedMarkdownPart]:
         """Page a large GFM table by rows, repeating its required header."""
-        lines = text.splitlines(keepends=True)
+        lines = part.text.splitlines(keepends=True)
         if len(lines) <= 2:
-            yield text
+            yield part
             return
         header = "".join(lines[:2])
-        rows: list[str] = []
+        first = 2
         row_characters = 0
         row_limit = max(1, self.lines - 2)
         character_limit = max(self.characters, len(header) + 1)
-        for row in lines[2:]:
-            if rows and (
-                len(rows) >= row_limit
+        table = part.tokens[0]
+        assert table.map is not None
+        ranges = []
+        for index, row in enumerate(lines[2:table.map[1]], 2):
+            if index > first and (
+                index - first >= row_limit
                 or len(header) + row_characters + len(row) > character_limit
             ):
-                yield header + "".join(rows)
-                rows = []
+                ranges.append((first, index))
+                first = index
                 row_characters = 0
-            rows.append(row)
             row_characters += len(row)
-        if rows:
-            yield header + "".join(rows)
+        if first < len(lines):
+            ranges.append((first, len(lines)))
+        yield from part.select_table_rows(ranges)
 
-    def split(self, text: str) -> Iterator[str]:
+    def split(self, source: PreparedMarkdownPart) -> Iterator[PreparedMarkdownPart]:
+        text = source.text
         if not text:
             return
         if self.fits(text):
-            # No block can exceed either budget when the entire document fits.
-            # Return the unchanged source; there is no partition decision to
-            # parse, and normal Markdown rendering still handles its syntax.
-            yield text
+            yield source
             return
         lines = text.splitlines(keepends=True)
         offsets = [0]
@@ -105,43 +92,58 @@ class RenderBudget:
         # between top-level Markdown blocks so rendering never invents a line
         # break at an arbitrary provider-chunk or character boundary.
         blocks = {
-            token.map[0]: token.type
-            for token in _fragment_parser().parse(text)
+            token.map[0]: (index, token.type)
+            for index, token in enumerate(source.tokens)
             if token.level == 0 and token.map is not None
         }
         starts = sorted({0, *blocks, len(lines)})
-        parts: list[tuple[str, str | None]] = [
-            (text[offsets[start] : offsets[stop]], blocks.get(start))
+        parts = [
+            (start, stop, blocks.get(start, (0, None))[0],
+             blocks.get(stop, (len(source.tokens), None))[0], blocks.get(start, (0, None))[1])
             for start, stop in zip(starts, starts[1:])
         ]
-        pending = ""
+        pending_first = 0
+        pending_stop = 0
+        pending_token_first = 0
+        pending_token_stop = 0
+        pending_characters = 0
         pending_lines = 0
-        for part, kind in parts:
+        def select(first, stop, token_first, token_stop):
+            return source.select_blocks(text[offsets[first]:offsets[stop]], first,
+                                        slice(token_first, token_stop))
+
+        for start, stop, token_first, token_stop, kind in parts:
+            part = text[offsets[start]:offsets[stop]]
             if kind == "table_open" and (
                 len(part) > self.characters or part.count("\n") > self.lines
             ):
-                if pending:
-                    yield pending
-                    pending = ""
+                if pending_characters:
+                    yield select(pending_first, pending_stop, pending_token_first, pending_token_stop)
+                    pending_characters = 0
                     pending_lines = 0
-                yield from self._split_table(part)
+                yield from self._split_table(select(start, stop, token_first, token_stop))
                 continue
             part_lines = part.count("\n") + int(bool(part) and not part.endswith("\n"))
             exceeds = (
-                pending
+                pending_characters
                 and (
-                    len(pending) + len(part) > self.characters
+                    pending_characters + len(part) > self.characters
                     or pending_lines + part_lines > self.lines
                 )
             )
             if exceeds:
-                yield pending
-                pending = ""
+                yield select(pending_first, pending_stop, pending_token_first, pending_token_stop)
+                pending_characters = 0
                 pending_lines = 0
-            pending += part
+            if not pending_characters:
+                pending_first = start
+                pending_token_first = token_first
+            pending_stop = stop
+            pending_token_stop = token_stop
+            pending_characters += len(part)
             pending_lines += part_lines
-        if pending:
-            yield pending
+        if pending_characters:
+            yield select(pending_first, pending_stop, pending_token_first, pending_token_stop)
 
 
 @dataclass(frozen=True)
@@ -149,11 +151,13 @@ class TranscriptFragment:
     events: tuple[TranscriptEvent, ...]
     continuation: bool = False
     starts_agent_activity: bool = False
+    markdown_part: PreparedMarkdownPart | None = field(default=None, kw_only=True)
 
     def blocks(self, *, fragment: bool = False, show_divider: bool = True):
         from toad.widgets.transcript_history import TranscriptBlockConsumer
 
-        consumer = TranscriptBlockConsumer(fragment=fragment, show_divider=show_divider)
+        consumer = TranscriptBlockConsumer(fragment=fragment, show_divider=show_divider,
+                                           markdown_part=self.markdown_part)
         for event in self.events:
             consumer.dispatch_sync(event)
         return consumer.blocks
@@ -198,10 +202,11 @@ class TranscriptFragmentConsumer(MroDispatch):
     @handles(UserTranscript, MarkdownTranscript)
     def text(self, event: TextTranscript):
         starts_activity = self.boundary.observe(event_category(event)) if event.starts_activity else False
+        source = PreparedMarkdownPart.capture(event.text)
         self.fragments.extend(
-            TranscriptFragment((replace(event, text=part),), continuation=self.continuation or index > 0,
-                               starts_agent_activity=starts_activity and index == 0)
-            for index, part in enumerate(self.budget.split(event.text) if self.split_text else (event.text,))
+            TranscriptFragment((replace(event, text=part.text),), continuation=self.continuation or index > 0,
+                               starts_agent_activity=starts_activity and index == 0, markdown_part=part)
+            for index, part in enumerate(self.budget.split(source) if self.split_text else (source,))
         )
 
     @handles(ToolTranscript)
@@ -259,22 +264,23 @@ class TranscriptBodyPreparation(MroDispatch):
         for first in range(0, len(fragments), batch_size):
             if not keep_going():
                 return
-            await asyncio.gather(*(self.dispatch(event)
+            await asyncio.gather(*(self.dispatch(event, fragment.markdown_part)
                                    for fragment in fragments[first:first + batch_size]
                                    if self.selected is None or keep_events(fragment.events, self.selected)
                                    for event in fragment.events))
 
     @handles(TranscriptEvent)
-    async def undisclosed(self, event: TranscriptEvent) -> None:
+    async def undisclosed(self, event: TranscriptEvent, part: PreparedMarkdownPart | None) -> None:
         # Metadata and tool disclosure contents retain their existing lazy
         # owners. A viewport prediction does not open those disclosures.
         pass
 
-    @handles(MarkdownTranscript)
-    async def markdown(self, event: MarkdownTranscript) -> None:
+    @handles(UserTranscript, MarkdownTranscript)
+    async def markdown(self, event: TextTranscript, part: PreparedMarkdownPart | None) -> None:
         from toad.render_tasks import MarkdownRenderTask
 
-        await self.renderer.prepare(MarkdownRenderTask(event.text, self.ansi, self.dark))
+        await self.renderer.prepare(MarkdownRenderTask(part if part is not None else event.text,
+                                                      self.ansi, self.dark))
 
 
 @dataclass(frozen=True)

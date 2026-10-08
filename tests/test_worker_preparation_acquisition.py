@@ -385,9 +385,12 @@ def test_active_markdown_acquires_inline_content_off_ui(tmp_path, monkeypatch):
                 resources = tuple(markdown._prepared_markdown for markdown in
                                   body.query(PreparedConversationMarkdown)
                                   if markdown._prepared_markdown is not None)
-                assert resources and all(resource.inlines for resource in resources)
+                inline_contents = tuple(resource.inline_content(token)
+                                        for resource in resources for token in resource.tokens
+                                        if token.type == "inline")
+                assert resources and inline_contents
                 assert any(span.style.meta.get("@click", "")
-                           for resource in resources for content in resource.inlines.values()
+                           for content in inline_contents
                            for span in content.spans if not isinstance(span.style, str))
                 assert counts["ui_inline_conversions"] == 0
                 assert counts["worker_inline_conversions"] > 0

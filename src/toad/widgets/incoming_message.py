@@ -12,6 +12,7 @@ from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 from toad.widgets.committed_presentation import CommitParticipant, SequenceClaim
 from toad.widgets.wire_message_handling import WireMessageHandling
 from toad.widgets.message_notifications import MessageNotifications
+from toad.markdown_preparation import PreparedMarkdownPart
 
 
 
@@ -26,10 +27,12 @@ class IncomingMessage(WireMessageHandling, ConversationBlock, CommitParticipant,
     def commit_claim(self) -> SequenceClaim:
         return SequenceClaim(self.sequence)
 
-    def __init__(self, event: IncomingTranscript, *, show_header: bool = True) -> None:
+    def __init__(self, event: IncomingTranscript, *, show_header: bool = True,
+                 markdown_part: PreparedMarkdownPart | None = None) -> None:
         super().__init__()
         self.event = event
         self.show_header = show_header
+        self.markdown_part = markdown_part
 
     @property
     def message_reference(self):
@@ -46,7 +49,8 @@ class IncomingMessage(WireMessageHandling, ConversationBlock, CommitParticipant,
             yield MessageDivider(f"Inbound · @{self.event.route.sender}",
                                  clock=MessageClock.recorded(self.event.timestamp))
             yield RouteHeader(self.event.route, incoming=True)
-        yield AgentResponse(self.event.text, show_divider=False).add_class("routed-body")
+        yield AgentResponse(self.event.text, show_divider=False,
+                            markdown_part=self.markdown_part).add_class("routed-body")
         if self.handling_references:
             yield MessageNotifications()
 
