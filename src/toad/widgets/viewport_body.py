@@ -6,7 +6,7 @@ The window owns admission; documents implement their own retirement/restoration.
 """
 
 from contextlib import AsyncExitStack, ExitStack, asynccontextmanager
-from collections.abc import Awaitable, Callable, Coroutine
+from collections.abc import Awaitable, Callable, Coroutine, Iterator
 from collections import OrderedDict
 from functools import partial
 from weakref import WeakSet, ref
@@ -624,9 +624,10 @@ class BodyPaintCapture:
     so pruning does not keep the retired child widgets and resources alive.
     """
 
-    content: PreparedRichContent
+    size: Size
+    bands: Iterator[list[Strip]]
     sources: tuple[tuple[PreparedPaintSource, PreparedRichContent], ...]
-    bodies: tuple[ViewportBody, ...]
+    bodies: tuple[tuple[ViewportBody, BodyMeasurement], ...]
     style_revision: int
     geometry_revision: int
     paint_state: PaintState
@@ -637,17 +638,39 @@ class BodyPaintCapture:
                 and self.geometry_revision == body._geometry_revision
                 and all(owner.is_attached and owner.prepared_content is resource
                         for owner, resource in self.sources)
-                and all(owner.is_attached and owner.body_ready for owner in self.bodies))
+                and all(owner.is_attached and owner._body_measurement is resource
+                        and resource.ready(owner) for owner, resource in self.bodies))
 
-    async def prepare(self, body, current):
-        size_bytes = await body.app.preparation.run_thread(retained_bytes, self.content)
+    def prepare(self, body, current):
+        # A source writer starts as soon as this call returns. Drain its
+        # preceding pixels now, rather than leaving mutable native readers in
+        # the asynchronous byte-preparation task.
+        content = PreparedRichContent(self.size.width, tuple(
+            strip for band in self.bands for strip in band))
+        return self._prepare(body, current, content)
+
+    async def _prepare(self, body, current, content):
+        size_bytes = await body.app.preparation.run_thread(retained_bytes, content)
         return RenderedBody(
-            current.width, current.rows, self.widgets, content=self.content,
+            current.width, current.rows, self.widgets, content=content,
             resource_bytes=size_bytes, style_revision=self.style_revision, paint_state=self.paint_state,
         )
 
     async def retire(self, body, current, children):
-        rendered = await self.prepare(body, current)
+        rows = []
+        while True:
+            # Geometry is lent only inside next(). Input, source publication
+            # and ordinary frames use their own scene between these bands.
+            # Reacquire original lifetimes before every native read, including
+            # after the last yield; stale captures never reach pruning.
+            if not body.retirement_current(current) or not self.current(body):
+                return False
+            try:
+                rows.extend(next(self.bands))
+            except StopIteration:
+                break
+            await asyncio.sleep(0)
+        rendered = await self._prepare(body, current, PreparedRichContent(self.size.width, tuple(rows)))
         if not body.retirement_current(current) or not self.current(body) or not rendered.ready(body):
             return False
         async with body.retirement_custody() as can_commit:
@@ -828,8 +851,8 @@ class MeasuredViewportBody(ViewportBody):
         pass
 
     def retire_body(self):
-        # Acquire pixels synchronously. The viewport can capture its bounded
-        # cohort from one publication before any preparation or pruning awaits.
+        # Acquire geometry and resource witnesses synchronously. Retirement
+        # paints bands in its original task before byte preparation/pruning.
         return self._body_measurement.retire(self)
 
     @asynccontextmanager
@@ -872,25 +895,24 @@ class MeasuredViewportBody(ViewportBody):
             nonlocal sources, bodies
             sources = tuple((owner, owner.prepared_content) for owner in participants
                             if isinstance(owner, PreparedPaintSource))
-            bodies = tuple(owner for owner in participants
+            bodies = tuple((owner, owner._body_measurement) for owner in participants
                            if owner is not self and isinstance(owner, ViewportBody))
             if (any(resource is None for _, resource in sources)
-                    or any(not owner.body_ready for owner in bodies)):
+                    or any(not resource.ready(owner) for owner, resource in bodies)):
                 current.capture_preparation(self, tuple(dict.fromkeys(
-                    (*bodies, *(owner for owner, _ in sources)))))
+                    (*(owner for owner, _ in bodies), *(owner for owner, _ in sources)))))
                 return False
             return True
 
         native = compositor.render_subtree_strips(self, placement, admit=admit)
         if native is None:
             return None
-        size, rows = native
-        # Native capture already owns final styled terminal rows. Retain those
-        # rows directly; rendering them again in Rich workers duplicates work
-        # and serializes a resource that never leaves this process.
-        content = PreparedRichContent(size.width, tuple(rows))
+        size, bands = native
+        # Witnesses precede the first paint or await. Native bands already
+        # supply styled terminal rows; only detached byte accounting belongs
+        # in preparation workers, not another Rich rendering of those rows.
         return BodyPaintCapture(
-            content, sources, bodies, self._subtree_style_revision,
+            size, bands, sources, bodies, self._subtree_style_revision,
             self._geometry_revision, self._resolved_paint_state(), self.materialized_widget_count,
         )
 
@@ -1474,8 +1496,8 @@ class DocumentViewport:
                 retiring = retiring[:self.budget.admission_items]
                 retired_owners = []
                 for first in range(0, len(retiring), self.budget.admission_items):
-                    # Each call captures its original rows now; tasks only
-                    # prepare detached rows and validate/prune afterward.
+                    # Each call acquires the original geometry/resources now;
+                    # tasks paint with lifetime checks between native bands.
                     batch = retiring[first:first + self.budget.admission_items]
                     with ExitStack() as captures:
                         operations = []
