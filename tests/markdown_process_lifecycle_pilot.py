@@ -130,7 +130,7 @@ async def main():
                     assert isinstance(outcome[0], asyncio.CancelledError)
                     pool.complete(6)
                     await pilot.pause()
-                    assert not response.is_attached and not response._prepared_fences
+                    assert not response.is_attached and response._prepared_markdown is None
                     assert app._exception is None
     print("Markdown process lifecycle: theme, latest-source, append-after-supersession and cancellation-safe removal")
 

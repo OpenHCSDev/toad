@@ -20,7 +20,7 @@ from textual.widgets._markdown import Markdown, MarkdownBlock
 
 from toad.app import ToadApp
 from toad.conversation_markdown import ConversationCodeFence, ConversationMarkdown, _ThreadLocalPathParser
-from toad.markdown_preparation import FenceKey, PreparedFence
+from toad.markdown_preparation import PreparedMarkdown
 from toad.render_tasks import MarkdownRenderTask
 from toad.widgets.transcript_fragments import RenderBudget
 from toad.widgets.viewport_body import MeasuredViewportBody
@@ -96,7 +96,7 @@ class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
         id: str | None = None, classes: str | None = None,
         parser_factory: Callable[[], MarkdownIt] | None = None, open_links: bool = False,
     ) -> None:
-        self._prepared_fences: dict[FenceKey, PreparedFence] = {}
+        self._prepared_markdown: PreparedMarkdown | None = None
         factory = self._make_parser if parser_factory is None else parser_factory
         super().__init__(markdown, name=name, id=id, classes=classes,
                          parser_factory=factory, open_links=open_links)
@@ -107,7 +107,7 @@ class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
 
     def retire_body_resources(self) -> None:
         """Release reconstructible preparation with the native retirement."""
-        self._prepared_fences.clear()
+        self._prepared_markdown = None
 
     async def materialize_native_body(self) -> None:
         await self._update_body_source(self.source)
@@ -125,20 +125,35 @@ class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
         return super().append(markdown)
 
     def on_unmount(self) -> None:
-        self._prepared_fences.clear()
+        self._prepared_markdown = None
 
     async def _parse_tokens(
         self, parser: MarkdownIt | _ThreadLocalPathParser, markdown: str, *, use_thread: bool,
     ) -> list[Token] | None:
         # Custom parser factories retain their native semantics. This process
         # function implements the declaration-owned conversation/path parser.
-        if not isinstance(parser, _ThreadLocalPathParser):
-            return await super()._parse_tokens(parser, markdown, use_thread=use_thread)
-        if not isinstance(self.app, ToadApp):
-            return (await asyncio.to_thread(parser.parse, markdown)
-                    if use_thread else parser.parse(markdown))
-
         parent = self.parent
+        if not isinstance(parser, _ThreadLocalPathParser):
+            tokens = await super()._parse_tokens(parser, markdown, use_thread=use_thread)
+            if tokens is not None:
+                prepared = await asyncio.to_thread(
+                    PreparedMarkdown(tokens, {}).acquire_inline_content, tokens,
+                )
+                if self._closing or self._pruning or self.parent is not parent:
+                    return None
+                self._prepared_markdown = prepared
+            return tokens
+        if not isinstance(self.app, ToadApp):
+            tokens = (await asyncio.to_thread(parser.parse, markdown)
+                      if use_thread else parser.parse(markdown))
+            prepared = await asyncio.to_thread(
+                PreparedMarkdown(tokens, {}).acquire_inline_content, tokens,
+            )
+            if self._closing or self._pruning or self.parent is not parent:
+                return None
+            self._prepared_markdown = prepared
+            return tokens
+
         # Runway and delivery use the same pure preparation key. Filesystem
         # links are resolved only in each independent delivered token resource,
         # after highlighting; they never become reusable renderer inputs.
@@ -155,19 +170,35 @@ class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
             if (self._closing or not self.is_attached or self._pruning
                     or self.parent is not parent):
                 return None
-            tokens = await asyncio.to_thread(parser.resolve_tokens, prepared.tokens)
+            def acquire():
+                tokens = parser.resolve_tokens(prepared.tokens)
+                return prepared.acquire_inline_content(tokens)
+
+            prepared = await asyncio.to_thread(acquire)
+            tokens = prepared.tokens
             if (self._closing or not self.is_attached or self._pruning
                     or self.parent is not parent):
                 return None
             if theme != (self.app.native_ansi_color, self.app.current_theme.dark):
                 continue
-            self._prepared_fences = prepared.fences
+            self._prepared_markdown = prepared
             return tokens
         return None
 
     def _get_prepared_fence(self, code: str, language: str, ansi: bool, dark: bool) -> Content | None:
-        prepared = self._prepared_fences.get((code, language, ansi, dark))
+        resource = self._prepared_markdown
+        prepared = None if resource is None else resource.fences.get((code, language, ansi, dark))
         return None if prepared is None else prepared.content
+
+    def _get_token_content(self, token: Token, *, block: MarkdownBlock) -> Content:
+        # The native document owns this token cohort. Content was acquired
+        # with resolved links off-loop; no widget recomputes its source spans.
+        if type(block)._token_to_content is not MarkdownBlock._token_to_content:
+            # A custom block owns its converter, including any widget context.
+            # Its declared answer cannot be replaced by the native pure result.
+            return super()._get_token_content(token, block=block)
+        assert self._prepared_markdown is not None
+        return self._prepared_markdown.inlines[id(token)]
 
     def get_block_class(self, block_name: str) -> type[MarkdownBlock]:
         if block_name in {"fence", "code_block"}:

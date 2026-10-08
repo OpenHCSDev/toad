@@ -181,3 +181,173 @@ def test_tool_updates_leave_driver_input_available(tmp_path, monkeypatch):
             print(json.dumps(result), flush=True)
 
     asyncio.run(mounted())
+
+
+def test_active_markdown_acquires_inline_content_off_ui(tmp_path, monkeypatch):
+    """Actual LiveOutput, paged Markdown, native blocks and Driver input."""
+    import threading
+    import time
+    from textual import events
+    from textual.widgets._markdown import MarkdownBlock, MarkdownHeader, MarkdownTable
+    from toad.live_output import ResponseStream
+    from viewport_recent_tabs_pilot import settled
+    from sidebar_retirement_pilot import viewport_text
+    from toad.widgets.prepared_markdown import PreparedConversationMarkdown
+
+    async def mounted():
+        project = tmp_path / "project"
+        project.mkdir()
+        (project / "source.py").write_text("value = 1\n")
+        service = Comms(tmp_path / "wire")
+        service.messaging.initialize_private_initial_protocol()
+        for key in tuple(os.environ):
+            if key.startswith("AGENT_COMMS_"):
+                monkeypatch.delenv(key)
+        for key, value in {"AGENT_COMMS_ROOT": service.root,
+                           "XDG_CONFIG_HOME": tmp_path / "config",
+                           "XDG_STATE_HOME": tmp_path / "state",
+                           "XDG_DATA_HOME": tmp_path / "data"}.items():
+            monkeypatch.setenv(key, str(value))
+        app = ToadApp(project_dir=str(project))
+        async with app.run_test(size=(110, 35)) as pilot:
+            await app.selected_session.wait_content_ready()
+            view = app.selected_session.conversation
+            editor = view.prompt.prompt_text_area
+            editor.focus(scroll_visible=False)
+            counts = {"ui_inline_conversions": 0, "worker_inline_conversions": 0}
+            main_thread = threading.get_ident()
+            conversion = MarkdownBlock._token_to_content.__code__
+
+            def trace(frame, event, argument):
+                if event == "call" and frame.f_code is conversion:
+                    key = ("ui_inline_conversions" if threading.get_ident() == main_thread
+                           else "worker_inline_conversions")
+                    counts[key] += 1
+
+            chunks = ["# Original heading 界\n\n"]
+            chunks += [
+                (f"## Update {index}\n\n" +
+                 "An **original** *styled* `value` with [project source](source.py). " * 20 +
+                 "\n\n| Original header | Native value |\n| --- | --- |\n" +
+                 f"| row {index} | **界** [source](source.py) |\n\n")
+                for index in range(4)
+            ]
+            async def updates():
+                body = None
+                for chunk in chunks:
+                    body = await view.output.append(ResponseStream(turn_id="private-source-update"), chunk)
+                    await asyncio.sleep(.03)
+                await view.output.finish(ResponseStream)
+                return body
+
+            threading.setprofile_all_threads(trace)
+            started = time.monotonic()
+            try:
+                changing = asyncio.create_task(updates())
+                def input():
+                    for key in "active draft":
+                        app._driver.process_message(events.Key(key, key))
+                        time.sleep(.01)
+                await asyncio.to_thread(input)
+                async with asyncio.timeout(20):
+                    while editor.text != "active draft":
+                        await asyncio.sleep(.005)
+                input_ms = (time.monotonic() - started) * 1000
+                body = await asyncio.wait_for(changing, 20)
+                async with asyncio.timeout(20):
+                    while not body.body_ready:
+                        await pilot.pause(.02)
+                assert body.source == "".join(chunks)
+                assert body._paged is not None
+                headings = tuple(body.query(MarkdownHeader))
+                tables = tuple(body.query(MarkdownTable))
+                assert headings and tables
+                assert any("Update" in heading._content.plain for heading in headings)
+                assert any("Original header" in cell.plain
+                           for table in tables for cell in table._headers)
+                resources = tuple(markdown._prepared_markdown for markdown in
+                                  body.query(PreparedConversationMarkdown)
+                                  if markdown._prepared_markdown is not None)
+                assert resources and all(resource.inlines for resource in resources)
+                assert any(span.style.meta.get("@click", "")
+                           for resource in resources for content in resource.inlines.values()
+                           for span in content.spans if not isinstance(span.style, str))
+                assert counts["ui_inline_conversions"] == 0
+                assert counts["worker_inline_conversions"] > 0
+            finally:
+                threading.setprofile_all_threads(None)
+            await settled(pilot, view)
+            window = view.window
+            region = window.scrollable_content_region
+            offset = region.offset + (region.width // 2, region.height // 2)
+            before_paint = viewport_text(window)
+            assert before_paint.strip()
+            for _ in range(4):
+                await pilot._post_mouse_events([events.MouseScrollUp], offset=offset)
+            await pilot.wait_for_scheduled_animations()
+            await settled(pilot, view)
+            up_paint = viewport_text(window)
+            assert up_paint.strip() and up_paint != before_paint
+            assert not window.follows_tail
+            for _ in range(2):
+                await pilot._post_mouse_events([events.MouseScrollDown], offset=offset)
+            await pilot.wait_for_scheduled_animations()
+            await settled(pilot, view)
+            reverse_paint = viewport_text(window)
+            assert reverse_paint.strip() and reverse_paint != up_paint
+            assert editor.text == "active draft"
+            assert app._exception is None
+            result = dict(counts, driver_input_ms=input_ms, source_characters=len(body.source),
+                          heading_table_links=True, wheel_reversal_draft=True, provider_inputs=0,
+                          scope="source App/LiveOutput/paged native admission; no ACP transport/provider")
+            (tmp_path / "markdown-update-result.json").write_text(json.dumps(result) + "\n")
+            print(json.dumps(result), flush=True)
+
+    asyncio.run(mounted())
+
+
+def test_custom_markdown_block_keeps_its_bound_conversion(tmp_path, monkeypatch):
+    """A native extension may depend on its actual document and block identity."""
+    from toad.widgets.prepared_markdown import PreparedConversationMarkdown, PreparedParagraph
+    from toad.widgets.agent_response import AgentResponse
+
+    class OwnedParagraph(PreparedParagraph):
+        def _token_to_content(self, token):
+            return Content(f"{self._markdown.id}: {token.content}")
+
+    class OwnedMarkdown(AgentResponse):
+        BLOCKS = {**PreparedConversationMarkdown.BLOCKS, "paragraph_open": OwnedParagraph}
+
+    async def mounted():
+        project = tmp_path / "project"
+        project.mkdir()
+        service = Comms(tmp_path / "wire")
+        service.messaging.initialize_private_initial_protocol()
+        for key in tuple(os.environ):
+            if key.startswith("AGENT_COMMS_"):
+                monkeypatch.delenv(key)
+        for key, value in {"AGENT_COMMS_ROOT": service.root,
+                           "XDG_CONFIG_HOME": tmp_path / "config",
+                           "XDG_STATE_HOME": tmp_path / "state",
+                           "XDG_DATA_HOME": tmp_path / "data"}.items():
+            monkeypatch.setenv(key, str(value))
+        app = ToadApp(project_dir=str(project))
+        async with app.run_test(size=(110, 35)) as pilot:
+            await app.selected_session.wait_content_ready()
+            document = OwnedMarkdown("Original source", paginate=False)
+            document.id = "original-document"
+            await app.selected_session.conversation.post(document)
+            await document.update("Original source")
+            paragraph = document.query_one(OwnedParagraph)
+            await asyncio.wait_for(paragraph.wait_ready(), 20)
+            assert paragraph._content.plain == "original-document: Original source"
+            assert paragraph.prepared_content.original_text == paragraph._content.plain
+            await document.update("Changed source")
+            paragraph = document.query_one(OwnedParagraph)
+            await asyncio.wait_for(paragraph.wait_ready(), 20)
+            assert paragraph._content.plain == "original-document: Changed source"
+            assert paragraph.prepared_content.original_text == paragraph._content.plain
+            assert app._exception is None
+        print("Real native App preserved custom bound converter across source replacement", flush=True)
+
+    asyncio.run(mounted())
