@@ -25,6 +25,19 @@ from textual.visual import RenderOptions
 RichColorSystem = Literal["auto", "standard", "256", "truecolor", "windows"]
 
 
+class PreparedPaintSource:
+    """Native paint which may be borrowed after its original publication.
+
+    A missing resource keeps live layout available but forbids retaining a
+    provisional preview. Capture borrows the resource identity; its owner
+    remains responsible for source, style, width and publication currentness.
+    """
+
+    @property
+    def prepared_content(self) -> PreparedRichContent | None:
+        raise NotImplementedError
+
+
 class RichSource(ABC):
     """Picklable data which materializes Rich or native content in the worker."""
 

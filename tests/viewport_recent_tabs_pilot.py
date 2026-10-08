@@ -16,6 +16,7 @@ from l0a_native_installed_pilot import main as native_fixture, until
 from native_session_retention_pilot import InstalledApp, conversation_paint
 from toad.screens.main import MainScreen
 from textual.widget import Widget
+from textual.walk import walk_depth_first
 from textual.geometry import Region
 from textual.widgets._markdown import MarkdownBlock
 from toad.widgets.prepared_markdown import PreparedConversationMarkdown
@@ -197,7 +198,7 @@ class ReaderCheckpoint:
                 "ready": body.body_ready, "dormant": body.body_dormant,
                 "visible": body in app.screen._compositor.visible_widgets,
                 "children": len(body.children),
-            } for body in view.query(MeasuredViewportBody)],
+            } for body in walk_depth_first(view, MeasuredViewportBody)],
             "visible_text_resources": [{"type": type(body).__name__,
                                         "resource": type(resource).__name__}
                                        for body, resource in

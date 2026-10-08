@@ -14,6 +14,7 @@ from textual.css.query import NoMatches
 from textual import containers
 from textual.widgets import Static
 from textual.widget import Widget
+from textual.walk import walk_depth_first
 
 from toad.app import ToadApp
 from toad.tool_output import ToolOutput, ToolOutputPart
@@ -31,7 +32,7 @@ from toad.widgets.committed_presentation import SnapshotPresentation
 from toad.layout import trim_trailing_margin
 from textual.layout import WidgetPlacement
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
-from toad.widgets.viewport_body import MeasuredViewportBody, MeasuredBody
+from toad.widgets.viewport_body import MeasuredViewportBody
 from toad.widgets.worker_static import WorkerStatic
 from textual.await_complete import AwaitComplete
 
@@ -46,31 +47,11 @@ class ToolContent(MeasuredViewportBody, containers.VerticalGroup):
 
     def native_body_ready(self) -> bool:
         return (super().native_body_ready()
-                and all(worker.paint_ready for worker in self.query(WorkerStatic)))
+                and all(worker.paint_ready for worker in
+                        walk_depth_first(self, WorkerStatic, with_root=False)))
 
     def reconstructible_children(self) -> tuple[Widget, ...]:
         return tuple(self.children)
-
-    def capture_native_paint(self, current):
-        # Live layout may show a loading preview so its worker can acquire
-        # native geometry. Retirement must retain the finished source instead.
-        workers = tuple(self.query(WorkerStatic))
-        resources = tuple(worker.prepared_content for worker in workers)
-        unprepared = MeasuredBody(current.width, current.rows, current.widgets)
-        if any(resource is None for resource in resources):
-            return unprepared.prepare_publication(self)
-        paint = super().capture_native_paint(current)
-
-        async def captured():
-            rendered = await paint
-            # Byte measurement joins asynchronously. A new source, width or
-            # style request cannot retire children using the preceding paint.
-            if any(worker.prepared_content is not resource
-                   for worker, resource in zip(workers, resources)):
-                return unprepared
-            return rendered
-
-        return captured()
 
     def retire_body_resources(self) -> None:
         self.output.retire()
