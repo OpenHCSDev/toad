@@ -9,7 +9,7 @@ from textual.widgets import PreparedTextArea
 
 from toad.render_backend import ReusableRenderTask
 
-from toad.markdown_preparation import PreparedMarkdown, prepare_tokens
+from toad.markdown_preparation import PreparedMarkdown, PreparedMarkdownPart, prepare_tokens
 from toad.widgets.patch_diff import PreparedPatch, prepare_patch
 from toad.rich_preparation import (
     PreparedRichContent,
@@ -65,6 +65,26 @@ class MarkdownRenderTask(ReusableRenderTask[PreparedMarkdown]):
     def accept_result(self, result: object) -> PreparedMarkdown:
         if not isinstance(result, PreparedMarkdown):
             raise TypeError("Markdown renderer returned an invalid result")
+        return result
+
+
+@dataclass(frozen=True)
+class MarkdownPartsTask(ReusableRenderTask[tuple[PreparedMarkdownPart, ...]]):
+    """Partition one original message with the shared Markdown block budget."""
+
+    source: str
+
+    def execute(self) -> tuple[PreparedMarkdownPart, ...]:
+        from toad.widgets.transcript_fragments import RenderBudget
+
+        parts = tuple(PreparedMarkdownPart(text) for text in RenderBudget().split(self.source))
+        for part in parts:
+            part.retained_bytes
+        return parts
+
+    def accept_result(self, result: object) -> tuple[PreparedMarkdownPart, ...]:
+        if not isinstance(result, tuple) or not all(isinstance(part, PreparedMarkdownPart) for part in result):
+            raise TypeError("Markdown renderer returned invalid source parts")
         return result
 
 

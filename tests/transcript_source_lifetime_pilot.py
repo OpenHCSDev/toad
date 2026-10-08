@@ -57,10 +57,7 @@ async def main():
 
             await ready(short)
             await ready(paged)
-            assert paged._paged is not None
-            async with asyncio.timeout(10):
-                while not paged._paged.checkpoint_available:
-                    await pilot.pause(.02)
+            assert paged.fragments and paged.fragment_views
             for body in (short, paged):
                 await ready(body)
                 paragraph = body.query(MarkdownParagraph).first()
@@ -76,19 +73,20 @@ async def main():
                 body.loading = False
                 native_prefix = body._prefix
                 source = body.source
-                old_pager = body._paged
-                admission = old_pager.pages[0].capture_admission() if old_pager is not None else None
+                previous_parts = body.fragment_views
+                admission = (body.start, body.stop) if previous_parts else None
                 assert await body.retire_body()
-                assert body.body_dormant and body._paged is None
+                assert body.body_dormant and not body.fragment_views
                 assert all(prefix in body.children for prefix in native_prefix)
                 assert not await body.retire_body(), 'A retired native body admitted retirement twice'
                 await body.restore_body()
                 await ready(body)
                 assert body.source == source and all(prefix in body.children for prefix in native_prefix)
-                if old_pager is not None:
-                    assert not old_pager.is_attached and body._paged is not old_pager
-                    assert body._paged.pages[0].capture_admission() == admission
-                receipt['paged_retirement_restore' if old_pager is not None
+                if previous_parts:
+                    assert all(not part.is_attached for part in previous_parts)
+                    assert all(part not in previous_parts for part in body.fragment_views)
+                    assert (body.start, body.stop) == admission
+                receipt['paged_retirement_restore' if previous_parts
                         else 'ordinary_retirement_restore'] = True
             await short.remove()
             await paged.remove()

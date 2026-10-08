@@ -372,7 +372,7 @@ def test_active_markdown_acquires_inline_content_off_ui(tmp_path, monkeypatch):
                     while not body.body_ready:
                         await pilot.pause(.02)
                 assert body.source == "".join(chunks)
-                assert body._paged is not None
+                assert body.fragments and body.fragment_views
                 headings = tuple(body.query(MarkdownHeader))
                 tables = tuple(body.query(MarkdownTable))
                 assert headings and tables
@@ -551,7 +551,10 @@ def test_paged_nested_markdown_publishes_visible_preparation(tmp_path, monkeypat
                 while not document.body_ready:
                     await pilot.pause(.02)
             ready_ms = (time.monotonic() - started) * 1000
-            assert document._paged is not None
+            assert document.fragments and document.fragment_views
+            from toad.widgets.transcript_history import TranscriptHistory
+            assert not tuple(walk_depth_first(document, TranscriptHistory, with_root=False))
+            assert not tuple(walk_depth_first(document, AgentResponse, with_root=False))
             window = view.window
             window.release_anchor()
             window.scroll_home(animate=False, immediate=True)

@@ -6,30 +6,25 @@ import asyncio
 from collections.abc import Callable
 from functools import partial
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING
 
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
-from agent_comms.transcript_events import AssistantTranscript
 from textual.await_complete import AwaitComplete
 from textual.widgets.markdown import MarkdownStream
 from textual.widget import Widget
 from textual.app import ComposeResult
 
-from toad.widgets.prepared_markdown import PreparedConversationMarkdown
+from toad.widgets.prepared_markdown import PreparedContentRange, PreparedConversationMarkdown
 from toad.widgets.committed_presentation import SnapshotPresentation
 from toad.conversation_markdown import _ThreadLocalPathParser
-from toad.widgets.transcript_fragments import prepare_transcript_fragments
+from toad.render_tasks import MarkdownPartsTask, MarkdownRenderTask
+from toad.markdown_preparation import PreparedMarkdownPart
+from toad.widgets.transcript_fragments import RenderBudget
+from toad.widgets.presentation_window import PresentationBudget, protected_presentations
+from toad.widgets.viewport_body import MaterializingBody
 
-if TYPE_CHECKING:
-    from toad.widgets.transcript_history import TranscriptHistory
-
-
-class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
-    RICH_TEXT_LIMIT = 1200
-    TRANSCRIPT_EVENT = AssistantTranscript
+class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConversationMarkdown):
 
     def __init__(self, markdown: str | None = None, *, paginate: bool = True,
                  prefix: tuple[Widget, ...] = (), **kwargs) -> None:
@@ -37,8 +32,7 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
         self._prefix = prefix
         super().__init__(markdown, **kwargs)
         self._stream: MarkdownStream | None = None
-        self._paged: TranscriptHistory | None = None
-        self._dormant_page_range: tuple[int, int] | None = None
+        self.budget = PresentationBudget()
         self._content_lock = asyncio.Lock()
         self._content_generation = 0
         self._pending_source: str | None = None
@@ -47,8 +41,24 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
     def compose(self) -> ComposeResult:
         yield from self._prefix
 
-    def uses_paged_source(self, source: str) -> bool:
-        return self._paginate and (self._paged is not None or len(source) > self.RICH_TEXT_LIMIT)
+    def _body(self, fragment: PreparedMarkdownPart) -> PreparedConversationMarkdown:
+        return PreparedConversationMarkdown(fragment.text, classes="-message-fragment")
+
+    @property
+    def retained_source_bytes(self) -> int:
+        return sum(part.retained_bytes for part in self.fragments)
+
+    def capture_admission(self):
+        return self._content_generation, self.start, self.stop
+
+    async def _prepare_parts(self, parts, current: Callable[[], bool]) -> bool:
+        for first in range(0, len(parts), self.batch_size):
+            if not current():
+                return False
+            await asyncio.gather(*(self.app.render_processes.prepare(MarkdownRenderTask(
+                part.text, self.app.native_ansi_color, self.app.current_theme.dark,
+            )) for part in parts[first:first + self.batch_size]))
+        return current()
 
     async def materialize_native_body(self) -> None:
         await self._update_content(self.source, append=False)
@@ -64,16 +74,10 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
     def reconstructible_children(self) -> tuple[Widget, ...]:
         if self._stream is not None or self._content_lock.locked():
             return ()
-        return ((self._paged,) if self._paged is not None
-                else super().reconstructible_children())
+        return self.fragment_views or super().reconstructible_children()
 
     def retire_body_resources(self) -> None:
-        if self._paged is not None:
-            # One immutable synthetic source page owns its admitted range.
-            # Retain that reconstruction resource, never its removed widgets.
-            page = self._paged.pages[0]
-            self._dormant_page_range = page.start, page.stop
-            self._paged = None
+        self._fragment_views = ()
         super().retire_body_resources()
 
     def update(self, markdown: str) -> AwaitComplete:
@@ -116,18 +120,20 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
 
     async def _publish_content(self, source: str, text: str, append: bool,
                                is_current: Callable[[], bool]) -> None:
-        from toad.widgets.transcript_history import TranscriptHistory
-
         async with self._content_lock:
             if not is_current():
                 return
-            if source != self.source:
-                self._dormant_page_range = None
             if self.body_dormant:
-                # Streaming can resume on a previously cold message. Rebuild
-                # its complete source before allowing the incremental tail path.
                 self._needs_full_markdown_update = True
-            if not self.uses_paged_source(source):
+            fragments = (await self.app.render_processes.submit(MarkdownPartsTask(source))
+                         if self._paginate and not RenderBudget().fits(source) else ())
+            if not is_current():
+                return
+            if len(fragments) <= 1:
+                if self.fragments:
+                    await self.remove_children(self.fragment_views)
+                    self.fragments, self._fragment_views = (), ()
+                    self.start = self.stop = 0
                 if append and self.source + text == source and not self._needs_full_markdown_update:
                     await self._append_body_source(text)
                 else:
@@ -135,37 +141,101 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
                 if is_current():
                     self._needs_full_markdown_update = False
                 return
-            cursor = TranscriptCursor("", 0)
-            page = TranscriptPage(
-                (self.TRANSCRIPT_EVENT(source),),
-                cursor, cursor, False, False,
-            )
-            fragments = await prepare_transcript_fragments(
-                page.events, getattr(self.app, "render_processes", None),
-                continuation=True,
-            )
-            if not is_current():
-                return
-            if self._paged is None:
-                history = TranscriptHistory(page, fragments=fragments)
-                if self._dormant_page_range is not None:
-                    start, stop = self._dormant_page_range
-                    history.pages[0].start, history.pages[0].stop = start, stop
-                await history.prepare_body(is_current)
-                if not is_current():
-                    return
-                self._markdown = source
-                self.loading = False
-                await self.remove_children(child for child in self.children if child not in self._prefix)
-                if not is_current():
-                    return
-                self._paged = history
-                self._dormant_page_range = None
-                await self.mount(self._paged)
+            from toad.widgets.history_anchor import HistoryWindow
+
+            window = self.query_ancestor(HistoryWindow)
+            if self.fragments and source == self.source:
+                selected = slice(self.start, self.stop)
+            elif self.fragments:
+                selected = self.update_slice(fragments, window.follows_tail)
             else:
+                selected = self.initial_slice(fragments, self.batch_size, True)
+            if not await self._prepare_parts(fragments[selected], is_current):
+                return
+            previous = {self.start + index: child
+                        for index, child in enumerate(self.fragment_views)}
+            for index, child in previous.items():
+                if not is_current():
+                    return
+                if selected.start <= index < selected.stop and child.source != fragments[index].text:
+                    await child.update(fragments[index].text)
+            async with window.preserve_history(None):
+                if not is_current():
+                    return
+                if not self.fragments:
+                    await self.remove_children(child for child in self.children if child not in self._prefix)
+                if not await self.replace_range(
+                    fragments, selected, previous, is_current, prefix=self._prefix,
+                ):
+                    return
                 self._markdown = source
                 self.loading = False
-                await self._paged.update_live(page, fragments=fragments, is_current=is_current)
+
+    async def prepare_visible_source(self) -> bool:
+        if (not self.fragments or not self.is_attached or self._closing
+                or self.body_dormant or self._content_lock.locked()
+                or isinstance(self._body_measurement, MaterializingBody)
+                or not self.screen.is_current):
+            return False
+        geometry = self.screen._compositor.visible_widgets.get(self)
+        if geometry is None:
+            return False
+        from toad.widgets.history_anchor import HistoryWindow
+
+        window = self.query_ancestor(HistoryWindow)
+        region, _clip = geometry
+        distance = window.document_viewport.lookahead.ahead_rows(window.size.height)
+        admission = self.capture_admission()
+        if window.follows_tail and self.stop < len(self.fragments):
+            await self.publish_body(partial(self._admit_range, False, latest=True))
+        elif self.start > 0 and region.y >= window.content_region.y - distance:
+            await self.publish_body(partial(self._admit_range, True))
+        elif self.stop < len(self.fragments) and region.bottom <= window.content_region.bottom + distance:
+            await self.publish_body(partial(self._admit_range, False))
+        return self.capture_admission() != admission
+
+    async def _admit_range(self, older: bool, *, latest: bool = False) -> None:
+        from toad.widgets.history_anchor import HistoryWindow
+
+        async with self._content_lock:
+            window = self.query_ancestor(HistoryWindow)
+            admission = self.capture_admission()
+            parent = self.parent
+            demand = window.document_viewport.lookahead.demand
+            def current():
+                return (self.is_attached and not self._closing and self.parent is parent
+                        and self.capture_admission() == admission and self.screen.is_current
+                        and window.document_viewport.lookahead.accepts(demand)
+                        and (not latest or window.follows_tail))
+            selected = (self.initial_slice(self.fragments, self.batch_size, True) if latest
+                        else self.extension_slice(older))
+            if not await self._prepare_parts(self.fragments[selected], current):
+                return
+            async with window.preserve_history(None):
+                if not current():
+                    return
+                if latest:
+                    previous = {self.start + index: child
+                                for index, child in enumerate(self.fragment_views)}
+                    if not await self.replace_range(
+                        self.fragments, selected, previous, current, prefix=self._prefix,
+                    ):
+                        return
+                elif not await self.extend(older, current):
+                    return
+                visible = self.screen._compositor.visible_widgets
+                protected = protected_presentations(self.fragment_views, self.screen._interaction_widgets())
+                protected.update(child for child in self.fragment_views if child in visible)
+                limit = self.budget.item_limit(len(protected))
+                excess = len(self.fragment_views) - limit
+                ordered = self.fragment_views if not older else tuple(reversed(self.fragment_views))
+                removable = 0
+                for child in ordered:
+                    if removable == max(0, excess) or child in protected:
+                        break
+                    removable += 1
+                if removable:
+                    self.trim(removable, older=not older)
 
     @property
     def stream(self) -> MarkdownStream:

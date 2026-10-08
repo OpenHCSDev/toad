@@ -3,7 +3,6 @@ from toad.block_navigation import ConversationBlock
 
 from toad.widgets.message_filter import ThinkingCategory
 
-from agent_comms.transcript_events import ThinkingTranscript
 from typing import ClassVar
 
 from textual.binding import Binding, BindingType
@@ -57,7 +56,6 @@ class AgentThought(ConversationBlock, CategorizedBlock, StreamingMarkdown, can_f
     }
     """
 
-    TRANSCRIPT_EVENT = ThinkingTranscript
 
     @property
     def message_category(self) -> type[MessageCategory]:

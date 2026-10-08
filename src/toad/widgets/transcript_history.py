@@ -36,6 +36,7 @@ from toad.transcript_preparation import (
     ProjectedTranscriptSource,
 )
 from toad.response_delivery import ResponseDelivery
+from toad.widgets.prepared_markdown import PreparedContentRange
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.tool_call import ToolCall
@@ -55,11 +56,8 @@ from toad.widgets.transcript_fragments import (
 if TYPE_CHECKING:
     from toad.widgets.history_anchor import HistoryWindow
 
-
-
 class _PublicationRetired(Exception):
     """Unwind an anchor transaction whose source owner no longer publishes."""
-
 
 class TranscriptBlockConsumer(MroDispatch):
     def __init__(self, *, fragment: bool, show_divider: bool):
@@ -106,7 +104,6 @@ def transcript_blocks(events: tuple[TranscriptEvent, ...], *, fragment: bool = F
     return [block for source in transcript_fragments(events, split_text=fragment)
             for block in source.blocks(fragment=fragment, show_divider=show_divider)]
 
-
 class HistoryEdge(Static, can_focus=True):
     DEFAULT_CSS = "HistoryEdge { height: 1; color: $text-muted; pointer: pointer; }"
     BINDINGS = [("enter,space", "earlier", "Earlier history")]
@@ -122,7 +119,6 @@ class HistoryEdge(Static, can_focus=True):
             event.stop()
             self.action_earlier()
 
-
 class JumpToLatest(Static, can_focus=True):
     BINDINGS = [("enter,space", "jump", "Jump to latest")]
     DEFAULT_CSS = "JumpToLatest { height: 1; color: $text-secondary; pointer: pointer; }"
@@ -136,7 +132,6 @@ class JumpToLatest(Static, can_focus=True):
     def on_click(self, event: events.Click) -> None:
         event.stop()
         self.action_jump()
-
 
 class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGroup):
     # A sibling/page mutation invalidates the outer Window, but unchanged
@@ -215,7 +210,6 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
                 return
         await self.recompose()
 
-
 @dataclass(frozen=True)
 class TranscriptPageAdmission:
     """A measured page's admitted range, without retaining its rich widgets."""
@@ -224,29 +218,18 @@ class TranscriptPageAdmission:
     start: int
     stop: int
 
-
-class TranscriptPageView(VerticalGroup):
+class TranscriptPageView(PreparedContentRange, VerticalGroup):
     CACHE_SUBTREE_GEOMETRY = True
-    BATCH = 4
 
     def __init__(self, page: TranscriptPage, *, newest: bool = True,
                  fragments: tuple[TranscriptFragment, ...] | None = None,
-                 batch_size: int = BATCH):
-        super().__init__()
-        if type(batch_size) is not int or batch_size < 1:
-            raise ValueError("batch_size must be a positive integer")
-        self.batch_size = batch_size
+                 batch_size: int = PreparedContentRange.BATCH):
         self.page = page
-        self.fragments = transcript_fragments(page.events) if fragments is None else fragments
-        selected = self.initial_slice(self.fragments, self.batch_size, newest)
-        self.start, self.stop = selected.start, selected.stop
         self.visible_categories = all_categories()
-        self._fragment_views: tuple[TranscriptFragmentView, ...] = ()
-
-    @staticmethod
-    def initial_slice(fragments, batch_size: int, newest: bool) -> slice:
-        start = max(0, len(fragments) - batch_size) if newest else 0
-        return slice(start, min(len(fragments), start + batch_size))
+        super().__init__(
+            fragments=transcript_fragments(page.events) if fragments is None else fragments,
+            batch_size=batch_size, newest=newest,
+        )
 
     def _body(self, fragment: TranscriptFragment) -> TranscriptFragmentView:
         return TranscriptFragmentView(fragment, self.visible_categories)
@@ -268,34 +251,10 @@ class TranscriptPageView(VerticalGroup):
             yield view
             acquisition.pop_all()
 
-    def compose(self) -> ComposeResult:
-        self._fragment_views = tuple(self._body(fragment)
-                                     for fragment in self.fragments[self.start:self.stop])
-        yield from self._fragment_views
-
-    @property
-    def fragment_views(self) -> tuple[TranscriptFragmentView, ...]:
-        """Committed source resources, distinct from native mounting/pruning custody."""
-        return self._fragment_views
-
-    def on_unmount(self) -> None:
-        self._fragment_views = ()
-
     def capture_admission(self) -> TranscriptPageAdmission:
         return TranscriptPageAdmission(
             CommittedInterval(self.page.before, self.page.after), self.start, self.stop,
         )
-
-    def extension_slice(self, older: bool) -> slice:
-        """One source range feeds detached preparation and native admission."""
-        return (slice(max(0, self.start - self.batch_size), self.start) if older
-                else slice(self.stop, min(len(self.fragments), self.stop + self.batch_size)))
-
-    def update_slice(self, fragments: tuple[TranscriptFragment, ...], follow: bool) -> slice:
-        if follow:
-            return self.initial_slice(fragments, self.batch_size, True)
-        stop = min(self.stop, len(fragments))
-        return slice(min(self.start, stop), stop)
 
     def restore_admission(self, admission: TranscriptPageAdmission) -> None:
         # Positions refer to this immutable native interval, not to whatever
@@ -313,37 +272,6 @@ class TranscriptPageView(VerticalGroup):
         """Warm unmounted source leaves beside this page's actual admission."""
         fragments = demand.neighbors(self.fragments, self.start, self.stop, count)
         await preparation.prepare_fragments(fragments, keep_going, batch_size=self.batch_size)
-
-    async def extend(self, older: bool, current: Callable[[], bool]) -> None:
-        admission = self.capture_admission()
-        selected = self.extension_slice(older)
-        added = tuple(self._body(fragment) for fragment in self.fragments[selected])
-        previous = self.fragment_views
-        with ExitStack() as acquisition:
-            if added:
-                acquisition.callback(self.remove_children, added)
-                await self.mount_all(added, before=previous[0] if older and previous else None)
-            if not current() or self.capture_admission() != admission:
-                raise _PublicationRetired
-            self._fragment_views = (*added, *previous) if older else (*previous, *added)
-            if older:
-                self.start = selected.start
-            else:
-                self.stop = selected.stop
-            acquisition.pop_all()
-
-    def trim(self, count: int, *, older: bool) -> None:
-        bodies = self.fragment_views
-        boundary = count if older else len(bodies) - count
-        retired = bodies[:boundary] if older else bodies[boundary:]
-        self._fragment_views = bodies[boundary:] if older else bodies[:boundary]
-        if older:
-            self.start += count
-        else:
-            self.stop -= count
-        # Native scene retirement is synchronous; its completion belongs to
-        # AwaitRemove, not this source's admission lock or compensated layout.
-        self.remove_children(retired)
 
     async def update_fragments(
         self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...], selected: slice,
@@ -370,24 +298,13 @@ class TranscriptPageView(VerticalGroup):
             if not current() or self.capture_admission() != admission:
                 return False
             async with window.preserve_history(None, root=self):
-                ordered = tuple(previous[index] if index in previous else self._body(fragments[index])
-                                for index in range(start, stop))
-                added = tuple(child for child in ordered if child not in previous.values())
-                with ExitStack() as acquisition:
-                    if added:
-                        acquisition.callback(self.remove_children, added)
-                        await self.mount_all(added)
-                    if not current() or self.capture_admission() != admission:
-                        return False
-                    self.page, self.fragments = page, fragments
-                    self.start, self.stop = start, stop
-                    self._fragment_views = ordered
-                    rank = {child: index for index, child in enumerate(ordered)}
-                    self.sort_children(key=lambda child: rank.get(child, len(rank)))
-                    acquisition.pop_all()
-                self.remove_children(tuple(child for child in previous.values() if child not in rank))
+                if not await self.replace_range(
+                    fragments, selected, previous,
+                    lambda: current() and self.capture_admission() == admission,
+                ):
+                    return False
+                self.page = page
             return True
-
 
 class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, CommittedHistory, CategorizedBlock, VerticalGroup):
     CACHE_SUBTREE_GEOMETRY = True
@@ -474,8 +391,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
     @property
     def _follow_source_tail(self) -> bool:
         return self.window.follows_tail
-
-
 
     async def _report_coverage(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
         if self._source_state.reports_coverage:
@@ -570,14 +485,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         # synthetic role of its Markdown fragments.
         return (self.query_ancestor(Conversation).visible_categories
                 if self.is_attached and isinstance(self.parent, Contents) else all_categories())
-
-
-
-
-
-
-
-
 
     def covers_incoming(self, sequence: int) -> bool:
         if not self._source_state.reports_coverage:
@@ -693,7 +600,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             self._prefetch_intent = None
         return reader
 
-
     def prepare_scroll(self) -> None:
         if (self.loader is None or not self.is_mounted or not self.state.accepts_publication or not self.screen.is_current
                 or not self.selected_categories):
@@ -737,7 +643,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                 and snapshot.window.document_viewport.lookahead.accepts(demand)
                 and all(page.capture_admission() == admission
                         for page, admission in zip(pages, admissions)))
-
 
     def _check_edges(self) -> None:
         self._check_pending = False
@@ -886,7 +791,8 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             snapshot, admission = self.source_snapshot(), edge.capture_admission()
             if local:
                 previous_children = set(edge.fragment_views)
-                await edge.extend(older, lambda: snapshot.current(self))
+                if not await edge.extend(older, lambda: snapshot.current(self)):
+                    raise _PublicationRetired
                 self._require_publication()
                 protected.update(child for child in edge.fragment_views if child not in previous_children)
             elif page is not None:
@@ -962,7 +868,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         viewport = self.window.document_viewport
         return sum(fragment in viewport.admitted_bodies for fragment in self.fragment_views)
 
-
 class ProjectedTranscriptHistory(TranscriptHistory):
     """A source projection with the ordinary pager's admission and eviction policy."""
 
@@ -1002,7 +907,8 @@ class ProjectedTranscriptHistory(TranscriptHistory):
     async def _admit_initial(self) -> None:
         self._require_publication()
         snapshot = self.source_snapshot()
-        await self.pages[0].extend(False, lambda: snapshot.current(self))
+        if not await self.pages[0].extend(False, lambda: snapshot.current(self)):
+            raise _PublicationRetired
         self._require_publication()
         self._update_edges()
 
