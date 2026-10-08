@@ -43,7 +43,7 @@ class RichSource(ABC):
         return self
 
     def selected_text(self, selection: Selection, prepared: PreparedRichContent) -> str:
-        return selection.extract(prepared.text)
+        return selection.extract(prepared.selection_text)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -64,9 +64,6 @@ class NativeContentSource(RichSource):
     def materialize(self) -> Content:
         """Decode the original source to native Content in the renderer."""
 
-    def selected_text(self, selection: Selection, prepared: PreparedRichContent) -> str:
-        return selection.extract(self.materialize().plain)
-
     def prepare(self, presentation: RichPresentation) -> PreparedRichContent:
         content = self.materialize()
         styles = dict(presentation.styles)
@@ -85,7 +82,7 @@ class NativeContentSource(RichSource):
         )
         if presentation.link_style is not None:
             lines = [line._apply_link_style(presentation.link_style) for line in lines]
-        return PreparedNativeContent(width, tuple(lines))
+        return PreparedNativeContent(width, tuple(lines), content.plain)
 
 
 @dataclass(frozen=True)
@@ -162,6 +159,11 @@ class PreparedRichContent:
     def text(self) -> str:
         return "\n".join(line.text for line in self.lines)
 
+    @property
+    def selection_text(self) -> str:
+        """Rich previews select their prepared terminal rows."""
+        return self.text
+
     def render_lines(self, crop: Region, *, selection=None, selection_style=None) -> list[Strip]:
         """Crop original prepared rows without rebuilding a native subtree."""
         result = []
@@ -182,7 +184,13 @@ class PreparedRichContent:
 
 @dataclass(frozen=True)
 class PreparedNativeContent(PreparedRichContent):
-    """Native strips already carry original source selection offsets."""
+    """Native strips and copy text share the worker-acquired source coordinates."""
+
+    original_text: str
+
+    @property
+    def selection_text(self) -> str:
+        return self.original_text
 
     def render_lines(self, crop: Region, *, selection=None, selection_style=None) -> list[Strip]:
         lines = [self.lines[y] if 0 <= y < len(self.lines) else Strip.blank(self.width)

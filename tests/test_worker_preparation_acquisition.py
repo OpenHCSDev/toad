@@ -77,6 +77,8 @@ def test_tool_updates_leave_driver_input_available(tmp_path, monkeypatch):
     from acp.schema import ToolCall as NativeToolCall
     from rich.text import Text
     from textual import events
+    from textual.geometry import Offset
+    from textual.selection import Selection
     from toad.acp.status import ToolCallStatus
     from toad.widgets.tool_call import ToolCall, ToolContent
     from toad.widgets.tool_content import TextContent
@@ -115,7 +117,9 @@ def test_tool_updates_leave_driver_input_available(tmp_path, monkeypatch):
             tool.scroll_visible(animate=False, immediate=True)
             editor = view.prompt.prompt_text_area
             editor.focus(scroll_visible=False)
-            text = "\x1b[31mOriginal ANSI output 界\x1b[0m\n" * 2000
+            line = "Original ANSI output 界 " + "wrapping " * 20
+            original_plain = (line + "\n") * 2000
+            text = ("\x1b[31m" + line + "\x1b[0m\n") * 2000
             call = update(text)
             counts = {"ui_ansi_decodes": 0}
             main_thread = threading.get_ident()
@@ -147,10 +151,14 @@ def test_tool_updates_leave_driver_input_available(tmp_path, monkeypatch):
                 assert content.prepared_content is not None
                 assert "Original ANSI output" in content.prepared_content.text
                 assert tool.query_one(ToolContent).native_body_ready()
+                assert content.prepared_content.original_text == original_plain
+                assert len(content.prepared_content.lines) > 2000
+                assert content.get_selection(SELECT_ALL)[0] == SELECT_ALL.extract(original_plain)
+                selection = Selection(Offset(9, 0), Offset(22, 2))
+                assert content.get_selection(selection)[0] == selection.extract(original_plain)
                 assert counts["ui_ansi_decodes"] == 0
             finally:
                 threading.setprofile_all_threads(None)
-            assert content.get_selection(SELECT_ALL)[0] == SELECT_ALL.extract(Text.from_ansi(text).plain)
             window = view.window
             region = window.scrollable_content_region
             offset = region.offset + (region.width // 2, region.height // 2)
@@ -166,7 +174,7 @@ def test_tool_updates_leave_driver_input_available(tmp_path, monkeypatch):
             assert window.scroll_y < after, "Original native wheel reversal did not move"
             assert editor.text == "responsive"
             assert app._exception is None
-            result = dict(counts, wheel_and_reversal=True, driver_draft=editor.text, driver_input_ms=input_ms,
+            result = dict(counts, source_coordinate_copy=True, wheel_and_reversal=True, driver_draft=editor.text, driver_input_ms=input_ms,
                           rendered_lines=len(content.prepared_content.lines), provider_inputs=0,
                           scope="real source App/tool updates; no ACP transport or provider run")
             (tmp_path / "tool-update-result.json").write_text(json.dumps(result) + "\n")
