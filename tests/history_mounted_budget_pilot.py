@@ -59,7 +59,9 @@ async def main(observe):
                               if child in app.screen._compositor.visible_widgets
                               and child.query(MarkdownParagraph))
                 text = chosen.query_one(MarkdownParagraph)
-                expected = text.render().plain
+                selected = text.get_selection(SELECT_ALL)
+                assert selected is not None
+                expected = selected[0]
                 app.screen.selections = {text: SELECT_ALL}
                 start = history.pages[0].start
                 for _ in range(3):

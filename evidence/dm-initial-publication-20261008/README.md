@@ -68,3 +68,33 @@ this is installed App evidence, not physical terminal or saved SDK acceptance.
 Raw result: `/home/ts/.cache/agent-scratch/dm-visible-installed-20261008`.
 All 954 package assets, full 69 distributions and 2857 RECORD entries match.
 The native wheel was reused exactly; only changed Toad was rebuilt.
+
+## Cold eviction development (not installed)
+
+The viewport previously captured complete paint for unadmitted live bodies and
+then discarded it at budget trimming. ReleasedBody now distinguishes that
+pending native-child release from CapturingBody. The existing budget supplies
+admission, source custody owns pruning, and MeasuredBody retains the original
+extent for later reconstruction. Visible/protected demand revokes cold release;
+warm admission retains the complete capture requirement. No second queue/cache
+or source store is added. MaterializingBody carries admission through its
+original preceding resource. The shared retirement lifetime check replaces
+repeated guards on the existing body owner.
+
+The existing 32-body App control now crosses the original widget budget using
+nine paragraphs per body, initializes the original private protocol, and waits
+for its actual presentation/retirement. Its old Static-render copy expectation
+was migrated to the existing native selection contract, also in the related
+mounted-history control. Source Package AST: 288 modules, zero parse omissions.
+
+Four bodies were observed cold-evicted without captured pixels, but the complete
+lifecycle check is NOT qualified: the final run hit the original 12-second
+settlement deadline. Earlier startup/count and placeholder-copy negatives are
+retained. Raw runs: `dm-cold-eviction-{source,acquired-source,completion-source,
+selection-source}-20261008` under `/home/ts/.cache/agent-scratch`, with logs in
+`sidebar-drag-hotpath-20261007`. No deadline was raised or failure waived.
+
+Removing the parser prewarm barrier was also rejected: warm preparation was
+1.99 seconds versus 1.80 in the baseline, with more live widgets at readiness.
+Prewarming and native publication have distinct lifetimes; the original code
+was restored. Raw: `dm-single-acquisition-profile-20261008`.

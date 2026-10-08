@@ -9,6 +9,8 @@ import sys
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
+from agent_comms.comms import Comms
+
 from textual.selection import SELECT_ALL
 from textual.widgets._markdown import MarkdownParagraph
 
@@ -21,7 +23,11 @@ async def settled(view, pilot):
         while True:
             await pilot.pause(.02)
             manager = view.window.document_viewport
-            if manager._worker is None and manager.visible_bodies_ready:
+            # Visible readiness alone is not completion of the admitted
+            # offscreen retirement cohort; its extent callbacks may still run.
+            if (manager._worker is None and manager.visible_bodies_ready
+                    and all(owner.body_dormant or manager.requires_body(owner)
+                            for owner in manager.body_roots())):
                 return
 
 
@@ -120,22 +126,40 @@ async def worker_custody(output: Path):
 
 
 async def main():
-    with TemporaryDirectory(prefix="toad-viewport-body-") as directory:
+    with TemporaryDirectory(prefix="toad-viewport-body-", dir=os.environ.get("VIEWPORT_EVIDENCE")) as directory:
         root = Path(directory)
         os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
+        Comms(root / "wire").messaging.initialize_private_initial_protocol()
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
-            await pilot.pause()
+            await app.selected_session.wait_content_ready()
+            assert await app.selected_session.wait_presented()
             view = app.selected_session.conversation
-            source = lambda i: f"## Document {i}\n\n" + "A measured paragraph with selectable source. " * 12 + "\n\nAnother paragraph."
+            source = lambda i: f"## Document {i}\n\n" + "\n\n".join(
+                f"Paragraph {j}. " + "A measured paragraph with selectable source. " * 12
+                for j in range(9))
             docs = [AgentResponse(source(i)) for i in range(32)]
             await view.contents.mount(*docs)
             view.window.anchor()
             await settled(view, pilot)
+            if sum(doc.body_dormant for doc in docs) < 20:
+                receipt = dict(accepts_frame=view.window.document_viewport.accepts_frame(),
+                               owners=len(view.window.document_viewport.owners),
+                               admitted=len(view.window.document_viewport.admitted_bodies),
+                               roots=[dict(measurement=type(doc._body_measurement).__name__,
+                                           ready=doc.body_ready, registered=doc._body_viewport is not None,
+                                           visible=doc in app.screen._compositor.visible_widgets)
+                                      for doc in docs])
+                output = os.environ.get("VIEWPORT_EVIDENCE")
+                if output:
+                    (Path(output) / "retirement-state.json").write_text(json.dumps(receipt, indent=2))
             assert sum(doc.body_dormant for doc in docs) >= 20
             assert all(doc.source == source(i) for i, doc in enumerate(docs))
-            dormant = next(doc for doc in docs if doc.body_dormant)
+            from toad.widgets.viewport_body import MeasuredBody
+            cold = [doc for doc in docs if type(doc._body_measurement) is MeasuredBody]
+            assert cold, "Original widget budget never exercised cold eviction"
+            dormant = cold[0]
             assert not dormant.query(MarkdownParagraph), "Cold body retained its native message pumps"
             before = len(app._registry)
             view.window.release_anchor()
@@ -143,7 +167,10 @@ async def main():
             await settled(view, pilot)
             assert dormant.body_ready and dormant.query(MarkdownParagraph)
             text = dormant.query_one(MarkdownParagraph)
-            expected = text.render().plain
+            selected = text.get_selection(SELECT_ALL)
+            assert selected is not None
+            expected = selected[0]
+            assert "A measured paragraph with selectable source." in expected
             app.screen.selections = {text: SELECT_ALL}
             view.window.scroll_end(animate=False, immediate=True)
             await settled(view, pilot)
