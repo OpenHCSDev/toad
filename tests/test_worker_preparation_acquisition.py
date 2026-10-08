@@ -545,7 +545,7 @@ def test_paged_nested_markdown_publishes_visible_preparation(tmp_path, monkeypat
             document = AgentResponse(source)
             started = time.monotonic()
             await view.post(document)
-            await document.update(source)
+            post_ms = (time.monotonic() - started) * 1000
             await settled(pilot, view)
             async with asyncio.timeout(20):
                 while not document.body_ready:
@@ -662,7 +662,7 @@ def test_paged_nested_markdown_publishes_visible_preparation(tmp_path, monkeypat
             assert document._body_measurement.content is captured
             assert "Preparing preview" not in viewport_text(window)
             assert app._exception is None
-            result = {"paged": True, "sections": 24, "ready_ms": ready_ms,
+            result = {"paged": True, "sections": 24, "post_ms": post_ms, "ready_ms": ready_ms,
                       "visible_nested_text": True, "links_and_source_copy": True,
                       "retired_source_not_preview": True, "warm_paint_identity": True,
                       "native_wheel_reverse_stop": True, "provider_inputs": 0,

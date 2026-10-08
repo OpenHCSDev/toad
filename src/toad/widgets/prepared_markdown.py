@@ -222,6 +222,14 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
         """Native resources rebuilt from this document's original source."""
         return tuple(child for child in self.children if isinstance(child, MarkdownBlock))
 
+    def _initialize_document(self, markdown: str | None) -> AwaitComplete:
+        # Mount admits the body; its materialization worker owns prepared
+        # content. Observe the original initialization on this body's pump,
+        # after mount, rather than holding the conversation's mount receipt.
+        # The native implementation retains source consumption and TOC order.
+        self.call_later(super()._initialize_document(markdown))
+        return AwaitComplete.nothing()
+
     def retire_body_resources(self) -> None:
         """Release reconstructible preparation with the native retirement."""
         self._prepared_markdown = None
