@@ -77,6 +77,18 @@ async def main():
                         while message.seq not in comms.bus.reads.seen_sequences(viewer, comms.registry.snapshot()):
                             await pilot.pause(.02)
                 assert comms.bus.reads.seen_sequences(viewer, comms.registry.snapshot()) == {row.seq for row in rows}
+                # Scrolling an acknowledged page has no read receipt to
+                # publish. Do not schedule another worker/route read merely
+                # because native geometry supplied another visible cohort.
+                history = chat.message_history
+                async with asyncio.timeout(5):
+                    while history.ack_inflight:
+                        await pilot.pause(.02)
+                assert not history.channel_receipts and not history.historical_receipts
+                assert history.tail_receipt is None
+                for _ in range(50):
+                    history.mark_visible()
+                    assert not history.ack_inflight
                 recorded = tuple(message.view_key for message, _ in chat.message_history.rows)
                 await pilot.press('ctrl+t')
                 async with asyncio.timeout(5):
