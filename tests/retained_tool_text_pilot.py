@@ -90,6 +90,7 @@ async def publication_lifetime(app, pilot, tool):
     tool.scroll_visible(animate=False, immediate=True)
     await pilot.pause()
     text = body.query_one(TextContent)
+    await asyncio.wait_for(text.wait_ready(), 15)
     assert await pilot.mouse_down(text, offset=(1, 0))
     intent = app.screen._select_state
     assert intent is not None and intent.end is None and not app.screen.selections
@@ -105,13 +106,14 @@ async def publication_lifetime(app, pilot, tool):
     app.checks.append("pending MouseDown protects capture, viewport and committed row; replacement retires intent")
 
     await body.recompose()
-    assert body.query_one(TextContent).render().plain == "gesture replacement"
+    assert body.query_one(TextContent)._source.materialize().plain == "gesture replacement"
     app.checks.append("direct ToolContent recompose preserves decoded source")
     await pilot.pause()
     held = PendingUnmount()
     await body.mount(held)
     tool.scroll_visible(animate=False, immediate=True)
     await pilot.pause()
+    await asyncio.wait_for(body.query_one(TextContent).wait_ready(), 15)
     assert body.measured_rows > 0 and body.body_ready
     app.observed_body = body
     first = tool.update_tool_call(payload("# Intermediate writer\n\nOriginal native Markdown"))
@@ -168,7 +170,8 @@ async def publication_lifetime(app, pilot, tool):
     await second
     await app.pop_screen()
     await pilot.pause()
-    assert body.body_ready and body.query_one(TextContent).render().plain == "latest writer wins"
+    await asyncio.wait_for(body.query_one(TextContent).wait_ready(), 15)
+    assert body.body_ready and body.query_one(TextContent)._source.materialize().plain == "latest writer wins"
     assert not body.query(MarkdownContent)
     assert "body-pump" in editor.text
     app.checks.append("original chained writers join before latest commit; modal return and editor draft preserved")
@@ -178,7 +181,7 @@ async def publication_lifetime(app, pilot, tool):
     tool.set_expanded(True)
     await tool.output.sync()
     await pilot.pause()
-    assert body.query_one(TextContent).render().plain == "latest writer wins"
+    assert body.query_one(TextContent)._source.materialize().plain == "latest writer wins"
     app.checks.append("collapse and reentry consume same original part publication")
     app.observed_body = None
 
@@ -219,11 +222,12 @@ async def main():
                 await tool.update_tool_call(payload(text))
                 await pilot.pause()
                 current = tool.query_one(TextContent)
+                await asyncio.wait_for(current.wait_ready(), 15)
                 assert current is original
                 expected = Content.from_rich_text(Text.from_ansi(text)) if "\x1b" in text else Content(text)
-                assert current.render().plain == expected.plain
-                assert current.render().spans == expected.spans
-                assert current.get_selection(SELECT_ALL)[0] == expected.plain
+                assert current._source.materialize().plain == expected.plain
+                assert current._source.materialize().spans == expected.spans
+                assert current.get_selection(SELECT_ALL)[0] == SELECT_ALL.extract(expected.plain)
                 if text.startswith("line 0"):
                     assert current.size.height == 40
                 elif text == "short":
@@ -267,8 +271,9 @@ async def main():
             same.call.kind = "execute"
             await tool.update_tool_call(same)
             await pilot.pause()
-            assert not tool.query(WorkerStatic)
-            assert tool.query_one(TextContent).render().plain == code
+            assert not any(type(widget) is WorkerStatic for widget in tool.query(WorkerStatic))
+            assert tool.query_one(TextContent)._source.materialize().plain == code
+            await asyncio.wait_for(tool.query_one(TextContent).wait_ready(), 15)
             assert tool.query_one(TextContent).get_selection(SELECT_ALL)[0] == SELECT_ALL.extract(code)
             await tool.update_tool_call(payload("literal [red]markup[/]", kind="read",
                                                 raw_input={"path": "unrecognized.unknown"}))
@@ -277,7 +282,7 @@ async def main():
             assert unknown.get_selection(SELECT_ALL)[0] == "literal [red]markup[/]"
             await tool.update_tool_call(payload("plain after read"))
             await pilot.pause()
-            assert not tool.query(WorkerStatic) and tool.query_one(TextContent) is not plain
+            assert not any(type(widget) is WorkerStatic for widget in tool.query(WorkerStatic)) and tool.query_one(TextContent) is not plain
             await publication_lifetime(app, pilot, tool)
             assert app._exception is None
         assert app._exception is None

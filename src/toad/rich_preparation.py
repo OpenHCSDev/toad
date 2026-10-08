@@ -46,45 +46,36 @@ class RichSource(ABC):
         return selection.extract(prepared.text)
 
 
-@dataclass(frozen=True)
-class ContentSource(RichSource):
-    """Native wrapping retains source coordinates and component styles."""
+@dataclass(frozen=True, kw_only=True)
+class NativeContentSource(RichSource):
+    """Native content decoding and wrapping share one worker implementation."""
 
-    value: Content
     selection: tuple[tuple[int, int] | None, tuple[int, int] | None] | None = None
     selection_style: NativeStyle | None = None
 
-    @classmethod
-    def capture(cls, value: Content, selection: Selection | None,
-                selection_style: NativeStyle | None) -> ContentSource:
+    def capture_selection(self, selection: Selection | None,
+                          style: NativeStyle | None) -> NativeContentSource:
         coordinates = (None if selection is None else
                        tuple(None if offset is None else (offset.x, offset.y)
                              for offset in selection))
-        return cls(value, coordinates, selection_style)
+        return replace(self, selection=coordinates, selection_style=style)
 
-    @property
-    def style_names(self) -> tuple[str, ...]:
-        return tuple(dict.fromkeys(span.style for span in self.value.spans
-                                   if isinstance(span.style, str)))
-
+    @abstractmethod
     def materialize(self) -> Content:
-        return self.value
-
-    def capture_selection(self, selection: Selection | None,
-                          style: NativeStyle | None) -> ContentSource:
-        return self.capture(self.value, selection, style)
+        """Decode the original source to native Content in the renderer."""
 
     def selected_text(self, selection: Selection, prepared: PreparedRichContent) -> str:
-        return selection.extract(self.value.plain)
+        return selection.extract(self.materialize().plain)
 
     def prepare(self, presentation: RichPresentation) -> PreparedRichContent:
+        content = self.materialize()
         styles = dict(presentation.styles)
         def get_style(style):
             return styles[style] if isinstance(style, str) else style
         width = presentation.options.max_width
         if presentation.auto_width:
-            width = max(1, min(width, self.value.get_optimal_width(dict(presentation.rules), width)))
-        lines = self.value.render_strips(
+            width = max(1, min(width, content.get_optimal_width(dict(presentation.rules), width)))
+        lines = content.render_strips(
             width, None, presentation.native_style,
             RenderOptions(get_style, dict(presentation.rules),
                           None if self.selection is None else Selection(
@@ -95,6 +86,36 @@ class ContentSource(RichSource):
         if presentation.link_style is not None:
             lines = [line._apply_link_style(presentation.link_style) for line in lines]
         return PreparedNativeContent(width, tuple(lines))
+
+
+@dataclass(frozen=True)
+class ContentSource(NativeContentSource):
+    """Already acquired native content retains its symbolic component styles."""
+
+    value: Content
+
+    @classmethod
+    def capture(cls, value: Content, selection: Selection | None,
+                selection_style: NativeStyle | None) -> ContentSource:
+        return cls(value).capture_selection(selection, selection_style)
+
+    @property
+    def style_names(self) -> tuple[str, ...]:
+        return tuple(dict.fromkeys(span.style for span in self.value.spans
+                                   if isinstance(span.style, str)))
+
+    def materialize(self) -> Content:
+        return self.value
+
+
+@dataclass(frozen=True)
+class AnsiContentSource(NativeContentSource):
+    """ANSI source is decoded with its original Rich parser in the worker."""
+
+    value: str
+
+    def materialize(self) -> Content:
+        return Content.from_rich_text(Text.from_ansi(self.value))
 
 
 @dataclass(frozen=True)

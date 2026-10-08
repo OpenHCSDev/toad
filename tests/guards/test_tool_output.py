@@ -82,7 +82,8 @@ def test_new_case_adopts_the_installed_consumer_without_catalog_edits(tmp_path, 
             await pilot.pause()
             assert InspectionToolOutputPart in ToolOutputPart.members_with(SpecificTextToolOutputPart)
             assert type(tool.output.parts[0]) is InspectionToolOutputPart
-            assert tool.query_one(TextContent).render().plain == "case owns: DECLARED_NEW_OUTPUT"
+            assert tool.query_one(TextContent)._source.materialize().plain == "case owns: DECLARED_NEW_OUTPUT"
+            await asyncio.wait_for(tool.query_one(TextContent).wait_ready(), 15)
             assert "case owns: DECLARED_NEW_OUTPUT" in "\n".join(
                 strip.text for strip in app.screen._compositor.render_strips())
             tool.collapse_block()
@@ -90,7 +91,7 @@ def test_new_case_adopts_the_installed_consumer_without_catalog_edits(tmp_path, 
             assert not tool.query(TextContent)
             tool.expand_block()
             await pilot.pause()
-            assert tool.query_one(TextContent).render().plain == "case owns: DECLARED_NEW_OUTPUT"
+            assert tool.query_one(TextContent)._source.materialize().plain == "case owns: DECLARED_NEW_OUTPUT"
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
 
