@@ -577,3 +577,22 @@ First harness used stdin, which process spawn cannot reopen; raw refusal is
 retained. Corrected only the runner to a persistent original main-guarded file.
 Unknown runtime replacement of declared methods remains outside this claim.
 Raw: `/home/ts/.cache/agent-scratch/prepared-style-measurement-20261008/`.
+
+
+PR570 merged; its candidate installed controls passed2/8.31s. The candidate
+is NOT the live default: publication is held by the affected scroll result.
+Candidate original native wheel run: median267.6ms/p95471.3ms/max499.0ms;
+unchanged currently installed cohort comparison:4.2/204.0/237.4ms. Both have
+large frame gaps and all packets ordered. Candidate source run had median8.1ms,
+so one installed comparison does not prove a sole causal regression, but it
+cannot be waved away to publish a performance improvement. Candidate and
+unchanged raw deliveries,frames,scroll positions and loop gaps are retained.
+Current default remains dm-notification-disclosure-delivery-20261008/runtime.
+Candidate: prepared-style-measurement-delivery-20261008/runtime; verified954
+assets/full69/2857 RECORDs and unchanged Core/native supply. No public inputs.
+Original native review confirms sibling row measurement epochs are not retired
+by an unrelated row mutation: ancestry invalidation stops at its real fixed-size
+boundary. Changed vertical membership still requires cumulative placement;
+there is no supported blanket native invalidation deletion. Next investigation
+is delayed original pointer completion and page-admission timing using the
+captured packet/scroll relation, alongside measured synchronous reflow cost.
