@@ -65,7 +65,10 @@ async def main():
             assert result['stationary_evictions'] == 0, result
             assert result['visible_ready']
             assert result['warm_widgets'] <= result['widget_limit']
-            cold = next(body for body in docs if body.body_dormant)
+            # Dormancy also includes source never materialized. This check
+            # needs the original cost of a tree that actually retired.
+            cold = next(body for body in docs
+                        if body.body_dormant and body.retained_widget_count > 1)
             old_cost = cold.retained_widget_count
             assert old_cost > 1, 'Dormant resource lost its materialized cost'
             await cold.update('## Changed resource\n\n' + '\n\n'.join(

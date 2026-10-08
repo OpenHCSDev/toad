@@ -185,8 +185,28 @@ async def main():
             assert not dormant.query(MarkdownParagraph), "Cold body retained its native message pumps"
             before = len(app._registry)
             view.window.release_anchor()
+            output = os.environ.get("VIEWPORT_EVIDENCE")
+            if output:
+                position = view.window.history_anchor
+                (Path(output) / "cold-navigation-acquired.json").write_text(json.dumps(dict(
+                    measurement=type(dormant._body_measurement).__name__,
+                    rows=dormant.measured_rows, source_bytes=len(dormant.source.encode()),
+                    scroll=view.window.scroll_y, target=view.window.scroll_target_y,
+                    anchor=repr(position), revision=view.window.scroll_revision,
+                    source_geometry=[str(geometry) for owner, geometry in
+                                     app.screen._compositor.published_geometry((dormant,))],
+                ), indent=2))
             view.window.scroll_to_widget(dormant, animate=False, immediate=True)
-            await settled(view, pilot)
+            if output:
+                (Path(output) / "cold-navigation-selected.json").write_text(json.dumps(dict(
+                    scroll=view.window.scroll_y, target=view.window.scroll_target_y,
+                    anchor=repr(view.window.history_anchor), revision=view.window.scroll_revision,
+                ), indent=2))
+            # Native scroll_to_widget supplies one placement, not a source
+            # destination through subsequent worker/extent publication. Keep
+            # that original target in the window's existing reader lifetime.
+            async with view.window.preserve_reader(dormant):
+                await settled(view, pilot)
             output = os.environ.get("VIEWPORT_EVIDENCE")
             if output:
                 manager = view.window.document_viewport
@@ -222,8 +242,17 @@ async def main():
             for index in (0, 31, 4, 29, 0, 31):
                 view.window.release_anchor()
                 view.window.scroll_to_widget(docs[index], animate=False, immediate=True)
-                await settled(view, pilot)
+                async with view.window.preserve_reader(docs[index]):
+                    await settled(view, pilot)
                 returned = docs[index]
+                if output and returned not in app.screen._compositor.visible_widgets:
+                    (Path(output) / "cold-return-unexposed.json").write_text(json.dumps(dict(
+                        index=index, measurement=type(returned._body_measurement).__name__,
+                        rows=returned.measured_rows, scroll=view.window.scroll_y,
+                        target=view.window.scroll_target_y, revision=view.window.scroll_revision,
+                        source_geometry=[str(geometry) for owner, geometry in
+                                         app.screen._compositor.published_geometry((returned,))],
+                    ), indent=2))
                 assert returned in app.screen._compositor.visible_widgets
                 assert returned.body_ready, "Visible source was not restored"
                 if returned.body_retained_paint_ready:
@@ -239,12 +268,14 @@ async def main():
             await pilot.resize_terminal(90, 40)
             await settled(view, pilot)
             view.window.scroll_to_widget(docs[0], animate=False, immediate=True)
-            await settled(view, pilot)
+            async with view.window.preserve_reader(docs[0]):
+                await settled(view, pilot)
             assert docs[0].body_ready and docs[0].source == source(0)
             cold = next(doc for doc in docs if doc.body_dormant)
             await cold.append("\n\nA later live update.")
             view.window.scroll_to_widget(cold, animate=False, immediate=True)
-            await settled(view, pilot)
+            async with view.window.preserve_reader(cold):
+                await settled(view, pilot)
             assert cold.source.endswith("A later live update.")
             assert any("A later live update." in child.source for child in cold.query(MarkdownParagraph))
             anchor = AgentResponse("A transient anchor")

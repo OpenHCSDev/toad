@@ -213,7 +213,7 @@ Profiles are in `wheel-owner-profile-20261008` and
 Two diagnostic setup negatives (subclass CSS path and multiprocessing main
 guard) remain recorded; they are not rendering or provider failures.
 
-### Installed candidate remains unpublished
+### Initial installed candidate result
 
 The candidate passed full installed asset/origin/RECORD verification and the
 three-resize source/style/selection check. Its paged-message journey timed out
@@ -236,3 +236,131 @@ state in `dmnw3` through `dmnw8`. All those App attempts are terminal; none
 submitted provider input. Previous writer interval statistics include the
 100ms wheel input cadence and idle settlement; they do not alone prove a
 317ms input-to-pixel stall.
+
+### Independent width delivery and range ownership
+
+The width-only change is merged in Toad #564 and published for new launches
+through the original frontend publication owner. Its installed three-resize,
+source/style/selection result passed; the separate paged negative also occurs
+on the unchanged predecessor. That failure leaves reconstruction unqualified,
+but does not block the independently verified width change. The existing
+backend, native renderer and open sessions retain their original supply.
+The installed source is `dcf85738`; current main has identical product bytes.
+Publication is retained in `.artifacts/assigned-parent-width-delivery-20261008`.
+
+PreparedContentRange no longer joins body writers in Mount, extend or replace.
+This type owns native range membership; BodyMeasurement owns content writers
+and WorkspaceScreen/DocumentViewport own paint readiness. The original frame
+receipt still gates the next measured paging edge. Previously a mounted page
+could await a child writer while its acquiring parent held the same window
+mutation lock that the child's source publication needed. Both range users,
+StreamingMarkdown and TranscriptPageView, now use the shared membership-only
+implementation; the redundant join method and imports are deleted.
+
+This range change is a separate unpublished branch checkpoint. The actual App
+now reaches retirement, but does not complete the original warm-retention
+check. `dmnw11` caught child shutdown waiting on native child tasks; `dmnw12`
+caught runnable message/worker activity with the old body released. These are
+different snapshots of unfinished work, not proof of a static native deadlock.
+The native owner has both. The existing failure-only task diagnostic now sees
+the original Python coroutine wrappers and native mount/exit child identities.
+No new queue, timeout, readiness flag or callback exemption was introduced.
+
+The complete source relation parsed 288 production, 417 test and 40 tool
+modules without omissions. Original App negatives and private fixture state
+`dmnw9` through `dmnw12` remain retained; no provider input was submitted.
+
+Removing the source join entirely was insufficient: the profiled App exposed
+a visible loading preview (`dmnw13`). The join is now owned by the existing
+BodyMeasurement materialization worker, after its source operation returns and
+releases the window mutation fence. Range Mount still owns membership only.
+The following App observation (`dmnw14`) has no mutation roots while the parent
+joins original nested body publications; it still times out awaiting native
+mounting. Neither observation is a successful full paged acceptance. The
+profile cannot explain retirement cost because it failed at the earlier paint
+assertion, and profiling overhead prevents direct timing comparison.
+
+## Retained paint admission and completed source App
+
+The viewport used the last materialized widget count to decide whether to
+retain message paint. That conflated compact retained rows with a disposable
+native tree, discarded useful paint before retirement, and let lookahead
+rebuild hidden controls. PresentationBudget now admits paint by the original
+message count and actual source/row bytes; native lookahead keeps its original
+widget budget. DocumentViewport derives both orders from its existing owners
+and warm chronology, with no second stored admission policy. Session/sidebar
+native tree budgets are unchanged.
+
+The original paged nested-Markdown App passed (12.29 s): 24 sections, Unicode,
+nested text, links and copying, wheel reversal/stop, native retirement and
+return to the same retained paint resource. Posting was 5.077 ms; readiness
+1.8007 s. This is source App evidence, not physical frame-time evidence.
+The bounded runway App has no stationary restore/retire/reconcile calls,
+no further evictions, and 48 native widgets against its 60-widget limit. Its
+fixture now selects a genuinely retired tree, not never-materialized source;
+content-cost invalidation and resize checks pass. The original cold-body App
+also passes source/selection, cold restoration, scroll/resize/live-update,
+mutation-anchor retirement and session suspension.
+
+Raw logs are in /home/ts/.cache/agent-scratch/sidebar-drag-hotpath-20261007:
+paint-admission-app.log, paint-admission-bounds-corrected.log and
+paint-admission-cold-app.log. Earlier negatives remain preserved, including
+the original bounded fixture selection and missing output-directory refusal.
+No provider input was sent. Installed verification and publication follow.
+
+## Installed candidate and remaining cold navigation gap
+
+Candidate706341498 installed assets/RECORDs/full69 and unchanged native
+supply verified. The original paged App passes on the installed wheel
+(15.22 s; post5.136 ms, readiness3.117 s) and the bounded runway App passes.
+The installed cold lifecycle fails at its first target return: the chosen
+message is RenderedBody/ready with no children, but is outside the viewport
+(region y=-67,height38; scroll/target70). The source run had returned that
+message visibly as LiveBody with paragraphs. These differing observations
+do not establish a sole cause. The candidate is not published as the new
+default; the current width default remains. Raw installed lifetime failure
+and cold-destination.json are retained; no retries or bounds were changed.
+Parent owns the actual cold navigation/anchor relation next.
+
+## Reader source identity checkpoint
+
+Original cold navigation selected scroll0; later paragraph compensation
+moved it to56 while preserving a paragraph whose source offset changed16→72.
+The trace does not establish which message owned that paragraph. Selecting
+only ready paint can choose a later source point while the original paragraph
+is still wrapping. HistoryWindow now chooses the visible original message
+first, then an exposed source within that message regardless of paint
+readiness. Foreground and lookahead body restoration now share reader_anchor
+instead of independently selecting the first visible body. Tail/interaction
+custody and native placement compensation are unchanged.
+
+This coherent ownership change is not full cold acceptance. The original
+cold App now reaches repeated returns but still loses index4 (RenderedBody
+rows38, scroll/target163, no exposed/published native placement).
+shared-reader-cold/cold-return-unexposed.json retains the exact observation.
+Native producer owner is reviewing committed/query geometry supply; Parent
+retains Toad ownership. Original cold assertions and bounds are unchanged.
+The initial full-operation profile timed out before navigation and is an
+observation limit; the later acquisition-scoped trace reached the failure.
+Complete HEAD source AST288/417/40 parsed with zero omissions, all anchor
+writers and consumers inspected; current changed modules also compile.
+
+## Native contract and corrected source-navigation consumer
+
+Native review found no projection omission: scroll_to_widget makes one
+least-distance move, not a persistent source destination across later worker
+reflows. Acquired target4 y205 was correct; surrounding source extent then
+changed. All55 recorded native captures matched BodyMeasurement dimensions.
+The four qualifier navigation callers now bind the existing preserve_reader
+lifetime while the actual source/restoration settles. No visibility, source,
+selection, bounded-tree or timing assertion was weakened. The complete cold
+App passes with the unchanged original anchor-rebind semantics. A speculative
+rebind-to-visible-source edit was removed, without entering the build.
+
+The existing tail-transition control fails identically (-161 then0) on the
+unchanged installed width predecessor and the candidate source. It does not
+block the independently verified DM change or establish a new regression.
+Parent retains that separate publication-observer/source-transition trace;
+there is no full-history or physical saved-session acceptance claim.
+Final source raw: bound-reader-final-source.log. Tail negatives:
+predecessor-tail-anchor.log and bound-reader-confirmation.log.
