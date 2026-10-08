@@ -87,6 +87,7 @@ class IRCMessageText(WorkerStatic):
 class WireMarkdownMessage(CoreEventReceiver, ConversationBlock, VerticalGroup):
     """One original wire envelope; concrete bodies own only their rendering."""
 
+    CACHE_SUBTREE_GEOMETRY = True
     DEFAULT_CLASSES = "block"
     BINDINGS = [
         ("enter", "open_sender", "Open sender"),
@@ -154,17 +155,12 @@ class IRCMessage(WireMarkdownMessage, can_focus=True):
     DEFAULT_CSS = """
     IRCMessage {
         width: 1fr; height: auto; margin: 0; padding: 0;
-        .irc-body { width: 1fr; height: auto; }
         IRCMessageText { width: 1fr; height: auto; text-wrap: wrap; }
     }
     """
 
     def compose_body(self) -> ComposeResult:
-        message = self.message
-        with HorizontalGroup(classes="irc-body"):
-            yield IRCMessageText(
-                IRCMessageSource(message),
-            )
+        yield IRCMessageText(IRCMessageSource(self.message))
 
     def read_ack_widget(self) -> Widget | None:
         """Only the text block can authorize a read, never its divider."""
