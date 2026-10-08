@@ -455,3 +455,27 @@ cross-sidebar destination, Ctrl/Shift selection, theme/hover and date checks.
 The first authored check directly changed collapsed while leaving canonical
 settings unchanged; corrected setup uses the original toggle owner instead.
 Both raws are retained; no production fallback or timing increase.
+
+The shared reveal and Core acquired-owner presentation are merged and installed
+for new frontend launches. The second physical check actually revealed Channels,
+but no channel rows were visible and the exact #comms target was unavailable.
+Physical acceptance remains incomplete. Its existing owner was not restarted;
+the recorder joined all owned children. Raw/video: dm-native-content-channel-physical02-20261008.
+
+The installed original App captured six live channels/31 thread rows and
+published them successfully, both without ACP and with the exact original ACP
+attachment. These observations contradict a consistently empty backend result;
+they do not establish why the earlier physical publication failed.
+
+Source nevertheless establishes a retry defect: observation recorded a revision
+before native publication completed, while interrupted rebuild clears its
+snapshot. The shortcut could then suppress every same-revision retry. Commit
+the observation identity only after the original projection retains that exact
+snapshot; the shortcut also requires a snapshot. Existing native logger now
+reports caught errors rather than silently hiding them. No new retry queue,
+timer, cache, timeout or public input. Complete source parse: 288 production,
+417 tests,40 tools, zero omissions. Existing sidebar current-selection App passes.
+Raw: sidebar-published-revision-control.log, live-sidebar-publication.log and
+live-sidebar-acp-publication.log. A custom recorder diagnostic command was
+refused before launch by the original existing-thread target contract; retained
+physical-sidebar-publication-diagnostic.log records that refusal.
