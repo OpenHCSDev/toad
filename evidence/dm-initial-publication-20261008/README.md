@@ -619,3 +619,31 @@ Raw: prepared-style-measurement-20261008/candidate-dispatch-waits/
 (dispatch-waits.json,ui-cpu.json,result.json). Same original private fixture,
 160 ordered wheel packets,20 updates/16 recipients,0provider; handle terminal.
 Prepared-style candidate publication remains held; current default unchanged.
+
+
+## Document wheel routing
+
+DM and channel histories already select the same compact IRCMessage by default.
+The optional Markdown row has distinct full Markdown behavior; it is not the
+default DM renderer. Lazy notification details are in the published frontend.
+
+The native mount-completion candidate removes the history actor callback join
+(previously 219 ms). Its installed private-driver observation still has slow
+frames: wheel median 92.55 ms / p95 288.81 ms; frame p95 106.1 ms. This is a
+targeted queue repair, not an overall pacing pass.
+
+At a reached viewport edge, native generic wheel bubbling continued through
+workspace ancestors that cannot scroll the document. HistoryWindow now ends
+that route after the original native movement/clamping. Nested controls still
+receive input first. Explicit super delegation prevents the native MRO dispatcher
+from invoking the base movement twice.
+
+The actual private Toad App control passed: one native movement, stopped clamped
+edge events, and independent nested scrolling. Raw control and earlier fixture
+refusals are retained under
+`/home/ts/.cache/agent-scratch/prepared-style-measurement-20261008/document-wheel-boundary-controls/`.
+The preceding burst observation retained ordered 160 wheel packets and 20
+incoming messages; its route ended at Window. That source observation also
+included the merged prepared-style rule and preceded the final single-dispatch
+correction, so its aggregate timings are not a causal measurement of this patch.
+Neither this viewport change nor the native mount candidate is published live.
