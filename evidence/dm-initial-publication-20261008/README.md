@@ -479,3 +479,55 @@ Raw: sidebar-published-revision-control.log, live-sidebar-publication.log and
 live-sidebar-acp-publication.log. A custom recorder diagnostic command was
 refused before launch by the original existing-thread target contract; retained
 physical-sidebar-publication-diagnostic.log records that refusal.
+
+Toad #568 merged. The reviewed installed frontend passed the same actual
+current-selection App and all954 assets/full69/2857 RECORD entries; the original
+publisher installed it for new launches without backend changes or owner restart.
+Its physical existing-thread journey completed: Ctrl+B roster reveal, actual
+#comms tab open and both member-disclosure clicks. Final screenshot shows the
+channel text and real roster. Original owner identity remained alive and unchanged;
+all recorder-owned processes joined with no cleanup errors. No inputs submitted.
+Raw/video: sidebar-publication-retry-physical-20261008; existing Textual log:
+sidebar-publication-physical-textual.log. No caught sidebar error occurred in
+this run. The source retry defect is repaired, but the initiating cause of the
+earlier empty roster remains unrecorded; this single working path does not
+establish that cause or smooth active-scroll performance. Footage performance
+review remains separate from the observed channel/disclosure behavior.
+
+One targeted installed active-wheel measurement separated elapsed time from
+the UI thread's own CPU, using the unchanged original private workload. The
+worst Screen._refresh_layout call was46.69ms elapsed/45.90ms UI CPU; worst timer
+admission48.41/47.02ms. This call includes native reflow, resize watchers, paint,
+display/hit updates and synchronous layout-signal subscribers, not arrangement
+alone. The run still fails pacing: p95 wheel290.80ms/max319.31ms; largest loop
+gap85.77ms. All160 packets remained ordered and20 incoming updates completed,
+with no provider input and joined original fixture cleanup. Attribution raw:
+sidebar-drag-hotpath-20261007/wheel-ui-cpu-attribution-20261008/ui-cpu.json.
+
+This rules out treating worker-thread GIL contention as the complete explanation
+for these synchronous admissions. Existing channel reads capture live Comms and
+source objects on their joined thread lifetime; these cannot be moved by pickling
+live services/SQL handles into the pure renderer. Native source review confirms
+existing arrangement reuse and spatial culling; no further traversal deletion
+was justified. Remaining work is the original row measurement/publication and
+paint family; no speculative cache, process adapter or weaker readiness added.
+
+## Notification disclosure simplification
+
+`MessageNotifications` keeps its original notification tuple/error and native
+Collapsible. Its details Static is acquired only by expansion or explicit
+existing details access. Closed status updates update the summary but do not
+format or refresh hidden recipient text. Once acquired, the same body survives
+collapse and is refreshed from the current original outcome on reopening.
+No second status store, cache, polling task or disclosure implementation.
+
+Source consumers: all705 src/tests modules parsed with zero omissions; seven
+notification details reads, no external writes. Existing explicit reads remain
+supported, including before mount. Changed module compiles; diff check passes.
+Real native App/Pilot disclosure check passed: no collapsed child,48 recipient
+summary, actual title clicks, live unavailable result, deferred closed updates,
+current empty result on reopen and one retained body. The authored check first
+passed an unsupported constructor id; it refused before widget mounting. Its
+original bytes are retained, then only that fixture call was corrected.
+Raw check: /home/ts/.cache/agent-scratch/dm-notification-disclosure-20261008/source-disclosure.log.
+This is disclosure behavior evidence, not a frame-time or full DM acceptance.
