@@ -935,3 +935,26 @@ without gaps/references and checking default executable symlinks:282680401bytes.
 Current, immediate rollback and backend runtimes remain; source, wheels, proof,
 publication and raw results are retained. Cleanup original evidence:
 disk-cleanup-owner-20261002/Parent-caption-superseded-runtimes-retired-20261008.json.
+
+## Independent scroll intent and unchanged notification title
+
+Native125,154f41637, preserves Widget's original scroll request when layout is
+also pending. Both intents reach Screen, whose existing held/actionable-source
+decision owns full versus visible reflow. Reviewed exact source; affected
+native held/committed/released geometry control passed. No new flag or policy.
+
+Toad578,d44f4868, compares its fresh derived notification title against the
+original native title using Content.is_same before publishing. Detail-only
+result/error changes still update expanded details and busy/error styling.
+Changed summary/count/priority continue publishing. Explicit native mutable
+title/span publication remains unchanged.705 modules parse without omissions.
+Actual native disclosure and installed title layout/detail checks passed;
+read-only source review found no semantic blocker.
+
+Combined installed native-driver workload passed160 wheel packets/3 reversals
+and20 incoming messages, all input ordered, no provider/public input. Frame
+p95~98.7ms/max270.6ms remains unacceptable. Full reflow24calls/382.4CPUms,
+worst39.9ms; visible53/170.1/worst6.71ms. No broad latency improvement claim.
+Exact raw checks: title-scroll-installed.log, title-scroll-wheel.log and
+title-scroll-wheel/ under existing dm-native-caption scratch. Published the
+reviewed combined cohort for new launches; backend and existing windows remain.
