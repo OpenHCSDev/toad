@@ -374,3 +374,19 @@ the original forbidden tail geometry reads. No production change or timing
 waiver. Raw published-tail-observation.log retains the intermediate overly broad
 damage observation failure; published-tail-cells.log records the actual-cell pass.
 Physical saved-session frame time remains unverified.
+
+Installed physical followthrough: the merged Core launcher correction aedccdd86
+was absent from /home/ts/bin/toad-comms. Installed its exact original source;
+default frontend selection now follows published Toad independently of backend
+Python, while explicit runtime overrides remain matched. Prior launcher bytes
+are retained in sidebar-drag-hotpath-20261007/toad-comms-before-frontend-selection.sh.
+One existing-owner, zero-submission wheel_cadence capture completed on isolated
+plain st, using the actual default DM frontend and original backend. Evidence:
+/home/ts/.cache/agent-scratch/dm-owned-reader-wheel-physical-20261008/receipt.json,
+terminal.mp4, wheel-up-motion.png, scroll-travel.jsonl and frame-delivery.json.
+All recorded owned processes retired without cleanup errors. Sampled up-motion
+cells show original message text, without preview placeholders. This is not a
+complete frame-pacing pass: median enqueue-to-writer 2.54ms/p95 16.18ms, but native
+writer intervals include idle/nonbody frames and cannot establish smoothness.
+The original source-bound body observer recorded no body outputs for these saved
+message rows; its scope must be resolved before claiming useful-body latency.
