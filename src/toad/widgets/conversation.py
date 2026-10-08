@@ -1171,7 +1171,11 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
     async def on_change_model(self, event: CoreEventMessage) -> None:
         if (agent := self.agent) is None:
             return
-        error = await agent.set_model(event.event.model_id)
+        # Selecting the current model opens its thinking choices. Reapplying it
+        # would ask native SetModel to restore that model's default effort.
+        error = None
+        if event.event.model_id != agent.configuration.model.current:
+            error = await agent.set_model(event.event.model_id)
         if agent is not self.agent:
             return
         if error is not None:
@@ -1209,7 +1213,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
                     return
             self.flash(
                 Content.from_markup(
-                    "Model changed to [b]$model[/] · thinking [b]$level",
+                    "Model [b]$model[/] · thinking [b]$level",
                     model=model.name,
                     level=agent.configuration.thinking.current or "unavailable",
                 ),

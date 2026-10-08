@@ -150,9 +150,10 @@ async def main():
             await pilot.press(*"glm")
             await pilot.pause()
             assert await pilot.click(picker.option_list, offset=(2, 0))
-            await until(lambda: agent.calls and agent.calls[-1] == glm)
+            await until(lambda: not picker.is_open)
             await pilot.pause()
             assert not picker.is_open
+            assert not agent.calls, "Opening the current model must not reapply it"
 
             await CommandCatalog.execute("/model", conversation)
             await pilot.pause()

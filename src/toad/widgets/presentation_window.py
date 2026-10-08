@@ -87,16 +87,16 @@ class PresentationBudget:
         """Retain message paint independently of its disposable native tree.
 
         The native widget limit still governs lookahead materialization. Paint
-        admission bounds original message resources and their source/row bytes;
-        a live tree awaiting capture must not price its eventual retained rows.
+        admission bounds original message resources by their source/row bytes.
+        Native item counts price source slots and preparation, not immutable
+        paint; a live tree awaiting capture must not price its eventual rows.
         """
         admitted = set(required)
         source_bytes = 0
-        limit = self.item_limit(len(admitted))
         for owner in candidates:
             size = owner.retained_source_bytes + owner.retained_paint_bytes
             if owner not in admitted:
-                if len(admitted) >= limit or source_bytes + size > max_bytes:
+                if source_bytes + size > max_bytes:
                     continue
                 admitted.add(owner)
             source_bytes += size

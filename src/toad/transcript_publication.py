@@ -196,7 +196,8 @@ class SnapshotPublication(TranscriptPublication):
         history = TranscriptHistory(self.page, self.agent.get_transcript_page,
                                     fragments=fragments, committed=False)
         self.owner.prepare_reader(history)
-        await history.prepare_body(partial(self.source_current, self.page.after))
+        await history.prepare_body(partial(self.source_current, self.page.after),
+                                   selected=view.visible_categories)
         async with AsyncExitStack() as retirement:
             async with self.window.history_lock:
                 # Preparation may yield to another accepted source publication.
@@ -447,7 +448,7 @@ class CheckpointPublication(CanonicalSourcePublication):
             replacement = TranscriptHistory(
                 page, self.agent.get_transcript_page, fragments=prepared.fragments, committed=False,
             )
-            await replacement.prepare_body(is_current)
+            await replacement.prepare_body(is_current, selected=view.visible_categories)
         async with AsyncExitStack() as retirement:
             async with window.history_lock:
                 retired = retirement_candidates(contents.children, evidence)
