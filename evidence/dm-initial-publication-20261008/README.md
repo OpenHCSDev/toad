@@ -708,3 +708,55 @@ Raw/source control files are under
 unmeasured. The next required installed observation also retains Layout.widget
 identity and original node/layout source epochs in the existing recorder so
 native work can distinguish real changed extents from repeated late requests.
+
+
+## Row-resource frontend delivered
+
+Toad572 merged. Built exact Toad31fe7bd25 with unchanged nativec330/Core09a.
+Full954 assets/69packages/2857RECORD entries/native package matched. Installed
+real wire/Toad resource control passed for compact and Markdown: composition
+owns children, recomposition replaces retired instances, removed bodies cannot
+authorize reads. Source partial-paint control passed with original durable reads.
+
+Installed original burst:160 ordered wheel packets/20incoming/16recipients,
+provider0. Median4.72ms/p95220.87/max259.54 input, final backlog10.48ms; frame
+p95109.43/max212.56; loop max124.10ms. No reliable speed gain established.
+Repeated queries are removed, but pacing still FAIL.
+
+New diagnostic identifies253 Layout sources:48CommsRow,43CollapsibleTitle,
+40MessageNotifications,40Contents,40IRCMessage,11IRCMessageText,10Window,
+remaining navigation widgets17. No identical identity+node/layout-epoch repeats.
+Four CommsRow instances each submitted12requests with layout epochs increasing
+by2. Their original paint_thread_frame already calls update(Content,layout=False);
+source declarations match native Static measurement/rendering and original box
+hooks. The exact producer of those epoch changes still needs proof. Native owner
+received actual source-bearing raw; requests are not being silently discarded.
+
+The original reviewed frontend publisher selected this runtime for new launches,
+preserving backend defaults, active route, original native and running owners.
+Receipt: `.artifacts/dm-owned-resources-delivery-20261008/live-publication.json`.
+Source/build/installed/publication raw are retained in
+`/home/ts/.cache/agent-scratch/dm-owned-resources-20261008/`. Existing user windows
+keep imported modules. Goal remains open for frame pacing and full user workflows.
+
+
+## Channel header has one presentation owner
+
+Source trace proves the paired channel-row layout epochs: SidebarProjection
+first wrote pin/name without counts, then ChannelGroup.present wrote name/counts
+without pin. Even identical final sources therefore changed the displayed text
+twice. The second write also erased the visible pin marker.
+
+Deleted the first writer. Existing ChannelGroup.present now supplies pin/name/
+active/registered counts once under original member custody. Its row's original
+Static content equality handles unchanged text. No new state/cache or suppressed
+layout request. Actual source changes still use native update/layout.
+
+Before/after AST705 source/test modules parsed with zero omissions; all channel
+header label publication now comes from ChannelGroup.present. Existing real
+private-store/native-App activity-order control extended in place and passed:
+pinned channel label/counts survive, rebuilding an unchanged snapshot leaves
+the header layout epoch unchanged, changed activity still reorders members,
+original widget identities/pins and unchanged prepared resource preserved.
+Raw: `/home/ts/.cache/agent-scratch/channel-label-owner-20261008/source-app.log`.
+Installed latency remains to be measured; no broad pacing pass claimed.

@@ -177,7 +177,6 @@ class SidebarProjection:
             for view in snapshot.wire.channels:
                 channel_row = channels[view.channel.name]
                 unread = snapshot.wire.channel_unread.get(view.channel.name, 0)
-                channel_row.set_label(f"{'* ' if view.channel.pinned else ''}{view.channel.name}")
                 group = channel_row.query_ancestor(ChannelGroup)
                 group.update_unread(unread)
                 group.update_activity(view, row_inputs)
