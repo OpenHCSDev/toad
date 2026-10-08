@@ -198,7 +198,8 @@ class SidebarObservation:
             revision = await self.sidebar.app.preparation.run_thread(service.views.revision)
             if self.service is not service or not self.sidebar.accepts_publication():
                 return
-            if self.sidebar.display and self.read_identity(revision) == self.identity:
+            if (self.sidebar.display and self.sidebar.projection.has_snapshot()
+                    and self.read_identity(revision) == self.identity):
                 return
             await self.poll(revision)
             if self.service is service and self.identity is not None and (
@@ -210,7 +211,8 @@ class SidebarObservation:
                 self.sidebar.display = True
                 if not self.sidebar.navigation.ready.is_set():
                     self.sidebar.call_after_refresh(self.sidebar.navigation.finish, self.sidebar.navigation.revision)
-        except Exception:
+        except Exception as error:
+            self.sidebar.log.error("Sidebar observation or publication failed", error)
             return
 
     async def poll(self, revision: WireRevision) -> None:
@@ -262,9 +264,14 @@ class SidebarObservation:
                         title="Read positions",
                         severity="warning",
                     )
-            self.identity = SidebarReadIdentity(captured.revision, actor, filters)
             await self.sidebar.projection.publish(snapshot)
-        except (OSError, ValueError):
+            # A captured wire revision is not a published roster. The original
+            # projection retires its snapshot when native delivery is interrupted;
+            # only its completed publication may suppress another observation.
+            if self.sidebar.projection.snapshot is snapshot:
+                self.identity = SidebarReadIdentity(captured.revision, actor, filters)
+        except (OSError, ValueError) as error:
             # An external writer may be replacing/recovering the wire. Retry on
             # the next poll without blocking or terminating the view.
+            self.sidebar.log.warning("Sidebar acquisition or publication interrupted", error)
             return
