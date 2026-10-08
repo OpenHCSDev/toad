@@ -103,3 +103,11 @@ including native wheel reversal/stop, text/link/copy, full retirement and warm
 paint identity. Log: assigned-worker-geometry-installed.log in scratch above.
 Package AST parsed 288 Toad production, 417 test and 250 native modules without
 omissions; changed production compiled. No provider inputs ran.
+
+The installed sidebar App completed with 551 widgets and zero provider inputs.
+Left median/p95/worst: 63.2/75.4/195.8 ms; right: 79.5/112.5/126.7 ms.
+Its profiled frame has no WorkerStatic._request_preparation invocation. Layout
+remains expensive (about 64 ms); this removes the measured acquisition work,
+not all stalls. Logs/profile are in
+/home/ts/.cache/agent-scratch/assigned-worker-geometry-sidebar-20261008/.
+Different admitted-widget counts prohibit a matched overall speedup claim.
