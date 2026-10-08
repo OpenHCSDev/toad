@@ -4,6 +4,7 @@ from toad.widgets.message_filter import UserCategory
 from textual.app import ComposeResult
 from textual import containers
 from toad.widgets.prepared_markdown import PreparedConversationMarkdown
+from toad.markdown_preparation import PreparedMarkdownPart
 
 from toad.widgets.non_selectable_label import NonSelectableLabel
 from toad.widgets.message_divider import MessageDivider, MessageClock, LiveMessageClock
@@ -44,9 +45,12 @@ class UserInput(ConversationBlock, SnapshotPresentation, CategorizedBlock, conta
     def message_category(self) -> type[MessageCategory]:
         return UserCategory
 
-    def __init__(self, content: str, *, claim: CommitClaim = CAPTURED_CLAIM, show_divider: bool = True, clock: MessageClock = LiveMessageClock()) -> None:
+    def __init__(self, content: str, *, claim: CommitClaim = CAPTURED_CLAIM,
+                 markdown_part: PreparedMarkdownPart | None = None,
+                 show_divider: bool = True, clock: MessageClock = LiveMessageClock()) -> None:
         super().__init__()
         self.content = content
+        self.markdown_part = markdown_part
         self.show_divider = show_divider
         self.clock = clock
         self.claim = claim
@@ -60,7 +64,7 @@ class UserInput(ConversationBlock, SnapshotPresentation, CategorizedBlock, conta
             yield MessageDivider("User", clock=self.clock)
         with containers.HorizontalGroup(classes="user-input-body"):
             yield NonSelectableLabel("❯" if self.show_divider else " ", id="prompt")
-            yield PreparedConversationMarkdown(self.content, id="content")
+            yield PreparedConversationMarkdown(self.content, markdown_part=self.markdown_part, id="content")
 
     def get_clipboard_text(self) -> str | None:
         return self.content
