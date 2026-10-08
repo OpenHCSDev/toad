@@ -708,3 +708,33 @@ Raw/source control files are under
 unmeasured. The next required installed observation also retains Layout.widget
 identity and original node/layout source epochs in the existing recorder so
 native work can distinguish real changed extents from repeated late requests.
+
+
+## Row-resource frontend delivered
+
+Toad572 merged. Built exact Toad31fe7bd25 with unchanged nativec330/Core09a.
+Full954 assets/69packages/2857RECORD entries/native package matched. Installed
+real wire/Toad resource control passed for compact and Markdown: composition
+owns children, recomposition replaces retired instances, removed bodies cannot
+authorize reads. Source partial-paint control passed with original durable reads.
+
+Installed original burst:160 ordered wheel packets/20incoming/16recipients,
+provider0. Median4.72ms/p95220.87/max259.54 input, final backlog10.48ms; frame
+p95109.43/max212.56; loop max124.10ms. No reliable speed gain established.
+Repeated queries are removed, but pacing still FAIL.
+
+New diagnostic identifies253 Layout sources:48CommsRow,43CollapsibleTitle,
+40MessageNotifications,40Contents,40IRCMessage,11IRCMessageText,10Window,
+remaining navigation widgets17. No identical identity+node/layout-epoch repeats.
+Four CommsRow instances each submitted12requests with layout epochs increasing
+by2. Their original paint_thread_frame already calls update(Content,layout=False);
+source declarations match native Static measurement/rendering and original box
+hooks. The exact producer of those epoch changes still needs proof. Native owner
+received actual source-bearing raw; requests are not being silently discarded.
+
+The original reviewed frontend publisher selected this runtime for new launches,
+preserving backend defaults, active route, original native and running owners.
+Receipt: `.artifacts/dm-owned-resources-delivery-20261008/live-publication.json`.
+Source/build/installed/publication raw are retained in
+`/home/ts/.cache/agent-scratch/dm-owned-resources-20261008/`. Existing user windows
+keep imported modules. Goal remains open for frame pacing and full user workflows.
