@@ -125,7 +125,7 @@ async def main():
                 app.theme = theme
                 await pilot.pause()
                 fallback = await wait_for_tool_diff(invalid, pilot)
-                actual = fallback.query_one(TextContent).render()
+                actual = fallback.query_one(TextContent)._source.materialize()
                 native = Content.from_rich_text(Syntax(
                     malformed, "diff", theme="ansi_dark", background_color="default"
                 ).highlight(malformed))

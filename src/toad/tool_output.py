@@ -17,7 +17,6 @@ from weakref import ref
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.lifecycle import LifecycleState
 from agent_comms.transcript_events import SentTranscript
-from rich.text import Text
 from textual.content import Content
 from textual.css.query import NoMatches
 from textual.widget import Widget
@@ -29,6 +28,7 @@ from toad.widgets.tool_content import (
     MarkdownContent, PatchWarmup, TextContent, ToolCallDiff,
 )
 from toad.widgets.worker_static import WorkerStatic
+from toad.rich_preparation import AnsiContentSource, ContentSource, NativeContentSource
 
 if TYPE_CHECKING:
     from textual.worker import Worker
@@ -45,10 +45,6 @@ class ToolOutputPart(DeclaredFamily, affix="ToolOutputPart"):
 
     def permission_preview(self) -> ToolOutputPart | None:
         """Permission previews admit only text and file diffs."""
-        return None
-
-    @property
-    def retained_text(self) -> Content | None:
         return None
 
     def update_widget(self, previous: ToolOutputPart, widget: Widget) -> bool:
@@ -110,17 +106,17 @@ class LiteralTextToolOutputPart(TextToolOutputPart):
 class RetainedTextToolOutputPart(TextToolOutputPart):
     @property
     @abstractmethod
-    def retained_text(self) -> Content: ...
+    def render_source(self) -> NativeContentSource: ...
 
     def compose(self, view: Widget) -> tuple[Widget, ...]:
-        return (TextContent(self.retained_text),)
+        return (TextContent(self.render_source),)
 
     def update_widget(self, previous: ToolOutputPart, widget: Widget) -> bool:
-        if previous.retained_text is None or type(widget) is not TextContent:
+        if not isinstance(previous, RetainedTextToolOutputPart) or type(widget) is not TextContent:
             return False
         if widget in widget.screen._interaction_widgets():
             return False
-        widget.update(self.retained_text)
+        widget.update(self.render_source)
         return True
 
 
@@ -130,8 +126,8 @@ class PlainTextToolOutputPart(RetainedTextToolOutputPart, LiteralTextToolOutputP
         return read_path is None
 
     @property
-    def retained_text(self) -> Content:
-        return Content(self.text)
+    def render_source(self) -> NativeContentSource:
+        return ContentSource(Content(self.text))
 
 
 class AnsiTextToolOutputPart(RetainedTextToolOutputPart, SpecificTextToolOutputPart):
@@ -140,8 +136,8 @@ class AnsiTextToolOutputPart(RetainedTextToolOutputPart, SpecificTextToolOutputP
         return read_path is None and "\x1b" in text
 
     @property
-    def retained_text(self) -> Content:
-        return Content.from_rich_text(Text.from_ansi(self.text))
+    def render_source(self) -> NativeContentSource:
+        return AnsiContentSource(self.text)
 
 
 class MarkdownToolOutputPart(SpecificTextToolOutputPart):

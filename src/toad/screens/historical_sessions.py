@@ -131,7 +131,12 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
                 Static("No saved conversation records are available for this identity.")
             )
         else:
-            history = TranscriptHistory(page, load)
+            from toad.widgets.transcript_fragments import prepare_transcript_fragments
+
+            fragments = await prepare_transcript_fragments(page.events, self.app.render_processes)
+            if generation != self._selection_generation or not self.is_attached:
+                return
+            history = TranscriptHistory(page, load, fragments=fragments)
             await history.prepare_body(lambda: generation == self._selection_generation and self.is_attached)
             if generation != self._selection_generation or not self.is_attached:
                 return
