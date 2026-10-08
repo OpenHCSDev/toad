@@ -58,6 +58,8 @@ def test_history_publication_scope_owns_native_fence_and_releases_on_cancel(tmp_
             assert window.history_mutation_root is None
             assert not window.lock.is_locked
             async with window.lock:
+                assert window.history_mutation_root is None
+            async with window.preserve_history(None):
                 assert window.history_mutation_root is window
             assert window.history_mutation_root is None
             assert app._exception is None

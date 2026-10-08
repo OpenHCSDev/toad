@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field, replace
 from functools import cached_property
 from contextlib import AsyncExitStack, asynccontextmanager, contextmanager
 import asyncio
@@ -18,6 +18,7 @@ from toad.rich_preparation import PreparedPaintSource
 from toad.widgets.presentation_window import protected_presentations
 
 if TYPE_CHECKING:
+    from textual._compositor import SubtreeGeometryPlacement
     from toad.widgets.tool_call import ToolCall
     from toad.widgets.transcript_history import TranscriptPageAdmission
     from toad.transcript_source_preparation import TranscriptSourcePreparation
@@ -145,7 +146,7 @@ class HistoryWindow(VerticalScroll):
     _restoring = False
     history_anchor: HistoryAnchor | None = None
     history_layout_ready: asyncio.Event | None = None
-    _history_mutation_root: Widget | None = None
+    history_mutation: tuple[Widget, SubtreeGeometryPlacement | None] | None = None
 
     def action_scroll_end(self) -> None:
         self.jump_to_latest()
@@ -181,6 +182,14 @@ class HistoryWindow(VerticalScroll):
         return self.scroll_y != previous
 
     def finish_history_layout(self) -> None:
+        if self.history_mutating():
+            return
+        if self.history_anchor is not None:
+            # This witness belongs to the actual compensated native layout.
+            # A later source write or scroll retires it through the same epoch.
+            self.history_anchor = replace(
+                self.history_anchor, geometry_revision=self._geometry_revision,
+            )
         if self.history_layout_ready is not None:
             self.history_layout_ready.set()
 
@@ -277,14 +286,8 @@ class HistoryWindow(VerticalScroll):
 
     @property
     def history_mutation_root(self) -> Widget | None:
-        """The subtree owned by the active native publication transaction.
-
-        A direct native window lock still protects the whole window. Scoped
-        history publications name their original mutation owner instead.
-        """
-        if not self.lock.is_locked:
-            return None
-        return self if self._history_mutation_root is None else self._history_mutation_root
+        """The original root whose acquired geometry is held by its writer."""
+        return self.history_mutation[0] if self.history_mutation is not None else None
 
     def visible_history_items(self, items):
         """Borrow this window's clipped cohort from the original native scene."""
@@ -347,21 +350,32 @@ class HistoryWindow(VerticalScroll):
                 # Acquire the native mutation before borrowing an outstanding
                 # anchor. Its owner cannot finish layout while this mutation
                 # holds the tree fence. Release that fence before compensation.
-                previous = self._history_mutation_root
+                screen = self.screen
+                previous = self.history_mutation
                 mutation = self if root is None else root
                 if mutation is not self and self not in mutation.ancestors:
                     raise ValueError("History mutation must belong to its window")
                 if previous is not None:
-                    if previous is mutation or previous in mutation.ancestors:
-                        mutation = previous
-                    elif mutation not in previous.ancestors:
-                        mutation = Widget.get_common_ancestor(previous, mutation)
-                self._history_mutation_root = mutation
+                    previous_root, _source = previous
+                    if previous_root is mutation or previous_root in mutation.ancestors:
+                        mutation = previous_root
+                    elif mutation not in previous_root.ancestors:
+                        mutation = Widget.get_common_ancestor(previous_root, mutation)
+                # Complete source geometry is a writer resource, not the cost
+                # of each visible scroll. Acquire before declaring mutation;
+                # nested expansion lends the previous original held source.
+                self.history_mutation = (
+                    previous if previous is not None and mutation is previous[0]
+                    else (mutation, screen._compositor.acquire_subtree_geometry(mutation))
+                )
                 try:
                     await reader.enter_async_context(self.preserve_reader(widget))
                     yield
                 finally:
-                    self._history_mutation_root = previous
+                    self.history_mutation = previous
+                    # Resume the native owner's retained source requests.
+                    # Releasing a writer does not invent a window-sized layout.
+                    screen.check_idle()
 
     @asynccontextmanager
     async def preserve_reader(self, widget: Widget | None):
@@ -382,23 +396,24 @@ class HistoryWindow(VerticalScroll):
         self.history_anchor = HistoryAnchor.capture(widget, self) if widget is not None else None
         if self.history_anchor is not None and isinstance(screen, WorkspaceScreen):
             screen.viewport_presentation.anchors.add(self)
+        if self.history_anchor is not None:
+            # Layout may complete while source preparation awaits. Retain its
+            # actual completion instead of losing it and forcing another frame.
+            self.history_layout_ready = asyncio.Event()
         geometry = self._geometry_revision
         try:
-            try:
-                yield
-            finally:
-                # The native source owns invalidation. An unchanged page or
-                # already-live body must not manufacture another reflow.
-                if self._geometry_revision != geometry:
-                    self.refresh(layout=True)
+            yield
             if self._geometry_revision == geometry:
                 return
             if (widget is not None and widget.is_attached and self.is_attached
                     and screen.is_current and self.document_viewport.accepts_frame()):
-                # A generic after-refresh callback can run before the pending
-                # mount's layout. Wait for an actual compensated reflow first.
-                self.history_layout_ready = asyncio.Event()
-                await self.history_layout_ready.wait()
+                anchor = self.history_anchor
+                if anchor is not None and anchor.geometry_revision != self._geometry_revision:
+                    # A preceding layout cannot finish a later source write.
+                    # Its original requests remain with Screen until release.
+                    self.history_layout_ready.clear()
+                    screen.check_idle()
+                    await self.history_layout_ready.wait()
         finally:
             if isinstance(screen, WorkspaceScreen):
                 screen.viewport_presentation.anchors.discard(self)
@@ -411,15 +426,18 @@ class HistoryAnchor(WindowRestoration):
     widget: Widget
     scroll_y: float
     scroll_revision: int
+    geometry_revision: int = field(kw_only=True)
     follow_tail: ClassVar[bool]
 
     @classmethod
     def capture(cls, widget: Widget, window: HistoryWindow) -> "HistoryAnchor":
         # Screen coordinates may still describe the frame before a scroll event.
         if window.follows_tail:
-            return TailAnchor(widget, window.scroll_y, window.scroll_revision)
+            return TailAnchor(widget, window.scroll_y, window.scroll_revision,
+                              geometry_revision=window._geometry_revision)
         return RecordAnchor(
             widget, window.scroll_y, window.scroll_revision, cls._offset(widget, window),
+            geometry_revision=window._geometry_revision,
         )
 
     def before_layout(self, window: HistoryWindow) -> HistoryAnchor:

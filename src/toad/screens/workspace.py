@@ -20,6 +20,7 @@ from agent_comms.declared_family import DeclaredFamily
 from abc import abstractmethod
 
 if TYPE_CHECKING:
+    from textual._compositor import SubtreeGeometryPlacement
     from toad.app import ToadApp
 
 
@@ -158,7 +159,7 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
             # Record that completed update instead of repeating it next resume.
             self._resume_style = self._style_revision()
 
-    def _layout_mutation_roots(self) -> tuple[Widget, ...]:
+    def _layout_mutation_roots(self) -> dict[Widget, SubtreeGeometryPlacement | None]:
         return self.viewport_presentation.mutation_roots()
 
     def _prepare_compositor_refresh(self) -> tuple[Widget, ...]:

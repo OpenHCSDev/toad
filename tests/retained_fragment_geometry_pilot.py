@@ -173,7 +173,7 @@ async def main():
             await acquire_capture(body)
             assert await body.retire_body()
             await pilot.pause()
-            retired_scene, _ = compare()
+            retired_scene, _, _placement = compare()
             assert not old_children & retired_scene.keys()
             await body.restore_body()
             await pilot.pause()
@@ -513,7 +513,7 @@ async def main():
             receipt['retirement_and_restore_invalidated'] = True
             await history.remove()
             await pilot.pause()
-            final_scene, _ = compare()
+            final_scene, _, _placement = compare()
             assert not set(bodies) & final_scene.keys()
             assert not set(bodies) & scene._subtree_geometry.keys()
             assert app._exception is None

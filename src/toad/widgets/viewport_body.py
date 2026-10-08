@@ -22,6 +22,7 @@ from toad.widgets.presentation_window import (
 )
 
 from textual.widget import Widget
+from textual._compositor import SubtreeGeometryPlacement
 from textual.walk import walk_depth_first
 from textual._measurement import INDEPENDENT_HEIGHT, NATIVE_WIDGET_HEIGHT, height_dependency
 from textual.geometry import Size
@@ -1071,7 +1072,9 @@ class ViewportPresentation:
                             yield ancestor, body
                         break
 
-    def mutation_roots(self, windows: tuple[Widget, ...] | None = None) -> tuple[Widget, ...]:
+    def mutation_roots(
+        self, windows: tuple[Widget, ...] | None = None,
+    ) -> dict[Widget, SubtreeGeometryPlacement | None]:
         """Use the acquired frame windows, or acquire them for layout/input."""
         if windows is None:
             windows = tuple(self.frame_windows())
@@ -1079,8 +1082,9 @@ class ViewportPresentation:
         for anchor in self.anchors:
             if anchor not in displayed and anchor.document_viewport.membership.displayed():
                 displayed[anchor] = None
-        return tuple(root for window in displayed if window.is_attached
-                     if (root := window.history_mutation_root) is not None)
+        return {root: placement for window in displayed if window.is_attached
+                if (mutation := window.history_mutation) is not None
+                for root, placement in (mutation,)}
 
     def prepare(self) -> tuple[Widget, ...]:
         screen = self.screen
