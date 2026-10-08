@@ -814,3 +814,32 @@ Installed for new launches through the original frontend publisher:
 Core/backend defaults, route and running owners are preserved. Existing windows
 retain loaded modules. Raw checks/build/burst/publication:
 `/home/ts/.cache/agent-scratch/dm-empty-disclosure-20261008/`.
+
+## Body extent publication — delivered
+
+Toad575 separates prepared-text extent publication from row-page mutation.
+IRCMessageText now borrows HistoryWindow.reader_anchor/preserve_history with
+the actual body as mutation root, then checks the existing follow policy.
+No rows are added/removed/trimmed during this operation, so whole-page protected
+selection/trim scans and the history-wide fence are gone. Paging retains them.
+All other methods are AST equal;705 production/test modules parse/0 omissions.
+
+Actual private App partial-painted-read control passed. Source and installed
+reader controls passed body growth above the reader with stable visible offset,
+tail replacement, and released mutation custody. Initial control errors were
+fixture eagerness, missing spawn entry protection and failure to release tail
+mode before row exploration; negatives remain in the original scratch folder.
+No production guard/bound/assertion was weakened to correct those fixtures.
+
+The candidate also includes reviewed merged native122 title initialization.
+Installed burst:160 ordered wheels/20 messages/16 recipients/provider0;
+wheel median2.54/p95128.30/max193.79ms;final backlog7.57ms;
+framep95107.27/max193.32;loopmax86.75. Aggregate pacing still FAIL.
+Title52/notification40/IRC40 Layout requests remain; initialization deletion
+does not establish that all later native title layouts are redundant.
+
+Published for NEW launches with original frontend owner, preserving backend,
+route and existing loaded windows:
+`.artifacts/dm-body-publication-delivery-20261008/live-publication.json`.
+Raw source/installed/build/burst/publication:
+`/home/ts/.cache/agent-scratch/dm-body-publication-20261008/`.
