@@ -170,10 +170,10 @@ class BodyMeasurement(ABC):
                     if prepared.width != body._body_measurement.width:
                         prepared = prepared.invalidated()
                     body._update_body_measurement(body._body_measurement.publication_prepared(worker, prepared))
-                await (body.materialize_native_body() if work is None else work())
+                result = await (body.materialize_native_body() if work is None else work())
                 if body.is_attached:
                     body._update_body_measurement(
-                        body._body_measurement.publication_finished(body, worker))
+                        body._body_measurement.publication_finished(body, worker, result))
             except BaseException:
                 body._update_body_measurement(
                     body._body_measurement.publication_failed(body, worker))
@@ -227,7 +227,7 @@ class BodyMeasurement(ABC):
     def get_selection(self, body, selection, select_live):
         return select_live(selection)
 
-    def publication_finished(self, body, worker):
+    def publication_finished(self, body, worker, result):
         """A settled resource does not own this worker's publication."""
         return self
 
@@ -466,14 +466,18 @@ class MaterializingBody(BodyMeasurement):
         else:
             await super().recompose(body, native_recompose)
 
-    def publication_finished(self, body, worker):
+    def publication_finished(self, body, worker, result):
         if self.worker is worker:
+            if result is False:
+                # A source owner refused its admission. Joining its worker
+                # does not publish new native content or revive old controls.
+                return self.previous
             if body._body_measurement is self:
                 # Only the current writer exposes its newly committed native
                 # tree. A newer writer still borrows the preceding pixels.
                 return LiveBody(self.width, self.rows, self.widgets)
             return self.previous
-        return self._updated(self.previous.publication_finished(body, worker))
+        return self._updated(self.previous.publication_finished(body, worker, result))
 
     def publication_failed(self, body, worker):
         if self.worker is worker:
@@ -672,7 +676,7 @@ class MeasuredViewportBody(ViewportBody):
             return
         await self._body_measurement.materialize(self)
 
-    def publish_body(self, work: Callable[[], Awaitable[None]], *, exit_on_error=False) -> AwaitComplete:
+    def publish_body(self, work: Callable[[], Awaitable[None | bool]], *, exit_on_error=False) -> AwaitComplete:
         """Source updates and reentry share the original materialization worker."""
         operation = self._body_measurement.start_materialization(self, work, exit_on_error=exit_on_error)
         return AwaitComplete(operation.materialize(self))
@@ -1053,7 +1057,7 @@ class DocumentViewport:
         self.admitted_bodies.discard(owner)
 
     @property
-    def source_tail_visible(self) -> bool:
+    def source_tail(self) -> ViewportBody | None:
         """The last document body owns this window's current source edge.
 
         An older message can retain a partial range after a newer message is
@@ -1061,8 +1065,20 @@ class DocumentViewport:
         Native document order already owns their relation; warm membership
         and registration order do not supply another chronology.
         """
-        last = next(reversed(tuple(self.body_roots())), None)
+        return next(reversed(tuple(self.body_roots())), None)
+
+    @property
+    def source_tail_visible(self) -> bool:
+        last = self.source_tail
         return last is None or not last.has_newer_source
+
+    def requires_body(self, owner, *, visible=None, protected=None) -> bool:
+        """Native exposure and current interaction own source admission."""
+        if visible is None:
+            visible = self.window.screen._compositor.visible_widgets
+        if protected is None:
+            protected = self.protected()
+        return owner in self.owners and (owner in visible or owner in protected)
 
     def body_roots(self):
         """Native document order, stopping at each registered body boundary.
@@ -1250,7 +1266,8 @@ class DocumentViewport:
                 visible = screen._compositor.visible_widgets
                 protected = self.protected()
                 owners = tuple(self.body_roots())
-                required = tuple(owner for owner in owners if owner in visible or owner in protected)
+                required = tuple(owner for owner in owners
+                                 if self.requires_body(owner, visible=visible, protected=protected))
                 for owner in required:
                     owner.require_native_body()
                 # Reuse the same body admission and worker. Restore only the

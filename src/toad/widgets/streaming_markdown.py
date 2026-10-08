@@ -190,7 +190,8 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
         region, _clip = geometry
         distance = window.document_viewport.lookahead.ahead_rows(window.size.height)
         admission = self.capture_admission()
-        if window.follows_tail and self.stop < len(self.fragments):
+        if (window.follows_tail and window.document_viewport.source_tail is self
+                and self.stop < len(self.fragments)):
             await self.publish_body(partial(self._admit_range, False, latest=True))
         elif self.start > 0 and region.y >= window.content_region.y - distance:
             await self.publish_body(partial(self._admit_range, True))
@@ -198,7 +199,7 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
             await self.publish_body(partial(self._admit_range, False))
         return self.capture_admission() != admission
 
-    async def _admit_range(self, older: bool, *, latest: bool = False) -> None:
+    async def _admit_range(self, older: bool, *, latest: bool = False) -> bool:
         from toad.widgets.history_anchor import HistoryWindow
 
         async with self._content_lock:
@@ -210,23 +211,25 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
                 return (self.is_attached and not self._closing and self.parent is parent
                         and self.capture_admission() == admission and self.screen.is_current
                         and window.document_viewport.lookahead.accepts(demand)
-                        and (not latest or window.follows_tail))
+                        and window.document_viewport.requires_body(self)
+                        and (not latest or (window.follows_tail
+                                            and window.document_viewport.source_tail is self)))
             selected = (self.initial_slice(self.fragments, self.batch_size, True) if latest
                         else self.extension_slice(older))
             if not await self._prepare_parts(self.fragments[selected], current):
-                return
+                return False
             async with window.preserve_history(None, root=self):
                 if not current():
-                    return
+                    return False
                 if latest:
                     previous = {self.start + index: child
                                 for index, child in enumerate(self.fragment_views)}
                     if not await self.replace_range(
                         self.fragments, selected, previous, current, prefix=self._prefix,
                     ):
-                        return
+                        return False
                 elif not await self.extend(older, current):
-                    return
+                    return False
                 visible = self.screen._compositor.visible_widgets
                 protected = protected_presentations(self.fragment_views, self.screen._interaction_widgets())
                 protected.update(child for child in self.fragment_views if child in visible)
@@ -240,6 +243,7 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
                     removable += 1
                 if removable:
                     self.trim(removable, older=not older)
+                return True
 
     @property
     def stream(self) -> MarkdownStream:

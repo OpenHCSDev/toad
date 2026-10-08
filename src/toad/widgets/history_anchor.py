@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from functools import cached_property
 from contextlib import AsyncExitStack, asynccontextmanager, contextmanager
 import asyncio
@@ -148,7 +148,10 @@ class HistoryWindow(VerticalScroll):
     def restore_history_layout(self, position: HistoryAnchor) -> bool:
         previous = self.scroll_y
         position.restore(self)
-        self.history_anchor = HistoryAnchor.capture(position.widget, self)
+        # A held layout can clamp scroll before publishing the new source
+        # position. That clamp is not a new reader intent. Keep the acquired
+        # source/reader relation until this transaction finishes.
+        self.history_anchor = position
         return self.scroll_y != previous
 
     def finish_history_layout(self) -> None:
@@ -380,10 +383,11 @@ class HistoryAnchor(WindowRestoration):
         )
 
     def before_layout(self, window: HistoryWindow) -> HistoryAnchor:
-        """Refresh reader intent before layout, rebinding geometry only on transition."""
-        if window.follows_tail != self.follow_tail:
+        """Rebind on navigation; layout clamps never replace reader intent."""
+        if (window.follows_tail != self.follow_tail
+                or window.scroll_revision != self.scroll_revision):
             return self.capture(self.widget, window)
-        return replace(self, scroll_y=window.scroll_y, scroll_revision=window.scroll_revision)
+        return self
 
     @property
     def geometry_targets(self) -> tuple[Widget, ...]:
