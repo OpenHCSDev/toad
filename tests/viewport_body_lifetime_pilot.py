@@ -187,8 +187,28 @@ async def main():
             view.window.release_anchor()
             view.window.scroll_to_widget(dormant, animate=False, immediate=True)
             await settled(view, pilot)
+            output = os.environ.get("VIEWPORT_EVIDENCE")
+            if output:
+                manager = view.window.document_viewport
+                compositor = app.screen._compositor
+                (Path(output) / "cold-destination.json").write_text(json.dumps(dict(
+                    measurement=type(dormant._body_measurement).__name__,
+                    ready=dormant.body_ready, paragraphs=len(dormant.query(MarkdownParagraph)),
+                    visible=dormant in compositor.visible_widgets,
+                    required=manager.requires_body(dormant),
+                    pending=manager._pending, worker=manager._worker is not None,
+                    scroll=view.window.scroll_y, target=view.window.scroll_target_y,
+                    follows=view.window.follows_tail,
+                    region=str(dormant.region), virtual_region=str(dormant.virtual_region),
+                    viewport=str(view.window.content_region),
+                    source_geometry=[str(geometry) for owner, geometry in
+                                     compositor.published_geometry((dormant,))],
+                    frame_wait=app.screen.frame_presentation.awaits_publication(
+                        view.window, manager.request)), indent=2))
             assert dormant.body_ready and dormant.query(MarkdownParagraph)
-            text = dormant.query_one(MarkdownParagraph)
+            # Selection protects the actual rendered endpoint, not the first
+            # hidden paragraph whose preparation is deliberately lazy.
+            text = next(view.window.visible_history_items(dormant.query(MarkdownParagraph)))
             selected = text.get_selection(SELECT_ALL)
             assert selected is not None
             expected = selected[0]
@@ -234,7 +254,9 @@ async def main():
             async def transaction():
                 async with view.window.history_lock:
                     async with view.window.preserve_history(anchor):
-                        pass
+                        # Unchanged transactions correctly skip reflow. This
+                        # retirement check needs an actual native extent edit.
+                        anchor.styles.margin = (1, 0)
 
             # The anchor can retire after a transaction requests its frame.
             # A completed layout must release it even though compensation no
@@ -250,13 +272,13 @@ async def main():
 
             owner_mode = app.selected_mode
             other = await app.session_navigation.new(app.session_navigation.default_source)
-            await app.switch_mode(owner_mode)
+            await app.select_session(owner_mode)
             await settled(view, pilot)
 
             async def switch_during_transaction():
                 async with view.window.history_lock:
                     async with view.window.preserve_history(docs[0]):
-                        await app.switch_mode(other.mode_name)
+                        await app.select_session(other.mode_name)
 
             # Suspension may occur inside the mutation, before __aexit__ has
             # created any frame waiter for the suspend hook to release.

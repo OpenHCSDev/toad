@@ -69,7 +69,7 @@ Raw result: `/home/ts/.cache/agent-scratch/dm-visible-installed-20261008`.
 All 954 package assets, full 69 distributions and 2857 RECORD entries match.
 The native wheel was reused exactly; only changed Toad was rebuilt.
 
-## Cold eviction development (not installed)
+## Cold eviction
 
 The viewport previously captured complete paint for unadmitted live bodies and
 then discarded it at budget trimming. ReleasedBody now distinguishes that
@@ -106,6 +106,20 @@ Both App handles are terminal. Logs: `dm-cold-eviction-state-run.log` and
 `dm-cold-warm-representation.log` in the same scratch directory. The first
 state-capture invocation refused before App entry because its output directory
 was absent; that setup failure is retained in `dm-cold-eviction-state.log`.
+
+The completed current-navigation App run exited zero after cold reconstruction,
+visible native selection and protected copy, repeated warm/cold returns, bounded
+widget custody, resize, source append, anchor retirement and tab suspension.
+The related selection consumers now acquire a paragraph from the original
+clipped native cohort. The retirement control performs an actual extent change
+before expecting layout completion; no-op transactions do not owe a reflow.
+Tab navigation uses the current session owner instead of obsolete native modes.
+All original assertions and deadlines remain, with retained-paint returns checked
+through visible selectable text rather than compulsory native reconstruction.
+Raw: `dm-cold-current-navigation.log` and `dm-cold-current-navigation-20261008/`
+in the same scratch directory. Earlier failures are retained. Current complete
+production AST: 288 modules, zero parse omissions. This is a source App result;
+installed verification and publication follow separately.
 
 Removing the parser prewarm barrier was also rejected: warm preparation was
 1.99 seconds versus 1.80 in the baseline, with more live widgets at readiness.
