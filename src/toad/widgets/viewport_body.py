@@ -1314,6 +1314,11 @@ class DocumentViewport:
                     # and native publication already request reconciliation;
                     # do not fill their renderer with hidden capture work.
                     return
+                if (self.window, self.request) in screen.frame_presentation.callbacks:
+                    # This viewport already owns a native publication receipt.
+                    # Body requests may finish preparation meanwhile, but the
+                    # next source edge must use that frame's committed extent.
+                    return
                 # The same foreground worker admits message source ranges.
                 # Restore its whole visible cohort first; one range's reader
                 # compensation must not wait on an unstarted sibling restore.
@@ -1322,6 +1327,7 @@ class DocumentViewport:
                                     for owner in required]
                 if any(task.result() for task in source_tasks):
                     screen.frame_presentation.defer(self.window, self.request)
+                    return
                 if self._pending:
                     continue
                 retiring = tuple(owner for owner in owners
