@@ -1314,20 +1314,19 @@ class DocumentViewport:
                     # and native publication already request reconciliation;
                     # do not fill their renderer with hidden capture work.
                     return
-                if (self.window, self.request) in screen.frame_presentation.callbacks:
-                    # This viewport already owns a native publication receipt.
-                    # Body requests may finish preparation meanwhile, but the
-                    # next source edge must use that frame's committed extent.
-                    return
                 # The same foreground worker admits message source ranges.
                 # Restore its whole visible cohort first; one range's reader
                 # compensation must not wait on an unstarted sibling restore.
-                async with asyncio.TaskGroup() as source_preparation:
-                    source_tasks = [source_preparation.create_task(owner.prepare_visible_source())
-                                    for owner in required]
-                if any(task.result() for task in source_tasks):
-                    screen.frame_presentation.defer(self.window, self.request)
-                    return
+                if not screen.frame_presentation.awaits_publication(self.window, self.request):
+                    # The next source edge uses committed frame geometry.
+                    # Waiting for that receipt does not stop retirement or
+                    # preparation needed to make the same frame publishable.
+                    async with asyncio.TaskGroup() as source_preparation:
+                        source_tasks = [source_preparation.create_task(owner.prepare_visible_source())
+                                        for owner in required]
+                    if any(task.result() for task in source_tasks):
+                        screen.frame_presentation.defer(self.window, self.request)
+                        return
                 if self._pending:
                     continue
                 retiring = tuple(owner for owner in owners

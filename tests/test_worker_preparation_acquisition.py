@@ -642,6 +642,20 @@ def test_paged_nested_markdown_publishes_visible_preparation(tmp_path, monkeypat
                 import traceback
                 receipt = {
                     "measurement": type(document._body_measurement).__name__,
+                    "viewport_pending": window.document_viewport._pending,
+                    "viewport_worker": str(window.document_viewport._worker),
+                    "frame_state": type(app.screen.frame_presentation.state).__name__,
+                    "frame_callbacks": [(type(owner).__name__, str(callback))
+                                        for owner, callback in app.screen.frame_presentation.callbacks],
+                    "scroll": {"y": window.scroll_y, "max_y": window.max_scroll_y,
+                               "follows_tail": window.follows_tail,
+                               "anchor": str(window.history_anchor)},
+                    "document_geometry": str(app.screen._compositor.visible_widgets.get(document)),
+                    "following_geometry": str(app.screen._compositor.visible_widgets.get(following)),
+                    "protected": [str(owner) for owner in window.document_viewport.protected()],
+                    "roots": [(str(owner), type(owner._body_measurement).__name__,
+                               str(owner.outer_size), str(owner.virtual_size))
+                              for owner in window.document_viewport.body_roots()],
                     "children": [(type(child).__name__, child._pruning, child._closing,
                                   str(child._task)) for child in document.children],
                     "fragments": [type(child).__name__ for child in document.fragment_views],

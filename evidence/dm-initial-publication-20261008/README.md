@@ -28,3 +28,14 @@ Earlier excessive-admission runs remain in `dm-mount-profile-20261008` and
 
 Publication and installed acceptance follow through the existing frontend
 publication owner. The backend and active native agent sessions are separate.
+
+The candidate build passed all installed asset, origin and RECORD checks, but
+the installed paged control timed out retiring the older body. The first source
+run passed; this installed negative is not dismissed. Its receipt records a
+LiveBody with 23 parts. A subsequent narrowed source run also failed, with no
+viewport worker pending and a PresentedFrame with no deferred callbacks. The
+frame wait now applies only to range admission, so it does not block retirement;
+the remaining exposure/reader relation still needs its actual geometry trace.
+The candidate is unpublished and the previous launch default is unchanged.
+Raw failures remain in `dm-mount-installed-20261008` and
+`dm-mount-retirement-source-20261008` under the owned scratch directory.
