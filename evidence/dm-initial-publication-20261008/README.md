@@ -269,3 +269,13 @@ No new queue, timeout, readiness flag or callback exemption was introduced.
 The complete source relation parsed 288 production, 417 test and 40 tool
 modules without omissions. Original App negatives and private fixture state
 `dmnw9` through `dmnw12` remain retained; no provider input was submitted.
+
+Removing the source join entirely was insufficient: the profiled App exposed
+a visible loading preview (`dmnw13`). The join is now owned by the existing
+BodyMeasurement materialization worker, after its source operation returns and
+releases the window mutation fence. Range Mount still owns membership only.
+The following App observation (`dmnw14`) has no mutation roots while the parent
+joins original nested body publications; it still times out awaiting native
+mounting. Neither observation is a successful full paged acceptance. The
+profile cannot explain retirement cost because it failed at the earlier paint
+assertion, and profiling overhead prevents direct timing comparison.

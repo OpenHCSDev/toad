@@ -175,6 +175,12 @@ class BodyMeasurement(ABC):
                         prepared = prepared.invalidated()
                     body._update_body_measurement(body._body_measurement.publication_prepared(worker, prepared))
                 result = await (body.materialize_native_body() if work is None else work())
+                # Native membership is committed before nested source workers
+                # finish. Join their original publications here, after the
+                # source operation released its window mutation fence, rather
+                # than making a range's Mount wait on those same writers.
+                for child in walk_depth_first(body, ViewportBody, with_root=False):
+                    await child.restore_body()
                 if body.is_attached:
                     body._update_body_measurement(
                         body._body_measurement.publication_finished(body, worker, result))
