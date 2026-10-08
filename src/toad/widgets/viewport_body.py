@@ -839,10 +839,12 @@ class MeasuredViewportBody(ViewportBody):
                     return
 
     def on_worker_static_extent_ready(self, _event):
-        # The original prepared sender bubbles its committed extent. Nested
-        # body boundaries keep bubbling until the registered capture owner.
-        if self.body_capture_pending and self._body_viewport is not None:
-            self._body_viewport.request()
+        # The prepared sender commits readiness for visible publication as
+        # well as complete retirement capture. Nested boundaries keep bubbling
+        # until the registered body, which owns both demands in this viewport.
+        viewport = self._body_viewport
+        if viewport is not None and (self.body_capture_pending or viewport.requires_body(self)):
+            viewport.request()
 
 
 class ViewportPresentation:

@@ -654,6 +654,19 @@ def test_paged_nested_markdown_publishes_visible_preparation(tmp_path, monkeypat
                     "following_geometry": str(app.screen._compositor.visible_widgets.get(following)),
                     "ranges": {"document": (document.start, document.stop, len(document.fragments)),
                                "following": (following.start, following.stop, len(following.fragments))},
+                    "retirement": {
+                        "body_ready": document.body_ready,
+                        "native_lock": document.lock.is_locked,
+                        "content_lock": document._content_lock.locked(),
+                        "stream": str(document._stream),
+                        "children": len(document.reconstructible_children()),
+                        "prepared_current": document.prepared_paint_is_current(document.prepared_paint_sources()),
+                        "published_placement": str(tuple(app.screen._compositor.published_geometry((document,)))),
+                        "missing_paint": [str(owner) for owner, content in document.prepared_paint_sources()
+                                          if content is None],
+                        "nested_not_ready": [str(owner) for owner in walk_depth_first(document, MeasuredViewportBody)
+                                             if not owner.body_ready],
+                    },
                     "protected": [str(owner) for owner in window.document_viewport.protected()],
                     "roots": [(str(owner), type(owner._body_measurement).__name__,
                                str(owner.outer_size), str(owner.virtual_size))

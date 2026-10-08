@@ -44,3 +44,17 @@ body is actually offscreen and not interaction-protected. The reader is at the
 native bottom with follow intent, no anchor, no viewport worker and no deferred
 frame callback. Retirement acquisition, rather than mistaken exposure or a
 still-pending frame, is the remaining investigation.
+
+The capture trace found nine missing hidden paragraph resources, with no lock,
+stream or geometry barrier. The actual readiness handler notified the viewport
+only for retirement capture; completing a visible paragraph did not resume a
+viewport that had returned while awaiting its readiness. The registered body
+now derives both visible and capture demand through the same viewport owner.
+No new readiness flag, worker, queue or native geometry is introduced.
+
+The corrected original App check passed in 14.04 seconds: post 4.95 ms,
+readiness 2.15 seconds, exact source/link text, actual wheel/reversal/stop,
+retirement and warm identity. Raw result is retained at
+`/home/ts/.cache/agent-scratch/dm-visible-publication-wakeup-corrected-20261008`.
+Two runner setup refusals occurred before App entry (missing pytest, then the
+host native package taking precedence); neither invoked an application attempt.
