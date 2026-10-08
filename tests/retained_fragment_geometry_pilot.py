@@ -60,6 +60,15 @@ async def main():
                         await pilot.pause(.02)
                 await pilot.pause(.05)
 
+            async def acquire_capture(member):
+                """Exercise the body's original complete-row acquisition."""
+                async with asyncio.timeout(10):
+                    while not member.prepared_paint_is_current(member.prepared_paint_sources()):
+                        if member.body_ready and not member.body_capture_pending:
+                            assert not await member.retire_body()
+                            assert member.body_capture_pending
+                        await pilot.pause(.02)
+
             await settle()
             live_targets = tuple(owner for owner in viewport.body_roots()
                                  if not owner.body_dormant)
@@ -171,6 +180,13 @@ async def main():
             # Publish the full native scene explicitly; parked windows do not
             # declare offscreen geometry targets in the active frame family.
             scene.reflow(app.screen, app.size)
+            # A live frame no longer prepares hidden paragraphs eagerly.
+            # Start the original retirement acquisition for incomplete bodies,
+            # then borrow the complete cohort after their native Resize and
+            # ExtentReady publication; no body is pruned by this first step.
+            for member in family:
+                await acquire_capture(member)
+            scene.reflow(app.screen, app.size)
             native_captures = Counter()
 
             def observe_capture(frame, event, arg):
@@ -255,6 +271,7 @@ async def main():
                 await member.materialize_body()
                 await pilot.pause()
                 scene.reflow(app.screen, app.size)
+                await acquire_capture(member)
                 # The original worker may prepare new native controls while
                 # the preceding retained rows remain the frame's paint. All
                 # three body implementations share this resource contract.
@@ -319,6 +336,7 @@ async def main():
                 await pilot.pause()
                 assert member.body_ready and not member.body_dormant
                 scene.reflow(app.screen, app.size)
+                await acquire_capture(member)
                 assert await member.retire_body()
                 await pilot.pause()
                 family_receipts[-1]['live_publication_captures_preceding_rows_and_excludes_new_child_paint'] = True
@@ -331,6 +349,7 @@ async def main():
                 # Every new native materialization in this parked fixture
                 # needs publication before borrowing its capture placement.
                 scene.reflow(app.screen, app.size)
+                await acquire_capture(member)
                 assert await member.retire_body()
                 await pilot.pause()
                 assert member.body_ready and member.retained_paint_bytes
@@ -377,9 +396,7 @@ async def main():
                 scene.reflow(app.screen, app.size)
                 # Visible-frame readiness does not prove that a replacement's
                 # hidden paragraphs have committed complete capture resources.
-                async with asyncio.timeout(10):
-                    while not member.prepared_paint_is_current(member.prepared_paint_sources()):
-                        await pilot.pause(.02)
+                await acquire_capture(member)
                 assert await member.retire_body(), (type(member).__name__,
                     type(member._body_measurement).__name__, member.body_ready,
                     member.lock.is_locked, member in viewport.protected(),

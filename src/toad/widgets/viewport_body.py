@@ -51,6 +51,17 @@ class ViewportBody:
         """The body supplies complete pixels without reading mutable children."""
         raise NotImplementedError
 
+    def body_geometry_targets(self) -> tuple[Widget, ...]:
+        raise NotImplementedError
+
+    @property
+    def body_capture_pending(self) -> bool:
+        raise NotImplementedError
+
+    def require_native_body(self) -> None:
+        """Visible or interactive demand ends an unfinished retirement."""
+        raise NotImplementedError
+
     def retire_body(self) -> Coroutine[None, None, bool]:
         raise NotImplementedError
 
@@ -85,6 +96,8 @@ class ViewportBody:
 @dataclass(frozen=True)
 class BodyMeasurement(ABC):
     """One body's extent, native custody and prepared paint resource."""
+
+    capture_pending = False
 
     @property
     @abstractmethod
@@ -187,6 +200,15 @@ class BodyMeasurement(ABC):
         """Settled native content needs its box; retained extent does not."""
         return not self.dormant
 
+    def geometry_targets(self, body):
+        return (body,) if self.requires_geometry(body) else ()
+
+    def capture_requested(self):
+        return self
+
+    def required(self):
+        return self
+
     def publication_prepared(self, worker, paint):
         return self
 
@@ -247,6 +269,9 @@ class MeasuredBody(BodyMeasurement):
 
 @dataclass(frozen=True)
 class LiveBody(MeasuredBody):
+    def capture_requested(self):
+        return CapturingBody(self.width, self.rows, self.widgets)
+
     def prepare_publication(self, body):
         # Borrow the original published scene synchronously, before a writer
         # or its byte measurement can change the native tree.
@@ -284,6 +309,31 @@ class LiveBody(MeasuredBody):
 
     def retire(self, body):
         return body.retire_native_body(self)
+
+
+@dataclass(frozen=True)
+class CapturingBody(LiveBody):
+    """A live body acquiring complete native rows for its own retirement.
+
+    Visible paint requires only exposed paragraphs. Complete capture needs
+    every admitted paragraph's assigned box and committed prepared resource.
+    Their original Resize/ExtentReady messages finish this acquisition; no
+    viewport worker waits on background preparation.
+    """
+
+    capture_pending = True
+
+    def capture_requested(self):
+        return self
+
+    def geometry_targets(self, body):
+        return (body, *walk_depth_first(body, PreparedPaintSource, with_root=False))
+
+    def required(self):
+        return LiveBody(self.width, self.rows, self.widgets)
+
+    def released(self):
+        return self.required()
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -511,6 +561,16 @@ class MeasuredViewportBody(ViewportBody):
     def body_retained_paint_ready(self):
         return self._body_measurement.paint_ready(self)
 
+    def body_geometry_targets(self):
+        return self._body_measurement.geometry_targets(self)
+
+    @property
+    def body_capture_pending(self):
+        return self._body_measurement.capture_pending
+
+    def require_native_body(self):
+        self._update_body_measurement(self._body_measurement.required())
+
     @property
     @height_dependency(INDEPENDENT_HEIGHT)
     def is_container(self):
@@ -647,6 +707,9 @@ class MeasuredViewportBody(ViewportBody):
         if not children:
             return BodyMeasurement.retire(current, self)
         sources = self.prepared_paint_sources()
+        if not self.prepared_paint_is_current(sources):
+            self._update_body_measurement(current.capture_requested())
+            return BodyMeasurement.retire(current, self)
         paint = self.capture_native_paint(current, sources=sources)
         return self.finish_native_retirement(current, children, paint, sources)
 
@@ -761,6 +824,12 @@ class MeasuredViewportBody(ViewportBody):
                     self._body_viewport = ancestor.document_viewport
                     self._body_viewport.register(self)
                     return
+
+    def on_worker_static_extent_ready(self, _event):
+        # The original prepared sender bubbles its committed extent. Nested
+        # body boundaries keep bubbling until the registered capture owner.
+        if self.body_capture_pending and self._body_viewport is not None:
+            self._body_viewport.request()
 
 
 class ViewportPresentation:
@@ -992,17 +1061,11 @@ class DocumentViewport:
                 pending.extend(reversed(node.children))
 
     def geometry_targets(self) -> tuple[Widget, ...]:
-        """Live bodies retain assigned geometry until complete paint captures.
-
-        A root placement alone does not assign widths to its offscreen
-        children in visible-only layout. Their original native Resize must
-        supply preparation before this body can retain all its source rows.
-        Captured bodies have no live demand and release these paths.
-        """
+        """Each body's current resource owns its actual geometry demand."""
         return tuple(dict.fromkeys(
             target
-            for owner in self.owners if owner.body_requires_geometry
-            for target in (owner, *walk_depth_first(owner, PreparedPaintSource, with_root=False))
+            for owner in self.owners
+            for target in owner.body_geometry_targets()
         ))
 
     @property
@@ -1117,6 +1180,8 @@ class DocumentViewport:
                 await worker.wait()
             except WorkerCancelled:
                 pass
+        for owner in tuple(self.owners):
+            owner.require_native_body()
 
     def resume_source(self) -> None:
         self._suspended = False
@@ -1165,6 +1230,8 @@ class DocumentViewport:
                 protected = self.protected()
                 owners = tuple(self.body_roots())
                 required = tuple(owner for owner in owners if owner in visible or owner in protected)
+                for owner in required:
+                    owner.require_native_body()
                 # Reuse the same body admission and worker. Restore only the
                 # neighboring destination bodies, not every skipped record.
                 demand = self.lookahead.demand
@@ -1204,9 +1271,21 @@ class DocumentViewport:
                 # retiring or predicting from the preceding scene.
                 if self._pending:
                     continue
+                if any(not owner.body_ready for owner in required):
+                    # Exposed source owns this frame first. Its preparation
+                    # and native publication already request reconciliation;
+                    # do not fill their renderer with hidden capture work.
+                    return
                 retiring = tuple(owner for owner in owners
                                  if owner.is_attached and not owner._closing
                                  and owner not in retained and not owner.body_dormant)
+                # Complete geometry belongs only to the existing bounded
+                # retirement cohort. Keep its unfinished acquisitions ahead
+                # of new work; a missing resource must not cause every hidden
+                # body's paragraphs to start preparation in the same frame.
+                retiring = tuple(owner for owner in retiring if owner.body_capture_pending) + tuple(
+                    owner for owner in retiring if not owner.body_capture_pending)
+                retiring = retiring[:self.budget.admission_items]
                 retired_owners = []
                 for first in range(0, len(retiring), self.budget.admission_items):
                     # Each call captures its original rows now; tasks only
