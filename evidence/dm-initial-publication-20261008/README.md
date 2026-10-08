@@ -907,3 +907,31 @@ This removes48 widget lifetimes, not a broad performance pass. Raw checks and
 negatives: /home/ts/.cache/agent-scratch/dm-native-caption-20261008/.
 New-launch delivery uses the original reviewed frontend owner; existing user
 windows are not restarted.
+
+## Remaining layout cost and completed paint traversal
+
+Native124,6e625590a, removes traversal below foreground widgets after all
+requested damage cuts have been painted, using original pending-row bookkeeping.
+Reviewed exact decrement/None ownership and affected native paint/held damage
+control; actual installed driver workload completes and publishes for new
+launches with unchanged Toad21f87a/Core09a. This is not a frame-time pass.
+
+Direct UI-thread CPU spans identify the remaining cost: original full reflow
+31calls/479ms total/worst33.7ms and visible reflow71/208ms/worst16.3ms.
+Toad prepared-line draw75calls/2.16ms total/worst0.12ms; viewport preparation
+326calls/41ms total/worst0.29ms. New native workload has frame p95~103ms,
+paint worst5.02ms and full reflow worst38.7ms; single-run variance prevents a
+causal latency claim. Raw owner-cpu-complete and native-cuts-wheel are alongside
+earlier scratch results. Next work concerns layout admission and invalidation.
+
+Even ordinary Python3.14 cProfile produced impossible own/cumulative timings
+and worker-thread calls under UI runcall. Reject timer-attribution pstats;
+direct gated thread_time spans above remain distinct valid observations.
+The first expanded span recorder touched an absent startup screen; original
+failure is retained, the recorder now requires an actual screen stack.
+
+Four unused runtimes were removed after fresh privileged279-process census
+without gaps/references and checking default executable symlinks:282680401bytes.
+Current, immediate rollback and backend runtimes remain; source, wheels, proof,
+publication and raw results are retained. Cleanup original evidence:
+disk-cleanup-owner-20261002/Parent-caption-superseded-runtimes-retired-20261008.json.
