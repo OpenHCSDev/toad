@@ -19,16 +19,38 @@ from toad.widgets.agent_response import AgentResponse
 
 
 async def settled(view, pilot):
-    async with asyncio.timeout(12):
-        while True:
-            await pilot.pause(.02)
-            manager = view.window.document_viewport
-            # Visible readiness alone is not completion of the admitted
-            # offscreen retirement cohort; its extent callbacks may still run.
-            if (manager._worker is None and manager.visible_bodies_ready
-                    and all(owner.body_dormant or manager.requires_body(owner)
-                            for owner in manager.body_roots())):
-                return
+    manager = view.window.document_viewport
+    try:
+        async with asyncio.timeout(12):
+            while True:
+                await pilot.pause(.02)
+                # Visible readiness alone is not completion of the admitted
+                # offscreen retirement cohort; its extent callbacks may still run.
+                if (manager._worker is None and manager.visible_bodies_ready
+                        and all(owner.body_dormant or manager.requires_body(owner)
+                                for owner in manager.body_roots())):
+                    return
+    except TimeoutError:
+        output = os.environ.get("VIEWPORT_EVIDENCE")
+        if output:
+            roots = []
+            for owner in manager.body_roots():
+                sources = owner.prepared_paint_sources()
+                roots.append(dict(
+                    measurement=type(owner._body_measurement).__name__,
+                    ready=owner.body_ready, required=manager.requires_body(owner),
+                    admitted=owner in manager.admitted_bodies,
+                    locked=owner.lock.is_locked,
+                    missing=[dict(type=type(child).__name__, size=str(child.size),
+                                  ready=child.prepared_content is not None,
+                                  ready_signal=getattr(child, "_ready", None).is_set()
+                                  if hasattr(child, "_ready") else None)
+                             for child, resource in sources if resource is None]))
+            (Path(output) / "settlement-timeout.json").write_text(json.dumps(dict(
+                pending=manager._pending, accepts_frame=manager.accepts_frame(),
+                awaiting_frame=view.window.screen.frame_presentation.awaits_publication(
+                    view.window, manager.request), roots=roots), indent=2))
+        raise
 
 
 async def worker_custody(output: Path):
@@ -181,7 +203,18 @@ async def main():
                 view.window.release_anchor()
                 view.window.scroll_to_widget(docs[index], animate=False, immediate=True)
                 await settled(view, pilot)
-                assert docs[index].query(MarkdownParagraph), "Visible source was not restored"
+                returned = docs[index]
+                assert returned in app.screen._compositor.visible_widgets
+                assert returned.body_ready, "Visible source was not restored"
+                if returned.body_retained_paint_ready:
+                    selected = returned.get_selection(SELECT_ALL)
+                    assert selected is not None
+                    assert "A measured paragraph with selectable source." in selected[0]
+                else:
+                    paragraphs = returned.query(MarkdownParagraph)
+                    assert paragraphs, "Cold source was not reconstructed"
+                    assert any("A measured paragraph with selectable source." in child.source
+                               for child in paragraphs)
             assert len(app._registry) <= before + 40, "Repeated visibility accumulated presentation trees"
             await pilot.resize_terminal(90, 40)
             await settled(view, pilot)

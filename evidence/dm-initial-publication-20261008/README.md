@@ -94,6 +94,19 @@ retained. Raw runs: `dm-cold-eviction-{source,acquired-source,completion-source,
 selection-source}-20261008` under `/home/ts/.cache/agent-scratch`, with logs in
 `sidebar-drag-hotpath-20261007`. No deadline was raised or failure waived.
 
+With the installed Native117 geometry scan, the next source App passed initial
+retirement, cold reentry and selection preservation before encountering a stale
+paragraph-tree expectation on repeated returns. Warm RenderedBody intentionally
+has no paragraph children; the control now requires actual native visibility,
+readiness and selectable retained text, or reconstructed cold paragraphs.
+The following run failed at the earlier cold reentry readiness/tree assertion.
+Thus completion remains unqualified; the next investigation is the actual
+destination geometry and reconstruction demand, not a longer settlement wait.
+Both App handles are terminal. Logs: `dm-cold-eviction-state-run.log` and
+`dm-cold-warm-representation.log` in the same scratch directory. The first
+state-capture invocation refused before App entry because its output directory
+was absent; that setup failure is retained in `dm-cold-eviction-state.log`.
+
 Removing the parser prewarm barrier was also rejected: warm preparation was
 1.99 seconds versus 1.80 in the baseline, with more live widgets at readiness.
 Prewarming and native publication have distinct lifetimes; the original code
