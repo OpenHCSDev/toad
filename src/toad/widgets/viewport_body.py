@@ -758,7 +758,7 @@ class MeasuredViewportBody(ViewportBody):
             return BodyMeasurement.retire(current, self)
         if self.lock.is_locked or self._body_viewport is None:
             return BodyMeasurement.retire(current, self)
-        if self in self._body_viewport.protected():
+        if self._body_viewport.requires_body(self):
             return BodyMeasurement.retire(current, self)
         children = self.reconstructible_children()
         if not children:
@@ -824,9 +824,10 @@ class MeasuredViewportBody(ViewportBody):
         return measured()
 
     def retirement_current(self, current):
+        """Borrow current viewport demand again after asynchronous capture."""
         return (self._body_measurement is current and self.is_attached and not self._closing
                 and self._body_viewport is not None
-                and self not in self._body_viewport.protected())
+                and not self._body_viewport.requires_body(self))
 
     async def release_native_body(self, current):
         if not self.body_ready or not self.retirement_current(current):
@@ -835,8 +836,7 @@ class MeasuredViewportBody(ViewportBody):
         if not children:
             return False
         async with self.retirement_custody() as can_commit:
-            if (not can_commit or not self.retirement_current(current)
-                    or self._body_viewport.requires_body(self)):
+            if not can_commit or not self.retirement_current(current):
                 return False
             self._update_body_measurement(MeasuredBody(current.width, current.rows, current.widgets))
             self.retire_body_resources()
