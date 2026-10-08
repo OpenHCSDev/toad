@@ -15,7 +15,7 @@ from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.irc_message import IRCMessageText
-from toad.widgets.message_divider import MessageDivider
+from textual.geometry import Region
 
 
 async def main() -> None:
@@ -45,22 +45,22 @@ async def main() -> None:
                     while not (chat.message_history.reader is not None and not chat.message_history.reader.source.loading):
                         await pilot.pause(.02)
                 block = next(widget for message, widget in chat.message_history.rows if message.seq == last.seq)
-                divider = block.query_one(MessageDivider)
                 body = block.query_one(IRCMessageText)
                 await pilot.pause()
+                caption = Region(block.region.x, block.region.y, block.region.width, 1)
                 viewport = chat.window.content_region
                 chat.window.scroll_to(
-                    y=chat.window.scroll_y + divider.region.bottom - viewport.bottom,
+                    y=chat.window.scroll_y + caption.bottom - viewport.bottom,
                     animate=False, immediate=True,
                 )
                 await pilot.pause()
-                assert divider.region.overlaps(chat.window.content_region)
+                assert Region(block.region.x, block.region.y, block.region.width, 1).overlaps(chat.window.content_region)
                 assert not body.region.overlaps(chat.window.content_region)
                 assert last.seq not in {seq for source, seq in chat.message_history.painted_keys() if not source}
 
                 page = await chat.message_history.reader.page(after=last.seq - 1, limit=chat.message_history.reader.source.page_limit)
                 chat.message_history.channel_receipts[last.seq] = page
-                mark_visible(chat)
+                mark_visible(chat.message_history)
                 await pilot.pause(.2)
                 assert comms.views.viewer_snapshot(str(root)).channel_unread["#team"] == 1
                 assert app._exception is None

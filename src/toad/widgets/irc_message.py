@@ -16,7 +16,8 @@ from toad.core.input_events import SelectTarget
 from toad.widgets.inline_message import IRCMessageSource
 from toad.widgets.worker_static import WorkerStatic
 from contextlib import asynccontextmanager
-from toad.widgets.message_divider import MessageDivider, MessageClock
+from toad.widgets.message_divider import MessageClock
+from textual.content import Content
 from toad.widgets.message_notifications import MessageNotifications
 
 
@@ -93,6 +94,19 @@ class WireMarkdownMessage(CoreEventReceiver, ConversationBlock, VerticalGroup):
 
     CACHE_SUBTREE_GEOMETRY = True
     DEFAULT_CLASSES = "block"
+    DEFAULT_CSS = """
+    WireMarkdownMessage {
+        margin-top: 1;
+        border-top: solid $foreground 60%;
+        border-title-align: center;
+        border-title-color: $text-muted;
+        border-title-style: bold;
+    }
+    WireMarkdownMessage:ansi {
+        border-top: solid ansi_bright_black;
+        border-title-color: ansi_bright_black;
+    }
+    """
     BINDINGS = [
         ("enter", "open_sender", "Open sender"),
         ("shift+enter", "open_destination", "Open destination"),
@@ -108,9 +122,10 @@ class WireMarkdownMessage(CoreEventReceiver, ConversationBlock, VerticalGroup):
             f"History · {message.source.original_root} · @{message.sender} incarnation {message.sender_created_at}"
             if isinstance(message, HistoricalMessage) else direction
         )
+        clock, self.tooltip = MessageClock.recorded(message.timestamp).display()
+        self.border_title = Content(f"{self.direction} · {clock}")
 
     def compose(self) -> ComposeResult:
-        yield MessageDivider(self.direction, clock=MessageClock.recorded(self.message.timestamp))
         yield from self.compose_body()
         self.notifications = MessageNotifications()
         yield self.notifications
@@ -162,7 +177,7 @@ class IRCMessage(WireMarkdownMessage, can_focus=True):
     DEFAULT_CLASSES = ""
     DEFAULT_CSS = """
     IRCMessage {
-        width: 1fr; height: auto; margin: 0; padding: 0;
+        width: 1fr; height: auto; margin: 1 0 0 0; padding: 0;
         IRCMessageText { width: 1fr; height: auto; text-wrap: wrap; }
     }
     """
@@ -172,7 +187,7 @@ class IRCMessage(WireMarkdownMessage, can_focus=True):
         yield self.body
 
     def read_ack_widget(self) -> Widget | None:
-        """Only the text block can authorize a read, never its divider."""
+        """Only the text block can authorize a read, never its caption."""
         body = self.body
         return body if body is not None and body.is_attached and body.paint_ready else None
 
