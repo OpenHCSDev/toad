@@ -223,14 +223,21 @@ class AgentProcess:
             if not line.strip():
                 continue
             try:
-                line_str = line.decode("utf-8")
+                # Keep this read's original bytes and decoder until completion.
+                # Cancellation joins pure acquisition before retiring the child;
+                # no session or native state is accessed by the decode worker.
+                line_str = await join_retirement(asyncio.create_task(
+                    asyncio.to_thread(line.decode, "utf-8"), name="agent-utf8",
+                ))
             except Exception as error:
                 agent.log(f"[error] Unable to decode utf-8 from agent: {error}")
                 continue
             for session in tuple(self.sessions):
                 session.agent.log(f"[agent] {line_str}")
             try:
-                agent_data: jsonrpc.JSONType = json.loads(line_str)
+                agent_data: jsonrpc.JSONType = await join_retirement(asyncio.create_task(
+                    asyncio.to_thread(json.loads, line_str), name="agent-json",
+                ))
             except Exception as error:
                 agent.log(f"[error] failed to decode JSON from agent: {error}")
                 continue
