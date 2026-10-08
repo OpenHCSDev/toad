@@ -843,3 +843,40 @@ route and existing loaded windows:
 `.artifacts/dm-body-publication-delivery-20261008/live-publication.json`.
 Raw source/installed/build/burst/publication:
 `/home/ts/.cache/agent-scratch/dm-body-publication-20261008/`.
+
+## Supplied native titles and settled receipts — delivered
+
+Reviewed merged native123 preserves supplied Collapsible titles instead of
+publishing its default Toggle first. Same-text Content span/metadata changes
+reach the original child. Native constructor/subclass watchers, arbitrary
+children and collapsed events retain their original contracts. The installed
+original supplied-title control and actual notification disclosure control
+passed. The native-supplied-title runtime was published for new launches.
+
+Toad576 now starts painted-read work only while the original history has tail,
+channel or historical receipts. No flag/copy/queue/cache was added. Actual
+pending acknowledgments retain their source/currentness/paint witnesses.
+The existing private App partial-paint control passed against source and the
+installed wheel: unseen bodies remain unread; scrolling acknowledges the rest;
+50 settled visibility calls start no acknowledgment work; both style changes
+retain original row/read identity. Production changes only mark_visible;705
+modules parse with0 omissions. Read acquisition/publication remains independent.
+
+New-launch frontend is published through its existing owner:
+`.artifacts/settled-wire-receipts-delivery-20261008/live-publication.json`.
+Raw checks/build/publication:
+`/home/ts/.cache/agent-scratch/settled-wire-receipts-20261008/`.
+Backend defaults/route/running owners remain unchanged. Existing windows retain
+their loaded modules. Broad frame-time acceptance is still incomplete.
+
+The custom thread-time cProfile experiment returned impossible negative totals,
+including after UI-thread restriction. Those timing results are rejected and
+remain raw in native-supplied-title scratch; no speedup is inferred from them.
+The recorder retains UI-thread gating and uses its original monotonic profiler
+clock again; enclosing CPU spans remain separate measurements.
+
+Three superseded unused runtime directories were removed after a fresh225-process
+census with no gaps/references and checking all default symlinks:173008144bytes.
+Wheels/source/proofs/raw and current/immediate rollback/backend runtimes remain.
+Original cleanup evidence is under disk-cleanup-owner-20261002:
+`Parent-superseded-dm-runtimes-retired-20261008.json`.
