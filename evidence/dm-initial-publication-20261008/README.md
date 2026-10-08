@@ -432,3 +432,26 @@ installed/live or causal speedup claim. The workload still fails the requested
 frame pacing; all 160 wheel packets were ordered, 20 incoming messages were
 published and provider inputs were zero. Raw:
 sidebar-drag-hotpath-20261007/dm-native-content-wheel-20261008/result.json.
+
+The successor wheel passed its original IRC control and all 954 installed
+assets/69 packages/2857 RECORD entries. Toad #566 merged; the original reviewed
+frontend publisher installed the new default without changing backend owners.
+Installed burst result: median3.1ms/p95107.7ms/max231.2ms, UI-loop max77.0ms;
+still not a frame-pacing pass. Raw dm-native-content-installed-wrap.log and
+dm-native-content-installed-wheel-20261008/result.json.
+
+The actual default-launch physical channel check stopped before opening the
+channel: Ctrl+B did not reveal Channels, so the exact channel had no native
+click resource. Original owner was preserved and recorder cleanup has no
+remaining owned processes/errors. Raw/video remain at
+/home/ts/.cache/agent-scratch/dm-native-content-channel-physical-20261008/.
+
+Source establishes the wrong owner: MainScreen.check_action queried inside a
+logical session for ChannelsSidebar, which now belongs to WorkspaceScreen.
+The single binding, availability decision and reveal action move to that
+workspace, deleting the Main/Comms copies. Existing current-selection App now
+checks real Ctrl+B from both agent and channel input; it passes unchanged
+cross-sidebar destination, Ctrl/Shift selection, theme/hover and date checks.
+The first authored check directly changed collapsed while leaving canonical
+settings unchanged; corrected setup uses the original toggle owner instead.
+Both raws are retained; no production fallback or timing increase.

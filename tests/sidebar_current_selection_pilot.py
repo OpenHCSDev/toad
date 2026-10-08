@@ -47,7 +47,13 @@ async def main():
             await app.selected_session.wait_content_ready()
             await app.selected_session.on_coordination_update(coordination_update(str(root / 'wire'), 'actor'))
             actor_mode = app.selected_mode
-            app.workspace_chrome.channels.reveal()
+            channels = app.workspace_chrome.channels
+            await channels.wait_content_ready()
+            if not channels.collapsed:
+                channels.toggle(focus=False)
+            app.selected_session.action_focus_prompt()
+            await pilot.press('ctrl+b')
+            await until(pilot, lambda: not channels.collapsed and channels.has_focus_within)
             await app.workspace_chrome.channels.wait_content_ready()
             left = app.workspace_chrome.channels.query_one(CommsSidebar)
             await left.observation.sync()
@@ -64,6 +70,12 @@ async def main():
             await until(pilot, lambda: app.selected_mode != actor_mode)
             await app.selected_session.wait_content_ready()
             tree = await right_tree(app, pilot)
+            if not channels.collapsed:
+                channels.toggle(focus=False)
+            app.selected_session.action_focus_prompt()
+            await pilot.press('ctrl+b')
+            await until(pilot, lambda: not channels.collapsed and channels.has_focus_within)
+            assert app.screen.query_one('#channels-sidebar') is channels
             outgoing = next(row for row in tree._ordered_rows() if row.target_name == '#team')
             await until(pilot, lambda: group.row.current and outgoing.current)
             assert not app.sidebar_state.selected_targets
