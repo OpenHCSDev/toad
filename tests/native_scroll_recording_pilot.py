@@ -13,7 +13,7 @@ import subprocess
 
 from l0a_native_installed_pilot import main, until
 from native_session_retention_pilot import InstalledApp, conversation_paint
-from tools.record_installed_tui import ProcessOwner
+from tools.record_installed_tui import ProcessOwner, WheelCadenceJourney
 
 
 def reply(request, number):
@@ -50,19 +50,17 @@ async def record(app, pilot, agent, comms, entered, release, hold_next, requests
         'native_owner': repr(comms.registry.require('beta').process_identity),
     }, indent=2))
     recorder = Path(__file__).parent / 'tools/record_installed_tui.py'
-    actions = evidence / 'scroll.xdo'
     custody = ProcessOwner(comms.registry)
-    await asyncio.to_thread(custody.run,
-        [sys.executable, str(recorder), '--write-journey-script', str(actions)],
-        os.environ.copy(), timeout=10, stdout=subprocess.PIPE)
     runtime = Path(sys.prefix) / 'bin'
     env = dict(os.environ, AGENT_COMMS_RUNTIME_ROOT=str(runtime))
     output = evidence / ('profiled' if os.environ.get('SCROLL_PROFILE') == '1' else 'unprofiled')
     command = [sys.executable, str(recorder), '--private-root', str(comms.root),
-               '--owner', 'toad-viewport-demand-214', '--actions', str(actions), '--fit-window',
+               '--owner', 'toad-installed-wheel-scrolling', '--fit-window',
+               '--journey', WheelCadenceJourney.declared_name,
+               '--capture-state', '--scroll-travel',
                '--startup-wait', '12', '--max-duration', '50', '--review-seconds', '5',
                '--review-frames', '40', '--review-timing', 'deferred', '--output', str(output)]
-    for phase in ('up', 'down', 'reverse', 'end', 'idle'):
+    for phase in WheelCadenceJourney.motion_phases:
         command.extend(('--review-phase', phase))
     if os.environ.get('SCROLL_PROFILE') == '1':
         command.append('--profile')

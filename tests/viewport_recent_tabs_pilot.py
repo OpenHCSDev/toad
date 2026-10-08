@@ -40,14 +40,55 @@ def response_geometry(conversation):
             for node in conversation.query(AgentResponse)]
 
 
+def task_waiting(task):
+    import inspect
+    operation = task.get_coro() if task is not None else None
+    chain = []
+    while inspect.iscoroutine(operation) or inspect.isgenerator(operation):
+        frame = operation.cr_frame if inspect.iscoroutine(operation) else operation.gi_frame
+        if frame is not None:
+            chain.append(f"{Path(frame.f_code.co_filename).name}:{frame.f_code.co_name}:{frame.f_lineno}")
+        operation = operation.cr_await if inspect.iscoroutine(operation) else operation.gi_yieldfrom
+    return chain
+
+
 async def settled(pilot, view):
     window = view.window
-    await until(pilot, lambda: (
-        window.document_viewport._worker is None
-        and window.document_viewport.visible_bodies_ready
-        and all(history.state.accepts_source_work
-                for history in window.histories)
-    ))
+    try:
+        await until(pilot, lambda: (
+            window.document_viewport._worker is None
+            and window.document_viewport.visible_bodies_ready
+            and all(history.state.accepts_source_work
+                    for history in window.histories)
+        ))
+    except TimeoutError:
+        from toad.widgets.worker_static import WorkerStatic
+        print(json.dumps({
+            "settlement_timeout": True,
+            "viewport_worker": str(window.document_viewport._worker),
+            "viewport_pending": window.document_viewport._pending,
+            "frame": type(view.screen.frame_presentation.state).__name__,
+            "workers": [{"group": worker.group, "node": type(worker.node).__name__,
+                         "state": worker.state.name, "waiting": task_waiting(worker._task)}
+                        for worker in view.app.workers],
+            "tasks": [task_waiting(task) for task in asyncio.all_tasks()],
+            "native_callbacks": [(type(sender).__name__, str(callback))
+                                 for callback, sender in view.screen._callbacks],
+            "mutation_roots": [str(node) for node in view.screen._layout_mutation_roots()],
+            "body_resources": [(type(body).__name__, type(body._body_measurement).__name__,
+                                body.body_ready, body.body_capture_pending)
+                               for body in window.document_viewport.owners],
+            "unprepared": [{"class": type(body).__name__, "size": str(body.outer_size),
+                            "inner": str(body.container_size),
+                            "parent_inner": str(body.parent.container_size),
+                            "request_width": (body._wanted.task.presentation.options.max_width
+                                              if body._wanted is not None else None),
+                            "ready": body.preparation_complete,
+                            "ready_event": body._ready.is_set()}
+                           for body in window.query(WorkerStatic)
+                           if body.prepared_content is None],
+        }), flush=True)
+        raise
     # Body readiness describes preparation, not completion of the native frame
     # that consumes it. Sample the reader only after that actual paint boundary.
     painted = asyncio.Event()

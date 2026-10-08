@@ -136,7 +136,12 @@ class WorkerStatic(PreparedPaintSource, Static):
         assert isinstance(app, ToadApp)
         auto_width = self.styles.is_auto_width
         parent = self.parent
-        width = (parent.scrollable_content_region.width
+        # Native layout already assigned the parent's inner box. Wrapping
+        # needs its width, not its current screen position: asking for region
+        # here can arrange an offscreen parent during layout publication.
+        # container_size belongs to that parent (not this child's constraint)
+        # and excludes its border/padding; scrollbars consume the remainder.
+        width = (max(0, parent.container_size.width - parent.scrollbar_gutter.width)
                  if auto_width and isinstance(parent, Widget)
                  else max(0, self.outer_size.width - self.styles.gutter.width))
         # A mounted node may not have its native box yet. App width is not

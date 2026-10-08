@@ -1055,25 +1055,18 @@ class WheelCadenceJourney(ScrollJourney):
     def script(cls, args):
         if not args.capture_state or not args.scroll_travel:
             raise ValueError("Wheel cadence requires original native state and scroll travel observation")
+        # The selected saved source, not an unrelated sidebar resize, owns
+        # readiness for this gesture. Combined journeys admit their own chrome.
+        return "\n".join(cls.history_commands(args)) + "\n"
+
+    @classmethod
+    def history_commands(cls, args):
         marker = marker_command()
         settle = f"sleep {args.navigation_settle_seconds:g}"
         # The existing terminal-stress owner uses 36 wheel events for a deep
         # history gesture. This selects that original input, not a new scroll
         # sensitivity or an application frame-rate limit.
-        handle = dict(target="widget", name="SidebarResizeHandle#sidebar-resize-handle",
-                      within="SessionThreadSidebar")
-        # ctrl+b reveals the shared channels sidebar. The session sidebar's
-        # original native disclosure owns the resize edge used below.
-        commands = [*cls.opening_commands(args), marker + "wheel-sidebar-before",
-                    native_click_command("phase-wheel-sidebar-before-state.pickle",
-                                         target="right_sidebar"),
-                    settle, marker + "wheel-width-before",
-                    native_click_command("phase-wheel-width-before-state.pickle", **handle,
-                                         drag_columns=8),
-                    settle, marker + "wheel-width-narrow",
-                    native_click_command("phase-wheel-width-narrow-state.pickle", **handle,
-                                         drag_columns=-8),
-                    settle, marker + "wheel-width-restored", marker + "wheel-before"]
+        commands = [cls.ready_command(args, "wheel-before", cls.history_thread(args))]
         state = "phase-wheel-before-state.pickle"
         for label, wheel in (("wheel-up", -36), ("wheel-down", 36), ("wheel-reverse", -36)):
             commands.extend((marker + label, native_click_command(state, wheel=wheel),
@@ -1081,7 +1074,7 @@ class WheelCadenceJourney(ScrollJourney):
             state = f"phase-{label}-done-state.pickle"
         commands.extend((native_click_command(state), marker + "wheel-end", "key End",
                          settle, marker + "wheel-end-done"))
-        return "\n".join(commands) + "\n"
+        return tuple(commands)
 
 
 class WarmScrollJourney(ScrollJourney):
@@ -1199,7 +1192,8 @@ class WheelWarmJourney(RetainedLifetimeJourney, WheelCadenceJourney):
 
     @classmethod
     def history_commands(cls, args):
-        return (WheelCadenceJourney.script(args), marker_command() + "reader-before-return")
+        return (*WheelCadenceJourney.history_commands(args),
+                marker_command() + "reader-before-return")
 
     @classmethod
     def closing_commands(cls, args):
