@@ -145,6 +145,7 @@ def test_geometry_and_independent_source_style_selection(tmp_path, monkeypatch):
         async with app.run_test(size=(110, 35)) as pilot:
             await app.selected_session.wait_content_ready()
             worker = WorkerStatic(Content.styled("Original native content " * 20, "$accent"))
+            assert worker._render_styles_sensitive()
             worker.styles.width = "auto"
             worker.styles.dock = "top"
             worker.styles.height = 4
@@ -164,9 +165,11 @@ def test_geometry_and_independent_source_style_selection(tmp_path, monkeypatch):
                 assert worker._wanted.task.source is acquired
                 assert worker._wanted.task.presentation.options.size.width == width
                 assert "Original native content" in worker.prepared_content.text
+            measurement = worker._layout_updates
             worker.styles.color = "red"
             await ready()
             assert worker._wanted.task.presentation.native_style.foreground == Color.parse("red")
+            assert worker._layout_updates == measurement
             app.screen.selections = {worker: SELECT_ALL}
             await ready()
             assert worker._wanted.task.source.selection is not None
