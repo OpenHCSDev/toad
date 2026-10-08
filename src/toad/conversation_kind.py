@@ -200,6 +200,7 @@ class ChannelConversation(ConversationKind):
     async def update_roster(cls, view, comms):
         from toad.widgets.channel_participants import ChannelParticipants
         from toad.widgets.channel_prompt import ChannelPrompt
+        from toad.sidebar_preparation import ThreadRowInput
 
         # The composer consumes membership and thread presentation, not the
         # actor's inbox counts or channel activity clocks. Borrow the original
@@ -207,15 +208,29 @@ class ChannelConversation(ConversationKind):
         # the same registry/activity/catalog again after every channel page.
         # Its original roster includes stopped owners and excludes archived
         # owners, independently of the sidebar's user-selected filters.
+        history = view.message_history
+        source = history.source_snapshot()
+        target = view.target
         publication = await view.app.coordination_access.read_sidebar(
             view.app, comms, (True, False))
         snapshot = publication.wire
-        view.query_one(ChannelParticipants).update_participants(
-            snapshot.participants(view.target)
-        )
-        view.query_one(ChannelPrompt).set_mention_candidates(
-            snapshot.mention_candidates(view.target)
-        )
+
+        def prepare():
+            # Membership remains the canonical snapshot's decision. Labels,
+            # status and click identity borrow that same acquired publication;
+            # rendering must not reacquire each person's presentation on UI.
+            rows = publication.row_inputs.for_rows({
+                person.thread.name: ThreadRowInput(person)
+                for person in snapshot.participants(target)
+            })
+            return (ChannelParticipants.prepare_participants(tuple(rows.values())),
+                    snapshot.mention_candidates(target))
+
+        participants, mentions = await view.app.preparation.run_thread(prepare)
+        if not await history.source_is_current(source) or view.target != target:
+            return
+        view.query_one(ChannelParticipants).update_participants(*participants)
+        view.query_one(ChannelPrompt).set_mention_candidates(mentions)
 
     @classmethod
     def painted_page(cls, history, painted):

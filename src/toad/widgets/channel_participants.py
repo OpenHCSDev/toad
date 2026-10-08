@@ -3,7 +3,7 @@ from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 
 from toad.navigation_target import ThreadTarget
 
-from agent_comms.presentation import ThreadView
+from toad.sidebar_preparation import ThreadRowPresentation
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll
 from textual.content import Content
@@ -33,19 +33,23 @@ class ChannelParticipants(VerticalScroll):
     def compose(self) -> ComposeResult:
         yield self.names
 
-    def update_participants(self, people: tuple[ThreadView, ...]) -> None:
+    @staticmethod
+    def prepare_participants(people: tuple[ThreadRowPresentation, ...]) -> tuple[Content, Content]:
+        """Prepare paint from the publication's already acquired row answers."""
         names = []
         summaries = []
-        for person in people:
-            presentation = person.presentation
-            summaries.append(f"{person.thread.name}: {presentation.summary}")
+        for presentation in people:
+            summaries.append(f"{presentation.name}: {presentation.summary}")
             names.append(Content.styled(
                 presentation.label, "$warning" if presentation.busy else "$text-muted",
-            ).stylize(Style.from_meta({"@click": ("open_thread", (person.thread.name,))})))
+            ).stylize(Style.from_meta({"@click": ("open_thread", (presentation.name,))})))
         content = Content.assemble("Active: ", Content(" · ").join(names)) if names else Content("No active turns")
+        return content, Content("\n".join(summaries))
+
+    def update_participants(self, content: Content, tooltip: Content) -> None:
+        """Publish prepared native resources; unchanged paint needs no refresh."""
         previous = self.names.content
         if not isinstance(previous, Content) or not content.is_same(previous):
             self.names.update(content)
-        tooltip = Content("\n".join(summaries))
         if tooltip != self.tooltip:
             self.tooltip = tooltip

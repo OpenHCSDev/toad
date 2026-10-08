@@ -73,7 +73,7 @@ def prepare_thread_presentation(source: ThreadRowPresentation) -> PreparedThread
     summary = source.action_status if source.action_status is not None else source.summary
     badge = f"{source.unread.label} " if source.unread.label else ""
     frames = tuple(Content.assemble(
-        (badge, "bold $accent"),
+        (badge, "bold"),
         f"{'* ' if source.pinned else ''}"
         f"{animated_label(source.label, busy=source.busy, phase=phase)}"
         f"\n  {summary}",

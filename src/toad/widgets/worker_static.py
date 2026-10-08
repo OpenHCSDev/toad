@@ -97,11 +97,21 @@ class WorkerStatic(Static):
             self.call_later(self._request_preparation, capture=True)
 
     def set_source(self, content: RenderableType | RichSource) -> None:
-        self._source = self.source_for(content)
+        source = self.source_for(content)
+        if self._source.same_source(source):
+            # Source equality does not exempt independently changing native
+            # style, width or selection. Acquire their original request as usual.
+            self._request_preparation(capture=True)
+            return
+        self._source = source
         self._generation += 1
-        self._prepared = None
+        self._wanted = None
         self._ready.clear()
-        super().update("Preparing preview…")
+        # The ready request owns the preceding paint and copy coordinates.
+        # Keep it until current replacement paint commits; it supplies no new
+        # source readiness or read acknowledgement while that work is pending.
+        if self._prepared is None:
+            super().update("Preparing preview…")
         self._request_preparation(capture=True)
 
     def update(self, content: VisualType | RichSource = "", *, layout: bool = True) -> None:
@@ -220,7 +230,9 @@ class WorkerStatic(Static):
     @property
     def preparation_complete(self) -> bool:
         """Successful rows and displayed errors both own a settled extent."""
-        return self._ready.is_set() and self._ready_request == self._wanted
+        return (self._ready.is_set() and self._ready_request is not None
+                and self._ready_request.generation == self._generation
+                and self._ready_request == self._wanted)
 
     async def wait_ready(self) -> None:
         await self._ready.wait()
@@ -233,7 +245,9 @@ class WorkerStatic(Static):
     @property
     def paint_ready(self) -> bool:
         """A placeholder or failed preview is not rendered source evidence."""
-        return self._prepared is not None and self._ready_request == self._wanted
+        return (self._prepared is not None and self._ready_request is not None
+                and self._ready_request.generation == self._generation
+                and self._ready_request == self._wanted)
 
     @property
     def prepared_content(self) -> PreparedRichContent | None:
@@ -252,9 +266,9 @@ class WorkerStatic(Static):
         self._ready.set()
 
     def get_selection(self, selection: Selection) -> tuple[str, str] | None:
-        if self._prepared is None:
+        if self._prepared is None or self._ready_request is None:
             return None
-        return self._source.selected_text(selection, self._prepared), "\n"
+        return self._ready_request.task.source.selected_text(selection, self._prepared), "\n"
 
     @height_dependency(NATIVE_WIDGET_WIDTH)
     def get_content_width(self, container: Size, viewport: Size) -> int:
