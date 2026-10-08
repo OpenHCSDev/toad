@@ -87,6 +87,7 @@ class IRCMessageText(WorkerStatic):
 class WireMarkdownMessage(CoreEventReceiver, ConversationBlock, VerticalGroup):
     """One original wire envelope; concrete bodies own only their rendering."""
 
+    CACHE_SUBTREE_GEOMETRY = True
     DEFAULT_CLASSES = "block"
     BINDINGS = [
         ("enter", "open_sender", "Open sender"),
