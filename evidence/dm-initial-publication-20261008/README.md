@@ -364,3 +364,13 @@ Parent retains that separate publication-observer/source-transition trace;
 there is no full-history or physical saved-session acceptance claim.
 Final source raw: bound-reader-final-source.log. Tail negatives:
 predecessor-tail-anchor.log and bound-reader-confirmation.log.
+
+Followthrough: the tail control now reads its marker from the actual native
+ChopsUpdate/LayoutUpdate cells rather than sampling current DOM geometry during
+unrelated publication. Its expected reader destination derives from the original
+anchor geometry and scroll intent; held paint is not that destination. The
+published installed build passes this corrected tail/reader control, including
+the original forbidden tail geometry reads. No production change or timing
+waiver. Raw published-tail-observation.log retains the intermediate overly broad
+damage observation failure; published-tail-cells.log records the actual-cell pass.
+Physical saved-session frame time remains unverified.
