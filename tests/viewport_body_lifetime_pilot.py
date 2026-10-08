@@ -202,7 +202,11 @@ async def main():
                     scroll=view.window.scroll_y, target=view.window.scroll_target_y,
                     anchor=repr(view.window.history_anchor), revision=view.window.scroll_revision,
                 ), indent=2))
-            await settled(view, pilot)
+            # Native scroll_to_widget supplies one placement, not a source
+            # destination through subsequent worker/extent publication. Keep
+            # that original target in the window's existing reader lifetime.
+            async with view.window.preserve_reader(dormant):
+                await settled(view, pilot)
             output = os.environ.get("VIEWPORT_EVIDENCE")
             if output:
                 manager = view.window.document_viewport
@@ -238,7 +242,8 @@ async def main():
             for index in (0, 31, 4, 29, 0, 31):
                 view.window.release_anchor()
                 view.window.scroll_to_widget(docs[index], animate=False, immediate=True)
-                await settled(view, pilot)
+                async with view.window.preserve_reader(docs[index]):
+                    await settled(view, pilot)
                 returned = docs[index]
                 if output and returned not in app.screen._compositor.visible_widgets:
                     (Path(output) / "cold-return-unexposed.json").write_text(json.dumps(dict(
@@ -263,12 +268,14 @@ async def main():
             await pilot.resize_terminal(90, 40)
             await settled(view, pilot)
             view.window.scroll_to_widget(docs[0], animate=False, immediate=True)
-            await settled(view, pilot)
+            async with view.window.preserve_reader(docs[0]):
+                await settled(view, pilot)
             assert docs[0].body_ready and docs[0].source == source(0)
             cold = next(doc for doc in docs if doc.body_dormant)
             await cold.append("\n\nA later live update.")
             view.window.scroll_to_widget(cold, animate=False, immediate=True)
-            await settled(view, pilot)
+            async with view.window.preserve_reader(cold):
+                await settled(view, pilot)
             assert cold.source.endswith("A later live update.")
             assert any("A later live update." in child.source for child in cold.query(MarkdownParagraph))
             anchor = AgentResponse("A transient anchor")

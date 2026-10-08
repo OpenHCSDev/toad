@@ -344,3 +344,23 @@ The initial full-operation profile timed out before navigation and is an
 observation limit; the later acquisition-scoped trace reached the failure.
 Complete HEAD source AST288/417/40 parsed with zero omissions, all anchor
 writers and consumers inspected; current changed modules also compile.
+
+## Native contract and corrected source-navigation consumer
+
+Native review found no projection omission: scroll_to_widget makes one
+least-distance move, not a persistent source destination across later worker
+reflows. Acquired target4 y205 was correct; surrounding source extent then
+changed. All55 recorded native captures matched BodyMeasurement dimensions.
+The four qualifier navigation callers now bind the existing preserve_reader
+lifetime while the actual source/restoration settles. No visibility, source,
+selection, bounded-tree or timing assertion was weakened. The complete cold
+App passes with the unchanged original anchor-rebind semantics. A speculative
+rebind-to-visible-source edit was removed, without entering the build.
+
+The existing tail-transition control fails identically (-161 then0) on the
+unchanged installed width predecessor and the candidate source. It does not
+block the independently verified DM change or establish a new regression.
+Parent retains that separate publication-observer/source-transition trace;
+there is no full-history or physical saved-session acceptance claim.
+Final source raw: bound-reader-final-source.log. Tail negatives:
+predecessor-tail-anchor.log and bound-reader-confirmation.log.
