@@ -78,6 +78,12 @@ async def main():
             for key in ('command-confirmed', 'command-apply', 'command-cancel'):
                 widget = dialog.query_one('#' + key)
                 assert widget.region.bottom <= 24 and widget.region.y >= 0, (key, widget.region)
+            apply = dialog.query_one('#command-apply', Button)
+            cancel = dialog.query_one('#command-cancel', Button)
+            assert apply.region.y == cancel.region.y
+            assert apply.region.right <= cancel.region.x
+            footer = dialog.query_one('#command-buttons')
+            assert abs((apply.region.x + cancel.region.right) / 2 - footer.region.center.x) <= 1
             assert await pilot.click('#command-cancel')
             await until(pilot, lambda: not isinstance(app.screen, CommandDialog))
             # Exercise real multi-target backend writes through the same dialog.
